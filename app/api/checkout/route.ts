@@ -1,0 +1,19 @@
+import { facilitySchema } from "@/lib/form";
+import { hashInput } from "@/lib/hash";
+import { createCheckoutUrl, paymentDisabled } from "@/lib/stripe";
+
+export async function POST(request: Request) {
+  const parsed = facilitySchema.safeParse(await request.json().catch(() => null));
+  if (!parsed.success) {
+    return Response.json({ error: "入力内容を確認してください。" }, { status: 400 });
+  }
+  if (paymentDisabled()) {
+    return Response.json({ url: "/generate?session_id=dev" });
+  }
+  try {
+    return Response.json({ url: await createCheckoutUrl(hashInput(parsed.data)) });
+  } catch (error) {
+    console.error("checkout failed", error);
+    return Response.json({ error: "決済ページを開けませんでした。" }, { status: 502 });
+  }
+}
