@@ -48,3 +48,9 @@ npm run dev                  # http://localhost:3000
 npm run typecheck
 npm run build
 ```
+
+---
+
+## 同じリポジトリ内の別プロジェクト
+
+- [`cat-lab/`](cat-lab/README.md)：主従研究所（猫様と下僕の主従関係診断。Next.js 製の独立したアプリ）
