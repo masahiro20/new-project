@@ -14,11 +14,11 @@ export type Question = {
   choices: [Choice, Choice, Choice, Choice];
 };
 
-export const AXES: Record<Axis, { name: string; high: string; low: string }> = {
-  dom: { name: "君臨度", high: "猫様が完全に上", low: "ほぼ対等" },
-  amae: { name: "甘え度", high: "べったり", low: "ツン" },
-  mood: { name: "気まぐれ度", high: "予測不能", low: "安定" },
-  demand: { name: "要求度", high: "要求だらけ", low: "控えめ" },
+export const AXES: Record<Axis, { name: string; icon: string; high: string; low: string }> = {
+  dom: { name: "君臨度", icon: "👑", high: "猫様が完全に上", low: "ほぼ対等" },
+  amae: { name: "甘え度", icon: "💗", high: "べったり", low: "ツン" },
+  mood: { name: "気まぐれ度", icon: "🎲", high: "予測不能", low: "安定" },
+  demand: { name: "要求度", icon: "📣", high: "要求だらけ", low: "控えめ" },
 };
 
 export const AXIS_ORDER: Axis[] = ["dom", "amae", "mood", "demand"];

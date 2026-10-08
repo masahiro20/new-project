@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { CatArt } from "@/components/CatArt";
 import { Interview } from "@/components/Interview";
+import { isCoatId } from "@/lib/cat";
 import { cleanName, isValidAnswers } from "@/lib/scoring";
 
 export const metadata: Metadata = {
@@ -15,15 +17,17 @@ export default async function Page({ searchParams }: { searchParams: Promise<SP>
   const vs = first(sp.vs);
   const valid = isValidAnswers(vs);
   const vsn = valid ? cleanName(first(sp.vsn), 12, "友達の猫") : undefined;
+  const vsc = valid && isCoatId(first(sp.vsc)) ? first(sp.vsc) : undefined;
 
   return (
     <>
       {valid && (
         <div className="banner">
-          <b>{vsn}</b>の飼い主から、挑戦状が届いています。聴取を終えると、二匹の調書を見比べられます。
+          <CatArt coat={vsc} uid="banner" traits={{ crown: true }} />
+          <p><b>{vsn}</b>の飼い主さんから、挑戦状が届いています！ 聴取が終わると、二匹の調書を見比べられます。</p>
         </div>
       )}
-      <Interview vs={valid ? vs : undefined} vsn={vsn} />
+      <Interview vs={valid ? vs : undefined} vsn={vsn} vsc={vsc} />
     </>
   );
 }

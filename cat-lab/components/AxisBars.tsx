@@ -8,11 +8,11 @@ export function AxisBars({ axes }: { axes: AxisScores }) {
       {AXIS_ORDER.map((a) => (
         <div className="axis" key={a}>
           <div className="row">
-            <b>{AXES[a].name}</b>
+            <b><span aria-hidden="true">{AXES[a].icon}</span>{AXES[a].name}</b>
             <span>{axes[a]}%</span>
           </div>
           <div className="bar" role="img" aria-label={`${AXES[a].name} ${axes[a]}%`}>
-            <i style={{ ["--w" as string]: `${axes[a]}%` }} />
+            <i className={`k-${a}`} style={{ ["--w" as string]: `${axes[a]}%` }} />
           </div>
           <div className="ends">
             <span>{AXES[a].low}</span>

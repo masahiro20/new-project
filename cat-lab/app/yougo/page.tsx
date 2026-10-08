@@ -27,19 +27,19 @@ export default function Page() {
   return (
     <>
       <div className="page-title">
-        <h1>用語集</h1>
+        <h1>用語集 📚</h1>
         <p>主従研究所の公式見解に基づく、猫様と下僕の暮らしの用語集です。</p>
       </div>
       <dl className="glossary">
         {TERMS.map((t) => (
-          <div key={t.word}>
+          <div className="g" key={t.word}>
             <dt>{t.word}<small>{t.kana}</small></dt>
             <dd>{t.def}</dd>
           </div>
         ))}
       </dl>
       <p style={{ marginTop: 40, textAlign: "center" }}>
-        <Link href="/chosa" className="btn">事情聴取を受ける</Link>
+        <Link href="/chosa" className="btn big">事情聴取を受ける 🐾</Link>
       </p>
     </>
   );

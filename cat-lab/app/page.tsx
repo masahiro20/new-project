@@ -1,59 +1,78 @@
 import Link from "next/link";
-import { CatMark } from "@/components/CatMark";
+import { CatArt } from "@/components/CatArt";
 import { CAT_TYPES } from "@/lib/types";
 
+const SHOW = [
+  { code: "HHHH", coat: "chatora" },
+  { code: "LHLL", coat: "mike" },
+  { code: "HLHL", coat: "kuro" },
+  { code: "LLHH", coat: "sabashiro" },
+];
+
 export default function Home() {
-  const sample = CAT_TYPES.filter((t) => ["HHHH", "LHLL", "HLHL", "LLLH"].includes(t.code));
+  const sample = SHOW.map((s) => ({ ...s, type: CAT_TYPES.find((t) => t.code === s.code)! }));
   return (
     <>
       <section className="hero">
-        <CatMark className="cat" />
-        <p className="eyebrow">関係性鑑定課</p>
+        <div className="cats">
+          <CatArt className="c1" coat="mike" uid="h1" traits={{ blush: true }} />
+          <CatArt className="c2" coat="chatora" uid="h2" traits={{ crown: true, open: true }} />
+          <CatArt className="c3" coat="kuro" uid="h3" traits={{ wink: true }} />
+        </div>
+        <p className="bubble">もしかして、私が下僕…？</p>
         <h1>
-          うちの猫は、<br />
-          <em>飼い主を何だと思っている</em>のか。
+          うちの猫様、<br />
+          あなたを<em>下僕</em>だと<br />思ってる？
         </h1>
         <p className="lead">
-          16の「事情聴取」に答えるだけで、あなたと猫様の主従関係を、公式っぽい<b>鑑定調書</b>として発行します。下僕等級は、果たして何等級でしょうか。
+          16の質問に答えるだけ。あなたと猫様の主従関係を、公式っぽい<b>鑑定調書</b>にしてお届けします。下僕等級は、はたして何等級？
         </p>
-        <Link href="/chosa" className="btn big">事情聴取を受ける（約3分）</Link>
-        <p className="note">登録不要・無料。入力した名前はサーバーに保存されません。</p>
+        <Link href="/chosa" className="btn big">主従関係を調べてみる 🐾</Link>
+        <p className="note">無料・登録なし・約3分</p>
       </section>
 
       <section className="section">
-        <h2>調書ができるまで</h2>
+        <h2><small>HOW IT WORKS</small>調書ができるまで</h2>
         <ol className="steps">
-          <li><b>事情聴取に答える</b><span>「深夜3時に鳴かれたら？」など、あるあるの場面を16問。選ぶだけです。</span></li>
-          <li><b>鑑定調書が発行される</b><span>タイプ・下僕等級・猫様の支配率・決定的証拠まで、1枚の書類にまとめます。</span></li>
-          <li><b>画像で保存して、見せ合う</b><span>調書は画像で保存できます。友達に挑戦状を送って、下僕力を比べることも。</span></li>
+          <li><span className="em" aria-hidden="true">🐱</span><div><b>毛柄をえらんで、16の質問に答える</b><span>「深夜3時に鳴かれたら？」など、あるあるの場面を選ぶだけ。</span></div></li>
+          <li><span className="em" aria-hidden="true">📜</span><div><b>うちの子の鑑定調書ができあがる</b><span>タイプ・下僕等級・支配率・決定的証拠。猫様の絵つきです。</span></div></li>
+          <li><span className="em" aria-hidden="true">📣</span><div><b>画像で保存して、見せ合う</b><span>友達に挑戦状を送って、下僕力を比べることもできます。</span></div></li>
         </ol>
       </section>
 
       <section className="section">
-        <h2>判定タイプの一例 <small>全16タイプ</small></h2>
-        <div className="cards">
-          {sample.map((t) => (
-            <Link key={t.code} href={`/types#${t.code}`} className="card" style={{ textDecoration: "none" }}>
-              <h3>{t.name}</h3>
-              <p>{t.catch}</p>
+        <h2><small>16 TYPES</small>どの猫様かな？</h2>
+        <div className="grid2">
+          {sample.map((s) => (
+            <Link key={s.code} href={`/types#${s.code}`} className="card center">
+              <CatArt
+                coat={s.coat}
+                uid={`s-${s.code}`}
+                traits={{ crown: s.code[0] === "H", blush: s.code[1] === "H", wink: s.code[2] === "H", open: s.code[3] === "H" }}
+              />
+              <h3>{s.type.name}</h3>
+              <p>{s.type.catch}</p>
             </Link>
           ))}
         </div>
-        <p style={{ marginTop: 16, textAlign: "center" }}>
-          <Link href="/types" className="btn ghost small">16タイプをすべて見る</Link>
+        <p style={{ marginTop: 22, textAlign: "center" }}>
+          <Link href="/types" className="btn ghost small">16タイプをぜんぶ見る</Link>
         </p>
       </section>
 
       <section className="section">
-        <h2>調べているのは、4つのこと</h2>
-        <div className="cards">
-          <div className="card"><h3>君臨度</h3><p>家の序列で、どちらが上か。</p></div>
-          <div className="card"><h3>甘え度</h3><p>どれだけ下僕を必要としているか。</p></div>
-          <div className="card"><h3>気まぐれ度</h3><p>機嫌の予測しやすさ。</p></div>
-          <div className="card"><h3>要求度</h3><p>下僕に命じる頻度と熱量。</p></div>
+        <h2><small>4 INDICATORS</small>調べているのは、この4つ</h2>
+        <div className="grid2 axis-cards">
+          <div className="card"><p className="ico" aria-hidden="true">👑</p><h3>君臨度</h3><p>家の中で、どっちが偉いか。</p></div>
+          <div className="card"><p className="ico" aria-hidden="true">💗</p><h3>甘え度</h3><p>どれだけ下僕が必要か。</p></div>
+          <div className="card"><p className="ico" aria-hidden="true">🎲</p><h3>気まぐれ度</h3><p>機嫌の読みやすさ。</p></div>
+          <div className="card"><p className="ico" aria-hidden="true">📣</p><h3>要求度</h3><p>下僕に命じる頻度と熱量。</p></div>
         </div>
-        <p style={{ marginTop: 24, textAlign: "center" }}>
-          <Link href="/chosa" className="btn">さっそく聴取を受ける</Link>
+        <p style={{ marginTop: 14, textAlign: "center", fontSize: 13, color: "var(--muted)", fontWeight: 700 }}>
+          高いほど、猫様の絵にも特徴が出ます（王冠・ほっぺ・ウインク・鳴き顔）。
+        </p>
+        <p style={{ marginTop: 26, textAlign: "center" }}>
+          <Link href="/chosa" className="btn big">さっそく調べる 🐾</Link>
         </p>
       </section>
     </>
