@@ -1,21 +1,22 @@
-import { catSvg, type Accessory, type Traits } from "@/lib/cat";
+import { catSvg, type Accessory, type Face, type Traits } from "@/lib/cat";
 
 type Props = {
   breed?: string;
-  traits?: Traits;
+  face?: Face;
   acc?: Accessory;
+  traits?: Traits;
   uid: string;
   className?: string;
   flip?: boolean;
 };
 
 /** 猫イラスト。SVGは lib/cat.ts が固定の選択肢だけから生成する */
-export function CatArt({ breed, traits, acc, uid, className, flip }: Props) {
+export function CatArt({ breed, face, acc, traits, uid, className, flip }: Props) {
   return (
     <div
       className={`cat-art${className ? ` ${className}` : ""}`}
       style={flip ? { transform: "scaleX(-1)" } : undefined}
-      dangerouslySetInnerHTML={{ __html: catSvg({ breed, uid, traits, acc }) }}
+      dangerouslySetInnerHTML={{ __html: catSvg({ breed, uid, face, acc, traits }) }}
     />
   );
 }

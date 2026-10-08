@@ -17,11 +17,11 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: { default: `${SITE_NAME} | うちの猫様と、ほんとうはどんな関係？`, template: `%s | ${SITE_NAME}` },
-  description: `${SITE_TAGLINE}。うちの子をえらんで12の「もしも」に答えると、あなたと猫様の関係をオリジナルのイラストにしてお届けします。`,
+  title: { default: `${SITE_NAME} | うちの子との関係、カードにしよう。`, template: `%s | ${SITE_NAME}` },
+  description: `うちの子をえらんで12の「もしも」に答えると、あなたと猫様の関係がレア度つきの「猫様カード」になります。37種の猫に対応、写真も入れられます。`,
   openGraph: {
-    title: `${SITE_NAME} | うちの猫様と、ほんとうはどんな関係？`,
-    description: `${SITE_TAGLINE}。全20種の猫 × 12の関係。あなたの家はどれ？`,
+    title: `${SITE_NAME} | うちの子との関係、カードにしよう。`,
+    description: `37種の猫 × 12の関係。うちの子との関係を、カードにしよう。`,
     siteName: SITE_NAME,
     locale: "ja_JP",
     type: "website",
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#fff6e9",
+  themeColor: "#fff8f3",
   width: "device-width",
   initialScale: 1,
 };
@@ -54,7 +54,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <main className="wrap">{children}</main>
         <footer className="site-footer">
           <div className="wrap">
-            <p className="paws" aria-hidden="true">🐾🐾🐾</p>
             <p>{SITE_NAME} ― {SITE_TAGLINE}</p>
             <p style={{ marginTop: 6 }}>この診断は娯楽です。猫様の健康や行動の相談は、動物病院へどうぞ。</p>
           </div>

@@ -39,7 +39,7 @@ export default function Page() {
         ))}
       </dl>
       <p style={{ marginTop: 40, textAlign: "center" }}>
-        <Link href="/chosa" className="btn big">事情聴取を受ける 🐾</Link>
+        <Link href="/chosa" className="btn primary big">事情聴取を受ける</Link>
       </p>
     </>
   );

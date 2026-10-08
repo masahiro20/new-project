@@ -10,7 +10,7 @@ import { CatArt } from "./CatArt";
 
 type Props = { vs?: string; vsn?: string; vsb?: string };
 
-const MOODS = [{ blush: true }, { wink: true }, { open: true }, { crown: true }];
+const MOODS = ["sparkle", "wink", "grin", "smug"] as const;
 
 export function Interview({ vs, vsn, vsb }: Props) {
   const router = useRouter();
@@ -32,7 +32,7 @@ export function Interview({ vs, vsn, vsb }: Props) {
   const qs = getQuestions(breed);
 
   function scrollTop() {
-    top.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function finish(all: number[]) {
@@ -78,7 +78,7 @@ export function Interview({ vs, vsn, vsb }: Props) {
           <div className="tabs" role="tablist" aria-label="えらび方">
             {(["柄", "猫種"] as const).map((t) => (
               <button key={t} type="button" role="tab" aria-selected={tab === t} className="tab" onClick={() => setTab(t)}>
-                {t === "柄" ? "柄でえらぶ（8）" : "猫種でえらぶ（12）"}
+                {t === "柄" ? `柄でえらぶ（${BREEDS.filter((x) => x.group === "柄").length}）` : `猫種でえらぶ（${BREEDS.filter((x) => x.group === "猫種").length}）`}
               </button>
             ))}
           </div>
@@ -100,7 +100,7 @@ export function Interview({ vs, vsn, vsb }: Props) {
           </div>
 
           <div className="trait" aria-live="polite">
-            <CatArt breed={breed} uid="pick-sel" traits={{ blush: true }} />
+            <CatArt breed={breed} uid="pick-sel" face="sparkle" />
             <p><b>{b.label}</b>{b.trait}</p>
           </div>
 
@@ -113,7 +113,7 @@ export function Interview({ vs, vsn, vsb }: Props) {
             <input id="owner" value={owner} maxLength={10} onChange={(e) => setOwner(e.target.value)} placeholder="例：下僕その1" autoComplete="off" enterKeyHint="done" />
             <small>名前はサーバーに保存されません。</small>
           </div>
-          <button className="btn big block" type="submit" style={{ marginTop: 24 }}>
+          <button className="btn primary big block" type="submit" style={{ marginTop: 24 }}>
             {QUESTION_COUNT}の質問にすすむ 🐾
           </button>
           <p className="hint">「もしも」の質問ばかり。正解はありません。直感でどうぞ。</p>
@@ -125,9 +125,9 @@ export function Interview({ vs, vsn, vsb }: Props) {
   if (phase === "busy") {
     return (
       <div className="panel busy" role="status" aria-live="polite" ref={top}>
-        <CatArt breed={breed} uid="busy" traits={{ wink: true, blush: true }} />
+        <CatArt breed={breed} uid="busy" face="wink" />
         <p>{catName}との関係を鑑定中…</p>
-        <small>研究員が、ふたりの絵を描いています</small>
+        <small>あなただけのカードを準備しています</small>
         <div className="dots-loader" aria-hidden="true"><i /><i /><i /></div>
       </div>
     );
@@ -143,7 +143,7 @@ export function Interview({ vs, vsn, vsb }: Props) {
       <div className="q-head">
         <span className="q-icon" aria-hidden="true">{q.icon}</span>
         {q.breed && <span className="q-badge">{shortName(b)}だけの質問</span>}
-        <CatArt breed={breed} uid="ask" traits={MOODS[step % 4]} />
+        <CatArt breed={breed} uid="ask" face={MOODS[step % 4]} />
       </div>
       <h2 className="q-scene">{q.scene.replaceAll("{cat}", catName)}</h2>
       <div className="choices">

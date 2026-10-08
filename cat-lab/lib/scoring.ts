@@ -1,7 +1,6 @@
 import { getBreed, type Breed } from "./breeds.ts";
-import type { HumanOpts } from "./human.ts";
 import { AXIS_ORDER, COMMON, QUESTION_COUNT, type Axis, type Question } from "./questions.ts";
-import { RELATIONS, type Relation } from "./relations.ts";
+import { RELATIONS, type Aruaru, type Relation } from "./relations.ts";
 import { GRADES, type Grade } from "./grades.ts";
 
 export type AxisScores = Record<Axis, number>;
@@ -14,10 +13,9 @@ export type Report = {
   relation: Relation;
   /** 2番目に近い関係（「〇〇の素質もあり」用） */
   second: Relation;
-  variant: number;
   catLine: string;
-  humanLine: string;
-  human: HumanOpts;
+  aruaru: [Aruaru, Aruaru];
+  rarity: Rarity;
   sovereignty: number;
   grade: Grade;
   evidence: Observation;
@@ -51,10 +49,16 @@ export function hash(s: string): number {
   return h >>> 0;
 }
 
-const HAIR: HumanOpts["hair"][] = ["short", "bob", "bun", "spiky"];
-const HAIR_COLOR = ["#5a3d2e", "#2e2420", "#a0603a", "#d9a95a", "#6b4a8a"];
-const SHIRT = ["#7ec8e3", "#ff9ec4", "#ffd34d", "#62d2a2", "#b48cff", "#ff8c42"];
-const PANTS = ["#5a6b8c", "#3b3b4f", "#8b6b4a", "#4f7a6a"];
+export type Rarity = { rank: "UR" | "SSR" | "SR" | "R"; label: string; note: string };
+
+/** 指標の偏り（50からの距離の合計）でレア度を決める。境目はシミュレーションで決めた値 */
+export const RARITY_CUT = { UR: 99, SSR: 78, SR: 53 };
+const RARITIES: Record<Rarity["rank"], Rarity> = {
+  UR: { rank: "UR", label: "ウルトラレア", note: "上位4%の、とびきり個性的な関係" },
+  SSR: { rank: "SSR", label: "スーパースペシャルレア", note: "上位16%の、濃い関係" },
+  SR: { rank: "SR", label: "スーパーレア", note: "上位50%の、くっきりした関係" },
+  R: { rank: "R", label: "レア", note: "バランスのいい、ほどよい関係" },
+};
 
 export function buildReport(answers: string, breedId: string | undefined, catName: string): Report {
   const breed = getBreed(breedId);
@@ -94,15 +98,14 @@ export function buildReport(answers: string, breedId: string | undefined, catNam
   const second = ranked[1].r;
 
   const seed = hash(answers + "|" + breed.id + "|" + catName);
-  const variant = seed % 3;
   const catLine = relation.catLines[(seed >>> 3) % relation.catLines.length];
-  const humanLine = relation.humanLines[(seed >>> 7) % relation.humanLines.length];
-  const human: HumanOpts = {
-    hair: HAIR[(seed >>> 11) % HAIR.length],
-    hairColor: HAIR_COLOR[(seed >>> 13) % HAIR_COLOR.length],
-    shirt: SHIRT[(seed >>> 16) % SHIRT.length],
-    pants: PANTS[(seed >>> 19) % PANTS.length],
-  };
+  const n = relation.aruaru.length;
+  const i1 = (seed >>> 7) % n;
+  const i2 = (i1 + 1 + ((seed >>> 11) % (n - 1))) % n;
+  const aruaru: [Aruaru, Aruaru] = [relation.aruaru[i1], relation.aruaru[i2]];
+
+  const spread = AXIS_ORDER.reduce((t, a) => t + Math.abs(axes[a] - 50), 0);
+  const rarity = RARITIES[spread >= RARITY_CUT.UR ? "UR" : spread >= RARITY_CUT.SSR ? "SSR" : spread >= RARITY_CUT.SR ? "SR" : "R"];
 
   const sovereignty = Math.round(axes.dom * 0.6 + axes.demand * 0.4);
   const grade = GRADES.find((g) => sovereignty >= g.min)!;
@@ -117,7 +120,7 @@ export function buildReport(answers: string, breedId: string | undefined, catNam
     .slice(0, 4)
     .map((x) => x.o);
 
-  return { answers, breed, axes, relation, second, variant, catLine, humanLine, human, sovereignty, grade, evidence, observations };
+  return { answers, breed, axes, relation, second, catLine, aruaru, rarity, sovereignty, grade, evidence, observations };
 }
 
 /** 調書番号。回答と名前から決まるので、同じ内容なら同じ番号になる */

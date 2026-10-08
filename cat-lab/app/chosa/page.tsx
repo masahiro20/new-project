@@ -6,7 +6,7 @@ import { cleanName, isValidAnswers } from "@/lib/scoring";
 
 export const metadata: Metadata = {
   title: "関係性鑑定",
-  description: "うちの子をえらんで、12の「もしも」の質問に答えると、あなたと猫様の関係がイラストになります。",
+  description: "うちの子をえらんで、12の「もしも」の質問に答えると、あなたと猫様の関係がカードになります。",
 };
 
 type SP = { [key: string]: string | string[] | undefined };
@@ -24,7 +24,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<SP>
     <>
       {valid && (
         <div className="banner">
-          <CatArt breed={vsb} uid="banner" traits={{ crown: true }} />
+          <CatArt breed={vsb} uid="banner" face="smug" acc="crown" />
           <p><b>{vsn}</b>の飼い主さんから挑戦状！ 鑑定が終わると、二匹の結果を見比べられます。</p>
         </div>
       )}
