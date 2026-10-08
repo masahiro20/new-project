@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Zen_Maru_Gothic } from "next/font/google";
 import Link from "next/link";
 import { CatArt } from "@/components/CatArt";
-import { SITE_NAME, SITE_TAGLINE } from "@/lib/site";
+import { SITE_NAME, SITE_TAGLINE, SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 const maru = Zen_Maru_Gothic({
@@ -13,10 +13,8 @@ const maru = Zen_Maru_Gothic({
   variable: "--font-maru",
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
+  metadataBase: new URL(SITE_URL),
   title: { default: `${SITE_NAME} | うちの子との関係、カードにしよう。`, template: `%s | ${SITE_NAME}` },
   description: `うちの子をえらんで12の「もしも」に答えると、あなたと猫様の関係がレア度つきの「猫様カード」になります。37種の猫に対応、写真も入れられます。`,
   openGraph: {
@@ -56,6 +54,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div className="wrap">
             <p>{SITE_NAME} ― {SITE_TAGLINE}</p>
             <p style={{ marginTop: 6 }}>この診断は娯楽です。猫様の健康や行動の相談は、動物病院へどうぞ。</p>
+            <p style={{ marginTop: 6 }}><Link href="/about">このサイトについて・プライバシー</Link></p>
           </div>
         </footer>
       </body>
