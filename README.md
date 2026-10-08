@@ -46,5 +46,6 @@ npm run dev                  # http://localhost:3000
 
 ```bash
 npm run typecheck
+npm run lint
 npm run build
 ```

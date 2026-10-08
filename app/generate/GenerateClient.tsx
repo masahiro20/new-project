@@ -68,21 +68,6 @@ export default function GenerateClient({ price }: { price: number }) {
   const [message, setMessage] = useState<string | null>(null);
   const started = useRef(false);
 
-  useEffect(() => {
-    const saved = loadSaved();
-    if (saved) setInput(saved);
-
-    if (sessionId && !started.current) {
-      started.current = true;
-      if (!saved) {
-        setMessage("入力内容が見つかりませんでした。購入時と同じブラウザで開いてください。");
-        return;
-      }
-      generatePaid(sessionId, saved);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionId]);
-
   const set = <K extends keyof FacilityInput>(key: K, value: FacilityInput[K]) => setInput((prev) => ({ ...prev, [key]: value }));
 
   const update = (part: Part | "preview", patch: Partial<Output>) =>
@@ -99,6 +84,23 @@ export default function GenerateClient({ price }: { price: number }) {
     await Promise.all(PARTS.map((part) => run(part, "/api/generate", { sessionId: id, part, input: data })));
     setBusy(false);
   }
+
+  useEffect(() => {
+    const saved = loadSaved();
+    // localStorage is only readable after mount, so restoring here is intended.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (saved) setInput(saved);
+
+    if (sessionId && !started.current) {
+      started.current = true;
+      if (!saved) {
+        setMessage("入力内容が見つかりませんでした。購入時と同じブラウザで開いてください。");
+        return;
+      }
+      generatePaid(sessionId, saved);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionId]);
 
   async function preview() {
     if (!input.facilityName.trim()) return setMessage("事業所名を入力してください。");
