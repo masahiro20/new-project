@@ -251,7 +251,7 @@ select{border:1px solid var(--line);border-radius:4px;background:var(--surface);
 
 /* log */
 .log{position:relative}
-@media (min-width:1000px){.log{position:sticky;top:12px;align-self:start;max-height:calc(100vh - 24px);display:flex;flex-direction:column}}
+@media (min-width:1000px){.log{position:sticky;top:calc(env(safe-area-inset-top,0px) + 40px);align-self:start;max-height:calc(100vh - 52px);display:flex;flex-direction:column}}
 .log-list{list-style:none;margin:0;padding:0;overflow:auto;min-height:0}
 @media (max-width:999px){.log-list{max-height:420px}}
 .log-list li{border-top:1px solid var(--line);padding:8px 0;font-size:.84rem;min-width:0}
@@ -275,6 +275,40 @@ select{border:1px solid var(--line);border-radius:4px;background:var(--surface);
 .toast strong{display:block;margin-top:2px}
 .toast p{margin:4px 0 0;color:var(--muted)}
 .toast .x{border:0;background:transparent;cursor:pointer;color:var(--muted);font-size:1rem;line-height:1;padding:4px}
+/* pinned demo-billing strip */
+.paystrip{position:sticky;top:env(safe-area-inset-top,0px);z-index:15;height:28px;display:flex;align-items:center;justify-content:center;gap:14px;padding-inline:16px;background:var(--banner-bg);color:var(--banner-fg);font-size:.8rem;line-height:1;white-space:nowrap;overflow:hidden;border-bottom:1px solid var(--line)}
+.paystrip strong{font-weight:700}
+.paystrip span{opacity:.85;min-width:0;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:479px){.paystrip span{display:none}}
+.panel,.co{scroll-margin-top:40px}
+/* billing (demo payments) */
+.banner .payflag{font-size:.9rem;border:1px solid currentColor;border-radius:3px;padding:0 6px;white-space:nowrap}
+.plan-ind{gap:6px}
+.plan-ind .pk{color:var(--muted);font-size:.78rem}
+.plan-ind.paid{border-color:var(--ok);color:var(--ok)}
+.plan-ind.paid .pk{color:var(--ok)}
+.billing{margin-top:16px}
+.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:10px}
+.plan-card{border:1px solid var(--line);border-radius:6px;padding:12px;background:var(--surface-2);display:flex;flex-direction:column;gap:6px;min-width:0}
+.plan-card.current{border-color:var(--accent);box-shadow:inset 0 3px 0 var(--accent)}
+.plan-card .pn{display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap}
+.plan-card .price{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:1.5rem;font-weight:500}
+.plan-card .price small{font-size:.8rem;color:var(--muted);font-family:var(--sans);font-weight:400;margin-left:2px}
+.plan-card ul{margin:0;padding-left:1.1em;font-size:.84rem;color:var(--muted)}
+.plan-card .btn{margin-top:auto}
+.cur{border:1px solid var(--line);border-radius:6px;padding:12px;background:var(--surface-2);min-width:0}
+.cur dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 12px;margin:8px 0 0;font-size:.86rem}
+.cur dt{color:var(--muted)}
+.cur dd{margin:0;min-width:0;overflow-wrap:anywhere}
+.co{border:1px solid var(--line);border-radius:6px;padding:12px;background:var(--surface-2);margin-top:10px;min-width:0}
+.co-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:4px 12px;margin-top:8px}
+.co-grid .full{grid-column:1 / -1}
+.co-grid > div{min-width:0}
+.co-grid label{display:block;font-weight:500;font-size:.88rem}
+.text-input.invalid{border-color:var(--crit)}
+.text-input:disabled{opacity:.6}
+.lic{font-family:var(--mono);font-size:1.05rem;font-weight:500;letter-spacing:.02em;background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:3px 8px;display:inline-block;overflow-wrap:anywhere}
+.log-list .kind.k-billing{color:var(--ok);border-color:var(--ok)}
 @keyframes tin{from{transform:translateY(8px);opacity:0}to{transform:none;opacity:1}}
 @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 
@@ -287,9 +321,11 @@ select{border:1px solid var(--line);border-radius:4px;background:var(--surface);
 }
 </style>
 
+<div class="paystrip" role="note" id="pay-strip"><strong>デモ：実際の請求はありません</strong><span id="pay-strip-sub">デモデータ・外部API呼び出しなし</span></div>
 <div class="wrap">
   <div class="banner" role="note">
     <strong>デモデータです。実際の外部APIは呼びません。</strong>
+    <strong class="payflag" id="pay-flag">デモ：実際の請求はありません</strong>
     <span>金額・プロジェクトID・キーID・日時はすべて架空です。このページは外部と一切通信しません(Webフォントも読み込みません)。</span>
   </div>
 
@@ -302,6 +338,7 @@ select{border:1px solid var(--line);border-radius:4px;background:var(--surface);
       <span class="lbl">シミュレーション時刻</span>
       <span class="t" id="sim-clock">2026-10-18 14:00</span>
       <span class="chip mode">全接続 テストモード</span>
+      <button class="btn small plan-ind" id="plan-chip" type="button" aria-describedby="pay-flag"><span class="pk">プラン</span><span id="plan-chip-name">無料</span></button>
       <button class="btn small ghost" id="theme-toggle" type="button" aria-label="表示テーマを切り替え">テーマ: 自動</button>
     </div>
   </header>
@@ -453,6 +490,51 @@ select{border:1px solid var(--line);border-radius:4px;background:var(--surface);
           <button class="btn" type="button" id="demo-reset">デモをリセット</button>
         </div>
       </section>
+
+      <!-- BILLING (demo payments, mirrors PAYMENTS_MODE=demo) -->
+      <section class="panel billing" id="billing" aria-labelledby="h-billing">
+        <div class="panel-head">
+          <h2 id="h-billing">プランと購入</h2>
+          <span class="chip warn">料金は案・承認待ち</span>
+          <p>製品の PAYMENTS_MODE=demo と同じ流れを再現します。カード情報はどこにも送信・保存しません。</p>
+        </div>
+        <div class="callout warn" role="note"><strong>デモ：実際の請求はありません。</strong> 実在のカード番号は入力しないでください。テスト用の番号 <code>4242 4242 4242 4242</code> を使えます。</div>
+        <div class="cur" id="bill-current"></div>
+        <div id="bill-plans"></div>
+        <form class="co" id="checkout-form" novalidate hidden aria-labelledby="h-checkout">
+          <h3 id="h-checkout">デモ決済</h3>
+          <p class="note" id="co-summary"></p>
+          <div class="co-grid">
+            <div class="full">
+              <label for="cc-number">カード番号</label>
+              <input class="text-input" id="cc-number" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" maxlength="23" placeholder="4242 4242 4242 4242" aria-describedby="err-cc-number cc-hint">
+              <div class="note" id="cc-hint">テスト用: 4242 4242 4242 4242</div>
+              <div class="err" id="err-cc-number" role="alert"></div>
+            </div>
+            <div>
+              <label for="cc-exp">有効期限 (MM/YY)</label>
+              <input class="text-input" id="cc-exp" type="text" inputmode="numeric" autocomplete="off" maxlength="7" placeholder="12/28" aria-describedby="err-cc-exp">
+              <div class="err" id="err-cc-exp" role="alert"></div>
+            </div>
+            <div>
+              <label for="cc-cvc">セキュリティコード</label>
+              <input class="text-input" id="cc-cvc" type="password" inputmode="numeric" autocomplete="off" maxlength="4" placeholder="123" aria-describedby="err-cc-cvc">
+              <div class="err" id="err-cc-cvc" role="alert"></div>
+            </div>
+            <div class="full">
+              <label for="cc-name">カード名義</label>
+              <input class="text-input" id="cc-name" type="text" autocomplete="off" spellcheck="false" placeholder="TARO YAMADA" aria-describedby="err-cc-name">
+              <div class="err" id="err-cc-name" role="alert"></div>
+            </div>
+          </div>
+          <div class="row-actions">
+            <button class="btn primary" type="submit" id="pay-submit">デモで支払う</button>
+            <button class="btn" type="button" id="pay-cancel" data-bill="back">やめる</button>
+            <span class="note" id="pay-status" aria-live="polite">実際の請求はありません。外部には何も送信しません。</span>
+          </div>
+        </form>
+        <div id="bill-result" aria-live="polite"></div>
+      </section>
     </main>
 
     <aside class="panel log" aria-labelledby="h-log">
@@ -537,7 +619,9 @@ select{border:1px solid var(--line);border-radius:4px;background:var(--surface);
     });
     S = {
       day: START_DAY, hour: START_HOUR, min: 0, step: 1, series: 'total',
-      conns: conns, log: [], sel: 'openai', conf: null, attention: null, lastResult: null
+      conns: conns, log: [], sel: 'openai', conf: null, attention: null, lastResult: null,
+      plan: { tier: 'free', prev: null, last4: null, key: null, since: null, renews: null },
+      bill: { view: 'plans', pick: null, manage: false, confirmCancel: false, last: null }
     };
     addLog('2026-10-01 00:00', 'check', '新しい月になりました。3接続のアラートと停止を再び有効にしました。');
     addLog('2026-10-06 09:12', 'setting', 'vercel-acme-web: 停止対象にプロジェクト acme-web (prj_demoA1b2C3d4) を選択。モード: テスト');
@@ -768,7 +852,7 @@ select{border:1px solid var(--line);border-radius:4px;background:var(--surface);
   }
 
   function renderLog() {
-    var names = { notify: '通知', test: 'テスト', setting: '設定', check: 'チェック', restore: '復旧', sim: 'デモ操作' };
+    var names = { notify: '通知', test: 'テスト', setting: '設定', check: 'チェック', restore: '復旧', sim: 'デモ操作', billing: 'プラン' };
     $('log-list').innerHTML = S.log.map(function (e) {
       return '<li><span class="ts">' + esc(e.ts) + '</span><span class="kind k-' + e.kind + '">' + names[e.kind] + '</span>' +
         '<div>' + esc(e.text) + '</div>' +
@@ -864,6 +948,7 @@ select{border:1px solid var(--line);border-radius:4px;background:var(--surface);
     var c = S.conns[S.sel], pl = plan(c), ctx;
     if (c.hit100) ctx = '<div class="callout crit">' + esc(c.label) + ' は ' + c.hit100 + ' に100%に達し、テストモードで送信予定のリクエストを記録済みです。</div>';
     else ctx = '<div class="callout">' + esc(c.label) + ' はまだ ' + pctText(pct(c)) + ' です。手動の「今すぐ停止」でも同じ確認が必要です。</div>';
+    if (S.plan.tier === 'free') ctx += '<div class="callout">いまは無料プラン(通知のみ)です。製品版では停止の実行に有料プランが必要です。このデモでは無料のままでもテストモードで試せます。<div class="row-actions"><button class="btn small" type="button" data-bill="show" id="stop-plan-goto">プランを見る</button></div></div>';
     if (c.stopState === 'tested') ctx += '<div class="callout ok">この接続は ' + c.stopRecord.ts + ' にテスト実行済みです(送信していません)。もう一度試すこともできます。</div>';
     $('stop-context').innerHTML = ctx;
     $('plan-summary').textContent = pl.summary;
@@ -982,6 +1067,212 @@ select{border:1px solid var(--line);border-radius:4px;background:var(--surface);
     renderAll(false);
   }
 
+
+  /* ---------- billing: demo payments (mirrors PAYMENTS_MODE=demo) ---------- */
+  var DEMO_YY = 26, DEMO_MM = 10; // demo clock: 2026-10
+  var PLANS = {
+    monthly: { name: 'Monthly', price: '$9', per: '/月', perLong: '月額 $9', renew: function () { return '2026-11-' + pad(S.day); },
+      feats: ['監視する接続 3つまで', '毎時チェック', '80%通知 + 100%で停止', 'すべての停止にテストモード'] },
+    yearly: { name: 'Yearly', price: '$79', per: '/年', perLong: '年額 $79', renew: function () { return '2027-10-' + pad(S.day); },
+      feats: ['Monthly のすべて', '2か月分お得'] }
+  };
+  var payTimer = null;
+
+  function luhn(d) {
+    var sum = 0, dbl = false;
+    for (var i = d.length - 1; i >= 0; i--) {
+      var n = +d.charAt(i);
+      if (dbl) { n *= 2; if (n > 9) n -= 9; }
+      sum += n; dbl = !dbl;
+    }
+    return sum % 10 === 0;
+  }
+  function checkCard(raw) {
+    var s = String(raw).trim();
+    if (!s) return 'カード番号を入力してください。';
+    if (!/^[\d\s-]+$/.test(s)) return 'カード番号は数字で入力してください。';
+    var d = s.replace(/\D/g, '');
+    if (d.length < 13 || d.length > 19) return 'カード番号の桁数が正しくありません(13〜19桁)。';
+    if (!luhn(d)) return 'カード番号が正しくありません。入力をご確認ください。';
+    return '';
+  }
+  function checkExp(raw) {
+    var s = String(raw).replace(/\s/g, '');
+    if (!s) return '有効期限を入力してください。';
+    var m = /^(\d{2})\/?(\d{2})$/.exec(s);
+    if (!m) return '有効期限は MM/YY の形式で入力してください(例: 12/28)。';
+    var mm = +m[1], yy = +m[2];
+    if (mm < 1 || mm > 12) return '月は 01〜12 で入力してください。';
+    if (yy < DEMO_YY || (yy === DEMO_YY && mm < DEMO_MM)) return '有効期限が切れています(デモの現在: 2026年10月)。';
+    if (yy > DEMO_YY + 20) return '有効期限が先すぎます。入力をご確認ください。';
+    return '';
+  }
+  function checkCvc(raw) {
+    var s = String(raw).trim();
+    if (!s) return 'セキュリティコードを入力してください。';
+    if (!/^\d{3,4}$/.test(s)) return 'セキュリティコードは3〜4桁の数字です。';
+    return '';
+  }
+  function checkName(raw) {
+    var s = String(raw).trim();
+    if (!s) return 'カード名義を入力してください。';
+    if (s.length > 60) return 'カード名義は60文字以内で入力してください。';
+    return '';
+  }
+  function setFieldErr(id, msg) {
+    $('err-' + id).textContent = msg;
+    $(id).classList.toggle('invalid', !!msg);
+    if (msg) $(id).setAttribute('aria-invalid', 'true'); else $(id).removeAttribute('aria-invalid');
+  }
+  function clearFieldErr(id) { if ($('err-' + id).textContent) setFieldErr(id, ''); }
+  function clearCheckout() {
+    ['cc-number', 'cc-exp', 'cc-cvc', 'cc-name'].forEach(function (id) { $(id).value = ''; setFieldErr(id, ''); $(id).disabled = false; });
+    $('pay-submit').disabled = false; $('pay-cancel').disabled = false;
+    $('pay-submit').textContent = 'デモで支払う';
+    $('checkout-form').removeAttribute('aria-busy');
+    $('pay-status').textContent = '実際の請求はありません。外部には何も送信しません。';
+  }
+  function licenseKey() {
+    var a = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', out = 'BG-DEMO';
+    for (var g = 0; g < 2; g++) { out += '-'; for (var i = 0; i < 4; i++) out += a.charAt(Math.floor(Math.random() * a.length)); }
+    return out;
+  }
+
+  function billAction(a) {
+    var b = S.bill;
+    if (a === 'show') {
+      if (b.view === 'success') b.view = 'plans';
+      renderBilling();
+      $('billing').scrollIntoView({ block: 'start' });
+      return;
+    }
+    if (a === 'buy-monthly' || a === 'buy-yearly') {
+      if (S.plan.tier !== 'free') return;
+      b.pick = a.slice(4); b.view = 'checkout'; b.manage = false; b.confirmCancel = false;
+      clearCheckout(); renderBilling();
+      $('checkout-form').scrollIntoView({ block: 'nearest' });
+      $('cc-number').focus();
+      return;
+    }
+    if (a === 'back') { if (payTimer) return; clearCheckout(); b.view = 'plans'; b.pick = null; renderBilling(); return; }
+    if (a === 'done') { b.view = 'plans'; renderBilling(); return; }
+    if (a === 'manage') { b.manage = !b.manage; b.confirmCancel = false; renderBilling(); return; }
+    if (a === 'cancel') { b.confirmCancel = true; renderBilling(); var c = $('bill-cancel-confirm'); if (c) c.focus(); return; }
+    if (a === 'cancel-abort') { b.confirmCancel = false; renderBilling(); return; }
+    if (a === 'cancel-confirm') {
+      if (S.plan.tier === 'free') return;
+      var nm = PLANS[S.plan.tier].name;
+      bump();
+      S.plan.prev = S.plan.tier; S.plan.tier = 'free'; S.plan.renews = null;
+      b.confirmCancel = false; b.view = 'plans';
+      addLog(nowTs(), 'billing', 'デモ決済：' + nm + ' プランを解約し、無料プラン(通知のみ)に戻しました（請求なし）');
+      toast('ok', 'デモ決済', nm + ' プランを解約しました', '無料プラン(通知のみ)に戻りました。実際の請求・返金はありません。');
+      renderAll(false); refreshStop();
+      return;
+    }
+    if (a === 'reactivate') {
+      if (S.plan.tier !== 'free' || !S.plan.prev) return;
+      bump();
+      S.plan.tier = S.plan.prev; S.plan.prev = null; S.plan.renews = PLANS[S.plan.tier].renew();
+      b.manage = false; b.view = 'plans';
+      addLog(nowTs(), 'billing', 'デモ決済：' + PLANS[S.plan.tier].name + ' プランを再開（請求なし）', ['カード: •••• ' + S.plan.last4, 'ライセンスキー: ' + S.plan.key]);
+      toast('ok', 'デモ決済', PLANS[S.plan.tier].name + ' プランを再開しました', '実際の請求はありません。');
+      renderAll(false); refreshStop();
+    }
+  }
+  function refreshStop() { if (S.step === 4) renderStopPlan(); }
+
+  function submitPayment() {
+    if (payTimer || S.bill.view !== 'checkout' || !S.bill.pick) return;
+    var errs = {
+      'cc-number': checkCard($('cc-number').value),
+      'cc-exp': checkExp($('cc-exp').value),
+      'cc-cvc': checkCvc($('cc-cvc').value),
+      'cc-name': checkName($('cc-name').value)
+    }, first = null;
+    Object.keys(errs).forEach(function (id) { setFieldErr(id, errs[id]); if (errs[id] && !first) first = id; });
+    if (first) { $('pay-status').textContent = '入力内容を確認してください。'; $(first).focus(); return; }
+    // keep only the last 4 digits; wipe sensitive fields immediately
+    var last4 = $('cc-number').value.replace(/\D/g, '').slice(-4);
+    $('cc-number').value = '•••• •••• •••• ' + last4; $('cc-cvc').value = '';
+    ['cc-number', 'cc-exp', 'cc-cvc', 'cc-name'].forEach(function (id) { $(id).disabled = true; });
+    $('pay-submit').disabled = true; $('pay-cancel').disabled = true;
+    $('pay-submit').textContent = '処理中…';
+    $('checkout-form').setAttribute('aria-busy', 'true');
+    $('pay-status').textContent = 'デモ決済を処理しています。実際の請求はありません。';
+    var pick = S.bill.pick;
+    payTimer = setTimeout(function () {
+      payTimer = null;
+      var p = PLANS[pick];
+      bump();
+      S.plan = { tier: pick, prev: null, last4: last4, key: licenseKey(), since: nowTs(), renews: p.renew() };
+      S.bill.view = 'success'; S.bill.pick = null; S.bill.manage = false;
+      S.bill.last = { name: p.name, ts: S.plan.since };
+      clearCheckout();
+      addLog(nowTs(), 'billing', 'デモ決済：' + p.name + ' プランを有効化（請求なし）', ['カード: •••• ' + last4, 'ライセンスキー: ' + S.plan.key]);
+      toast('ok', 'デモ決済', p.name + ' プランを有効化しました', '実際の請求はありません。ライセンスキーを発行しました(デモ)。');
+      renderAll(false); refreshStop();
+      var d = $('bill-done'); if (d) d.focus();
+    }, 1200);
+  }
+
+  function renderBilling() {
+    var pl = S.plan, b = S.bill, paid = pl.tier !== 'free';
+    $('plan-chip-name').textContent = paid ? PLANS[pl.tier].name + ' 有料' : '無料';
+    $('plan-chip').classList.toggle('paid', paid);
+    $('plan-chip').setAttribute('aria-label', '現在のプラン: ' + (paid ? PLANS[pl.tier].name + '(有料・デモ)' : '無料(通知のみ)') + '。プランと購入へ移動');
+
+    var cur = '<div class="card-head"><div><h3>現在のプラン: ' + (paid ? esc(PLANS[pl.tier].name) + ' <span class="note">(' + PLANS[pl.tier].perLong + ')</span>' : '無料 <span class="note">(通知のみ)</span>') + '</h3></div>' +
+      (paid ? '<span class="chip ok">有効</span>' : pl.prev ? '<span class="chip mode">解約済み</span>' : '<span class="chip mode">無料</span>') + '</div>';
+    if (paid) {
+      cur += '<dl><dt>カード</dt><dd class="num">•••• ' + esc(pl.last4) + '</dd><dt>ライセンスキー</dt><dd><code>' + esc(pl.key) + '</code></dd>' +
+        '<dt>開始</dt><dd class="num">' + esc(pl.since) + '</dd><dt>次回更新</dt><dd class="num">' + esc(pl.renews) + '(デモ・請求なし)</dd></dl>';
+    } else {
+      cur += '<p class="note">80%のメール・Slack通知だけが届きます。停止の実行は有料プランで使えます。</p>';
+    }
+    if (paid || pl.prev) {
+      cur += '<div class="row-actions"><button class="btn small" type="button" data-bill="manage" id="bill-manage" aria-expanded="' + b.manage + '">プランを管理</button></div>';
+    }
+    if (b.manage && paid) {
+      cur += b.confirmCancel
+        ? '<div class="callout crit"><strong>' + esc(PLANS[pl.tier].name) + ' プランを解約しますか?</strong> 無料プラン(通知のみ)に戻ります。デモなので返金・請求は発生しません。<div class="row-actions"><button class="btn danger small" type="button" data-bill="cancel-confirm" id="bill-cancel-confirm">解約を確定</button><button class="btn small" type="button" data-bill="cancel-abort" id="bill-cancel-abort">やめる</button></div></div>'
+        : '<div class="row-actions"><button class="btn small" type="button" data-bill="cancel" id="bill-cancel">解約する</button><span class="note">製品では支払い済み期間の終わりまで使えます。デモではすぐ無料に戻ります。</span></div>';
+    } else if (b.manage && pl.prev) {
+      cur += '<div class="row-actions"><button class="btn primary small" type="button" data-bill="reactivate" id="bill-reactivate">' + esc(PLANS[pl.prev].name) + ' プランを再開</button><span class="note">保存済みのカード •••• ' + esc(pl.last4) + ' を使います(請求なし)。</span></div>';
+    }
+    $('bill-current').innerHTML = cur;
+
+    var plans = '';
+    if (b.view === 'plans') {
+      var card = function (tier, title, price, per, feats, btn) {
+        var isCur = pl.tier === tier;
+        return '<div class="plan-card' + (isCur ? ' current' : '') + '"><div class="pn"><h3>' + title + '</h3>' + (isCur ? '<span class="chip info">利用中</span>' : '') + '</div>' +
+          '<div class="price">' + price + (per ? '<small>' + per + '</small>' : '') + '</div><ul>' + feats.map(function (f) { return '<li>' + f + '</li>'; }).join('') + '</ul>' + btn + '</div>';
+      };
+      var buyBtn = function (tier) {
+        if (pl.tier === tier) return '<button class="btn" type="button" disabled id="buy-' + tier + '">利用中</button>';
+        if (paid) return '<button class="btn" type="button" disabled id="buy-' + tier + '" title="解約後に購入できます">購入(解約後)</button>';
+        return '<button class="btn primary" type="button" data-bill="buy-' + tier + '" id="buy-' + tier + '">購入</button>';
+      };
+      plans = '<div class="plans">' +
+        card('free', '無料', '$0', '', ['80%のメール・Slack通知', '停止の実行はなし(通知のみ)'], '') +
+        card('monthly', 'Monthly', '$9', '/月', PLANS.monthly.feats, buyBtn('monthly')) +
+        card('yearly', 'Yearly', '$79', '/年', PLANS.yearly.feats, buyBtn('yearly')) +
+        '</div><p class="note">料金は案で、承認待ちです。製品ではいつでも Billing から解約できます。</p>';
+    }
+    $('bill-plans').innerHTML = plans;
+
+    var co = $('checkout-form');
+    co.hidden = b.view !== 'checkout';
+    if (b.view === 'checkout' && b.pick) $('co-summary').textContent = PLANS[b.pick].name + ' プラン · ' + PLANS[b.pick].perLong + '。デモ：実際の請求はありません。';
+
+    $('bill-result').innerHTML = (b.view === 'success' && paid)
+      ? '<div class="callout ok"><strong>デモ決済が完了しました(請求なし)。</strong> ' + esc(PLANS[pl.tier].name) + ' プランが有効になりました。カードは末尾 ' + esc(pl.last4) + ' だけを記録しています。' +
+        '<p>ライセンスキー(デモ): <span class="lic" id="license-key">' + esc(pl.key) + '</span></p>' +
+        '<div class="row-actions"><button class="btn primary small" type="button" data-bill="done" id="bill-done">プラン一覧に戻る</button></div></div>'
+      : '';
+  }
+
   /* ---------- toasts ---------- */
   function toast(kind, channel, title, body) {
     var el = document.createElement('div');
@@ -998,6 +1289,8 @@ select{border:1px solid var(--line);border-radius:4px;background:var(--surface);
   /* ---------- orchestration ---------- */
   function renderAll(full) {
     renderClock(); renderStrip(); renderChart(); renderCards(); renderLog(); renderStepper(); renderSimStatus(); renderUndo();
+    if (full) clearCheckout();
+    renderBilling();
     if (full) { renderBudgetForm(); renderStopSelect(); renderStopPlan(); updateExec(); $('stop-result').innerHTML = ''; }
     else { renderStopSelect(); updateBudgetSpent(); }
   }
@@ -1023,6 +1316,7 @@ select{border:1px solid var(--line);border-radius:4px;background:var(--surface);
       if (t.hasAttribute('data-series')) { S.series = t.getAttribute('data-series'); return renderChart(); }
       if (t.hasAttribute('data-save')) return saveBudget(t.getAttribute('data-save'));
       if (t.hasAttribute('data-restore')) return markRestored(t.getAttribute('data-restore'));
+      if (t.hasAttribute('data-bill')) return billAction(t.getAttribute('data-bill'));
     });
     $('budget-form').addEventListener('input', function (e) {
       if (e.target.id && e.target.id.indexOf('budget-') === 0) updatePreview(e.target.id.slice(7));
@@ -1043,6 +1337,15 @@ select{border:1px solid var(--line);border-radius:4px;background:var(--surface);
       advanceHour();
       renderAll(false);
     });
+    $('plan-chip').addEventListener('click', function () { billAction('show'); });
+    $('checkout-form').addEventListener('submit', function (e) { e.preventDefault(); submitPayment(); });
+    $('cc-number').addEventListener('input', function () {
+      var el = this, d = el.value.replace(/\D/g, '').slice(0, 19);
+      var f = d.replace(/(\d{4})(?=\d)/g, '$1 ');
+      if (f !== el.value && /^[\d ]*$/.test(el.value)) el.value = f;
+      clearFieldErr('cc-number');
+    });
+    ['cc-exp', 'cc-cvc', 'cc-name'].forEach(function (id) { $(id).addEventListener('input', function () { clearFieldErr(id); }); });
     $('stop-conn').addEventListener('change', function (e) {
       S.sel = e.target.value; $('confirm-label').value = ''; $('stop-result').innerHTML = '';
       renderStopPlan(); updateExec();
@@ -1060,6 +1363,7 @@ select{border:1px solid var(--line);border-radius:4px;background:var(--surface);
     $('execute-stop').addEventListener('click', executeStop);
     $('demo-reset').addEventListener('click', function () {
       if (confTicker) { clearInterval(confTicker); confTicker = null; }
+      if (payTimer) { clearTimeout(payTimer); payTimer = null; }
       $('toasts').innerHTML = '';
       initState(); $('confirm-label').value = ''; renderAll(true); goto(1);
       window.scrollTo(0, 0);
