@@ -64,5 +64,5 @@ export function parseCsv(text: string, file: string, opts: { columns?: ColumnMap
     headers.forEach((h, j) => (rec[h] = r.cells[j] ?? ""));
     return recordToRow(rec, cols, file, r.line, `row${idx + 1}`);
   });
-  return finishTable(file, "csv", rows, cols, opts.langs);
+  return finishTable(file, delimiter === "\t" ? "tsv" : "csv", rows, cols, opts.langs);
 }

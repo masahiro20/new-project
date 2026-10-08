@@ -1,5 +1,6 @@
 import { containsPhrase, countBy, damerauLevenshtein, katakanaKey, visibleText } from "../text.js";
-import type { Finding, Glossary, GlossaryCharacter, Table, UsageSummary } from "../types.js";
+import { messages } from "../i18n.js";
+import type { Finding, Glossary, GlossaryCharacter, Locale, Table, UsageSummary } from "../types.js";
 
 const enNames = (c: GlossaryCharacter) => [c.en, ...(c.aliases?.en ?? [])];
 const jaNames = (c: GlossaryCharacter) => [c.ja, ...(c.aliases?.ja ?? [])];
@@ -16,7 +17,8 @@ function knownWords(g: Glossary): Set<string> {
 
 const HONORIFIC_SUFFIX = /-(sama|san|kun|chan|senpai|sempai|sensei|dono|tan|chama|han|nee|nii)$/i;
 
-export function checkNames(tables: Table[], g: Glossary): { findings: Finding[]; usage: UsageSummary[] } {
+export function checkNames(tables: Table[], g: Glossary, locale: Locale = "en"): { findings: Finding[]; usage: UsageSummary[] } {
+  const msg = messages(locale);
   const findings: Finding[] = [];
   const usage: UsageSummary[] = [];
   const known = knownWords(g);
@@ -39,7 +41,7 @@ export function checkNames(tables: Table[], g: Glossary): { findings: Finding[];
           findings.push({
             category: "name", severity: "error", rule: "name.forbidden", group,
             file: row.file, line: row.line, id: row.id, side: enSide,
-            message: `Character name written as "${forbidden}"; the approved spelling is "${c.en}".`,
+            message: msg.nameForbidden(forbidden, c.en),
             found: forbidden, expected: c.en,
           });
         }
@@ -47,7 +49,7 @@ export function checkNames(tables: Table[], g: Glossary): { findings: Finding[];
           findings.push({
             category: "name", severity: "error", rule: "name.forbidden", group,
             file: row.file, line: row.line, id: row.id, side: jaSide,
-            message: `Character name written as "${forbiddenJa}"; the approved spelling is "${c.ja}".`,
+            message: msg.nameForbidden(forbiddenJa, c.ja),
             found: forbiddenJa, expected: c.ja,
           });
         }
@@ -59,7 +61,7 @@ export function checkNames(tables: Table[], g: Glossary): { findings: Finding[];
             findings.push({
               category: "name", severity: "info", rule: "name.missing", group,
               file: row.file, line: row.line, id: row.id, side: enSide,
-              message: `"${c.ja}" appears in the Japanese but "${enNames(c).join('" / "')}" does not appear in the English (fine if replaced by a pronoun).`,
+              message: msg.nameMissing(c.ja, enNames(c)),
               expected: c.en,
             });
           }
@@ -97,7 +99,7 @@ export function checkNames(tables: Table[], g: Glossary): { findings: Finding[];
             findings.push({
               category: "name", severity: "warning", rule: "name.near-miss", group: `${c.ja} → ${c.en}`,
               file: row.file, line: row.line, id: row.id, side: enSide,
-              message: `"${token}" looks like a misspelling of "${close}". Add it to ignoreWords if it is a real word.`,
+              message: msg.nameNearMiss(token, close),
               found: token, expected: close,
             });
             break;
@@ -120,7 +122,7 @@ export function checkNames(tables: Table[], g: Glossary): { findings: Finding[];
         findings.push({
           category: "name", severity: "warning", rule: "name.speaker-label", group: `speaker ${majority}`,
           file: r.file, line: r.line, id: r.id, side: "source",
-          message: `Speaker label "${label}" differs from "${majority}" used in ${forms.get(majority)!.length} other rows.`,
+          message: msg.nameSpeakerLabel(label, majority, forms.get(majority)!.length),
           found: label, expected: majority,
         });
       }
@@ -137,7 +139,7 @@ export function checkNames(tables: Table[], g: Glossary): { findings: Finding[];
         findings.push({
           category: "name", severity: "warning", rule: "name.speaker-unknown", group: `speaker ${label}`,
           file: r.file, line: r.line, id: r.id, side: "source",
-          message: `Speaker "${label}" is not in the character sheet and is one edit away from a known character.`,
+          message: msg.nameSpeakerUnknown(label),
           found: label,
         });
       }

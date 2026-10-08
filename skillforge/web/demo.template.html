@@ -96,6 +96,15 @@ input[type="file"]::file-selector-button { font: inherit; font-size: 13px; margi
 .run-status:empty { display: none; }
 .check { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; color: var(--ink); cursor: pointer; }
 .check input { margin-top: 4px; accent-color: var(--accent); width: 16px; height: 16px; flex: none; }
+/* Segmented control (message language): real radios, visually hidden, labels act as segments. */
+.seg { border: 0; margin: 0; padding: 0; min-width: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.seg legend { float: left; padding: 0; font-size: 14px; color: var(--ink); }
+.seg .seg-track { display: inline-flex; border: 1px solid var(--rule); border-radius: var(--radius); background: var(--bg); padding: 2px; gap: 2px; }
+.seg input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; pointer-events: none; }
+.seg label { font-size: 13px; color: var(--ink-2); padding: 3px 10px; border-radius: 2px; cursor: pointer; line-height: 1.4; }
+.seg label:hover { color: var(--ink); }
+.seg input:checked + label { background: var(--accent); color: var(--accent-ink); font-weight: 700; }
+.seg input:focus-visible + label { outline: 2px solid var(--focus); outline-offset: 2px; }
 
 /* Errors */
 .errors { margin-top: 16px; border-left: 4px solid var(--err); background: var(--err-soft); padding: 10px 14px; border-radius: 0 var(--radius) var(--radius) 0; }
@@ -262,6 +271,13 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
     <div class="opts" role="group" aria-label="オプション">
       <label class="check" for="opt-rules"><input type="checkbox" id="opt-rules" checked><span>追加ルール（プレースホルダー・タグ・ルビ・文字数）<span class="en"> bonus rules</span></span></label>
       <label class="check" for="opt-wide"><input type="checkbox" id="opt-wide"><span>全角を2文字として数える<span class="en"> wide = 2</span></span></label>
+      <fieldset class="seg" id="opt-locale">
+        <legend>指摘の言語<span class="en"> messages</span>：</legend>
+        <span class="seg-track">
+          <input type="radio" name="opt-locale" id="opt-locale-ja" value="ja" checked><label for="opt-locale-ja" lang="ja">日本語</label>
+          <input type="radio" name="opt-locale" id="opt-locale-en" value="en"><label for="opt-locale-en" lang="en">English</label>
+        </span>
+      </fieldset>
     </div>
     <p class="run-status" id="run-status" role="status"></p>
     <button type="button" id="btn-run" class="btn-primary">チェック実行 <span class="sr-only">Run checks</span></button>
@@ -273,7 +289,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
 
   <footer>
     <p>すべての処理はこのブラウザ内で行われます。台本や用語集はどこにもアップロードされません。<span class="en">Everything runs in your browser; nothing is uploaded.</span></p>
-    <p>Yuragi（仮称） — 作業名です。チェック結果のメッセージは現在英語のみです。</p>
+    <p>Yuragi（仮称） — 作業名です。指摘メッセージと Markdown レポートは日本語・英語を切り替えられます（「指摘の言語」）。<span class="en">Messages and the Markdown report are available in Japanese or English.</span></p>
   </footer>
 </div>
 
@@ -306,6 +322,12 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
   const LANG = { ja: "JA", en: "EN" };
   const KIND = { voice: "口調", "unglossaried-term": "未登録用語" };
   const KNOWN_EXT = /\.(csv|tsv|json|xlf|xliff)$/i;
+  const LOCALE_KEY = "yuragi.demo.locale";
+  function loadLocale() {
+    try { const v = localStorage.getItem(LOCALE_KEY); return v === "en" || v === "ja" ? v : "ja"; } catch (_) { return "ja"; }
+  }
+  function saveLocale(v) { try { localStorage.setItem(LOCALE_KEY, v); } catch (_) { /* storage unavailable: choice lasts this visit only */ } }
+  function currentLocale() { return $("opt-locale-en").checked ? "en" : "ja"; }
 
   const state = {
     files: [], // {name, text, format}
@@ -376,7 +398,8 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
     box.hidden = false;
   }
 
-  function run() {
+  function run(opts) {
+    const keepFilters = !!(opts && opts.keepFilters);
     if (typeof Yuragi === "undefined") {
       showErrors([{ where: "エンジン", msg: "チェックエンジンが組み込まれていません。web/build-demo.mjs でビルドしたHTMLを開いてください。" }]);
       return;
@@ -424,7 +447,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
     }
     let result;
     try {
-      result = Yuragi.runChecks(tables, glossary, { rules: $("opt-rules").checked, wideAsTwo: $("opt-wide").checked });
+      result = Yuragi.runChecks(tables, glossary, { rules: $("opt-rules").checked, wideAsTwo: $("opt-wide").checked, locale: currentLocale() });
     } catch (e) {
       errors.push({ where: "チェック", msg: (e && e.message) || String(e) });
       showErrors(errors);
@@ -434,7 +457,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
     }
     showErrors(errors, true);
     state.result = result;
-    state.md = Yuragi.renderMarkdown(result);
+    state.md = Yuragi.renderMarkdown(result, { locale: currentLocale() });
     state.rows = new Map();
     state.tableByFile = new Map();
     for (const t of tables) {
@@ -446,9 +469,13 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
       }
     }
     state.isSample = state.sampleKey && !state.dirty ? state.sampleKey : null;
-    state.cat = "all";
-    state.sev = { error: true, warning: true, info: true };
+    if (!keepFilters) {
+      state.cat = "all";
+      state.sev = { error: true, warning: true, info: true };
+    }
+    const openPackets = keepFilters && $("packets") && $("packets").open;
     renderResults();
+    if (openPackets && $("packets")) $("packets").open = true;
     const n = result.findings.length;
     $("run-status").innerHTML = `${state.isSample ? "サンプルを実行しました：" : "チェック完了："}<span class="num">${n}</span>件の指摘 · <a href="#results" id="jump-results">結果を見る ↓</a>`;
   }
@@ -615,7 +642,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
   // ---------- events ----------
   $("btn-sample-jaen").addEventListener("click", () => loadSample("ja-en"));
   $("btn-sample-enja").addEventListener("click", () => loadSample("en-ja"));
-  $("btn-run").addEventListener("click", run);
+  $("btn-run").addEventListener("click", () => run());
   $("script-files").addEventListener("change", async (e) => { leaveSample(); await addFiles(e.target.files); e.target.value = ""; });
   $("gloss-file").addEventListener("change", async (e) => {
     const f = e.target.files[0];
@@ -625,6 +652,12 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
   $("script-text").addEventListener("input", leaveSample);
   for (const id of ["script-text", "script-name", "script-format", "gloss-text"]) $(id).addEventListener("input", markDirty);
   for (const id of ["opt-rules", "opt-wide"]) $(id).addEventListener("change", () => { if (state.result) { const keep = state.dirty; run(); state.dirty = keep; } });
+  // Message language: re-run the current check in the chosen locale (same inputs, same filters).
+  for (const id of ["opt-locale-ja", "opt-locale-en"]) $(id).addEventListener("change", (e) => {
+    if (!e.target.checked) return;
+    saveLocale(e.target.value);
+    if (state.result) { const keep = state.dirty; run({ keepFilters: true }); state.dirty = keep; }
+  });
 
   $("file-list").addEventListener("click", (e) => {
     const b = e.target.closest("button");
@@ -679,6 +712,8 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
     const nb = $(focusId); if (nb) nb.focus();
   });
 
+  // Restore the remembered message language before the first run.
+  $(loadLocale() === "en" ? "opt-locale-en" : "opt-locale-ja").checked = true;
   // Open in a working state: run the JA→EN sample immediately.
   loadSample("ja-en");
 })();

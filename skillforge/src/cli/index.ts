@@ -2,13 +2,13 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { basename } from "node:path";
 import { parseArgs } from "node:util";
-import { parseGlossary, parseTable, renderMarkdown, runChecks, type Format } from "../core/index.js";
+import { parseGlossary, parseTable, renderMarkdown, runChecks, type Format, type Locale } from "../core/index.js";
 import { draftGlossary } from "../core/draft.js";
 import { findingsToLabelCsv, renderScore, scoreLabels } from "../core/pilot.js";
 import { PLANS, tokenStoreFromEnv, type Plan } from "../server/auth.js";
 
 const USAGE = `Usage:
-  yuragi check <table>... [--glossary g.json] [--format csv|tsv|json|xliff] [--json] [--no-rules] [--no-info] [--wide] [--out file]
+  yuragi check <table>... [--glossary g.json] [--format csv|tsv|json|xliff] [--json] [--no-rules] [--no-info] [--wide] [--locale en|ja] [--out file]
   yuragi draft <table>... [--glossary existing.json] [--max-terms N] [--out draft.json]
   yuragi labels <table>... [--glossary g.json] --out labels.csv      export findings as a labeling sheet
   yuragi score <labels.csv> [--known known.csv] [--out score.md]      precision (and recall) from a labeled sheet
@@ -33,6 +33,7 @@ function main(argv: string[]): number {
       "no-rules": { type: "boolean" },
       "no-info": { type: "boolean" },
       wide: { type: "boolean" },
+      locale: { type: "string" },
       out: { type: "string", short: "o" },
       known: { type: "string" },
       plan: { type: "string" },
@@ -52,8 +53,10 @@ function main(argv: string[]): number {
   switch (cmd) {
     case "check": {
       if (!args.length) break;
-      const result = runChecks(loadTables(), loadGlossary(), { rules: !values["no-rules"], wideAsTwo: values.wide });
-      emit(values.json ? JSON.stringify(result, null, 2) : renderMarkdown(result, { includeInfo: !values["no-info"] }), values.out);
+      const locale = (values.locale ?? "en") as Locale;
+      if (locale !== "en" && locale !== "ja") throw new Error(`Unknown locale "${values.locale}" (en | ja)`);
+      const result = runChecks(loadTables(), loadGlossary(), { rules: !values["no-rules"], wideAsTwo: values.wide, locale });
+      emit(values.json ? JSON.stringify(result, null, 2) : renderMarkdown(result, { includeInfo: !values["no-info"], locale }), values.out);
       return result.findings.some((f) => f.severity === "error") ? 1 : 0;
     }
     case "draft": {

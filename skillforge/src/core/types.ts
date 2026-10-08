@@ -1,4 +1,6 @@
 export type Lang = "ja" | "en";
+/** Language of finding messages and report labels. */
+export type Locale = "en" | "ja";
 export type Side = "source" | "target";
 export type Severity = "error" | "warning" | "info";
 export type Category =
@@ -27,7 +29,7 @@ export interface Row {
 
 export interface Table {
   file: string;
-  format: "csv" | "json" | "xliff";
+  format: "csv" | "tsv" | "json" | "xliff";
   sourceLang: Lang;
   targetLang: Lang;
   rows: Row[];
@@ -114,6 +116,8 @@ export interface CheckOptions {
   wideAsTwo?: boolean;
   /** Minimum lines per speaker before a voice packet is built. Default 3. */
   minLinesForVoice?: number;
+  /** Language of `Finding.message` (and voice packet `flagged` notes). Default "en". */
+  locale?: Locale;
 }
 
 export interface CheckResult {

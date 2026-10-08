@@ -1,11 +1,13 @@
 import { containsPhrase, countBy, KATAKANA_RUN, katakanaKey, looksJapanese, ref, textOf, visibleText } from "../text.js";
-import type { Finding, Glossary, ReviewPacket, Side, Table, UsageSummary } from "../types.js";
+import { messages } from "../i18n.js";
+import type { Finding, Glossary, Locale, ReviewPacket, Side, Table, UsageSummary } from "../types.js";
 
 /**
  * Glossary term drift: every line whose source contains a glossary term must render it with the
  * approved target (or an allowed variant). Forbidden variants are flagged wherever they appear.
  */
-export function checkTerms(tables: Table[], g: Glossary): { findings: Finding[]; usage: UsageSummary[] } {
+export function checkTerms(tables: Table[], g: Glossary, locale: Locale = "en"): { findings: Finding[]; usage: UsageSummary[] } {
+  const msg = messages(locale);
   const findings: Finding[] = [];
   const usage: UsageSummary[] = [];
   for (const term of g.terms) {
@@ -29,7 +31,7 @@ export function checkTerms(tables: Table[], g: Glossary): { findings: Finding[];
             findings.push({
               category: "term", severity: "error", rule: "term.forbidden", group,
               file: row.file, line: row.line, id: row.id, side: "target",
-              message: `"${term.source}" is rendered as forbidden variant "${forbiddenHit}"; glossary says "${term.target}".`,
+              message: msg.termForbidden(term.source, forbiddenHit, term.target),
               found: forbiddenHit, expected: term.target,
             });
           } else {
@@ -37,7 +39,7 @@ export function checkTerms(tables: Table[], g: Glossary): { findings: Finding[];
             findings.push({
               category: "term", severity: "warning", rule: "term.missing", group,
               file: row.file, line: row.line, id: row.id, side: "target",
-              message: `Source contains "${term.source}" but the translation does not use "${term.target}".`,
+              message: msg.termMissing(term.source, term.target),
               expected: term.target,
             });
           }
@@ -45,7 +47,7 @@ export function checkTerms(tables: Table[], g: Glossary): { findings: Finding[];
           findings.push({
             category: "term", severity: "warning", rule: "term.forbidden-stray", group,
             file: row.file, line: row.line, id: row.id, side: "target",
-            message: `Forbidden variant "${forbiddenHit}" appears (glossary term "${term.target}") although the source has no "${term.source}".`,
+            message: msg.termForbiddenStray(forbiddenHit, term.target, term.source),
             found: forbiddenHit, expected: term.target,
           });
         }
@@ -57,7 +59,7 @@ export function checkTerms(tables: Table[], g: Glossary): { findings: Finding[];
 }
 
 /** Warn once per table whose direction does not match the glossary terms, so silence is never mistaken for a pass. */
-export function glossaryDirection(tables: Table[], g: Glossary): Finding[] {
+export function glossaryDirection(tables: Table[], g: Glossary, locale: Locale = "en"): Finding[] {
   if (!g.terms.length) return [];
   const glossaryJa = g.terms.filter((t) => looksJapanese(t.source)).length >= g.terms.length / 2;
   return tables
@@ -65,7 +67,7 @@ export function glossaryDirection(tables: Table[], g: Glossary): Finding[] {
     .map((t) => ({
       category: "term" as const, severity: "warning" as const, rule: "term.direction",
       file: t.file, line: 1, id: "-", side: "source" as const, group: "glossary direction",
-      message: `This table is ${t.sourceLang}→${t.targetLang} but the glossary terms are ${glossaryJa ? "ja→en" : "en→ja"}; term checks were skipped for it. Check the column order or use a matching glossary.`,
+      message: messages(locale).termDirection(t.sourceLang, t.targetLang, glossaryJa ? "ja→en" : "en→ja"),
     }));
 }
 
@@ -73,7 +75,7 @@ export function glossaryDirection(tables: Table[], g: Glossary): Finding[] {
  * Japanese katakana notation drift (表記揺れ): spellings that differ only by ・, ー, ヴ/バ or small kana,
  * e.g. マナ・ストーン / マナストーン, サーバー / サーバ. Runs on whichever side is Japanese.
  */
-export function checkNotation(tables: Table[]): { findings: Finding[]; usage: UsageSummary[] } {
+export function checkNotation(tables: Table[], locale: Locale = "en"): { findings: Finding[]; usage: UsageSummary[] } {
   type Hit = { surface: string; file: string; line: number; id: string; side: Side };
   const hits: Hit[] = [];
   for (const t of tables) {
@@ -103,7 +105,7 @@ export function checkNotation(tables: Table[]): { findings: Finding[]; usage: Us
         findings.push({
           category: "notation", severity: "warning", rule: "notation.katakana", group: label,
           file: h.file, line: h.line, id: h.id, side: h.side,
-          message: `Katakana spelling "${surface}" differs from the majority form "${majority}" (${forms.get(majority)!.length}×).`,
+          message: messages(locale).notationKatakana(surface, majority, forms.get(majority)!.length),
           found: surface, expected: majority,
         });
       }

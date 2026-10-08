@@ -9,14 +9,15 @@ export const CATEGORY_ORDER: Category[] = ["term", "notation", "name", "honorifi
 const SEVERITY_ORDER: Severity[] = ["error", "warning", "info"];
 
 export function runChecks(tables: Table[], glossary: Glossary = EMPTY_GLOSSARY, opts: CheckOptions = {}): CheckResult {
-  const terms = checkTerms(tables, glossary);
-  const notation = checkNotation(tables);
-  const names = checkNames(tables, glossary);
-  const honorifics = checkHonorifics(tables, glossary);
-  const voice = checkVoice(tables, glossary, opts.minLinesForVoice ?? 3);
-  const rules = opts.rules === false ? [] : checkRules(tables, { wideAsTwo: opts.wideAsTwo });
+  const locale = opts.locale ?? "en";
+  const terms = checkTerms(tables, glossary, locale);
+  const notation = checkNotation(tables, locale);
+  const names = checkNames(tables, glossary, locale);
+  const honorifics = checkHonorifics(tables, glossary, locale);
+  const voice = checkVoice(tables, glossary, opts.minLinesForVoice ?? 3, locale);
+  const rules = opts.rules === false ? [] : checkRules(tables, { wideAsTwo: opts.wideAsTwo, locale });
 
-  const findings: Finding[] = [...glossaryDirection(tables, glossary), ...terms.findings, ...notation.findings, ...names.findings, ...honorifics.findings, ...voice.findings, ...rules];
+  const findings: Finding[] = [...glossaryDirection(tables, glossary, locale), ...terms.findings, ...notation.findings, ...names.findings, ...honorifics.findings, ...voice.findings, ...rules];
   findings.sort(
     (a, b) =>
       CATEGORY_ORDER.indexOf(a.category) - CATEGORY_ORDER.indexOf(b.category) ||

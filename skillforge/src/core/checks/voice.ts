@@ -1,6 +1,7 @@
 import { findCharacter } from "./names.js";
 import { countBy, escapeRegExp, ref, visibleText } from "../text.js";
-import type { Finding, Glossary, ReviewPacket, Row, Side, Table, UsageSummary, VoiceProfile } from "../types.js";
+import { messages } from "../i18n.js";
+import type { Finding, Glossary, Locale, ReviewPacket, Row, Side, Table, UsageSummary, VoiceProfile } from "../types.js";
 
 // ---------- honorifics ----------
 
@@ -29,7 +30,8 @@ function enRendering(en: string, names: string[]): string | undefined {
   return undefined;
 }
 
-export function checkHonorifics(tables: Table[], g: Glossary): { findings: Finding[]; usage: UsageSummary[] } {
+export function checkHonorifics(tables: Table[], g: Glossary, locale: Locale = "en"): { findings: Finding[]; usage: UsageSummary[] } {
+  const msg = messages(locale);
   const findings: Finding[] = [];
   const usage: UsageSummary[] = [];
   type Hit = { row: Row; enSide: Side; jaSide: Side; speaker: string; char: string; jaHon: string; rendering?: string };
@@ -59,7 +61,7 @@ export function checkHonorifics(tables: Table[], g: Glossary): { findings: Findi
           findings.push({
             category: "honorific", severity: "error", rule: "honorific.policy", group: `${row.speaker ?? "?"} → ${c.en} (${jaHon})`,
             file: row.file, line: row.line, id: row.id, side: enSide,
-            message: `Romanized honorific "${rendering.replace("{name}", c.en)}" but the project policy is "${policy}".`,
+            message: msg.honorificPolicyRomanized(rendering.replace("{name}", c.en), policy),
             found: rendering.replace("{name}", c.en),
           });
         }
@@ -67,7 +69,7 @@ export function checkHonorifics(tables: Table[], g: Glossary): { findings: Findi
           findings.push({
             category: "honorific", severity: "warning", rule: "honorific.policy", group: `${row.speaker ?? "?"} → ${c.en} (${jaHon})`,
             file: row.file, line: row.line, id: row.id, side: enSide,
-            message: `Policy is "keep" but "${c.ja}${m[2]}" is rendered "${rendering.replace("{name}", c.en)}" (expected "${c.en}${SUFFIX_FOR[m[2]]}").`,
+            message: msg.honorificPolicyKeep(`${c.ja}${m[2]}`, rendering.replace("{name}", c.en), `${c.en}${SUFFIX_FOR[m[2]]}`),
             found: rendering.replace("{name}", c.en), expected: `${c.en}${SUFFIX_FOR[m[2]]}`,
           });
         }
@@ -89,7 +91,7 @@ export function checkHonorifics(tables: Table[], g: Glossary): { findings: Findi
         findings.push({
           category: "honorific", severity: "warning", rule: "honorific.drift", group: label,
           file: h.row.file, line: h.row.line, id: h.row.id, side: h.enSide,
-          message: `"${form.replace("{name}", first.char)}" here, but this speaker's "${first.jaHon}" is rendered "${majority}" in ${forms.get(ranked[0]![0])!.length} other lines.`,
+          message: msg.honorificDrift(form.replace("{name}", first.char), first.jaHon, majority, forms.get(ranked[0]![0])!.length),
           found: form.replace("{name}", first.char), expected: majority,
         });
       }
@@ -107,7 +109,7 @@ export function checkHonorifics(tables: Table[], g: Glossary): { findings: Findi
         findings.push({
           category: "honorific", severity: "info", rule: "honorific.source-shift", group: `${h.row.speaker ?? "?"} → ${h.char}`,
           file: h.row.file, line: h.row.line, id: h.row.id, side: h.jaSide,
-          message: `In Japanese this speaker uses "${hon}" here but "${ranked[0]![0]}" in ${ranked[0]![1].length} other lines. Confirm it is an intentional shift (and that the English reflects it).`,
+          message: msg.honorificSourceShift(hon, ranked[0]![0], ranked[0]![1].length),
           found: hon, expected: ranked[0]![0],
         });
       }
@@ -140,7 +142,8 @@ export function politeness(ja: string): "polite" | "plain" | undefined {
 
 const CONTRACTION = /\b(?:[A-Za-z]+n['’]t|(?:I|you|we|they|he|she|it|that|there|who|what|where|here|let)['’](?:s|re|ve|ll|d|m)|I['’]m|[A-Za-z]+['’](?:ll|ve|re))\b/gi;
 
-export function checkVoice(tables: Table[], g: Glossary, minLines = 3): { findings: Finding[]; usage: UsageSummary[]; packets: ReviewPacket[] } {
+export function checkVoice(tables: Table[], g: Glossary, minLines = 3, locale: Locale = "en"): { findings: Finding[]; usage: UsageSummary[]; packets: ReviewPacket[] } {
+  const msg = messages(locale);
   const findings: Finding[] = [];
   const usage: UsageSummary[] = [];
   const packets: ReviewPacket[] = [];
@@ -184,8 +187,8 @@ export function checkVoice(tables: Table[], g: Glossary, minLines = 3): { findin
             category: "voice", severity: expected ? "warning" : "info", rule: "voice.first-person", group: name,
             file: l.row.file, line: l.row.line, id: l.row.id, side: l.jaSide!,
             message: expected
-              ? `${name} uses "${odd.join(", ")}" but their profile says "${expected.join(", ")}".`
-              : `${name} uses "${odd.join(", ")}" here but "${majority[0]}" in ${majority[1]} of ${total} lines.`,
+              ? msg.voiceFirstPersonProfile(name, odd, expected)
+              : msg.voiceFirstPersonMajority(name, odd, majority[0], majority[1], total),
             found: odd.join(", "), expected: expected?.join(", ") ?? majority[0],
           },
           l.row,
@@ -210,8 +213,8 @@ export function checkVoice(tables: Table[], g: Glossary, minLines = 3): { findin
               category: "voice", severity: expected ? "warning" : "info", rule: "voice.politeness", group: name,
               file: l.row.file, line: l.row.line, id: l.row.id, side: l.jaSide!,
               message: expected
-                ? `${name} is written ${expected} but this line is ${p}.`
-                : `This line is ${p}; ${name} is ${want} in ${want === "polite" ? polite : pol.length - polite} of ${pol.length} lines.`,
+                ? msg.voicePolitenessProfile(name, expected, p!)
+                : msg.voicePolitenessMajority(name, p!, want, want === "polite" ? polite : pol.length - polite, pol.length),
               found: p, expected: want,
             },
             l.row,
@@ -232,7 +235,7 @@ export function checkVoice(tables: Table[], g: Glossary, minLines = 3): { findin
             {
               category: "voice", severity: "warning", rule: "voice.contraction", group: name,
               file: l.row.file, line: l.row.line, id: l.row.id, side: l.enSide,
-              message: `${name} never uses contractions, but this line has "${c.join('", "')}".`,
+              message: msg.voiceContraction(name, c),
               found: c.join(", "),
             },
             l.row,
@@ -244,7 +247,7 @@ export function checkVoice(tables: Table[], g: Glossary, minLines = 3): { findin
           {
             category: "voice", severity: "warning", rule: "voice.avoid", group: name,
             file: l.row.file, line: l.row.line, id: l.row.id, side: l.enSide,
-            message: `${name} should not say "${avoid.join('", "')}".`,
+            message: msg.voiceAvoid(name, avoid),
             found: avoid.join(", "),
           },
           l.row,

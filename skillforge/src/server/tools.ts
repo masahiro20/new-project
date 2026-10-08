@@ -1,6 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { parseGlossary, parseTable, renderMarkdown, runChecks, type CheckResult, type Format, type Glossary, type Severity, type Table } from "../core/index.js";
+import { parseGlossary, parseTable, renderMarkdown, runChecks, type CheckResult, type Format, type Glossary, type Locale, type Severity, type Table } from "../core/index.js";
 import { draftGlossary } from "../core/draft.js";
 import { Limiter, PLANS, type Principal } from "./auth.js";
 import { judgePacket, serverJudgeEnabled } from "./judge.js";
@@ -39,13 +39,14 @@ const CheckInput = {
       rules: z.boolean().optional().describe("Run bonus rule checks (placeholders, tags, ruby, length). Default true."),
       wideAsTwo: z.boolean().optional().describe("Count full-width characters as 2 for length limits."),
       minSeverity: z.enum(["error", "warning", "info"]).optional().describe("Hide findings below this severity. Default info."),
+      locale: z.enum(["en", "ja"]).optional().describe("Language of finding messages and the Markdown report. Default en."),
     })
     .optional(),
 };
 
 type TableArg = z.infer<typeof TableInput>;
 type GlossaryArgs = { glossary?: { filename?: string; content: string }; glossaryName?: string };
-type CheckArgs = GlossaryArgs & { tables: TableArg[]; options?: { rules?: boolean; wideAsTwo?: boolean; minSeverity?: Severity } };
+type CheckArgs = GlossaryArgs & { tables: TableArg[]; options?: { rules?: boolean; wideAsTwo?: boolean; minSeverity?: Severity; locale?: Locale } };
 
 /** Parse tables and charge their rows to the caller's daily quota (nothing is charged if parsing fails). */
 function loadTables(ctx: ServerContext, args: TableArg[]): Table[] {
@@ -70,7 +71,7 @@ async function loadGlossary(ctx: ServerContext, args: GlossaryArgs): Promise<Glo
 export async function check(ctx: ServerContext, args: CheckArgs): Promise<CheckResult> {
   const glossary = await loadGlossary(ctx, args);
   const tables = loadTables(ctx, args.tables);
-  const result = runChecks(tables, glossary, { rules: args.options?.rules, wideAsTwo: args.options?.wideAsTwo });
+  const result = runChecks(tables, glossary, { rules: args.options?.rules, wideAsTwo: args.options?.wideAsTwo, locale: args.options?.locale });
   const order: Severity[] = ["error", "warning", "info"];
   const min = order.indexOf(args.options?.minSeverity ?? "info");
   return { ...result, findings: result.findings.filter((f) => order.indexOf(f.severity) <= min) };
@@ -124,7 +125,7 @@ export function buildServer(ctx: ServerContext = devContext()): McpServer {
           usage: r.usage,
           reviewPackets: r.reviewPackets.map((p) => ({ kind: p.kind, subject: p.subject, lines: p.lines.length })),
         };
-        return { content: [{ type: "text", text: renderMarkdown(r) }], structuredContent: summary };
+        return { content: [{ type: "text", text: renderMarkdown(r, { locale: (args as CheckArgs).options?.locale }) }], structuredContent: summary };
       } catch (e) {
         return errorResult(e);
       }

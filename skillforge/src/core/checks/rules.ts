@@ -1,5 +1,6 @@
 import { displayLength, PLACEHOLDER, visibleText } from "../text.js";
-import type { Finding, Row, Side, Table } from "../types.js";
+import { messages } from "../i18n.js";
+import type { Finding, Locale, Row, Side, Table } from "../types.js";
 
 // Bonus rule checks. Xbench/Verifika already cover this ground, so they are kept simple.
 
@@ -43,7 +44,8 @@ function tags(s: string): { list: string[]; unbalanced: string[] } {
   return { list, unbalanced: [...unbalanced, ...stack.map((n) => `<${n}>`)] };
 }
 
-export function checkRules(tables: Table[], opts: { wideAsTwo?: boolean } = {}): Finding[] {
+export function checkRules(tables: Table[], opts: { wideAsTwo?: boolean; locale?: Locale } = {}): Finding[] {
+  const msg = messages(opts.locale);
   const out: Finding[] = [];
   for (const t of tables) {
     const jaSide: Side | undefined = t.sourceLang === "ja" ? "source" : t.targetLang === "ja" ? "target" : undefined;
@@ -54,7 +56,7 @@ export function checkRules(tables: Table[], opts: { wideAsTwo?: boolean } = {}):
       if (ph.missing.length || ph.extra.length) {
         out.push({
           category: "placeholder", severity: "error", rule: "placeholder.mismatch", ...base(row, "target"),
-          message: [ph.missing.length && `missing ${ph.missing.join(" ")}`, ph.extra.length && `unexpected ${ph.extra.join(" ")}`].filter(Boolean).join("; "),
+          message: msg.mismatch(ph.missing, ph.extra),
         });
       }
 
@@ -64,13 +66,13 @@ export function checkRules(tables: Table[], opts: { wideAsTwo?: boolean } = {}):
       if (td.missing.length || td.extra.length) {
         out.push({
           category: "tag", severity: "error", rule: "tag.mismatch", ...base(row, "target"),
-          message: [td.missing.length && `missing ${td.missing.join(" ")}`, td.extra.length && `unexpected ${td.extra.join(" ")}`].filter(Boolean).join("; "),
+          message: msg.mismatch(td.missing, td.extra),
         });
       }
       // Only report imbalance the translation introduced (the source may intentionally span strings).
       const newlyUnbalanced = diff(st.unbalanced, tt.unbalanced).extra;
       if (newlyUnbalanced.length) {
-        out.push({ category: "tag", severity: "error", rule: "tag.unbalanced", ...base(row, "target"), message: `Unbalanced tags: ${newlyUnbalanced.join(" ")}` });
+        out.push({ category: "tag", severity: "error", rule: "tag.unbalanced", ...base(row, "target"), message: msg.tagUnbalanced(newlyUnbalanced) });
       }
 
       if (jaSide) {
@@ -78,17 +80,17 @@ export function checkRules(tables: Table[], opts: { wideAsTwo?: boolean } = {}):
         for (const m of [...ja.matchAll(RUBY_BRACE), ...ja.matchAll(RUBY_AOZORA), ...ja.matchAll(/<ruby(?:\s[^>]*)?>(.*?)(?:<rp>[^<]*<\/rp>)?<rt>(.*?)<\/rt>(?:<rp>[^<]*<\/rp>)?\s*<\/ruby>/g)]) {
           const reading = m[2]!.replace(/<[^>]+>/g, "");
           if (!KANA_ONLY.test(reading)) {
-            out.push({ category: "ruby", severity: "warning", rule: "ruby.reading", ...base(row, jaSide), message: `Ruby reading "${reading}" for "${m[1]}" is not kana.` });
+            out.push({ category: "ruby", severity: "warning", rule: "ruby.reading", ...base(row, jaSide), message: msg.rubyReading(reading, m[1]!) });
           }
         }
         const opens = (ja.match(/<ruby(?:\s[^>]*)?>/g) ?? []).length;
         if (opens !== (ja.match(/<\/ruby>/g) ?? []).length || opens !== (ja.match(/<rt(?:\s[^>]*)?>/g) ?? []).length) {
-          out.push({ category: "ruby", severity: "error", rule: "ruby.malformed", ...base(row, jaSide), message: "Malformed <ruby>/<rt> markup." });
+          out.push({ category: "ruby", severity: "error", rule: "ruby.malformed", ...base(row, jaSide), message: msg.rubyMalformed() });
         }
         const enSide: Side = jaSide === "source" ? "target" : "source";
         const en = enSide === "source" ? row.source : row.target;
         if (/<ruby>|<rt>|[｜][^《]+《|\{[^{}|]+\|[^{}]+\}/.test(en)) {
-          out.push({ category: "ruby", severity: "error", rule: "ruby.leak", ...base(row, enSide), message: "Ruby markup copied into the English text." });
+          out.push({ category: "ruby", severity: "error", rule: "ruby.leak", ...base(row, enSide), message: msg.rubyLeak() });
         }
       }
 
@@ -97,7 +99,7 @@ export function checkRules(tables: Table[], opts: { wideAsTwo?: boolean } = {}):
         if (n > row.maxLength) {
           out.push({
             category: "length", severity: "error", rule: "length.limit", ...base(row, "target"),
-            message: `Length ${n} exceeds the limit of ${row.maxLength}${opts.wideAsTwo ? " (wide chars count 2)" : ""}.`,
+            message: msg.lengthLimit(n, row.maxLength, !!opts.wideAsTwo),
             found: String(n), expected: `≤ ${row.maxLength}`,
           });
         }

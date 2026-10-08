@@ -1,18 +1,8 @@
 import { CATEGORY_ORDER } from "./engine.js";
 import { countBy } from "./text.js";
-import type { Category, CheckResult, Finding, Severity } from "./types.js";
+import { reportLabels } from "./i18n.js";
+import type { Category, CheckResult, Finding, Locale, Severity } from "./types.js";
 
-const TITLES: Record<Category, string> = {
-  term: "Glossary term drift / 用語の訳揺れ",
-  notation: "Katakana notation drift / 表記揺れ",
-  name: "Character name drift / キャラ名の揺れ",
-  honorific: "Honorific drift / 敬称の揺れ",
-  voice: "Voice drift / 口調の揺れ",
-  placeholder: "Placeholders (bonus)",
-  tag: "Tags (bonus)",
-  ruby: "Ruby (bonus)",
-  length: "Length limits (bonus)",
-};
 const ICON: Record<Severity, string> = { error: "❌", warning: "⚠️", info: "ℹ️" };
 const CORE: Category[] = ["term", "notation", "name", "honorific", "voice"];
 
@@ -23,15 +13,17 @@ const usageLine = (counts: Record<string, number>) =>
     .map(([k, n]) => `${k} ×${n}`)
     .join(" · ");
 
-export function renderMarkdown(r: CheckResult, opts: { includeInfo?: boolean; includePackets?: boolean } = {}): string {
+export function renderMarkdown(r: CheckResult, opts: { includeInfo?: boolean; includePackets?: boolean; locale?: Locale } = {}): string {
+  const L = reportLabels(opts.locale);
+  const TITLES = L.titles;
   const includeInfo = opts.includeInfo ?? true;
   const findings = includeInfo ? r.findings : r.findings.filter((f) => f.severity !== "info");
   const out: string[] = [];
-  out.push("# Script consistency report", "");
-  for (const t of r.tables) out.push(`- **${t.file}** — ${t.format.toUpperCase()}, ${t.rows} rows, ${t.sourceLang} → ${t.targetLang}`);
-  out.push(`- Glossary: ${r.glossary.terms} terms, ${r.glossary.characters} characters`, "");
+  out.push(`# ${L.heading}`, "");
+  for (const t of r.tables) out.push(L.tableLine(t.file, t.format.toUpperCase(), t.rows, t.sourceLang, t.targetLang));
+  out.push(L.glossaryLine(r.glossary.terms, r.glossary.characters), "");
 
-  out.push("| Check | ❌ error | ⚠️ warning | ℹ️ info |", "|---|---:|---:|---:|");
+  out.push(L.summaryHeader, "|---|---:|---:|---:|");
   for (const c of CATEGORY_ORDER) {
     const fs = r.findings.filter((f) => f.category === c);
     if (!fs.length && !CORE.includes(c)) continue;
@@ -39,7 +31,7 @@ export function renderMarkdown(r: CheckResult, opts: { includeInfo?: boolean; in
     out.push(`| ${TITLES[c]} | ${n("error")} | ${n("warning")} | ${n("info")} |`);
   }
   out.push("");
-  if (!findings.length) out.push("No issues found.", "");
+  if (!findings.length) out.push(L.noIssues, "");
 
   for (const c of CATEGORY_ORDER) {
     const fs = findings.filter((f) => f.category === c);
@@ -49,16 +41,16 @@ export function renderMarkdown(r: CheckResult, opts: { includeInfo?: boolean; in
     for (const [group, list] of countBy(fs, (f) => f.group ?? "")) {
       if (group) out.push(`### ${group}`);
       const u = usage.find((x) => x.group === group);
-      if (u) out.push(`Usage: ${usageLine(u.counts)}`);
+      if (u) out.push(`${L.usage}: ${usageLine(u.counts)}`);
       if (group || u) out.push("");
-      for (const f of list) out.push(`- ${ICON[f.severity]} ${loc(f)} \`${f.id}\` (${f.side}) — ${f.message}`);
+      for (const f of list) out.push(`- ${ICON[f.severity]} ${loc(f)} \`${f.id}\` (${L.side[f.side]}) — ${f.message}`);
       out.push("");
     }
   }
 
   if (opts.includePackets !== false && r.reviewPackets.length) {
-    out.push("## Needs judgement (review packets)", "");
-    out.push(`${r.reviewPackets.length} packet(s) for the reviewer: ` + r.reviewPackets.map((p) => `${p.kind} — ${p.subject} (${p.lines.length} lines)`).join("; "), "");
+    out.push(`## ${L.packetsHeading}`, "");
+    out.push(L.packetsIntro(r.reviewPackets.length) + r.reviewPackets.map((p) => L.packetItem(p.kind, p.subject, p.lines.length)).join(L.packetSep), "");
   }
   return out.join("\n");
 }
