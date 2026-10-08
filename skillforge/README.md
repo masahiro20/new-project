@@ -49,7 +49,7 @@ docs/pilot-guide.md  pilot instructions for testers + false-positive measurement
 ```bash
 cd skillforge
 npm install
-npm test                       # 54 tests: parsers, checks, regressions, draft, store/auth, MCP end-to-end
+npm test                       # 56 tests: parsers, checks, regressions, draft, store/auth, MCP end-to-end
 npm run check:sample           # CLI report for samples/ja-en
 npx tsx src/cli/index.ts check samples/en-ja/ui.xlf --glossary samples/en-ja/glossary.json
 
@@ -110,4 +110,4 @@ Limits per call: 20 tables, 5M chars per table, 100k rows, 25 MB request.
 - Japanese analysis is heuristic: regex-based, no morphological analyzer. Pronoun and politeness detection is tuned to avoid obvious lookalikes (私服, こわしが), but it will miss or misread some lines. That's why voice findings stay at warning/info and the packets go to the model.
 - Near-miss name detection can flag a real English word one letter away from a name. Add those words to `ignoreWords`.
 - Auth is per-user bearer tokens with in-memory limits: fine for a pilot, but OAuth and a shared limiter are needed before multi-instance hosting.
-- The glossary draft is heuristic (no model): common words can crowd the list and single-kanji terms are missed. Always review it.
+- The glossary draft is heuristic (no model). Everyday words are filtered by a built-in list plus `stopwords`/`ignoreWords`, and candidates without a consistent rendering rank last; single-kanji terms (剣, 祈り) need ≥3 consistent rows. Always review it.

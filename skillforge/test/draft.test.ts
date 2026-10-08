@@ -98,3 +98,40 @@ test("draft: 20k rows in under 3 s", () => {
   const right = d.entries.filter((e) => e.target && byJa.get(e.source)?.toLowerCase() === e.target.toLowerCase()).length;
   assert.ok(right >= 80, `${right}/100 aligned correctly`);
 });
+
+test("everyday words do not crowd out real terms; single-kanji and okurigana terms are found", () => {
+  const common = ["自分", "本当", "大丈夫", "一緒", "時間", "仲間"];
+  const enWords = ["myself", "really", "fine", "together", "time", "friends"];
+  const verbsJa = ["見た", "言った", "待った", "走った", "笑った", "泣いた", "考えた"];
+  const verbsEn = ["saw", "said", "waited", "ran", "laughed", "cried", "thought"];
+  const lines: string[] = ["id,speaker,ja,en"];
+  let n = 0;
+  const add = (ja: string, en: string) => lines.push(`l${++n},A,${ja},"${en}"`);
+  // Everyday words in many rows.
+  for (let i = 0; i < 60; i++) add(`${common[i % 6]}は${verbsJa[i % 7]}。`, `I ${verbsEn[i % 7]} it, ${enWords[i % 6]}.`);
+  // Real terms in fewer rows, in varied sentences.
+  ["動く", "止まる", "燃える", "壊れた"].forEach((v, i) => add(`魔導炉が${v}。`, [`The Mana Reactor hums.`, `Stop the Mana Reactor!`, `Is the Mana Reactor burning?`, `Our Mana Reactor broke.`][i]!));
+  ["抜け", "研げ", "捨てるな", "拾った"].forEach((v, i) => add(`剣を${v}。`, [`Draw your Sword.`, `Sharpen the Sword!`, `Never drop that Sword.`, `I found a Sword.`][i]!));
+  ["捧げよ", "聞け", "忘れるな"].forEach((v, i) => add(`祈りを${v}。`, [`Offer a Prayer.`, `Hear my Prayer!`, `Never forget the Prayer.`][i]!));
+  ["行く", "登る", "見える"].forEach((v, i) => add(`星詠みの塔へ${v}。`, [`We go to the Stargazer Tower.`, `Climb the Stargazer Tower!`, `I see the Stargazer Tower.`][i]!));
+  const t = parseTable(lines.join("\n") + "\n", "common.csv");
+  const draft = draftGlossary([t], undefined, { maxTerms: 6 });
+  const got = Object.fromEntries(draft.glossary.terms.map((x) => [x.source, x.target]));
+  assert.equal(got["魔導炉"], "Mana Reactor");
+  assert.equal(got["剣"], "Sword");
+  assert.equal(got["祈り"], "Prayer");
+  assert.equal(got["星詠みの塔"], "Stargazer Tower");
+  assert.ok(!draft.entries.some((e) => common.includes(e.source)), "everyday words are excluded");
+});
+
+test("single kanji inside ordinary words is not proposed; custom stopwords apply", () => {
+  const t = parseTable(
+    "id,ja,en\n1,剣士が来た。,The swordsman came.\n2,剣を取れ。,Take the blade.\n3,剣が光る。,The Sword shines.\n4,魔導炉だ。,A Mana Reactor.\n5,魔導炉か。,The Mana Reactor?\n",
+    "s.csv",
+  );
+  const draft = draftGlossary([t]);
+  assert.ok(!draft.glossary.terms.some((x) => x.source === "剣"), "inconsistent single kanji gets no target");
+  const custom = draftGlossary([t], { terms: [], characters: [], ignoreWords: ["魔導炉"] });
+  assert.ok(!custom.entries.some((e) => e.source === "魔導炉"));
+  assert.ok(!draftGlossary([t], undefined, { stopwords: ["魔導炉"] }).entries.some((e) => e.source === "魔導炉"));
+});

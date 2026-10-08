@@ -26,6 +26,8 @@ export interface DraftOptions {
   minRows?: number;
   /** Maximum number of term entries. Default 100. */
   maxTerms?: number;
+  /** Extra source words never to propose (added to the built-in common-word list and the glossary's ignoreWords). */
+  stopwords?: string[];
 }
 
 /** Target n-gram / source candidate. `key` is normalized (katakanaKey for JA, lowercase + plural fold for EN). */
@@ -75,9 +77,29 @@ const EN_STOP = new Set(
 const EN_CONNECT = new Set(["of", "the", "de", "du", "la", "le", "von", "van"]);
 
 const K = "[一-鿿々〆]";
+const PARTICLE = "(?=[をはがのにへとでもや、。！？!?…」』]|$)";
 const JA_KATA = /[ァ-ヴー・＝]{3,}/g;
 const JA_KANJI = new RegExp(`${K}{2,}[きぎちびみり]?`, "g");
-const JA_NO = new RegExp(`${K}+の${K}{2,}`, "g");
+// X の Y; Y may be a single kanji when X is at least two characters (星詠みの塔, 灰の書庫).
+const JA_NO = new RegExp(`(?:${K}+の${K}{2,}|${K}{2,}[きぎちびみり]?の${K}(?!${K}))`, "g");
+// One kanji standing alone before a particle (剣を), or one kanji + okurigana (祈り, 誓い, 導き).
+const JA_SINGLE = new RegExp(`(?<![一-鿿々〆ぁ-ゖ])${K}[いきぎしちにびみり]?${PARTICLE}`, "g");
+
+/**
+ * Everyday words that recur in any script but rarely belong in a glossary. Not exhaustive: the ranking
+ * below also pushes candidates without a consistent rendering to the bottom.
+ */
+const JA_COMMON = new Set(
+  ("自分 本当 大丈夫 一緒 今日 明日 昨日 今度 今回 最初 最後 全部 全然 少し 時間 場所 世界 仲間 必要 問題 理由 意味 " +
+    "気持 気分 気持ち 本気 本物 当然 勝手 無理 無事 心配 安心 危険 大事 大切 簡単 確か 結局 絶対 普通 方法 準備 " +
+    "用意 説明 話 言葉 名前 相手 皆 皆さん 皆様 人間 誰か 何か 何処 何故 一体 一人 二人 自身 他人 先生 先輩 後輩 " +
+    "友達 家族 両親 父 母 兄 姉 弟 妹 子供 大人 男 女 体 顔 目 手 足 声 心 頭 力 命 " +
+    "部屋 外 中 上 下 前 後 横 隣 近く 遠く 向こう 今 昔 後で 先 次 他 別 同じ 色々 様々 沢山 一番 以上 以下 " +
+    "以外 以前 以後 場合 程度 予定 約束 関係 状況 状態 様子 調子 結果 原因 目的 仕事 作戦 計画 情報 連絡 確認 報告 " +
+    "了解 失礼 感謝 本日 今夜 今朝 毎日 一日 一度 何度 二度 多分 恐らく 是非 勿論 実際 本来 特別 自由 平和 未来 過去 " +
+    "現在 時代 世の中 人生 生活 毎回 一瞬 瞬間 戦い 勝負 攻撃 防御 回復 移動 出発 到着 帰還 開始 終了 成功 失敗 " +
+    "私 僕 俺 君 彼 彼女 貴方 あなた 我々 私達 僕達 俺達 自分達 何 誰 事 物 者 方 所 時 人 気 達 様 方々 皆様方").split(" "),
+);
 
 /** Fold English plurals on the last word: stones→stone, abilities→ability, boxes→box. */
 function foldWord(w: string): string {
@@ -151,9 +173,13 @@ function enGrams(text: string, lowerWords: Set<string>): Map<string, Gram> {
   return out;
 }
 
-/** Japanese candidates: katakana runs (≥3), kanji compounds (≥2, optional 連用形 okurigana like 星詠み), X の YY compounds. */
+/**
+ * Japanese candidates: katakana runs (≥3), kanji compounds (≥2, optional 連用形 okurigana like 星詠み),
+ * X の Y compounds, and single-kanji words (剣を, 祈り) which are held to a stricter bar when aligned.
+ */
 function jaGrams(text: string): Map<string, Gram> {
   const out = new Map<string, Gram>();
+  for (const m of text.matchAll(JA_SINGLE)) addGram(out, m[0], m[0], true, true);
   for (const m of text.matchAll(JA_KATA)) {
     const s = m[0].replace(/^[・＝]+|[・＝]+$/g, "");
     if (s.length >= 3) addGram(out, katakanaKey(s), s, true, true);
@@ -243,6 +269,7 @@ export function draftGlossary(tables: Table[], existing?: Glossary, opts: DraftO
   const maxTerms = opts.maxTerms ?? 100;
   const notes: string[] = [];
   const lowerWords = new Set<string>();
+  const stop = new Set([...JA_COMMON, ...(opts.stopwords ?? []), ...(existing?.ignoreWords ?? [])].map(normKey));
 
   // Pass 1: n-grams per row (both sides), speaker labels.
   const recs: Rec[] = [];
@@ -347,16 +374,19 @@ export function draftGlossary(tables: Table[], existing?: Glossary, opts: DraftO
       kept.push(...keep);
     }
 
-    const fresh = kept.filter((key) => !knownList.some((k) => looksJapanese(k) === srcJa && contains(k, key, srcLang)));
+    const fresh = kept.filter((key) => !stop.has(key) && !knownList.some((k) => looksJapanese(k) === srcJa && contains(k, key, srcLang)));
     fresh.sort((a, b) => rowsByKey.get(b)!.length - rowsByKey.get(a)!.length || (a < b ? -1 : 1));
 
+    // Align more candidates than we keep, so recurring everyday words can't crowd out real terms.
     let df: Map<string, number> | undefined;
-    for (const key of fresh.slice(0, maxTerms)) {
+    for (const key of fresh.slice(0, maxTerms * 3)) {
       df ??= docFreq(idx, tgtOf);
       const rows = rowsByKey.get(key)!;
       const a = align(rows, tgtOf, df, tgtLang);
       const best = a.best;
-      const accepted = !!best && best.dice >= MIN_DICE && best.co >= Math.min(2, minRows) && !a.ambiguous;
+      // A single kanji (剣, 祈り) is often part of ordinary words, so it needs a stronger, repeated link.
+      const short = srcJa && sizeOf(key, "ja") <= 2 && /^[一-鿿々〆][ぁ-ゖ]?$/.test(key);
+      const accepted = !!best && !a.ambiguous && (short ? best.dice >= 0.6 && best.co >= Math.max(3, minRows) : best.dice >= MIN_DICE && best.co >= Math.min(2, minRows));
       const strong = a.ranked.filter((r) => r.dice >= MIN_DICE);
       const renderings: Record<string, number> = {};
       for (const i of rows) {
@@ -381,7 +411,8 @@ export function draftGlossary(tables: Table[], existing?: Glossary, opts: DraftO
       });
     }
   }
-  entries.sort((a, b) => b.rows - a.rows || b.confidence - a.confidence || (a.source < b.source ? -1 : 1));
+  // Terms with a consistent rendering first; recurring words without one (often everyday words) last.
+  entries.sort((a, b) => Number(!!b.target) - Number(!!a.target) || b.rows - a.rows || b.confidence - a.confidence || (a.source < b.source ? -1 : 1));
   const top = entries.slice(0, maxTerms);
 
   const terms: GlossaryTerm[] = [];
