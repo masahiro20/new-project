@@ -28,7 +28,7 @@ const ja = {
     refund: "返金条件",
     agree: "購入ボタンを押すと、利用規約とプライバシーポリシーに同意したものとみなします。",
   },
-  buy: { pending: "決済ページへ移動中…", error: "決済ページを開けませんでした。時間をおいて再度お試しください。", dev: "開発モード：Stripe を使わずにアクセスを付与します" },
+  buy: { pending: "決済ページへ移動中…", error: "決済ページを開けませんでした。時間をおいて再度お試しください。", dev: "開発モード：Stripe を使わずにアクセスを付与します", canceled: "決済はキャンセルされました。" },
   success: {
     title: "ご購入ありがとうございます",
     notPaid: "お支払いを確認できませんでした。決済が完了している場合は、しばらくしてからこのページを再読み込みしてください。",
@@ -49,6 +49,8 @@ const ja = {
     invalidToken: "リンクの有効期限が切れているか、すでに使用されています。もう一度お試しください。",
     signOut: "ログアウト",
     billing: "お支払い管理",
+    expired: "このリンクからのログイン期限が過ぎました。ライセンスキーかメールでログインしてください。",
+    limited: "しばらく時間をおいてから再度お試しください。",
   },
   mail: {
     licenseSubject: (name: string) => `${name} のライセンスキー`,
@@ -91,7 +93,7 @@ const en: Dict = {
     refund: "Refunds",
     agree: "By purchasing you agree to the Terms and Privacy Policy.",
   },
-  buy: { pending: "Opening checkout…", error: "Couldn't open checkout. Please try again.", dev: "Dev mode: grants access without Stripe" },
+  buy: { pending: "Opening checkout…", error: "Couldn't open checkout. Please try again.", dev: "Dev mode: grants access without Stripe", canceled: "Checkout was canceled." },
   success: {
     title: "Thanks for your purchase",
     notPaid: "We couldn't confirm your payment yet. If you were charged, reload this page in a moment.",
@@ -112,6 +114,8 @@ const en: Dict = {
     invalidToken: "This link has expired or was already used. Please request a new one.",
     signOut: "Sign out",
     billing: "Manage billing",
+    expired: "This link can no longer be used to sign in. Use your license key or email instead.",
+    limited: "Too many attempts. Please try again later.",
   },
   mail: {
     licenseSubject: (name) => `Your ${name} license key`,

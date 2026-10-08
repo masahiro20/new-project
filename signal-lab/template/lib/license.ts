@@ -18,7 +18,8 @@ export const isLicenseKey = (key: string) => FORMAT.test(key);
  */
 export function normalizeLicenseKey(input: string): string | null {
   let s = input.toUpperCase().replace(/[\s\-_]/g, "");
-  if (s.length === 16 && s.startsWith(PREFIX)) s = s.slice(PREFIX.length);
+  // Generated bodies never contain "L", so a leading SLAB is always the prefix.
+  if (s.startsWith(PREFIX)) s = s.slice(PREFIX.length);
   if (s.length !== 12) return null;
   s = s.replace(/O/g, "0").replace(/[IL]/g, "1");
   if (![...s].every((c) => CROCKFORD.includes(c))) return null;

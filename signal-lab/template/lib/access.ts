@@ -1,5 +1,6 @@
 import { jwtVerify, SignJWT } from "jose";
 import { config } from "./config";
+export { ACCESS_COOKIE } from "./config";
 import { findByEmail } from "./entitlements";
 import { t } from "./i18n";
 import { sendMail } from "./mail";
@@ -9,7 +10,6 @@ import { isBuildPhase, isProduction, siteUrl, warnOnce } from "./site";
 // Pure access primitives (no next/* imports) so they run under vitest.
 // The request-bound helpers (requireAccess, cookies) live in lib/session.ts.
 
-export const ACCESS_COOKIE = `${config.slug}_access`;
 const DEV_SECRET = "signal-lab-dev-secret-do-not-use-in-production-0000";
 
 export function accessSecret(env: Record<string, string | undefined> = process.env): Uint8Array {

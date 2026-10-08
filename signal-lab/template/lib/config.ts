@@ -83,6 +83,7 @@ export type ProductConfig = z.output<typeof productConfigSchema>;
 export type Plan = ProductConfig["pricing"]["plans"][number];
 
 export const PLACEHOLDER = "【要記入】";
+const PLACEHOLDER_MARK = "【要記入"; // also matches 【要記入：…】 hints
 
 /** Parse + validate. Throws a readable error listing every invalid field. */
 export function parseConfig(input: unknown, env: { NODE_ENV?: string } = process.env): ProductConfig {
@@ -100,7 +101,7 @@ export function parseConfig(input: unknown, env: { NODE_ENV?: string } = process
 
 /** Dotted paths of every string that still contains 【要記入】. */
 export function findPlaceholders(value: unknown, path = ""): string[] {
-  if (typeof value === "string") return value.includes(PLACEHOLDER) ? [path] : [];
+  if (typeof value === "string") return value.includes(PLACEHOLDER_MARK) ? [path] : [];
   if (Array.isArray(value)) return value.flatMap((v, i) => findPlaceholders(v, `${path}[${i}]`));
   if (value && typeof value === "object") {
     return Object.entries(value).flatMap(([k, v]) => findPlaceholders(v, path ? `${path}.${k}` : k));
@@ -110,12 +111,17 @@ export function findPlaceholders(value: unknown, path = ""): string[] {
 
 export const config: ProductConfig = parseConfig(raw);
 
+/** Name of the signed access cookie (read by proxy.ts, so it lives in this light module). */
+export const ACCESS_COOKIE = `${config.slug}_access`;
+
 export function getPlan(id: string): Plan | undefined {
   return config.pricing.plans.find((p) => p.id === id);
 }
 
+export const toMajorUnits = (amount: number, currency = config.pricing.currency) => (ZERO_DECIMAL.has(currency) ? amount : amount / 100);
+
 export function formatAmount(amount: number, currency = config.pricing.currency, locale = config.locale): string {
-  const major = ZERO_DECIMAL.has(currency) ? amount : amount / 100;
+  const major = toMajorUnits(amount, currency);
   return new Intl.NumberFormat(locale === "ja" ? "ja-JP" : "en-US", { style: "currency", currency: currency.toUpperCase() }).format(major);
 }
 

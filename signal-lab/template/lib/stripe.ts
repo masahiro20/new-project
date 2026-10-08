@@ -22,9 +22,11 @@ const ENTITLEMENT_META = `${config.slug}_entitlement`;
 export function mapSubscriptionStatus(status: Stripe.Subscription.Status): EntitlementStatus {
   switch (status) {
     case "active":
+      return "active";
     case "trialing":
+      return "trialing";
     case "past_due":
-      return status;
+      return "past_due";
     case "canceled":
     case "incomplete_expired":
       return "canceled";
