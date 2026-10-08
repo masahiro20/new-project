@@ -1,0 +1,38 @@
+{
+  "manifest_version": 3,
+  "name": "Collector Lens (prototype)",
+  "short_name": "Collector Lens",
+  "version": "0.1.0",
+  "description": "Working title. Explains Japanese listing condition terms in English and flags risky wording. Reads only the page you have open.",
+  "permissions": [],
+  "host_permissions": [
+    "https://page.auctions.yahoo.co.jp/*",
+    "https://jp.mercari.com/*",
+    "https://item.fril.jp/*",
+    "https://order.mandarake.co.jp/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://page.auctions.yahoo.co.jp/jp/auction/*",
+        "https://jp.mercari.com/*",
+        "https://item.fril.jp/*",
+        "https://order.mandarake.co.jp/order/detailPage/*"
+      ],
+      "js": [
+        "src/glossary-data.js",
+        "src/analyzer.js",
+        "src/sites.js",
+        "src/overlay.js",
+        "src/content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "minimum_chrome_version": "111"
+}
