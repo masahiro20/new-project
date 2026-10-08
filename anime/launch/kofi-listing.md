@@ -58,7 +58,7 @@ SPECS
 HOW THIS WAS MADE
 The text, diagrams and illustrations were created with the help of generative AI
 and were structured, edited and supervised by the creator ({owner name}).
-No prompts referencing other artists or existing works were used.
+Nothing was generated with the aim of imitating a specific artist's style or an existing work's characters.
 
 PLEASE NOTE
 • RED LEDGER is an original project. There is no anime, manga or publishing deal (yet).
