@@ -1,0 +1,830 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>帳簿の書 Vol.0｜RED LEDGER</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=IBM+Plex+Mono:wght@400;600&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="book.css">
+<style>
+/* 本書だけの最小限の追加 */
+.art { height: var(--h, 90mm); flex: none; position: relative; }
+.svg-inline > svg, figure .svg-inline > svg { display: block; width: 100%; height: 100%; }
+.art > img, .art > .svg-inline { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; display: block; }
+.art.grow-fig { flex: 1; height: auto; min-height: 0; }
+.cover-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.cover-veil { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(18,20,27,.55) 0%, rgba(18,20,27,0) 28%, rgba(18,20,27,0) 55%, rgba(18,20,27,.92) 100%); }
+.cover-top { position: absolute; top: 12mm; left: 12mm; right: 12mm; display: flex; justify-content: space-between; font-family: var(--mono); font-size: 7pt; letter-spacing: .2em; color: var(--bone); }
+.cover-title { position: absolute; left: 12mm; right: 12mm; bottom: 14mm; display: flex; flex-direction: column; gap: 2mm; color: var(--bone); }
+.cover-title .t { font-family: var(--display); font-size: 40pt; line-height: 1; color: #E5172F; letter-spacing: .01em; }
+.cover-title .sub { font-family: var(--display); font-size: 15pt; line-height: 1.2; }
+.cover-title .vol { font-family: var(--mono); font-size: 8pt; letter-spacing: .22em; border-top: .3mm solid rgba(236,230,214,.5); padding-top: 2mm; display: flex; justify-content: space-between; }
+.board { background: var(--night); color: var(--bone); font-family: var(--mono); font-size: 7pt; line-height: 1.55; padding: 3mm 3.5mm; }
+.board .row { display: grid; grid-template-columns: 10mm 1fr 14mm; gap: 2mm; border-bottom: .15mm solid rgba(236,230,214,.18); padding: .5mm 0; }
+.board .row:last-child { border-bottom: 0; }
+.board .hd { color: #A49F93; letter-spacing: .14em; margin-bottom: 1mm; }
+.board .zero { color: #E5172F; font-weight: 600; }
+.notice { border: .8mm double var(--ink); padding: 3mm 4mm; background: #FBFAF4; display: flex; flex-direction: column; gap: 1.2mm; }
+.notice .ttl { font-family: var(--display); font-size: 13pt; line-height: 1.25; text-align: center; letter-spacing: .12em; }
+.notice .issuer { font-family: var(--mono); font-size: 6.5pt; letter-spacing: .12em; color: var(--muted); text-align: right; }
+.notice ol { margin: 0; padding-left: 4.5mm; }
+.blk { background: var(--ink); color: var(--ink); padding: 0 .4em; }
+.form { border: .3mm solid var(--ink); font-size: 7.4pt; line-height: 1.5; background: #FBFAF4; }
+.form .fh { background: var(--ink); color: var(--paper); font-family: var(--mono); font-size: 6.6pt; letter-spacing: .14em; padding: 1mm 2.5mm; display: flex; justify-content: space-between; }
+.form .fr { display: grid; grid-template-columns: 22mm 1fr; border-top: .2mm solid var(--rule); }
+.form .fr > span { padding: .8mm 2.5mm; }
+.form .fr > span:first-child { font-family: var(--mono); font-size: 6.3pt; color: var(--muted); letter-spacing: .06em; border-right: .2mm solid var(--rule); }
+.form .oath { padding: 1.4mm 2.5mm; border-top: .2mm solid var(--rule); }
+.hint { border-top: .2mm dashed var(--red); padding-top: 1.5mm; font-size: 7.8pt; line-height: 1.6; }
+.hint b { color: var(--red); font-family: var(--mono); font-size: 6.5pt; letter-spacing: .12em; display: block; }
+.colo { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 3mm; margin-top: auto; }
+.colo-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .32; display: block; }
+.colo dl { display: grid; grid-template-columns: 28mm 1fr; gap: .8mm 3mm; margin: 0; font-size: 7.6pt; line-height: 1.55; }
+.colo dt { font-family: var(--mono); font-size: 6.4pt; letter-spacing: .1em; color: #A49F93; padding-top: .3mm; }
+.colo dd { margin: 0; }
+.colo .legal { border-top: .2mm solid rgba(236,230,214,.35); padding-top: 2mm; font-size: 7pt; line-height: 1.6; color: #CFC8B8; }
+ol.toc.tight li { padding: 1mm 0; }
+.big-quote { font-family: var(--display); font-size: 26pt; line-height: 1.15; color: var(--red); }
+.page.dark .runhead { color: #A49F93; border-color: rgba(236,230,214,.25); }
+</style>
+</head>
+<body>
+
+<!-- ================= p1 表紙 ================= -->
+<section class="page bleed dark">
+  <img class="cover-art" src="art/cover.svg" alt="">
+  <div class="cover-veil"></div>
+  <div class="cover-top"><span>P7 ANIME ORIGINAL</span><span>BOOK OF THE LEDGER</span></div>
+  <div class="cover-title">
+    <span class="t">RED<br>LEDGER</span>
+    <span class="sub">赤い帳簿</span>
+    <div class="vol"><span>帳簿の書 Vol.0</span><span>公式設定資料集</span></div>
+  </div>
+</section>
+
+<!-- ================= p2 本書について ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>RED LEDGER ／ 帳簿の書 Vol.0</span><span>本書について</span></div>
+  <span class="chapter-no">Before you open the ledger</span>
+  <h1>本書について</h1>
+  <p class="lede">『帳簿の書 Vol.0』は、オリジナルアニメ企画『RED LEDGER（レッドレジャー）／赤い帳簿』の世界と人物を、一冊の“帳簿”にまとめた公式設定資料集です。</p>
+  <div class="stack">
+    <h3>読み方</h3>
+    <p>本書は帳簿のつくりをまねています。各ページ下の数字は頁番号（フォリオ）、左の赤い二重線は帳簿の罫線です。<span class="red">赤いインク</span>は借金にまつわるものにだけ使っています。</p>
+    <p>ところどころに挟まれた告示・書式・掲示板の写しは、作中の都市カネグラで実際に出回っている文書、という体裁の資料です。</p>
+  </div>
+  <div class="box">
+    <h4>ネタバレの範囲</h4>
+    <p>本書の内容は<strong>第1話「払わねえよ。」まで</strong>です。第1話の結末にはふれますが、第2話以降の展開は書いていません。人物の秘密は「ほのめかし」までにとどめています。</p>
+  </div>
+  <div class="note small">
+    <h4>ご注意</h4>
+    <p>・本書は制作準備段階の資料です。設定・名称・デザインは、今後の制作で変わる場合があります。</p>
+    <p>・第1話の脚本は、冒頭3分のみを抜粋して収録しています（決定稿前の稿より）。</p>
+    <p>・本作はフィクションです。実在の人物・団体・宗教・金融機関とは関係ありません。</p>
+    <p>・作中の「踏み倒し」は物語上の力です。現実の借金は、きちんと相談できる窓口へ。</p>
+  </div>
+  <div style="margin-top:auto; align-self:flex-end"><span class="stamp">閲覧許可<small>BOURSE · COPY 000</small></span></div>
+  <div class="folio"><span>本書について</span><span class="no">02</span></div>
+</section>
+
+<!-- ================= p3 目次 ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>RED LEDGER ／ 帳簿の書 Vol.0</span><span>目次</span></div>
+  <span class="chapter-no">Contents</span>
+  <h1>目次</h1>
+  <ol class="toc tight">
+    <li><span>序章　払わない少年</span><span class="pg">04</span></li>
+    <li><span><strong>第1章　都市カネグラ</strong></span><span class="pg">05</span></li>
+    <li><span>　三つの層──頂・中層・底帳</span><span class="pg">06</span></li>
+    <li><span>　七柱の貸主〈レンダー〉</span><span class="pg">07</span></li>
+    <li><span>　借力〈クレジット〉の規則と担保</span><span class="pg">08</span></li>
+    <li><span>　格付け〈レーティング〉と公開格付け盤</span><span class="pg">09</span></li>
+    <li><span>　決済戦〈セトルメント〉</span><span class="pg">10</span></li>
+    <li><span>　取立日〈コレクション・デイ〉</span><span class="pg">11</span></li>
+    <li><span>　大決算〈グランド・セトルメント〉</span><span class="pg">12</span></li>
+    <li><span><strong>第2章　〈デフォルト〉</strong></span><span class="pg">13</span></li>
+    <li><span>　代償と、三つの段階</span><span class="pg">14</span></li>
+    <li><span><strong>第3章　登場人物</strong>　相関図</span><span class="pg">15</span></li>
+    <li><span>　赤羽ジン／葛葉ミオ／榊ドウゲン／霧島ケイ</span><span class="pg">16</span></li>
+    <li><span>　ニル／ツバメ／九条レイジ／ハザマ</span><span class="pg">20</span></li>
+    <li><span><strong>第4章　第1話「払わねえよ。」</strong></span><span class="pg">24</span></li>
+    <li><span>　脚本抜粋　COLD OPEN（00:00–03:00）</span><span class="pg">25</span></li>
+    <li><span>用語集</span><span class="pg">28</span></li>
+    <li><span>あとがき／Vol.1 予告</span><span class="pg">29</span></li>
+    <li><span>奥付</span><span class="pg">30</span></li>
+  </ol>
+  <div class="folio"><span>目次</span><span class="no">03</span></div>
+</section>
+
+<!-- ================= p4 序章 ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>RED LEDGER ／ 帳簿の書 Vol.0</span><span>序章</span></div>
+  <span class="chapter-no">Prologue</span>
+  <h1>払わない少年</h1>
+  <p class="lede">力がすべて「神からの借り物」である都市カネグラ。父の“無限の借金”を相続した無能力の少年・赤羽ジンは、触れた相手の借りた力を一瞬だけ差し押さえる力〈デフォルト〉に目覚め、格付け最下位から、貸主である神々を取り立てる側へと成り上がっていく。</p>
+  <p class="small muted mono">In a city where all power is borrowed from gods, a boy who inherited an infinite debt discovers he can refuse to pay — and starts collecting from the gods themselves.</p>
+  <div class="stack">
+    <p>この街では、炎も、速さも、人を従わせる声も、すべて神からの融資です。人々は左手首の印に光る「残高」を気にしながら暮らし、払えなければ、声や記憶や体の一部を差し出します。</p>
+    <p>そこに現れるのが、帳簿の外にはじき出された少年。どの神も彼には貸さない。けれど彼の左手は、他人の借りた力を三秒だけ奪い取る。その代わりに、自分の記憶を一つずつ失っていく──。</p>
+  </div>
+  <div class="note">
+    <h4>この作品の三つの約束</h4>
+    <p><strong>① 強さが数字で見える。</strong>残高と格付けは全部公開。順位が上がる瞬間が、そのまま成り上がりの快感になる。</p>
+    <p><strong>② 勝つたびに、少し苦い。</strong>力を使うほど、主人公は大事な記憶を手放す。</p>
+    <p><strong>③ 暗いが、主人公は笑う。</strong>熱血バトル6、都市ノワール2、家族ドラマ2。</p>
+  </div>
+  <div class="quote" style="margin-top:auto">「払わねえよ。」<span class="en">"I'm not paying." ── 赤羽ジン</span></div>
+  <div class="folio"><span>序章</span><span class="no">04</span></div>
+</section>
+
+<!-- ================= p5 第1章 断面図 ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>第1章　都市カネグラ</span><span>CH.1 THE CITY</span></div>
+  <span class="chapter-no">Chapter 1 ── The City of Kanegura</span>
+  <h1>都市カネグラ</h1>
+  <p>死んだ巨大な神の肋骨の上に積み上がった、縦長の都市。白い化石の柱となった肋骨は街のどこからでも見え、骨と骨のあいだに建物が鳥の巣のように張りついている。夜の街を照らすのは、街頭の公開格付け盤の光だ。</p>
+  <figure class="art grow-fig">
+    <img src="art/city-section-ja.svg" alt="カネグラの断面図：頂、中層、底帳、肋骨、深庫">
+  </figure>
+  <figcaption>カネグラ断面図。上から頂〈バース〉、中層、底帳。都市の地下深くには、七柱の貸主が眠る金庫〈深庫〉がある。</figcaption>
+  <div class="folio"><span>第1章　都市カネグラ</span><span class="no">05</span></div>
+</section>
+
+<!-- ================= p6 三つの層 ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>第1章　都市カネグラ</span><span>THREE TIERS</span></div>
+  <h2>三つの層──格付けが、住む高さを決める</h2>
+  <div class="box">
+    <h4>上層｜頂（いただき）＝取引所〈バース〉　AA以上</h4>
+    <p>肋骨の先端に建つ白大理石と金の塔。雲より上にあり、いつも晴れている。聞こえるのは鐘の音と紙をめくる音だけ。冷たい空気に、インクと香水のにおい。空には巨大な円形の公開格付け盤が投影されている。住人は格付け上位者、ブローカー、監査官。</p>
+  </div>
+  <div class="box">
+    <h4>中層（なかそう）　B〜A</h4>
+    <p>骨の中ほどに張りついた商業区。ネオン看板、空中ロープウェイ、決済戦を中継する街頭モニター。屋台の油と排気ガスのにおい。人々はいつも手首の印を確かめながら歩く。決済戦の選手と賭け屋の街。</p>
+  </div>
+  <div class="box">
+    <h4>下層｜底帳（そこちょう）＝アンダーレジャー　D以下</h4>
+    <p>神の死骸の腹の底。上から落ちる汚水が細い滝になり、空は見えない。灯りは格付け盤の照り返しと屋台の提灯だけ。湿気、錆、煮干しだしのにおい。壁には延滞者の手配書が何重にも貼られている。ジンが育った場所。</p>
+  </div>
+  <div class="cols">
+    <div class="stack">
+      <h3>昇降骨（しょうこうこつ）</h3>
+      <p class="small">層と層をつなぐ、骨の内部のエレベーター。乗るには格付けの提示が必要で、底帳の住人は中層より上へ行けない。中層への関所ゲートも同じ仕組みだ。</p>
+    </div>
+    <div class="notice small">
+      <span class="ttl" style="font-size:10pt">昇降骨 乗降口</span>
+      <p>ご乗車の前に、左手首の印を照会機におかざしください。<br>格付けC未満の方は、上り便をご利用いただけません。</p>
+      <span class="issuer">取引所〈バース〉運輸課</span>
+    </div>
+  </div>
+  <div class="folio"><span>第1章　都市カネグラ</span><span class="no">06</span></div>
+</section>
+
+<!-- ================= p7 七柱の貸主 ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>第1章　都市カネグラ</span><span>THE SEVEN LENDERS</span></div>
+  <h2>七柱の貸主〈レンダー〉</h2>
+  <p class="small">深庫に封じられた古い神々。姿を見た者はいない。契約は手首の印を通してだけ交わされる。</p>
+  <figure class="art" style="--h:66mm">
+    <img src="art/lenders-ja.svg" alt="七柱の貸主の紋章">
+  </figure>
+  <table class="ledger">
+    <thead><tr><th>貸主</th><th>貸すもの（借力）</th><th>典型的な担保</th></tr></thead>
+    <tbody>
+      <tr><td><span class="sw" style="background:#9AA3AD"></span>鉄〈カナギ〉</td><td>皮膚と骨の硬化、鉄の生成・操作</td><td>体温、痛覚</td></tr>
+      <tr><td><span class="sw" style="background:#FF5A1F"></span>炎〈ヒクベ〉</td><td>発火、熱の放射</td><td>寿命（1か月単位）</td></tr>
+      <tr><td><span class="sw" style="background:#F0921E"></span>眼〈ミハル〉</td><td>残高・勝率・嘘・軌道を読む</td><td>視力そのもの</td></tr>
+      <tr><td><span class="sw" style="background:#2FC48D"></span>速さ〈トキハヤ〉</td><td>加速、反射神経</td><td>歩いた記憶、足の感覚</td></tr>
+      <tr><td><span class="sw" style="background:#4F63E8"></span>声〈ナリヒビキ〉</td><td>声で人を従わせる、衝撃波</td><td>自分の本当の声、歌</td></tr>
+      <tr><td><span class="sw" style="background:#FFDC5A"></span>豊かさ〈ウルオイ〉</td><td>富・幸運の引き寄せ、他人の与信の増減</td><td>味覚、喜びの感情</td></tr>
+      <tr><td><span class="sw" style="background:#E5172F"></span><strong class="red">ゼロ〈ハザマ〉</strong></td><td>本来は「何も貸さない」神</td><td>不明</td></tr>
+    </tbody>
+  </table>
+  <div class="folio"><span>第1章　都市カネグラ</span><span class="no">07</span></div>
+</section>
+
+<!-- ================= p8 借力の規則 ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>第1章　都市カネグラ</span><span>CREDIT RULES</span></div>
+  <h2>借力〈クレジット〉の規則</h2>
+  <ol class="stack" style="margin:0; padding-left:5mm">
+    <li><strong>開帳式。</strong>全市民は10歳の「開帳式」で、左手首に<strong>帳簿の印〈レジャーマーク〉</strong>を刻まれる。印は借りている貸主の色に光り、借りている量＝<strong>残高</strong>が数字で浮かぶ。</li>
+    <li><strong>一人一柱。</strong>契約できる貸主は原則1柱。複数の貸主と結ぶ「多重債務」は重罪。</li>
+    <li><strong>使えば増える。</strong>借力を使うたびに残高が増える（音は、レジの「チン」）。残高が<strong>与信枠</strong>を超えると印が点滅し、力が止まる。これを<strong>「枠切れ」</strong>という。</li>
+    <li><strong>毎月の返済。</strong>残高の利息分を毎月返す。返済は金・労働・決済戦の勝ち分で。</li>
+    <li><strong>担保。</strong>返せなければ、取立日に担保が取られる。担保は契約時に決めた「体の一部・感覚・記憶」。</li>
+  </ol>
+  <div class="cols">
+    <div class="note">
+      <h4>印の読み方</h4>
+      <p class="small">手首を一周する二重の罫線の本数が格付け（D＝1本 … AAA＝6本）。強い借力ほど、貸主の色の<strong>筋（ライン）</strong>が手首から伸び、AAクラスでは首元まで届く。枠切れが近いと印が点滅し、色が濁る。</p>
+    </div>
+    <div class="note">
+      <h4>担保は「文字通り」消える</h4>
+      <p class="small">声を取られた者は、口を開けても音が出ない。視力を取られた目は色が抜ける。家族の顔を取られた者は、写真を見ても誰だか分からない。</p>
+    </div>
+  </div>
+  <div class="box small">
+    <h4>開帳式の誓文（抜粋）</h4>
+    <p>「わたしは今日より、借りた力をもって生き、借りた分を返して生きます。返せぬときは、約した担保をもって清算いたします。」</p>
+  </div>
+  <div class="folio"><span>第1章　都市カネグラ</span><span class="no">08</span></div>
+</section>
+
+<!-- ================= p9 格付け ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>第1章　都市カネグラ</span><span>RATINGS</span></div>
+  <h2>格付け〈レーティング〉</h2>
+  <p>与信枠の大きさ・返済履歴・決済戦の戦績から、取引所〈バース〉が毎日算出する。全市民の格付けは街頭と頂の<strong>公開格付け盤</strong>に表示され、名前の横に印の色が光る。この街では、人の価値は数字で決まる。</p>
+  <table class="ledger">
+    <thead><tr><th>格付け</th><th>目安</th><th>住める層</th></tr></thead>
+    <tbody>
+      <tr><td class="num">AAA</td><td>都市に数人。バースの理事クラス</td><td>頂</td></tr>
+      <tr><td class="num">AA</td><td>都市に数十人</td><td>頂</td></tr>
+      <tr><td class="num">A</td><td>一流。大決算に出場資格</td><td>中層上部・頂へ通行可</td></tr>
+      <tr><td class="num">B</td><td>熟練の借力者、公認選手</td><td>中層</td></tr>
+      <tr><td class="num">C</td><td>一般市民</td><td>中層下部</td></tr>
+      <tr><td class="num">D</td><td>延滞歴あり、与信枠わずか</td><td>底帳</td></tr>
+      <tr><td class="num red">ZERO</td><td>印が壊れている・格付け不能。<strong>ジンだけ</strong></td><td>底帳（市民扱いされない）</td></tr>
+    </tbody>
+  </table>
+  <div class="board">
+    <div class="hd">公開格付け盤 ── 底帳・関所ゲート面（抜粋）</div>
+    <div class="row"><span>AAA</span><span>■■■■■■（理事席・氏名非表示）</span><span>──</span></div>
+    <div class="row"><span>AA</span><span>榊 ドウゲン　18　無延滞記録更新中</span><span style="color:#9AA3AD">● 鈍銀</span></div>
+    <div class="row"><span>A</span><span>葛葉 ミオ　17</span><span style="color:#F0921E">● 琥珀</span></div>
+    <div class="row"><span>B</span><span>（決済戦公認選手 412名）</span><span>…</span></div>
+    <div class="row"><span>D</span><span>ツバメ　12</span><span style="color:#2FC48D">● 翠</span></div>
+    <div class="row zero"><span>ZERO</span><span>── 名前表示なし ──</span><span>−∞</span></div>
+  </div>
+  <p class="small muted">画面のどこかで格付け盤が映り、ジンの名前が上がっていく──それが本作の毎話の約束。格付けが上がる瞬間、数字は赤いインクで書き換えられる。</p>
+  <div class="box">
+    <h4>ZERO──「最下位」ではなく「格付け不能」</h4>
+    <p class="small">照会機にかざせば「エラー。残高：計測不能」。関所ゲートは通れず、配達も裏口から。決済戦にも出られない。人々はZEROを避け、子どもの手を引いてささやく──「見ちゃだめ。ゼロがうつる」。</p>
+  </div>
+  <div class="folio"><span>第1章　都市カネグラ</span><span class="no">09</span></div>
+</section>
+
+<!-- ================= p10 決済戦 ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>第1章　都市カネグラ</span><span>SETTLEMENT</span></div>
+  <h2>決済戦〈セトルメント〉</h2>
+  <p class="small">バース公認の決闘。直径20mの円形闘技床<strong>「決済円」</strong>で行われ、街頭で生中継される。立会人はバースの<strong>監査官</strong>。時間制限は10分。決着がつかなければ、残高の少ない（借りた量が少ない）方の勝ち。</p>
+  <div class="cols">
+    <div class="box small">
+      <h4>勝利条件（いずれか一つ）</h4>
+      <p>① 相手が決済円の外に出る</p>
+      <p>② 相手が倒れ、10カウント以内に立てない</p>
+      <p>③ 相手が<strong>枠切れ</strong>し、30秒以内に回復しない</p>
+      <p>④ 相手が「清算します」と宣言して降参</p>
+    </div>
+    <div class="stack small">
+      <p><strong>賭け金：</strong>開始前に「担保宣言」。与信枠の何割を賭けるかを宣言する（最大3割、相手と同率）。勝者は敗者の賭け分を自分の与信枠に加える。</p>
+      <p><strong>挑戦権：</strong>自分より最大2段階上まで挑める。<span class="red">ZEROは与信枠がないため出場不可。保証人が代わりに担保を出す場合のみ出場できる。</span></p>
+      <p><strong>禁止：</strong>殺害、観客への攻撃、試合中の新たな契約。違反者はその場で格付け抹消。</p>
+    </div>
+  </div>
+  <div class="form">
+    <div class="fh"><span>担保宣言書（決済戦用・様式第七号）</span><span>No. 0000-0000</span></div>
+    <div class="fr"><span>挑戦者</span><span>氏名　＿＿＿＿＿＿＿　格付け　＿＿　印の色　＿＿</span></div>
+    <div class="fr"><span>受諾者</span><span>氏名　＿＿＿＿＿＿＿　格付け　＿＿　印の色　＿＿</span></div>
+    <div class="fr"><span>担保率</span><span>双方同率　□1割　□2割　□3割（上限）</span></div>
+    <div class="fr"><span>保証人</span><span>（格付け不足の場合のみ）＿＿＿＿＿＿＿　格付け　＿＿</span></div>
+    <div class="fr"><span>立会監査官</span><span>＿＿＿＿＿＿＿　決済円番号　＿＿＿</span></div>
+    <div class="oath">私たちは、決済円の内において借りた力のみをもって争い、監査官の宣告に従い、勝敗のとおり清算することを誓います。<span class="muted">── 取引所〈バース〉決済局</span></div>
+  </div>
+  <div class="note small">
+    <h4>監査官の口上</h4>
+    <p><strong>開始：</strong>「これより決済を執り行う。双方、担保を宣言せよ。──宣言、受理。帳簿を開け。決済、始め！」</p>
+    <p><strong>終了：</strong>「勝者、確定。敗者の担保は勝者の与信枠へ移す。帳簿を閉じる」</p>
+  </div>
+  <div class="folio"><span>第1章　都市カネグラ</span><span class="no">10</span></div>
+</section>
+
+<!-- ================= p11 取立日 ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>第1章　都市カネグラ</span><span>COLLECTION DAY</span></div>
+  <h2>取立日〈コレクション・デイ〉</h2>
+  <p>毎月最終日の夜。午前0時、頂の鐘が<strong>13回</strong>鳴ると、返済できなかった者の印が<span class="red">赤黒く点滅</span>する。鐘から夜明けまで、取立人〈コレクター〉には担保を回収する権限がある。逃げる者を追ってよく、抵抗する者には力を使ってよい。夜明けまで逃げ切れば取立は翌月に繰り越し（利息は倍）。底帳ではこの夜を<strong>「鬼ごっこ」</strong>と呼ぶ。</p>
+  <div class="notice">
+    <span class="ttl">告　示</span>
+    <p style="text-align:center; font-weight:700">本月末日　午前零時　頂の鐘 十三打をもって取立を開始する</p>
+    <ol class="small">
+      <li>返済不能者には、印の点滅をもって通知する。</li>
+      <li>担保は契約に定めたとおり回収する。</li>
+      <li>抵抗した者の担保は、増額されることがある。</li>
+      <li>夜明けまでに回収されなかった担保は、翌月へ繰り越す（利息二倍）。</li>
+    </ol>
+    <span class="issuer">取引所〈バース〉取立局</span>
+  </div>
+  <div class="box">
+    <h4>例外：特別取立状</h4>
+    <p class="small">延滞が<strong>3か月</strong>を超えた者には、取立局が特別取立状を発行できる。これがあれば、取立日以外の夜も回収が許される。第1話で、取立人ニルはこの書状を持って現れた。</p>
+    <div class="form" style="margin-top:1mm">
+      <div class="fh"><span>特別取立状</span><span>第 <span class="blk">0000</span> 号</span></div>
+      <div class="fr"><span>対象者</span><span><span class="blk">＿＿＿＿＿＿</span>（旧・取立局所属）</span></div>
+      <div class="fr"><span>延滞</span><span>三か月</span></div>
+      <div class="oath">本状により、取立日以外の夜間における担保の査定および回収を許可する。</div>
+    </div>
+  </div>
+  <div class="note small">
+    <h4>底帳の壁の落書き──「鬼ごっこ」の心得</h4>
+    <p>一、鐘が鳴ったら、灯りの消える路地へ。　二、手首は袖で隠せ。点滅は遠くからでも見える。　三、白い仮面を見たら、振り返るな。</p>
+  </div>
+  <div class="folio"><span>第1章　都市カネグラ</span><span class="no">11</span></div>
+</section>
+
+<!-- ================= p12 大決算 ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>第1章　都市カネグラ</span><span>GRAND SETTLEMENT</span></div>
+  <h2>大決算〈グランド・セトルメント〉</h2>
+  <p>年に一度、頂のバース大決済円で開かれる頂上トーナメント。<strong>32人の勝ち抜き戦</strong>。街じゅうの格付け盤がこの日だけは同じ一枚の対戦表になり、底帳の屋台でも、だれもが手首を光らせて中継を見上げる。</p>
+  <div class="notice">
+    <span class="ttl">大決算　出場登録のご案内</span>
+    <table class="ledger">
+      <tbody>
+        <tr><td style="width:24mm"><strong>出場資格</strong></td><td>格付け<strong>A以上</strong>。または、バース登録ブローカーの<strong>推薦枠</strong>（各家1名）</td></tr>
+        <tr><td><strong>形式</strong></td><td>32名による勝ち抜き戦。規則は通常の決済戦に準ずる</td></tr>
+        <tr><td><strong>優勝者の権利</strong></td><td>〈深庫〉の扉の前で、貸主に<strong>一つ願いを申し立てる</strong>ことができる（債務の帳消しを含む）</td></tr>
+        <tr><td><strong>伝統</strong></td><td>優勝者は、バース頭取と「最終監査戦」を行う権利を持つ</td></tr>
+      </tbody>
+    </table>
+    <span class="issuer">取引所〈バース〉頭取室</span>
+  </div>
+  <div class="stack">
+    <h3>神さまに、何でも一つ。</h3>
+    <p>「借金の帳消しでも」。底帳の子どもたちは、ツバメのように何度でもこの噂を口にする。ジンにとって大決算は、父の借金をゼロにするための、たった一つの扉だ。</p>
+    <p>ただし、ZEROの少年がそこにたどり着く道のりは長い。格付けを一段ずつ上げ、昇降骨で一階ずつ上へ──。カネグラでは、成り上がりは文字どおり「登る」ことだ。</p>
+  </div>
+  <div class="note small" style="margin-top:auto">
+    <h4>深庫〈しんこ〉</h4>
+    <p>都市の地下深くにある金庫。七柱の貸主が封じられている。その扉の向こうを見た者は、まだいない。</p>
+  </div>
+  <div class="folio"><span>第1章　都市カネグラ</span><span class="no">12</span></div>
+</section>
+
+<!-- ================= p13 第2章 デフォルト ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>第2章　〈デフォルト〉</span><span>CH.2 DEFAULT</span></div>
+  <span class="chapter-no">Chapter 2 ── Default</span>
+  <h1>〈デフォルト〉──三秒の差し押さえ</h1>
+  <figure class="art grow-fig">
+    <img src="art/default-ja.svg" alt="デフォルトの図解">
+  </figure>
+  <div class="cols small">
+    <div class="stack">
+      <p><strong>発動：</strong>赤い印のある<strong>左手</strong>で、相手の体、または相手の借力で作られた物に<strong>素手で触れる</strong>。</p>
+      <p><strong>効果：</strong>相手の契約を<strong>約3秒“差し押さえる”</strong>。鉄の皮膚はただの皮膚に、炎は消え、加速は止まる。そしてその3秒間、<span class="red">差し押さえた力をジンが使える</span>。</p>
+    </div>
+    <div class="stack">
+      <p><strong>合図：</strong>相手の印が白く消え、残高に赤い取り消し線。画面に「契約停止 00:03」。</p>
+      <p><strong>効かないもの：</strong>鍛えた筋力、ただの刃物や銃など「借りていない力」。貸主そのもの。</p>
+      <p><strong>間隔：</strong>同じ相手には約10秒あけないと効かない。</p>
+    </div>
+  </div>
+  <div class="folio"><span>第2章　〈デフォルト〉</span><span class="no">13</span></div>
+</section>
+
+<!-- ================= p14 代償と3段階 ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>第2章　〈デフォルト〉</span><span>THE PRICE</span></div>
+  <h2>代償──使うたびに、記憶を一つ</h2>
+  <p>〈デフォルト〉は打ち消しの力ではない。借金の取り立てを逆向きに行う力──相手の与信を一瞬だけ自分の担保として押さえる力だ。だから、使った分は消えない。すべて<strong>ハザマの帳簿に「ジンの借金」として</strong>積まれていく。</p>
+  <div class="box">
+    <p class="quote" style="font-size:10pt">「そのかわり、使うたびに、きみのをひとつもらうね」<span class="en">── ハザマ（第1話）</span></p>
+    <p class="small">1回発動するごとに、ジンは<strong>自分の記憶を一つ</strong>ハザマに支払う。何を取られるかはハザマが決める。止めた借力が大きいほど、大事な記憶が取られる。失った記憶は、帳簿の紙のように白く抜ける。</p>
+  </div>
+  <h3>成長の三段階</h3>
+  <figure class="art" style="--h:52mm">
+    <img src="art/stages-ja.svg" alt="能力の3段階：接触・範囲・肩代わり">
+  </figure>
+  <table class="ledger">
+    <tbody>
+      <tr><td class="num">①</td><td><strong>接触〈タッチ・デフォルト〉</strong></td><td>触れた一人の契約を約3秒差し押さえる。第1話で目覚める</td></tr>
+      <tr><td class="num">②</td><td><strong>範囲〈エリア・デフォルト〉</strong></td><td>周囲の全員の契約を止める。味方も巻き込み、代償は大きい</td></tr>
+      <tr><td class="num">③</td><td><strong>肩代わり〈テイクオーバー〉</strong></td><td>相手の同意を得て、その借金と契約を引き受ける</td></tr>
+    </tbody>
+  </table>
+  <p class="small muted">触るほど勝てる。触るほど、自分が自分でなくなる。ジンは決済戦のたびに「何回触るか」を計算しなければならない。</p>
+  <div class="folio"><span>第2章　〈デフォルト〉</span><span class="no">14</span></div>
+</section>
+
+<!-- ================= p15 第3章 相関図 ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>第3章　登場人物</span><span>CH.3 CHARACTERS</span></div>
+  <span class="chapter-no">Chapter 3 ── Characters</span>
+  <h1>登場人物</h1>
+  <p>底帳の麺屋台から、雲の上の頭取室まで。帳簿でつながった八人の関係図。</p>
+  <figure class="art grow-fig">
+    <img src="art/relations-ja.svg" alt="主要8人の相関図">
+  </figure>
+  <figcaption>相関図は第1話時点。線の色は、それぞれの印の色。</figcaption>
+  <div class="folio"><span>第3章　登場人物</span><span class="no">15</span></div>
+</section>
+
+<!-- ================= p16 ジン ================= -->
+<section class="page">
+  <div class="runhead"><span>第3章　登場人物</span><span>01 / AKABA JIN</span></div>
+  <div class="char-head">
+    <div><div class="char-kana">AKABA JIN ／ あかば じん</div><div class="char-name">赤羽 ジン</div></div>
+    <span class="stamp">ZERO<small>RATING</small></span>
+  </div>
+  <div class="char-body">
+    <div class="char-art"><img src="art/char-jin.svg" alt="赤羽ジン 立ち絵"></div>
+    <div class="stack">
+      <dl class="data">
+        <dt>年齢</dt><dd>16歳・男</dd>
+        <dt>格付け</dt><dd class="red">ZERO（残高 −∞）</dd>
+        <dt>印</dt><dd><span class="sw" style="background:#E5172F"></span>赤。手首から肘まで</dd>
+        <dt>借力</dt><dd>〈デフォルト〉</dd>
+        <dt>職業</dt><dd>麺屋台「霧島」の配達係</dd>
+        <dt>好物</dt><dd>ケイの麺（ネギ多め）</dd>
+      </dl>
+      <p>底帳の麺屋台で育った、格付け最下位の少年。黒髪に、前髪の一房だけ赤。片袖を切った紺の作業着に、首には屋台の手ぬぐい。どの神も彼には貸さない──はずだった。</p>
+      <p>考えるより先に手が出るタイプで、追われても笑い、どんぶりの汁は一滴もこぼさない。夢は「父ちゃんの借金をゼロにして、この街の帳簿を全部燃やす」。</p>
+      <div class="hint"><b>BALANCE NOTE</b>父については、四つのときにいなくなったこと、眉の傷と片目だけ細くなる笑い方──それしか覚えていない。そして第1話で、その顔さえも。</div>
+      <div class="quote" style="margin-top:auto">「払わねえよ。」<span class="en">"I'm not paying."</span></div>
+    </div>
+  </div>
+  <div class="folio"><span>第3章　登場人物</span><span class="no">16</span></div>
+</section>
+
+<!-- ================= p17 ミオ ================= -->
+<section class="page">
+  <div class="runhead"><span>第3章　登場人物</span><span>02 / KUZUHA MIO</span></div>
+  <div class="char-head">
+    <div><div class="char-kana">KUZUHA MIO ／ くずは みお</div><div class="char-name">葛葉 ミオ</div></div>
+    <span class="stamp">A<small>RATING</small></span>
+  </div>
+  <div class="char-body">
+    <div class="char-art"><img src="art/char-mio.svg" alt="葛葉ミオ 立ち絵"></div>
+    <div class="stack">
+      <dl class="data">
+        <dt>年齢</dt><dd>17歳・女</dd>
+        <dt>格付け</dt><dd>A（父の会社の名でAAまで）</dd>
+        <dt>印</dt><dd><span class="sw" style="background:#F0921E"></span>琥珀──眼の貸主〈ミハル〉</dd>
+        <dt>借力</dt><dd>〈眼〉。残高・勝率・嘘を数字で読む</dd>
+        <dt>担保</dt><dd>非公開（本人いわく「企業秘密」）</dd>
+        <dt>立場</dt><dd>投資家。ジンの保証人</dd>
+      </dl>
+      <p>銀に近い灰色のボブ、片目にかかる長い前髪。黒いスーツの上着を肩にかけた、小柄な投資家。琥珀色の瞳には、借力を使うたびに数字が流れる。</p>
+      <p>実家は闇金。人を数字でしか信用しない彼女が、初めて「計算できない」相手に出会った。それが格付けZEROの少年だった。</p>
+      <div class="hint"><b>BALANCE NOTE</b>よく目薬を差している。数字の列がノイズのように乱れても、気にしないふりをする。</div>
+      <div class="quote" style="margin-top:auto">「あなたの勝率、0.3%。──だから買うの。」<span class="en">"Your odds are 0.3 percent. That's why I'm buying."</span></div>
+    </div>
+  </div>
+  <div class="folio"><span>第3章　登場人物</span><span class="no">17</span></div>
+</section>
+
+<!-- ================= p18 ドウゲン ================= -->
+<section class="page">
+  <div class="runhead"><span>第3章　登場人物</span><span>03 / SAKAKI DOGEN</span></div>
+  <div class="char-head">
+    <div><div class="char-kana">SAKAKI DŌGEN ／ さかき どうげん</div><div class="char-name">榊 ドウゲン</div></div>
+    <span class="stamp">AA<small>RATING</small></span>
+  </div>
+  <div class="char-body">
+    <div class="char-art"><img src="art/char-dogen.svg" alt="榊ドウゲン 立ち絵"></div>
+    <div class="stack">
+      <dl class="data">
+        <dt>年齢</dt><dd>18歳・男</dd>
+        <dt>格付け</dt><dd>AA。無延滞記録更新中</dd>
+        <dt>印</dt><dd><span class="sw" style="background:#9AA3AD"></span>鈍銀──鉄の貸主〈カナギ〉</dd>
+        <dt>借力</dt><dd>鉄の皮膚、鉄の槍</dd>
+        <dt>家</dt><dd>鉄の貸主に仕える神官の家・榊家の跡取り</dd>
+        <dt>初登場</dt><dd>第1話は格付け盤の名前のみ</dd>
+      </dl>
+      <p>短く刈った白髪混じりの黒髪に、灰色の鋭い目。白い神官服を改造した戦闘着。鈍銀のラインは両腕の肩まで達している。</p>
+      <p>一度も延滞したことがない「完済者」。街の秩序を守ることを使命とし、借りた物を返さない人間を許さない。ジンとは、何から何まで正反対。</p>
+      <div class="hint"><b>BALANCE NOTE</b>彼と握手した者は、決まって同じことを言う。「冷たい手だ」と。</div>
+      <div class="quote" style="margin-top:auto">「返せない力を、力とは呼ばん。」<span class="en">"Power you can't repay isn't power."</span></div>
+    </div>
+  </div>
+  <div class="folio"><span>第3章　登場人物</span><span class="no">18</span></div>
+</section>
+
+<!-- ================= p19 ケイ ================= -->
+<section class="page">
+  <div class="runhead"><span>第3章　登場人物</span><span>04 / KIRISHIMA KEI</span></div>
+  <div class="char-head">
+    <div><div class="char-kana">KIRISHIMA KEI ／ きりしま けい</div><div class="char-name">霧島 ケイ</div></div>
+    <span class="stamp">延滞<small>OVERDUE ×3</small></span>
+  </div>
+  <div class="char-body">
+    <div class="char-art"><img src="art/char-kei.svg" alt="霧島ケイ 立ち絵"></div>
+    <div class="stack">
+      <dl class="data">
+        <dt>年齢</dt><dd>40代・女</dd>
+        <dt>印</dt><dd><span class="sw" style="background:#6F78A8"></span>色あせた藍──声の貸主</dd>
+        <dt>延滞</dt><dd class="red">期日超過：3</dd>
+        <dt>職業</dt><dd>底帳の麺屋台「霧島」店主</dd>
+        <dt>前歴</dt><dd>旧・取立局所属</dd>
+        <dt>立場</dt><dd>ジンの育ての親</dd>
+      </dl>
+      <p>黒髪をきつく後ろでまとめ、こめかみに白髪。左頬に古い傷。割烹着の下には、なぜか古い取立人の黒いベストを着たまま。口は悪いが、ジンの傷には黙って包帯を巻く。</p>
+      <p>ジンに戦い方──正確には「逃げ方」──を教えた師匠でもある。声の借力を持ちながら、今は決して大声を出さない。</p>
+      <div class="hint"><b>BALANCE NOTE</b>左腕の焼印を「昔の火傷」とごまかした。ニルの名を聞いたとき、包丁の音が一瞬だけ止まった。</div>
+      <div class="quote" style="margin-top:auto">「食え。話はそれからだ。」<span class="en">"Eat. Then we talk."</span></div>
+    </div>
+  </div>
+  <div class="folio"><span>第3章　登場人物</span><span class="no">19</span></div>
+</section>
+
+<!-- ================= p20 ニル ================= -->
+<section class="page">
+  <div class="runhead"><span>第3章　登場人物</span><span>05 / NIL</span></div>
+  <div class="char-head">
+    <div><div class="char-kana">NIL ／ にる</div><div class="char-name">ニル</div></div>
+    <span class="stamp">AA級<small>COLLECTOR</small></span>
+  </div>
+  <div class="char-body">
+    <div class="char-art"><img src="art/char-nil.svg" alt="ニル 立ち絵"></div>
+    <div class="stack">
+      <dl class="data">
+        <dt>年齢</dt><dd>不詳</dd>
+        <dt>印</dt><dd><span class="sw" style="background:#0A0A0C; border-color:#9A958C"></span>黒──取立人の雇用印</dd>
+        <dt>借力</dt><dd>〈差押鎖（さしおさえぐさり）〉。鉄の貸主からバース経由で借りる</dd>
+        <dt>所属</dt><dd>取引所〈バース〉取立局</dd>
+        <dt>素顔</dt><dd>記録なし</dd>
+      </dl>
+      <p>白い陶器の仮面。目の穴に横線が一本、帳簿の罫線の模様。長い黒コートに、異様に指の長い手袋。痩せた長身が音もなく降りてくると、見習いの取立人たちは一歩下がる。</p>
+      <p>袖口からは帳簿の頁を連ねたような灰色の鎖。縛った相手から、担保を光の頁として引きずり出す。</p>
+      <div class="hint"><b>BALANCE NOTE</b>ジンの赤い腕を見て、彼は言った。「赤羽の息子か」。そして〈デフォルト〉を受けたあとには──「お前の父親と同じ力だ」。</div>
+      <div class="quote" style="margin-top:auto">「お支払いの時間です。」<span class="en">"Payment is due."</span></div>
+    </div>
+  </div>
+  <div class="folio"><span>第3章　登場人物</span><span class="no">20</span></div>
+</section>
+
+<!-- ================= p21 ツバメ ================= -->
+<section class="page">
+  <div class="runhead"><span>第3章　登場人物</span><span>06 / TSUBAME</span></div>
+  <div class="char-head">
+    <div><div class="char-kana">TSUBAME ／ つばめ</div><div class="char-name">ツバメ</div></div>
+    <span class="stamp">D<small>RATING</small></span>
+  </div>
+  <div class="char-body">
+    <div class="char-art"><img src="art/char-tsubame.svg" alt="ツバメ 立ち絵"></div>
+    <div class="stack">
+      <dl class="data">
+        <dt>年齢</dt><dd>12歳・女</dd>
+        <dt>格付け</dt><dd>D</dd>
+        <dt>印</dt><dd><span class="sw" style="background:#2FC48D"></span>翠──速さの貸主〈トキハヤ〉</dd>
+        <dt>職業</dt><dd>スリ、情報屋（自称）</dd>
+        <dt>報酬</dt><dd>麺一杯</dd>
+        <dt>夢</dt><dd>一度でいいから空を見ること</dd>
+      </dl>
+      <p>ぼさぼさの茶色の短髪をゴーグルで押さえた、すきっ歯の女の子。ぶかぶかのパーカーに、裸足同然のサンダル。ケイの屋台でいつもタダで麺をすすっている。</p>
+      <p>ジンを「ZEROアニキ」と呼んで慕い、底帳のうわさなら三十秒で調べてくる。調子に乗ると口がすべるのが玉にきず。</p>
+      <div class="hint"><b>BALANCE NOTE</b>最近、やけに足が速い。ケイの屋台の売上を数える横顔を、じっと見ていることがある。</div>
+      <div class="quote" style="margin-top:auto">「情報料は麺一杯ね！」<span class="en">"Info costs one bowl of noodles!"</span></div>
+    </div>
+  </div>
+  <div class="folio"><span>第3章　登場人物</span><span class="no">21</span></div>
+</section>
+
+<!-- ================= p22 九条 ================= -->
+<section class="page">
+  <div class="runhead"><span>第3章　登場人物</span><span>07 / KUJO REIJI</span></div>
+  <div class="char-head">
+    <div><div class="char-kana">KUJŌ REIJI ／ くじょう れいじ</div><div class="char-name">九条 レイジ</div></div>
+    <span class="stamp">AAA<small>RATING</small></span>
+  </div>
+  <div class="char-body">
+    <div class="char-art"><img src="art/char-kujo.svg" alt="九条レイジ 立ち絵"></div>
+    <div class="stack">
+      <dl class="data">
+        <dt>年齢</dt><dd>30代・男</dd>
+        <dt>格付け</dt><dd>AAA</dd>
+        <dt>印</dt><dd><span class="sw" style="background:#FFDC5A"></span>金──豊かさの貸主〈ウルオイ〉</dd>
+        <dt>役職</dt><dd>取引所〈バース〉頭取</dd>
+        <dt>趣味</dt><dd>紅茶をいれること</dd>
+      </dl>
+      <p>きれいに撫でつけた金茶色の髪、細い金縁眼鏡、薄い青灰色の目。白い三つ揃いのスーツに白手袋。都市の帳簿の頂点に立つ男は、いつも柔らかに笑っている。</p>
+      <p>頂の頭取室の壁一面には、都市全体の公開格付け盤。数百万の名前が流れていくのを、彼は紅茶を片手に眺める。</p>
+      <div class="hint"><b>BALANCE NOTE</b>第1話の最後、格付け盤の最下段に赤い「ZERO」が灯ったとき、彼は優しく微笑んでこう言った。「……おかえり、赤羽」。白手袋は、人前で一度も外したことがない。</div>
+      <div class="quote" style="margin-top:auto">「ご安心を。帳尻は、いつも合います。」<span class="en">"Rest assured. The books always balance."</span></div>
+    </div>
+  </div>
+  <div class="folio"><span>第3章　登場人物</span><span class="no">22</span></div>
+</section>
+
+<!-- ================= p23 ハザマ ================= -->
+<section class="page">
+  <div class="runhead"><span>第3章　登場人物</span><span>08 / HAZAMA</span></div>
+  <div class="char-head">
+    <div><div class="char-kana">HAZAMA, THE ZERO LENDER ／ はざま</div><div class="char-name">ハザマ</div></div>
+    <span class="stamp">−∞<small>LENDER</small></span>
+  </div>
+  <div class="char-body">
+    <div class="char-art"><img src="art/char-hazama.svg" alt="ハザマ イメージ"></div>
+    <div class="stack">
+      <dl class="data">
+        <dt>正体</dt><dd>ゼロの貸主。七柱の七番目</dd>
+        <dt>印</dt><dd><span class="sw" style="background:#E5172F"></span>赤</dd>
+        <dt>貸すもの</dt><dd>本来は「何も貸さない」</dd>
+        <dt>取り立て</dt><dd>ジンの記憶。一回につき一つ</dd>
+        <dt>好きなこと</dt><dd>帳簿をつけること</dd>
+      </dl>
+      <p>姿はない。ジンの手首の印から赤いインクの文字になって浮かぶときと、子どもの声だけで存在する。ジンが見た白い帳簿の空間では、顔が帳簿のページで隠れた、裸足の子どもの姿をしていた。</p>
+      <p>何も貸さないはずの神が、ただ一人、例外的に貸した相手がいた。ジンの父・赤羽ソウマ。その「続き」を、いまはジンが持っている。</p>
+      <div class="hint"><b>BALANCE NOTE</b>集めた記憶を、ハザマは帳簿に綴じている。何のためなのかは、まだ話さない。</div>
+      <div class="quote" style="margin-top:auto">「ねえジン、それ、つけとくね。」<span class="en">"Hey Jin — I'll put that on your tab."</span></div>
+    </div>
+  </div>
+  <div class="folio"><span>第3章　登場人物</span><span class="no">23</span></div>
+</section>
+
+<!-- ================= p24 第4章 第1話 ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>第4章　第1話</span><span>CH.4 EPISODE 1</span></div>
+  <span class="chapter-no">Chapter 4 ── Episode 1</span>
+  <h1>第1話「払わねえよ。」</h1>
+  <p class="mono small muted">EPISODE 1 — "I'M NOT PAYING"　／　約22分</p>
+  <div class="stack">
+    <p>取立日の夜。底帳の夜市で、払えなかった歌い手が〈声〉を取り立てられる。その騒ぎの中を、どんぶりを抱えて駆け抜ける少年がいた。格付けZERO、赤羽ジン。袋小路で彼を待っていたのは、白い仮面の取立人ニルだった。</p>
+    <p>翌日、ニルは特別取立状を手にケイの屋台に現れる。担保は〈記憶〉──ジンに関する一切。叩きのめされたジンの耳に、子どもの声が届く。「ねえジン。払う？」</p>
+    <p>目覚めた〈デフォルト〉で、ジンはニルの鎖を三秒だけ奪い取る。だがその代償に失ったのは、たった一つ残っていた父の顔の記憶だった。そして、一部始終を琥珀色の〈眼〉で見ていた少女が現れる。</p>
+  </div>
+  <table class="ledger">
+    <thead><tr><th>ブロック</th><th>時間</th><th>内容</th></tr></thead>
+    <tbody>
+      <tr><td>COLD OPEN</td><td class="num">00:00</td><td>取立日の夜市／声を取られる男／ニル登場</td></tr>
+      <tr><td>ACT 1</td><td class="num">03:10</td><td>ZEROの日常／ツバメ／ケイの屋台／父の顔</td></tr>
+      <tr><td>ACT 2</td><td class="num">09:10</td><td>ニル再来／ハザマの声／〈デフォルト〉覚醒</td></tr>
+      <tr><td>ACT 3</td><td class="num">16:10</td><td>ミオの〈眼〉／握手の投資契約</td></tr>
+      <tr><td>TAG</td><td class="num">21:10</td><td>頂、取引所〈バース〉の頭取室にて</td></tr>
+    </tbody>
+  </table>
+  <div class="note small">
+    <h4>見どころ</h4>
+    <p><strong>音が消える20秒。</strong>説明ゼロで、この街のルールが分かる。　<strong>「契約停止 00:03」。</strong>赤い印が肩まで這い上がる、シリーズの看板シーン。　<strong>手袋ごしの握手。</strong>紙ではなく、握手で結ばれる投資契約。</p>
+  </div>
+  <div class="folio"><span>第4章　第1話</span><span class="no">24</span></div>
+</section>
+
+<!-- ================= p25 脚本抜粋 1 ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>第4章　第1話　脚本抜粋</span><span>COLD OPEN 1/3</span></div>
+  <h2>脚本抜粋　COLD OPEN</h2>
+  <p class="small muted">第1話 冒頭3分（00:00–03:00）。決定稿前の稿より抜粋・再構成。本編とは異なる場合があります。</p>
+  <div class="script">
+    <div class="sh">○底帳・夜市「肋骨通り」・夜<span class="tc">00:00–00:40</span></div>
+    <p class="cue">【SKIP-PROOF】黒画面に心音のような低い鐘。ロゴもOPも出さずに本編開始。</p>
+    <p class="act">真上からの俯瞰。巨大な白い“骨”が夜空へ弧を描いている。死んだ神の肋骨だ。その内側に、提灯と配線と違法建築が蜂の巣のように積み上がっている。都市カネグラ、その最下層・底帳。</p>
+    <p class="cue">【SE】頂から降ってくる鐘、十三打。夜市のざわめきが一瞬で止む。</p>
+    <p class="act">肋骨に貼りついた巨大な電光掲示板〈公開格付け〉。名前と格付けが滝のように流れ落ちていく。最上段に新しい告知が点る。</p>
+    <div class="dl"><span class="who">掲示板</span><span>「本日 取立日〈コレクション・デイ〉。返済不能者は担保を提出してください」</span></div>
+    <p class="act">露店の人々が、一斉に自分の左手首を押さえる。印が朱や翠や藍に淡く光り、数字が浮かぶ。「残高 −120」「−3,400」「−18」「−9,999」。最後の手首は震えている。</p>
+    <div class="dl"><span class="who">屋台の女</span><span>「……今月も、足りない」</span></div>
+
+    <div class="sh">○同・広場<span class="tc">00:40–01:00</span></div>
+    <p class="act">白い仮面の取立人〈コレクター〉の前に、ギターを抱えた若い路上歌手が膝をつかされている。</p>
+    <div class="dl"><span class="who">取立人</span><span>「担保：〈声〉。期日超過。執行する」</span></div>
+    <div class="dl"><span class="who">歌い手</span><span>「待ってくれ、明日、明日には——」</span></div>
+    <p class="act">取立人が歌い手の喉に指を一本当てる。帳簿の頁のような光の帯が、喉から引き抜かれていく。</p>
+    <p class="cue">【SE】叫び声が途中で“ブツッ”と切れる。完全な無音。</p>
+    <p class="act">口だけが叫び続けている。取立人は光の帯を小さな帳簿に挟み、閉じる。パタン、という音だけが戻ってくる。</p>
+    <div class="dl"><span class="who">取立人</span><span>「完済」</span></div>
+    <p class="act">群衆は目をそらす。誰も止めない。</p>
+  </div>
+  <div class="folio"><span>第4章　第1話　脚本抜粋</span><span class="no">25</span></div>
+</section>
+
+<!-- ================= p26 脚本抜粋 2 ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>第4章　第1話　脚本抜粋</span><span>COLD OPEN 2/3</span></div>
+  <div class="script">
+    <div class="sh">○同・屋台街<span class="tc">01:00–02:15</span></div>
+    <p class="cue">【SE】静寂を破って、陶器が派手に割れる音。</p>
+    <div class="dl"><span class="who">ジン(OFF)</span><span>「どいてどいてどいて！ 熱いの通りまーす！！」</span></div>
+    <p class="cue">【BGM】軽快なブレイクビーツ、イン。</p>
+    <p class="act">屋台の天幕を突き破って少年が飛び出す。赤羽ジン（16）。右手に麺のどんぶりを五段重ね、左手は手首から肘まで、炎のように真っ赤な印で覆われている。後ろから取立人の見習い二人が追ってくる。</p>
+    <div class="dl"><span class="who">見習いA</span><span>「止まれ！ 印を照会させろ！」</span></div>
+    <div class="dl"><span class="who">ジン</span><span>「やだね！ 配達中だっつってんだろ！」</span></div>
+    <p class="cue">【SE】スキャナー「ピピピ——エラー。エラー。残高：計測不能」</p>
+    <div class="dl"><span class="who">見習いB</span><span>「またコイツだ！ 照会機が壊れる！」</span></div>
+    <p class="act">ジンは露店の屋根を三段跳びで駆け上がり、洗濯物のロープを滑り降りながら、どんぶりを一つ、窓辺の老人に差し出す。</p>
+    <div class="dl"><span class="who">ジン</span><span>「じいさん、ネギ多め！ 代金はツケでいい！」</span></div>
+    <div class="dl"><span class="who">老人</span><span>「お前にツケる奴がいるか」</span></div>
+    <div class="dl"><span class="who">ジン</span><span>「だよな！」</span></div>
+    <p class="cue">【CAM】ストップモーション。空中で逆さまのジン。格付けカードがポップアップ。</p>
+    <p class="act" style="font-family:var(--mono); font-weight:600">テロップ「赤羽ジン　16歳　格付け：<span class="red">ZERO</span>」</p>
+    <div class="dl"><span class="who">ジン(M)</span><span>「どうも。この街でいちばん“価値のない”男です」<br><span class="mono small muted">"Hi. I'm the least valuable person in this city."</span></span></div>
+    <p class="act">ストップモーション解除。ジンは見習いAの頭を踏み台にし、どんぶりを全部抱えたまま路地へ着地——汁は一滴もこぼれていない。</p>
+    <div class="dl"><span class="who">ジン</span><span>「よっしゃ、汁ゼロ！」</span></div>
+  </div>
+  <div class="folio"><span>第4章　第1話　脚本抜粋</span><span class="no">26</span></div>
+</section>
+
+<!-- ================= p27 脚本抜粋 3 ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>第4章　第1話　脚本抜粋</span><span>COLD OPEN 3/3</span></div>
+  <div class="script">
+    <div class="sh">○同・袋小路<span class="tc">02:15–03:00</span></div>
+    <p class="cue">【BGM】カットアウト。</p>
+    <p class="act">路地の奥は行き止まり。振り返ると、見習い二人が立ち止まっている。追ってこない。むしろ、一歩下がる。</p>
+    <div class="dl"><span class="who">ジン</span><span>「……なんだよ。急に遠慮して」</span></div>
+    <div class="dl"><span class="who">見習いA</span><span>「……ニ、ニルさん」</span></div>
+    <p class="act">ジンの背後、壁の上に黒い影。取立人ニル。黒いコート。顔は白い陶器の仮面——目の穴に横線が一本、帳簿の罫線の模様。手首の印は、黒。</p>
+    <p class="cue">【SE】空気の圧が変わる、低いうなり。</p>
+    <p class="act">ニルは音もなく降り、ジンの左腕を見る。</p>
+    <div class="dl"><span class="who">ニル</span><span>「赤い腕。……赤羽の息子か」</span></div>
+    <div class="dl"><span class="who">ジン</span><span>「……人違いです。俺、青羽です」</span></div>
+    <p class="act">ニルが一歩近づく。ジンの赤い印が、ドクン、と脈打つ。</p>
+    <p class="cue">【SE】心音。そして、ジンにしか聞こえないほど小さく——子どもの声。</p>
+    <div class="dl"><span class="who">？？？</span><span>「……みぃつけた」</span></div>
+    <div class="dl"><span class="who">ジン</span><span>「……え？」</span></div>
+    <p class="act">ニルの手袋の手が、ジンの喉へ伸びる。ジンの瞳に映る指先。赤い印の光が、肘から肩へ一瞬だけ“這い上がる”。</p>
+    <p class="cue">【SE】すべての音が吸い込まれるように消える——　SMASH CUT TO：</p>
+    <div class="sh">タイトルカード<span class="tc">03:00–03:10</span></div>
+    <p class="act">黒画面。赤いインクが帳簿の罫線を伝って広がり、文字になる。</p>
+  </div>
+  <div class="note" style="background:var(--night); color:var(--bone); align-items:center; padding:5mm">
+    <span class="big-quote">RED LEDGER</span>
+    <span style="font-family:var(--display); font-size:11pt">赤い帳簿</span>
+    <span class="mono small" style="color:#A49F93">【SE】判子を押す音、一発。</span>
+  </div>
+  <div class="folio"><span>第4章　第1話　脚本抜粋</span><span class="no">27</span></div>
+</section>
+
+<!-- ================= p28 用語集 ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>用語集</span><span>GLOSSARY</span></div>
+  <h2>用語集</h2>
+  <dl class="gloss">
+    <dt>カネグラ（金蔵）</dt><dd>死んだ神の肋骨の上に積み上がった縦長の都市。</dd>
+    <dt>頂／バース</dt><dd>上層。取引所〈バース〉の白い塔が建つ、雲の上の街。</dd>
+    <dt>中層</dt><dd>骨の中ほどの商業区。決済戦の中継と賭け屋の街。</dd>
+    <dt>底帳</dt><dd>下層のスラム。アンダーレジャー。空が見えない。</dd>
+    <dt>昇降骨</dt><dd>骨の内部のエレベーター。乗るには格付けが必要。</dd>
+    <dt>深庫</dt><dd>七柱の貸主が封じられた、都市の地下金庫。</dd>
+    <dt>貸主〈レンダー〉</dt><dd>人に力を貸す七柱の古い神々。</dd>
+    <dt>借力〈クレジット〉</dt><dd>貸主から借りた力。使うほど残高が増える。</dd>
+    <dt>帳簿の印</dt><dd>左手首の紋〈レジャーマーク〉。貸主の色と残高が光る。</dd>
+    <dt>開帳式</dt><dd>10歳で印を刻まれる儀式。</dd>
+    <dt>与信枠／枠切れ</dt><dd>借りられる上限。超えると印が点滅し、力が止まる。</dd>
+    <dt>担保</dt><dd>返せないときに取られるもの。体の一部・感覚・記憶。</dd>
+    <dt>格付け</dt><dd>ZERO・D〜AAA。毎日バースが算出し、公開される。</dd>
+    <dt>決済戦</dt><dd>公認の決闘〈セトルメント〉。直径20mの決済円で戦う。</dd>
+    <dt>監査官</dt><dd>決済戦の立会人。勝敗を宣告する。</dd>
+    <dt>「清算します」</dt><dd>決済戦での降参の宣言。</dd>
+    <dt>取立日</dt><dd>毎月最終日の夜。鐘十三打から夜明けまで。</dd>
+    <dt>取立人</dt><dd>担保を回収する者〈コレクター〉。印は黒。</dd>
+    <dt>特別取立状</dt><dd>延滞3か月超の者に、取立日以外も回収を許す書状。</dd>
+    <dt>大決算</dt><dd>年に一度、32人で争う頂上トーナメント。</dd>
+    <dt>〈デフォルト〉</dt><dd>触れた相手の借力を約3秒差し押さえ、奪って使う力。</dd>
+    <dt>契約停止 00:03</dt><dd>〈デフォルト〉発動中に出る赤いカウンター。</dd>
+  </dl>
+  <div class="folio"><span>用語集</span><span class="no">28</span></div>
+</section>
+
+<!-- ================= p29 あとがき ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>あとがき</span><span>AFTERWORD</span></div>
+  <h2>あとがき──借りを返す相手を、自分で選ぶ</h2>
+  <div class="stack">
+    <p>『RED LEDGER』は、借金の物語ではなく「借りを返す相手を、自分で選ぶ」物語です。</p>
+    <p>カネグラの人々は、生まれた瞬間から神に借りがあり、格付けという数字で値段をつけられています。そこに現れるのが、帳簿の外にはじき出されたゼロの少年です。ジンは強くなるたびに、大事な記憶を一つずつ手放していきます。だから彼の勝利は、いつも少しだけ苦い。それでも彼は笑い、「払わねえよ」と言います。</p>
+    <p>画面の上では、赤い数字が一段ずつ上がっていく気持ちよさを。その下では、家族の味、友だちの名前、父の顔といった、数字にならないものが静かに削られていくことを。この二つを同時に感じてもらうことが、この作品の約束です。</p>
+    <p>この小さな帳簿を手に取ってくださったあなたに、心からの感謝を。つけは、本編で必ず返します。</p>
+    <p style="text-align:right">ショーランナー　Hikaru（P7 Anime）</p>
+  </div>
+  <div class="box" style="margin-top:auto">
+    <span class="chapter-no">Next Ledger</span>
+    <h2>帳簿の書 Vol.1（予定）</h2>
+    <p class="small">第2話「投資契約」／"Terms and Conditions" から。底帳から中層へ──格付けがなければ乗れない昇降骨を、どう登る？ 骨の内部図、中層の街並み、決済円の構造図、そして新たな人物の設定画を収録予定。</p>
+    <p class="small muted">ミオ「取立人に捕まる確率、87％」　ジン「じゃあ残りの13％、全部もらうわ」</p>
+  </div>
+  <div class="folio"><span>あとがき</span><span class="no">29</span></div>
+</section>
+
+<!-- ================= p30 奥付 ================= -->
+<section class="page dark">
+  <img class="colo-bg" src="art/back.svg" alt="">
+  <div class="colo">
+    <span class="chapter-no">Colophon</span>
+    <h2>RED LEDGER 帳簿の書 Vol.0</h2>
+    <p class="small" style="color:#CFC8B8">オリジナルアニメ企画『RED LEDGER／赤い帳簿』公式設定資料集<br>2026年10月　初版発行</p>
+    <dl>
+      <dt>原作・企画</dt><dd>P7 Anime</dd>
+      <dt>ショーランナー</dt><dd>Hikaru</dd>
+      <dt>シリーズ構成・脚本</dt><dd>P7 Anime 脚本チーム（Writer A／Writer B）</dd>
+      <dt>キャラクター・美術</dt><dd>P7 Anime キャラクターデザイン／美術</dd>
+      <dt>編集・構成</dt><dd>P7 Anime 編集部</dd>
+      <dt>発行</dt><dd>masahiro20 / P7 Anime</dd>
+      <dt>書体</dt><dd>Dela Gothic One／Zen Kaku Gothic New／IBM Plex Mono（Google Fonts, SIL Open Font License 1.1）</dd>
+    </dl>
+    <div class="legal">
+      <p><strong>AI使用の表示：</strong>本書の文章および図版は、AIを用いて制作し、オーナーが編集・監修したものです。</p>
+      <p>本書は制作準備段階の資料であり、内容は今後変更される場合があります。本作はフィクションです。</p>
+      <p style="margin-top:1.5mm; color:var(--bone)">© 2026 masahiro20 / P7 Anime　無断転載・複製を禁じます。</p>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>

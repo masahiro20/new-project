@@ -1,0 +1,881 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RED LEDGER — Book of the Ledger Vol.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=IBM+Plex+Mono:wght@400;600&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="book.css">
+<style>
+  /* English edition tweaks: Latin sets denser than Japanese */
+  body { font-size: 8.8pt; line-height: 1.55; hyphens: auto; }
+  .lede { font-size: 10pt; line-height: 1.6; }
+  p + p { margin-top: 0; }
+  h1 { letter-spacing: .01em; }
+  .jp { font-family: var(--body); letter-spacing: .05em; text-transform: none; }
+
+  /* fixed art boxes so layout does not move when the art lands */
+  .svg-inline svg { display: block; width: 100%; height: 100%; }
+  ol.toc li { padding: 1.05mm 0; }
+  .art { width: 100%; object-fit: contain; display: block; }
+  .art-city { height: 118mm; }
+  .art-lenders { height: 62mm; }
+  .art-default { height: 92mm; }
+  .art-stages { height: 52mm; }
+  .art-relations { height: 104mm; }
+
+  /* cover */
+  .cover .cover-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .cover .cover-type { position: absolute; left: 12mm; right: 12mm; bottom: 16mm; display: flex; flex-direction: column; gap: 2mm; }
+  .cover .cover-top { position: absolute; top: 12mm; left: 12mm; right: 12mm; display: flex; justify-content: space-between;
+    font-family: var(--mono); font-size: 7pt; letter-spacing: .2em; color: #CFC8B8; }
+  .cover .title { font-family: var(--display); font-size: 44pt; line-height: .95; color: #E5172F; letter-spacing: .01em;
+    text-shadow: 0 0 2mm rgba(0,0,0,.6); }
+  .cover .sub { font-family: var(--body); font-weight: 700; font-size: 13pt; color: var(--bone); letter-spacing: .3em; }
+  .cover .vol { font-family: var(--mono); font-size: 8pt; letter-spacing: .25em; color: #CFC8B8; border-top: .3mm solid #E5172F; padding-top: 2mm; }
+
+  /* in-world documents */
+  .doc { background: #FBF8EE; border: .3mm solid var(--ink); padding: 3mm 3.5mm; display: flex; flex-direction: column; gap: 1.4mm;
+    font-family: var(--mono); font-size: 7.2pt; line-height: 1.45; position: relative; box-shadow: .8mm .8mm 0 rgba(26,28,38,.12); }
+  .doc .doc-k { display: flex; justify-content: space-between; font-size: 6pt; letter-spacing: .14em; color: var(--muted); border-bottom: .2mm solid var(--ink); padding-bottom: 1mm; }
+  .doc .doc-h { font-family: var(--display); font-size: 11pt; line-height: 1.2; letter-spacing: .02em; }
+  .doc ol { margin: 0; padding-left: 4.5mm; }
+  .doc .sig { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; margin-top: 1mm; }
+  .doc .sig div { border-top: .2mm solid var(--ink); padding-top: .6mm; font-size: 5.8pt; letter-spacing: .1em; color: var(--muted); }
+  .doc .stamp { position: absolute; right: 5mm; bottom: 4mm; font-size: 9pt; }
+  .poster { background: var(--night); color: var(--bone); padding: 4mm; display: flex; flex-direction: column; gap: 1.5mm; text-align: center;
+    border: .6mm solid #E5172F; outline: .3mm solid #E5172F; outline-offset: -1.6mm; }
+  .poster .p-big { font-family: var(--display); font-size: 17pt; line-height: 1.05; color: #E5172F; }
+  .poster .p-mid { font-family: var(--display); font-size: 10pt; line-height: 1.2; }
+  .poster .p-sm { font-family: var(--mono); font-size: 6.4pt; line-height: 1.45; letter-spacing: .06em; color: #CFC8B8; }
+  .board { background: var(--night); color: var(--bone); font-family: var(--mono); font-size: 6.8pt; padding: 2.5mm 3mm; line-height: 1.55; }
+  .board .row { display: grid; grid-template-columns: 11mm 1fr auto; gap: 2mm; border-bottom: .15mm solid #2c303b; }
+  .board .row b { font-weight: 600; }
+  .board .zero { color: #E5172F; }
+
+  ul.tight { margin: 0; padding-left: 4mm; display: flex; flex-direction: column; gap: .8mm; }
+  ol.rules { margin: 0; padding-left: 5mm; display: flex; flex-direction: column; gap: 1.3mm; }
+  .kicker { font-family: var(--display); font-size: 12pt; line-height: 1.3; }
+
+  /* character pages */
+  .char-body { grid-template-columns: 50mm 1fr; gap: 4.5mm; }
+  .char-text { display: flex; flex-direction: column; gap: 2.4mm; font-size: 8.4pt; line-height: 1.5; }
+  .char-art .art { height: 100%; }
+  .quote { font-size: 10pt; }
+  .hint { font-size: 7.6pt; line-height: 1.5; color: var(--muted); border-top: .2mm dashed var(--rule); padding-top: 1.4mm; }
+
+  /* screenplay: English names are wider than Japanese */
+  .script .dl { grid-template-columns: 21mm 1fr; }
+  .script .who { font-family: var(--mono); font-size: 7pt; font-weight: 600; letter-spacing: .04em; padding-top: .3mm; }
+  .script .act { padding-left: 0; }
+  .script .paren { font-style: italic; color: var(--muted); }
+  .script .card { font-family: var(--mono); font-size: 7.4pt; font-weight: 600; text-align: center; border: .2mm solid var(--ink); padding: 1mm; }
+  .script .smash { font-family: var(--mono); font-weight: 600; text-align: right; font-size: 7.5pt; }
+
+  dl.gloss { grid-template-columns: 28mm 1fr; font-size: 8.1pt; line-height: 1.5; gap: 1.3mm 3mm; }
+  dl.gloss dd { padding-bottom: .8mm; }
+
+  .colophon { font-size: 7.6pt; line-height: 1.55; }
+  .colophon h4 { color: #A49F93; }
+  .back-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .28; }
+  .page.dark .runhead { color: #A49F93; border-color: #3a3d46; }
+  .page.dark .folio { border-color: #3a3d46; }
+</style>
+</head>
+<body>
+
+<!-- ============ p1 COVER ============ -->
+<section class="page bleed dark cover">
+  <img class="cover-art" src="art/cover.svg" alt="Jin Akaba under the ribs of Kanegura, his left arm burning ledger-red">
+  <div class="cover-top"><span>P7 ANIME</span><span>VOL.0 · 2026</span></div>
+  <div class="cover-type">
+    <div class="title">RED<br>LEDGER</div>
+    <div class="sub"><span class="jp">赤い帳簿</span></div>
+    <div class="vol">BOOK OF THE LEDGER · VOL.0 — WORLD &amp; CHARACTER GUIDE</div>
+  </div>
+</section>
+
+<!-- ============ p2 ABOUT ============ -->
+<section class="page ruled">
+  <div class="runhead"><span>Red Ledger · Book of the Ledger</span><span>Vol.0</span></div>
+  <div class="chapter-no">Before you open the books</div>
+  <h1>About This Book</h1>
+  <p class="lede">This is the first ledger. <i>Book of the Ledger Vol.0</i> is the official setting guide to <b>RED LEDGER</b>, an original TV anime in development at P7 Anime: twelve episodes, about 22 minutes each, made with an English dub in mind from day one.</p>
+  <div class="stack">
+    <h3>What's inside</h3>
+    <ul class="tight">
+      <li><b>Ch.1 — The City of Kanegura.</b> The vertical city built on a dead god's ribs, the seven Lenders, and the rules every citizen lives and dies by.</li>
+      <li><b>Ch.2 — Default.</b> How Jin's power actually works, what it costs, and where it's headed.</li>
+      <li><b>Ch.3 — The Cast.</b> Eight key players, one page each.</li>
+      <li><b>Ch.4 — Episode 1.</b> A guide to the pilot, plus the first three minutes in screenplay form.</li>
+    </ul>
+    <p>Scattered through the chapters you'll find <b>documents from inside Kanegura</b>: a Bourse notice, a Collection Day poster, a Settlement contract. Read them the way a citizen would — closely, and a little nervously.</p>
+  </div>
+  <div class="box">
+    <h4 class="red">Spoiler line</h4>
+    <p>Everything here goes <b>up to the end of Episode 1</b> and no further. Where characters have secrets, we tell you there's something in the ledger — not what it says.</p>
+  </div>
+  <div class="note">
+    <h4>Notes for readers</h4>
+    <p class="small">• Names appear in Western order (Jin Akaba, Mio Kuzuha). In-world registries print them SURNAME, GIVEN — just like the Bourse does.<br>
+    • Key terms are kept in English across all official material: Credit, Rating, Settlement, Collection Day, Default.<br>
+    • This is a pre-production guide. Designs and details may change before broadcast.<br>
+    • The story involves debt, violence and memory loss.</p>
+  </div>
+  <div class="folio"><span>RED LEDGER — VOL.0</span><span class="no">02</span></div>
+</section>
+
+<!-- ============ p3 CONTENTS ============ -->
+<section class="page ruled">
+  <div class="runhead"><span>Red Ledger · Book of the Ledger</span><span>Contents</span></div>
+  <div class="chapter-no">Index of accounts</div>
+  <h1>Contents</h1>
+  <ol class="toc">
+    <li><span>Prologue — I'm Not Paying</span><span class="pg">04</span></li>
+    <li><span><b>Ch.1 · The City of Kanegura</b> — cross-section</span><span class="pg">05</span></li>
+    <li><span>&emsp;The Three Tiers: Peak, Middle Tier, Underledger</span><span class="pg">06</span></li>
+    <li><span>&emsp;The Seven Lenders</span><span class="pg">07</span></li>
+    <li><span>&emsp;Credit &amp; Collateral</span><span class="pg">08</span></li>
+    <li><span>&emsp;Rating: ZERO to AAA</span><span class="pg">09</span></li>
+    <li><span>&emsp;Settlement — the sanctioned duel</span><span class="pg">10</span></li>
+    <li><span>&emsp;Collection Day</span><span class="pg">11</span></li>
+    <li><span>&emsp;The Grand Settlement</span><span class="pg">12</span></li>
+    <li><span><b>Ch.2 · Default</b> — how it works</span><span class="pg">13</span></li>
+    <li><span>&emsp;The Price, and Three Stages</span><span class="pg">14</span></li>
+    <li><span><b>Ch.3 · The Cast</b> — relationship chart</span><span class="pg">15</span></li>
+    <li><span>&emsp;Jin · Mio · Dōgen · Kei</span><span class="pg">16–19</span></li>
+    <li><span>&emsp;Nil · Tsubame · Kujō · Hazama</span><span class="pg">20–23</span></li>
+    <li><span><b>Ch.4 · Episode 1</b> — "I'm Not Paying"</span><span class="pg">24</span></li>
+    <li><span>&emsp;Screenplay excerpt: Cold Open, 00:00–03:00</span><span class="pg">25–27</span></li>
+    <li><span>Glossary</span><span class="pg">28</span></li>
+    <li><span>Afterword &amp; Coming in Vol.1</span><span class="pg">29</span></li>
+    <li><span>Colophon</span><span class="pg">30</span></li>
+  </ol>
+  <p class="small muted">In-world documents: Bourse Notice No. 412 (p.08) · Settlement Contract, specimen (p.10) · Collection Day poster (p.11) · Grand Settlement call for entries (p.12)</p>
+  <div class="folio"><span>RED LEDGER — VOL.0</span><span class="no">03</span></div>
+</section>
+
+<!-- ============ p4 PROLOGUE ============ -->
+<section class="page ruled">
+  <div class="runhead"><span>Prologue</span><span>I'm Not Paying</span></div>
+  <div class="chapter-no">Prologue</div>
+  <h1>Everyone here<br>owes a god.</h1>
+  <p class="lede"><i>In a city where all power is borrowed from gods, a boy who inherited an infinite debt discovers he can refuse to pay — and starts collecting from the gods themselves.</i></p>
+  <p>Kanegura is a city stacked on the ribs of a dead god. Every citizen gets a <b>ledger mark</b> burned into their left wrist at age ten, and every power in town — iron skin, fire, speed, a voice that makes people obey — is a <b>loan</b> from one of the seven Lenders. The mark glows in your Lender's color and shows your balance in numbers anyone can read. Miss a payment, and on <b>Collection Day</b> the Collectors come for your collateral: your voice, your eyesight, your memories.</p>
+  <p><b>Jin Akaba</b> is sixteen, runs noodles for a street stall in the slums, and is rated <b>ZERO</b> — the only person in the city no Lender will touch. His father vanished when he was four and left him a debt with no bottom: <b>−∞</b>. Then, on the worst night of his life, Jin learns that his red arm can do one thing nobody else can. It can make a contract <b>default</b>.</p>
+  <div class="cols">
+    <div class="stack">
+      <h4>Why it hits</h4>
+      <ul class="tight small">
+        <li><b>Debt is universal.</b> Student loans, rent, subscriptions. A hero who says "no" to the bill needs no translation.</li>
+        <li><b>Power you can read.</b> Balances glow on wrists; Ratings rise on public boards. You can watch him climb.</li>
+        <li><b>One line, one mark.</b> A catchphrase and a red wrist — built for clips, memes and merch.</li>
+      </ul>
+    </div>
+    <div class="box" style="justify-content:center; align-items:flex-start; gap:2.5mm">
+      <h4 class="red">The line</h4>
+      <div class="kicker">"I'm not paying."</div>
+      <p class="small muted"><span class="jp">「払わねえよ。」</span> — Jin Akaba</p>
+      <span class="stamp">DEFAULT<small>CONTRACT SUSPENDED</small></span>
+    </div>
+  </div>
+  <div class="note">
+    <p class="small"><b>Format</b> TV anime · 1 cour · 12 × ~22 min · English dub planned &nbsp;|&nbsp; <b>Tone</b> hot-blooded battle 60 · urban noir 20 · family drama 20. It's dark — but the hero laughs.</p>
+  </div>
+  <div class="folio"><span>RED LEDGER — VOL.0</span><span class="no">04</span></div>
+</section>
+
+<!-- ============ p5 CH1 CITY ============ -->
+<section class="page ruled">
+  <div class="runhead"><span>Ch.1 · The City of Kanegura</span><span>Cross-section</span></div>
+  <div class="chapter-no">Chapter 1</div>
+  <h1>The City of Kanegura</h1>
+  <p>A god died here, and the city grew on the body. Kanegura climbs the giant <b>ribs</b> of that corpse — white fossil pillars visible from every street — with buildings clinging between the bones like birds' nests. At the top, the <b>Bourse</b> sits above the clouds. At the bottom, in the belly, is the <b>Underledger</b>. Deeper still, sealed in the <b>Deep Vault</b>, the seven Lenders wait.</p>
+  <figure>
+    <img class="art art-city" src="art/city-section-en.svg" alt="Cross-section of Kanegura: the Peak, the Middle Tier, the Underledger, the ribs, and the Deep Vault">
+    <figcaption>Cross-section of Kanegura. Moving between tiers means riding the <b>Bone Lifts</b> — elevators inside the ribs that scan your Rating at the door.</figcaption>
+  </figure>
+  <div class="folio"><span>RED LEDGER — VOL.0</span><span class="no">05</span></div>
+</section>
+
+<!-- ============ p6 THREE TIERS ============ -->
+<section class="page ruled">
+  <div class="runhead"><span>Ch.1 · The City of Kanegura</span><span>The Three Tiers</span></div>
+  <h2>Three tiers. Your Rating picks one.</h2>
+  <div class="stack">
+    <div class="box" style="border-color:var(--gold)">
+      <h4 style="color:var(--gold)">Top · AA and above</h4>
+      <h3>The Peak — the Bourse</h3>
+      <p>White marble and gold towers on the tips of the ribs, always above the clouds, always sunny. The only sounds are bells and turning pages; the air is cold and smells of ink and perfume. A vast circular <b>Public Ratings Board</b> is projected across the sky. Home to the top-rated, the brokers and the Auditors.</p>
+    </div>
+    <div class="box" style="border-color:var(--ink)">
+      <h4>Middle · B to A</h4>
+      <h3>The Middle Tier</h3>
+      <p>The commercial belt halfway up the bones. Neon signs, sky gondolas, and street monitors streaming live Settlements. It smells of fryer oil and exhaust. Everyone walks with one eye on their wrist. Home to ordinary citizens, licensed fighters, and bookies.</p>
+    </div>
+    <div class="box">
+      <h4 class="red">Bottom · D and below</h4>
+      <h3>The Underledger</h3>
+      <p>The god's belly. Runoff from above falls in thin waterfalls; there's no sky. The only light is the glow of the Ratings Board bouncing down from the Peak, and the lanterns of the night stalls. Damp, rust, and the smell of fish-stock broth. Wanted posters for <b>overdue debtors</b> are pasted on the walls, layer over layer. Home to the D-rated, the overdue, and people with no papers at all.</p>
+    </div>
+  </div>
+  <div class="note">
+    <h4>The Bone Lifts</h4>
+    <p class="small">The lifts that run inside the ribs demand your Rating before the doors open. Underledger residents can't ride above the Middle Tier. The city keeps its people in their place with a scanner and a beep — and for a ZERO, the scanner just says <span class="mono">ERROR</span>.</p>
+  </div>
+  <div class="folio"><span>RED LEDGER — VOL.0</span><span class="no">06</span></div>
+</section>
+
+<!-- ============ p7 LENDERS ============ -->
+<section class="page ruled">
+  <div class="runhead"><span>Ch.1 · The City of Kanegura</span><span>The Seven Lenders</span></div>
+  <h2>The Seven Lenders</h2>
+  <p class="small">Ancient gods sealed in the Deep Vault. No one has ever seen one. Contracts are made only through the ledger mark — and every loan comes with collateral.</p>
+  <figure>
+    <img class="art art-lenders" src="art/lenders-en.svg" alt="The crests of the seven Lenders">
+  </figure>
+  <table class="ledger">
+    <thead><tr><th>Lender</th><th>Lends</th><th>Typical collateral</th></tr></thead>
+    <tbody>
+      <tr><td><span class="sw" style="background:#9AA3AD"></span><b>Kanagi</b>, the Iron Lender</td><td>Hardened skin and bone; forging iron</td><td>Body heat, sense of pain</td></tr>
+      <tr><td><span class="sw" style="background:#FF5A1F"></span><b>Hikube</b>, the Flame Lender</td><td>Ignition, radiant heat</td><td>Lifespan, by the month</td></tr>
+      <tr><td><span class="sw" style="background:#F0921E"></span><b>Miharu</b>, the Eye Lender</td><td>Reading balances, odds, lies, trajectories</td><td>Eyesight itself</td></tr>
+      <tr><td><span class="sw" style="background:#2FC48D"></span><b>Tokihaya</b>, the Speed Lender</td><td>Acceleration, reflexes</td><td>Memories of walking; feeling in the legs</td></tr>
+      <tr><td><span class="sw" style="background:#4F63E8"></span><b>Narihibiki</b>, the Voice Lender</td><td>Commanding voice, shockwaves</td><td>Your own true voice, your songs</td></tr>
+      <tr><td><span class="sw" style="background:#FFDC5A"></span><b>Uruoi</b>, the Abundance Lender</td><td>Wealth, luck, raising or cutting others' credit</td><td>Taste, the feeling of joy</td></tr>
+      <tr><td><span class="sw" style="background:#E5172F"></span><b>Hazama</b>, the Zero Lender</td><td>Nothing. Ever. With one known exception.</td><td>Unknown</td></tr>
+    </tbody>
+  </table>
+  <div class="folio"><span>RED LEDGER — VOL.0</span><span class="no">07</span></div>
+</section>
+
+<!-- ============ p8 CREDIT ============ -->
+<section class="page ruled">
+  <div class="runhead"><span>Ch.1 · The City of Kanegura</span><span>Credit &amp; Collateral</span></div>
+  <h2>Credit: the rules of borrowed power</h2>
+  <ol class="rules">
+    <li><b>The mark.</b> At ten, every citizen goes through <b>the Opening</b> and gets a <b>ledger mark</b> on the left wrist. It glows in the color of your Lender and shows your <b>balance</b> — how much you owe — as a number.</li>
+    <li><b>One Lender each.</b> As a rule you may contract with only one Lender. Holding several at once is <b>multiple indebtedness</b>, a serious crime.</li>
+    <li><b>Every use costs.</b> Each time you draw Credit, your balance climbs — with a cash-register <i>ching</i>. Go over your <b>credit limit</b> and the mark flashes and your power cuts out. That's being <b>maxed out</b>.</li>
+    <li><b>Pay monthly.</b> Interest is due every month, in money, labor, or Settlement winnings.</li>
+    <li><b>Or lose collateral.</b> Can't pay, and on Collection Day the collateral you pledged — a body part, a sense, a memory — is taken.</li>
+  </ol>
+  <p class="small">Strong borrowers grow <b>lines</b> in their Lender's color, running up from the wrist; at AA they reach the collarbone. When a fighter's mark starts flickering and their color goes muddy, the whole crowd knows they're close to the limit.</p>
+  <div class="note">
+    <h4>What collateral looks like</h4>
+    <p class="small">Contracts name the collateral up front, and it's always something you can't buy back: <b>a sense</b> (taste, pain, sight), <b>a part of you</b> (a voice, an arm, your legs), <b>time</b> (months off your life), or <b>memories</b>. When it's taken, it doesn't hurt. It just goes gray — then it's gone.</p>
+  </div>
+  <div class="doc">
+    <div class="doc-k"><span>THE BOURSE · OFFICE OF ACCOUNTS</span><span>NOTICE No. 412</span></div>
+    <div class="doc-h">Reminder to All Account Holders</div>
+    <ol>
+      <li>Your mark is your account. Covering, bandaging or tattooing over a ledger mark is prohibited.</li>
+      <li>One holder, one Lender. Reports of multiple indebtedness are rewarded with a credit-limit bonus.</li>
+      <li>Interest is due by the last day of each month. The Bourse accepts coin, labor and Settlement winnings.</li>
+      <li>Collateral is binding. Pleading, bargaining and hiding do not reduce it.</li>
+    </ol>
+    <p>— The Bourse thanks you for your continued borrowing.</p>
+    <span class="stamp">ISSUED<small>PEAK OFFICE</small></span>
+  </div>
+  <div class="folio"><span>RED LEDGER — VOL.0</span><span class="no">08</span></div>
+</section>
+
+<!-- ============ p9 RATING ============ -->
+<section class="page ruled">
+  <div class="runhead"><span>Ch.1 · The City of Kanegura</span><span>Rating</span></div>
+  <h2>Rating: ZERO to AAA</h2>
+  <p>The Bourse recalculates every citizen's <b>Rating</b> daily, from credit limit, payment history and Settlement record. Everyone's Rating is public — on street boards and on the great board over the Peak, each name lit in its Lender's color. Your Rating decides where you may live and which Bone Lift doors will open.</p>
+  <table class="ledger">
+    <thead><tr><th>Rating</th><th>What it means</th><th>Tier</th></tr></thead>
+    <tbody>
+      <tr><td class="num red" style="text-align:left"><b>ZERO</b></td><td>Mark broken, unratable. Not treated as a citizen. (Only one person holds it.)</td><td>Underledger</td></tr>
+      <tr><td class="num" style="text-align:left">D</td><td>Overdue history, a sliver of credit</td><td>Underledger</td></tr>
+      <tr><td class="num" style="text-align:left">C</td><td>Ordinary citizen</td><td>Lower Middle Tier</td></tr>
+      <tr><td class="num" style="text-align:left">B</td><td>Skilled borrower, licensed fighter</td><td>Middle Tier</td></tr>
+      <tr><td class="num" style="text-align:left">A</td><td>First-rate; eligible for the Grand Settlement</td><td>Upper Middle Tier, Peak pass</td></tr>
+      <tr><td class="num" style="text-align:left">AA</td><td>A few dozen in the whole city</td><td>Peak</td></tr>
+      <tr><td class="num" style="text-align:left">AAA</td><td>A handful. Bourse board level</td><td>Peak</td></tr>
+    </tbody>
+  </table>
+  <h4>Live from the Public Ratings Board · Collection Day</h4>
+  <div class="board">
+    <div class="row"><b>AA</b><span>SAKAKI, DŌGEN · 18 · <span style="color:#9AA3AD">■</span> IRON</span><span>NO-DEFAULT STREAK ▲</span></div>
+    <div class="row"><b>A</b><span>· · · · · · · · · · · · · ·</span><span></span></div>
+    <div class="row"><b>B</b><span>· · · · · · · · · · · · · ·</span><span></span></div>
+    <div class="row"><b>D</b><span>TSUBAME · 12 · <span style="color:#2FC48D">■</span> SPEED</span><span>▼</span></div>
+    <div class="row zero"><b>ZERO</b><span>— NAME NOT DISPLAYED —</span><span>−∞</span></div>
+  </div>
+  <div class="note">
+    <h4>How to read a mark</h4>
+    <p class="small">Every mark is a double ledger rule ringing the wrist, with the balance on the inside. Count the rules to read the Rating: <b>one for D, up to six for AAA</b>. Jin's has no rules at all — just red, wrist to elbow, and <span class="mono red">−∞</span>.</p>
+  </div>
+  <p class="small muted">Board rule: when a Rating goes up, the old number is struck through and rewritten in red ink. Watch for it — in this show, it's the sound of winning.</p>
+  <div class="folio"><span>RED LEDGER — VOL.0</span><span class="no">09</span></div>
+</section>
+
+<!-- ============ p10 SETTLEMENT ============ -->
+<section class="page ruled">
+  <div class="runhead"><span>Ch.1 · The City of Kanegura</span><span>Settlement</span></div>
+  <h2>Settlement: the sanctioned duel</h2>
+  <p>A <b>Settlement</b> is a Bourse-licensed duel, fought in a 20-meter <b>Settlement Circle</b>, refereed by a Bourse <b>Auditor</b> and streamed live on every street monitor. Both fighters stake part of their credit limit; the winner adds the loser's stake to their own. It's the fastest way up — and the only legal way to take power from someone else. Every bout starts with paperwork:</p>
+  <div class="doc">
+    <div class="doc-k"><span>THE BOURSE · SETTLEMENT REGISTRY</span><span>FORM S-1 · SPECIMEN</span></div>
+    <div class="doc-h">Settlement Contract &amp; Collateral Declaration</div>
+    <p>The undersigned agree to settle accounts in a licensed Circle under the eye of a Bourse Auditor, on the following terms:</p>
+    <ol>
+      <li><b>Stake.</b> Each party declares the share of credit limit at risk — max. 30%, equal on both sides. Winner takes the loser's stake.</li>
+      <li><b>Challenge.</b> A party may challenge up to two Ratings above their own.</li>
+      <li><b>Victory</b> on any one of: (a) opponent leaves the Circle, both feet landing outside; (b) opponent down and not up by the Auditor's count of ten; (c) opponent maxed out and not recovered within 30 sec.; (d) opponent declares "I'm settling."</li>
+      <li><b>Time limit</b> 10 min. Undecided bouts go to the party with the <i>lower</i> balance. Prudence pays.</li>
+      <li><b>Forbidden:</b> killing; striking spectators; contracting a new Lender mid-bout. Penalty: Rating struck from the books on the spot.</li>
+    </ol>
+    <div class="sig" style="margin-right:30mm"><div>PARTY A · MARK SCAN</div><div>PARTY B · MARK SCAN</div><div>GUARANTOR (IF ANY)</div><div>AUDITOR</div></div>
+    <span class="stamp">VOID<small>SPECIMEN</small></span>
+  </div>
+  <div class="box">
+    <h4 class="red">Can a ZERO fight?</h4>
+    <p class="small">Entry needs a Rating of D or better. A ZERO has no credit to stake — so he can't challenge anyone. The only way in: a registered <b>broker</b> signs as <b>guarantor</b> and puts up the collateral for him.</p>
+  </div>
+  <div class="folio"><span>RED LEDGER — VOL.0</span><span class="no">10</span></div>
+</section>
+
+<!-- ============ p11 COLLECTION DAY ============ -->
+<section class="page ruled">
+  <div class="runhead"><span>Ch.1 · The City of Kanegura</span><span>Collection Day</span></div>
+  <h2>Collection Day</h2>
+  <div class="cols">
+    <div class="stack small">
+      <p><b>The last night of every month.</b> At midnight the bell at the Peak strikes thirteen times, and the mark of everyone who didn't pay starts to <b>pulse a dark, bloody red</b>.</p>
+      <p>From the bell until dawn, <b>Collectors</b> have the right to take collateral. They may chase anyone who runs and use their powers on anyone who resists.</p>
+      <p>Collateral doesn't get "repossessed." It <b>disappears</b>. Eyes drain of color. A voice stops mid-scream. A mother's face is suddenly gone from memory.</p>
+      <p>Outrun the Collectors till sunrise and your debt rolls to next month — at double interest. Down in the Underledger, they call this night <b>tag</b>.</p>
+    </div>
+    <div class="poster">
+      <div class="p-sm">BY ORDER OF THE BOURSE</div>
+      <div class="p-big">TONIGHT IS COLLECTION DAY</div>
+      <div class="p-mid">At the 13th bell,<br>all accounts close.</div>
+      <div class="p-sm">DEFAULTERS WILL SURRENDER COLLATERAL.<br>CHECK YOUR WRIST.<br>COOPERATE WITH YOUR COLLECTOR.</div>
+      <div class="p-mid" style="color:#9A958C">RUNNING ONLY<br>DOUBLES IT.</div>
+      <div class="p-sm">— Kanegura Collection Bureau —</div>
+    </div>
+  </div>
+  <div class="box">
+    <h4 class="red">Exception: the Special Collection Writ</h4>
+    <p class="small">If you're <b>more than three months overdue</b>, the Collection Bureau can issue a Special Collection Writ — and then a Collector can come for you <b>on any night</b>, not just Collection Day. In Episode 1, this is how Nil walks into a noodle stall the night after the bell.</p>
+  </div>
+  <div class="note">
+    <h4>What you'll see on screen</h4>
+    <p class="small">After the bell, unpaid marks flash between ledger red and dried-ink black. Whatever a Collector takes drains to ash gray first — an eye, a voice, a page of memory — then folds into the Collector's little ledger with a soft <i>pap</i>.</p>
+  </div>
+  <div class="note">
+    <h4>Collectors</h4>
+    <p class="small">Collectors work for the Bourse and wear its employment mark: <b>black</b>, a mark that doesn't glow so much as swallow light. Their power is borrowed from a Lender through that contract. Most wear masks. Nobody in the Underledger looks them in the eye.</p>
+  </div>
+  <div class="folio"><span>RED LEDGER — VOL.0</span><span class="no">11</span></div>
+</section>
+
+<!-- ============ p12 GRAND SETTLEMENT ============ -->
+<section class="page ruled">
+  <div class="runhead"><span>Ch.1 · The City of Kanegura</span><span>Grand Settlement</span></div>
+  <h2>The Grand Settlement</h2>
+  <p class="lede">Once a year, the best borrowers in the city fight in the Grand Circle at the top of the Bourse. The prize is the only thing in Kanegura bigger than a debt.</p>
+  <ul class="tight">
+    <li><b>32 fighters, single elimination,</b> held at the Bourse's Grand Circle on the Peak.</li>
+    <li><b>Eligibility:</b> Rating A or above — or one <b>nomination slot</b> per registered broker house.</li>
+    <li><b>The prize:</b> the champion stands before the doors of the Deep Vault and may <b>petition the Lenders for one wish</b>. Including having a debt wiped clean.</li>
+    <li><b>Tradition:</b> the champion also earns the right to a "Final Audit" bout against the Governor of the Bourse.</li>
+  </ul>
+  <p>Every kid in the Underledger knows these rules by heart. Most of them will never see the Peak. That's what makes it a dream.</p>
+  <div class="doc" style="margin-top:auto">
+    <div class="doc-k"><span>THE BOURSE · OFFICE OF THE GOVERNOR</span><span>ANNUAL NOTICE</span></div>
+    <div class="doc-h" style="text-align:center">THE GRAND SETTLEMENT<br><span style="font-size:8pt">Call for Entries</span></div>
+    <p>The Bourse is pleased to announce that entries are now open for this year's Grand Settlement.</p>
+    <p>• Rated A and above: register at any Bone Lift terminal by presenting your mark.<br>
+       • Broker houses: submit one nominee, with guarantee of collateral, to the Settlement Registry.<br>
+       • Unrated, overdue or struck-off accounts: entries will not be read.</p>
+    <p>The Lenders listen once a year. Make it count.</p>
+    <p>— R. Kujō, Governor of the Bourse</p>
+    <span class="stamp">OPEN<small>ENTRIES</small></span>
+  </div>
+  <div class="folio"><span>RED LEDGER — VOL.0</span><span class="no">12</span></div>
+</section>
+
+<!-- ============ p13 CH2 DEFAULT ============ -->
+<section class="page ruled">
+  <div class="runhead"><span>Ch.2 · Default</span><span>How it works</span></div>
+  <div class="chapter-no">Chapter 2</div>
+  <h1>Default</h1>
+  <p>No Lender lends to Jin. His mark is solid red from wrist to elbow, and where a balance should be it shows <b>−∞</b>. On paper he's powerless. In practice, he can do this:</p>
+  <figure>
+    <img class="art art-default" src="art/default-en.svg" alt="Default, step by step: touch, the mark goes white, three seconds of seized power, entered in Hazama's ledger, one memory paid">
+  </figure>
+  <div class="cols small">
+    <div class="stack">
+      <p><b>Trigger.</b> Bare-handed touch with the red left hand — on the target's body, or on something made with their Credit.</p>
+      <p><b>Effect.</b> The target's contract is <b>seized for about 3 seconds</b>. Their power stops dead — and for those 3 seconds, <b>Jin can use it</b>. In Episode 1, he takes Nil's chains and reels Nil in.</p>
+    </div>
+    <div class="stack">
+      <p><b>Doesn't work on</b> anything that isn't borrowed: trained muscle, an ordinary blade or gun, the Lenders themselves.</p>
+      <p><b>Cooldown.</b> About 10 sec. before it works on the same target again. <b>Tell:</b> red ink spatters from his mark, and a red strike-through cuts the target's number. Screen reads <span class="mono red">CONTRACT SUSPENDED 00:03</span>.</p>
+    </div>
+  </div>
+  <div class="folio"><span>RED LEDGER — VOL.0</span><span class="no">13</span></div>
+</section>
+
+<!-- ============ p14 COST & STAGES ============ -->
+<section class="page ruled">
+  <div class="runhead"><span>Ch.2 · Default</span><span>The Price &amp; Three Stages</span></div>
+  <h2>Nothing is free. Not even refusing.</h2>
+  <p>Default isn't a cancel button. It's debt collection run backwards: Jin seizes your credit as if it were his own collateral. And everything he seizes is <b>written in Hazama's ledger as Jin's debt</b>.</p>
+  <div class="box">
+    <h4 class="red">The price: one memory per use</h4>
+    <p>Every time Jin defaults a contract, he pays Hazama <b>one of his memories</b>. Hazama chooses which. The bigger the power he seizes, the more precious the memory. The first thing he loses is his <b>father's face</b>. The debt itself never disappears — it just keeps piling up in Hazama's books. The stronger Jin gets, the more he owes.</p>
+  </div>
+  <figure>
+    <img class="art art-stages" src="art/stages-en.svg" alt="The three stages of Default: Touch, Area, Takeover">
+  </figure>
+  <table class="ledger">
+    <thead><tr><th>Stage</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><b>1 · Touch Default</b></td><td>Seize one person's contract for ~3 sec. (Episode 1)</td></tr>
+      <tr><td><b>2 · Area Default</b></td><td>Slam the left hand into the ground: every contract within 5 m, allies included. A bigger memory.</td></tr>
+      <tr><td><b>3 · Takeover</b></td><td>With consent, take on someone's whole debt and contract. They go free (and powerless); Jin keeps their power as a new colored line in his red mark.</td></tr>
+    </tbody>
+  </table>
+  <p class="small muted">In every Settlement, Jin has to count his touches. More touches, more wins. More touches, less Jin.</p>
+  <div class="folio"><span>RED LEDGER — VOL.0</span><span class="no">14</span></div>
+</section>
+
+<!-- ============ p15 CH3 RELATIONS ============ -->
+<section class="page ruled">
+  <div class="runhead"><span>Ch.3 · The Cast</span><span>Relationship chart</span></div>
+  <div class="chapter-no">Chapter 3</div>
+  <h1>The Cast</h1>
+  <figure>
+    <img class="art art-relations" src="art/relations-en.svg" alt="Relationship chart of the eight main characters">
+  </figure>
+  <div class="cols small">
+    <p><b>The stall family.</b> Kei raised Jin; Tsubame tags along as his self-appointed little sister and info broker. <b>The deal.</b> Mio, a broker's daughter, bets everything on Jin.</p>
+    <p><b>Across the line.</b> Dōgen, the man who's never missed a payment. Nil, the Collector. Kujō, who runs the Bourse. And Hazama — Jin's Lender, living in his wrist.</p>
+  </div>
+  <div class="folio"><span>RED LEDGER — VOL.0</span><span class="no">15</span></div>
+</section>
+
+<!-- ============ p16 JIN ============ -->
+<section class="page ruled">
+  <div class="runhead"><span>Ch.3 · The Cast</span><span>01 / Protagonist</span></div>
+  <div class="char-head">
+    <div class="char-name">Jin Akaba</div>
+    <div class="char-kana"><span class="jp">赤羽 ジン</span> · AKABA, JIN</div>
+  </div>
+  <div class="char-body">
+    <div class="char-art"><img class="art" src="art/char-jin.svg" alt="Jin Akaba, full figure"></div>
+    <div class="char-text">
+      <dl class="data">
+        <dt>Age</dt><dd>16</dd>
+        <dt>Rating</dt><dd class="red"><b>ZERO</b> · balance −∞</dd>
+        <dt>Mark</dt><dd><span class="sw" style="background:#E5172F"></span>Red, wrist to elbow</dd>
+        <dt>Lender</dt><dd>Hazama, the Zero Lender</dd>
+        <dt>Power</dt><dd>Default</dd>
+      </dl>
+      <p>Delivery boy for Kei's noodle stall, fastest feet in the Underledger, and officially the least valuable person in Kanegura. Black hair with a single red lock, a work jacket with one sleeve cut off, a stall towel round his neck.</p>
+      <p>His father vanished when Jin was four, leaving no photos — just a debt with no bottom and one memory: a scar through the left eyebrow, and a smile that narrowed one eye.</p>
+      <p><b>The dream:</b> "Zero out my old man's debt — then burn this city's ledger to the ground."</p>
+      <p><b>The flaw:</b> hands move before his head does. When something hurts, he cracks a joke.</p>
+      <div class="quote">"I'm not paying."<span class="en"><span class="jp">「払わねえよ。」</span></span></div>
+      <p class="hint">Default runs on memories. Jin's already short one. He's laughing about it. Mostly.</p>
+    </div>
+  </div>
+  <div class="folio"><span>RED LEDGER — VOL.0</span><span class="no">16</span></div>
+</section>
+
+<!-- ============ p17 MIO ============ -->
+<section class="page ruled">
+  <div class="runhead"><span>Ch.3 · The Cast</span><span>02 / Investor &amp; Strategist</span></div>
+  <div class="char-head">
+    <div class="char-name">Mio Kuzuha</div>
+    <div class="char-kana"><span class="jp">葛葉 ミオ</span> · KUZUHA, MIO</div>
+  </div>
+  <div class="char-body">
+    <div class="char-art"><img class="art" src="art/char-mio.svg" alt="Mio Kuzuha, full figure"></div>
+    <div class="char-text">
+      <dl class="data">
+        <dt>Age</dt><dd>17</dd>
+        <dt>Rating</dt><dd>A</dd>
+        <dt>Mark</dt><dd><span class="sw" style="background:#F0921E"></span>Amber</dd>
+        <dt>Lender</dt><dd>Miharu, the Eye Lender</dd>
+        <dt>Power</dt><dd>The Eye — balances, odds and lies scroll through her iris</dd>
+      </dl>
+      <p>Silver-gray bob, long fringe over one eye, a black suit jacket worn over the shoulders and fingerless gloves. Daughter of a loan-shark house, and she'd like you to stop bringing that up.</p>
+      <p><b>The goal:</b> break from her father's business and get the Kuzuha name <b>listed on the Bourse</b>. For that she needs one huge, impossible win.</p>
+      <p>Her Eye puts a number on everyone in the city — 0.3%, 99.8%. Everyone except one boy, whose odds come back <i>undefined</i>. To an investor, that means junk or jackpot.</p>
+      <div class="quote">"Your odds are 0.3 percent. That's why I'm buying."</div>
+      <p class="hint">She trusts numbers more than people. And she goes through a lot of eye drops.</p>
+    </div>
+  </div>
+  <div class="folio"><span>RED LEDGER — VOL.0</span><span class="no">17</span></div>
+</section>
+
+<!-- ============ p18 DOGEN ============ -->
+<section class="page ruled">
+  <div class="runhead"><span>Ch.3 · The Cast</span><span>03 / Rival</span></div>
+  <div class="char-head">
+    <div class="char-name">Dōgen Sakaki</div>
+    <div class="char-kana"><span class="jp">榊 ドウゲン</span> · SAKAKI, DŌGEN</div>
+  </div>
+  <div class="char-body">
+    <div class="char-art"><img class="art" src="art/char-dogen.svg" alt="Dōgen Sakaki, full figure"></div>
+    <div class="char-text">
+      <dl class="data">
+        <dt>Age</dt><dd>18</dd>
+        <dt>Rating</dt><dd>AA</dd>
+        <dt>Mark</dt><dd><span class="sw" style="background:#9AA3AD"></span>Gunmetal, lines to both shoulders</dd>
+        <dt>Lender</dt><dd>Kanagi, the Iron Lender</dd>
+        <dt>Power</dt><dd>Iron skin, iron spear</dd>
+      </dl>
+      <p>Heir to the Sakaki house, hereditary priests of the Iron Lender. Tall and broad, close-cropped black hair already shot with white, sharp gray eyes, and battle gear cut from white priest's robes.</p>
+      <p>He has <b>never once missed a payment</b> — his name sits at the top of the street boards with a no-default streak still running. He keeps the city's order, and he has no patience for people who don't pay back what they borrow.</p>
+      <p>In Episode 1 he's only a name on the board, shining over Jin's head. He arrives in person in Episode 3.</p>
+      <div class="quote">"Power you can't repay isn't power."</div>
+      <p class="hint">Iron's usual collateral is body heat. Nobody has ever seen Dōgen sweat.</p>
+    </div>
+  </div>
+  <div class="folio"><span>RED LEDGER — VOL.0</span><span class="no">18</span></div>
+</section>
+
+<!-- ============ p19 KEI ============ -->
+<section class="page ruled">
+  <div class="runhead"><span>Ch.3 · The Cast</span><span>04 / Guardian &amp; Mentor</span></div>
+  <div class="char-head">
+    <div class="char-name">Kei Kirishima</div>
+    <div class="char-kana"><span class="jp">霧島 ケイ</span> · KIRISHIMA, KEI</div>
+  </div>
+  <div class="char-body">
+    <div class="char-art"><img class="art" src="art/char-kei.svg" alt="Kei Kirishima, full figure"></div>
+    <div class="char-text">
+      <dl class="data">
+        <dt>Age</dt><dd>40s</dd>
+        <dt>Status</dt><dd>Overdue · 3 months</dd>
+        <dt>Mark</dt><dd><span class="sw" style="background:#6F78A8"></span>Indigo, faded</dd>
+        <dt>Lender</dt><dd>Narihibiki, the Voice Lender</dd>
+        <dt>Work</dt><dd>Noodle stall "Kirishima," Underledger</dd>
+      </dl>
+      <p>Hair pulled back hard, white at the temples, an old scar on her left cheek, solidly built. She runs a tiny noodle stall in the Underledger and raised Jin from the age of four. She also taught him how to fight — which mostly means how to run.</p>
+      <p>She never raises her voice. Under the cook's smock she still wears a black Collector's vest, and on her left forearm is a brand she calls "an old burn." In Episode 1, Nil has another name for her: <b>formerly of the Fourth Collection Bureau</b>.</p>
+      <p>All she wants is to keep the stall open and keep Jin alive. In that order? Don't ask.</p>
+      <div class="quote">"Eat. Then we talk."</div>
+      <p class="hint">She remembers a face Jin no longer can.</p>
+    </div>
+  </div>
+  <div class="folio"><span>RED LEDGER — VOL.0</span><span class="no">19</span></div>
+</section>
+
+<!-- ============ p20 NIL ============ -->
+<section class="page ruled">
+  <div class="runhead"><span>Ch.3 · The Cast</span><span>05 / Collector</span></div>
+  <div class="char-head">
+    <div class="char-name">Nil</div>
+    <div class="char-kana"><span class="jp">ニル</span> · NIL</div>
+  </div>
+  <div class="char-body">
+    <div class="char-art"><img class="art" src="art/char-nil.svg" alt="Nil, the masked Collector, full figure"></div>
+    <div class="char-text">
+      <dl class="data">
+        <dt>Age</dt><dd>Unknown</dd>
+        <dt>Rating</dt><dd>Collector (Bourse staff)</dd>
+        <dt>Mark</dt><dd><span class="sw" style="background:#0A0A0C; border-color:#9A958C"></span>Black — the Collector's mark</dd>
+        <dt>Lender</dt><dd>Kanagi, the Iron Lender — via the Bourse</dd>
+        <dt>Power</dt><dd>Seizure Chains</dd>
+      </dl>
+      <p>Tall, thin, in a long black coat, with gloves whose fingers are just a little too long. His face is a <b>white porcelain mask</b>: one line across each eyehole, ruled like a ledger page.</p>
+      <p>His <b>Seizure Chains</b> look like ledger pages strung into links — gray, iron-borrowed, and able to bind a debtor and drag their collateral right out of them. Even other Collectors step back when he arrives.</p>
+      <p>He does the job because it's the job. He's the first enemy Jin faces, and the first person to call Jin's power by its name — and to say he's seen it before.</p>
+      <div class="quote">"Payment is due."</div>
+      <p class="hint">There's a reason he hides his face. It isn't modesty.</p>
+    </div>
+  </div>
+  <div class="folio"><span>RED LEDGER — VOL.0</span><span class="no">20</span></div>
+</section>
+
+<!-- ============ p21 TSUBAME ============ -->
+<section class="page ruled">
+  <div class="runhead"><span>Ch.3 · The Cast</span><span>06 / Info Broker</span></div>
+  <div class="char-head">
+    <div class="char-name">Tsubame</div>
+    <div class="char-kana"><span class="jp">ツバメ</span> · TSUBAME</div>
+  </div>
+  <div class="char-body">
+    <div class="char-art"><img class="art" src="art/char-tsubame.svg" alt="Tsubame, full figure"></div>
+    <div class="char-text">
+      <dl class="data">
+        <dt>Age</dt><dd>12</dd>
+        <dt>Rating</dt><dd>D</dd>
+        <dt>Mark</dt><dd><span class="sw" style="background:#2FC48D"></span>Jade</dd>
+        <dt>Lender</dt><dd>Tokihaya, the Speed Lender</dd>
+        <dt>Work</dt><dd>Pickpocket, information broker</dd>
+      </dl>
+      <p>Messy brown hair held down by goggles, huge green eyes, a gap-toothed grin, a hoodie three sizes too big and sandals that barely count. She calls Jin "big bro," eats at Kei's stall for free, and has a source for everything.</p>
+      <p>Need to know a rival's record, a back way through the bones, or which Collector works which street? Tsubame knows. Need her to keep a secret? That's harder — she gets excited and it slips out.</p>
+      <p><b>The dream:</b> to get out of the Underledger and see the sky, just once.</p>
+      <div class="quote">"Info costs one bowl of noodles!"</div>
+      <p class="hint">Lately she's been fast. Faster than a D-rating should allow.</p>
+    </div>
+  </div>
+  <div class="folio"><span>RED LEDGER — VOL.0</span><span class="no">21</span></div>
+</section>
+
+<!-- ============ p22 KUJO ============ -->
+<section class="page ruled">
+  <div class="runhead"><span>Ch.3 · The Cast</span><span>07 / Governor of the Bourse</span></div>
+  <div class="char-head">
+    <div class="char-name">Reiji Kujō</div>
+    <div class="char-kana"><span class="jp">九条 レイジ</span> · KUJŌ, REIJI</div>
+  </div>
+  <div class="char-body">
+    <div class="char-art"><img class="art" src="art/char-kujo.svg" alt="Reiji Kujō, full figure"></div>
+    <div class="char-text">
+      <dl class="data">
+        <dt>Age</dt><dd>30s</dd>
+        <dt>Title</dt><dd>Governor of the Bourse</dd>
+        <dt>Mark</dt><dd><span class="sw" style="background:#FFDC5A"></span>Gold</dd>
+        <dt>Lender</dt><dd>Uruoi, the Abundance Lender</dd>
+        <dt>Office</dt><dd>The Governor's suite, the Peak</dd>
+      </dl>
+      <p>The man at the very top of the city's books. Gold-brown hair combed neatly back, thin gold-rimmed glasses, pale blue-gray eyes, perfect posture. White three-piece suit. White gloves.</p>
+      <p>From his marble office, a wall-sized screen shows the Rating of every citizen in Kanegura — millions of names, scrolling. He pours his own tea. He smiles a great deal.</p>
+      <p>At the end of Episode 1, one red line flickers at the very bottom of his board: <b>ZERO</b>. He seems to have been waiting for it.</p>
+      <div class="quote">"Rest assured. The books always balance."</div>
+      <p class="hint">"Welcome back, Akaba." — Back from where?</p>
+    </div>
+  </div>
+  <div class="folio"><span>RED LEDGER — VOL.0</span><span class="no">22</span></div>
+</section>
+
+<!-- ============ p23 HAZAMA ============ -->
+<section class="page ruled">
+  <div class="runhead"><span>Ch.3 · The Cast</span><span>08 / The Zero Lender</span></div>
+  <div class="char-head">
+    <div class="char-name">Hazama</div>
+    <div class="char-kana"><span class="jp">ハザマ</span> · HAZAMA, THE ZERO LENDER</div>
+  </div>
+  <div class="char-body">
+    <div class="char-art"><img class="art" src="art/char-hazama.svg" alt="Hazama, a barefoot child made of red ink, face hidden behind a ledger page"></div>
+    <div class="char-text">
+      <dl class="data">
+        <dt>Age</dt><dd>As old as the Lenders</dd>
+        <dt>Rank</dt><dd>One of the seven Lenders</dd>
+        <dt>Color</dt><dd><span class="sw" style="background:#E5172F"></span>Ledger red</dd>
+        <dt>Debtor</dt><dd>Jin Akaba (inherited)</dd>
+        <dt>Likes</dt><dd>Keeping the books</dd>
+      </dl>
+      <p>The Lender who, by nature, lends <b>nothing</b>. Hazama has no body. It exists as red ink that rises off Jin's mark and writes itself into words, and as a child's voice only Jin can hear. When it does take a shape, it's a small barefoot child whose face is hidden behind a ledger page.</p>
+      <p>Hazama made an exception once: it lent to Jin's father. His father never paid. Now Jin "holds the rest," and every time he uses Default, Hazama takes one of his memories and binds it into its ledger. Why? It hasn't said.</p>
+      <div class="quote">"Hey Jin — I'll put that on your tab."</div>
+      <p class="hint">Creditor. Partner. Possibly the last enemy. Hazama hasn't decided either.</p>
+    </div>
+  </div>
+  <div class="folio"><span>RED LEDGER — VOL.0</span><span class="no">23</span></div>
+</section>
+
+<!-- ============ p24 CH4 EP1 ============ -->
+<section class="page ruled">
+  <div class="runhead"><span>Ch.4 · Episode 1</span><span>I'm Not Paying</span></div>
+  <div class="chapter-no">Chapter 4 · Episode 1</div>
+  <h1>"I'm Not Paying"</h1>
+  <p class="lede">A zero-rated slum kid refuses to let a Collector take the woman who raised him — and discovers he can make any contract default. The price: the only memory he had of his father's face.</p>
+  <table class="ledger">
+    <thead><tr><th>Block</th><th>Time</th><th>What happens</th></tr></thead>
+    <tbody>
+      <tr><td><b>Cold Open</b></td><td class="num">00:00</td><td>Collection Day night. A busker's voice is taken mid-scream. Jin runs. Nil appears. A child's voice: "...Found you."</td></tr>
+      <tr><td><b>Title</b></td><td class="num">03:00</td><td>RED LEDGER. No opening sequence — straight in.</td></tr>
+      <tr><td><b>Act 1</b></td><td class="num">03:10</td><td>Life as a ZERO: rejected at the gate, Tsubame, Kei's stall, the dream, the one memory of his father.</td></tr>
+      <tr><td><b>Act 2</b></td><td class="num">09:10</td><td>Nil comes for Kei's memories of Jin. Jin is beaten — then hears Hazama, and defaults.</td></tr>
+      <tr><td><b>Act 3</b></td><td class="num">16:10</td><td>Mio has seen everything with her Eye. An investment deal, on Jin's terms.</td></tr>
+      <tr><td><b>Tag</b></td><td class="num">21:10</td><td>At the Peak, someone smiles at a red ZERO.</td></tr>
+    </tbody>
+  </table>
+  <div class="cols">
+    <div class="note">
+      <h4>Three clip moments</h4>
+      <p class="small"><b>1.</b> The voice cut off (00:40). <b>2.</b> <span class="mono red">CONTRACT SUSPENDED 00:03</span> → "I'm not paying." (13:50). <b>3.</b> "Balance: negative infinity. Win probability: undefined." — and a gloved handshake (17:10).</p>
+    </div>
+    <div class="note">
+      <h4>Official English lines</h4>
+      <p class="small">"Hi. I'm the least valuable person in this city." · "I'm gonna zero out my old man's debt." · "...What did his face look like?" · "Welcome back, Akaba."</p>
+    </div>
+  </div>
+  <div class="box">
+    <h4 class="red">Rewatch checklist</h4>
+    <p class="small">Episode 1 hides more than it shows. Keep an eye on: the sleeve Kei never rolls up · how Mio uses her eye drops · what Nil says about Jin's father · the name glowing at the top of the street board · the last thing Kujō says.</p>
+  </div>
+  <p class="small muted">Runtime approx. 22:10. Next: Episode 2, "Terms and Conditions."</p>
+  <div class="folio"><span>RED LEDGER — VOL.0</span><span class="no">24</span></div>
+</section>
+
+<!-- ============ p25 SCRIPT 1 ============ -->
+<section class="page ruled">
+  <div class="runhead"><span>Ch.4 · Episode 1</span><span>Screenplay excerpt 1/3</span></div>
+  <h4>Episode 1 "I'm Not Paying" · Cold Open · Excerpt</h4>
+  <div class="script">
+    <div class="sh">EXT. UNDERLEDGER — RIB STREET NIGHT MARKET — NIGHT<span class="tc">00:00–00:40</span></div>
+    <p class="act">Black screen. A low bell, like a heartbeat. No logo, no titles — we're just in.</p>
+    <p class="act">Straight down from above: a colossal white bone arcs into the night sky — the rib of a dead god. Inside its curve, lanterns, cables and illegal tenements pile up like a hive. Kanegura. Its lowest tier: the Underledger.</p>
+    <p class="cue">SFX: A BELL FROM THE PEAK. THIRTEEN STRIKES — THREE CLEAR, THE REST FADING. THE MARKET FALLS SILENT.</p>
+    <p class="act">Bolted to the rib, a giant LED board — the PUBLIC RATINGS. Names cascade down it like a waterfall: AAA, AA, A... the lower they go, the smaller and dimmer.</p>
+    <p class="act">A new notice lights at the very top:</p>
+    <p class="card">TODAY IS COLLECTION DAY.<br>DEFAULTERS WILL SURRENDER COLLATERAL.</p>
+    <p class="act">Every stallholder grabs their left wrist. Ledger marks glow — vermilion, jade, indigo — and numbers surface on the skin.</p>
+    <p class="act">Four wrist close-ups, back to back. <b>−120. −3,400. −18. −9,999.</b> The last one is shaking.</p>
+    <div class="dl"><span class="who">STALL WOMAN</span><span>...Short again this month.</span></div>
+    <div class="sh">EXT. UNDERLEDGER — PLAZA<span class="tc">00:40–01:00</span></div>
+    <p class="act">Center of the plaza: a COLLECTOR in a white mask. Kneeling before him, clutching a guitar, a young BUSKER.</p>
+    <div class="dl"><span class="who">COLLECTOR</span><span>Collateral: voice. Past due. Executing.</span></div>
+    <div class="dl"><span class="who">BUSKER</span><span>Wait — tomorrow, I'll have it tomorrow —</span></div>
+    <p class="act">The Collector rests one finger on the Busker's throat. A thread of light — and a glowing ribbon, like a ledger page, is drawn out of his throat.</p>
+    <p class="cue">SFX: THE SCREAM CUTS OFF. CLEAN. TOTAL SILENCE.</p>
+    <p class="act">Close on the Busker. Mouth wide open, still screaming. No sound. We can't hear it either.</p>
+    <p class="act">The Collector tucks the ribbon into a small ledger and snaps it shut. That one soft <i>pap</i> is the only sound that comes back.</p>
+    <div class="dl"><span class="who">COLLECTOR</span><span>Settled.</span></div>
+    <p class="act">The crowd looks away. Nobody stops it.</p>
+  </div>
+  <div class="folio"><span>RED LEDGER — VOL.0</span><span class="no">25</span></div>
+</section>
+
+<!-- ============ p26 SCRIPT 2 ============ -->
+<section class="page ruled">
+  <div class="runhead"><span>Ch.4 · Episode 1</span><span>Screenplay excerpt 2/3</span></div>
+  <div class="script">
+    <div class="sh">EXT. UNDERLEDGER — STALL ROW<span class="tc">01:00–02:15</span></div>
+    <p class="cue">SFX: CROCKERY SHATTERS. LOUD.</p>
+    <div class="dl"><span class="who">JIN <span class="paren">(O.S.)</span></span><span>Move, move, move! Hot soup coming through!</span></div>
+    <p class="cue">MUSIC: BREAKBEAT KICKS IN.</p>
+    <p class="act">A boy bursts through a stall awning — <b>JIN AKABA</b> (16). Five noodle bowls stacked in his right hand. His left arm, wrist to elbow, is covered in a mark as red as fire.</p>
+    <p class="act">Two COLLECTOR TRAINEES in gray coveralls, scanners strapped to their wrists, give chase.</p>
+    <div class="dl"><span class="who">TRAINEE A</span><span>Stop! Show us your mark!</span></div>
+    <div class="dl"><span class="who">JIN</span><span>Nope! Delivery in progress, can't you read?</span></div>
+    <p class="act">Trainee B's scanner locks onto Jin's left wrist.</p>
+    <p class="cue">SFX: SCANNER — BEEP-BEEP. ERROR. ERROR. BALANCE: UNMEASURABLE.</p>
+    <div class="dl"><span class="who">TRAINEE B</span><span>Him again! He breaks the scanners!</span></div>
+    <p class="act">Jin bounds up three stall roofs, rides a laundry line down, and hands one bowl through a window to an OLD MAN without breaking stride.</p>
+    <div class="dl"><span class="who">JIN</span><span>Extra scallions, gramps! Put it on your tab!</span></div>
+    <div class="dl"><span class="who">OLD MAN</span><span>Who'd ever run a tab for <i>you</i>?</span></div>
+    <div class="dl"><span class="who">JIN</span><span>Fair!</span></div>
+    <p class="act">FREEZE FRAME. Jin, upside down in midair. A rating card pops up on screen:</p>
+    <p class="card">AKABA, JIN — 16 — RATING: ZERO</p>
+    <div class="dl"><span class="who">JIN <span class="paren">(V.O.)</span></span><span><b>Hi. I'm the least valuable person in this city.</b></span></div>
+    <p class="act">Unfreeze. Jin uses Trainee A's head as a stepping stone and lands in an alley, every bowl intact. Not a drop spilled.</p>
+    <div class="dl"><span class="who">JIN</span><span>Yes! Zero spillage!</span></div>
+  </div>
+  <div class="note" style="margin-top:auto">
+    <h4>Translator's note</h4>
+    <p class="small">Jin's lines are written for the dub, not word for word. His Japanese voice is rough, quick and cheerful; in English he should sound like a kid who's been told "no" his whole life and turned it into a bit.</p>
+  </div>
+  <div class="folio"><span>RED LEDGER — VOL.0</span><span class="no">26</span></div>
+</section>
+
+<!-- ============ p27 SCRIPT 3 ============ -->
+<section class="page ruled">
+  <div class="runhead"><span>Ch.4 · Episode 1</span><span>Screenplay excerpt 3/3</span></div>
+  <div class="script">
+    <div class="sh">EXT. UNDERLEDGER — DEAD END<span class="tc">02:15–03:00</span></div>
+    <p class="cue">MUSIC: CUTS OUT.</p>
+    <p class="act">Dead end. Jin turns. The trainees have stopped, panting. They don't follow. They step <i>back</i>.</p>
+    <div class="dl"><span class="who">JIN</span><span>...What? Suddenly shy?</span></div>
+    <div class="dl"><span class="who">TRAINEE A</span><span>...N-Nil, sir.</span></div>
+    <p class="act">On top of the wall behind Jin: a black shape. <b>NIL</b>, the Collector. Long black coat. A white porcelain mask, one line across each eyehole, ruled like a ledger. The mark on his wrist is black.</p>
+    <p class="cue">SFX: THE AIR PRESSURE CHANGES. A LOW HUM.</p>
+    <p class="act">Nil drops without a sound. Looks at Jin's left arm.</p>
+    <div class="dl"><span class="who">NIL</span><span>A red arm. ...Akaba's son.</span></div>
+    <div class="dl"><span class="who">JIN</span><span>...Wrong guy. I'm... Blue. Jin Blue.</span></div>
+    <p class="act">Nil takes a step closer. Jin's red mark throbs — <i>THUMP.</i></p>
+    <p class="cue">SFX: A HEARTBEAT. THEN, SO FAINT ONLY JIN CAN HEAR IT — A CHILD'S VOICE.</p>
+    <div class="dl"><span class="who">??? <span class="paren">(child)</span></span><span>...Found you.</span></div>
+    <div class="dl"><span class="who">JIN</span><span>...Huh?</span></div>
+    <p class="act">Nil's gloved hand reaches for Jin's throat.</p>
+    <p class="act">Nil's fingertips, reflected in Jin's eyes. The red glow crawls from elbow to shoulder — for an instant.</p>
+    <p class="cue">SFX: EVERY SOUND IS SUCKED AWAY —</p>
+    <p class="smash">SMASH CUT TO:</p>
+    <div class="sh">TITLE CARD<span class="tc">03:00–03:10</span></div>
+    <p class="act">Black. Red ink runs along the rules of a ledger and becomes letters:</p>
+    <p class="card" style="font-family:var(--display); font-size:12pt; font-weight:400; color:var(--red)">RED LEDGER</p>
+    <p class="cue">SFX: ONE STAMP.</p>
+  </div>
+  <div class="box" style="margin-top:auto">
+    <h4 class="red">End of excerpt</h4>
+    <p class="small">This volume prints the cold open only; the full Episode 1 screenplay is not published here. In Japanese, Jin's alias is a pun on his surname — <span class="jp">赤羽</span> "Akaba," red wing → <span class="jp">青羽</span> "Aoba," blue wing — so the English gives him a different, equally bad lie.</p>
+  </div>
+  <div class="folio"><span>RED LEDGER — VOL.0</span><span class="no">27</span></div>
+</section>
+
+<!-- ============ p28 GLOSSARY ============ -->
+<section class="page ruled">
+  <div class="runhead"><span>Glossary</span><span>Terms of the account</span></div>
+  <h2>Glossary</h2>
+  <dl class="gloss">
+    <dt>Kanegura</dt><dd>The vertical city built on the ribs of a dead god. Literally "money vault."</dd>
+    <dt>The Peak / the Bourse</dt><dd>The top tier and the exchange that runs it: Ratings, Settlements, Collectors.</dd>
+    <dt>Middle Tier</dt><dd>The neon commercial belt in the middle of the bones.</dd>
+    <dt>Underledger</dt><dd>The bottom tier, in the god's belly. Home of the overdue.</dd>
+    <dt>Bone Lifts</dt><dd>Elevators inside the ribs. They check your Rating first.</dd>
+    <dt>Deep Vault</dt><dd>The sealed vault beneath the city where the Lenders are kept.</dd>
+    <dt>Lenders</dt><dd>The seven gods who lend power. No one has seen one.</dd>
+    <dt>Credit</dt><dd>Power borrowed from a Lender. Every use raises your balance.</dd>
+    <dt>Ledger mark</dt><dd>The mark on every left wrist, in your Lender's color, showing your balance.</dd>
+    <dt>Balance / limit</dt><dd>What you owe / the most you may owe. Go over and you're <b>maxed out</b>.</dd>
+    <dt>Collateral</dt><dd>What you pledged in case you can't pay: a body part, a sense, a memory.</dd>
+    <dt>Rating</dt><dd>Your public grade, ZERO and D to AAA. Recalculated daily, shown to everyone.</dd>
+    <dt>Settlement</dt><dd>A Bourse-licensed duel in a 20 m Circle. Winner takes the loser's stake.</dd>
+    <dt>Auditor</dt><dd>The Bourse official who referees a Settlement.</dd>
+    <dt>Guarantor</dt><dd>A broker who stakes collateral on a fighter's behalf.</dd>
+    <dt>Collection Day</dt><dd>The last night of each month, from the 13th bell to dawn.</dd>
+    <dt>Collector</dt><dd>Bourse agent with the right to take collateral. Black mark.</dd>
+    <dt>Special Collection Writ</dt><dd>Lets a Collector come any night for debts over three months overdue.</dd>
+    <dt>Grand Settlement</dt><dd>The annual 32-fighter tournament. The champion petitions the Lenders for one wish.</dd>
+    <dt>Default</dt><dd>Jin's power: seize a contract for ~3 sec. and use it. Paid for in memories.</dd>
+    <dt>−∞</dt><dd>Jin's balance. The debt he inherited from his father.</dd>
+  </dl>
+  <div class="folio"><span>RED LEDGER — VOL.0</span><span class="no">28</span></div>
+</section>
+
+<!-- ============ p29 AFTERWORD ============ -->
+<section class="page ruled">
+  <div class="runhead"><span>Afterword</span><span>From the showrunner</span></div>
+  <h2>Choosing who you owe</h2>
+  <p><i>RED LEDGER</i> isn't really a story about debt. It's a story about <b>choosing who you pay back</b>.</p>
+  <p>Everyone in Kanegura is in debt to a god from the moment they're born, and the city puts a price on them with a number called a Rating. Into that city walks a boy who's been thrown off the books entirely — a ZERO.</p>
+  <p>Every time Jin gets stronger, he gives up one more precious memory. So his wins always taste a little bitter. He laughs anyway. He says "I'm not paying." And then, without a word, he picks up somebody else's debt.</p>
+  <p>On screen, I want you to feel the rush of that red number climbing, one rung at a time, all the way to the end. Underneath it, the things that don't fit in a ledger — the taste of family cooking, a friend's name, a father's face — are quietly being shaved away. Feeling both at once: that's this show's promise.</p>
+  <p style="text-align:right">— Hikaru, Showrunner, P7 Anime</p>
+  <div class="box" style="margin-top:auto">
+    <h4 class="red">Coming in Vol.1</h4>
+    <div class="kicker">Episode 2 — "Terms and Conditions"</div>
+    <p class="small">The deal is made. Now it has to be paid for. To get out of the Underledger, Jin has to climb the inside of the bones — with a Collector right behind him and Mio reading the odds. Odds of getting caught: 87%. Odds of getting away? <i>Undefined.</i></p>
+    <p class="small muted">Vol.1 also opens the Middle Tier: neon, gondolas, bookies, and the first Settlement Circle.</p>
+  </div>
+  <div class="folio"><span>RED LEDGER — VOL.0</span><span class="no">29</span></div>
+</section>
+
+<!-- ============ p30 COLOPHON ============ -->
+<section class="page dark">
+  <img class="back-art" src="art/back.svg" alt="">
+  <div class="runhead"><span>Colophon</span><span>Closing the books</span></div>
+  <div style="margin-top:auto; position:relative" class="stack colophon">
+    <div style="font-family:var(--display); font-size:20pt; color:#E5172F; line-height:1">RED LEDGER</div>
+    <div>Book of the Ledger Vol.0 — World &amp; Character Guide<br>English edition · First published 2026</div>
+    <h4>Credits</h4>
+    <p>Original story &amp; production: P7 Anime · Showrunner: Hikaru<br>Series bible, Episode 1 screenplay, design &amp; color: P7 Anime team</p>
+    <h4>About AI use</h4>
+    <p>The text and illustrations in this book were created using AI tools, and were edited and supervised by the owner.</p>
+    <h4>Typefaces</h4>
+    <p>Dela Gothic One, Zen Kaku Gothic New and IBM Plex Mono, via Google Fonts, used under the SIL Open Font License 1.1.</p>
+    <h4>Notice</h4>
+    <p>This is a work of fiction. All names, places, gods and institutions are invented.</p>
+    <p style="border-top:.2mm solid #3a3d46; padding-top:2mm">© 2026 masahiro20 / P7 Anime. All rights reserved.<br>No part of this book may be reproduced or redistributed without permission.</p>
+  </div>
+  <div class="folio"><span>RED LEDGER — VOL.0</span><span class="no">30</span></div>
+</section>
+
+</body>
+</html>

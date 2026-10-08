@@ -1,0 +1,162 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 1300" width="600" height="1300">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#181B25"/>
+      <stop offset="0.55" stop-color="#12141B"/>
+      <stop offset="1" stop-color="#0B0C11"/>
+    </linearGradient>
+    <pattern id="rule" width="600" height="34" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="33.5" x2="600" y2="33.5" stroke="#232838" stroke-width="1"/>
+    </pattern>
+    <radialGradient id="aura" cx="300" cy="560" r="440" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#9AA3AD" stop-opacity="0.34"/>
+      <stop offset="0.5" stop-color="#4A525C" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#4A525C" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="floor" cx="300" cy="1242" r="200" gradientUnits="userSpaceOnUse" gradientTransform="translate(0 1056) scale(1 0.15)">
+      <stop offset="0" stop-color="#9AA3AD" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#9AA3AD" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="blur" x="-1" y="-1" width="3" height="3"><feGaussianBlur stdDeviation="9"/></filter>
+    <filter id="soft" x="-1" y="-1" width="3" height="3"><feGaussianBlur stdDeviation="3"/></filter>
+  </defs>
+
+  <!-- backdrop -->
+  <rect width="600" height="1300" fill="url(#bg)"/>
+  <rect width="600" height="1300" fill="url(#rule)"/>
+  <line x1="64" y1="0" x2="64" y2="1300" stroke="#E5172F" stroke-opacity="0.16"/>
+  <line x1="70" y1="0" x2="70" y2="1300" stroke="#E5172F" stroke-opacity="0.16"/>
+  <rect width="600" height="1300" fill="url(#aura)"/>
+  <rect x="0" y="1180" width="600" height="120" fill="url(#floor)"/>
+  <ellipse cx="300" cy="1242" rx="150" ry="14" fill="#06070A" opacity="0.8"/>
+
+    <g stroke="#0B0910" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <!-- iron staff -->
+    <path d="M142,112 L154,112 L154,1244 L142,1244 Z" fill="#3A4048"/>
+    <path d="M150,112 L154,112 L154,1244 L150,1244 Z" fill="#262A30" stroke="none"/>
+    <path d="M143,120 L143,1236" stroke="#6A727C" stroke-width="2" fill="none"/>
+    <circle cx="148" cy="74" r="40" fill="#3A4048"/>
+    <circle cx="148" cy="74" r="28" fill="#12141B"/>
+    <circle cx="148" cy="74" r="10" fill="#9AA3AD"/>
+    <path d="M148,46 L148,64 M148,84 L148,102 M120,74 L138,74 M158,74 L176,74 M128,54 L141,67 M155,81 L168,94 M168,54 L155,67 M141,81 L128,94" stroke="#9AA3AD" stroke-width="4" fill="none"/>
+    <path d="M120,48 A40,40 0 0 1 176,46" fill="none" stroke="#C9CED4" stroke-width="2"/>
+    <path d="M136,108 L160,108 L160,124 L136,124 Z" fill="#9AA3AD" stroke-width="2"/>
+
+    <!-- leggings -->
+    <path d="M250,1040 L294,1040 L292,1204 L254,1204 Z" fill="#3A4048"/>
+    <path d="M306,1040 L350,1040 L346,1204 L308,1204 Z" fill="#3A4048"/>
+    <path d="M330,1044 L350,1040 L346,1204 L328,1204 Z M276,1044 L294,1040 L292,1204 L278,1204 Z" fill="#2A2F36" stroke="none"/>
+    <g fill="none" stroke="#24282E" stroke-width="2">
+      <path d="M252,1080 L292,1070 M252,1110 L292,1100 M253,1140 L292,1130 M254,1170 L292,1160"/>
+      <path d="M308,1070 L348,1080 M308,1100 L348,1110 M308,1130 L347,1140 M308,1160 L346,1170"/>
+    </g>
+    <!-- metal-soled sandals -->
+    <path d="M250,1200 L296,1200 L300,1226 L240,1230 Z" fill="#DCC3AC"/>
+    <path d="M304,1200 L350,1200 L360,1230 L300,1226 Z" fill="#DCC3AC"/>
+    <path d="M232,1228 L302,1224 L304,1242 L230,1244 Z M298,1224 L368,1228 L370,1244 L296,1242 Z" fill="#9AA3AD"/>
+    <path d="M254,1206 L294,1214 M306,1214 L346,1206" stroke="#3A4048" stroke-width="5" fill="none"/>
+
+    <!-- inner robe layer -->
+    <path d="M214,600 L386,600 L404,1060 L196,1060 Z" fill="#CDD1D6"/>
+    <!-- outer robe skirt (split front) -->
+    <path d="M214,600 L304,600 L296,1040 L200,1020 Z" fill="#E8E9EA"/>
+    <path d="M296,600 L386,600 L400,1020 L304,1040 Z" fill="#E8E9EA"/>
+    <path d="M340,604 L386,600 L400,1020 L362,1028 C360,880 352,720 340,604 Z" fill="#B9BEC6" stroke="none"/>
+    <path d="M224,610 C222,760 218,900 212,1018" fill="none" stroke="#FFFFFF" stroke-width="3"/>
+    <path d="M300,604 L300,1040" stroke="#9AA0AA" stroke-width="6" fill="none"/>
+    <path d="M250,700 L246,1020 M352,700 L360,1020" stroke="#B9BEC6" stroke-width="2" fill="none"/>
+
+    <!-- torso -->
+    <path d="M198,300 C232,286 368,286 402,300 L428,332 C436,420 428,510 418,566 L182,566 C172,510 164,420 172,332 Z" fill="#E8E9EA"/>
+    <path d="M360,300 L402,300 L428,332 C436,420 428,510 418,566 L372,566 C384,480 382,380 360,300 Z" fill="#B9BEC6" stroke="none"/>
+    <!-- crossover front -->
+    <path d="M272,300 L346,566" fill="none" stroke-width="3"/>
+    <path d="M272,300 L346,566 L362,566 L290,300 Z" fill="#CDD1D6" stroke="none"/>
+    <path d="M330,296 L300,384" fill="none" stroke="#9AA0AA" stroke-width="2"/>
+
+    <!-- sash -->
+    <path d="M200,558 L400,558 L398,606 L202,606 Z" fill="#3A4048"/>
+    <path d="M200,572 L400,572" stroke="#4A525C" stroke-width="2" fill="none"/>
+    <path d="M362,600 L388,600 L392,780 L376,770 L366,786 Z" fill="#3A4048"/>
+    <path d="M336,560 L372,560 L374,606 L338,606 Z" fill="#2A2F36"/>
+
+    <!-- right arm (viewer left): wide bound sleeve, grips staff -->
+    <path d="M200,304 C172,318 156,380 150,440 L142,516 L206,522 L210,450 L220,384 Z" fill="#E8E9EA"/>
+    <path d="M168,350 C160,400 154,460 150,510 L162,512 C166,450 170,400 180,356 Z" fill="#FFFFFF" stroke="none"/>
+    <path d="M198,400 C202,450 202,490 200,520 L206,522 L210,450 Z" fill="#B9BEC6" stroke="none"/>
+    <path d="M176,530 L166,650" fill="none" stroke="#0B0910" stroke-width="40"/>
+    <path d="M176,530 L166,650" fill="none" stroke="#DCC3AC" stroke-width="34"/>
+    <path d="M184,532 L176,650" fill="none" stroke="#BFA48E" stroke-width="10" stroke-linecap="butt"/>
+    <g fill="none" stroke="#9AA3AD" stroke-width="9" filter="url(#soft)">
+      <path d="M170,642 L178,546 M186,512 C190,440 196,380 214,316"/>
+    </g>
+    <path d="M170,642 L178,546" fill="none" stroke="#6A737D" stroke-width="4"/>
+    <path d="M186,512 C190,440 196,380 214,316" fill="none" stroke="#6A737D" stroke-width="4"/>
+    <path d="M170,642 L178,546 M186,512 C190,440 196,380 214,316" fill="none" stroke="#E4E9EE" stroke-width="1.4"/>
+    <path d="M144,500 L206,504 L206,522 L142,518 Z M146,522 L206,526 L204,542 L148,538 Z" fill="#3A4048"/>
+    <path d="M148,504 L202,508" stroke="#9AA3AD" stroke-width="2" fill="none"/>
+    <path d="M132,640 C126,664 132,694 150,698 C170,700 182,676 178,646 C172,634 142,632 132,640 Z" fill="#DCC3AC"/>
+    <path d="M136,656 L176,656 M134,672 L178,672 M138,686 L172,686" fill="none" stroke-width="2"/>
+
+    <!-- left arm (viewer right): wide bound sleeve, fist -->
+    <path d="M400,304 C428,318 444,380 450,440 L458,516 L394,522 L390,450 L380,384 Z" fill="#E8E9EA"/>
+    <path d="M410,330 C430,380 444,450 450,516 L458,516 L450,440 C444,380 428,318 400,304 Z" fill="#B9BEC6" stroke="none"/>
+    <path d="M426,530 L438,650" fill="none" stroke="#0B0910" stroke-width="40"/>
+    <path d="M426,530 L438,650" fill="none" stroke="#DCC3AC" stroke-width="34"/>
+    <path d="M436,532 L448,650" fill="none" stroke="#BFA48E" stroke-width="12" stroke-linecap="butt"/>
+    <g fill="none" stroke="#9AA3AD" stroke-width="9" filter="url(#soft)">
+      <path d="M428,606 L422,546 M414,512 C410,440 404,380 386,316"/>
+    </g>
+    <path d="M428,606 L422,546" fill="none" stroke="#6A737D" stroke-width="4"/>
+    <path d="M414,512 C410,440 404,380 386,316" fill="none" stroke="#6A737D" stroke-width="4"/>
+    <path d="M428,606 L422,546 M414,512 C410,440 404,380 386,316" fill="none" stroke="#E4E9EE" stroke-width="1.4"/>
+    <path d="M394,500 L456,504 L458,520 L396,518 Z M396,520 L456,524 L456,540 L398,538 Z" fill="#3A4048"/>
+    <path d="M398,504 L452,508" stroke="#9AA3AD" stroke-width="2" fill="none"/>
+    <!-- gunmetal ledger mark: six straight lines -->
+    <path d="M418,624 L456,628" stroke="#9AA3AD" stroke-width="22" fill="none" filter="url(#blur)"/>
+    <g stroke="#C9D0D8" stroke-width="1.8" fill="none">
+      <path d="M418,614 L457,617 M418,618 L457,621 M418,622 L457,625 M418,626 L457,629 M418,630 L457,633 M418,634 L457,637"/>
+    </g>
+    <path d="M416,650 C408,676 416,708 438,710 C460,710 466,680 458,650 Z" fill="#DCC3AC"/>
+    <path d="M446,654 C456,676 456,700 444,710 C462,708 466,678 458,652 Z" fill="#BFA48E" stroke="none"/>
+    <path d="M418,672 C430,668 442,672 446,684 M418,692 L456,694" fill="none" stroke-width="2"/>
+
+    <!-- neck -->
+    <path d="M282,236 L282,300 L318,300 L318,236 Z" fill="#DCC3AC"/>
+    <path d="M282,240 L318,240 L318,262 C306,256 294,256 282,262 Z" fill="#BFA48E" stroke="none"/>
+    <!-- stiff high collar -->
+    <path d="M280,252 L236,196 L232,302 L292,310 Z" fill="#E8E9EA"/>
+    <path d="M320,252 L364,196 L368,302 L308,310 Z" fill="#CDD1D6"/>
+    <path d="M276,256 L244,212 L242,296" fill="none" stroke="#B9BEC6" stroke-width="3"/>
+    <path d="M324,256 L356,212 L358,296" fill="none" stroke="#9AA0AA" stroke-width="3"/>
+    <path d="M232,302 L292,310 L300,300 L308,310 L368,302" fill="none"/>
+
+    <!-- head: cropped hair -->
+    <path d="M246,176 C238,128 254,104 270,100 L276,90 L290,98 L300,86 L312,98 L326,90 L332,102 C352,110 362,134 354,176 L346,152 C330,134 270,134 254,152 Z" fill="#24272C"/>
+    <path d="M276,104 L284,98 L286,112 Z M312,102 L320,96 L320,110 Z M262,118 L270,112 L270,124 Z" fill="#D8D4CC" stroke="none"/>
+    <path d="M248,184 C238,180 238,206 250,212 Z" fill="#DCC3AC"/>
+    <path d="M352,184 C362,180 362,206 350,212 Z" fill="#BFA48E"/>
+    <path d="M250,140 C248,200 262,240 300,256 C338,240 352,200 350,140 Z" fill="#DCC3AC"/>
+    <path d="M342,150 C346,200 334,236 300,256 C324,232 332,200 334,150 Z" fill="#BFA48E" stroke="none"/>
+    <path d="M250,154 C262,126 338,126 350,154 L344,158 L332,146 L318,154 L304,144 L290,154 L276,146 L262,156 Z" fill="#24272C"/>
+    <path d="M330,132 L340,128 L338,140 Z" fill="#D8D4CC" stroke="none"/>
+    <path d="M252,150 L250,182 M348,150 L350,182" stroke="#24272C" stroke-width="5" fill="none"/>
+    <!-- brows (heavy, straight) -->
+    <path d="M262,176 L292,180" stroke-width="5.5" fill="none"/>
+    <path d="M338,176 L308,180" stroke-width="5.5" fill="none"/>
+    <!-- eyes (narrow, slate) -->
+    <path d="M264,192 L292,190" stroke-width="3.6" fill="none"/>
+    <path d="M308,190 L336,192" stroke-width="3.6" fill="none"/>
+    <path d="M272,193 A6,6 0 0 0 286,193 Z M314,193 A6,6 0 0 0 328,193 Z" fill="#7E868F" stroke="none"/>
+    <circle cx="279" cy="195" r="2" fill="#24272C" stroke="none"/><circle cx="321" cy="195" r="2" fill="#24272C" stroke="none"/>
+    <path d="M268,200 L288,200 M312,200 L332,200" stroke="#BFA48E" stroke-width="1.5" fill="none"/>
+    <!-- nose, mouth -->
+    <path d="M302,204 L298,218 L304,218" fill="none" stroke-width="2"/>
+    <path d="M288,234 L312,233" fill="none" stroke-width="2.6"/>
+    <!-- frost breath -->
+    <g fill="none" stroke="#E8EEF4" stroke-width="2.5" opacity="0.5">
+      <path d="M318,238 C336,232 344,240 360,234 C372,230 380,236 392,230"/>
+      <path d="M322,246 C340,244 352,252 370,246"/>
+    </g>
+  </g>
+</svg>
