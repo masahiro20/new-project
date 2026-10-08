@@ -40,6 +40,8 @@ plugin/           thin Claude Code plugin: skill, /lqa-check command, .mcp.json
 samples/          invented sample scripts and glossaries (no real game text)
 test/             node:test suites (parsers, checks, MCP over HTTP)
 docs/lp.md        landing-page copy draft (NOT published)
+docs/data-policy.md  data handling policy draft
+docs/pilot-guide.md  pilot instructions for testers + false-positive measurement procedure
 ```
 
 ## Run it
@@ -47,7 +49,7 @@ docs/lp.md        landing-page copy draft (NOT published)
 ```bash
 cd skillforge
 npm install
-npm test                       # 38 tests: parsers, checks, review regressions, MCP end-to-end
+npm test                       # 54 tests: parsers, checks, regressions, draft, store/auth, MCP end-to-end
 npm run check:sample           # CLI report for samples/ja-en
 npx tsx src/cli/index.ts check samples/en-ja/ui.xlf --glossary samples/en-ja/glossary.json
 
@@ -62,7 +64,24 @@ npm run serve &
 claude --plugin-dir ./plugin   # then: /lqa-check samples/ja-en/script.csv --glossary samples/ja-en/glossary.json
 ```
 
-CLI exit codes: `0` no errors, `1` errors found, `2` bad input (CI-friendly).
+CLI exit codes for `check`: `0` no errors, `1` errors found, `2` bad input (CI-friendly).
+
+Other CLI commands:
+
+```bash
+npx tsx src/cli/index.ts draft <tables...> [--glossary existing.json] --out draft.json   # glossary draft from the script
+npx tsx src/cli/index.ts labels <tables...> --glossary g.json --out labels.csv            # labeling sheet for the pilot
+npx tsx src/cli/index.ts score labels.csv [--known known.csv]                             # precision / recall
+npx tsx src/cli/index.ts token create <user> --plan solo|studio                           # per-user API token (shown once)
+npx tsx src/cli/index.ts token list | token revoke <user|prefix>
+```
+
+## Accounts, storage and limits
+
+- **Tokens:** per-user bearer tokens in `$YURAGI_DATA_DIR/tokens.json` (SHA-256 hashes only; new tokens are picked up without a restart). Legacy `YURAGI_API_TOKENS` still works. With no tokens at all the server runs open, and refuses to start that way in production.
+- **Saved glossaries:** `GlossaryStore` interface, local backend `FileGlossaryStore` (AES-256-GCM per file, names encrypted too, key `YURAGI_ENCRYPTION_KEY`). Swap the backend without touching the tools.
+- **Limits (in memory, no external service):** Solo 30 req/min · 200k rows/day · 10 glossaries; Studio 120 · 1M · 50. HTTP 429 + `Retry-After` when exceeded.
+- Scripts are never stored; caches are cleared after every request; logs carry only method/path/status/user/time (tested). See `docs/data-policy.md`.
 
 ## Input formats
 
@@ -79,6 +98,9 @@ CLI exit codes: `0` no errors, `1` errors found, `2` bad input (CI-friendly).
 | `check_script` | Runs all checks. Returns a Markdown report (content), plus findings, usage tallies and packet summaries (structuredContent). Options: `rules`, `wideAsTwo`, `minSeverity`. |
 | `get_review_packets` | Returns the voice and unglossaried-term packets for the client to judge. Can filter with `subjects`. |
 | `validate_glossary` | Parses a glossary and reports what was understood, or the errors. |
+| `draft_glossary` | Proposes terms and characters from recurring source terms and their most consistent renderings (nothing saved). |
+| `save_glossary` / `list_glossaries` / `get_glossary` / `delete_glossary` | Hosted glossaries per user; `check_script` and `get_review_packets` accept `glossaryName`. |
+| `get_usage` | Plan, today's rows, limits. |
 | prompt `review-script` | The step-by-step review workflow. |
 
 Limits per call: 20 tables, 5M chars per table, 100k rows, 25 MB request.
@@ -87,5 +109,5 @@ Limits per call: 20 tables, 5M chars per table, 100k rows, 25 MB request.
 
 - Japanese analysis is heuristic: regex-based, no morphological analyzer. Pronoun and politeness detection is tuned to avoid obvious lookalikes (私服, こわしが), but it will miss or misread some lines. That's why voice findings stay at warning/info and the packets go to the model.
 - Near-miss name detection can flag a real English word one letter away from a name. Add those words to `ignoreWords`.
-- Auth is a static bearer token. Before any external user, this needs per-user tokens or OAuth, rate limits, and a written no-retention policy that also covers logs.
-- No hosted glossary storage yet. Each call sends the whole glossary.
+- Auth is per-user bearer tokens with in-memory limits: fine for a pilot, but OAuth and a shared limiter are needed before multi-instance hosting.
+- The glossary draft is heuristic (no model): common words can crowd the list and single-kanji terms are missed. Always review it.
