@@ -298,5 +298,19 @@ class TestPolicyAndOverrides(unittest.TestCase):
         assert_wording(self, md, "decisions.md")
 
 
+class CriticalOutsideShippedCode(unittest.TestCase):
+    def test_critical_in_docs_is_review_with_reason(self):
+        t = {"quarantined": False, "grade": "A", "trust": 90}
+        f = [{"rule": "ATL-RF-001", "sev": "critical", "ctx": "docs", "file": "README.md"}]
+        rec, notes = core.recommend(t, f, provenance={"repo_matches_package": True})
+        self.assertEqual(rec, "review")
+        self.assertTrue(any("outside shipped code" in n for n in notes))
+
+    def test_critical_in_src_still_denies(self):
+        t = {"quarantined": False, "grade": "A", "trust": 90}
+        f = [{"rule": "ATL-RF-001", "sev": "critical", "ctx": "src", "file": "x.sh"}]
+        self.assertEqual(core.recommend(t, f)[0], "deny")
+
+
 if __name__ == "__main__":
     unittest.main()

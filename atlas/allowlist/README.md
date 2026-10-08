@@ -37,7 +37,7 @@ python3 -I -B -m unittest discover -s tests -v
 ## 推奨の決め方（ポリシー）
 
 1. OSV の `MAL-*`（隔離・Trust 0）、または src/skill/起動設定に critical がある → **deny**。
-2. 等級で決める：A/B → approve、C → review、D/F → deny。
+2. 等級で決める：A/B → approve、C → review、D/F → deny。docs・テスト・例・CI に critical がある → 自動で拒否はしないが、少なくとも **review** にして理由を表示する（本部承認 2026-10-08）。
 3. 起動設定またはスキルに high がある → 少なくとも **review**（自動承認しない）。ポリシーで deny にもできる。
 4. approve には検証済みの出所が必要：DP-004 が clean（`repo_matches_package`）か npm attestation。なければ review。出所情報がないと点数上も最大 C（約64点）。
 

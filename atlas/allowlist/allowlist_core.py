@@ -644,7 +644,8 @@ def load_policy(policy=None):
 def recommend(t, findings=(), kind="mcp", provenance=None, policy=None):
     """-> (recommendation, [policy notes]).
     1. OSV MAL-* (quarantined) or a critical finding in src/skill/launch config -> deny.
-    2. Grade: A/B approve, C review, D/F deny.
+    2. Grade: A/B approve, C review, D/F deny; a critical finding in docs/test/example/ci -> at least review
+       with the reason shown (never auto-deny, never auto-approve).
     3. High finding in a skill or in the launch config -> at least review (policy: or deny).
     4. Approve needs verified provenance (policy require_provenance_for_approve)."""
     pol = load_policy(policy)
@@ -656,6 +657,14 @@ def recommend(t, findings=(), kind="mcp", provenance=None, policy=None):
         return "deny", [f"policy: critical pattern detected ({crit[0]['rule']}) -> deny"]
     notes = []
     rec = "approve" if t["grade"] in ("A", "B") else "review" if t["grade"] == "C" else "deny"
+    # HQ 2026-10-08: critical patterns in docs/tests/examples/CI never auto-deny, but never auto-approve either
+    crit_other = [f for f in live if f.get("sev") == "critical" and f.get("ctx", "src") not in ("src", "skill")]
+    if crit_other and rec == "approve":
+        f0 = crit_other[0]
+        rec = "review"
+        notes.append(f"policy: critical pattern detected outside shipped code ({f0['rule']} in {f0.get('ctx')}: "
+                     f"{f0.get('file')}) -> review; confirm it is documentation/test data / "
+                     f"docs・テスト内で critical パターンを検出 → 要レビュー")
     highs = [f for f in live if f.get("sev") == "high"
              and (f.get("source") == "config" or (kind == "skill" and f.get("ctx", "src") in ("skill", "src")))]
     if highs and rec != "deny":
