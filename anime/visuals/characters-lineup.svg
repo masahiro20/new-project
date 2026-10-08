@@ -1,0 +1,423 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 700" width="1600" height="700" role="img" aria-labelledby="lt ld">
+  <title id="lt">RED LEDGER — Main Cast Silhouette Lineup</title>
+  <desc id="ld">Eight original characters as flat silhouettes on a height chart, each with a glowing ledger mark on the left wrist in their lender color.</desc>
+  <defs>
+    <linearGradient id="bgG" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1B1F2E"/>
+      <stop offset="0.78" stop-color="#17131B"/>
+      <stop offset="1" stop-color="#0E0B10"/>
+    </linearGradient>
+    <radialGradient id="spot" cx="50%" cy="100%" r="80%">
+      <stop offset="0" stop-color="#F5EEDD" stop-opacity="0.13"/>
+      <stop offset="1" stop-color="#F5EEDD" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="rim" x="-30%" y="-10%" width="160%" height="120%">
+      <feMorphology in="SourceAlpha" operator="dilate" radius="2.2" result="d"/>
+      <feFlood flood-color="#E9E1CF" flood-opacity="0.6"/>
+      <feComposite in2="d" operator="in" result="r"/>
+      <feMerge><feMergeNode in="r"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glow" x="-200%" y="-200%" width="500%" height="500%">
+      <feGaussianBlur stdDeviation="4" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="softglow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="7" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- background -->
+  <rect width="1600" height="700" fill="url(#bgG)"/>
+  <g stroke="#E5172F" stroke-opacity="0.06" stroke-width="1">
+    <path d="M0 80H1600M0 120H1600M0 160H1600M0 200H1600M0 240H1600M0 280H1600M0 320H1600M0 360H1600M0 400H1600M0 440H1600M0 480H1600M0 520H1600"/>
+  </g>
+  <path d="M28 0V700M34 0V700" stroke="#E5172F" stroke-opacity="0.22" stroke-width="1.5"/>
+
+  <!-- height chart (2.2 px / cm, ground y=540) -->
+  <g font-family="'Noto Sans JP','Helvetica Neue',Arial,sans-serif" font-size="12" fill="#9A958C">
+    <g stroke="#9A958C" stroke-opacity="0.35" stroke-dasharray="4 6">
+      <path d="M48 320H1580"/>
+      <path d="M48 210H1580"/>
+      <path d="M48 144H1580"/>
+    </g>
+    <text x="1186" y="316" text-anchor="middle">100 cm</text>
+    <text x="1186" y="206" text-anchor="middle">150 cm</text>
+    <text x="1186" y="140" text-anchor="middle">180 cm</text>
+  </g>
+
+  <!-- title -->
+  <g font-family="'Noto Sans JP','Hiragino Sans','Helvetica Neue',Arial,sans-serif">
+    <text x="800" y="46" text-anchor="middle" font-size="26" font-weight="800" letter-spacing="6" fill="#F5EEDD">RED LEDGER <tspan fill="#E5172F">MAIN CAST</tspan></text>
+    <text x="800" y="70" text-anchor="middle" font-size="14" fill="#9A958C" letter-spacing="3">赤い帳簿　メインキャスト　シルエット設定 ／ ledger mark = LEFT wrist</text>
+  </g>
+
+  <!-- spotlights + floor plates -->
+  <g>
+    <rect x="10" y="90" width="180" height="450" fill="url(#spot)"/>
+    <rect x="210" y="90" width="180" height="450" fill="url(#spot)"/>
+    <rect x="410" y="90" width="180" height="450" fill="url(#spot)"/>
+    <rect x="610" y="90" width="180" height="450" fill="url(#spot)"/>
+    <rect x="810" y="90" width="180" height="450" fill="url(#spot)"/>
+    <rect x="1010" y="90" width="180" height="450" fill="url(#spot)"/>
+    <rect x="1210" y="90" width="180" height="450" fill="url(#spot)"/>
+    <rect x="1410" y="90" width="180" height="450" fill="url(#spot)"/>
+  </g>
+  <path d="M0 540H1600" stroke="#E9E1CF" stroke-opacity="0.35" stroke-width="2"/>
+  <g opacity="0.55">
+    <ellipse cx="100" cy="542" rx="62" ry="8" fill="#C9A24A"/>
+    <ellipse cx="300" cy="542" rx="70" ry="8" fill="#3FA9F5"/>
+    <ellipse cx="500" cy="542" rx="60" ry="8" fill="#B5652E"/>
+    <ellipse cx="700" cy="542" rx="62" ry="8" fill="#4B3A8C"/>
+    <ellipse cx="900" cy="542" rx="62" ry="8" fill="#C8102E"/>
+    <ellipse cx="1100" cy="542" rx="36" ry="5" fill="#E5172F"/>
+    <ellipse cx="1300" cy="542" rx="60" ry="8" fill="#9FB4C8"/>
+    <ellipse cx="1500" cy="542" rx="50" ry="8" fill="#7FAE2E"/>
+  </g>
+
+  <!-- ============ 1. KUJO REIJI (x=100) : stovepipe hat, long silver ponytail, tailcoat tails, cane ============ -->
+  <g transform="translate(100 540)">
+    <g filter="url(#rim)">
+      <!-- ponytail (behind) -->
+      <path d="M-14 -372 Q-34 -340 -34 -300 Q-36 -250 -26 -226 L-18 -228 Q-24 -270 -18 -320 Z" fill="#E6E2DA"/>
+      <!-- cane -->
+      <path d="M-58 -206 L-62 0" stroke="#1C1A22" stroke-width="5" stroke-linecap="round"/>
+      <!-- tails of the coat (split, long) -->
+      <path d="M-36 -262 Q-52 -190 -48 -112 L-24 -128 L-12 -236 Z" fill="#1C1A22"/>
+      <path d="M36 -262 Q52 -190 48 -112 L24 -128 L12 -236 Z" fill="#1C1A22"/>
+      <!-- legs -->
+      <path d="M-18 -250 L-20 -8 L-30 0 L-6 0 L-4 -150 L4 -150 L6 0 L30 0 L20 -8 L18 -250 Z" fill="#1C1A22"/>
+      <!-- torso / tailcoat front -->
+      <path d="M-40 -338 Q-46 -320 -40 -290 L-32 -240 Q0 -230 32 -240 L40 -290 Q46 -320 40 -338 Q0 -350 -40 -338 Z" fill="#1C1A22"/>
+      <!-- arms -->
+      <path d="M-40 -330 Q-56 -280 -54 -214" stroke="#1C1A22" stroke-width="14" stroke-linecap="round" fill="none"/>
+      <path d="M40 -330 Q54 -280 46 -212" stroke="#1C1A22" stroke-width="14" stroke-linecap="round" fill="none"/>
+      <!-- neck + head -->
+      <rect x="-7" y="-358" width="14" height="22" fill="#1C1A22"/>
+      <ellipse cx="0" cy="-372" rx="19" ry="22" fill="#1C1A22"/>
+      <!-- side-parted silver hair -->
+      <path d="M-21 -372 Q-22 -396 0 -396 Q22 -396 21 -372 L18 -360 L14 -380 Q0 -388 -16 -378 L-20 -356 Z" fill="#E6E2DA"/>
+      <!-- stovepipe hat -->
+      <path d="M-19 -392 L-17 -452 L17 -452 L19 -392 Z" fill="#1C1A22"/>
+      <ellipse cx="0" cy="-392" rx="33" ry="6" fill="#1C1A22"/>
+    </g>
+    <!-- gold details -->
+    <rect x="-18" y="-404" width="36" height="7" fill="#C9A24A"/>
+    <path d="M-12 -336 L0 -290 L-6 -336 Z M12 -336 L0 -290 L6 -336 Z" fill="#C9A24A"/>
+    <path d="M-10 -280 Q6 -270 14 -258" stroke="#C9A24A" stroke-width="2" fill="none"/>
+    <circle cx="0" cy="-262" r="2.5" fill="#C9A24A"/><circle cx="0" cy="-250" r="2.5" fill="#C9A24A"/>
+    <!-- cane top: small balance scale -->
+    <path d="M-72 -216 H-44 M-58 -224 V-206" stroke="#C9A24A" stroke-width="3" stroke-linecap="round"/>
+    <path d="M-76 -214 Q-72 -206 -68 -214 Z M-48 -214 Q-44 -206 -40 -214 Z" fill="#C9A24A"/>
+    <!-- white gloves -->
+    <circle cx="-55" cy="-208" r="7" fill="#F5EEDD"/>
+    <circle cx="46" cy="-204" r="7" fill="#F5EEDD"/>
+    <!-- ledger mark: Harvest Gold leaking from glove seam -->
+    <g filter="url(#glow)">
+      <path d="M38 -218 L54 -214" stroke="#FFD23F" stroke-width="3.5" stroke-linecap="round"/>
+      <path d="M39 -224 L54 -220" stroke="#FFD23F" stroke-width="2" stroke-linecap="round"/>
+    </g>
+  </g>
+
+  <!-- ============ 2. NIL (x=300) : oval mask, floor coat with torn split hem, hook on chain, long arms ============ -->
+  <g transform="translate(300 540)">
+    <g filter="url(#rim)">
+      <!-- coat -->
+      <path d="M-34 -334 Q-46 -326 -46 -296 L-52 -200 L-70 -10 L-58 -24 L-52 -2 L-40 -22 L-30 -4 L-18 -26 L-8 -150 L8 -150 L18 -26 L30 -4 L40 -22 L52 -2 L58 -24 L70 -10 L52 -200 L46 -296 Q46 -326 34 -334 Q0 -344 -34 -334 Z" fill="#2A3540"/>
+      <!-- legs in the split -->
+      <path d="M-8 -150 L-12 0 L-2 0 L0 -120 L2 0 L12 0 L8 -150 Z" fill="#141A20"/>
+      <!-- high collar / hood behind head -->
+      <path d="M-28 -332 Q-34 -372 -16 -392 Q4 -400 22 -388 Q34 -366 30 -330 Z" fill="#141A20"/>
+      <!-- long right arm (viewer left) holding chain -->
+      <path d="M-40 -324 Q-62 -260 -64 -150" stroke="#2A3540" stroke-width="14" stroke-linecap="round" fill="none"/>
+      <!-- long left arm (viewer right) -->
+      <path d="M40 -324 Q60 -250 56 -160" stroke="#2A3540" stroke-width="14" stroke-linecap="round" fill="none"/>
+      <circle cx="-64" cy="-144" r="8" fill="#141A20"/>
+      <circle cx="56" cy="-154" r="8" fill="#141A20"/>
+      <!-- debt hook -->
+      <path d="M-82 -66 Q-84 -30 -60 -24 Q-36 -22 -34 -46 L-42 -46 Q-44 -32 -58 -34 Q-74 -36 -72 -66 Z M-82 -66 L-78 -80 L-72 -66 Z" fill="#8C949C"/>
+    </g>
+    <!-- chain -->
+    <path d="M-64 -140 Q-74 -110 -77 -80" stroke="#8C949C" stroke-width="3" stroke-dasharray="5 3" fill="none"/>
+    <!-- mask (bone) with blank name plate and eye slit -->
+    <ellipse cx="4" cy="-360" rx="17" ry="23" fill="#E9E1CF"/>
+    <rect x="-6" y="-378" width="20" height="7" rx="1.5" fill="#9A958C"/>
+    <path d="M4 -370 V-340" stroke="#9A958C" stroke-width="1.2"/>
+    <g filter="url(#glow)"><path d="M-8 -358 H17" stroke="#3FA9F5" stroke-width="3.5" stroke-linecap="round"/></g>
+    <!-- brass tally beads -->
+    <g fill="#C9A24A"><circle cx="-30" cy="-236" r="2.5"/><circle cx="-20" cy="-234" r="2.5"/><circle cx="-10" cy="-233" r="2.5"/><circle cx="0" cy="-233" r="2.5"/><circle cx="10" cy="-233" r="2.5"/><circle cx="20" cy="-234" r="2.5"/><circle cx="30" cy="-236" r="2.5"/></g>
+    <!-- ledger mark: Echo Blue, crossed out -->
+    <g filter="url(#glow)">
+      <path d="M48 -172 L64 -170 M48 -177 L64 -175" stroke="#3FA9F5" stroke-width="3" stroke-linecap="round"/>
+    </g>
+    <path d="M47 -164 L66 -182" stroke="#0E0B10" stroke-width="2.5"/>
+  </g>
+
+  <!-- ============ 3. KIRISHIMA KEI (x=500) : topknot w/ chopsticks, wide stance, long apron, crossed arms, strainer ============ -->
+  <g transform="translate(500 540)">
+    <g filter="url(#rim)">
+      <!-- trousers, wide stance -->
+      <path d="M-30 -200 L-40 -6 L-46 0 L-18 0 L-14 -8 L-2 -120 L2 -120 L14 -8 L18 0 L46 0 L40 -6 L30 -200 Z" fill="#2C2826"/>
+      <!-- jacket torso -->
+      <path d="M-46 -302 Q-56 -290 -54 -260 L-48 -190 Q0 -180 48 -190 L54 -260 Q56 -290 46 -302 Q0 -314 -46 -302 Z" fill="#B5652E"/>
+      <!-- apron (long, to shins) -->
+      <path d="M-34 -268 L34 -268 L46 -40 Q0 -30 -46 -40 Z" fill="#E3D3B0"/>
+      <!-- crossed arms -->
+      <path d="M-48 -294 Q-66 -262 -44 -246 L30 -252" stroke="#B5652E" stroke-width="16" stroke-linecap="round" fill="none"/>
+      <path d="M48 -294 Q66 -262 46 -240 L-28 -238" stroke="#B5652E" stroke-width="16" stroke-linecap="round" fill="none"/>
+      <!-- neck + head -->
+      <rect x="-9" y="-320" width="18" height="20" fill="#B5652E"/>
+      <ellipse cx="0" cy="-336" rx="22" ry="24" fill="#B5652E"/>
+      <!-- hair cap + topknot -->
+      <path d="M-23 -336 Q-24 -362 0 -362 Q24 -362 23 -336 L20 -330 Q14 -350 0 -350 Q-14 -350 -20 -330 Z" fill="#2C2826"/>
+      <circle cx="0" cy="-372" r="13" fill="#2C2826"/>
+    </g>
+    <!-- chopsticks -->
+    <path d="M-22 -388 L20 -360 M-18 -360 L22 -390" stroke="#C9A24A" stroke-width="3" stroke-linecap="round"/>
+    <!-- broth stains on apron -->
+    <path d="M-20 -150 q6 -8 12 0 q-6 6 -12 0 Z M14 -96 q8 -6 14 2 q-8 6 -14 -2 Z" fill="#B5652E" opacity="0.5"/>
+    <!-- noodle strainer at the belt -->
+    <path d="M44 -196 L60 -150" stroke="#8A4B32" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="64" cy="-136" r="14" fill="none" stroke="#8C949C" stroke-width="3"/>
+    <path d="M54 -136 H74 M64 -146 V-126" stroke="#8C949C" stroke-width="1.5"/>
+    <!-- ledger mark: faded Furnace Orange under bandage -->
+    <g filter="url(#glow)" opacity="0.75">
+      <path d="M24 -260 L26 -244" stroke="#FF7A1A" stroke-width="3" stroke-linecap="round"/>
+    </g>
+    <path d="M28 -262 L30 -242 M33 -262 L35 -242" stroke="#E3D3B0" stroke-width="3.5" stroke-linecap="round"/>
+  </g>
+
+  <!-- ============ 4. KUZUHA MIO (x=700) : blunt bob, ankle-length flared coat, violet lens, fan ============ -->
+  <g transform="translate(700 540)">
+    <g filter="url(#rim)">
+      <!-- legs -->
+      <path d="M-14 -40 L-14 0 L-4 0 L-5 -40 Z M5 -40 L4 0 L14 0 L14 -40 Z" fill="#2B2A30"/>
+      <!-- long coat, flared hem -->
+      <path d="M-28 -290 Q-40 -282 -40 -252 L-46 -150 L-66 -22 Q-62 -14 -50 -18 L-30 -24 L-8 -18 L8 -18 L30 -24 L50 -18 Q62 -14 66 -22 L46 -150 L40 -252 Q40 -282 28 -290 Q0 -298 -28 -290 Z" fill="#4B3A8C"/>
+      <!-- turned-up collar -->
+      <path d="M-26 -288 L-30 -312 L-10 -296 Z M26 -288 L30 -312 L10 -296 Z" fill="#4B3A8C"/>
+      <!-- right arm (viewer left) bent, holding fan -->
+      <path d="M-34 -280 Q-50 -236 -30 -220 L-10 -228" stroke="#4B3A8C" stroke-width="13" stroke-linecap="round" fill="none"/>
+      <!-- left arm (viewer right) hanging -->
+      <path d="M34 -280 Q48 -232 46 -180" stroke="#4B3A8C" stroke-width="13" stroke-linecap="round" fill="none"/>
+      <!-- neck + face -->
+      <rect x="-6" y="-306" width="12" height="16" fill="#4B3A8C"/>
+      <ellipse cx="0" cy="-322" rx="18" ry="21" fill="#4B3A8C"/>
+      <!-- bob: wider than the head, blunt chin-length cut -->
+      <path d="M-28 -298 L-27 -326 Q-26 -352 0 -352 Q26 -352 27 -326 L28 -298 L18 -298 L18 -318 L12 -330 L-8 -332 L-20 -326 L-19 -298 Z" fill="#BFB6C9"/>
+    </g>
+    <!-- shirt V + ribbon -->
+    <path d="M-10 -290 L0 -262 L10 -290 Z" fill="#EDE6D6"/>
+    <path d="M0 -284 L0 -268" stroke="#0E0B10" stroke-width="3"/>
+    <!-- calculating fan -->
+    <path d="M-10 -228 L2 -268 A 40 40 0 0 1 28 -246 Z" fill="#EDE6D6" stroke="#0E0B10" stroke-width="1.5"/>
+    <path d="M-10 -228 L10 -262 M-10 -228 L18 -256 M-10 -228 L24 -250" stroke="#0E0B10" stroke-width="1"/>
+    <circle cx="44" cy="-176" r="6" fill="#4B3A8C"/>
+    <!-- monocle-like lens over right eye (viewer left) -->
+    <g filter="url(#glow)">
+      <circle cx="-7" cy="-322" r="8" fill="#A77BFF" fill-opacity="0.35" stroke="#A77BFF" stroke-width="2.5"/>
+      <path d="M-7 -314 Q-4 -300 4 -296" stroke="#A77BFF" stroke-width="1" fill="none"/>
+    </g>
+    <!-- ledger mark: Seer Violet -->
+    <g filter="url(#glow)">
+      <path d="M39 -190 L53 -188 M39 -195 L53 -193" stroke="#A77BFF" stroke-width="3" stroke-linecap="round"/>
+    </g>
+  </g>
+
+  <!-- ============ 5. AKABA JIN (x=900) : spiky hair, ankle-long scarf, red arm to elbow ============ -->
+  <g transform="translate(900 540)">
+    <g filter="url(#rim)">
+      <!-- long scarf tails (behind, blowing to viewer left) -->
+      <path d="M-8 -296 Q-58 -284 -80 -232 Q-100 -160 -96 -60 L-90 -40 L-84 -56 L-78 -36 L-74 -60 Q-80 -150 -64 -222 Q-48 -264 -2 -282 Z" fill="#C8102E"/>
+      <path d="M-4 -292 Q-40 -270 -52 -226 Q-60 -190 -58 -150 L-52 -136 L-46 -152 Q-46 -196 -36 -226 Q-26 -258 2 -280 Z" fill="#9E0C24"/>
+      <!-- pants + boots -->
+      <path d="M-28 -196 L-34 -14 L-40 0 L-10 0 L-10 -12 L-4 -140 L4 -140 L10 -12 L10 0 L40 0 L34 -14 L28 -196 Z" fill="#2B2A30"/>
+      <!-- oversized jacket -->
+      <path d="M-34 -292 Q-48 -282 -46 -250 L-50 -184 Q0 -172 50 -184 L46 -250 Q48 -282 34 -292 Q0 -300 -34 -292 Z" fill="#2B2A30"/>
+      <!-- right arm (viewer left), hanging loose -->
+      <path d="M-38 -284 Q-56 -240 -54 -176" stroke="#2B2A30" stroke-width="15" stroke-linecap="round" fill="none"/>
+      <circle cx="-54" cy="-170" r="8" fill="#2B2A30"/>
+      <!-- left arm (viewer right), bent out, sleeve pushed to elbow -->
+      <path d="M36 -284 L60 -234" stroke="#2B2A30" stroke-width="16" stroke-linecap="round" fill="none"/>
+      <path d="M60 -234 L76 -186" stroke="#2B2A30" stroke-width="12" stroke-linecap="round" fill="none"/>
+      <circle cx="78" cy="-178" r="10" fill="#2B2A30"/>
+      <!-- neck + head -->
+      <rect x="-8" y="-306" width="16" height="16" fill="#2B2A30"/>
+      <ellipse cx="0" cy="-324" rx="20" ry="23" fill="#2B2A30"/>
+      <!-- spiky up-swept hair -->
+      <path d="M-24 -318 L-42 -334 L-26 -340 L-38 -364 L-16 -352 L-12 -382 L2 -356 L14 -386 L18 -354 L38 -368 L28 -342 L44 -334 L24 -316 Q20 -340 0 -344 Q-20 -342 -24 -318 Z" fill="#1E1214"/>
+      <!-- scarf wrap around the neck -->
+      <path d="M-20 -304 Q0 -294 20 -304 L22 -288 Q0 -278 -22 -288 Z" fill="#C8102E"/>
+    </g>
+    <!-- scarf ledger lines -->
+    <path d="M-86 -150 Q-84 -110 -86 -70 M-80 -150 Q-78 -110 -80 -70" stroke="#0E0B10" stroke-opacity="0.45" stroke-width="1.2" fill="none"/>
+    <!-- ledger mark: Ledger Red, wrist to elbow, spiral -->
+    <g filter="url(#glow)">
+      <path d="M60 -234 L76 -186" stroke="#E5172F" stroke-width="7" stroke-linecap="round"/>
+      <path d="M54 -230 L66 -236 M57 -220 L69 -226 M61 -208 L73 -214 M65 -196 L77 -202" stroke="#FF6B7A" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="78" cy="-178" r="5" fill="none" stroke="#E5172F" stroke-width="2.5"/>
+    </g>
+    <!-- amber eye glint -->
+    <circle cx="7" cy="-324" r="2" fill="#F2A33A"/>
+  </g>
+
+  <!-- ink thread linking Jin's arm to Hazama -->
+  <g filter="url(#glow)">
+    <path d="M982 362 Q1024 404 1056 378" stroke="#E5172F" stroke-width="1.6" fill="none" stroke-dasharray="2 4" stroke-linecap="round"/>
+  </g>
+
+  <!-- ============ 6. HAZAMA (x=1100) : small floating childlike shape of red ink ============ -->
+  <g transform="translate(1100 540) scale(0.88)">
+    <g filter="url(#softglow)">
+      <path d="M-30 -230 Q-36 -200 -28 -176 Q-24 -150 -30 -122 Q-26 -112 -20 -124 Q-14 -150 -12 -176 Q-6 -150 -6 -110 Q0 -96 6 -110 Q8 -146 12 -172 Q16 -150 22 -132 Q28 -124 30 -134 Q24 -160 26 -190 Q32 -214 28 -232 Z" fill="#E5172F"/>
+      <!-- stubby arms -->
+      <path d="M-28 -222 Q-46 -214 -50 -196 Q-44 -190 -38 -200 Q-34 -210 -26 -212 Z" fill="#E5172F"/>
+      <path d="M28 -222 Q48 -220 54 -202 Q48 -194 42 -204 Q36 -212 26 -212 Z" fill="#E5172F"/>
+      <!-- head -->
+      <circle cx="0" cy="-268" r="36" fill="#E5172F"/>
+      <!-- horn-like drips -->
+      <path d="M-24 -292 Q-34 -302 -28 -312 Q-18 -312 -12 -300 Z M8 -302 Q12 -316 22 -312 Q26 -302 20 -294 Z" fill="#E5172F"/>
+    </g>
+    <!-- dried ink outline accents -->
+    <path d="M-34 -256 Q-34 -236 -24 -228 M34 -256 Q34 -236 24 -228" stroke="#7A0614" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <!-- hollow eyes + crescent mouth -->
+    <ellipse cx="-13" cy="-272" rx="7" ry="10" fill="#0E0B10"/>
+    <ellipse cx="13" cy="-272" rx="7" ry="10" fill="#0E0B10"/>
+    <path d="M-14 -250 Q0 -238 14 -250 Q0 -244 -14 -250 Z" fill="#0E0B10"/>
+    <!-- wet highlight -->
+    <path d="M-22 -292 Q-12 -300 0 -302" stroke="#FF6B7A" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <!-- falling drops -->
+    <g fill="#E5172F"><circle cx="0" cy="-86" r="4"/><circle cx="-26" cy="-100" r="3"/><circle cx="26" cy="-108" r="3"/><circle cx="2" cy="-60" r="2.5"/></g>
+    <!-- zero halo -->
+    <g filter="url(#glow)"><ellipse cx="0" cy="-334" rx="22" ry="6" fill="none" stroke="#E5172F" stroke-width="3"/></g>
+    <!-- ledger paper scraps -->
+    <rect x="-46" y="-296" width="14" height="10" fill="#E9E1CF" transform="rotate(-18 -39 -291)"/>
+    <rect x="36" y="-262" width="12" height="9" fill="#E9E1CF" transform="rotate(14 42 -257)"/>
+    <path d="M-44 -293 H-34 M-44 -290 H-34" stroke="#E5172F" stroke-width="0.8" transform="rotate(-18 -39 -291)"/>
+  </g>
+
+  <!-- ============ 7. SAKAKI DOGEN (x=1300) : tallest teen, very high collar, iron staff ============ -->
+  <g transform="translate(1300 540)">
+    <g filter="url(#rim)">
+      <!-- staff (taller than him) -->
+      <path d="M-70 4 L-70 -440" stroke="#2F3540" stroke-width="7" stroke-linecap="round"/>
+      <circle cx="-70" cy="-456" r="16" fill="none" stroke="#2F3540" stroke-width="7"/>
+      <!-- legs -->
+      <path d="M-22 -60 L-24 0 L-6 0 L-6 -60 Z M6 -60 L6 0 L24 0 L22 -60 Z" fill="#2F3540"/>
+      <!-- vestment: layered plates, straight & vertical -->
+      <path d="M-46 -340 Q-54 -330 -52 -300 L-42 -40 L42 -40 L52 -300 Q54 -330 46 -340 Q0 -352 -46 -340 Z" fill="#4E5D6C"/>
+      <!-- wide sleeves -->
+      <path d="M-46 -334 L-74 -230 L-50 -220 L-38 -300 Z" fill="#DDE2E6"/>
+      <path d="M46 -334 L72 -226 L48 -216 L38 -300 Z" fill="#DDE2E6"/>
+      <!-- hands -->
+      <circle cx="-66" cy="-214" r="8" fill="#4E5D6C"/>
+      <circle cx="58" cy="-206" r="8" fill="#4E5D6C"/>
+      <!-- neck + head -->
+      <rect x="-9" y="-360" width="18" height="22" fill="#4E5D6C"/>
+      <ellipse cx="0" cy="-376" rx="20" ry="23" fill="#4E5D6C"/>
+      <!-- swept-back hair -->
+      <path d="M-21 -378 Q-22 -404 2 -404 Q26 -402 32 -384 L36 -364 L24 -374 Q12 -390 -6 -388 L-4 -372 L-14 -386 Z" fill="#2F3540"/>
+      <!-- very high stiff collar (to the jaw) -->
+      <path d="M-26 -338 L-30 -372 L-14 -366 L-10 -342 Z M26 -338 L30 -372 L14 -366 L10 -342 Z" fill="#DDE2E6"/>
+    </g>
+    <!-- plate lines -->
+    <path d="M-48 -260 H48 M-46 -200 H46 M-44 -140 H44 M-43 -90 H43" stroke="#2F3540" stroke-width="2"/>
+    <path d="M0 -330 V-40" stroke="#2F3540" stroke-width="2"/>
+    <!-- iron rings on sleeves -->
+    <path d="M-72 -238 L-50 -228 M70 -234 L48 -224" stroke="#9FB4C8" stroke-width="3"/>
+    <!-- vault-lock seal on staff -->
+    <path d="M-70 -468 V-444 M-82 -456 H-58" stroke="#9FB4C8" stroke-width="2.5"/>
+    <!-- ledger mark: Iron Slate, six perfect lines -->
+    <g filter="url(#glow)">
+      <path d="M50 -230 H66 M50 -226 H66 M50 -222 H66" stroke="#9FB4C8" stroke-width="1.6"/>
+      <path d="M50 -218 H66 M50 -214 H66 M51 -210 H66" stroke="#9FB4C8" stroke-width="1.6"/>
+    </g>
+  </g>
+
+  <!-- ============ 8. TSUBAME (x=1500) : tiny, huge hoodie w/ swallow-tail hood, skinny legs, big sneakers ============ -->
+  <g transform="translate(1500 540)">
+    <g filter="url(#rim)">
+      <!-- skinny legs -->
+      <path d="M-14 -146 L-14 -14 L-6 -14 L-6 -146 Z M6 -146 L6 -14 L14 -14 L14 -146 Z" fill="#3D5A80"/>
+      <!-- oversized sneakers -->
+      <path d="M-30 0 Q-34 -14 -20 -18 L-4 -18 Q0 -8 -2 0 Z M30 0 Q34 -14 20 -18 L4 -18 Q0 -8 2 0 Z" fill="#7FAE2E"/>
+      <!-- denim shorts -->
+      <path d="M-26 -160 L-24 -116 L-4 -116 L0 -136 L4 -116 L24 -116 L26 -160 Z" fill="#3D5A80"/>
+      <!-- huge hoodie -->
+      <path d="M-40 -238 Q-54 -224 -54 -196 L-50 -140 Q0 -128 50 -140 L54 -196 Q54 -224 40 -238 Q0 -250 -40 -238 Z" fill="#7FAE2E"/>
+      <!-- sleeves swallowing the hands -->
+      <path d="M-44 -232 Q-66 -200 -62 -144 L-46 -144 Q-48 -190 -36 -214 Z" fill="#7FAE2E"/>
+      <path d="M44 -232 Q66 -200 62 -144 L46 -144 Q48 -190 36 -214 Z" fill="#7FAE2E"/>
+      <!-- swallow-tail hood points -->
+      <path d="M-18 -290 L-40 -318 L-6 -296 Z M18 -290 L40 -318 L6 -296 Z" fill="#7FAE2E"/>
+      <!-- hood -->
+      <path d="M-34 -236 Q-40 -300 0 -302 Q40 -300 34 -236 Z" fill="#7FAE2E"/>
+    </g>
+    <!-- face opening + hair -->
+    <ellipse cx="0" cy="-260" rx="21" ry="24" fill="#4E7418"/>
+    <path d="M-20 -268 Q-14 -286 0 -282 Q14 -288 20 -268 L14 -274 L8 -266 L0 -276 L-8 -266 L-14 -274 Z" fill="#6B3A1F"/>
+    <path d="M18 -248 Q26 -220 22 -196" stroke="#6B3A1F" stroke-width="5" stroke-linecap="round" fill="none"/>
+    <!-- string of stolen keys/coins -->
+    <path d="M-30 -150 Q-20 -136 -8 -144" stroke="#C9A24A" stroke-width="1.5" fill="none"/>
+    <circle cx="-28" cy="-146" r="3" fill="#C9A24A"/><circle cx="-18" cy="-140" r="3" fill="#C9A24A"/><circle cx="-9" cy="-143" r="3" fill="#C9A24A"/>
+    <!-- ledger mark: Gale Lime, single line (rank D) at sleeve cuff -->
+    <g filter="url(#glow)">
+      <path d="M46 -152 L62 -152" stroke="#B8F03C" stroke-width="3.5" stroke-linecap="round"/>
+    </g>
+  </g>
+
+  <!-- ============ name labels ============ -->
+  <g font-family="'Noto Sans JP','Hiragino Sans','Yu Gothic','Helvetica Neue',Arial,sans-serif" text-anchor="middle">
+    <g font-size="17" font-weight="800" fill="#F5EEDD" letter-spacing="1">
+      <text x="100" y="584">KUJŌ REIJI</text>
+      <text x="300" y="584">NIL</text>
+      <text x="500" y="584">KIRISHIMA KEI</text>
+      <text x="700" y="584">KUZUHA MIO</text>
+      <text x="900" y="584">AKABA JIN</text>
+      <text x="1100" y="584">HAZAMA</text>
+      <text x="1300" y="584">SAKAKI DŌGEN</text>
+      <text x="1500" y="584">TSUBAME</text>
+    </g>
+    <g font-size="15" fill="#E9E1CF">
+      <text x="100" y="608">クジョウ・レイジ</text>
+      <text x="300" y="608">ニル</text>
+      <text x="500" y="608">キリシマ・ケイ</text>
+      <text x="700" y="608">クズハ・ミオ</text>
+      <text x="900" y="608">アカバ・ジン</text>
+      <text x="1100" y="608">ハザマ</text>
+      <text x="1300" y="608">サカキ・ドウゲン</text>
+      <text x="1500" y="608">ツバメ</text>
+    </g>
+    <g font-size="12" fill="#9A958C">
+      <text x="100" y="630">30s · 185 cm · Bourse head</text>
+      <text x="300" y="630">age ? · 182 cm · Collector</text>
+      <text x="500" y="630">40s · 170 cm · Guardian</text>
+      <text x="700" y="630">17 · 160 cm · Broker</text>
+      <text x="900" y="630">16 · 165 cm · Rank ZERO</text>
+      <text x="1100" y="630">Lender of Zero · floats</text>
+      <text x="1300" y="630">18 · 188 cm · Rank AA</text>
+      <text x="1500" y="630">12 · 138 cm · Rank D</text>
+    </g>
+    <!-- mark color chips -->
+    <g stroke="#0E0B10" stroke-width="2">
+      <rect x="70" y="644" width="60" height="8" rx="4" fill="#FFD23F"/>
+      <rect x="270" y="644" width="60" height="8" rx="4" fill="#3FA9F5"/>
+      <rect x="470" y="644" width="60" height="8" rx="4" fill="#FF7A1A"/>
+      <rect x="670" y="644" width="60" height="8" rx="4" fill="#A77BFF"/>
+      <rect x="870" y="644" width="60" height="8" rx="4" fill="#E5172F"/>
+      <rect x="1070" y="644" width="60" height="8" rx="4" fill="#E5172F"/>
+      <rect x="1270" y="644" width="60" height="8" rx="4" fill="#9FB4C8"/>
+      <rect x="1470" y="644" width="60" height="8" rx="4" fill="#B8F03C"/>
+    </g>
+    <g font-size="10" fill="#9A958C">
+      <text x="100" y="672">Abundance #FFD23F</text>
+      <text x="300" y="672">Voice #3FA9F5</text>
+      <text x="500" y="672">Flame #FF7A1A</text>
+      <text x="700" y="672">Eye #A77BFF</text>
+      <text x="900" y="672">Zero #E5172F</text>
+      <text x="1100" y="672">Zero #E5172F</text>
+      <text x="1300" y="672">Iron #9FB4C8</text>
+      <text x="1500" y="672">Speed #B8F03C</text>
+    </g>
+  </g>
+</svg>

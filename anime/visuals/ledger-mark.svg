@@ -11,7 +11,7 @@
       <feGaussianBlur stdDeviation="9" result="b"/>
       <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
-    <path id="arcTop" d="M 120 300 A 180 180 0 0 1 480 300"/>
+    <path id="arcTop" d="M 128 300 A 172 172 0 0 1 472 300"/>
     <path id="arcBot" d="M 104 300 A 196 196 0 0 0 496 300"/>
   </defs>
 
@@ -52,17 +52,17 @@
       d="M300 168 C 380 168 432 226 432 300 C 432 378 376 432 300 432 C 222 432 168 376 168 300 C 168 222 222 168 300 168 Z
          M300 214 C 254 214 222 252 224 302 C 226 350 256 388 302 386 C 348 384 378 348 376 298 C 374 250 344 214 300 214 Z"/>
     <!-- strike-through ledger line (the default) -->
-    <path fill="#E5172F" d="M140 360 L 452 214 L 462 236 L 150 382 Z"/>
-    <path fill="#0E0B10" d="M152 360 L 450 222 L 452 228 L 154 366 Z" opacity="0.85"/>
+    <path fill="#E5172F" d="M160 352 L 440 221 L 450 243 L 170 374 Z"/>
+    <path fill="#0E0B10" d="M172 352 L 438 229 L 440 235 L 174 358 Z" opacity="0.85"/>
   </g>
 
   <!-- ink drips from the bottom of the zero -->
   <g fill="#E5172F">
-    <path d="M262 424 C 262 446 258 470 266 486 C 272 498 286 494 286 480 C 286 464 280 446 284 428 Z"/>
-    <path d="M318 430 C 316 450 318 462 322 470 C 326 478 336 476 336 466 C 336 454 332 444 334 428 Z"/>
-    <circle cx="276" cy="510" r="7"/>
+    <path d="M262 424 C 262 436 260 446 264 452 C 270 460 284 458 284 448 C 284 440 282 434 284 428 Z"/>
+    <path d="M318 430 C 317 436 318 440 321 444 C 325 448 334 447 334 441 C 334 437 333 434 334 428 Z"/>
+    
   </g>
-  <path d="M270 440 C 268 456 268 468 272 478" stroke="#FF6B7A" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.8"/>
+  <path d="M269 434 C 268 440 268 444 270 448" stroke="#FF6B7A" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.8"/>
 
   <!-- wet highlight on zero -->
   <path d="M220 250 C 236 214 268 194 304 190" stroke="#FF6B7A" stroke-width="6" fill="none" stroke-linecap="round" opacity="0.7"/>

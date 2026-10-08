@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 500" width="1200" height="500" role="img" aria-label="RED LEDGER master palette">
+  <title>RED LEDGER — Master Palette</title>
+  <rect width="1200" height="500" fill="#16131A"/>
+  <rect x="12" y="12" width="1176" height="476" rx="18" fill="none" stroke="#2C2632" stroke-width="2"/>
+  <g font-family="'Noto Sans JP','Hiragino Sans','Helvetica Neue',Arial,sans-serif">
+    <text x="40" y="56" font-size="26" font-weight="800" fill="#F5EEDD" letter-spacing="4">RED LEDGER <tspan fill="#E5172F">MASTER PALETTE</tspan></text>
+    <text x="1160" y="56" font-size="16" text-anchor="end" fill="#9A958C">赤い帳簿 ／ 色彩設計 基準値</text>
+    <text x="40" y="92" font-size="13" font-weight="700" fill="#C9A24A" letter-spacing="3">SERIES PALETTE</text>
+    <rect x="40" y="104" width="104" height="120" rx="10" fill="#E5172F" stroke="#F5EEDD" stroke-opacity="0.25"/>
+    <text x="50" y="196" font-size="13" font-weight="700" fill="#F5EEDD">Ledger Red</text>
+    <text x="50" y="214" font-size="12" fill="#F5EEDD" opacity="0.85">#E5172F</text>
+    <rect x="152" y="104" width="104" height="120" rx="10" fill="#0E0B10" stroke="#F5EEDD" stroke-opacity="0.25"/>
+    <text x="162" y="196" font-size="13" font-weight="700" fill="#F5EEDD">Ink Black</text>
+    <text x="162" y="214" font-size="12" fill="#F5EEDD" opacity="0.85">#0E0B10</text>
+    <rect x="264" y="104" width="104" height="120" rx="10" fill="#C9A24A" stroke="#F5EEDD" stroke-opacity="0.25"/>
+    <text x="274" y="196" font-size="13" font-weight="700" fill="#0E0B10">Bourse Gold</text>
+    <text x="274" y="214" font-size="12" fill="#0E0B10" opacity="0.85">#C9A24A</text>
+    <rect x="376" y="104" width="104" height="120" rx="10" fill="#3E5A5C" stroke="#F5EEDD" stroke-opacity="0.25"/>
+    <text x="386" y="196" font-size="13" font-weight="700" fill="#F5EEDD">Underledger</text>
+    <text x="386" y="214" font-size="12" fill="#F5EEDD" opacity="0.85">#3E5A5C</text>
+    <rect x="488" y="104" width="104" height="120" rx="10" fill="#E9E1CF" stroke="#F5EEDD" stroke-opacity="0.25"/>
+    <text x="498" y="196" font-size="13" font-weight="700" fill="#0E0B10">Ribcage Bone</text>
+    <text x="498" y="214" font-size="12" fill="#0E0B10" opacity="0.85">#E9E1CF</text>
+    <rect x="600" y="104" width="104" height="120" rx="10" fill="#8A4B32" stroke="#F5EEDD" stroke-opacity="0.25"/>
+    <text x="610" y="196" font-size="13" font-weight="700" fill="#F5EEDD">Mid-Tier Rust</text>
+    <text x="610" y="214" font-size="12" fill="#F5EEDD" opacity="0.85">#8A4B32</text>
+    <rect x="712" y="104" width="104" height="120" rx="10" fill="#5C5466" stroke="#F5EEDD" stroke-opacity="0.25"/>
+    <text x="722" y="196" font-size="13" font-weight="700" fill="#F5EEDD">Debt Smoke</text>
+    <text x="722" y="214" font-size="12" fill="#F5EEDD" opacity="0.85">#5C5466</text>
+    <rect x="824" y="104" width="104" height="120" rx="10" fill="#F5EEDD" stroke="#F5EEDD" stroke-opacity="0.25"/>
+    <text x="834" y="196" font-size="13" font-weight="700" fill="#0E0B10">Settle. Ivory</text>
+    <text x="834" y="214" font-size="12" fill="#0E0B10" opacity="0.85">#F5EEDD</text>
+    <rect x="936" y="104" width="104" height="120" rx="10" fill="#1B1F2E" stroke="#F5EEDD" stroke-opacity="0.25"/>
+    <text x="946" y="196" font-size="13" font-weight="700" fill="#F5EEDD">Vault Night</text>
+    <text x="946" y="214" font-size="12" fill="#F5EEDD" opacity="0.85">#1B1F2E</text>
+    <rect x="1048" y="104" width="104" height="120" rx="10" fill="#9A958C" stroke="#F5EEDD" stroke-opacity="0.25"/>
+    <text x="1058" y="196" font-size="13" font-weight="700" fill="#0E0B10">Collector Ash</text>
+    <text x="1058" y="214" font-size="12" fill="#0E0B10" opacity="0.85">#9A958C</text>
+    <text x="40" y="272" font-size="13" font-weight="700" fill="#C9A24A" letter-spacing="3">THE SEVEN LENDERS — LEDGER-MARK COLORS (core / glow)</text>
+    <rect x="40" y="284" width="152" height="150" rx="10" fill="#7A0614"/>
+    <rect x="40" y="284" width="152" height="104" rx="10" fill="#E5172F"/>
+    <rect x="40" y="374" width="152" height="14" fill="#E5172F"/>
+    <circle cx="166" cy="310" r="12" fill="none" stroke="#F5EEDD" stroke-width="3" opacity="0.7"/>
+    <text x="52" y="348" font-size="15" font-weight="800" fill="#F5EEDD">Zero · Hazama</text>
+    <text x="52" y="370" font-size="13" fill="#F5EEDD" opacity="0.9">#E5172F</text>
+    <text x="52" y="420" font-size="12" fill="#F5EEDD" opacity="0.9">glow #7A0614</text>
+    <rect x="200" y="284" width="152" height="150" rx="10" fill="#5E7890"/>
+    <rect x="200" y="284" width="152" height="104" rx="10" fill="#9FB4C8"/>
+    <rect x="200" y="374" width="152" height="14" fill="#9FB4C8"/>
+    <circle cx="326" cy="310" r="12" fill="none" stroke="#0E0B10" stroke-width="3" opacity="0.7"/>
+    <text x="212" y="348" font-size="15" font-weight="800" fill="#0E0B10">Iron</text>
+    <text x="212" y="370" font-size="13" fill="#0E0B10" opacity="0.9">#9FB4C8</text>
+    <text x="212" y="420" font-size="12" fill="#F5EEDD" opacity="0.9">glow #5E7890</text>
+    <rect x="360" y="284" width="152" height="150" rx="10" fill="#B8410A"/>
+    <rect x="360" y="284" width="152" height="104" rx="10" fill="#FF7A1A"/>
+    <rect x="360" y="374" width="152" height="14" fill="#FF7A1A"/>
+    <circle cx="486" cy="310" r="12" fill="none" stroke="#0E0B10" stroke-width="3" opacity="0.7"/>
+    <text x="372" y="348" font-size="15" font-weight="800" fill="#0E0B10">Flame</text>
+    <text x="372" y="370" font-size="13" fill="#0E0B10" opacity="0.9">#FF7A1A</text>
+    <text x="372" y="420" font-size="12" fill="#F5EEDD" opacity="0.9">glow #B8410A</text>
+    <rect x="520" y="284" width="152" height="150" rx="10" fill="#6A3FD6"/>
+    <rect x="520" y="284" width="152" height="104" rx="10" fill="#A77BFF"/>
+    <rect x="520" y="374" width="152" height="14" fill="#A77BFF"/>
+    <circle cx="646" cy="310" r="12" fill="none" stroke="#0E0B10" stroke-width="3" opacity="0.7"/>
+    <text x="532" y="348" font-size="15" font-weight="800" fill="#0E0B10">Eye</text>
+    <text x="532" y="370" font-size="13" fill="#0E0B10" opacity="0.9">#A77BFF</text>
+    <text x="532" y="420" font-size="12" fill="#F5EEDD" opacity="0.9">glow #6A3FD6</text>
+    <rect x="680" y="284" width="152" height="150" rx="10" fill="#6E9E12"/>
+    <rect x="680" y="284" width="152" height="104" rx="10" fill="#B8F03C"/>
+    <rect x="680" y="374" width="152" height="14" fill="#B8F03C"/>
+    <circle cx="806" cy="310" r="12" fill="none" stroke="#0E0B10" stroke-width="3" opacity="0.7"/>
+    <text x="692" y="348" font-size="15" font-weight="800" fill="#0E0B10">Speed</text>
+    <text x="692" y="370" font-size="13" fill="#0E0B10" opacity="0.9">#B8F03C</text>
+    <text x="692" y="420" font-size="12" fill="#0E0B10" opacity="0.9">glow #6E9E12</text>
+    <rect x="840" y="284" width="152" height="150" rx="10" fill="#1A64A8"/>
+    <rect x="840" y="284" width="152" height="104" rx="10" fill="#3FA9F5"/>
+    <rect x="840" y="374" width="152" height="14" fill="#3FA9F5"/>
+    <circle cx="966" cy="310" r="12" fill="none" stroke="#0E0B10" stroke-width="3" opacity="0.7"/>
+    <text x="852" y="348" font-size="15" font-weight="800" fill="#0E0B10">Voice</text>
+    <text x="852" y="370" font-size="13" fill="#0E0B10" opacity="0.9">#3FA9F5</text>
+    <text x="852" y="420" font-size="12" fill="#F5EEDD" opacity="0.9">glow #1A64A8</text>
+    <rect x="1000" y="284" width="152" height="150" rx="10" fill="#B8901A"/>
+    <rect x="1000" y="284" width="152" height="104" rx="10" fill="#FFD23F"/>
+    <rect x="1000" y="374" width="152" height="14" fill="#FFD23F"/>
+    <circle cx="1126" cy="310" r="12" fill="none" stroke="#0E0B10" stroke-width="3" opacity="0.7"/>
+    <text x="1012" y="348" font-size="15" font-weight="800" fill="#0E0B10">Abundance</text>
+    <text x="1012" y="370" font-size="13" fill="#0E0B10" opacity="0.9">#FFD23F</text>
+    <text x="1012" y="420" font-size="12" fill="#0E0B10" opacity="0.9">glow #B8901A</text>
+    <text x="40" y="466" font-size="12" fill="#9A958C">Rule: high-saturation red is reserved for debt (Jin / Hazama). Always place marks and logo on an Ink Black plate or 2–4px outline for light &amp; dark backgrounds.</text>
+  </g>
+</svg>

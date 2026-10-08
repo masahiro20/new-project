@@ -1,0 +1,498 @@
+<title>RED LEDGER Pitch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=IBM+Plex+Mono:wght@400;600&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<style>
+/* Layout: a bound ledger. Each slide is a folio page with a ruled header row (folio no. / account / balance), content on ledger rules, red ink only for debt. */
+:root {
+  --paper: #EEF0E6;
+  --paper-2: #E2E6D6;
+  --ink: #1A1C26;
+  --muted: #545A55;
+  --rule: #C3CCB7;
+  --red: #C8102E;
+  --gold: #8C6D22;
+  --on-red: #FFF7EE;
+  --display: "Dela Gothic One", "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+  --body: "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #12141B; --paper-2: #1B1E28; --ink: #ECE6D6; --muted: #A49F93;
+    --rule: #2E3443; --red: #F0283F; --gold: #D2AE5A; --on-red: #FFF7EE;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #12141B; --paper-2: #1B1E28; --ink: #ECE6D6; --muted: #A49F93;
+  --rule: #2E3443; --red: #F0283F; --gold: #D2AE5A; --on-red: #FFF7EE;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.75;
+  padding-inline: 16px;
+  padding-block: 0 48px;
+}
+.deck { max-width: 1080px; margin-inline: auto; display: grid; gap: 40px; }
+
+/* top bar */
+.bar {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  background: var(--paper);
+  border-bottom: 1px solid var(--rule);
+  margin-inline: -16px; padding: 10px 16px;
+  display: flex; gap: 14px; align-items: center; flex-wrap: wrap;
+  font-family: var(--mono); font-size: 12px; letter-spacing: .04em;
+}
+.bar strong { font-family: var(--display); font-weight: 400; font-size: 15px; letter-spacing: .02em; color: var(--red); }
+.bar nav { display: flex; gap: 4px 12px; flex-wrap: wrap; min-width: 0; }
+.bar a { color: var(--muted); text-decoration: none; }
+.bar a:hover, .bar a:focus-visible { color: var(--red); }
+.bar .private { margin-left: auto; color: var(--muted); }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+
+/* folio = slide */
+.folio {
+  border: 1px solid var(--rule);
+  background: var(--paper);
+  scroll-margin-top: 64px;
+}
+.folio-head {
+  display: grid; grid-template-columns: auto 1fr auto; gap: 16px;
+  border-bottom: 2px solid var(--ink);
+  padding: 8px 20px;
+  font-family: var(--mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--muted);
+}
+.folio-head .bal { color: var(--red); font-weight: 600; }
+.folio-body { padding: 28px 20px 32px; display: grid; gap: 24px; }
+@media (min-width: 760px) { .folio-body { padding: 40px 48px 44px; } .folio-head { padding: 8px 48px; } }
+
+h1, h2, h3 { text-wrap: balance; margin: 0; }
+h2 { font-family: var(--display); font-weight: 400; font-size: clamp(26px, 4vw, 40px); line-height: 1.25; }
+h3 { font-size: 17px; font-weight: 700; line-height: 1.4; }
+p { margin: 0; max-width: 65ch; }
+.lede { font-size: 18px; color: var(--ink); max-width: 60ch; }
+.muted { color: var(--muted); }
+.en { font-family: var(--mono); font-size: 13px; color: var(--muted); letter-spacing: .01em; }
+.label { font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.red { color: var(--red); }
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+/* cover */
+.cover .folio-body { gap: 28px; }
+.cover-grid { display: grid; gap: 28px; }
+@media (min-width: 860px) { .cover-grid { grid-template-columns: 1.1fr 1fr; align-items: end; } }
+.title {
+  font-family: var(--display); font-weight: 400;
+  font-size: clamp(54px, 11vw, 118px); line-height: .92; letter-spacing: -.01em;
+}
+.title span { display: block; color: var(--red); }
+.subtitle { font-family: var(--display); font-size: 22px; margin-top: 10px; }
+.kv { width: 100%; max-width: 100%; height: auto; display: block; border: 1px solid var(--rule); background: #0E0B10; }
+.stamp {
+  display: inline-grid; place-items: center; text-align: center;
+  border: 3px double var(--red); color: var(--red);
+  padding: 6px 14px; transform: rotate(-6deg);
+  font-family: var(--display); font-size: 22px; line-height: 1.1;
+}
+.stamp small { font-family: var(--mono); font-size: 10px; letter-spacing: .2em; }
+.ledger-row {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink);
+}
+.ledger-row > div { padding: 10px 12px; border-right: 1px solid var(--rule); min-width: 0; }
+.ledger-row > div:last-child { border-right: 0; }
+.ledger-row .v { font-family: var(--mono); font-size: 20px; font-variant-numeric: tabular-nums; }
+@media (max-width: 520px) { .ledger-row { grid-template-columns: 1fr; } .ledger-row > div { border-right: 0; border-bottom: 1px solid var(--rule); } }
+
+/* generic grids */
+.cols-3 { display: grid; gap: 20px; }
+@media (min-width: 760px) { .cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.cols-2 { display: grid; gap: 24px; }
+@media (min-width: 760px) { .cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.entry { border-top: 1px solid var(--ink); padding-top: 12px; display: grid; gap: 6px; min-width: 0; }
+.entry .idx { font-family: var(--mono); font-size: 12px; color: var(--red); }
+
+/* tables */
+.tbl-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; vertical-align: top; padding: 9px 10px; border-bottom: 1px solid var(--rule); }
+th { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 600; border-bottom: 2px solid var(--ink); }
+td.num, th.num { text-align: right; white-space: nowrap; }
+tr.pick td { background: var(--paper-2); }
+tr.pick td:first-child { box-shadow: inset 3px 0 0 var(--red); }
+.sw { display: inline-block; width: 12px; height: 12px; border-radius: 50%; vertical-align: -1px; margin-right: 6px; border: 1px solid var(--rule); }
+
+/* power card */
+.power { display: grid; gap: 20px; }
+@media (min-width: 760px) { .power { grid-template-columns: 1fr 1.3fr; align-items: center; } }
+.counter {
+  border: 2px solid var(--red); padding: 18px 20px; display: grid; gap: 4px; justify-items: start;
+}
+.counter .big { font-family: var(--mono); font-size: clamp(44px, 8vw, 64px); color: var(--red); line-height: 1; font-variant-numeric: tabular-nums; }
+.counter .line { font-family: var(--display); font-size: 26px; }
+
+/* city layers */
+.layers { display: grid; gap: 0; border: 1px solid var(--ink); }
+.layers > div { display: grid; grid-template-columns: 7.5em 1fr; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--rule); min-width: 0; }
+.layers > div:last-child { border-bottom: 0; background: var(--paper-2); }
+.layers b { font-family: var(--display); font-weight: 400; }
+
+/* cast */
+.lineup { width: 100%; height: auto; display: block; border: 1px solid var(--rule); background: #1B1F2E; }
+.cast { display: grid; gap: 0; grid-template-columns: 1fr; border-top: 1px solid var(--ink); }
+@media (min-width: 640px) { .cast { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 980px) { .cast { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.cast article { padding: 14px 14px 16px; border-bottom: 1px solid var(--rule); border-right: 1px solid var(--rule); display: grid; gap: 6px; align-content: start; min-width: 0; }
+.cast .nm { font-family: var(--display); font-size: 19px; line-height: 1.3; }
+.cast .role { font-family: var(--mono); font-size: 11px; letter-spacing: .08em; color: var(--muted); text-transform: uppercase; }
+.cast p { font-size: 14px; line-height: 1.65; }
+.cast q { font-size: 13px; color: var(--muted); quotes: "“" "”"; }
+
+/* ep1 timeline */
+.timeline { display: flex; width: 100%; border: 1px solid var(--ink); font-size: 12px; overflow: hidden; }
+.timeline > div { padding: 8px 6px; border-right: 1px solid var(--rule); min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.timeline > div:last-child { border-right: 0; }
+.timeline .hot { background: var(--red); color: var(--on-red); }
+.timeline .t { display: block; font-family: var(--mono); font-size: 10px; opacity: .8; }
+.beats { display: grid; gap: 0; border-top: 1px solid var(--ink); }
+.beats li { display: grid; grid-template-columns: 5.2em 1fr; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--rule); }
+.beats ol { margin: 0; padding: 0; list-style: none; }
+.beats .tc { font-family: var(--mono); font-variant-numeric: tabular-nums; color: var(--red); }
+
+/* chart */
+.chart { width: 100%; height: auto; display: block; max-width: 100%; }
+.chart .grid { stroke: var(--rule); stroke-width: 1; }
+.chart .axis { fill: var(--muted); font-family: var(--mono); font-size: 11px; }
+.chart .step { fill: none; stroke: var(--red); stroke-width: 2.5; }
+.chart .dot { fill: var(--paper); stroke: var(--red); stroke-width: 2; }
+.chart .end { fill: var(--red); }
+.chart .note { fill: var(--ink); font-family: var(--body); font-size: 12px; }
+
+/* money */
+.route-pick { border: 2px solid var(--red); padding: 18px 20px; display: grid; gap: 10px; }
+.gates { display: grid; gap: 0; grid-template-columns: 1fr; border-top: 1px solid var(--ink); }
+@media (min-width: 760px) { .gates { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.gates div { padding: 12px 14px; border-bottom: 1px solid var(--rule); border-right: 1px solid var(--rule); display: grid; gap: 4px; align-content: start; min-width: 0; }
+.gates b { font-family: var(--mono); color: var(--red); }
+ul.plain { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; }
+.foot { font-size: 12px; color: var(--muted); }
+.foot a { color: var(--muted); }
+
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+</style>
+
+<div class="bar">
+  <strong>RED LEDGER</strong>
+  <nav aria-label="スライド">
+    <a href="#cover">表紙</a><a href="#hook">魅力</a><a href="#world">世界</a><a href="#target">ターゲット</a><a href="#comps">比較</a><a href="#cast">キャラ</a><a href="#ep1">第1話</a><a href="#season">12話</a><a href="#money">収益化</a><a href="#next">次の一手</a>
+  </nav>
+  <span class="private">P7 Anime · 社外秘 · 2026-10-08</span>
+</div>
+
+<main class="deck">
+
+<!-- 01 COVER -->
+<section class="folio cover" id="cover">
+  <div class="folio-head"><span>Folio 01</span><span>表紙 / Cover</span><span class="bal">残高 −∞</span></div>
+  <div class="folio-body">
+    <div class="cover-grid">
+      <div style="display:grid;gap:18px;min-width:0">
+        <span class="label">オリジナルTVアニメ企画 · 12話 × 22分 · 英語吹替前提</span>
+        <h1 class="title">RED<span>LEDGER</span></h1>
+        <div class="subtitle">赤い帳簿</div>
+        <p class="lede">力がすべて「神からの借り物」である都市で、父の“無限の借金”を相続した無能力の少年が、他人の借りた力を3秒だけ差し押さえる力に目覚め、格付け最下位から神々を取り立てる側へ成り上がる。</p>
+        <p class="en">In a city where all power is borrowed from gods, a boy who inherited an infinite debt discovers he can refuse to pay — and starts collecting from the gods themselves.</p>
+      </div>
+      <div style="display:grid;gap:14px;justify-items:end;min-width:0">
+        <span class="stamp">未払<small>UNPAID</small></span>
+        <img class="kv" src="key-visual.svg" alt="キービジュアル：神の肋骨の上に積み上がった縦長都市カネグラを背に、赤い印の腕を掲げるジンのシルエット">
+      </div>
+    </div>
+    <div class="ledger-row">
+      <div><div class="label">ジャンル</div><div>成り上がりバトル × 都市ノワール</div></div>
+      <div><div class="label">対象</div><div>16〜34歳・全世界</div></div>
+      <div><div class="label">決め台詞</div><div class="v red">“I'm not paying.”</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 02 HOOK -->
+<section class="folio" id="hook">
+  <div class="folio-head"><span>Folio 02</span><span>作品の魅力 / Why it travels</span><span class="bal">貸方 3</span></div>
+  <div class="folio-body">
+    <h2>借金は、世界中の視聴者が翻訳なしで分かる不安だ。</h2>
+    <p class="lede">学生ローン、家賃、カードの支払い。その不安をファンタジーの皮で包み、「払わねえよ」と言い切る少年を主人公にする。暗い世界で、主人公は笑う。</p>
+    <div class="cols-3">
+      <div class="entry"><span class="idx">理由 1</span><h3>強さが数字で見える</h3><p>全市民の手首に借りた力の残高が光り、公開ランキングで格付けが動く。言葉が分からなくても、順位が上がる瞬間で成り上がりが伝わる。</p></div>
+      <div class="entry"><span class="idx">理由 2</span><h3>能力を5秒で説明できる</h3><p>触れた相手の借りた力を3秒だけ差し押さえ、自分で使う。ショート動画の冒頭で伝わり、使うたびに記憶を1つ失う代償がドラマを生む。</p></div>
+      <div class="entry"><span class="idx">理由 3</span><h3>記号がそのままグッズになる</h3><p>肘まで赤い手首の印、「契約停止 00:03」のカウンター、取立人の白い仮面。タトゥーシール、リストバンド、ミームに直結する。</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 03 WORLD -->
+<section class="folio" id="world">
+  <div class="folio-head"><span>Folio 03</span><span>世界と仕組み / World</span><span class="bal">7柱の貸主</span></div>
+  <div class="folio-body">
+    <h2>都市カネグラ。死んだ神の肋骨の上に積み上がった、縦長の金融都市。</h2>
+    <div class="cols-2">
+      <div style="display:grid;gap:14px;min-width:0">
+        <div class="layers" aria-label="都市の階層">
+          <div><b>頂</b><span>取引所〈バース〉。格付けAA以上と頭取・九条レイジが住む。</span></div>
+          <div><b>中層</b><span>工房と配管と看板の街。決済戦（公認決闘）の主戦場。</span></div>
+          <div><b>底帳</b><span>スラム。主人公ジンと麺屋台「霧島」の場所。月に一度の取立日には担保が文字通り消える。</span></div>
+        </div>
+        <p class="muted" style="font-size:14px">格付けは ZERO・D・C・B・A・AA・AAA。年1回の大決算トーナメントで優勝すれば、借金の帳消しを申し立てられる。</p>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>貸主</th><th>貸すもの</th><th>担保</th></tr></thead>
+          <tbody>
+            <tr><td><span class="sw" style="background:#6B7480"></span>鉄〈カナギ〉</td><td>硬化・鉄の操作</td><td>体温・痛覚</td></tr>
+            <tr><td><span class="sw" style="background:#E2462A"></span>炎〈ヒクベ〉</td><td>発火・熱</td><td>寿命</td></tr>
+            <tr><td><span class="sw" style="background:#E0A030"></span>眼〈ミハル〉</td><td>残高・勝率を読む</td><td>視力</td></tr>
+            <tr><td><span class="sw" style="background:#2F9E6E"></span>速さ〈トキハヤ〉</td><td>加速・反射</td><td>足の感覚</td></tr>
+            <tr><td><span class="sw" style="background:#2E3F8F"></span>声〈ナリヒビキ〉</td><td>命令・衝撃波</td><td>本当の声</td></tr>
+            <tr><td><span class="sw" style="background:#C9A24A"></span>豊かさ〈ウルオイ〉</td><td>富・他人の与信</td><td>味覚・喜び</td></tr>
+            <tr><td><span class="sw" style="background:#E5172F"></span>ゼロ〈ハザマ〉</td><td>本来は何も貸さない</td><td class="red">ジンの記憶</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="power">
+      <div class="counter" aria-label="デフォルト発動時の画面表示">
+        <span class="label">画面UI · 全話共通</span>
+        <span class="big">00:03</span>
+        <span class="num red">CONTRACT SUSPENDED</span>
+        <span class="line">払わねえよ。</span>
+      </div>
+      <div style="display:grid;gap:10px;min-width:0">
+        <h3>主人公の力〈デフォルト（踏み倒し）〉</h3>
+        <p>赤い左手で触れた相手の借りた力を約3秒“差し押さえ”、その間は奪った力を自分で使える。使った分はゼロの貸主ハザマの帳簿に積まれ、ジンは発動のたびに記憶を1つ払う。最初に失うのは父の顔。</p>
+        <p class="muted" style="font-size:14px">成長：接触（1話）→ 半径5mの範囲（5話）→ 仲間の借金を丸ごと引き受ける〈肩代わり〉（9話）。勝つほど自分を失う、という緊張がシーズンを通して続く。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 04 TARGET -->
+<section class="folio" id="target">
+  <div class="folio-head"><span>Folio 04</span><span>ターゲット / Audience</span><span class="bal">16–34歳</span></div>
+  <div class="folio-body">
+    <h2>借金と格付けに疲れた、世界の16〜34歳。</h2>
+    <div class="ledger-row">
+      <div><div class="label">Netflix</div><div class="v">50%</div><div class="muted" style="font-size:13px">の会員がアニメを視聴（2025年発表）</div></div>
+      <div><div class="label">Crunchyroll</div><div class="v">2,100万</div><div class="muted" style="font-size:13px">有料会員（2026年5月）</div></div>
+      <div><div class="label">日本アニメ海外市場</div><div class="v">2兆円超</div><div class="muted" style="font-size:13px">日本動画協会 速報</div></div>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>ペルソナ</th><th>どこで見るか</th><th>刺さるもの</th></tr></thead>
+        <tbody>
+          <tr><td>22歳・米国・大学生</td><td>Crunchyroll、YouTubeショート</td><td>理不尽なシステムに「払わない」と言う爽快感。学生ローンの実感</td></tr>
+          <tr><td>19歳・日本・専門学校生</td><td>ジャンプ+、ピッコマ、BOOTH</td><td>視力を担保にした天才ミオ、ジンとドウゲンの対比、設定の深さ</td></tr>
+          <tr><td>28歳・ブラジル・会社員</td><td>TikTokの切り抜き → Netflix吹替</td><td>スラムからの成り上がり、育ての親ケイとの家族ドラマ</td></tr>
+          <tr><td>31歳・フィリピン・看護師</td><td>Webtoon（縦読み）</td><td>使うたびに記憶を失う代償、父の顔を最初に失う悲劇</td></tr>
+          <tr><td>25〜34歳・欧米コレクター</td><td>Kickstarter、アートブック</td><td>縦長都市と7柱の貸主の作り込み</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="foot">出典：Advanced Television（2025-07-08）、Broadband TV News（2026-05-11）、gamebiz（日本動画協会速報）。詳細は anime/docs/market-and-comps.md。</p>
+  </div>
+</section>
+
+<!-- 05 COMPS -->
+<section class="folio" id="comps">
+  <div class="folio-head"><span>Folio 05</span><span>比較作品 / Comparables</span><span class="bal">市場規模の参考のみ</span></div>
+  <div class="folio-body">
+    <h2>実績のある市場要素を、ひとつの金融都市にまとめる。</h2>
+    <p class="muted">以下は市場の位置を測るための比較で、内容・設定・キャラクターは借用していない。</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>比較作品</th><th>共通する市場要素</th><th>RED LEDGER の違い</th></tr></thead>
+        <tbody>
+          <tr><td>チェンソーマン</td><td>借金を背負う貧しい少年、暗いが笑う主人公</td><td>借金は悪魔との契約ではなく、都市の金融制度そのもの。公開格付けで成り上がる</td></tr>
+          <tr><td>俺だけレベルアップな件</td><td>最下位からの成り上がり、見えるランク、Webtoon発</td><td>ゲームのシステムではなく、都市の与信としての格付け。強くなるほど記憶を失う</td></tr>
+          <tr><td>賭ケグルイ</td><td>金と階級が支配する社会、Netflixで海外人気</td><td>頭脳戦ではなく肉弾バトル。舞台は学園ではなく縦長の都市</td></tr>
+          <tr><td>呪術廻戦</td><td>契約・縛りで力が変わるバトル設計</td><td>貸借・担保・取立てという日常語で能力が分かる</td></tr>
+          <tr><td>神之塔</td><td>縦構造を登る物語、Crunchyroll × WEBTOON の共同製作</td><td>縦構造は経済格差の比喩。登る理由は父の借金と街の帳簿</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><strong>ポジショニング：</strong>借金と格付けに疲れた世界のアニメファンに向けた、「力がすべて神からの融資」という都市のバトル少年アニメ。主人公の武器は「払わない」こと。</p>
+  </div>
+</section>
+
+<!-- 06 CAST -->
+<section class="folio" id="cast">
+  <div class="folio-head"><span>Folio 06</span><span>キャラクター / Cast</span><span class="bal">8名</span></div>
+  <div class="folio-body">
+    <h2>手首の印の色で、誰が誰に借りているかが分かる。</h2>
+    <img class="lineup" src="characters-lineup.svg" alt="主要キャラクター8人のシルエット比較。左手首に貸主の色の印が光る">
+    <div class="cast">
+      <article><span class="role"><span class="sw" style="background:#E5172F"></span>主人公 · 16 · ZERO</span><div class="nm">赤羽 ジン</div><p>父の無限の借金を相続した無能力の少年。夢は父の借金をゼロにして、街の帳簿を燃やすこと。</p><q>払わねえよ。 / I'm not paying.</q></article>
+      <article><span class="role"><span class="sw" style="background:#E0A030"></span>投資家・参謀 · 17</span><div class="nm">葛葉 ミオ</div><p>闇金業者の娘で天才ブローカー。視力を担保に、相手の残高と勝率を読む。ジンは人生最大の賭け。</p><q>あなたの勝率、0.3%。だから買うの。</q></article>
+      <article><span class="role"><span class="sw" style="background:#6B7480"></span>ライバル · 18 · AA</span><div class="nm">榊 ドウゲン</div><p>鉄の貸主に仕える一族の跡取り。一度も延滞したことがない完済者。秩序を信じている。</p><q>返せない力を、力とは呼ばん。</q></article>
+      <article><span class="role"><span class="sw" style="background:#2E3F8F"></span>保護者・師匠 · 40代</span><div class="nm">霧島 ケイ</div><p>底帳の麺屋台の主。元取立人で、ジンの父の取り立てを担当した過去を隠している。</p><q>食え。話はそれからだ。</q></article>
+      <article><span class="role"><span class="sw" style="background:#0E0B10"></span>取立人 · 年齢不詳</span><div class="nm">ニル</div><p>白い陶器の仮面。名前を担保に取られた元債務者で、会った人はすぐ顔を忘れる。最初の敵。</p><q>お支払いの時間です。</q></article>
+      <article><span class="role"><span class="sw" style="background:#2F9E6E"></span>情報屋 · 12 · D</span><div class="nm">ツバメ</div><p>底帳のスリ。ケイの屋台の借金を返すため、内緒で速さの貸主から借りている。</p><q>情報料は麺一杯ね！</q></article>
+      <article><span class="role"><span class="sw" style="background:#C9A24A"></span>黒幕 · 30代</span><div class="nm">九条 レイジ</div><p>取引所〈バース〉の頭取で都市の実質の支配者。ジンの父を破産させた張本人。</p><q>帳尻は、いつも合います。</q></article>
+      <article><span class="role"><span class="sw" style="background:#E5172F"></span>ゼロの貸主</span><div class="nm">ハザマ</div><p>ジンの手首を通してだけ声が聞こえる子どもの神。債権者であり、相棒であり、最後の敵かもしれない。</p><q>ねえジン、それ、つけとくね。</q></article>
+    </div>
+  </div>
+</section>
+
+<!-- 07 EP1 -->
+<section class="folio" id="ep1">
+  <div class="folio-head"><span>Folio 07</span><span>第1話 / Episode 1</span><span class="bal num">22:10</span></div>
+  <div class="folio-body">
+    <h2>第1話「払わねえよ。」 40秒で世界のルールが分かる。</h2>
+    <div class="timeline" role="img" aria-label="第1話の構成。アバン3分、タイトル10秒、Aパート6分、Bパート7分、Cパート5分、タグ1分">
+      <div class="hot" style="flex:180"><span class="t">00:00</span>アバン</div>
+      <div style="flex:10" title="タイトルカード"></div>
+      <div style="flex:360"><span class="t">03:10</span>A：ZEROの日常</div>
+      <div style="flex:420"><span class="t">09:10</span>B：ニル再来・覚醒</div>
+      <div style="flex:300"><span class="t">16:10</span>C：ミオの契約</div>
+      <div style="flex:60"><span class="t">21:10</span>タグ</div>
+    </div>
+    <div class="cols-2">
+      <div class="beats">
+        <ol>
+          <li><span class="tc">00:00</span><span>黒画面に鐘が13回。公開格付けの巨大掲示板に「本日 取立日」。OPなしで本編に入り、スキップさせない。</span></li>
+          <li><span class="tc">00:40</span><span>払えなかった路上の歌い手の「声」が取り立てられ、叫びが途中で無音になる。説明なしで代償が伝わる。</span></li>
+          <li><span class="tc">01:00</span><span>格付けZEROのジンが追われながら登場。「この街でいちばん価値のない男です」。</span></li>
+          <li><span class="tc">02:15</span><span>仮面の取立人ニル。ジンの赤い印が脈打ち、子どもの声が「……みぃつけた」。タイトルへ。</span></li>
+          <li><span class="tc">13:50</span><span>覚醒。ニルの鎖を3秒差し押さえ、「払わねえよ。」。代償で父の顔を思い出せなくなる。</span></li>
+          <li><span class="tc">21:10</span><span>頭取・九条が最下段に灯る赤い「ZERO」を見て微笑む。「おかえり、赤羽」。</span></li>
+        </ol>
+      </div>
+      <div style="display:grid;gap:14px;align-content:start;min-width:0">
+        <span class="label">ショート動画に切り出す3場面</span>
+        <div class="entry"><h3>声が消える（20秒）</h3><p class="en">"In this city, if you can't pay, they take your voice. Literally."</p></div>
+        <div class="entry"><h3>覚醒「払わねえよ。」（45秒）</h3><p class="en">CONTRACT SUSPENDED 00:03 → "I'm not paying."</p></div>
+        <div class="entry"><h3>勝率：未定義（40秒）</h3><p class="en">"Balance: negative infinity. Win probability: undefined."</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 08 SEASON -->
+<section class="folio" id="season">
+  <div class="folio-head"><span>Folio 08</span><span>全12話 / Season 1</span><span class="bal">ZERO → AAA</span></div>
+  <div class="folio-body">
+    <h2>12話で、格付けZEROからAAAへ。途中で一度落ちる。</h2>
+    <svg class="chart" viewBox="0 0 740 300" role="img" aria-label="話数ごとのジンの格付け。1〜2話ZERO、3話D、4話C、5話B、6話でCに降格、7話C、8話B、9〜10話A、11話AA、12話AAA">
+      <g class="grid">
+        <line x1="60" x2="710" y1="20" y2="20"/><line x1="60" x2="710" y1="60" y2="60"/><line x1="60" x2="710" y1="100" y2="100"/><line x1="60" x2="710" y1="140" y2="140"/><line x1="60" x2="710" y1="180" y2="180"/><line x1="60" x2="710" y1="220" y2="220"/><line x1="60" x2="710" y1="260" y2="260"/>
+      </g>
+      <g class="axis" text-anchor="end">
+        <text x="50" y="24">AAA</text><text x="50" y="64">AA</text><text x="50" y="104">A</text><text x="50" y="144">B</text><text x="50" y="184">C</text><text x="50" y="224">D</text><text x="50" y="264">ZERO</text>
+      </g>
+      <g class="axis" text-anchor="middle">
+        <text x="60" y="288">1</text><text x="118.2" y="288">2</text><text x="176.4" y="288">3</text><text x="234.5" y="288">4</text><text x="292.7" y="288">5</text><text x="350.9" y="288">6</text><text x="409.1" y="288">7</text><text x="467.3" y="288">8</text><text x="525.5" y="288">9</text><text x="583.6" y="288">10</text><text x="641.8" y="288">11</text><text x="700" y="288">12</text>
+      </g>
+      <path class="step" d="M60 260 H118.2 V260 H176.4 V220 H234.5 V180 H292.7 V140 H350.9 V180 H409.1 V180 H467.3 V140 H525.5 V100 H583.6 V100 H641.8 V60 H700 V20"/>
+      <g>
+        <circle class="dot" cx="60" cy="260" r="4.5"/><circle class="dot" cx="118.2" cy="260" r="4.5"/><circle class="dot" cx="176.4" cy="220" r="4.5"/><circle class="dot" cx="234.5" cy="180" r="4.5"/><circle class="dot" cx="292.7" cy="140" r="4.5"/><circle class="dot" cx="350.9" cy="180" r="4.5"/><circle class="dot" cx="409.1" cy="180" r="4.5"/><circle class="dot" cx="467.3" cy="140" r="4.5"/><circle class="dot" cx="525.5" cy="100" r="4.5"/><circle class="dot" cx="583.6" cy="100" r="4.5"/><circle class="dot" cx="641.8" cy="60" r="4.5"/><circle class="end" cx="700" cy="20" r="6"/>
+      </g>
+      <text class="note" x="350.9" y="204" text-anchor="middle">ドウゲンに敗北</text>
+      <text class="note" x="525.5" y="124" text-anchor="middle">肩代わり</text>
+      <text class="note" x="690" y="44" text-anchor="end">盤が割れて「RED」</text>
+    </svg>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th class="num">話</th><th>タイトル</th><th>English</th></tr></thead>
+        <tbody>
+          <tr><td class="num">1</td><td>払わねえよ。</td><td class="en">I'm Not Paying</td></tr>
+          <tr><td class="num">2</td><td>投資契約</td><td class="en">Terms and Conditions</td></tr>
+          <tr><td class="num">3</td><td>初決済</td><td class="en">First Settlement</td></tr>
+          <tr><td class="num">4</td><td>格付けを上げろ</td><td class="en">Climb the Ratings</td></tr>
+          <tr><td class="num">5</td><td>延滞者たちの街</td><td class="en">City of the Overdue</td></tr>
+          <tr><td class="num">6</td><td>完済者</td><td class="en">The Man Who Never Owed</td></tr>
+          <tr><td class="num">7</td><td>麺と取立</td><td class="en">Noodles and Collections</td></tr>
+          <tr><td class="num">8</td><td>名前のない男</td><td class="en">The Man Without a Name</td></tr>
+          <tr><td class="num">9</td><td>肩代わり</td><td class="en">Take Over</td></tr>
+          <tr><td class="num">10</td><td>大決算、開幕</td><td class="en">The Grand Settlement</td></tr>
+          <tr><td class="num">11</td><td>帳簿の裏</td><td class="en">Off the Books</td></tr>
+          <tr><td class="num">12</td><td>赤い帳簿</td><td class="en">Red Ledger</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><strong>シーズン2への引き：</strong>貸主の神々も、さらに上の“何か”〈元帳〉に借金をしていた。そしてハザマの帳簿の中で、ジンの父がまだ生きている。</p>
+  </div>
+</section>
+
+<!-- 09 MONEY -->
+<section class="folio" id="money">
+  <div class="folio-head"><span>Folio 09</span><span>収益化の道筋 / Revenue path</span><span class="bal">目標：最初の1円</span></div>
+  <div class="folio-body">
+    <h2>Netflixは最後に来る。最初に売るのは「帳簿の書」。</h2>
+    <p class="lede">TVアニメは1話あたり約1,500万〜4,000万円かかり、Netflixへの持ち込みは制作会社や製作委員会が前提になる。個人はまず原作とファンの数字をつくり、それを持って売り込む。</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>ルート</th><th class="num">初期費用</th><th class="num">最初の1円まで</th><th>主なリスク</th></tr></thead>
+        <tbody>
+          <tr class="pick"><td><strong>E. 直接課金</strong>（BOOTH・Ko-fi で設定資料PDF）</td><td class="num">0円</td><td class="num">2〜6週間</td><td>FANBOXはAI生成作品の扱いを禁止。BOOTHは依拠性の高いAI作品を監視</td></tr>
+          <tr><td>B. ショート動画・モーションコミック</td><td class="num">0〜月5,000円</td><td class="num">6〜18か月</td><td>YouTubeの収益化基準は2027年2月から引き上げ予定と報道。量産型は対象外</td></tr>
+          <tr><td>A. 漫画・Webtoon 化</td><td class="num">0〜30万円</td><td class="num">3〜12か月</td><td>作画手段が要る。新人賞にAI作画で出すのは高リスク</td></tr>
+          <tr><td>D. 海外プラットフォーム</td><td class="num">0〜数万円</td><td class="num">3〜12か月</td><td>英語圏の反AI感情、税務フォーム、為替</td></tr>
+          <tr><td>C. 出版社・制作会社への売り込み</td><td class="num">0〜数万円</td><td class="num">6〜24か月以上</td><td>実績の数字がない企画書単体はほぼ通らない</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="route-pick">
+      <span class="label">推奨ルート</span>
+      <h3>『RED LEDGER 帳簿の書 Vol.0』をBOOTH（500円）とKo-fi（$3〜5）で売り、X とショート動画で告知する。</h3>
+      <p>世界観・用語集・キャラ設定・第1話冒頭の抜粋をまとめたPDF（40〜60ページ）。作画が要らないので今すぐ作れ、初期費用は0円、最初の1円まで2〜6週間の見込み。販売数がそのまま「お金を払うファンの数」になる。脚本全文は漫画賞の「未発表」条件に備えて売らない。</p>
+    </div>
+    <div class="gates">
+      <div><b>G1 · 30日</b><span>売上1件、X 100フォロワー</span></div>
+      <div><b>G2 · 90日</b><span>売上30件、ショート累計10万回、Ko-fi 支援者5人</span></div>
+      <div><b>G3 · 6か月</b><span>月1万円以上、Webtoon 購読1,000</span></div>
+      <div><b>G4 · 12〜24か月</b><span>Webtoon 購読1万、SNS 1万、新人賞入賞 → 出版社・制作会社へ</span></div>
+    </div>
+    <p class="foot">収入の目安は3か月で月0〜1万円、12か月で月1〜10万円、24か月で月5〜30万円。いずれも保証ではない。手数料・規約の出典は anime/docs/monetization.md。</p>
+  </div>
+</section>
+
+<!-- 10 NEXT -->
+<section class="folio" id="next">
+  <div class="folio-head"><span>Folio 10</span><span>次の一手 / Next</span><span class="bal">要オーナー</span></div>
+  <div class="folio-body">
+    <h2>チームが書き、オーナーが公開する。</h2>
+    <div class="cols-2">
+      <div style="display:grid;gap:10px;min-width:0">
+        <span class="label">チームが用意する（今週）</span>
+        <ul class="plain">
+          <li>『帳簿の書 Vol.0』の原稿（日本語・英語）と商品ページ文</li>
+          <li>X のプロフィール文、固定ポスト、ショート台本10本</li>
+          <li>キービジュアルとキャラシートの生成プロンプト、修正手順</li>
+          <li>第2話の脚本と、Webtoon 第1話のネーム</li>
+        </ul>
+      </div>
+      <div style="display:grid;gap:10px;min-width:0">
+        <span class="label">オーナーにしかできないこと</span>
+        <ul class="plain">
+          <li>BOOTH・Ko-fi・X・YouTube のアカウント作成と口座登録</li>
+          <li>タイトルの商標確認（J-PlatPat・USPTO）</li>
+          <li>チームの下書きを自分の言葉で直し、直した記録を残す（著作権を主張するため）</li>
+          <li>販売開始、投稿、価格の決定</li>
+        </ul>
+      </div>
+    </div>
+    <p class="foot">資料一式：anime/docs/01-concept-selection.md（6案の比較）、anime/bible/series-bible.md、anime/scripts/ep01-script.md、anime/visuals/、anime/docs/monetization.md（ブランチ peter/p7-anime）。</p>
+  </div>
+</section>
+
+</main>
