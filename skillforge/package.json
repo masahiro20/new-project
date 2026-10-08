@@ -16,7 +16,8 @@
     "test": "node --import tsx --test test/*.test.ts",
     "check:sample": "tsx src/cli/index.ts check samples/ja-en/script.csv --glossary samples/ja-en/glossary.json",
     "serve": "tsx src/server/index.ts",
-    "start": "node dist/server/index.js"
+    "start": "node dist/server/index.js",
+    "build:demo": "node web/build-demo.mjs"
   },
   "license": "UNLICENSED",
   "dependencies": {
