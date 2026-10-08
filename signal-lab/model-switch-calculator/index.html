@@ -627,6 +627,7 @@ const Logic = (() => {
     const rows = [];
     let bad = 0;
     for (const r of body) {
+      if (r.length > headers.length) { bad++; continue; } // mis-split row, e.g. unquoted "1,000"
       const get = (role) => (map[role] == null ? 0 : toNum(r[map[role]]));
       const model = map.model != null && r[map.model] ? r[map.model] : "(不明)";
       const provider = inferProvider(model) || hint || null;
@@ -677,7 +678,7 @@ const Logic = (() => {
           const cc = r.cache_creation || {};
           const model = r.model || "(不明)";
           rows.push({ date: toDay(b.starting_at || b.start_time || r.starting_at), model, provider: inferProvider(model) || "anthropic",
-            unc: toNum(r.uncached_input_tokens), cw5: toNum(cc.ephemeral_5m_input_tokens) + (typeof r.cache_creation_input_tokens === "number" ? r.cache_creation_input_tokens : 0),
+            unc: toNum(r.uncached_input_tokens), cw5: (r.cache_creation && typeof r.cache_creation === "object" ? toNum(cc.ephemeral_5m_input_tokens) : toNum(r.cache_creation_input_tokens)),
             cw1: toNum(cc.ephemeral_1h_input_tokens), cr: toNum(r.cache_read_input_tokens), out: toNum(r.output_tokens) });
         }
         return { format: "anthropic-api", rows, bad: 0 };
@@ -802,10 +803,11 @@ const Logic = (() => {
   // Unit prices (USD / 1M tokens) actually applied per token class
   function unitPrices(p) {
     // Anthropic: cacheWrite = 5-minute write; 1h write = 2x input unless given.
-    // OpenAI (and others): cache-write tokens are billed as normal input (no extra fee).
+    // OpenAI (and others): each input token is billed as exactly one of input / cached input /
+    // cache write, so cache-write tokens use the listed cache-write price, else the input price.
     const anth = p.provider === "anthropic";
-    const cw5 = anth ? (p.cacheWrite != null ? p.cacheWrite : p.input * 1.25) : p.input;
-    const cw1 = anth ? (p.cacheWrite1h != null ? p.cacheWrite1h : p.input * 2) : p.input;
+    const cw5 = anth ? (p.cacheWrite != null ? p.cacheWrite : p.input * 1.25) : (p.cacheWrite != null ? p.cacheWrite : p.input);
+    const cw1 = anth ? (p.cacheWrite1h != null ? p.cacheWrite1h : p.input * 2) : (p.cacheWrite != null ? p.cacheWrite : p.input);
     const cr = p.cacheRead != null ? p.cacheRead : p.input;
     return { unc: p.input, cw5, cw1, cr, out: p.output };
   }
@@ -963,7 +965,7 @@ if (typeof document !== "undefined") (() => {
     const o = opts();
     const r = state.result = Logic.compute(a, PRICES, o);
     const p = state.parsed;
-    $("parse-status").innerHTML = `検出した形式: <b>${esc(p.formatLabel)}</b>` + (p.bad ? ` <span class="badge warn">数値でない行を ${p.bad} 行スキップ</span>` : "");
+    $("parse-status").innerHTML = `検出した形式: <b>${esc(p.formatLabel)}</b>` + (p.bad ? ` <span class="badge warn">読み取れない行を ${p.bad} 行スキップ（数値でない値、または列数がヘッダーより多い行。例: 引用符なしの 1,000）</span>` : "");
     const t = a.totals;
     $("stats").innerHTML = [
       ["行数", fmtInt(a.rowCount)],
@@ -1097,7 +1099,7 @@ if (typeof document !== "undefined") (() => {
     $("price-table-legacy").innerHTML = thead + legacy + "</tbody>";
     const pn = [];
     pn.push(`価格の確認日: <b>${esc(PRICES.checkedOn || "—")}</b>。行にカーソルを合わせると補足メモを表示します。`);
-    pn.push("<b>計算上の前提:</b> Anthropic のキャッシュ書込は 5分キャッシュの単価（1時間キャッシュの書込は入力×2）。OpenAI はキャッシュ書込に追加料金がないため、書込トークンを通常の入力単価で計算します。OpenAI は Standard 料金・プロンプト 272K トークン以下の単価です。");
+    pn.push("<b>計算上の前提:</b> Anthropic のキャッシュ書込は 5分キャッシュの単価（1時間キャッシュの書込は入力×2）。OpenAI は各入力トークンが「入力・キャッシュ入力・キャッシュ書込」のいずれか1つで課金されるため、書込トークンには掲載のキャッシュ書込単価（未掲載なら通常の入力単価）を適用します。OpenAI は Standard 料金・プロンプト 272K トークン以下の単価です。");
     pn.push("<b>Claude Haiku 5.5</b> は 10万トークン以下のプロンプトの単価で計算しています。10万トークン超のプロンプトは入力 $0.50 / 出力 $2.50 / キャッシュ読取 $0.05 / 5分書込 $0.625 です。");
     pn.push(`出典: <a href="https://platform.claude.com/docs/en/about-claude/pricing" target="_blank" rel="noopener noreferrer">Anthropic 料金ページ</a> / <a href="https://developers.openai.com/api/docs/pricing" target="_blank" rel="noopener noreferrer">OpenAI 料金ページ</a>`);
     $("price-notes").innerHTML = pn.map((n) => `<li>${n}</li>`).join("");
