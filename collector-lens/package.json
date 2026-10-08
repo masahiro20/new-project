@@ -7,6 +7,7 @@
     "build:data": "node scripts/build-data.mjs",
     "check:glossary": "node scripts/check-glossary.mjs",
     "test": "node scripts/build-data.mjs --check && node scripts/check-glossary.mjs && node --test \"test/*.test.js\"",
+    "review-sheet": "node scripts/export-review-sheet.mjs",
     "package": "node scripts/build-data.mjs && node scripts/package.mjs"
   },
   "devDependencies": {
