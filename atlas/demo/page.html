@@ -30,7 +30,7 @@
 
 * { box-sizing: border-box }
 body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.65; }
-.wrap { max-width: 1180px; margin: 0 auto; padding-inline: 16px; padding-block: 24px 64px; display: grid; gap: 28px; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-inline: 16px; padding-block: 24px 64px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; }
 h1, h2 { font-family: var(--font-display); font-weight: 600; text-wrap: balance; margin: 0; }
 h1 { font-size: 1.9rem; letter-spacing: .02em; }
 h2 { font-size: 1.3rem; }
@@ -167,7 +167,7 @@ footer { font-size: 12.5px; color: var(--muted); border-top: 1px solid var(--lin
         <span class="btnrow"><span class="copied" id="copied" hidden>コピーしました</span><button class="btn primary" id="copy" type="button">コピー</button></span>
       </div>
       <pre class="out" id="out" tabindex="0"></pre>
-      <p class="hint" style="margin-top:8px" id="out-note">シークレットの直書きは ${VAR} に置き換えてから出力します。managed-mcp.json はマシン上の全ユーザーが読めるため、値は各ユーザーの環境で設定してください。</p>
+      <p class="hint" style="margin-top:8px" id="out-note">シークレットの直書き（env・ヘッダー・URL のクエリ・--password などの引数）は ${VAR} に置き換えてから出力します。URL を置き換えた場合、serverUrl は実際の URL と一致しないため、配布前に調整してください。managed-mcp.json はマシン上の全ユーザーが読めるため、値は各ユーザーの環境で設定してください。</p>
     </div>
   </section>
 
@@ -463,13 +463,22 @@ window.ATLAS_SAMPLES = /*__SAMPLES__*/;
     if (scroll) d.scrollIntoView({ behavior: "smooth", block: "start" });
   }
   function addToInput(s) {
-    var parsed = E.parseConfig($("cfg").value);
-    var key = parsed && parsed.format === "vscode" ? "servers" : "mcpServers";
-    var obj;
-    try { obj = JSON.parse(E.stripJsonc ? E.stripJsonc($("cfg").value) : $("cfg").value); } catch (e) { obj = null; }
-    if (!obj || typeof obj !== "object") obj = {};
-    if (!obj[key] || typeof obj[key] !== "object") obj[key] = {};
-    obj[key][s.id] = s.config;
+    var text = $("cfg").value;
+    var parsed = E.parseConfig(text);
+    // Never overwrite input we could not read: the user would lose their servers.
+    if (parsed.error && text.trim()) { evaluate(); document.getElementById("h-input").scrollIntoView({ behavior: "smooth" }); return; }
+    var obj, servers = null;
+    try { obj = JSON.parse(E.stripJsonc(text)); } catch (e) { obj = null; }
+    if (obj && typeof obj === "object" && !Array.isArray(obj) && parsed.key) {
+      servers = obj;
+      parsed.key.split(".").forEach(function (k) { if (servers && servers[k] && typeof servers[k] === "object") servers = servers[k]; else if (servers !== obj) servers = null; });
+    }
+    if (!servers) {
+      // empty input or a fragment ("name": {...}) that only parseConfig can read: rebuild as mcpServers
+      obj = { mcpServers: {} }; servers = obj.mcpServers;
+      (parsed.servers || []).forEach(function (x) { servers[x.name] = x.cfg; });
+    }
+    servers[s.id] = s.config;
     $("cfg").value = JSON.stringify(obj, null, 2);
     evaluate();
     document.getElementById("h-input").scrollIntoView({ behavior: "smooth" });

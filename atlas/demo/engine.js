@@ -127,12 +127,22 @@
   // -------------------------------------------------------------------------
   // Secrets
   // -------------------------------------------------------------------------
+  // credential-named URL query params (?token=...) and flag values (--password xyz / --api-key=xyz)
+  var QUERY_CRED_SRC = '([?&][^=&#\\s"]*?(?:token|secret|passw(?:or)?d|api[_-]?key|access[_-]?key|auth|credential|sig(?:nature)?)[^=&#\\s"]*=)([^&#\\s"]+)';
+  var FLAG_CRED_SRC = '((?:^|\\s)--?[A-Za-z0-9-]*(?:password|passwd|token|secret|api-?key|apikey|access-?key)(?:=|\\s+))([^\\s"]+)';
+  var FLAG_CRED_RE = /^--?[A-Za-z0-9-]*(?:password|passwd|token|secret|api-?key|apikey|access-?key)$/i;
+  function isPlaceholder(v) { return /^\$\{[^}]+\}$/.test(v) || /^\$[A-Za-z_][A-Za-z0-9_]*$/.test(v); }
   function redact(s) {
     s = str(s);
     SECRET_SRC.forEach(function (src) {
       s = s.replace(new RegExp(src, 'g'), function (m) { return m.slice(0, 4) + '…[REDACTED]'; });
     });
+    s = s.replace(new RegExp(QUERY_CRED_SRC, 'gi'), function (m, p, v) { return isPlaceholder(v) ? m : p + '[REDACTED]'; });
+    s = s.replace(new RegExp(FLAG_CRED_SRC, 'gi'), function (m, p, v) { return isPlaceholder(v) ? m : p + '[REDACTED]'; });
     return s;
+  }
+  function subQueryCreds(u, ph) {
+    return str(u).replace(new RegExp(QUERY_CRED_SRC, 'gi'), function (m, p, v) { return isPlaceholder(v) ? m : p + ph; });
   }
   function hasSecret(s) {
     s = str(s);
@@ -513,8 +523,27 @@
         if (hasSecret(a)) {
           add('ATL-CR-003', 'args/' + i, a);
           san.args[i] = subSecrets(str(a), placeholder('ATLAS_SECRET'));
+        } else if (i > 0 && FLAG_CRED_RE.test(str(cfg.args[i - 1])) && literalCred(str(a)) && !isPlaceholder(str(a))) {
+          // demo addition: positional credential after a --password / --token style flag
+          add('ATL-CR-005', 'args/' + i, str(cfg.args[i - 1]) + ' ' + str(a).slice(0, 4) + '…[REDACTED]');
+          san.args[i] = placeholder('ATLAS_' + str(cfg.args[i - 1]).replace(/^-+/, ''));
+        } else {
+          var fm = /^(--?[A-Za-z0-9-]+)=(.+)$/.exec(str(a));
+          if (fm && FLAG_CRED_RE.test(fm[1]) && literalCred(fm[2]) && !isPlaceholder(fm[2])) {
+            add('ATL-CR-005', 'args/' + i, fm[1] + '=' + fm[2].slice(0, 4) + '…[REDACTED]');
+            san.args[i] = fm[1] + '=' + placeholder('ATLAS_' + fm[1].replace(/^-+/, ''));
+          }
+        }
+        // demo addition: credential-named query parameter in a URL argument (mcp-remote https://...?token=...)
+        if (typeof san.args[i] === 'string' && /^https?:\/\//.test(san.args[i]) && redact(san.args[i]) !== san.args[i]) {
+          add('ATL-CR-005', 'args/' + i, redact(san.args[i]), 'credential in URL query');
+          san.args[i] = subQueryCreds(san.args[i], placeholder('ATLAS_URL_TOKEN'));
         }
       });
+    }
+    if (truthy(cfg.url) && typeof san.url === 'string' && redact(san.url) !== san.url && !hasSecret(san.url)) {
+      add('ATL-CR-005', 'url', redact(san.url), 'credential in URL query');
+      san.url = subQueryCreds(san.url, placeholder('ATLAS_URL_TOKEN'));
     }
     ['url', 'command'].forEach(function (k) {
       if (truthy(cfg[k]) && hasSecret(cfg[k])) {
@@ -670,6 +699,7 @@
         '：サンプルの判定は' + REC_LABEL[srec] + (osvIds.length ? '（OSV ' + osvIds.join(', ') + '）' : '');
       reasons.push(head);
       (sample.reasons || []).forEach(function (r) { reasons.push(redact(r)); });
+      reasons.push('注記：サンプルの検出は静的検査の「パターン」であり、このプロジェクトに悪意があると断定するものではありません');
     }
     sorted.forEach(function (f) { reasons.push(findingReason(f)); });
     if (inArr(notes, 'vscode-input')) reasons.push('注記：VS Code の ${input:...} 変数を使用しています（Claude Code では展開されません）');

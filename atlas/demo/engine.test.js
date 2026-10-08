@@ -337,3 +337,18 @@ test('cross-check rule ids and sanitized configs against Python config_findings'
     assert.deepStrictEqual(E.claudeServerEntry(got.sanitized), want[name].e, name + ' entry');
   }
 });
+
+test('credential in URL query and after --password flag is redacted everywhere (demo addition)', () => {
+  const t = JSON.stringify({ mcpServers: {
+    a: { type: 'http', url: 'https://x.example.com/mcp?token=abcd1234secret&x=1' },
+    b: { command: 'npx', args: ['-y', 'mcp-remote@0.1.29', 'https://y.example.com/sse?api_key=zzzz9999qqqq'] },
+    c: { command: 'uvx', args: ['db-mcp==1.0', '--password', 'plainpass123', '--api-key=kkkk5555jjjj'] } } });
+  const r = E.evaluate(t, {});
+  const o = E.buildOutputs(r.items, r.items.map((i) => i.name), {});
+  const all = JSON.stringify(r.items.map((i) => [i.sanitized, i.findings, i.reasons])) + JSON.stringify(o);
+  for (const sec of ['abcd1234secret', 'zzzz9999qqqq', 'plainpass123', 'kkkk5555jjjj']) assert.ok(!all.includes(sec), sec);
+  for (const i of r.items) {
+    assert.equal(i.recommendation, 'review');
+    assert.ok(i.findings.some((f) => f.rule === 'ATL-CR-005'), i.name);
+  }
+});
