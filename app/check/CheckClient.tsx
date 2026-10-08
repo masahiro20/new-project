@@ -21,7 +21,7 @@ const GROUPS = [
   },
 ];
 
-export default function CheckClient() {
+export default function CheckClient({ ai }: { ai: boolean }) {
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [showResult, setShowResult] = useState(false);
 
@@ -72,11 +72,13 @@ export default function CheckClient() {
                 </div>
               ))}
               <p>
-                虐待防止と身体拘束等適正化の書類は、このサイトでまとめて作成できます。年間実施計画は無料です。
+                {ai
+                  ? "虐待防止と身体拘束等適正化の書類は、このサイトでまとめて作成できます。年間実施計画は無料です。"
+                  : "必要な書類の形は、無料の書類サンプルで確認できます（Wordで保存して編集できます）。AIによる作成機能は準備中です。"}
               </p>
               <div className="actions">
-                <Link href="/generate" className="btn">書類を作る</Link>
-                <Link href="/samples" className="btn secondary">書類サンプルを見る</Link>
+                {ai && <Link href="/generate" className="btn">書類を作る</Link>}
+                <Link href="/samples" className={ai ? "btn secondary" : "btn"}>書類サンプルを見る</Link>
                 <Link href="/guide" className="btn secondary">サービス種別ごとの解説</Link>
               </div>
             </>

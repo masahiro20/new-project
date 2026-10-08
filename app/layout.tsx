@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { aiEnabled, salesEnabled } from "@/lib/launch";
 import { siteUrl } from "@/lib/site";
 import "./globals.css";
 
@@ -15,6 +16,7 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const ai = aiEnabled();
   return (
     <html lang="ja">
       <body>
@@ -22,10 +24,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div className="wrap header-inner">
             <Link href="/" className="logo">減算ゼロ</Link>
             <nav>
-              <Link href="/check">無料診断</Link>
+              {ai && <Link href="/check">無料診断</Link>}
               <Link href="/guide">解説</Link>
               <Link href="/samples">サンプル</Link>
-              <Link href="/generate" className="nav-cta">書類を作る</Link>
+              {ai ? (
+                <Link href="/generate" className="nav-cta">書類を作る</Link>
+              ) : (
+                <Link href="/check" className="nav-cta">無料診断</Link>
+              )}
             </nav>
           </div>
         </header>
@@ -34,7 +40,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div className="wrap">
             <nav>
               <Link href="/terms">利用規約</Link>
-              <Link href="/legal">特定商取引法に基づく表記</Link>
+              {salesEnabled() && <Link href="/legal">特定商取引法に基づく表記</Link>}
               <Link href="/privacy">プライバシーポリシー</Link>
               <a href="/llms.txt">llms.txt</a>
             </nav>

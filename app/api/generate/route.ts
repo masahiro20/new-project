@@ -2,6 +2,7 @@ import { z } from "zod";
 import { streamDocuments } from "@/lib/claude";
 import { facilitySchema } from "@/lib/form";
 import { hashInput } from "@/lib/hash";
+import { aiEnabled, COMING_SOON, salesEnabled } from "@/lib/launch";
 import { PARTS } from "@/lib/parts";
 import { REGENERATE_PER_DAY } from "@/lib/purchase";
 import { allow } from "@/lib/ratelimit";
@@ -16,6 +17,12 @@ const bodySchema = z.object({
 });
 
 export async function POST(request: Request) {
+  if (!salesEnabled()) {
+    return Response.json({ error: COMING_SOON.paid }, { status: 503 });
+  }
+  if (!aiEnabled()) {
+    return Response.json({ error: COMING_SOON.ai }, { status: 503 });
+  }
   const parsed = bodySchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {
     return Response.json({ error: "入力内容を確認してください。" }, { status: 400 });

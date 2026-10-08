@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import MarkdownView from "@/app/MarkdownView";
@@ -80,10 +81,11 @@ async function streamInto(url: string, body: unknown, onText: (text: string) => 
   return undefined;
 }
 
-export default function GenerateClient({ price, turnstileSiteKey }: { price: number; turnstileSiteKey?: string }) {
+export default function GenerateClient({ price, sales, turnstileSiteKey }: { price: number; sales: boolean; turnstileSiteKey?: string }) {
   const params = useSearchParams();
-  const sessionId = params.get("session_id");
-  const canceled = params.get("canceled") === "1";
+  // Without sales there is no paid session to resume, whatever the URL says.
+  const sessionId = sales ? params.get("session_id") : null;
+  const canceled = sales && params.get("canceled") === "1";
 
   const [input, setInput] = useState<FacilityInput>(EMPTY);
   const [outputs, setOutputs] = useState<Partial<Record<Part | "preview", Output>>>({});
@@ -242,15 +244,17 @@ export default function GenerateClient({ price, turnstileSiteKey }: { price: num
             議事録は、実際に開催した委員会のメモをもとに清書します。開催していない会議や研修の記録を作ることはできません。
           </p>
 
-          <PurchaseSummary price={price} />
+          {sales && <PurchaseSummary price={price} />}
 
           <div className="actions">
-            <button type="button" className="btn secondary" onClick={preview} disabled={busy || (!!turnstileSiteKey && !turnstileToken)}>
+            <button type="button" className={sales ? "btn secondary" : "btn"} onClick={preview} disabled={busy || (!!turnstileSiteKey && !turnstileToken)}>
               無料で年間実施計画を作る
             </button>
-            <button type="button" className="btn" onClick={checkout} disabled={busy}>
-              全書類セットを作る（{price.toLocaleString()}円・税込）
-            </button>
+            {sales && (
+              <button type="button" className="btn" onClick={checkout} disabled={busy}>
+                全書類セットを作る（{price.toLocaleString()}円・税込）
+              </button>
+            )}
           </div>
         </form>
       )}
@@ -273,7 +277,17 @@ export default function GenerateClient({ price, turnstileSiteKey }: { price: num
         />
       ))}
 
-      {!sessionId && outputs.preview?.done && !outputs.preview.error && (
+      {!sales && outputs.preview?.done && !outputs.preview.error && (
+        <div className="card no-print" style={{ marginTop: 24 }}>
+          <h3>続きの書類の完成イメージ</h3>
+          <p>委員会の議事録、研修資料と理解度テスト、身体拘束等適正化の指針をまとめて作る有料版は準備中です。完成イメージは書類サンプルでご覧いただけます。</p>
+          <div className="actions">
+            <Link href="/samples" className="btn secondary">書類サンプルを見る</Link>
+          </div>
+        </div>
+      )}
+
+      {sales && !sessionId && outputs.preview?.done && !outputs.preview.error && (
         <div className="card no-print" style={{ marginTop: 24 }}>
           <h3>続きの書類もまとめて作成できます</h3>
           <p>委員会の議事次第・議事録、研修資料と理解度テスト、身体拘束等適正化の指針と記録様式まで、{price.toLocaleString()}円で一式そろいます。</p>

@@ -43,6 +43,16 @@ npm run dev                  # http://localhost:3000
 4. `app/legal/page.tsx`、`app/privacy/page.tsx`、`app/terms/page.tsx` の【要記入】を埋め、内容を最終確認する（特定商取引法の表記は販売前に必須）
 5. Google Search Console にサイトマップ（`/sitemap.xml`）を登録する
 
+## 無料公開モード（LAUNCH_MODE=free）
+
+キーや決済なしで公開するためのモードです。Vercel の環境変数に `LAUNCH_MODE=free` を設定してビルドします（静的ページはビルド時に反映されるため、変更したら再デプロイが必要）。
+
+- 購入ボタン、`/api/checkout`・`/api/generate`（503 を返す）、特定商取引法の表記（ページ・リンクとも）を無効にし、「有料版は準備中」と表示する
+- `ANTHROPIC_API_KEY` がなければ AI 生成（`/generate`、`/api/preview`）も「準備中」になり、API は 503 を返す
+- 減算リスク診断、解説、書類サンプル（Word 保存）はそのまま使える
+- 利用規約・プライバシーポリシーの運営者は「減算ゼロ運営事務局」、連絡先は「準備中」と表示する
+- `NEXT_PUBLIC_SITE_URL` が未設定なら `VERCEL_PROJECT_PRODUCTION_URL`（Vercel が自動で設定）を使う
+
 ## チェック
 
 ```bash

@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import MarkdownView from "@/app/MarkdownView";
 import { GUIDES, SERVICE_GUIDES, TOPIC_GUIDES, getGuide } from "@/lib/guides";
 import { breadcrumbList, jsonLdHtml } from "@/lib/jsonld";
+import { aiEnabled } from "@/lib/launch";
 import { siteUrl, SITE_NAME } from "@/lib/site";
 
 export function generateStaticParams() {
@@ -133,13 +134,13 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
             {noRestraint
               ? "虐待防止委員会の議事録、研修資料と理解度テストを、"
               : "虐待防止委員会の議事録、研修資料と理解度テスト、身体拘束等適正化の指針まで、"}
-            {guide.serviceType ? `${guide.serviceType}の現場に合わせて` : "事業所に合わせて"}作成します。
+            {guide.serviceType ? `${guide.serviceType}の現場に合わせて` : "事業所に合わせて"}作成します{aiEnabled() ? "" : "（準備中）"}。
             まずは無料の減算リスク診断と、完成イメージがわかる書類サンプルをご覧ください。
           </p>
           <div className="actions">
             <Link href="/check" className="btn">減算リスクを無料診断</Link>
             <Link href="/samples" className="btn secondary">書類サンプル（無料）</Link>
-            <Link href="/generate" className="btn secondary">無料で年間計画を作る</Link>
+            {aiEnabled() && <Link href="/generate" className="btn secondary">無料で年間計画を作る</Link>}
           </div>
         </div>
 

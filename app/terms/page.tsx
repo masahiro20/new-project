@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { operator, salesEnabled } from "@/lib/launch";
 
 export const metadata: Metadata = { title: "利用規約" };
 
-// 雛形です。【要記入】を埋め、公開前にオーナーが内容を最終確認してください。
-const SECTIONS: { title: string; body: string[] }[] = [
+// 雛形です。【要記入】を埋め、公開前にオーナーが内容を最終確認してください（無料公開モードでは lib/launch.ts の値を表示）。
+const sections = (op: ReturnType<typeof operator>, sales: boolean): { title: string; body: string[] }[] => [
   {
     title: "第1条（適用）",
     body: [
-      "この規約は、【要記入：運営者の氏名または法人名】（以下「運営者」）が提供する「減算ゼロ」（以下「本サービス」）の利用条件を定めるものです。利用者は、本サービスを利用した時点で、この規約に同意したものとみなします。",
+      `この規約は、${op.name}（以下「運営者」）が提供する「減算ゼロ」（以下「本サービス」）の利用条件を定めるものです。利用者は、本サービスを利用した時点で、この規約に同意したものとみなします。`,
     ],
   },
   {
@@ -38,7 +39,11 @@ const SECTIONS: { title: string; body: string[] }[] = [
   },
   {
     title: "第5条（料金と支払い）",
-    body: ["有料の書類セットの料金、支払方法、提供時期、返金の条件は、購入画面および「特定商取引法に基づく表記」に記載のとおりとします。"],
+    body: [
+      sales
+        ? "有料の書類セットの料金、支払方法、提供時期、返金の条件は、購入画面および「特定商取引法に基づく表記」に記載のとおりとします。"
+        : "現在、本サービスは無料で提供しています。有料の機能を提供するときは、料金、支払方法、提供時期、返金の条件を、購入画面および「特定商取引法に基づく表記」に記載します。",
+    ],
   },
   {
     title: "第6条（作成された書類の利用）",
@@ -62,16 +67,18 @@ const SECTIONS: { title: string; body: string[] }[] = [
   },
   {
     title: "第10条（準拠法・管轄）",
-    body: ["この規約は日本法に従って解釈されます。本サービスに関して紛争が生じた場合は、【要記入：裁判所名】を第一審の専属的合意管轄裁判所とします。"],
+    body: [`この規約は日本法に従って解釈されます。本サービスに関して紛争が生じた場合は、${op.court}を第一審の専属的合意管轄裁判所とします。`],
   },
 ];
 
 export default function TermsPage() {
+  const op = operator();
+  const sales = salesEnabled();
   return (
     <section>
       <div className="wrap narrow prose">
         <h1>利用規約</h1>
-        {SECTIONS.map((s) => (
+        {sections(op, sales).map((s) => (
           <div key={s.title}>
             <h2>{s.title}</h2>
             {s.body.map((p) => (
@@ -80,9 +87,14 @@ export default function TermsPage() {
           </div>
         ))}
         <p>
-          関連：<Link href="/privacy">プライバシーポリシー</Link>／<Link href="/legal">特定商取引法に基づく表記</Link>
+          関連：<Link href="/privacy">プライバシーポリシー</Link>
+          {sales && (
+            <>
+              ／<Link href="/legal">特定商取引法に基づく表記</Link>
+            </>
+          )}
         </p>
-        <p>制定日：【要記入：公開日】</p>
+        <p>制定日：{op.established}</p>
       </div>
     </section>
   );

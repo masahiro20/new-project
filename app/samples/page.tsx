@@ -3,6 +3,7 @@ import Link from "next/link";
 import MarkdownView from "@/app/MarkdownView";
 import SampleDownload from "./SampleDownload";
 import { breadcrumbList, jsonLdHtml } from "@/lib/jsonld";
+import { aiEnabled } from "@/lib/launch";
 import { PARTS, PART_LABELS } from "@/lib/parts";
 import { SAMPLE_FACILITY, SAMPLE_UPDATED, SAMPLES } from "@/lib/samples";
 import { siteUrl, SITE_NAME } from "@/lib/site";
@@ -112,11 +113,11 @@ export default function SamplesPage() {
           <h3>あなたの事業所に合わせて作成する</h3>
           <p>
             サービス種別、職員数、利用者の特性、実際の会議メモを入力すると、このサンプルと同じ形式で事業所専用の書類を作成します。
-            年間実施計画は無料で作成できます。
+            {aiEnabled() ? "年間実施計画は無料で作成できます。" : "AIによる作成機能は準備中です。"}
           </p>
           <div className="actions">
             <Link href="/check" className="btn">減算リスクを無料診断</Link>
-            <Link href="/generate" className="btn secondary">無料で年間計画を作る</Link>
+            {aiEnabled() && <Link href="/generate" className="btn secondary">無料で年間計画を作る</Link>}
             <Link href="/guide" className="btn secondary">サービス種別ごとの解説</Link>
           </div>
         </div>

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { aiEnabled } from "@/lib/launch";
 import CheckClient from "./CheckClient";
 
 export const metadata: Metadata = {
@@ -14,7 +15,7 @@ export default function CheckPage() {
         <p className="eyebrow">無料診断</p>
         <h1>減算リスクを1分でチェック</h1>
         <p className="lead">今年度の状況に当てはまるものにチェックを入れてください。入力内容は送信されません。</p>
-        <CheckClient />
+        <CheckClient ai={aiEnabled()} />
       </div>
     </section>
   );
