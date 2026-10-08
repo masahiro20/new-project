@@ -1,0 +1,1079 @@
+<title>Budget Guard デモ</title>
+<style>
+:root{
+  --bg:#eef0ec;
+  --surface:#ffffff;
+  --surface-2:#f6f7f4;
+  --fg:#1a1d21;
+  --muted:#5a626c;
+  --line:#d5d9d6;
+  --grid:#e4e7e4;
+  --accent:#1f4aa8;
+  --accent-fg:#ffffff;
+  --accent-soft:#e3eafa;
+  --ok:#1d6b39;
+  --ok-soft:#e1f1e6;
+  --warn:#8a5a00;
+  --warn-soft:#fbefd2;
+  --crit:#b3261e;
+  --crit-soft:#fbe3e0;
+  --p-vercel:#3d4652;
+  --p-openai:#0d7a76;
+  --p-anthropic:#b4532a;
+  --banner-bg:#1a1d21;
+  --banner-fg:#f4f5f2;
+  --focus:#1f4aa8;
+  --shadow:0 1px 2px rgba(20,24,28,.06),0 6px 20px rgba(20,24,28,.08);
+  --sans:"IBM Plex Sans JP","Hiragino Kaku Gothic ProN","Hiragino Sans","Noto Sans JP","Yu Gothic UI",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121417;
+    --surface:#1b1e22;
+    --surface-2:#22262b;
+    --fg:#e7e9ec;
+    --muted:#9aa3ad;
+    --line:#30353b;
+    --grid:#262a2f;
+    --accent:#86a8ff;
+    --accent-fg:#0f1420;
+    --accent-soft:#1f2a44;
+    --ok:#6fcf8e;
+    --ok-soft:#1b3324;
+    --warn:#f0c062;
+    --warn-soft:#3a2f14;
+    --crit:#ff8a80;
+    --crit-soft:#401d1b;
+    --p-vercel:#c3cad3;
+    --p-openai:#4fd1c5;
+    --p-anthropic:#f0915e;
+    --banner-bg:#f0c062;
+    --banner-fg:#15181b;
+    --focus:#86a8ff;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 20px rgba(0,0,0,.35);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121417;
+  --surface:#1b1e22;
+  --surface-2:#22262b;
+  --fg:#e7e9ec;
+  --muted:#9aa3ad;
+  --line:#30353b;
+  --grid:#262a2f;
+  --accent:#86a8ff;
+  --accent-fg:#0f1420;
+  --accent-soft:#1f2a44;
+  --ok:#6fcf8e;
+  --ok-soft:#1b3324;
+  --warn:#f0c062;
+  --warn-soft:#3a2f14;
+  --crit:#ff8a80;
+  --crit-soft:#401d1b;
+  --p-vercel:#c3cad3;
+  --p-openai:#4fd1c5;
+  --p-anthropic:#f0915e;
+  --banner-bg:#f0c062;
+  --banner-fg:#15181b;
+  --focus:#86a8ff;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 20px rgba(0,0,0,.35);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:15px;line-height:1.6;-webkit-text-size-adjust:100%}
+.wrap{max-width:1240px;margin:0 auto;padding-inline:16px;padding-block:16px 48px}
+h1,h2,h3{line-height:1.3;margin:0}
+h2{font-size:1.15rem}
+h3{font-size:1rem}
+p{margin:.4em 0}
+code,.mono{font-family:var(--mono);font-size:.86em}
+.num{font-variant-numeric:tabular-nums}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* banner + header */
+.banner{background:var(--banner-bg);color:var(--banner-fg);border-radius:6px;padding:10px 14px;display:flex;flex-wrap:wrap;gap:4px 14px;align-items:baseline}
+.banner strong{font-size:1rem}
+.banner span{font-size:.85rem;opacity:.85}
+.top{display:flex;flex-wrap:wrap;gap:10px 20px;align-items:center;justify-content:space-between;margin:14px 0 12px}
+.brand{display:flex;align-items:baseline;gap:10px;min-width:0}
+.brand h1{font-size:1.35rem;letter-spacing:-.01em}
+.brand small{color:var(--muted)}
+.clock{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.clock .t{font-family:var(--mono);font-variant-numeric:tabular-nums;background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:3px 8px}
+.clock .lbl{font-size:.8rem;color:var(--muted)}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--line);background:var(--surface);border-radius:4px;padding:7px 12px;cursor:pointer;min-height:36px;text-align:center}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.danger{background:var(--crit);border-color:var(--crit);color:var(--surface)}
+.btn.ghost{background:transparent}
+.btn.small{min-height:30px;padding:3px 9px;font-size:.85rem}
+.btn:disabled{opacity:.5;cursor:not-allowed;filter:none}
+
+/* chips */
+.chip{display:inline-flex;align-items:center;gap:5px;border-radius:3px;padding:1px 7px;font-size:.78rem;font-weight:500;white-space:nowrap;border:1px solid transparent}
+.chip::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.chip.ok{background:var(--ok-soft);color:var(--ok)}
+.chip.warn{background:var(--warn-soft);color:var(--warn)}
+.chip.crit{background:var(--crit-soft);color:var(--crit)}
+.chip.info{background:var(--accent-soft);color:var(--accent)}
+.chip.mode{background:transparent;border-color:var(--line);color:var(--muted)}
+.chip.mode::before{border-radius:1px}
+
+/* strip */
+.strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:12px}
+.strip-item{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:8px 10px;min-width:0}
+.strip-item .row{display:flex;justify-content:space-between;align-items:center;gap:6px;min-width:0}
+.strip-item .name{font-weight:500;font-size:.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.strip-item .pct{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:.85rem}
+.dot{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px;vertical-align:1px}
+.bar{position:relative;height:6px;background:var(--grid);border-radius:3px;margin-top:6px;overflow:visible}
+.bar > i{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:var(--ok)}
+.bar.warn > i{background:var(--warn)}
+.bar.crit > i{background:var(--crit)}
+.bar > b{position:absolute;left:80%;top:-3px;bottom:-3px;width:2px;background:var(--muted);opacity:.6}
+
+/* stepper */
+.stepper{list-style:none;margin:0 0 14px;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.stepper button{width:100%;height:100%;display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:8px 10px;cursor:pointer;position:relative;min-width:0}
+.stepper .n{font-family:var(--mono);font-size:.75rem;color:var(--muted)}
+.stepper .l{font-size:.85rem;font-weight:500;line-height:1.3}
+.stepper button[aria-current="step"]{border-color:var(--accent);box-shadow:inset 0 -3px 0 var(--accent)}
+.stepper button[aria-current="step"] .n{color:var(--accent)}
+.stepper .flag{position:absolute;top:6px;right:8px;width:8px;height:8px;border-radius:50%;background:var(--crit)}
+
+/* layout */
+.layout{display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
+@media (min-width:1000px){.layout{grid-template-columns:minmax(0,1fr) 360px}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:16px;min-width:0}
+.panel-head{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:baseline;justify-content:space-between;margin-bottom:10px}
+.panel-head p{color:var(--muted);margin:0;font-size:.88rem;flex-basis:100%}
+.panel-foot{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;margin-top:16px;padding-top:12px;border-top:1px solid var(--line)}
+.note{font-size:.82rem;color:var(--muted)}
+.callout{border-left:3px solid var(--accent);background:var(--accent-soft);padding:8px 12px;border-radius:0 4px 4px 0;font-size:.88rem;margin:10px 0}
+.callout.warn{border-color:var(--warn);background:var(--warn-soft)}
+.callout.crit{border-color:var(--crit);background:var(--crit-soft)}
+.callout.ok{border-color:var(--ok);background:var(--ok-soft)}
+
+/* chart */
+.tabs{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px}
+.tabs button{border:1px solid var(--line);background:var(--surface-2);border-radius:4px;padding:4px 10px;cursor:pointer;font-size:.85rem}
+.tabs button[aria-selected="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.chart{width:100%;height:auto;display:block}
+.chart .grid{stroke:var(--grid);stroke-width:1}
+.chart .axis{fill:var(--muted);font-size:11px;font-family:var(--mono)}
+.chart .budget{stroke:var(--crit);stroke-width:1.5;stroke-dasharray:6 4;fill:none}
+.chart .warnl{stroke:var(--warn);stroke-width:1;stroke-dasharray:2 4;fill:none}
+.chart .blabel{fill:var(--crit);font-size:11px;font-family:var(--mono)}
+.chart .wlabel{fill:var(--warn);font-size:11px;font-family:var(--mono)}
+.chart .endlabel{fill:var(--fg);font-size:12px;font-family:var(--mono);font-weight:500}
+.chart .today{stroke:var(--muted);stroke-width:1;opacity:.5}
+.s-vercel{stroke:var(--p-vercel);fill:var(--p-vercel)}
+.s-openai{stroke:var(--p-openai);fill:var(--p-openai)}
+.s-anthropic{stroke:var(--p-anthropic);fill:var(--p-anthropic)}
+.s-total{stroke:var(--accent);fill:var(--accent)}
+.chart .line{fill:none;stroke-width:2.25;stroke-linejoin:round}
+.chart .line.thin{stroke-width:1.5;opacity:.85}
+.chart .area{stroke:none;opacity:.14}
+.chart .end{stroke:var(--surface);stroke-width:2}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.82rem;color:var(--muted);margin-top:4px}
+.legend .sw{display:inline-block;width:12px;height:3px;border-radius:2px;margin-right:5px;vertical-align:3px}
+.legend .sw.dash{background:none;border-top:2px dashed var(--crit);height:0}
+.bg-vercel{background:var(--p-vercel)}.bg-openai{background:var(--p-openai)}.bg-anthropic{background:var(--p-anthropic)}.bg-total{background:var(--accent)}
+
+/* cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin-top:14px}
+.card{border:1px solid var(--line);border-radius:6px;padding:12px;background:var(--surface-2);min-width:0}
+.card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.card-head > div{min-width:0}
+.card .prov{font-weight:700}
+.card .tgt{font-size:.8rem;color:var(--muted);overflow-wrap:anywhere}
+.card .money{display:flex;align-items:baseline;gap:6px;margin-top:8px;flex-wrap:wrap}
+.card .money .big{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:1.35rem;font-weight:500}
+.card .money .of{color:var(--muted);font-family:var(--mono);font-size:.85rem}
+.card .meta{display:flex;justify-content:space-between;gap:6px;flex-wrap:wrap;font-size:.8rem;color:var(--muted);margin-top:6px}
+.card .chips{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+.spark{width:100%;height:38px;display:block;margin-top:8px}
+.spark rect.f{opacity:.85}
+.spark rect.p{opacity:.35}
+.spark rect.e{fill:var(--grid)}
+
+/* forms */
+.form-rows{display:grid;gap:10px}
+.form-row{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;border:1px solid var(--line);border-radius:6px;padding:12px;background:var(--surface-2)}
+@media (min-width:640px){.form-row{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) auto;align-items:start}}
+.form-row label{font-weight:500;display:block}
+.field{display:flex;align-items:center;border:1px solid var(--line);border-radius:4px;background:var(--surface);min-width:0}
+.field:focus-within{outline:2px solid var(--focus);outline-offset:1px}
+.field span{padding:0 8px;color:var(--muted);font-family:var(--mono)}
+.field input{border:0;background:transparent;padding:7px 8px 7px 0;width:100%;min-width:0;font-family:var(--mono);font-variant-numeric:tabular-nums;outline:none}
+.field.invalid{border-color:var(--crit)}
+.err{color:var(--crit);font-size:.82rem;min-height:1.2em}
+.okmsg{color:var(--ok);font-size:.82rem}
+.text-input{border:1px solid var(--line);border-radius:4px;background:var(--surface);padding:7px 10px;width:100%;font-family:var(--mono)}
+select{border:1px solid var(--line);border-radius:4px;background:var(--surface);padding:6px 8px;min-height:36px;max-width:100%}
+
+/* sim */
+.sim-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.sim-box{border:1px solid var(--line);border-radius:6px;padding:12px;background:var(--surface-2);display:flex;flex-direction:column;gap:8px;min-width:0}
+.sim-box .acts{display:flex;flex-wrap:wrap;gap:6px}
+
+/* stop */
+.stop-sec{border:1px solid var(--line);border-radius:6px;padding:12px;margin-top:10px;background:var(--surface-2);min-width:0}
+.stop-sec h3{display:flex;gap:8px;align-items:baseline}
+.stop-sec h3 .k{font-family:var(--mono);color:var(--accent);font-size:.85rem}
+.reqs{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:6px}
+.reqs li{border:1px solid var(--line);background:var(--surface);border-radius:4px;padding:6px 8px;min-width:0}
+.reqs .m{font-family:var(--mono);font-weight:500;font-size:.8rem;color:var(--accent);margin-right:6px}
+.reqs .u{font-family:var(--mono);font-size:.8rem;overflow-wrap:anywhere}
+.reqs pre{margin:4px 0 0;font-family:var(--mono);font-size:.78rem;color:var(--muted);white-space:pre-wrap;overflow-wrap:anywhere}
+.keys{display:grid;gap:4px;margin-top:8px}
+.keys label{display:flex;gap:8px;align-items:center;font-size:.85rem;min-width:0}
+.keys label span{min-width:0;overflow-wrap:anywhere}
+.timer{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:1.25rem;font-weight:500}
+.checks{list-style:none;padding:0;margin:8px 0 0;display:grid;gap:2px;font-size:.85rem}
+.checks li::before{content:"未";display:inline-block;width:1.6em;font-size:.75rem;color:var(--muted)}
+.checks li.y::before{content:"済";color:var(--ok);font-weight:700}
+.row-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
+
+/* undo */
+.undo-card{border:1px solid var(--line);border-radius:6px;padding:12px;background:var(--surface-2);margin-top:10px;min-width:0}
+.undo-card ol{margin:6px 0 0;padding-left:1.3em}
+.undo-card li{margin:4px 0}
+
+/* log */
+.log{position:relative}
+@media (min-width:1000px){.log{position:sticky;top:12px;align-self:start;max-height:calc(100vh - 24px);display:flex;flex-direction:column}}
+.log-list{list-style:none;margin:0;padding:0;overflow:auto;min-height:0}
+@media (max-width:999px){.log-list{max-height:420px}}
+.log-list li{border-top:1px solid var(--line);padding:8px 0;font-size:.84rem;min-width:0}
+.log-list li:first-child{border-top:0}
+.log-list .ts{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:.76rem;color:var(--muted)}
+.log-list .kind{font-size:.72rem;border:1px solid var(--line);border-radius:3px;padding:0 5px;margin-left:6px;color:var(--muted)}
+.log-list .kind.k-notify{color:var(--warn);border-color:var(--warn)}
+.log-list .kind.k-test{color:var(--crit);border-color:var(--crit)}
+.log-list .kind.k-restore{color:var(--ok);border-color:var(--ok)}
+.log-list .kind.k-setting{color:var(--accent);border-color:var(--accent)}
+.log-list .d{margin:4px 0 0;padding:0;list-style:none}
+.log-list .d li{border:0;padding:1px 0;font-family:var(--mono);font-size:.74rem;color:var(--muted);overflow-wrap:anywhere}
+
+/* toasts */
+.toasts{position:fixed;right:16px;bottom:16px;z-index:20;display:flex;flex-direction:column;gap:8px;width:min(380px,calc(100vw - 32px))}
+.toast{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:6px;box-shadow:var(--shadow);padding:10px 12px;font-size:.85rem;animation:tin .25s ease-out}
+.toast.crit{border-left-color:var(--crit)}
+.toast.ok{border-left-color:var(--ok)}
+.toast .th{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.toast .ch{font-size:.72rem;color:var(--muted);font-family:var(--mono)}
+.toast strong{display:block;margin-top:2px}
+.toast p{margin:4px 0 0;color:var(--muted)}
+.toast .x{border:0;background:transparent;cursor:pointer;color:var(--muted);font-size:1rem;line-height:1;padding:4px}
+@keyframes tin{from{transform:translateY(8px);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+@media (max-width:560px){
+  .stepper{grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}
+  .stepper button{padding:6px;align-items:center;text-align:center}
+  .stepper .l{font-size:.7rem}
+  .strip{grid-template-columns:minmax(0,1fr)}
+  .panel{padding:12px}
+}
+</style>
+
+<div class="wrap">
+  <div class="banner" role="note">
+    <strong>デモデータです。実際の外部APIは呼びません。</strong>
+    <span>金額・プロジェクトID・キーID・日時はすべて架空です。このページは外部と一切通信しません(Webフォントも読み込みません)。</span>
+  </div>
+
+  <header class="top">
+    <div class="brand">
+      <h1>Budget Guard</h1>
+      <small>操作デモ(サンプルデータ)</small>
+    </div>
+    <div class="clock">
+      <span class="lbl">シミュレーション時刻</span>
+      <span class="t" id="sim-clock">2026-10-18 14:00</span>
+      <span class="chip mode">全接続 テストモード</span>
+      <button class="btn small ghost" id="theme-toggle" type="button" aria-label="表示テーマを切り替え">テーマ: 自動</button>
+    </div>
+  </header>
+
+  <div class="strip" id="strip" aria-label="接続ごとの消化率"></div>
+
+  <nav aria-label="デモの手順">
+    <ol class="stepper" id="stepper">
+      <li><button type="button" id="step-btn-1" data-step="1"><span class="n">1</span><span class="l">支出を見る</span></button></li>
+      <li><button type="button" id="step-btn-2" data-step="2"><span class="n">2</span><span class="l">予算を設定</span></button></li>
+      <li><button type="button" id="step-btn-3" data-step="3"><span class="n">3</span><span class="l">時間を進める</span></button></li>
+      <li><button type="button" id="step-btn-4" data-step="4"><span class="n">4</span><span class="l">停止の確認</span></button></li>
+      <li><button type="button" id="step-btn-5" data-step="5"><span class="n">5</span><span class="l">元に戻す</span></button></li>
+    </ol>
+  </nav>
+
+  <div class="layout">
+    <main>
+      <!-- STEP 1 -->
+      <section class="panel" id="panel-1" aria-labelledby="h-1">
+        <div class="panel-head">
+          <h2 id="h-1">1. 3つのプロバイダの支出</h2>
+          <p>10月の月初からの累計支出です。各プロバイダは日単位でコストを返すため、今日の値は途中集計です。</p>
+        </div>
+        <div class="tabs" role="tablist" aria-label="グラフの表示対象" id="chart-tabs">
+          <button type="button" role="tab" id="tab-total" data-series="total" aria-selected="true">合計</button>
+          <button type="button" role="tab" id="tab-vercel" data-series="vercel" aria-selected="false">Vercel</button>
+          <button type="button" role="tab" id="tab-openai" data-series="openai" aria-selected="false">OpenAI</button>
+          <button type="button" role="tab" id="tab-anthropic" data-series="anthropic" aria-selected="false">Anthropic</button>
+        </div>
+        <div id="chart-wrap"></div>
+        <div class="legend" id="chart-legend"></div>
+        <p class="note">グラフはこのデモ用の表示です。製品版の利用状況グラフはまだ提供していません(今後予定)。</p>
+        <div class="cards" id="cards"></div>
+        <div class="panel-foot">
+          <span class="note">次は予算を決めます。</span>
+          <button class="btn primary" type="button" data-goto="2" id="next-1">次へ: 予算を設定</button>
+        </div>
+      </section>
+
+      <!-- STEP 2 -->
+      <section class="panel" id="panel-2" aria-labelledby="h-2" hidden>
+        <div class="panel-head">
+          <h2 id="h-2">2. 接続ごとの月間予算</h2>
+          <p>80%でメールとSlackに通知し、100%で停止を実行します(このデモでは全接続がテストモードです)。新しい予算は次の毎時チェックから使われます。</p>
+        </div>
+        <div class="form-rows" id="budget-form"></div>
+        <div class="panel-foot">
+          <button class="btn" type="button" data-goto="1" id="back-2">戻る</button>
+          <button class="btn primary" type="button" data-goto="3" id="next-2">次へ: 時間を進める</button>
+        </div>
+      </section>
+
+      <!-- STEP 3 -->
+      <section class="panel" id="panel-3" aria-labelledby="h-3" hidden>
+        <div class="panel-head">
+          <h2 id="h-3">3. 時間と支出を進める</h2>
+          <p>Budget Guardは1時間ごとに支出を確認します。80%で通知(月1回)、100%でテストモードの停止記録が作られます。</p>
+        </div>
+        <div class="sim-grid">
+          <div class="sim-box">
+            <h3>通常の利用</h3>
+            <p class="note">ふだんのペースで支出が増え、毎時チェックが走ります。</p>
+            <div class="acts">
+              <button class="btn" type="button" id="sim-hour">1時間進める</button>
+              <button class="btn" type="button" id="sim-day">1日進める</button>
+            </div>
+          </div>
+          <div class="sim-box">
+            <h3>スパイク</h3>
+            <p class="note">暴走ループやクローラーを想定し、予算の25%分を一度に加えてから次の毎時チェックを走らせます。</p>
+            <label for="spike-target" class="note">対象の接続</label>
+            <select id="spike-target">
+              <option value="vercel">vercel-acme-web (Vercel)</option>
+              <option value="openai" selected>openai-prod (OpenAI)</option>
+              <option value="anthropic">anthropic-main (Anthropic)</option>
+            </select>
+            <div class="acts">
+              <button class="btn danger" type="button" id="sim-spike">スパイクを起こす</button>
+            </div>
+          </div>
+        </div>
+        <div id="sim-status"></div>
+        <div class="panel-foot">
+          <button class="btn" type="button" data-goto="2" id="back-3">戻る</button>
+          <button class="btn primary" type="button" data-goto="4" id="next-3">次へ: 停止の確認</button>
+        </div>
+      </section>
+
+      <!-- STEP 4 -->
+      <section class="panel" id="panel-4" aria-labelledby="h-4" hidden>
+        <div class="panel-head">
+          <h2 id="h-4">4. 停止の確認手順</h2>
+          <p>「今すぐ停止」とライブへの切り替えには、3つの確認がすべて必要です。このデモではテストモードのまま実行し、何も送信しません。</p>
+        </div>
+        <label for="stop-conn" class="note">停止する接続</label><br>
+        <select id="stop-conn"></select>
+        <div id="stop-context"></div>
+
+        <div class="stop-sec">
+          <h3><span class="k">確認 1</span>送信するリクエストの一覧</h3>
+          <p class="note" id="plan-summary"></p>
+          <div id="key-excludes"></div>
+          <ul class="reqs" id="plan-reqs"></ul>
+        </div>
+
+        <div class="stop-sec">
+          <h3><span class="k">確認 2</span>5分で期限切れになる確認</h3>
+          <p class="note">発行した確認は5分で使えなくなります。発行後にリクエスト一覧(除外キーや予算)が変わった場合も無効になります。</p>
+          <div class="row-actions">
+            <button class="btn" type="button" id="issue-conf">確認を発行</button>
+            <span class="timer" id="conf-timer" aria-live="off">--:--</span>
+            <button class="btn small ghost" type="button" id="expire-conf" disabled>期限切れにする(デモ用)</button>
+          </div>
+          <p class="note" id="conf-status" aria-live="polite">まだ発行していません。</p>
+        </div>
+
+        <div class="stop-sec">
+          <h3><span class="k">確認 3</span>接続ラベルを入力</h3>
+          <label for="confirm-label" class="note">確認のため <code id="label-hint"></code> と正確に入力してください。</label>
+          <input class="text-input" id="confirm-label" type="text" autocomplete="off" spellcheck="false" autocapitalize="off">
+          <p class="note" id="label-status" aria-live="polite"></p>
+        </div>
+
+        <ul class="checks" id="exec-checks" aria-label="実行条件"></ul>
+        <div class="row-actions">
+          <button class="btn danger" type="button" id="execute-stop" disabled>テストモードで実行(送信しません)</button>
+          <button class="btn" type="button" id="go-live" disabled aria-describedby="go-live-note">ライブに切り替え</button>
+        </div>
+        <p class="note" id="go-live-note">ライブへの切り替えはこのデモでは使えません。製品では同じ3つの確認がそろうとライブに切り替わり、以後は100%に達した毎時チェックで停止を実行します。テストモードへ戻すのは確認なしでいつでもできます。</p>
+        <div id="stop-result" aria-live="polite"></div>
+
+        <div class="panel-foot">
+          <button class="btn" type="button" data-goto="3" id="back-4">戻る</button>
+          <button class="btn primary" type="button" data-goto="5" id="next-4">次へ: 元に戻す</button>
+        </div>
+      </section>
+
+      <!-- STEP 5 -->
+      <section class="panel" id="panel-5" aria-labelledby="h-5" hidden>
+        <div class="panel-head">
+          <h2 id="h-5">5. 元に戻す</h2>
+          <p>停止のあとは、プロバイダごとの戻し方を対象のIDつきで表示します。戻す操作はご自身でプロバイダのダッシュボードかAPIから行います(Budget Guard内のワンクリック復旧はまだ提供していません)。</p>
+        </div>
+        <div id="undo-list"></div>
+        <p class="note">新しい月になると、アラートと停止は自動で再び有効になります。停止の解除は自動では行われません。</p>
+        <div class="panel-foot">
+          <button class="btn" type="button" data-goto="4" id="back-5">戻る</button>
+          <button class="btn" type="button" id="demo-reset">デモをリセット</button>
+        </div>
+      </section>
+    </main>
+
+    <aside class="panel log" aria-labelledby="h-log">
+      <div class="panel-head">
+        <h2 id="h-log">アクティビティログ</h2>
+        <p>新しい順。テストモードの記録には「送信していません」と表示します。</p>
+      </div>
+      <ol class="log-list" id="log-list"></ol>
+    </aside>
+  </div>
+</div>
+
+<div class="toasts" id="toasts" aria-live="polite" aria-label="通知"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  var DAYS = 31, START_DAY = 18, START_HOUR = 14, CONF_MS = 5 * 60 * 1000;
+  var ORDER = ['vercel', 'openai', 'anthropic'];
+  var DEFS = {
+    vercel: {
+      provider: 'Vercel', label: 'vercel-acme-web', targetLabel: 'プロジェクト acme-web',
+      targetId: 'prj_demoA1b2C3d4', teamId: 'team_demo7Kq2', budget: 300, mtd: 181.4, seed: 11,
+      shape: function (d, dow) { return (dow === 0 || dow === 6) ? 0.55 : 1; }
+    },
+    openai: {
+      provider: 'OpenAI', label: 'openai-prod', targetLabel: 'プロジェクト',
+      targetId: 'proj_demo8fK2LmQx', budget: 500, mtd: 304.6, seed: 23,
+      shape: function (d) { return 0.7 + d * 0.035; }
+    },
+    anthropic: {
+      provider: 'Anthropic', label: 'anthropic-main', targetLabel: 'ワークスペース',
+      targetId: 'wrkspc_demo3TnV9', budget: 400, mtd: 229.8, seed: 37,
+      shape: function (d) { return 1 + 0.15 * Math.sin(d / 2); },
+      keys: [
+        { id: 'apikey_01DemoA7xQ', name: 'prod-backend' },
+        { id: 'apikey_01DemoB2mR', name: 'batch-jobs' },
+        { id: 'apikey_01DemoC9pL', name: 'ci-tests' },
+        { id: 'apikey_01DemoD4wZ', name: 'oncall-break-glass' }
+      ]
+    }
+  };
+
+  function rng(seed) {
+    return function () {
+      seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+      var t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+
+  var S, simRand, confTicker = null;
+
+  function genDaily(def) {
+    var r = rng(def.seed), arr = [], d, sum = 0;
+    for (d = 0; d < DAYS; d++) arr.push(0);
+    for (d = 0; d < START_DAY; d++) {
+      var dow = (4 + d) % 7; // 2026-10-01 is a Thursday
+      var v = def.shape(d, dow) * (0.8 + r() * 0.4);
+      if (d === START_DAY - 1) v *= START_HOUR / 24;
+      arr[d] = v; sum += v;
+    }
+    var k = def.mtd / sum;
+    for (d = 0; d < START_DAY; d++) arr[d] = Math.round(arr[d] * k * 100) / 100;
+    return arr;
+  }
+
+  function initState() {
+    simRand = rng(99);
+    var conns = {};
+    ORDER.forEach(function (id) {
+      var def = DEFS[id];
+      conns[id] = {
+        id: id, provider: def.provider, label: def.label, targetLabel: def.targetLabel,
+        targetId: def.targetId, teamId: def.teamId || null, budget: def.budget,
+        daily: genDaily(def), rate: def.mtd / (START_DAY - 1 + START_HOUR / 24),
+        keys: def.keys || null, excluded: {}, alert80: null, hit100: null,
+        stopState: 'none', stopRecord: null, restoredAt: null
+      };
+    });
+    S = {
+      day: START_DAY, hour: START_HOUR, min: 0, step: 1, series: 'total',
+      conns: conns, log: [], sel: 'openai', conf: null, attention: null, lastResult: null
+    };
+    addLog('2026-10-01 00:00', 'check', '新しい月になりました。3接続のアラートと停止を再び有効にしました。');
+    addLog('2026-10-06 09:12', 'setting', 'vercel-acme-web: 停止対象にプロジェクト acme-web (prj_demoA1b2C3d4) を選択。モード: テスト');
+    addLog('2026-10-06 09:15', 'setting', 'anthropic-main: Slack通知の送信先を #alerts に設定(incoming webhook)');
+    addLog('2026-10-18 14:00', 'check', '毎時チェック完了: 3接続とも80%未満。');
+  }
+
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function nowTs() { return '2026-10-' + pad(S.day) + ' ' + pad(S.hour) + ':' + pad(S.min); }
+  function bump() { if (S.min < 58) S.min += 1; }
+  function money(n) { return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function spent(c) { return c.daily.reduce(function (a, b) { return a + b; }, 0); }
+  function pct(c) { return spent(c) / c.budget; }
+  function pctText(p) { return Math.floor(p * 100) + '%'; }
+  function $(id) { return document.getElementById(id); }
+
+  function addLog(ts, kind, text, details) {
+    S.log.unshift({ ts: ts, kind: kind, text: text, details: details || null });
+  }
+
+  function statusOf(c) {
+    var p = pct(c);
+    if (c.stopState === 'restored') return { cls: 'ok', t: '復旧を記録' };
+    if (c.stopState === 'tested') return { cls: 'info', t: 'テスト停止を記録' };
+    if (p >= 1) return { cls: 'crit', t: '予算超過' };
+    if (p >= 0.8) return { cls: 'warn', t: '80%超え' };
+    return { cls: 'ok', t: '正常' };
+  }
+  function barCls(p) { return p >= 1 ? 'crit' : p >= 0.8 ? 'warn' : ''; }
+
+  /* ---------- plan (mirrors lib/guard/providers.ts) ---------- */
+  function plan(c) {
+    if (c.id === 'vercel') {
+      var q = '?teamId=' + c.teamId;
+      return {
+        summary: 'Vercel プロジェクト acme-web (' + c.targetId + ') を一時停止します。本番デプロイは訪問者に 503 DEPLOYMENT_PAUSED を返します。',
+        requests: [{ method: 'POST', url: 'https://api.vercel.com/v1/projects/' + c.targetId + '/pause' + q }],
+        undo: [
+          'Vercel ダッシュボードでプロジェクト acme-web の一時停止を解除する。またはAPIで次を送る:',
+          { method: 'POST', url: 'https://api.vercel.com/v1/projects/' + c.targetId + '/unpause' + q },
+          'Vercelによると、本番は数分以内に戻ります。再デプロイは不要です。'
+        ]
+      };
+    }
+    if (c.id === 'openai') {
+      var url = 'https://api.openai.com/v1/organization/projects/' + c.targetId + '/spend_limit';
+      return {
+        summary: 'OpenAI プロジェクト ' + c.targetId + ' に、予算と同じ ' + money(c.budget) + ' の月間ハードリミットを設定します。上限が効くと新しいリクエストは 429 になります。',
+        requests: [{ method: 'POST', url: url, body: { threshold_amount: Math.max(1, Math.round(c.budget * 100)), currency: 'USD', interval: 'month' } }],
+        undo: [
+          'スペンドリミットを削除する(または引き上げる)。APIで次を送る:',
+          { method: 'DELETE', url: url },
+          'OpenAIによると、上限の反映は即時ではありません。'
+        ]
+      };
+    }
+    var ids = c.keys.filter(function (k) { return !c.excluded[k.id]; }).map(function (k) { return k.id; });
+    return {
+      summary: 'Anthropic ワークスペース ' + c.targetId + ' の有効なAPIキー ' + ids.length + '件を inactive にします。除外したキーは変更しません。',
+      requests: ids.map(function (id) { return { method: 'POST', url: 'https://api.anthropic.com/v1/organizations/api_keys/' + id, body: { status: 'inactive' } }; }),
+      undo: ['変更したキーを active に戻す。キーごとに次を送る:'].concat(ids.map(function (id) {
+        return { method: 'POST', url: 'https://api.anthropic.com/v1/organizations/api_keys/' + id, body: { status: 'active' } };
+      })).concat(['対象キーID: ' + (ids.join(', ') || '(なし)')]),
+      keyIds: ids
+    };
+  }
+  function planHash(c) { return JSON.stringify(plan(c).requests); }
+  function reqLine(r) { return r.method + ' ' + r.url + (r.body ? ' ' + JSON.stringify(r.body) : ''); }
+
+  /* ---------- simulation ---------- */
+  function atEnd() { return S.day === DAYS && S.hour === 23; }
+
+  function advanceHour() {
+    if (atEnd()) { toast('ok', 'デモ', '10月の最終時刻です', '「デモをリセット」で最初からやり直せます。'); return false; }
+    ORDER.forEach(function (id) {
+      var c = S.conns[id];
+      c.daily[S.day - 1] += c.rate / 24 * (0.5 + simRand());
+    });
+    S.hour += 1; S.min = 0;
+    if (S.hour === 24) { S.hour = 0; S.day += 1; }
+    runCheck();
+    return true;
+  }
+
+  function runCheck() {
+    var ts = nowTs();
+    ORDER.forEach(function (id) {
+      var c = S.conns[id], p = pct(c);
+      if (p >= 0.8 && !c.alert80) {
+        c.alert80 = ts;
+        addLog(ts, 'notify', c.label + ' (' + c.provider + ') が予算の ' + pctText(p) + ' に達しました。メールとSlackに通知しました(モック)。この月はもう通知しません。');
+        toast('warn', 'メール + Slack #alerts(モック)', '[Budget Guard] ' + c.label + ' が予算の80%を超えました',
+          '今月の支出 ' + money(spent(c)) + ' / 予算 ' + money(c.budget) + '(' + pctText(p) + ')。100%で停止をテストモードで記録します。');
+      }
+      if (p >= 1 && !c.hit100) {
+        c.hit100 = ts;
+        var pl = plan(c);
+        addLog(ts, 'test', c.label + ' が予算の100%に達しました。テストモードのため、送信予定のリクエスト ' + pl.requests.length + '件を記録しました。送信していません。',
+          pl.requests.map(function (r) { return '送信予定: ' + reqLine(r); }));
+        toast('crit', 'メール + Slack #alerts(モック)', '[Budget Guard] ' + c.label + ' が予算の100%に達しました',
+          'テストモードのため何も停止していません。送信予定のリクエストをログに記録しました。');
+        S.attention = id;
+        if (c.stopState === 'none') S.sel = id;
+      }
+    });
+  }
+
+  /* ---------- rendering: overview ---------- */
+  function renderClock() { $('sim-clock').textContent = nowTs(); }
+
+  function renderStrip() {
+    $('strip').innerHTML = ORDER.map(function (id) {
+      var c = S.conns[id], p = pct(c), st = statusOf(c);
+      return '<div class="strip-item"><div class="row"><span class="name"><span class="dot bg-' + id + '"></span>' + esc(c.label) + '</span>' +
+        '<span class="chip ' + st.cls + '">' + st.t + '</span></div>' +
+        '<div class="row"><span class="note num">' + money(spent(c)) + ' / ' + money(c.budget) + '</span><span class="pct">' + pctText(p) + '</span></div>' +
+        '<div class="bar ' + barCls(p) + '"><i style="width:' + Math.min(100, p * 100).toFixed(1) + '%"></i><b></b></div></div>';
+    }).join('');
+  }
+
+  function cumulative(arr, upto) {
+    var out = [], s = 0;
+    for (var i = 0; i < upto; i++) { s += arr[i]; out.push(s); }
+    return out;
+  }
+
+  function renderChart() {
+    var W = 640, H = 250, L = 52, R = 70, T = 14, B = 28;
+    var pw = W - L - R, ph = H - T - B, upto = S.day;
+    var sel = S.series, series = [], budget;
+    if (sel === 'total') {
+      var tot = [];
+      for (var i = 0; i < DAYS; i++) tot.push(ORDER.reduce(function (a, id) { return a + S.conns[id].daily[i]; }, 0));
+      series.push({ id: 'total', vals: cumulative(tot, upto), main: true });
+      ORDER.forEach(function (id) { series.push({ id: id, vals: cumulative(S.conns[id].daily, upto), main: false }); });
+      budget = ORDER.reduce(function (a, id) { return a + S.conns[id].budget; }, 0);
+    } else {
+      series.push({ id: sel, vals: cumulative(S.conns[sel].daily, upto), main: true });
+      budget = S.conns[sel].budget;
+    }
+    var maxV = Math.max(budget * 1.12, series[0].vals[upto - 1] * 1.06);
+    var step = niceStep(maxV / 4);
+    maxV = Math.ceil(maxV / step) * step;
+    function x(d) { return L + (d - 1) / (DAYS - 1) * pw; }
+    function y(v) { return T + ph - v / maxV * ph; }
+    // x position for a day's cumulative value: today's partial uses the hour fraction
+    function xAt(i) { return i === upto - 1 ? x(1 + (upto - 1 - 1) + Math.max(S.hour, 1) / 24) : x(i + 1); }
+
+    var g = '';
+    for (var v = 0; v <= maxV + 0.001; v += step) {
+      g += '<line class="grid" x1="' + L + '" x2="' + (L + pw) + '" y1="' + y(v).toFixed(1) + '" y2="' + y(v).toFixed(1) + '"/>';
+      g += '<text class="axis" x="' + (L - 6) + '" y="' + (y(v) + 4).toFixed(1) + '" text-anchor="end">$' + Math.round(v).toLocaleString('en-US') + '</text>';
+    }
+    [1, 8, 15, 22, 31].forEach(function (d) {
+      g += '<text class="axis" x="' + x(d).toFixed(1) + '" y="' + (H - 8) + '" text-anchor="middle">10/' + d + '</text>';
+    });
+    g += '<line class="today" x1="' + xAt(upto - 1).toFixed(1) + '" x2="' + xAt(upto - 1).toFixed(1) + '" y1="' + T + '" y2="' + (T + ph) + '"/>';
+    // budget + 80% lines
+    g += '<line class="warnl" x1="' + L + '" x2="' + (L + pw) + '" y1="' + y(budget * 0.8).toFixed(1) + '" y2="' + y(budget * 0.8).toFixed(1) + '"/>';
+    g += '<text class="wlabel" x="' + (L + pw + 4) + '" y="' + (y(budget * 0.8) + 4).toFixed(1) + '">80%</text>';
+    g += '<line class="budget" x1="' + L + '" x2="' + (L + pw) + '" y1="' + y(budget).toFixed(1) + '" y2="' + y(budget).toFixed(1) + '"/>';
+    g += '<text class="blabel" x="' + (L + pw + 4) + '" y="' + (y(budget) + 4).toFixed(1) + '">予算</text>';
+
+    var lines = '', area = '', ends = '';
+    series.slice().reverse().forEach(function (s) {
+      var pts = s.vals.map(function (val, i) { return xAt(i).toFixed(1) + ',' + y(val).toFixed(1); });
+      var cls = 's-' + s.id;
+      if (s.main) {
+        area = '<path class="area ' + cls + '" d="M' + x(1).toFixed(1) + ',' + y(0).toFixed(1) + ' L' + pts.join(' L') + ' L' + xAt(upto - 1).toFixed(1) + ',' + y(0).toFixed(1) + ' Z"/>';
+        lines += '<polyline class="line ' + cls + '" points="' + pts.join(' ') + '"/>';
+        var ev = s.vals[upto - 1], ex = xAt(upto - 1), ey = y(ev);
+        ends += '<circle class="end ' + cls + '" cx="' + ex.toFixed(1) + '" cy="' + ey.toFixed(1) + '" r="5"/>';
+        var lx = ex + 8, anchor = 'start';
+        if (lx > L + pw - 30) { lx = ex - 8; anchor = 'end'; }
+        ends += '<text class="endlabel" x="' + lx.toFixed(1) + '" y="' + (ey - 9).toFixed(1) + '" text-anchor="' + anchor + '">' + money(ev) + '</text>';
+      } else {
+        lines += '<polyline class="line thin ' + cls + '" points="' + pts.join(' ') + '"/>';
+      }
+    });
+    var label = sel === 'total' ? '3接続の合計' : S.conns[sel].label;
+    $('chart-wrap').innerHTML = '<svg class="chart" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc(label) + ' の10月の累計支出。現在 ' + money(series[0].vals[upto - 1]) + '、予算 ' + money(budget) + '">' + g + area + lines + ends + '</svg>';
+
+    var lg = '';
+    series.forEach(function (s) {
+      var name = s.id === 'total' ? '合計' : S.conns[s.id].provider;
+      lg += '<span><span class="sw bg-' + s.id + '"></span>' + name + ' ' + '<span class="num">' + money(s.vals[upto - 1]) + '</span></span>';
+    });
+    lg += '<span><span class="sw dash"></span>予算 <span class="num">' + money(budget) + '</span></span>';
+    $('chart-legend').innerHTML = lg;
+    Array.prototype.forEach.call(document.querySelectorAll('#chart-tabs button'), function (b) {
+      b.setAttribute('aria-selected', String(b.getAttribute('data-series') === sel));
+    });
+  }
+  function niceStep(raw) {
+    var p = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / p;
+    return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * p;
+  }
+
+  function sparkline(c) {
+    var W = 248, H = 38, bw = W / DAYS, maxV = 0, i, out = '';
+    for (i = 0; i < S.day; i++) maxV = Math.max(maxV, c.daily[i]);
+    for (i = 0; i < DAYS; i++) {
+      var h, cls, title = '';
+      if (i < S.day) {
+        h = Math.max(1.5, c.daily[i] / maxV * (H - 2));
+        cls = (i === S.day - 1) ? 'p s-' + c.id : 'f s-' + c.id;
+        title = '<title>10/' + (i + 1) + ' ' + money(c.daily[i]) + (i === S.day - 1 ? '(途中)' : '') + '</title>';
+      } else { h = 2; cls = 'e'; }
+      out += '<rect class="' + cls + '" x="' + (i * bw + 0.6).toFixed(2) + '" y="' + (H - h).toFixed(2) + '" width="' + (bw - 1.2).toFixed(2) + '" height="' + h.toFixed(2) + '">' + title + '</rect>';
+    }
+    return '<svg class="spark" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" role="img" aria-label="' + esc(c.label) + ' の日別支出">' + out + '</svg>';
+  }
+
+  function renderCards() {
+    $('cards').innerHTML = ORDER.map(function (id) {
+      var c = S.conns[id], p = pct(c), st = statusOf(c);
+      var today = c.daily[S.day - 1];
+      return '<article class="card"><div class="card-head"><div><div class="prov"><span class="dot bg-' + id + '"></span>' + c.provider + '</div>' +
+        '<div class="tgt">' + esc(c.label) + ' · ' + esc(c.targetLabel) + ' <code>' + esc(c.targetId) + '</code></div></div>' +
+        '<div class="chips"><span class="chip ' + st.cls + '">' + st.t + '</span><span class="chip mode">テストモード</span></div></div>' +
+        '<div class="money"><span class="big">' + money(spent(c)) + '</span><span class="of">/ ' + money(c.budget) + '</span></div>' +
+        '<div class="bar ' + barCls(p) + '"><i style="width:' + Math.min(100, p * 100).toFixed(1) + '%"></i><b></b></div>' +
+        '<div class="meta"><span>使用率 <strong class="num">' + pctText(p) + '</strong></span><span class="num">今日(途中) ' + money(today) + '</span></div>' +
+        sparkline(c) +
+        '<div class="meta"><span>10/1</span><span>日別支出</span><span>10/31</span></div></article>';
+    }).join('');
+  }
+
+  function renderLog() {
+    var names = { notify: '通知', test: 'テスト', setting: '設定', check: 'チェック', restore: '復旧', sim: 'デモ操作' };
+    $('log-list').innerHTML = S.log.map(function (e) {
+      return '<li><span class="ts">' + esc(e.ts) + '</span><span class="kind k-' + e.kind + '">' + names[e.kind] + '</span>' +
+        '<div>' + esc(e.text) + '</div>' +
+        (e.details ? '<ul class="d">' + e.details.map(function (d) { return '<li>' + esc(d) + '</li>'; }).join('') + '</ul>' : '') + '</li>';
+    }).join('');
+  }
+
+  function renderStepper() {
+    Array.prototype.forEach.call(document.querySelectorAll('#stepper button'), function (b) {
+      var n = +b.getAttribute('data-step');
+      if (n === S.step) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current');
+      var flag = b.querySelector('.flag');
+      var need = n === 4 && ORDER.some(function (id) { var c = S.conns[id]; return c.hit100 && c.stopState === 'none'; });
+      if (need && !flag) { flag = document.createElement('span'); flag.className = 'flag'; flag.setAttribute('aria-hidden', 'true'); b.appendChild(flag); }
+      if (!need && flag) flag.remove();
+    });
+    for (var i = 1; i <= 5; i++) $('panel-' + i).hidden = (i !== S.step);
+  }
+
+  function renderSimStatus() {
+    var html = '';
+    var hit = ORDER.filter(function (id) { var c = S.conns[id]; return c.hit100 && c.stopState === 'none'; });
+    var warn = ORDER.filter(function (id) { var c = S.conns[id]; return c.alert80 && !c.hit100; });
+    if (hit.length) {
+      html += '<div class="callout crit"><strong>' + hit.map(function (id) { return esc(S.conns[id].label); }).join('、') + ' が100%に達しました。</strong> テストモードなので停止はしておらず、送信予定のリクエストだけを記録しています。支出はこのあとも増え続けます。<div class="row-actions"><button class="btn primary small" type="button" data-goto="4" id="sim-goto-4">手順4: 停止の確認へ</button></div></div>';
+    }
+    if (warn.length) {
+      html += '<div class="callout warn">' + warn.map(function (id) { var c = S.conns[id]; return esc(c.label) + ' は ' + c.alert80 + ' に80%通知済み'; }).join('。') + '。80%通知は月1回だけ送ります。</div>';
+    }
+    if (!hit.length && !warn.length) {
+      html += '<div class="callout">いまは3接続とも80%未満です。「スパイクを起こす」を2回押すと、80%通知と100%到達を続けて確認できます。</div>';
+    }
+    $('sim-status').innerHTML = html;
+    $('sim-hour').disabled = $('sim-day').disabled = $('sim-spike').disabled = atEnd();
+  }
+
+  /* ---------- step 2: budgets ---------- */
+  function renderBudgetForm() {
+    $('budget-form').innerHTML = ORDER.map(function (id) {
+      var c = S.conns[id];
+      return '<div class="form-row">' +
+        '<div><label for="budget-' + id + '"><span class="dot bg-' + id + '"></span>' + esc(c.label) + '</label>' +
+        '<div class="note">' + c.provider + ' · 今月の支出 <span class="num">' + money(spent(c)) + '</span></div></div>' +
+        '<div><div class="field" id="field-' + id + '"><span>$</span><input id="budget-' + id + '" type="text" inputmode="decimal" value="' + c.budget.toFixed(2) + '" aria-describedby="err-' + id + ' prev-' + id + '"></div>' +
+        '<div class="note num" id="prev-' + id + '"></div><div class="err" id="err-' + id + '" role="alert"></div></div>' +
+        '<div><button class="btn primary" type="button" id="save-' + id + '" data-save="' + id + '">保存</button></div></div>';
+    }).join('');
+    ORDER.forEach(function (id) { updatePreview(id); });
+  }
+
+  function validateBudget(raw) {
+    var s = String(raw).trim().replace(/,/g, '');
+    if (s === '') return { err: '金額を入力してください。' };
+    if (!/^\d+(\.\d+)?$/.test(s)) return { err: '数字で入力してください(例: 350 または 350.50)。' };
+    if (/\.\d{3,}$/.test(s)) return { err: '小数点以下は2桁までです。' };
+    var v = parseFloat(s);
+    if (v < 1) return { err: '1ドル以上にしてください。' };
+    if (v > 100000) return { err: '100,000ドル以下にしてください。' };
+    return { v: Math.round(v * 100) / 100 };
+  }
+
+  function updatePreview(id) {
+    var c = S.conns[id], r = validateBudget($('budget-' + id).value);
+    $('prev-' + id).textContent = r.err ? '' : 'この予算だと現在 ' + pctText(spent(c) / r.v) + '・80%は ' + money(r.v * 0.8);
+  }
+
+  function saveBudget(id) {
+    var c = S.conns[id], inp = $('budget-' + id), r = validateBudget(inp.value);
+    var field = $('field-' + id), err = $('err-' + id);
+    if (r.err) {
+      field.classList.add('invalid'); inp.setAttribute('aria-invalid', 'true'); err.textContent = r.err; err.className = 'err';
+      return;
+    }
+    field.classList.remove('invalid'); inp.removeAttribute('aria-invalid');
+    if (r.v === c.budget) { err.className = 'okmsg'; err.textContent = '変更はありません。'; return; }
+    var old = c.budget;
+    c.budget = r.v; bump();
+    addLog(nowTs(), 'setting', c.label + ': 月間予算を ' + money(old) + ' から ' + money(r.v) + ' に変更しました。次の毎時チェックから適用します。');
+    inp.value = r.v.toFixed(2);
+    err.className = 'okmsg'; err.textContent = '保存しました。次の毎時チェックから新しい予算で判定します。';
+    renderAll(false);
+  }
+
+  /* ---------- step 4: stop confirmation ---------- */
+  function renderStopSelect() {
+    $('stop-conn').innerHTML = ORDER.map(function (id) {
+      var c = S.conns[id];
+      return '<option value="' + id + '"' + (id === S.sel ? ' selected' : '') + '>' + esc(c.label) + ' (' + c.provider + ') — ' + pctText(pct(c)) + '</option>';
+    }).join('');
+  }
+
+  function renderStopPlan() {
+    var c = S.conns[S.sel], pl = plan(c), ctx;
+    if (c.hit100) ctx = '<div class="callout crit">' + esc(c.label) + ' は ' + c.hit100 + ' に100%に達し、テストモードで送信予定のリクエストを記録済みです。</div>';
+    else ctx = '<div class="callout">' + esc(c.label) + ' はまだ ' + pctText(pct(c)) + ' です。手動の「今すぐ停止」でも同じ確認が必要です。</div>';
+    if (c.stopState === 'tested') ctx += '<div class="callout ok">この接続は ' + c.stopRecord.ts + ' にテスト実行済みです(送信していません)。もう一度試すこともできます。</div>';
+    $('stop-context').innerHTML = ctx;
+    $('plan-summary').textContent = pl.summary;
+    $('label-hint').textContent = c.label;
+    if (c.keys) {
+      $('key-excludes').innerHTML = '<p class="note" style="margin-top:8px">除外するキー(チェックしたキーは inactive にしません)</p><div class="keys">' +
+        c.keys.map(function (k) {
+          return '<label for="exclude-' + k.id + '"><input type="checkbox" id="exclude-' + k.id + '" data-key="' + k.id + '"' + (c.excluded[k.id] ? ' checked' : '') + '><span><code>' + k.id + '</code> ' + esc(k.name) + '</span></label>';
+        }).join('') + '</div>';
+    } else {
+      $('key-excludes').innerHTML = '';
+    }
+    renderPlanReqs();
+  }
+
+  function renderPlanReqs() {
+    var pl = plan(S.conns[S.sel]);
+    $('plan-reqs').innerHTML = pl.requests.length ? pl.requests.map(function (r) {
+      return '<li><span class="m">' + r.method + '</span><span class="u">' + esc(r.url) + '</span>' + (r.body ? '<pre>' + esc(JSON.stringify(r.body)) + '</pre>' : '') + '</li>';
+    }).join('') : '<li class="note">送信するリクエストがありません。すべてのキーが除外されています。</li>';
+  }
+
+  function confState() {
+    var c = S.conns[S.sel], conf = S.conf;
+    if (!conf || conf.connId !== S.sel) return { ok: false, msg: 'まだ発行していません。' };
+    if (Date.now() >= conf.expires) return { ok: false, msg: '期限切れです。もう一度発行してください。', expired: true };
+    if (conf.hash !== planHash(c)) return { ok: false, msg: 'リクエスト一覧が発行後に変わったため、この確認は無効です。もう一度発行してください。', changed: true };
+    return { ok: true, msg: '有効です。期限までに実行してください。' };
+  }
+
+  function updateExec() {
+    var c = S.conns[S.sel], pl = plan(c), cs = confState();
+    var labelOk = $('confirm-label').value === c.label;
+    var hasReqs = pl.requests.length > 0;
+    var rem = S.conf && S.conf.connId === S.sel ? Math.max(0, S.conf.expires - Date.now()) : 0;
+    var sec = Math.ceil(rem / 1000);
+    $('conf-timer').textContent = (S.conf && S.conf.connId === S.sel) ? Math.floor(sec / 60) + ':' + pad(sec % 60) : '--:--';
+    $('conf-status').textContent = cs.msg;
+    $('expire-conf').disabled = !cs.ok;
+    var v = $('confirm-label').value;
+    $('label-status').textContent = v === '' ? '' : labelOk ? 'ラベルが一致しました。' : '一致していません(大文字・小文字やスペースも区別します)。';
+    $('exec-checks').innerHTML =
+      '<li class="' + (hasReqs ? 'y' : '') + '">送信するリクエストの一覧を表示</li>' +
+      '<li class="' + (cs.ok ? 'y' : '') + '">期限内の確認(5分)</li>' +
+      '<li class="' + (labelOk ? 'y' : '') + '">接続ラベルの入力が一致</li>';
+    $('execute-stop').disabled = !(hasReqs && cs.ok && labelOk);
+    $('issue-conf').disabled = !hasReqs;
+  }
+
+  function issueConf() {
+    S.conf = { connId: S.sel, hash: planHash(S.conns[S.sel]), expires: Date.now() + CONF_MS };
+    updateExec();
+    startTicker();
+  }
+  function startTicker() {
+    if (confTicker) return;
+    confTicker = setInterval(function () {
+      if (!S.conf) { clearInterval(confTicker); confTicker = null; return; }
+      updateExec();
+    }, 1000);
+  }
+
+  function executeStop() {
+    var c = S.conns[S.sel], pl = plan(c);
+    if (!confState().ok || $('confirm-label').value !== c.label || !pl.requests.length) { updateExec(); return; }
+    bump();
+    var ts = nowTs();
+    addLog(ts, 'test', c.label + ': 「今すぐ停止」をテストモードで実行しました。' + pl.requests.length + '件のリクエストを記録しました。送信していません。',
+      pl.requests.map(function (r) { return '送信予定(未送信): ' + reqLine(r); }));
+    c.stopState = 'tested';
+    c.stopRecord = { ts: ts, requests: pl.requests, undo: pl.undo, keyIds: pl.keyIds || null };
+    S.conf = null;
+    $('confirm-label').value = '';
+    $('stop-result').innerHTML = '<div class="callout ok"><strong>テストモードで実行しました。送信していません。</strong> ' + esc(c.provider) +
+      ' 側では何も変わっていません。記録したリクエスト ' + pl.requests.length + '件はアクティビティログで確認できます。' +
+      '<div class="row-actions"><button class="btn primary small" type="button" data-goto="5" id="result-goto-5">手順5: 戻し方を見る</button></div></div>';
+    toast('ok', 'テストモード', c.label + ' の停止をテスト実行しました', '送信していません。戻し方は手順5に表示しています。');
+    renderAll(false);
+    renderStopPlan();
+    updateExec();
+  }
+
+  /* ---------- step 5: undo ---------- */
+  function renderUndo() {
+    $('undo-list').innerHTML = ORDER.map(function (id) {
+      var c = S.conns[id], st = statusOf(c);
+      var rec = c.stopRecord, steps = rec ? rec.undo : plan(c).undo, head, btn = '';
+      if (c.stopState === 'tested') {
+        head = '<div class="callout">' + rec.ts + ' にテスト実行しました。送信していないため、' + c.provider + ' 側では戻す操作は不要です。ライブで停止した場合は、次の手順で戻します。</div>';
+        btn = '<div class="row-actions"><button class="btn primary" type="button" id="restore-' + id + '" data-restore="' + id + '">戻したことを記録(デモ)</button><span class="note">Budget Guardはプロバイダに何も送信しません。</span></div>';
+      } else if (c.stopState === 'restored') {
+        head = '<div class="callout ok">' + c.restoredAt + ' に元に戻したことを記録しました。</div>';
+      } else {
+        head = '<p class="note">まだ停止を実行していません。手順4で実行すると、ここに対象IDつきの戻し方が表示されます。参考として、停止した場合の手順を示します。</p>';
+      }
+      var li = [];
+      steps.forEach(function (s) {
+        if (typeof s === 'string') { li.push(esc(s)); }
+        else { li.push('<ul class="reqs"><li><span class="m">' + s.method + '</span><span class="u">' + esc(s.url) + '</span>' + (s.body ? '<pre>' + esc(JSON.stringify(s.body)) + '</pre>' : '') + '</li></ul>'); }
+      });
+      // merge request blocks into the preceding text item
+      var merged = [];
+      li.forEach(function (h) { if (h.indexOf('<ul class="reqs">') === 0 && merged.length) merged[merged.length - 1] += h; else merged.push(h); });
+      return '<div class="undo-card"><div class="card-head"><div><h3><span class="dot bg-' + id + '"></span>' + c.provider + ' · ' + esc(c.label) + '</h3></div><span class="chip ' + st.cls + '">' + st.t + '</span></div>' +
+        head + '<ol>' + merged.map(function (h) { return '<li>' + h + '</li>'; }).join('') + '</ol>' + btn + '</div>';
+    }).join('');
+  }
+
+  function markRestored(id) {
+    var c = S.conns[id];
+    if (c.stopState !== 'tested') return;
+    bump();
+    c.stopState = 'restored'; c.restoredAt = nowTs();
+    var what = id === 'vercel' ? 'プロジェクト acme-web の一時停止を解除' : id === 'openai' ? 'スペンドリミットを削除' : 'キー ' + (c.stopRecord.keyIds || []).join(', ') + ' を active に戻す';
+    addLog(nowTs(), 'restore', c.label + ': 「' + what + '」を行ったことを記録しました(デモ)。Budget Guardはプロバイダに何も送信していません。');
+    renderAll(false);
+  }
+
+  /* ---------- toasts ---------- */
+  function toast(kind, channel, title, body) {
+    var el = document.createElement('div');
+    el.className = 'toast ' + kind;
+    el.setAttribute('role', 'status');
+    el.innerHTML = '<div class="th"><span class="ch">' + esc(channel) + '</span><button class="x" type="button" aria-label="閉じる">×</button></div><strong>' + esc(title) + '</strong><p>' + esc(body) + '</p>';
+    el.querySelector('.x').addEventListener('click', function () { el.remove(); });
+    var box = $('toasts');
+    box.appendChild(el);
+    while (box.children.length > 3) box.removeChild(box.firstChild);
+    setTimeout(function () { if (el.parentNode) el.remove(); }, 9000);
+  }
+
+  /* ---------- orchestration ---------- */
+  function renderAll(full) {
+    renderClock(); renderStrip(); renderChart(); renderCards(); renderLog(); renderStepper(); renderSimStatus(); renderUndo();
+    if (full) { renderBudgetForm(); renderStopSelect(); renderStopPlan(); updateExec(); $('stop-result').innerHTML = ''; }
+    else { renderStopSelect(); updateBudgetSpent(); }
+  }
+  function updateBudgetSpent() {
+    ORDER.forEach(function (id) { if ($('budget-' + id)) updatePreview(id); });
+  }
+
+  function goto(n) {
+    S.step = n;
+    if (n === 4) { renderStopSelect(); renderStopPlan(); updateExec(); }
+    if (n === 2) renderBudgetForm();
+    renderStepper();
+    var p = $('panel-' + n);
+    if (p && p.getBoundingClientRect().top < 0) p.scrollIntoView({ block: 'start' });
+  }
+
+  function bind() {
+    document.addEventListener('click', function (e) {
+      var t = e.target.closest('button');
+      if (!t) return;
+      if (t.hasAttribute('data-step')) return goto(+t.getAttribute('data-step'));
+      if (t.hasAttribute('data-goto')) return goto(+t.getAttribute('data-goto'));
+      if (t.hasAttribute('data-series')) { S.series = t.getAttribute('data-series'); return renderChart(); }
+      if (t.hasAttribute('data-save')) return saveBudget(t.getAttribute('data-save'));
+      if (t.hasAttribute('data-restore')) return markRestored(t.getAttribute('data-restore'));
+    });
+    $('budget-form').addEventListener('input', function (e) {
+      if (e.target.id && e.target.id.indexOf('budget-') === 0) updatePreview(e.target.id.slice(7));
+    });
+    $('budget-form').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && e.target.id && e.target.id.indexOf('budget-') === 0) saveBudget(e.target.id.slice(7));
+    });
+    $('sim-hour').addEventListener('click', function () { advanceHour(); renderAll(false); });
+    $('sim-day').addEventListener('click', function () {
+      for (var i = 0; i < 24; i++) if (!advanceHour()) break;
+      renderAll(false);
+    });
+    $('sim-spike').addEventListener('click', function () {
+      if (atEnd()) return;
+      var id = $('spike-target').value, c = S.conns[id], amt = Math.round(c.budget * 0.25 * 100) / 100;
+      c.daily[S.day - 1] += amt; bump();
+      addLog(nowTs(), 'sim', 'スパイク(デモ): ' + c.label + ' に ' + money(amt) + ' の利用を追加。次の毎時チェックで検知します。');
+      advanceHour();
+      renderAll(false);
+    });
+    $('stop-conn').addEventListener('change', function (e) {
+      S.sel = e.target.value; $('confirm-label').value = ''; $('stop-result').innerHTML = '';
+      renderStopPlan(); updateExec();
+    });
+    $('key-excludes').addEventListener('change', function (e) {
+      var k = e.target.getAttribute('data-key');
+      if (!k) return;
+      var c = S.conns[S.sel];
+      if (e.target.checked) c.excluded[k] = true; else delete c.excluded[k];
+      renderPlanReqs(); updateExec(); renderUndo();
+    });
+    $('confirm-label').addEventListener('input', updateExec);
+    $('issue-conf').addEventListener('click', issueConf);
+    $('expire-conf').addEventListener('click', function () { if (S.conf) { S.conf.expires = Date.now(); updateExec(); } });
+    $('execute-stop').addEventListener('click', executeStop);
+    $('demo-reset').addEventListener('click', function () {
+      if (confTicker) { clearInterval(confTicker); confTicker = null; }
+      $('toasts').innerHTML = '';
+      initState(); $('confirm-label').value = ''; renderAll(true); goto(1);
+      window.scrollTo(0, 0);
+    });
+    var themes = ['auto', 'light', 'dark'], tn = { auto: '自動', light: 'ライト', dark: 'ダーク' }, ti = 0;
+    $('theme-toggle').addEventListener('click', function () {
+      ti = (ti + 1) % 3;
+      if (themes[ti] === 'auto') document.documentElement.removeAttribute('data-theme');
+      else document.documentElement.setAttribute('data-theme', themes[ti]);
+      this.textContent = 'テーマ: ' + tn[themes[ti]];
+    });
+  }
+
+  initState();
+  bind();
+  renderAll(true);
+})();
+</script>
