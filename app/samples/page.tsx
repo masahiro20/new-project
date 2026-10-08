@@ -11,11 +11,14 @@ const TITLE = "虐待防止委員会の議事録・研修資料・身体拘束�
 const DESCRIPTION =
   "障害福祉サービスの虐待防止委員会の議事録、虐待防止研修の資料と理解度テスト、身体拘束等適正化の指針と記録様式の見本を無料で公開しています。架空の放課後等デイサービスで作成した、減算ゼロの出力サンプルです。";
 
+// The H1 is long; keep the <title> short enough not to be truncated in search results (plus the "｜減算ゼロ" template).
+const META_TITLE = "虐待防止委員会の議事録・研修資料・身体拘束適正化指針のサンプル";
+
 export const metadata: Metadata = {
-  title: TITLE,
+  title: META_TITLE,
   description: DESCRIPTION,
   alternates: { canonical: "/samples" },
-  openGraph: { type: "article", title: TITLE, description: DESCRIPTION, url: "/samples" },
+  openGraph: { type: "article", siteName: SITE_NAME, locale: "ja_JP", title: META_TITLE, description: DESCRIPTION, url: "/samples" },
 };
 
 const ANCHORS: Record<(typeof PARTS)[number], string> = {

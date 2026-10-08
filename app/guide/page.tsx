@@ -2,13 +2,22 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { GUIDES, SERVICE_GUIDES, TOPIC_GUIDES } from "@/lib/guides";
 import { breadcrumbList, jsonLdHtml } from "@/lib/jsonld";
-import { siteUrl } from "@/lib/site";
+import { siteUrl, SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "減算と書類の解説",
   description:
     "障害福祉サービスの虐待防止・身体拘束等適正化・業務継続計画の減算と必要書類を、放課後等デイサービス、就労継続支援、生活介護、グループホームなどサービス種別ごとに解説します。",
   alternates: { canonical: "/guide" },
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    locale: "ja_JP",
+    title: "減算と書類の解説",
+    description:
+      "障害福祉サービスの虐待防止・身体拘束等適正化・業務継続計画の減算と必要書類を、サービス種別ごとに解説します。",
+    url: "/guide",
+  },
 };
 
 export default function GuideIndex() {

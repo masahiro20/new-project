@@ -13,13 +13,17 @@ function Inline({ text }: { text: string }) {
   );
 }
 
-export default function MarkdownView({ markdown }: { markdown: string }) {
+/**
+ * `headingOffset` shifts Markdown heading levels: generated documents use `#` for the document title,
+ * which sits under the page's own h1/h2 (offset 1); guide bodies start at `##` (offset 0).
+ */
+export default function MarkdownView({ markdown, headingOffset = 1 }: { markdown: string; headingOffset?: 0 | 1 }) {
   return (
     <div className="doc">
       {parseBlocks(markdown).map((b, i) => {
         switch (b.type) {
           case "heading": {
-            const H = `h${b.level + 1}` as "h2" | "h3" | "h4";
+            const H = `h${Math.max(2, b.level + headingOffset)}` as "h2" | "h3" | "h4";
             return <H key={i}><Inline text={b.text} /></H>;
           }
           case "paragraph":

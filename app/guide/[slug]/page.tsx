@@ -17,7 +17,17 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         title: guide.title,
         description: guide.description,
         alternates: { canonical: `/guide/${guide.slug}` },
-        openGraph: { type: "article", title: guide.title, description: guide.description, url: `/guide/${guide.slug}` },
+        // openGraph is shallow-merged with the layout's, so siteName/locale must be repeated here.
+        openGraph: {
+          type: "article",
+          siteName: SITE_NAME,
+          locale: "ja_JP",
+          title: guide.title,
+          description: guide.description,
+          url: `/guide/${guide.slug}`,
+          publishedTime: guide.published ?? guide.updated,
+          modifiedTime: guide.updated,
+        },
       }
     : {};
 }
@@ -58,9 +68,14 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
     });
   }
 
-  const related = guide.serviceType
-    ? [...TOPIC_GUIDES.slice(0, 2), ...SERVICE_GUIDES.filter((g) => g.slug !== guide.slug).slice(0, 3)]
-    : SERVICE_GUIDES.slice(0, 5);
+  // Neighbouring service guides (cyclic) so every page links to a different set instead of always the first three.
+  const idx = SERVICE_GUIDES.findIndex((g) => g.slug === guide.slug);
+  const related =
+    idx >= 0
+      ? [...TOPIC_GUIDES.slice(0, 2), ...[1, 2, 3].map((d) => SERVICE_GUIDES[(idx + d) % SERVICE_GUIDES.length])]
+      : SERVICE_GUIDES.slice(0, 5);
+  // 相談支援 has no 身体拘束 obligations, so don't advertise the restraint documents there.
+  const noRestraint = guide.serviceType?.includes("相談支援") ?? false;
 
   return (
     <section>
@@ -86,7 +101,7 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
           </div>
         </div>
 
-        <MarkdownView markdown={guide.body} />
+        <MarkdownView markdown={guide.body} headingOffset={0} />
 
         {guide.faq?.length ? (
           <>
@@ -104,7 +119,10 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
         <ul>
           {guide.sources.map((s) => (
             <li key={s.url}>
-              <a href={s.url} rel="noopener" target="_blank">{s.label}</a>
+              <a href={s.url} rel="noopener noreferrer" target="_blank">
+                {s.label}
+                <span className="visually-hidden">（新しいタブで開きます）</span>
+              </a>
             </li>
           ))}
         </ul>
@@ -112,7 +130,9 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
         <div className="card" style={{ marginTop: 32 }}>
           <h3>{guide.serviceType ? `${guide.serviceType}の書類をAIでまとめて作成` : "必要な書類をAIでまとめて作成"}</h3>
           <p>
-            虐待防止委員会の議事録、研修資料と理解度テスト、身体拘束等適正化の指針まで、
+            {noRestraint
+              ? "虐待防止委員会の議事録、研修資料と理解度テストを、"
+              : "虐待防止委員会の議事録、研修資料と理解度テスト、身体拘束等適正化の指針まで、"}
             {guide.serviceType ? `${guide.serviceType}の現場に合わせて` : "事業所に合わせて"}作成します。
             まずは無料の減算リスク診断と、完成イメージがわかる書類サンプルをご覧ください。
           </p>
