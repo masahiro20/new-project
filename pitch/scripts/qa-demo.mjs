@@ -160,16 +160,16 @@ if (fixDir) {
     const d = (decode[f.format] ??= { ok: 0, fail: 0, msgs: new Set() });
     try {
       if (current !== f.wordId) { await selectWord(page, f.wordId); current = f.wordId; }
-      const r = await analyse(page, () => page.setInputFiles('#file', join(fixDir, f.file)), 90000);
+      const r = await analyse(page, () => page.setInputFiles("#file", join(fixDir, f.file)), 30000);
       const decodeFail = r.state === 'error' && /decode|デコード|読み込|形式|対応/i.test(`${r.error} ${r.reason} ${r.resultText}`);
       if (r.state === 'done') d.ok++; else { d.fail++; d.msgs.add(`${r.error ?? ''} | ${r.reason ?? r.resultText}`); }
       if (r.state === 'error') {
         record('e-err', `${f.file}: error message is Japanese and non-empty`, hasJa(r.reason || r.resultText), `error=${r.error} reason="${r.reason}"`);
         if (f.format === 'm4a') { notes.push(`m4a decode failed (${f.file}): ${r.reason}`); continue; } // environment limit, reported separately
       }
-      const target = f.nodePass ?? f.expectedPass; // judge-level expectation from Node on the same audio
+      const target = f.expectedPass;
       const ok = r.state === 'done' && r.pass === target && r.dataPass === String(target);
-      const judgeNote = f.nodePass !== f.expectedPass ? ` (judge limit: Node also gives k=${f.nodeDetectedK}, expected pass=${f.expectedPass})` : '';
+      const judgeNote = f.nodePass !== f.expectedPass ? ` (note: raw Node judge without utterance trimming gives k=${f.nodeDetectedK})` : '';
       record('e', `${f.file} → pass=${target}`, ok, `state=${r.state} pass=${r.pass} detectedK=${r.detectedK} data-pass=${r.dataPass} word=${r.word}${judgeNote}${decodeFail ? ' DECODE' : ''}${r.state === 'error' ? ` reason="${r.reason}"` : ''}`);
     } catch (e) { d.fail++; record('e', `${f.file}`, false, e.message.split('\n')[0]); }
   }

@@ -84,7 +84,8 @@ for (const [id, wrongK] of WORDS) {
       variants.push(['long12s', [memo(audio, (12 - wordDur) / 2, 12, s)]]);
     }
     for (const [variant, chans] of variants) {
-      const base = `${id}-${w.kana}-${kind}-k${k}-${variant}`;
+      // ASCII names: Playwright setInputFiles silently drops non-ASCII paths.
+      const base = `${id}-${kind}-k${k}-${variant}`;
       const wav = join(outDir, `${base}.wav`);
       writeWav(wav, chans, SR);
       const r = nodeJudge(wav, w);

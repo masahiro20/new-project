@@ -116,7 +116,7 @@ export function pickUtterance(samples, rate, { maxSec = 4, pad = 0.15, mergeGap 
   return capped(Math.max(0, s), Math.min(total, e), power);
 }
 
-const DECODE_ERROR = 'この形式は読み込めませんでした。m4a / wav / webm を試してください';
+const DECODE_ERROR = 'このブラウザではこの音声ファイルを読み込めませんでした。iPhone は Safari、Android は Chrome で開くか、wav に変換して試してください';
 
 /**
  * A context used only for decodeAudioData. This runs after `await file.arrayBuffer()`,
