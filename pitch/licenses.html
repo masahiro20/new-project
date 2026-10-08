@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Licences and Sources</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  table { border-collapse: collapse; width: 100%; font-size: .92rem; }
+  th, td { text-align: left; border-bottom: 1px solid var(--line); padding: 8px 6px; vertical-align: top; }
+  .wrap { overflow-x: auto; }
+  pre { white-space: pre-wrap; font-size: .8rem; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Licences &amp; sources <span class="tag">ライセンスと出典</span></h1>
+    <a href="index.html">← Back to the demo</a>
+  </header>
+
+  <section class="card">
+    <h2>Data</h2>
+    <div class="wrap"><table>
+      <tr><th>What</th><th>Source</th><th>Licence</th><th>How we use it</th></tr>
+      <tr><td>Accent types (下がり目の位置)</td>
+        <td><a href="https://clrd.ninjal.ac.jp/unidic/">UniDic</a> 2.1.2 — © The UniDic Consortium (国立国語研究所 NINJAL)</td>
+        <td>Tri-licensed GPL / LGPL / BSD. <b>We use it under the BSD licence.</b> (<a href="data/UNIDIC-BSD-LICENSE">full text</a>)</td>
+        <td>The <code>aType</code> field is looked up at build time and stored in <code>data/lexicon-*.json</code>.</td></tr>
+      <tr><td>Dictionary access at build time</td>
+        <td><a href="https://github.com/polm/unidic-lite">unidic-lite</a> (Paul McCann) and <a href="https://github.com/polm/fugashi">fugashi</a></td>
+        <td>MIT</td>
+        <td>Only in <code>scripts/build_lexicon.py</code>; not shipped to the browser.</td></tr>
+      <tr><td>Accent prediction for words missing from UniDic</td>
+        <td><a href="https://github.com/PKSHATechnology-Research/tdmelodic">tdmelodic</a> — © PKSHA Technology</td>
+        <td>BSD-3-Clause</td>
+        <td>Planned for the 2,000-word list; <b>not used in the current data</b>. Predicted entries will be labelled as predicted.</td></tr>
+      <tr><td>Word list and English glosses</td>
+        <td>Written by the P3 Pitch team</td>
+        <td>Ours</td>
+        <td>Not copied from any dictionary or learner list.</td></tr>
+      <tr><td>Model pronunciation</td>
+        <td>Synthetic pitch line generated from the dictionary accent (<code>src/synth.js</code>)</td>
+        <td>Ours</td>
+        <td>No native recordings are used until their licence is confirmed.</td></tr>
+    </table></div>
+  </section>
+
+  <section class="card">
+    <h2>Software shipped to the browser</h2>
+    <div class="wrap"><table>
+      <tr><th>Library</th><th>Licence</th><th>Copyright</th><th>File</th></tr>
+      <tr><td><a href="https://github.com/ianprime0509/pitchy">pitchy</a> 4.1.0 (McLeod pitch method)</td><td>MIT</td><td>© 2018-2021 Ian Johnson</td><td><a href="vendor/pitchy.LICENSE">vendor/pitchy.LICENSE</a></td></tr>
+      <tr><td><a href="https://github.com/indutny/fft.js">fft.js</a> 4.0.4 (used by pitchy)</td><td>MIT</td><td>© Fedor Indutny</td><td><a href="vendor/fft.LICENSE">vendor/fft.LICENSE</a></td></tr>
+      <tr><td><a href="https://github.com/lars76/swift-f0">SwiftF0</a> model (optional engine)</td><td>MIT</td><td>© 2025-2026 Lars Nieradzik</td><td><a href="vendor/swiftf0/LICENSE">vendor/swiftf0/LICENSE</a></td></tr>
+      <tr><td><a href="https://github.com/microsoft/onnxruntime">ONNX Runtime Web</a> 1.30.0 (runs SwiftF0)</td><td>MIT</td><td>© Microsoft Corporation</td><td><a href="vendor/ort/LICENSE">vendor/ort/LICENSE</a></td></tr>
+    </table></div>
+  </section>
+
+  <section class="card">
+    <h2>Deliberately not used</h2>
+    <ul>
+      <li>GPL / AGPL libraries (incl. UniDic's GPL/LGPL options — we take the BSD option).</li>
+      <li>Wadoku (no use in paid software), the NHK and Sanseido accent dictionaries, Kanjium (CC BY-SA).</li>
+      <li>JSUT / JVS corpora (commercial use needs a contract).</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2>UniDic BSD licence</h2>
+    <pre id="unidic">Loading…</pre>
+  </section>
+</main>
+<script>
+fetch('data/UNIDIC-BSD-LICENSE').then((r) => r.text()).then((t) => { document.getElementById('unidic').textContent = t; })
+  .catch(() => { document.getElementById('unidic').textContent = 'See data/UNIDIC-BSD-LICENSE'; });
+</script>
+</body>
+</html>

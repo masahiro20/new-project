@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>P3 Pitch Demo</title>
+<link rel="stylesheet" href="style.css">
+<script type="importmap">{ "imports": { "pitchy": "./vendor/pitchy.js", "fft.js": "./vendor/fft.js" } }</script>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Pitch — accent check <span class="tag">internal prototype</span></h1>
+    <a href="licenses.html">Licences &amp; sources</a>
+  </header>
+  <p class="muted">Say the word followed by <b>が</b> (e.g. <i>はしが</i>). We track your pitch, split it into morae and check whether
+    your pitch drops in the same place as the dictionary accent. Everything runs in your browser; audio never leaves the page.</p>
+
+  <section class="card">
+    <div class="row">
+      <input id="q" type="search" placeholder="Search: 橋, はし, bridge…" aria-label="Search words">
+      <select id="filter" aria-label="Accent type">
+        <option value="">All types</option>
+        <option value="heiban">Flat (heiban)</option>
+        <option value="atamadaka">Head-high (atamadaka)</option>
+        <option value="nakadaka">Mid-high (nakadaka)</option>
+        <option value="odaka">Tail-high (odaka)</option>
+      </select>
+      <button id="random">Random</button>
+    </div>
+    <div id="list" class="list" role="listbox" aria-label="Words"></div>
+    <p id="count" class="muted"></p>
+  </section>
+
+  <section class="card">
+    <div id="word" class="word"></div>
+    <p id="pattern" class="muted"></p>
+    <div class="row">
+      <button id="rec" class="primary">● Record “…が”</button>
+      <button id="play">▶ Model (synthetic)</button>
+      <select id="voice" aria-label="Model voice"><option value="120">Low voice</option><option value="220">High voice</option></select>
+      <label class="muted"><input id="file" type="file" accept="audio/*" hidden><span role="button" tabindex="0" id="fileBtn" style="text-decoration:underline;cursor:pointer">or load an audio file</span></label>
+    </div>
+    <p id="status" class="muted" aria-live="polite"></p>
+    <div id="verdict" class="verdict" aria-live="polite"></div>
+    <p id="detail" class="muted"></p>
+    <svg id="plot" viewBox="0 0 800 300" role="img" aria-label="Pitch plot"></svg>
+    <div class="legend">
+      <span><i style="background:var(--high);height:12px"></i>dictionary: high morae</span>
+      <span><i style="background:var(--model)"></i>model pitch line (synthetic)</span>
+      <span><i style="background:var(--user)"></i>your pitch</span>
+    </div>
+    <p class="muted">No licence-cleared native recordings yet, so the model is a synthetic pitch line rendered from the dictionary accent.</p>
+  </section>
+
+  <section class="card">
+    <details>
+      <summary>Settings &amp; self-test</summary>
+      <div class="row" style="margin-top:8px">
+        <label>F0 engine
+          <select id="engine"><option value="pitchy">pitchy (fast, default)</option><option value="swiftf0">SwiftF0 (neural, ONNX)</option></select>
+        </label>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <span class="muted">Feed a synthetic voice through the full pipeline:</span>
+        <select id="simType"></select>
+        <button id="simulate">Run</button>
+      </div>
+    </details>
+  </section>
+
+  <footer>Accent data: UniDic (BSD licence option). F0: pitchy / SwiftF0. See <a href="licenses.html">licences &amp; sources</a>.</footer>
+</main>
+<script type="module" src="src/app.js"></script>
+</body>
+</html>

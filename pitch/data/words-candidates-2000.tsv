@@ -1,0 +1,2378 @@
+surface	reading	gloss
+箸	はし	chopsticks
+橋	はし	bridge
+端	はし	edge
+雨	あめ	rain
+飴	あめ	candy
+花	はな	flower
+鼻	はな	nose
+柿	かき	persimmon
+牡蠣	かき	oyster
+神	かみ	god
+紙	かみ	paper
+髪	かみ	hair
+酒	さけ	sake
+鮭	さけ	salmon
+雲	くも	cloud
+蜘蛛	くも	spider
+亀	かめ	turtle
+瓶	びん	bottle
+着物	きもの	kimono
+男	おとこ	man
+女	おんな	woman
+弟	おとうと	younger brother
+妹	いもうと	younger sister
+頭	あたま	head
+心	こころ	heart
+桜	さくら	cherry blossom
+鏡	かがみ	mirror
+朝	あさ	morning
+麻	あさ	hemp
+秋	あき	autumn
+空き	あき	vacancy
+山	やま	mountain
+川	かわ	river
+皮	かわ	skin
+犬	いぬ	dog
+足	あし	foot
+音	おと	sound
+休み	やすみ	holiday
+湖	みずうみ	lake
+二つ	ふたつ	two things
+お菓子	おかし	sweets
+卵	たまご	egg
+雪	ゆき	snow
+蛸	たこ	octopus
+凧	たこ	kite
+猫	ねこ	cat
+水	みず	water
+火	ひ	fire
+木	き	tree
+目	め	eye
+手	て	hand
+歯	は	tooth
+葉	は	leaf
+血	ち	blood
+蚊	か	mosquito
+口	くち	mouth
+耳	みみ	ear
+首	くび	neck
+顔	かお	face
+腕	うで	arm
+指	ゆび	finger
+胸	むね	chest
+背中	せなか	back
+お腹	おなか	belly
+体	からだ	body
+声	こえ	voice
+肩	かた	shoulder
+膝	ひざ	knee
+腰	こし	lower back
+舌	した	tongue
+喉	のど	throat
+父	ちち	father
+母	はは	mother
+兄	あに	older brother
+姉	あね	older sister
+子供	こども	child
+友達	ともだち	friend
+先生	せんせい	teacher
+学生	がくせい	student
+医者	いしゃ	doctor
+家族	かぞく	family
+人	ひと	person
+夫	おっと	husband
+妻	つま	wife
+娘	むすめ	daughter
+息子	むすこ	son
+家	いえ	house
+窓	まど	window
+門	もん	gate
+庭	にわ	garden
+部屋	へや	room
+机	つくえ	desk
+椅子	いす	chair
+本	ほん	book
+鞄	かばん	bag
+傘	かさ	umbrella
+靴	くつ	shoes
+帽子	ぼうし	hat
+眼鏡	めがね	glasses
+時計	とけい	clock
+電話	でんわ	telephone
+車	くるま	car
+電車	でんしゃ	train
+自転車	じてんしゃ	bicycle
+駅	えき	station
+道	みち	road
+町	まち	town
+村	むら	village
+国	くに	country
+海	うみ	sea
+空	そら	sky
+星	ほし	star
+月	つき	moon
+島	しま	island
+池	いけ	pond
+石	いし	stone
+砂	すな	sand
+森	もり	forest
+林	はやし	grove
+風	かぜ	wind
+風邪	かぜ	a cold
+雷	かみなり	thunder
+虹	にじ	rainbow
+春	はる	spring
+夏	なつ	summer
+冬	ふゆ	winter
+夜	よる	night
+昼	ひる	noon
+夕方	ゆうがた	evening
+鳥	とり	bird
+魚	さかな	fish
+馬	うま	horse
+牛	うし	cow
+豚	ぶた	pig
+羊	ひつじ	sheep
+猿	さる	monkey
+熊	くま	bear
+鼠	ねずみ	mouse
+兎	うさぎ	rabbit
+虫	むし	insect
+蛇	へび	snake
+米	こめ	rice
+肉	にく	meat
+野菜	やさい	vegetables
+果物	くだもの	fruit
+林檎	りんご	apple
+蜜柑	みかん	mandarin orange
+苺	いちご	strawberry
+桃	もも	peach
+梨	なし	pear
+葡萄	ぶどう	grapes
+お茶	おちゃ	tea
+ご飯	ごはん	cooked rice
+牛乳	ぎゅうにゅう	milk
+塩	しお	salt
+砂糖	さとう	sugar
+味噌	みそ	miso
+豆腐	とうふ	tofu
+箱	はこ	box
+袋	ふくろ	sack
+皿	さら	plate
+茶碗	ちゃわん	rice bowl
+鍋	なべ	pot
+刀	かたな	sword
+糸	いと	thread
+服	ふく	clothes
+色	いろ	color
+形	かたち	shape
+言葉	ことば	word
+名前	なまえ	name
+話	はなし	story
+歌	うた	song
+絵	え	picture
+夢	ゆめ	dream
+命	いのち	life
+力	ちから	strength
+涙	なみだ	tears
+汗	あせ	sweat
+光	ひかり	light
+影	かげ	shadow
+煙	けむり	smoke
+氷	こおり	ice
+波	なみ	wave
+草	くさ	grass
+種	たね	seed
+枝	えだ	branch
+竹	たけ	bamboo
+松	まつ	pine
+薬	くすり	medicine
+病気	びょうき	illness
+仕事	しごと	work
+会社	かいしゃ	company
+学校	がっこう	school
+病院	びょういん	hospital
+銀行	ぎんこう	bank
+図書館	としょかん	library
+店	みせ	shop
+お金	おかね	money
+切符	きっぷ	ticket
+手紙	てがみ	letter
+写真	しゃしん	photo
+映画	えいが	movie
+音楽	おんがく	music
+天気	てんき	weather
+旅行	りょこう	trip
+宿題	しゅくだい	homework
+試験	しけん	exam
+問題	もんだい	problem
+答え	こたえ	answer
+意味	いみ	meaning
+時間	じかん	time
+お土産	おみやげ	souvenir
+台所	だいどころ	kitchen
+階段	かいだん	stairs
+鍵	かぎ	key
+財布	さいふ	wallet
+新聞	しんぶん	newspaper
+手袋	てぶくろ	gloves
+布団	ふとん	futon
+枕	まくら	pillow
+お風呂	おふろ	bath
+動物	どうぶつ	animal
+飛行機	ひこうき	airplane
+船	ふね	ship
+港	みなと	harbor
+公園	こうえん	park
+お寺	おてら	temple
+畑	はたけ	farm field
+坂	さか	slope
+隣	となり	next door
+後ろ	うしろ	back side
+左	ひだり	left
+南	みなみ	south
+東	ひがし	east
+貝	かい	shellfish
+蟹	かに	crab
+鶏	にわとり	chicken
+狐	きつね	fox
+扉	とびら	door
+宝	たから	treasure
+鬼	おに	ogre
+人形	にんぎょう	doll
+花火	はなび	fireworks
+誕生日	たんじょうび	birthday
+昔	むかし	long ago
+世界	せかい	world
+三つ	みっつ	three things
+袖	そで	sleeve
+鶴	つる	crane
+今	いま	now
+朝ご飯	あさごはん	breakfast
+昼ご飯	ひるごはん	lunch
+晩ご飯	ばんごはん	dinner
+水曜日	すいようび	Wednesday
+月曜日	げつようび	Monday
+火曜日	かようび	Tuesday
+木曜日	もくようび	Thursday
+金曜日	きんようび	Friday
+土曜日	どようび	Saturday
+日曜日	にちようび	Sunday
+毎日	まいにち	every day
+毎朝	まいあさ	every morning
+毎晩	まいばん	every night
+週末	しゅうまつ	weekend
+来週	らいしゅう	next week
+先週	せんしゅう	last week
+今週	こんしゅう	this week
+来月	らいげつ	next month
+先月	せんげつ	last month
+今月	こんげつ	this month
+来年	らいねん	next year
+去年	きょねん	last year
+今年	ことし	this year
+午前	ごぜん	a.m.
+午後	ごご	p.m.
+晩	ばん	evening
+夜中	よなか	midnight
+夕べ	ゆうべ	last night
+年	とし	year
+季節	きせつ	season
+両親	りょうしん	parents
+兄弟	きょうだい	siblings
+祖父	そふ	grandfather
+祖母	そぼ	grandmother
+親	おや	parent
+孫	まご	grandchild
+叔父	おじ	uncle
+叔母	おば	aunt
+従兄弟	いとこ	cousin
+主人	しゅじん	husband
+奥さん	おくさん	wife
+大人	おとな	adult
+男の子	おとこのこ	boy
+女の子	おんなのこ	girl
+彼	かれ	he
+彼女	かのじょ	she
+皆	みんな	everyone
+自分	じぶん	oneself
+客	きゃく	guest
+仲間	なかま	companion
+恋人	こいびと	lover
+近所	きんじょ	neighborhood
+社長	しゃちょう	company president
+部長	ぶちょう	department head
+課長	かちょう	section chief
+社員	しゃいん	employee
+店員	てんいん	clerk
+警官	けいかん	police officer
+看護師	かんごし	nurse
+歌手	かしゅ	singer
+選手	せんしゅ	athlete
+生徒	せいと	pupil
+大学	だいがく	university
+高校	こうこう	high school
+教室	きょうしつ	classroom
+授業	じゅぎょう	class
+勉強	べんきょう	study
+練習	れんしゅう	practice
+質問	しつもん	question
+説明	せつめい	explanation
+辞書	じしょ	dictionary
+漢字	かんじ	kanji
+平仮名	ひらがな	hiragana
+片仮名	かたかな	katakana
+文	ぶん	sentence
+作文	さくぶん	composition
+宿	やど	inn
+部屋代	へやだい	room rent
+家賃	やちん	rent
+建物	たてもの	building
+屋根	やね	roof
+壁	かべ	wall
+天井	てんじょう	ceiling
+廊下	ろうか	hallway
+押し入れ	おしいれ	closet
+棚	たな	shelf
+引き出し	ひきだし	drawer
+冷蔵庫	れいぞうこ	refrigerator
+洗濯機	せんたくき	washing machine
+掃除機	そうじき	vacuum cleaner
+電気	でんき	electricity
+電灯	でんとう	electric light
+暖房	だんぼう	heating
+冷房	れいぼう	air cooling
+窓口	まどぐち	counter window
+入口	いりぐち	entrance
+出口	でぐち	exit
+建築	けんちく	architecture
+黒板	こくばん	blackboard
+消しゴム	けしごむ	eraser
+筆	ふで	brush
+紙袋	かみぶくろ	paper bag
+封筒	ふうとう	envelope
+切手	きって	postage stamp
+葉書	はがき	postcard
+荷物	にもつ	luggage
+地図	ちず	map
+住所	じゅうしょ	address
+番号	ばんごう	number
+交番	こうばん	police box
+本屋	ほんや	bookstore
+八百屋	やおや	greengrocer
+肉屋	にくや	butcher
+魚屋	さかなや	fishmonger
+花屋	はなや	florist
+床屋	とこや	barber
+喫茶店	きっさてん	cafe
+食堂	しょくどう	dining hall
+料理	りょうり	cooking
+食べ物	たべもの	food
+飲み物	のみもの	drink
+弁当	べんとう	boxed lunch
+お握り	おにぎり	rice ball
+寿司	すし	sushi
+天ぷら	てんぷら	tempura
+蕎麦	そば	soba
+饂飩	うどん	udon
+刺身	さしみ	sashimi
+納豆	なっとう	natto
+漬物	つけもの	pickles
+醤油	しょうゆ	soy sauce
+酢	す	vinegar
+油	あぶら	oil
+胡椒	こしょう	pepper
+味	あじ	flavor
+鶏肉	とりにく	chicken meat
+牛肉	ぎゅうにく	beef
+豚肉	ぶたにく	pork
+人参	にんじん	carrot
+大根	だいこん	daikon radish
+玉葱	たまねぎ	onion
+胡瓜	きゅうり	cucumber
+茄子	なす	eggplant
+南瓜	かぼちゃ	pumpkin
+芋	いも	potato
+豆	まめ	bean
+葱	ねぎ	green onion
+白菜	はくさい	napa cabbage
+茸	きのこ	mushroom
+西瓜	すいか	watermelon
+栗	くり	chestnut
+梅	うめ	plum
+餅	もち	rice cake
+煎餅	せんべい	rice cracker
+団子	だんご	dumpling
+水筒	すいとう	water bottle
+湯	ゆ	hot water
+氷水	こおりみず	ice water
+麦	むぎ	wheat
+小麦	こむぎ	wheat
+酒屋	さかや	liquor store
+箸置き	はしおき	chopstick rest
+匙	さじ	spoon
+湯呑み	ゆのみ	teacup
+急須	きゅうす	teapot
+茶色	ちゃいろ	brown
+赤	あか	red
+青	あお	blue
+白	しろ	white
+黒	くろ	black
+黄色	きいろ	yellow
+緑	みどり	green
+紫	むらさき	purple
+桃色	ももいろ	pink
+灰色	はいいろ	gray
+銀	ぎん	silver
+鉄	てつ	iron
+銅	どう	copper
+木材	もくざい	lumber
+上着	うわぎ	jacket
+下着	したぎ	underwear
+洋服	ようふく	Western clothes
+背広	せびろ	business suit
+靴下	くつした	socks
+襟	えり	collar
+帯	おび	sash
+浴衣	ゆかた	summer kimono
+指輪	ゆびわ	ring
+首輪	くびわ	collar (pet)
+化粧	けしょう	makeup
+歯ブラシ	はぶらし	toothbrush
+櫛	くし	comb
+手拭い	てぬぐい	hand towel
+雑巾	ぞうきん	rag
+箒	ほうき	broom
+塵	ちり	dust
+埃	ほこり	dust
+屑	くず	scraps
+炎	ほのお	flame
+灰	はい	ash
+炭	すみ	charcoal
+墨	すみ	ink stick
+鈴	すず	bell
+鐘	かね	temple bell
+笛	ふえ	flute
+太鼓	たいこ	drum
+琴	こと	koto
+三味線	しゃみせん	shamisen
+踊り	おどり	dance
+芝居	しばい	play
+祭り	まつり	festival
+遊び	あそび	play
+玩具	おもちゃ	toy
+独楽	こま	spinning top
+毬	まり	ball
+凧揚げ	たこあげ	kite flying
+囲碁	いご	go
+将棋	しょうぎ	shogi
+相撲	すもう	sumo
+野球	やきゅう	baseball
+水泳	すいえい	swimming
+散歩	さんぽ	walk
+運動	うんどう	exercise
+趣味	しゅみ	hobby
+景色	けしき	scenery
+空気	くうき	air
+天	てん	heaven
+地面	じめん	ground
+土地	とち	land
+岩	いわ	rock
+崖	がけ	cliff
+谷	たに	valley
+峠	とうげ	mountain pass
+丘	おか	hill
+野原	のはら	field
+田んぼ	たんぼ	rice paddy
+滝	たき	waterfall
+泉	いずみ	spring
+岸	きし	shore
+浜	はま	beach
+砂浜	すなはま	sandy beach
+沖	おき	offshore
+湾	わん	bay
+半島	はんとう	peninsula
+陸	りく	land
+霧	きり	fog
+霜	しも	frost
+露	つゆ	dew
+梅雨	つゆ	rainy season
+嵐	あらし	storm
+台風	たいふう	typhoon
+地震	じしん	earthquake
+津波	つなみ	tsunami
+洪水	こうずい	flood
+火事	かじ	fire (blaze)
+夕日	ゆうひ	setting sun
+朝日	あさひ	morning sun
+太陽	たいよう	sun
+日光	にっこう	sunlight
+日陰	ひかげ	shade
+暑さ	あつさ	heat
+寒さ	さむさ	cold
+温度	おんど	temperature
+気温	きおん	air temperature
+晴れ	はれ	clear weather
+曇り	くもり	cloudy weather
+夕立	ゆうだち	evening shower
+稲妻	いなずま	lightning
+花びら	はなびら	petal
+蕾	つぼみ	bud
+実	み	fruit (nut)
+幹	みき	trunk
+苔	こけ	moss
+芝生	しばふ	lawn
+稲	いね	rice plant
+藁	わら	straw
+薔薇	ばら	rose
+百合	ゆり	lily
+朝顔	あさがお	morning glory
+向日葵	ひまわり	sunflower
+紅葉	もみじ	maple leaves
+杉	すぎ	cedar
+柳	やなぎ	willow
+蓮	はす	lotus
+蜂	はち	bee
+蟻	あり	ant
+蝉	せみ	cicada
+蛍	ほたる	firefly
+蜻蛉	とんぼ	dragonfly
+蛙	かえる	frog
+鯉	こい	carp
+鯨	くじら	whale
+鮫	さめ	shark
+海老	えび	shrimp
+烏賊	いか	squid
+鰻	うなぎ	eel
+鮪	まぐろ	tuna
+鯛	たい	sea bream
+雀	すずめ	sparrow
+烏	からす	crow
+鳩	はと	pigeon
+鷹	たか	hawk
+鷲	わし	eagle
+鴨	かも	duck
+燕	つばめ	swallow
+鷺	さぎ	heron
+梟	ふくろう	owl
+狸	たぬき	raccoon dog
+象	ぞう	elephant
+虎	とら	tiger
+獅子	しし	lion
+狼	おおかみ	wolf
+鹿	しか	deer
+猪	いのしし	wild boar
+山羊	やぎ	goat
+栗鼠	りす	squirrel
+子犬	こいぬ	puppy
+子猫	こねこ	kitten
+羽	はね	feather
+翼	つばさ	wing
+尻尾	しっぽ	tail
+爪	つめ	nail
+牙	きば	fang
+毛	け	hair (body)
+骨	ほね	bone
+肌	はだ	skin
+額	ひたい	forehead
+頬	ほお	cheek
+唇	くちびる	lips
+眉	まゆ	eyebrow
+瞼	まぶた	eyelid
+顎	あご	chin
+髭	ひげ	beard
+腹	はら	belly
+臍	へそ	navel
+尻	しり	buttocks
+踵	かかと	heel
+手首	てくび	wrist
+足首	あしくび	ankle
+肘	ひじ	elbow
+親指	おやゆび	thumb
+小指	こゆび	little finger
+脳	のう	brain
+胃	い	stomach
+肺	はい	lung
+心臓	しんぞう	heart (organ)
+内臓	ないぞう	internal organs
+筋肉	きんにく	muscle
+傷	きず	wound
+怪我	けが	injury
+熱	ねつ	fever
+咳	せき	cough
+頭痛	ずつう	headache
+痛み	いたみ	pain
+病	やまい	illness
+健康	けんこう	health
+元気	げんき	vigor
+気分	きぶん	mood
+気持ち	きもち	feeling
+笑顔	えがお	smile
+眠気	ねむけ	sleepiness
+欠伸	あくび	yawn
+くしゃみ	くしゃみ	sneeze
+テレビ	てれび	television
+ラジオ	らじお	radio
+カメラ	かめら	camera
+パン	ぱん	bread
+コーヒー	こーひー	coffee
+ビール	びーる	beer
+ジュース	じゅーす	juice
+ミルク	みるく	milk
+バター	ばたー	butter
+チーズ	ちーず	cheese
+ケーキ	けーき	cake
+アイス	あいす	ice cream
+サラダ	さらだ	salad
+スープ	すーぷ	soup
+カレー	かれー	curry
+ラーメン	らーめん	ramen
+トマト	とまと	tomato
+バナナ	ばなな	banana
+レモン	れもん	lemon
+メロン	めろん	melon
+ホテル	ほてる	hotel
+レストラン	れすとらん	restaurant
+デパート	でぱーと	department store
+スーパー	すーぱー	supermarket
+コンビニ	こんびに	convenience store
+バス	ばす	bus
+タクシー	たくしー	taxi
+トイレ	といれ	toilet
+シャワー	しゃわー	shower
+ドア	どあ	door
+ベッド	べっど	bed
+テーブル	てーぶる	table
+ソファー	そふぁー	sofa
+カーテン	かーてん	curtain
+ペン	ぺん	pen
+ノート	のーと	notebook
+ボール	ぼーる	ball
+ゲーム	げーむ	game
+スポーツ	すぽーつ	sports
+サッカー	さっかー	soccer
+テニス	てにす	tennis
+ピアノ	ぴあの	piano
+ギター	ぎたー	guitar
+パソコン	ぱそこん	PC
+メール	めーる	email
+ニュース	にゅーす	news
+クラス	くらす	class
+テスト	てすと	test
+ページ	ぺーじ	page
+シャツ	しゃつ	shirt
+ズボン	ずぼん	trousers
+スカート	すかーと	skirt
+コート	こーと	coat
+セーター	せーたー	sweater
+ネクタイ	ねくたい	necktie
+ポケット	ぽけっと	pocket
+ボタン	ぼたん	button
+タオル	たおる	towel
+コップ	こっぷ	cup
+ナイフ	ないふ	knife
+フォーク	ふぉーく	fork
+スプーン	すぷーん	spoon
+グラス	ぐらす	glass
+プール	ぷーる	pool
+ビル	びる	building
+アパート	あぱーと	apartment
+マンション	まんしょん	condo
+ドラマ	どらま	drama
+アニメ	あにめ	anime
+クラブ	くらぶ	club
+パーティー	ぱーてぃー	party
+プレゼント	ぷれぜんと	present
+カード	かーど	card
+チケット	ちけっと	ticket
+お茶碗	おちゃわん	rice bowl
+暮らし	くらし	living
+生活	せいかつ	daily life
+社会	しゃかい	society
+文化	ぶんか	culture
+歴史	れきし	history
+経済	けいざい	economy
+政治	せいじ	politics
+法律	ほうりつ	law
+科学	かがく	science
+数学	すうがく	mathematics
+英語	えいご	English
+外国	がいこく	foreign country
+言語	げんご	language
+文学	ぶんがく	literature
+小説	しょうせつ	novel
+詩	し	poem
+物語	ものがたり	tale
+雑誌	ざっし	magazine
+記事	きじ	article
+番組	ばんぐみ	program
+放送	ほうそう	broadcast
+広告	こうこく	advertisement
+情報	じょうほう	information
+意見	いけん	opinion
+考え	かんがえ	idea
+理由	りゆう	reason
+目的	もくてき	purpose
+結果	けっか	result
+原因	げんいん	cause
+計画	けいかく	plan
+予定	よてい	schedule
+約束	やくそく	promise
+用事	ようじ	errand
+準備	じゅんび	preparation
+経験	けいけん	experience
+関係	かんけい	relationship
+興味	きょうみ	interest
+注意	ちゅうい	caution
+心配	しんぱい	worry
+安心	あんしん	relief
+努力	どりょく	effort
+成功	せいこう	success
+失敗	しっぱい	failure
+自由	じゆう	freedom
+平和	へいわ	peace
+戦争	せんそう	war
+事故	じこ	accident
+事件	じけん	incident
+危険	きけん	danger
+安全	あんぜん	safety
+習慣	しゅうかん	habit
+規則	きそく	rule
+交通	こうつう	traffic
+信号	しんごう	traffic light
+道路	どうろ	road
+橋脚	きょうきゃく	bridge pier
+線路	せんろ	rail track
+地下鉄	ちかてつ	subway
+自動車	じどうしゃ	automobile
+運転	うんてん	driving
+駐車場	ちゅうしゃじょう	parking lot
+乗り物	のりもの	vehicle
+改札	かいさつ	ticket gate
+ホーム	ほーむ	platform
+距離	きょり	distance
+場所	ばしょ	place
+所	ところ	place
+辺り	あたり	vicinity
+近く	ちかく	nearby
+向こう	むこう	other side
+真ん中	まんなか	middle
+周り	まわり	surroundings
+奥	おく	interior
+裏	うら	reverse side
+横	よこ	side
+縦	たて	length
+底	そこ	bottom
+先	さき	tip
+頂上	ちょうじょう	summit
+都会	とかい	city
+田舎	いなか	countryside
+都市	とし	city
+首都	しゅと	capital
+県	けん	prefecture
+番地	ばんち	lot number
+故郷	ふるさと	hometown
+国際	こくさい	international
+政府	せいふ	government
+大使館	たいしかん	embassy
+会議	かいぎ	meeting
+会議室	かいぎしつ	meeting room
+事務所	じむしょ	office
+工場	こうじょう	factory
+会場	かいじょう	venue
+劇場	げきじょう	theater
+映画館	えいがかん	cinema
+美術館	びじゅつかん	art museum
+遊園地	ゆうえんち	amusement park
+市場	いちば	market
+商店	しょうてん	store
+品物	しなもの	goods
+商品	しょうひん	product
+値段	ねだん	price
+料金	りょうきん	fee
+税金	ぜいきん	tax
+給料	きゅうりょう	salary
+貯金	ちょきん	savings
+借金	しゃっきん	debt
+小銭	こぜに	small change
+お釣り	おつり	change
+買い物	かいもの	shopping
+売り場	うりば	sales floor
+注文	ちゅうもん	order
+予約	よやく	reservation
+受付	うけつけ	reception
+案内	あんない	guidance
+連絡	れんらく	contact
+返事	へんじ	reply
+挨拶	あいさつ	greeting
+お礼	おれい	thanks
+招待	しょうたい	invitation
+結婚	けっこん	marriage
+葬式	そうしき	funeral
+卒業	そつぎょう	graduation
+入学	にゅうがく	school entry
+就職	しゅうしょく	getting a job
+引っ越し	ひっこし	moving house
+留守	るす	absence
+休憩	きゅうけい	break
+昼休み	ひるやすみ	lunch break
+夏休み	なつやすみ	summer vacation
+冬休み	ふゆやすみ	winter vacation
+正月	しょうがつ	New Year
+休日	きゅうじつ	day off
+祝日	しゅくじつ	national holiday
+年末	ねんまつ	year end
+誕生	たんじょう	birth
+年齢	ねんれい	age
+将来	しょうらい	future
+未来	みらい	future
+過去	かこ	past
+現在	げんざい	present
+最初	さいしょ	beginning
+最後	さいご	last
+途中	とちゅう	on the way
+始め	はじめ	start
+終わり	おわり	end
+次	つぎ	next
+前日	ぜんじつ	previous day
+翌日	よくじつ	next day
+半分	はんぶん	half
+全部	ぜんぶ	all
+一部	いちぶ	part
+部分	ぶぶん	portion
+種類	しゅるい	kind
+例	れい	example
+方法	ほうほう	method
+やり方	やりかた	way of doing
+仕方	しかた	way
+調子	ちょうし	condition
+具合	ぐあい	condition
+様子	ようす	appearance
+状態	じょうたい	state
+性格	せいかく	personality
+趣	おもむき	charm
+癖	くせ	habit
+嘘	うそ	lie
+本当	ほんとう	truth
+秘密	ひみつ	secret
+冗談	じょうだん	joke
+喧嘩	けんか	quarrel
+文句	もんく	complaint
+悩み	なやみ	worry
+喜び	よろこび	joy
+悲しみ	かなしみ	sorrow
+怒り	いかり	anger
+恐怖	きょうふ	fear
+愛	あい	love
+恋	こい	romance
+友情	ゆうじょう	friendship
+感謝	かんしゃ	gratitude
+希望	きぼう	hope
+目標	もくひょう	goal
+自信	じしん	confidence
+勇気	ゆうき	courage
+元日	がんじつ	New Year's Day
+運	うん	luck
+幸せ	しあわせ	happiness
+不幸	ふこう	misfortune
+得	とく	profit
+損	そん	loss
+勝ち	かち	win
+負け	まけ	loss
+試合	しあい	match
+競争	きょうそう	competition
+優勝	ゆうしょう	championship
+記録	きろく	record
+点	てん	point
+点数	てんすう	score
+成績	せいせき	grades
+番	ばん	turn
+順番	じゅんばん	order
+列	れつ	line
+組	くみ	group
+班	はん	squad
+係	かかり	person in charge
+役	やく	role
+責任	せきにん	responsibility
+権利	けんり	right
+義務	ぎむ	duty
+資格	しかく	qualification
+能力	のうりょく	ability
+技術	ぎじゅつ	technology
+機械	きかい	machine
+道具	どうぐ	tool
+材料	ざいりょう	ingredients
+部品	ぶひん	parts
+電池	でんち	battery
+電線	でんせん	electric wire
+電波	でんぱ	radio wave
+画面	がめん	screen
+写真機	しゃしんき	camera
+携帯	けいたい	cell phone
+看板	かんばん	signboard
+旗	はた	flag
+札	ふだ	tag
+印	しるし	mark
+判子	はんこ	seal stamp
+書類	しょるい	documents
+資料	しりょう	materials
+名刺	めいし	business card
+手帳	てちょう	planner
+日記	にっき	diary
+記念	きねん	commemoration
+記念日	きねんび	anniversary
+写真集	しゃしんしゅう	photo book
+絵本	えほん	picture book
+漫画	まんが	manga
+新聞紙	しんぶんし	newsprint
+教科書	きょうかしょ	textbook
+文法	ぶんぽう	grammar
+単語	たんご	vocabulary word
+発音	はつおん	pronunciation
+会話	かいわ	conversation
+翻訳	ほんやく	translation
+通訳	つうやく	interpreter
+意志	いし	will
+気候	きこう	climate
+自然	しぜん	nature
+環境	かんきょう	environment
+資源	しげん	resources
+宇宙	うちゅう	universe
+地球	ちきゅう	Earth
+世の中	よのなか	the world
+人口	じんこう	population
+人間	にんげん	human
+人生	じんせい	life
+生命	せいめい	life
+生き物	いきもの	living thing
+植物	しょくぶつ	plant
+花壇	かだん	flower bed
+森林	しんりん	woods
+大陸	たいりく	continent
+海岸	かいがん	coast
+砂漠	さばく	desert
+火山	かざん	volcano
+温泉	おんせん	hot spring
+湖畔	こはん	lakeside
+坂道	さかみち	sloping road
+並木	なみき	row of trees
+男性	だんせい	male
+女性	じょせい	female
+老人	ろうじん	elderly person
+若者	わかもの	young person
+少年	しょうねん	boy
+少女	しょうじょ	girl
+青年	せいねん	youth
+赤ん坊	あかんぼう	baby
+双子	ふたご	twins
+夫婦	ふうふ	married couple
+親戚	しんせき	relative
+先輩	せんぱい	senior
+後輩	こうはい	junior
+同僚	どうりょう	colleague
+上司	じょうし	boss
+部下	ぶか	subordinate
+相手	あいて	partner
+他人	たにん	stranger
+知り合い	しりあい	acquaintance
+隣人	りんじん	neighbor
+住民	じゅうみん	resident
+市民	しみん	citizen
+国民	こくみん	nation's people
+王様	おうさま	king
+姫	ひめ	princess
+侍	さむらい	samurai
+忍者	にんじゃ	ninja
+武士	ぶし	warrior
+兵隊	へいたい	soldier
+泥棒	どろぼう	thief
+犯人	はんにん	culprit
+警察	けいさつ	police
+消防	しょうぼう	firefighting
+大工	だいく	carpenter
+農家	のうか	farmer
+漁師	りょうし	fisherman
+商人	しょうにん	merchant
+職人	しょくにん	craftsman
+作家	さっか	writer
+画家	がか	painter
+記者	きしゃ	reporter
+俳優	はいゆう	actor
+弁護士	べんごし	lawyer
+教師	きょうし	teacher
+校長	こうちょう	principal
+博士	はかせ	doctor (PhD)
+学者	がくしゃ	scholar
+歯医者	はいしゃ	dentist
+患者	かんじゃ	patient
+運転手	うんてんしゅ	driver
+車掌	しゃしょう	conductor
+駅員	えきいん	station staff
+係員	かかりいん	attendant
+案内所	あんないじょ	information desk
+主婦	しゅふ	housewife
+会社員	かいしゃいん	office worker
+公務員	こうむいん	civil servant
+社会人	しゃかいじん	working adult
+寝室	しんしつ	bedroom
+居間	いま	living room
+和室	わしつ	Japanese-style room
+洋室	ようしつ	Western-style room
+畳	たたみ	tatami
+障子	しょうじ	paper screen
+襖	ふすま	sliding door
+縁側	えんがわ	veranda
+柱	はしら	pillar
+梯子	はしご	ladder
+煙突	えんとつ	chimney
+塀	へい	fence
+垣根	かきね	hedge
+井戸	いど	well
+倉	くら	storehouse
+小屋	こや	hut
+車庫	しゃこ	garage
+物置	ものおき	storeroom
+屋上	おくじょう	rooftop
+地下	ちか	underground
+二階	にかい	second floor
+一階	いっかい	first floor
+窓際	まどぎわ	window side
+蛇口	じゃぐち	faucet
+流し	ながし	sink
+風呂場	ふろば	bathroom
+洗面所	せんめんじょ	washroom
+便所	べんじょ	lavatory
+鏡台	きょうだい	dresser
+箪笥	たんす	chest of drawers
+本棚	ほんだな	bookshelf
+戸棚	とだな	cupboard
+食器	しょっき	tableware
+茶托	ちゃたく	saucer
+鉢	はち	bowl
+丼	どんぶり	rice bowl dish
+盆	ぼん	tray
+杯	さかずき	sake cup
+栓	せん	stopper
+蓋	ふた	lid
+缶	かん	can
+樽	たる	barrel
+桶	おけ	tub
+籠	かご	basket
+網	あみ	net
+縄	なわ	rope
+綱	つな	cable
+鎖	くさり	chain
+針	はり	needle
+釘	くぎ	nail
+金槌	かなづち	hammer
+鋏	はさみ	scissors
+錐	きり	drill
+鋸	のこぎり	saw
+斧	おの	axe
+鍬	くわ	hoe
+鎌	かま	sickle
+釜	かま	cooking pot
+竈	かまど	stove
+炉	ろ	hearth
+蝋燭	ろうそく	candle
+提灯	ちょうちん	paper lantern
+行灯	あんどん	lamp stand
+扇子	せんす	folding fan
+団扇	うちわ	round fan
+風鈴	ふうりん	wind chime
+暖簾	のれん	shop curtain
+座布団	ざぶとん	floor cushion
+毛布	もうふ	blanket
+敷布	しきふ	bed sheet
+寝間着	ねまき	pajamas
+雨具	あまぐ	rain gear
+長靴	ながぐつ	rain boots
+下駄	げた	wooden clogs
+草履	ぞうり	sandals
+足袋	たび	split-toe socks
+襟巻	えりまき	scarf
+前掛け	まえかけ	apron
+財産	ざいさん	fortune
+宝石	ほうせき	jewel
+真珠	しんじゅ	pearl
+鏡餅	かがみもち	rice cake offering
+お年玉	おとしだま	New Year money
+年賀状	ねんがじょう	New Year card
+門松	かどまつ	New Year pine
+鯉幟	こいのぼり	carp streamer
+七夕	たなばた	Star Festival
+盆踊り	ぼんおどり	Bon dance
+花見	はなみ	flower viewing
+月見	つきみ	moon viewing
+紅白	こうはく	red and white
+神輿	みこし	portable shrine
+鳥居	とりい	torii gate
+お守り	おまもり	amulet
+御籤	おみくじ	fortune slip
+仏	ほとけ	Buddha
+仏壇	ぶつだん	Buddhist altar
+墓	はか	grave
+魂	たましい	soul
+幽霊	ゆうれい	ghost
+お化け	おばけ	ghost
+妖怪	ようかい	yokai
+天狗	てんぐ	tengu
+河童	かっぱ	kappa
+竜	りゅう	dragon
+物	もの	thing
+品	しな	article
+道具箱	どうぐばこ	toolbox
+玉	たま	ball
+輪	わ	ring
+線	せん	line
+点線	てんせん	dotted line
+丸	まる	circle
+三角	さんかく	triangle
+四角	しかく	square
+星形	ほしがた	star shape
+模様	もよう	pattern
+柄	がら	pattern
+縞	しま	stripe
+大きさ	おおきさ	size
+重さ	おもさ	weight
+長さ	ながさ	length
+高さ	たかさ	height
+広さ	ひろさ	area
+深さ	ふかさ	depth
+速さ	はやさ	speed
+強さ	つよさ	strength
+美しさ	うつくしさ	beauty
+寂しさ	さびしさ	loneliness
+優しさ	やさしさ	kindness
+数字	すうじ	numeral
+一つ	ひとつ	one thing
+四つ	よっつ	four things
+五つ	いつつ	five things
+六つ	むっつ	six things
+七つ	ななつ	seven things
+八つ	やっつ	eight things
+九つ	ここのつ	nine things
+百	ひゃく	hundred
+千	せん	thousand
+万	まん	ten thousand
+倍	ばい	double
+一人	ひとり	one person
+二人	ふたり	two people
+大勢	おおぜい	crowd
+全員	ぜんいん	all members
+人々	ひとびと	people
+皆さん	みなさん	everyone
+方角	ほうがく	direction
+方向	ほうこう	direction
+北風	きたかぜ	north wind
+春風	はるかぜ	spring breeze
+空模様	そらもよう	look of the sky
+夕焼け	ゆうやけ	sunset glow
+朝焼け	あさやけ	morning glow
+星空	ほしぞら	starry sky
+満月	まんげつ	full moon
+三日月	みかづき	crescent moon
+流れ星	ながれぼし	shooting star
+大雨	おおあめ	heavy rain
+小雨	こさめ	light rain
+大雪	おおゆき	heavy snow
+雪だるま	ゆきだるま	snowman
+雪国	ゆきぐに	snow country
+吹雪	ふぶき	blizzard
+雹	ひょう	hail
+春雨	はるさめ	spring rain
+水たまり	みずたまり	puddle
+川原	かわら	riverbed
+瓦	かわら	roof tile
+川岸	かわぎし	riverbank
+上流	じょうりゅう	upstream
+下流	かりゅう	downstream
+流れ	ながれ	current
+渦	うず	whirlpool
+泡	あわ	bubble
+雫	しずく	drop
+水面	すいめん	water surface
+水道	すいどう	water supply
+水着	みずぎ	swimsuit
+海辺	うみべ	seaside
+灯台	とうだい	lighthouse
+漁船	ぎょせん	fishing boat
+帆	ほ	sail
+錨	いかり	anchor
+舟	ふね	boat
+筏	いかだ	raft
+櫂	かい	oar
+浮き輪	うきわ	swim ring
+貝殻	かいがら	seashell
+真水	まみず	fresh water
+海水	かいすい	seawater
+塩水	しおみず	salt water
+珊瑚	さんご	coral
+海草	かいそう	seaweed
+昆布	こんぶ	kelp
+海苔	のり	nori
+若布	わかめ	wakame
+鰯	いわし	sardine
+秋刀魚	さんま	saury
+鯖	さば	mackerel
+鯵	あじ	horse mackerel
+鰹	かつお	bonito
+鱈	たら	cod
+鰤	ぶり	yellowtail
+河豚	ふぐ	pufferfish
+金魚	きんぎょ	goldfish
+目高	めだか	killifish
+海亀	うみがめ	sea turtle
+海豚	いるか	dolphin
+水母	くらげ	jellyfish
+雲丹	うに	sea urchin
+蛤	はまぐり	clam
+浅蜊	あさり	short-neck clam
+帆立	ほたて	scallop
+蝦蟇	がま	toad
+蜥蜴	とかげ	lizard
+蝙蝠	こうもり	bat
+蛾	が	moth
+蝿	はえ	fly
+虱	しらみ	louse
+蚤	のみ	flea
+蚯蚓	みみず	earthworm
+蝸牛	かたつむり	snail
+毛虫	けむし	caterpillar
+芋虫	いもむし	grub
+甲虫	かぶとむし	rhinoceros beetle
+鈴虫	すずむし	bell cricket
+蟋蟀	こおろぎ	cricket
+飛蝗	ばった	grasshopper
+蟷螂	かまきり	praying mantis
+蜂蜜	はちみつ	honey
+巣	す	nest
+卵焼き	たまごやき	rolled omelet
+目玉焼き	めだまやき	fried egg
+焼き鳥	やきとり	yakitori
+焼き魚	やきざかな	grilled fish
+焼肉	やきにく	grilled meat
+牛丼	ぎゅうどん	beef bowl
+親子丼	おやこどん	chicken egg bowl
+鍋物	なべもの	hot pot
+雑煮	ぞうに	New Year soup
+汁	しる	soup
+味噌汁	みそしる	miso soup
+お粥	おかゆ	rice porridge
+おかず	おかず	side dish
+定食	ていしょく	set meal
+献立	こんだて	menu
+朝食	ちょうしょく	breakfast
+昼食	ちゅうしょく	lunch
+夕食	ゆうしょく	supper
+夜食	やしょく	late-night snack
+間食	かんしょく	snack
+食事	しょくじ	meal
+食欲	しょくよく	appetite
+御馳走	ごちそう	feast
+甘み	あまみ	sweetness
+苦味	にがみ	bitterness
+香り	かおり	fragrance
+匂い	におい	smell
+湯気	ゆげ	steam
+焦げ	こげ	scorch
+粉	こな	powder
+小麦粉	こむぎこ	flour
+片栗粉	かたくりこ	potato starch
+胡麻	ごま	sesame
+生姜	しょうが	ginger
+大蒜	にんにく	garlic
+山葵	わさび	wasabi
+辛子	からし	mustard
+唐辛子	とうがらし	chili pepper
+蜜	みつ	nectar
+酒粕	さけかす	sake lees
+梅干し	うめぼし	pickled plum
+沢庵	たくあん	pickled radish
+蒲鉾	かまぼこ	fish cake
+竹輪	ちくわ	tube fish cake
+蒟蒻	こんにゃく	konjac
+油揚げ	あぶらあげ	fried tofu
+春巻き	はるまき	spring roll
+餃子	ぎょうざ	gyoza
+焼売	しゅうまい	shumai
+炒飯	ちゃーはん	fried rice
+饅頭	まんじゅう	steamed bun
+羊羹	ようかん	bean jelly
+最中	もなか	bean wafer
+餡	あん	bean paste
+粒	つぶ	grain
+米粒	こめつぶ	grain of rice
+玄米	げんまい	brown rice
+白米	はくまい	white rice
+新米	しんまい	new rice
+麺	めん	noodles
+住まい	すまい	dwelling
+家庭	かてい	household
+家事	かじ	housework
+掃除	そうじ	cleaning
+洗濯	せんたく	laundry
+皿洗い	さらあらい	dishwashing
+片付け	かたづけ	tidying up
+ごみ	ごみ	garbage
+ごみ箱	ごみばこ	trash can
+生ごみ	なまごみ	food waste
+留守番	るすばん	house-sitting
+昼寝	ひるね	nap
+朝寝坊	あさねぼう	oversleeping
+寝坊	ねぼう	oversleeping
+夜更かし	よふかし	staying up late
+早起き	はやおき	early rising
+居眠り	いねむり	dozing
+眠り	ねむり	sleep
+目覚まし	めざまし	alarm clock
+歯磨き	はみがき	toothbrushing
+着替え	きがえ	change of clothes
+身支度	みじたく	getting ready
+化粧品	けしょうひん	cosmetics
+香水	こうすい	perfume
+髪型	かみがた	hairstyle
+前髪	まえがみ	bangs
+白髪	しらが	gray hair
+寝癖	ねぐせ	bed hair
+眉毛	まゆげ	eyebrows
+睫毛	まつげ	eyelashes
+目玉	めだま	eyeball
+鼻水	はなみず	runny nose
+鼻血	はなぢ	nosebleed
+虫歯	むしば	cavity
+入れ歯	いれば	dentures
+歯茎	はぐき	gums
+喉仏	のどぼとけ	Adam's apple
+手足	てあし	limbs
+手のひら	てのひら	palm
+手の甲	てのこう	back of hand
+足の裏	あしのうら	sole
+爪先	つまさき	tiptoe
+中指	なかゆび	middle finger
+薬指	くすりゆび	ring finger
+脇	わき	armpit
+背骨	せぼね	spine
+肋骨	ろっこつ	rib
+血管	けっかん	blood vessel
+神経	しんけい	nerve
+体重	たいじゅう	body weight
+身長	しんちょう	height
+体力	たいりょく	stamina
+体温	たいおん	body temperature
+脈	みゃく	pulse
+呼吸	こきゅう	breathing
+食べ過ぎ	たべすぎ	overeating
+二日酔い	ふつかよい	hangover
+火傷	やけど	burn
+痣	あざ	bruise
+腫れ	はれ	swelling
+痒み	かゆみ	itch
+吐き気	はきけ	nausea
+目眩	めまい	dizziness
+下痢	げり	diarrhea
+便秘	べんぴ	constipation
+風邪薬	かぜぐすり	cold medicine
+目薬	めぐすり	eye drops
+注射	ちゅうしゃ	injection
+手術	しゅじゅつ	surgery
+入院	にゅういん	hospitalization
+退院	たいいん	discharge
+診察	しんさつ	medical exam
+治療	ちりょう	treatment
+包帯	ほうたい	bandage
+救急車	きゅうきゅうしゃ	ambulance
+病室	びょうしつ	hospital room
+歯科	しか	dentistry
+内科	ないか	internal medicine
+外科	げか	surgery dept.
+眼科	がんか	ophthalmology
+薬屋	くすりや	drugstore
+薬局	やっきょく	pharmacy
+保険	ほけん	insurance
+保険証	ほけんしょう	insurance card
+身分	みぶん	status
+免許	めんきょ	license
+旅券	りょけん	passport
+国籍	こくせき	nationality
+出身	しゅっしん	origin
+生まれ	うまれ	birth
+育ち	そだち	upbringing
+名字	みょうじ	surname
+苗字	みょうじ	family name
+あだ名	あだな	nickname
+署名	しょめい	signature
+印鑑	いんかん	seal
+契約	けいやく	contract
+申込	もうしこみ	application
+手続き	てつづき	procedure
+届け	とどけ	notification
+証明	しょうめい	proof
+許可	きょか	permission
+禁止	きんし	prohibition
+命令	めいれい	order
+指示	しじ	instruction
+相談	そうだん	consultation
+話し合い	はなしあい	discussion
+議論	ぎろん	debate
+会見	かいけん	press conference
+発表	はっぴょう	announcement
+報告	ほうこく	report
+提案	ていあん	proposal
+意見書	いけんしょ	written opinion
+賛成	さんせい	agreement
+反対	はんたい	opposition
+選挙	せんきょ	election
+投票	とうひょう	vote
+首相	しゅしょう	prime minister
+大臣	だいじん	minister
+議員	ぎいん	legislator
+国会	こっかい	national diet
+憲法	けんぽう	constitution
+裁判	さいばん	trial
+判決	はんけつ	verdict
+罪	つみ	crime
+罰	ばつ	punishment
+犯罪	はんざい	crime
+罰金	ばっきん	fine
+事実	じじつ	fact
+真実	しんじつ	truth
+証拠	しょうこ	evidence
+証人	しょうにん	witness
+被害	ひがい	damage
+損害	そんがい	loss
+災害	さいがい	disaster
+避難	ひなん	evacuation
+救助	きゅうじょ	rescue
+停電	ていでん	power outage
+断水	だんすい	water outage
+渋滞	じゅうたい	traffic jam
+遅刻	ちこく	lateness
+欠席	けっせき	absence
+出席	しゅっせき	attendance
+早退	そうたい	leaving early
+残業	ざんぎょう	overtime
+出張	しゅっちょう	business trip
+通勤	つうきん	commuting
+通学	つうがく	going to school
+転勤	てんきん	job transfer
+退職	たいしょく	retirement
+定年	ていねん	retirement age
+年金	ねんきん	pension
+求人	きゅうじん	job opening
+面接	めんせつ	interview
+履歴書	りれきしょ	resume
+職業	しょくぎょう	occupation
+職場	しょくば	workplace
+勤め	つとめ	duty
+仕事場	しごとば	workplace
+商売	しょうばい	business
+取引	とりひき	transaction
+輸出	ゆしゅつ	export
+輸入	ゆにゅう	import
+貿易	ぼうえき	trade
+産業	さんぎょう	industry
+農業	のうぎょう	agriculture
+漁業	ぎょぎょう	fishing industry
+工業	こうぎょう	manufacturing
+企業	きぎょう	enterprise
+本社	ほんしゃ	head office
+支店	してん	branch office
+営業	えいぎょう	sales
+売上	うりあげ	sales revenue
+利益	りえき	profit
+費用	ひよう	cost
+予算	よさん	budget
+価格	かかく	price
+物価	ぶっか	prices
+景気	けいき	economic climate
+不景気	ふけいき	recession
+株	かぶ	stock
+口座	こうざ	bank account
+現金	げんきん	cash
+紙幣	しへい	banknote
+お札	おさつ	bill
+硬貨	こうか	coin
+両替	りょうがえ	money exchange
+割引	わりびき	discount
+値引き	ねびき	price cut
+特売	とくばい	bargain sale
+売り切れ	うりきれ	sold out
+品切れ	しなぎれ	out of stock
+在庫	ざいこ	stock
+配達	はいたつ	delivery
+宅配	たくはい	home delivery
+小包	こづつみ	parcel
+郵便	ゆうびん	mail
+速達	そくたつ	express mail
+宛先	あてさき	addressee
+便り	たより	news
+知らせ	しらせ	notice
+噂	うわさ	rumor
+評判	ひょうばん	reputation
+人気	にんき	popularity
+流行	りゅうこう	trend
+話題	わだい	topic
+内容	ないよう	content
+題	だい	title
+題名	だいめい	title
+目次	もくじ	table of contents
+表紙	ひょうし	cover
+挿絵	さしえ	illustration
+文字	もじ	letter
+大文字	おおもじ	capital letter
+仮名	かな	kana
+筆者	ひっしゃ	author
+読者	どくしゃ	reader
+作者	さくしゃ	creator
+作品	さくひん	work
+名作	めいさく	masterpiece
+傑作	けっさく	masterpiece
+本物	ほんもの	genuine article
+偽物	にせもの	fake
+宝物	たからもの	treasure
+贈り物	おくりもの	gift
+落とし物	おとしもの	lost item
+忘れ物	わすれもの	forgotten item
+持ち物	もちもの	belongings
+手土産	てみやげ	small gift
+置物	おきもの	ornament
+飾り	かざり	decoration
+花瓶	かびん	vase
+額縁	がくぶち	picture frame
+掛け軸	かけじく	hanging scroll
+盆栽	ぼんさい	bonsai
+生け花	いけばな	ikebana
+茶道	さどう	tea ceremony
+書道	しょどう	calligraphy
+柔道	じゅうどう	judo
+剣道	けんどう	kendo
+空手	からて	karate
+武道	ぶどう	martial arts
+弓	ゆみ	bow
+矢	や	arrow
+的	まと	target
+槍	やり	spear
+盾	たて	shield
+鎧	よろい	armor
+兜	かぶと	helmet
+城	しろ	castle
+城下町	じょうかまち	castle town
+石垣	いしがき	stone wall
+堀	ほり	moat
+塔	とう	tower
+宮	みや	shrine
+御殿	ごてん	palace
+寺院	じいん	temple
+教会	きょうかい	church
+僧	そう	monk
+坊主	ぼうず	monk
+神主	かんぬし	Shinto priest
+巫女	みこ	shrine maiden
+祈り	いのり	prayer
+願い	ねがい	wish
+お参り	おまいり	shrine visit
+初詣	はつもうで	first shrine visit
+節分	せつぶん	Setsubun
+大晦日	おおみそか	New Year's Eve
+年越し	としこし	seeing the year out
+暦	こよみ	calendar
+日付	ひづけ	date
+期間	きかん	period
+期限	きげん	deadline
+締め切り	しめきり	deadline
+時期	じき	time period
+時代	じだい	era
+世紀	せいき	century
+年代	ねんだい	decade
+瞬間	しゅんかん	moment
+一瞬	いっしゅん	instant
+時刻	じこく	time of day
+時差	じさ	time difference
+暇	ひま	free time
+余裕	よゆう	leeway
+都合	つごう	convenience
+機会	きかい	opportunity
+場合	ばあい	case
+場面	ばめん	scene
+立場	たちば	position
+地位	ちい	status
+身分証	みぶんしょう	ID card
+仲	なか	relations
+絆	きずな	bond
+恩	おん	debt of gratitude
+義理	ぎり	obligation
+礼儀	れいぎ	manners
+作法	さほう	etiquette
+遠慮	えんりょ	reserve
+我慢	がまん	patience
+迷惑	めいわく	nuisance
+世話	せわ	care
+手伝い	てつだい	help
+助け	たすけ	aid
+親切	しんせつ	kindness
+学問	がくもん	learning
+教育	きょういく	education
+知識	ちしき	knowledge
+知恵	ちえ	wisdom
+常識	じょうしき	common sense
+記憶	きおく	memory
+思い出	おもいで	memory
+想像	そうぞう	imagination
+空想	くうそう	daydream
+発明	はつめい	invention
+発見	はっけん	discovery
+研究	けんきゅう	research
+実験	じっけん	experiment
+調査	ちょうさ	survey
+理論	りろん	theory
+論文	ろんぶん	thesis
+専門	せんもん	specialty
+物理	ぶつり	physics
+化学	かがく	chemistry
+生物	せいぶつ	biology
+地理	ちり	geography
+哲学	てつがく	philosophy
+心理	しんり	psychology
+医学	いがく	medicine (field)
+美術	びじゅつ	fine art
+芸術	げいじゅつ	art
+音楽家	おんがくか	musician
+楽器	がっき	instrument
+音符	おんぷ	musical note
+歌詞	かし	lyrics
+曲	きょく	tune
+合唱	がっしょう	chorus
+演奏	えんそう	performance
+舞台	ぶたい	stage
+観客	かんきゃく	audience
+拍手	はくしゅ	applause
+主役	しゅやく	lead role
+脇役	わきやく	supporting role
+役者	やくしゃ	actor
+芸人	げいにん	entertainer
+落語	らくご	rakugo
+漫才	まんざい	manzai
+歌舞伎	かぶき	kabuki
+能	のう	Noh
+狂言	きょうげん	kyogen
+紙芝居	かみしばい	picture-card show
+手品	てじな	magic trick
+謎	なぞ	mystery
+謎々	なぞなぞ	riddle
+鬼ごっこ	おにごっこ	tag (game)
+縄跳び	なわとび	jump rope
+鞦韆	ぶらんこ	swing
+滑り台	すべりだい	slide
+砂場	すなば	sandbox
+積み木	つみき	building blocks
+折り紙	おりがみ	origami
+塗り絵	ぬりえ	coloring book
+落書き	らくがき	graffiti
+写生	しゃせい	sketching
+画用紙	がようし	drawing paper
+絵の具	えのぐ	paints
+筆箱	ふでばこ	pencil case
+定規	じょうぎ	ruler
+糊	のり	glue
+画鋲	がびょう	thumbtack
+本箱	ほんばこ	bookcase
+ランドセル	らんどせる	school backpack
+制服	せいふく	uniform
+給食	きゅうしょく	school lunch
+遠足	えんそく	excursion
+校庭	こうてい	schoolyard
+校舎	こうしゃ	school building
+担任	たんにん	homeroom teacher
+友人	ゆうじん	friend
+親友	しんゆう	best friend
+幼稚園	ようちえん	kindergarten
+保育園	ほいくえん	nursery school
+塾	じゅく	cram school
+入試	にゅうし	entrance exam
+合格	ごうかく	passing
+落第	らくだい	failing
+課題	かだい	assignment
+予習	よしゅう	preparation
+復習	ふくしゅう	review
+暗記	あんき	memorization
+答案	とうあん	answer sheet
+正解	せいかい	correct answer
+間違い	まちがい	mistake
+誤り	あやまり	error
+読書	どくしょ	reading
+学費	がくひ	tuition
+学期	がっき	semester
+休講	きゅうこう	class cancellation
+講義	こうぎ	lecture
+講堂	こうどう	auditorium
+図書室	としょしつ	school library
+保健室	ほけんしつ	nurse's office
+部活	ぶかつ	club activity
+試合場	しあいじょう	arena
+競技	きょうぎ	competition
+体操	たいそう	gymnastics
+陸上	りくじょう	track and field
+駆けっこ	かけっこ	footrace
+登山	とざん	mountain climbing
+釣り	つり	fishing
+狩り	かり	hunting
+旅	たび	journey
+旅人	たびびと	traveler
+観光	かんこう	sightseeing
+名所	めいしょ	famous spot
+見物	けんぶつ	sightseeing
+宿屋	やどや	inn
+旅館	りょかん	ryokan
+民宿	みんしゅく	guesthouse
+予約席	よやくせき	reserved seat
+座席	ざせき	seat
+席	せき	seat
+窓側	まどがわ	window side
+通路	つうろ	aisle
+車内	しゃない	inside the car
+車両	しゃりょう	railcar
+終点	しゅうてん	terminus
+始発	しはつ	first train
+終電	しゅうでん	last train
+急行	きゅうこう	express
+特急	とっきゅう	limited express
+各駅	かくえき	every station
+乗り換え	のりかえ	transfer
+片道	かたみち	one way
+往復	おうふく	round trip
+運賃	うんちん	fare
+時刻表	じこくひょう	timetable
+行き先	いきさき	destination
+目的地	もくてきち	destination
+出発	しゅっぱつ	departure
+到着	とうちゃく	arrival
+帰り	かえり	return
+帰国	きこく	returning home
+外出	がいしゅつ	going out
+留学	りゅうがく	study abroad
+移民	いみん	immigrant
+国境	こっきょう	border
+滑走路	かっそうろ	runway
+荷台	にだい	cargo bed
+高速	こうそく	highway
+歩道	ほどう	sidewalk
+歩道橋	ほどうきょう	pedestrian bridge
+交差点	こうさてん	intersection
+踏切	ふみきり	railroad crossing
+曲がり角	まがりかど	street corner
+突き当たり	つきあたり	end of a street
+大通り	おおどおり	main street
+裏道	うらみち	back road
+近道	ちかみち	shortcut
+回り道	まわりみち	detour
+迷子	まいご	lost child
+並び	ならび	row
+行列	ぎょうれつ	queue
+人込み	ひとごみ	crowd
+騒ぎ	さわぎ	commotion
+騒音	そうおん	noise
+物音	ものおと	noise
+足音	あしおと	footsteps
+鳴き声	なきごえ	animal cry
+泣き声	なきごえ	crying voice
+笑い声	わらいごえ	laughter
+大声	おおごえ	loud voice
+小声	こごえ	whisper
+鼻歌	はなうた	humming
+口笛	くちぶえ	whistling
+沈黙	ちんもく	silence
+静けさ	しずけさ	stillness
+響き	ひびき	echo
+木霊	こだま	echo
+雷鳴	らいめい	thunderclap
+明かり	あかり	light
+灯り	あかり	lamp
+電球	でんきゅう	light bulb
+信号機	しんごうき	traffic signal
+電柱	でんちゅう	utility pole
+街灯	がいとう	streetlight
+ポスト	ぽすと	postbox
+券売機	けんばいき	ticket machine
+受話器	じゅわき	receiver
+留守電	るすでん	voicemail
+着信	ちゃくしん	incoming call
+電源	でんげん	power supply
+充電	じゅうでん	charging
+電卓	でんたく	calculator
+計算	けいさん	calculation
+足し算	たしざん	addition
+引き算	ひきざん	subtraction
+掛け算	かけざん	multiplication
+割り算	わりざん	division
+合計	ごうけい	total
+平均	へいきん	average
+割合	わりあい	ratio
+単位	たんい	unit
+面積	めんせき	area
+体積	たいせき	volume
+直線	ちょくせん	straight line
+曲線	きょくせん	curve
+図	ず	diagram
+表面	ひょうめん	surface
+中心	ちゅうしん	center
+周囲	しゅうい	circumference
+境	さかい	boundary
+限界	げんかい	limit
+範囲	はんい	range
+程度	ていど	degree
+基本	きほん	basics
+基礎	きそ	foundation
+中身	なかみ	contents
+外見	がいけん	appearance
+見た目	みため	looks
+格好	かっこう	appearance
+姿勢	しせい	posture
+動き	うごき	movement
+仕草	しぐさ	gesture
+身振り	みぶり	gesture
+表情	ひょうじょう	facial expression
+目つき	めつき	look in one's eyes
+顔色	かおいろ	complexion
+素顔	すがお	bare face
+横顔	よこがお	profile
+寝顔	ねがお	sleeping face
+泣き顔	なきがお	crying face
+人柄	ひとがら	character
+人物	じんぶつ	person
+個人	こじん	individual
+個性	こせい	individuality
+才能	さいのう	talent
+天才	てんさい	genius
+長所	ちょうしょ	strength
+短所	たんしょ	weakness
+欠点	けってん	flaw
+弱点	じゃくてん	weak point
+特徴	とくちょう	characteristic
+違い	ちがい	difference
+差	さ	gap
+変化	へんか	change
+進歩	しんぽ	progress
+発展	はってん	development
+成長	せいちょう	growth
+変更	へんこう	alteration
+改善	かいぜん	improvement
+工夫	くふう	ingenuity
+仕組み	しくみ	mechanism
+構造	こうぞう	structure
+組織	そしき	organization
+団体	だんたい	group
+集団	しゅうだん	collective
+協会	きょうかい	association
+委員会	いいんかい	committee
+委員	いいん	committee member
+代表	だいひょう	representative
+指導者	しどうしゃ	leader
+先祖	せんぞ	ancestor
+子孫	しそん	descendant
+血筋	ちすじ	lineage
+家系	かけい	family line
+果樹園	かじゅえん	orchard
+牧場	ぼくじょう	ranch
+農場	のうじょう	farm
+田畑	たはた	fields
+水田	すいでん	paddy
+小川	おがわ	stream
+沼	ぬま	marsh
+湿地	しっち	wetland
+草原	そうげん	grassland
+荒野	こうや	wilderness
+高原	こうげん	plateau
+平野	へいや	plain
+盆地	ぼんち	basin
+山脈	さんみゃく	mountain range
+山頂	さんちょう	mountaintop
+山道	やまみち	mountain path
+山小屋	やまごや	mountain hut
+洞窟	どうくつ	cave
+穴	あな	hole
+溝	みぞ	ditch
+泥	どろ	mud
+粘土	ねんど	clay
+小石	こいし	pebble
+砂利	じゃり	gravel
+鉱山	こうざん	mine
+金属	きんぞく	metal
+石油	せきゆ	petroleum
+石炭	せきたん	coal
+燃料	ねんりょう	fuel
+水素	すいそ	hydrogen
+酸素	さんそ	oxygen
+蒸気	じょうき	steam
+液体	えきたい	liquid
+固体	こたい	solid
+気体	きたい	gas
+物質	ぶっしつ	substance
+成分	せいぶん	ingredient
+原料	げんりょう	raw material
+製品	せいひん	product
+板	いた	board
+棒	ぼう	stick
+杖	つえ	cane
+竿	さお	pole
+柵	さく	fence
+網戸	あみど	screen door
+雨戸	あまど	storm shutter
+戸口	とぐち	doorway
+門番	もんばん	gatekeeper
+番人	ばんにん	guard
+番犬	ばんけん	watchdog
+野良猫	のらねこ	stray cat
+飼い主	かいぬし	pet owner
+餌	えさ	feed
+檻	おり	cage
+鳥籠	とりかご	birdcage
+巣箱	すばこ	birdhouse
+小鳥	ことり	small bird
+雛	ひな	chick
+卵黄	らんおう	yolk
+白身	しろみ	egg white
+黄身	きみ	egg yolk
+赤身	あかみ	lean meat
+脂	あぶら	fat
+皮膚	ひふ	skin
+毛皮	けがわ	fur
+革	かわ	leather
+鱗	うろこ	scale
+甲羅	こうら	shell
+蹄	ひづめ	hoof
+嘴	くちばし	beak
+鬣	たてがみ	mane
+群れ	むれ	herd
+家畜	かちく	livestock
+野生	やせい	wild
+獣	けもの	beast
+怪獣	かいじゅう	monster
+化け物	ばけもの	monster
+恐竜	きょうりゅう	dinosaur
+化石	かせき	fossil
+駱駝	らくだ	camel
+麒麟	きりん	giraffe
+河馬	かば	hippo
+犀	さい	rhino
+豹	ひょう	leopard
+猫舌	ねこじた	sensitive to heat
+猫背	ねこぜ	hunchback
+鳩時計	はとどけい	cuckoo clock
+砂時計	すなどけい	hourglass
+腕時計	うでどけい	wristwatch
+置き時計	おきどけい	table clock
+秒針	びょうしん	second hand
+文字盤	もじばん	dial
+針金	はりがね	wire
+紐靴	ひもぐつ	lace-up shoes
+革靴	かわぐつ	leather shoes
+靴屋	くつや	shoe store
+靴紐	くつひも	shoelace
+鞄屋	かばんや	bag shop
+雨傘	あまがさ	umbrella
+日傘	ひがさ	parasol
+手提げ	てさげ	handbag
+風呂敷	ふろしき	wrapping cloth
+小銭入れ	こぜにいれ	coin purse
+名札	なふだ	name tag
+値札	ねふだ	price tag
+切り札	きりふだ	trump card
+手洗い	てあらい	restroom
+お手洗い	おてあらい	restroom
+石段	いしだん	stone steps
+段	だん	step
+段ボール	だんぼーる	cardboard
+包み	つつみ	package
+包装	ほうそう	wrapping
+紙コップ	かみこっぷ	paper cup
+割り箸	わりばし	disposable chopsticks
+爪楊枝	つまようじ	toothpick
+栓抜き	せんぬき	bottle opener
+缶切り	かんきり	can opener
+まな板	まないた	cutting board
+お玉	おたま	ladle
+杓子	しゃくし	ladle
+炊飯器	すいはんき	rice cooker
+薬缶	やかん	kettle
+魔法瓶	まほうびん	thermos
+重箱	じゅうばこ	tiered box
+食卓	しょくたく	dining table
+卓袱台	ちゃぶだい	low table
+炬燵	こたつ	kotatsu
+火鉢	ひばち	brazier
+囲炉裏	いろり	sunken hearth
+暖炉	だんろ	fireplace
+焚き火	たきび	bonfire
+線香	せんこう	incense
+煙草	たばこ	tobacco
+灰皿	はいざら	ashtray
+マッチ	まっち	match
+火花	ひばな	spark
+火山灰	かざんばい	volcanic ash
+溶岩	ようがん	lava
+地震計	じしんけい	seismometer
+揺れ	ゆれ	shaking
+地割れ	じわれ	ground crack
+土砂	どしゃ	sediment
+山崩れ	やまくずれ	landslide
+雪崩	なだれ	avalanche
+竜巻	たつまき	tornado
+大風	おおかぜ	gale
+そよ風	そよかぜ	breeze
+潮	しお	tide
+満潮	まんちょう	high tide
+干潮	かんちょう	low tide
+潮風	しおかぜ	sea breeze
+荒波	あらなみ	rough waves
+大波	おおなみ	big wave
+浦	うら	inlet
+入り江	いりえ	cove
+岬	みさき	cape
+離島	りとう	remote island
+無人島	むじんとう	uninhabited island
+海賊	かいぞく	pirate
+船長	せんちょう	captain
+船員	せんいん	sailor
+水夫	すいふ	sailor
+航海	こうかい	voyage
+船旅	ふなたび	sea voyage
+船便	ふなびん	sea mail
+飛行場	ひこうじょう	airfield
+操縦士	そうじゅうし	pilot
+宇宙人	うちゅうじん	alien
+宇宙船	うちゅうせん	spaceship
+惑星	わくせい	planet
+衛星	えいせい	satellite
+彗星	すいせい	comet
+銀河	ぎんが	galaxy
+天の川	あまのがわ	Milky Way
+北極	ほっきょく	North Pole
+南極	なんきょく	South Pole
+赤道	せきどう	equator
+日の出	ひので	sunrise
+日の入り	ひのいり	sunset
+日暮れ	ひぐれ	dusk
+夜明け	よあけ	dawn
+明け方	あけがた	daybreak
+真夜中	まよなか	middle of the night
+真昼	まひる	midday
+正午	しょうご	noon
+朝方	あさがた	early morning
+夜空	よぞら	night sky
+闇	やみ	darkness
+暗闇	くらやみ	darkness
+月明かり	つきあかり	moonlight
+星明かり	ほしあかり	starlight
+光線	こうせん	ray
+日差し	ひざし	sunshine
+陽気	ようき	cheerfulness
+湿気	しっけ	humidity
+寒気	さむけ	chill
+冷え	ひえ	coldness
+猛暑	もうしょ	heat wave
+真夏	まなつ	midsummer
+真冬	まふゆ	midwinter
+初夏	しょか	early summer
+晩秋	ばんしゅう	late autumn
+初雪	はつゆき	first snow
+初恋	はつこい	first love
+片思い	かたおもい	unrequited love
+失恋	しつれん	heartbreak
+告白	こくはく	confession
+婚約	こんやく	engagement
+新婚	しんこん	newlyweds
+花嫁	はなよめ	bride
+花婿	はなむこ	groom
+仲人	なこうど	matchmaker
+離婚	りこん	divorce
+家出	いえで	running away
+里帰り	さとがえり	homecoming
+実家	じっか	parents' home
+我が家	わがや	our home
+一家	いっか	household
+一族	いちぞく	clan
+本家	ほんけ	main family
+長男	ちょうなん	eldest son
+長女	ちょうじょ	eldest daughter
+次男	じなん	second son
+次女	じじょ	second daughter
+末っ子	すえっこ	youngest child
+一人っ子	ひとりっこ	only child
+父親	ちちおや	father
+母親	ははおや	mother
+お父さん	おとうさん	dad
+お母さん	おかあさん	mom
+お兄さん	おにいさん	big brother
+お姉さん	おねえさん	big sister
+お祖父さん	おじいさん	grandpa
+お祖母さん	おばあさん	grandma
+叔父さん	おじさん	uncle
+叔母さん	おばさん	aunt
+ご主人	ごしゅじん	your husband
+お嬢さん	おじょうさん	young lady
+お坊さん	おぼうさん	monk
+お医者さん	おいしゃさん	doctor
+お客さん	おきゃくさん	customer
+お隣	おとなり	neighbor
+お宅	おたく	your home
+お家	おうち	home
+お弁当	おべんとう	boxed lunch
+お箸	おはし	chopsticks
+お皿	おさら	plate
+お水	おみず	water
+お酒	おさけ	alcohol
+お米	おこめ	rice
+お肉	おにく	meat
+お魚	おさかな	fish
+お花	おはな	flowers
+お月様	おつきさま	the moon
+お日様	おひさま	the sun
+お星様	おほしさま	star
+お手紙	おてがみ	letter
+お名前	おなまえ	your name
+お仕事	おしごと	work
+お休み	おやすみ	day off
+お祝い	おいわい	celebration
+お見舞い	おみまい	sick visit
+お使い	おつかい	errand
+お手伝い	おてつだい	helping out
+お化粧	おけしょう	makeup
+お洒落	おしゃれ	fashion
+お喋り	おしゃべり	chatter
+お世辞	おせじ	flattery
+お辞儀	おじぎ	bow
+お盆	おぼん	Obon
+お彼岸	おひがん	equinox week
+お節	おせち	New Year food
+お汁粉	おしるこ	sweet bean soup
+映像	えいぞう	footage
+動画	どうが	video
+画像	がぞう	image
+音声	おんせい	audio
+録音	ろくおん	recording
+録画	ろくが	video recording
+機能	きのう	function
+昨日	きのう	yesterday
+明日	あした	tomorrow
+今日	きょう	today
+今朝	けさ	this morning
+今晩	こんばん	tonight
+今夜	こんや	tonight
+一昨日	おととい	day before yesterday
+明後日	あさって	day after tomorrow
+先日	せんじつ	the other day
+近頃	ちかごろ	these days
+最近	さいきん	recently
+前後	ぜんご	before and after
+上下	じょうげ	up and down
+左右	さゆう	left and right
+内側	うちがわ	inside
+外側	そとがわ	outside
+片側	かたがわ	one side
+両側	りょうがわ	both sides
+手前	てまえ	this side
+背後	はいご	behind
+正面	しょうめん	front
+側面	そくめん	side
+斜め	ななめ	diagonal
+逆	ぎゃく	reverse
+上り	のぼり	ascent
+下り	くだり	descent
+上り坂	のぼりざか	uphill
+下り坂	くだりざか	downhill
+戻り	もどり	return
+往来	おうらい	traffic
+人通り	ひとどおり	foot traffic
+通り	とおり	street
+路地	ろじ	alley
+並木道	なみきみち	tree-lined road
+街	まち	city streets
+街角	まちかど	street corner
+繁華街	はんかがい	downtown
+住宅	じゅうたく	housing
+団地	だんち	housing complex
+空き地	あきち	vacant lot
+広場	ひろば	plaza
+噴水	ふんすい	fountain
+銅像	どうぞう	statue
+記念碑	きねんひ	monument
+墓地	ぼち	cemetery
+寺	てら	temple
+境内	けいだい	precincts
+参道	さんどう	approach to shrine
+賽銭	さいせん	offering coins
+絵馬	えま	votive tablet
+縁日	えんにち	fair day
+屋台	やたい	food stall
+綿飴	わたあめ	cotton candy
+お面	おめん	mask
+仮面	かめん	mask
+人目	ひとめ	public eye
+目印	めじるし	landmark
+目安	めやす	guideline
+目上	めうえ	superior
+見本	みほん	sample
+手本	てほん	model
+手順	てじゅん	procedure
+手段	しゅだん	means
+手間	てま	effort
+手元	てもと	at hand
+首飾り	くびかざり	necklace
+耳飾り	みみかざり	earring
+髪飾り	かみかざり	hair ornament
+雨上がり	あめあがり	after the rain
+雨雲	あまぐも	rain cloud
+雨音	あまおと	sound of rain
+雨水	あまみず	rainwater
+雨粒	あまつぶ	raindrop
+雨宿り	あまやどり	sheltering from rain
+綿雲	わたぐも	fluffy cloud
+鰯雲	いわしぐも	cirrocumulus
+雪景色	ゆきげしき	snowscape
+雪解け	ゆきどけ	snowmelt
+雪山	ゆきやま	snowy mountain
+氷柱	つらら	icicle
+霜柱	しもばしら	frost columns
+薄氷	うすごおり	thin ice
+桜餅	さくらもち	sakura mochi
+柏餅	かしわもち	oak-leaf mochi
+花吹雪	はなふぶき	falling petals
+花束	はなたば	bouquet
+花畑	はなばたけ	flower field
+花園	はなぞの	flower garden
+草花	くさばな	flowering plants
+草木	くさき	plants
+雑草	ざっそう	weeds
+落ち葉	おちば	fallen leaves
+若葉	わかば	young leaves
+青葉	あおば	green leaves
+木の葉	このは	tree leaves
+木陰	こかげ	shade of a tree
+木漏れ日	こもれび	dappled sunlight
+大木	たいぼく	large tree
+切り株	きりかぶ	stump
+丸太	まるた	log
+薪	まき	firewood
+団栗	どんぐり	acorn
+椿	つばき	camellia
+躑躅	つつじ	azalea
+紫陽花	あじさい	hydrangea
+菖蒲	しょうぶ	iris
+蒲公英	たんぽぽ	dandelion
+菫	すみれ	violet
+水仙	すいせん	daffodil
+牡丹	ぼたん	peony
+藤	ふじ	wisteria
+萩	はぎ	bush clover
+芒	すすき	pampas grass
+銀杏	いちょう	ginkgo
+楓	かえで	maple
+欅	けやき	zelkova
+檜	ひのき	cypress
+樫	かし	oak
+桐	きり	paulownia
+柚子	ゆず	yuzu
+蓮根	れんこん	lotus root
+牛蒡	ごぼう	burdock
+筍	たけのこ	bamboo shoot
+蕪	かぶ	turnip
+薩摩芋	さつまいも	sweet potato
+里芋	さといも	taro
+枝豆	えだまめ	edamame
+大豆	だいず	soybean
+小豆	あずき	red bean
+落花生	らっかせい	peanut
+胡桃	くるみ	walnut
+無花果	いちじく	fig
+枇杷	びわ	loquat
+杏	あんず	apricot
+キャベツ	きゃべつ	cabbage
+レタス	れたす	lettuce
+ピーマン	ぴーまん	green pepper
+オレンジ	おれんじ	orange
+チョコ	ちょこ	chocolate
+クッキー	くっきー	cookie
+ピザ	ぴざ	pizza
+ハンバーグ	はんばーぐ	hamburger steak
+ステーキ	すてーき	steak
+ソース	そーす	sauce
+ワイン	わいん	wine
+ペット	ぺっと	pet
+ノック	のっく	knock
+ベル	べる	bell
+ロボット	ろぼっと	robot
+エンジン	えんじん	engine
+タイヤ	たいや	tire
+ハンドル	はんどる	steering wheel
+ガソリン	がそりん	gasoline
+トラック	とらっく	truck
+ボート	ぼーと	boat
+ヨット	よっと	yacht
+ロケット	ろけっと	rocket
+ビデオ	びでお	video
+アルバム	あるばむ	album
+ポスター	ぽすたー	poster
+カレンダー	かれんだー	calendar
+メモ	めも	memo
+リスト	りすと	list
+データ	でーた	data
+システム	しすてむ	system
+ネット	ねっと	internet
+サイト	さいと	website
+アプリ	あぷり	app
+スマホ	すまほ	smartphone
+キー	きー	key
+マウス	まうす	mouse (PC)
+プリンター	ぷりんたー	printer
+コピー	こぴー	copy
+ファイル	ふぁいる	file
+ルール	るーる	rule
+チーム	ちーむ	team
+メンバー	めんばー	member
+リーダー	りーだー	leader
+ゴール	ごーる	goal
+コース	こーす	course
+レース	れーす	race
+ドライブ	どらいぶ	drive
+キャンプ	きゃんぷ	camping
+ハイキング	はいきんぐ	hiking
+ダンス	だんす	dance
+バンド	ばんど	band
+コンサート	こんさーと	concert
+イベント	いべんと	event
+デート	でーと	date
+サービス	さーびす	service
+セール	せーる	sale
+レシート	れしーと	receipt
+レジ	れじ	cash register
+ポイント	ぽいんと	point
+サイズ	さいず	size
+デザイン	でざいん	design
+スタイル	すたいる	style
+イメージ	いめーじ	image
+アイデア	あいであ	idea
+チャンス	ちゃんす	chance
+ストレス	すとれす	stress
+エネルギー	えねるぎー	energy
+スピード	すぴーど	speed
+バランス	ばらんす	balance
+リズム	りずむ	rhythm
+メロディー	めろでぃー	melody
+ハンカチ	はんかち	handkerchief
+マスク	ますく	face mask
+ベルト	べると	belt
+ブーツ	ぶーつ	boots
+サンダル	さんだる	sandals
+ジーンズ	じーんず	jeans
+ドレス	どれす	dress
+リボン	りぼん	ribbon
+ペンキ	ぺんき	paint
+テープ	てーぷ	tape
+ロープ	ろーぷ	rope
+バケツ	ばけつ	bucket
+ストーブ	すとーぶ	heater
+ガラス	がらす	glass
+ビニール	びにーる	vinyl
+ゴム	ごむ	rubber

@@ -1,0 +1,3876 @@
+{
+ "source": {
+  "accent": "UniDic 2.1.2 (unidic-lite), BSD licence option",
+  "words_and_glosses": "P3 Pitch original word list"
+ },
+ "count": 262,
+ "words": [
+  {
+   "id": "w0001",
+   "surface": "箸",
+   "kana": "はし",
+   "morae": [
+    "は",
+    "し"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "chopsticks"
+  },
+  {
+   "id": "w0002",
+   "surface": "橋",
+   "kana": "はし",
+   "morae": [
+    "は",
+    "し"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "odaka",
+   "gloss": "bridge"
+  },
+  {
+   "id": "w0003",
+   "surface": "端",
+   "kana": "はし",
+   "morae": [
+    "は",
+    "し"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "edge"
+  },
+  {
+   "id": "w0004",
+   "surface": "雨",
+   "kana": "あめ",
+   "morae": [
+    "あ",
+    "め"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "rain"
+  },
+  {
+   "id": "w0005",
+   "surface": "飴",
+   "kana": "あめ",
+   "morae": [
+    "あ",
+    "め"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "candy"
+  },
+  {
+   "id": "w0006",
+   "surface": "花",
+   "kana": "はな",
+   "morae": [
+    "は",
+    "な"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "odaka",
+   "gloss": "flower"
+  },
+  {
+   "id": "w0007",
+   "surface": "鼻",
+   "kana": "はな",
+   "morae": [
+    "は",
+    "な"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "nose"
+  },
+  {
+   "id": "w0008",
+   "surface": "柿",
+   "kana": "かき",
+   "morae": [
+    "か",
+    "き"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "persimmon"
+  },
+  {
+   "id": "w0009",
+   "surface": "牡蠣",
+   "kana": "かき",
+   "morae": [
+    "か",
+    "き"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "oyster"
+  },
+  {
+   "id": "w0010",
+   "surface": "神",
+   "kana": "かみ",
+   "morae": [
+    "か",
+    "み"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "god"
+  },
+  {
+   "id": "w0011",
+   "surface": "紙",
+   "kana": "かみ",
+   "morae": [
+    "か",
+    "み"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "odaka",
+   "gloss": "paper"
+  },
+  {
+   "id": "w0012",
+   "surface": "髪",
+   "kana": "かみ",
+   "morae": [
+    "か",
+    "み"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "odaka",
+   "gloss": "hair"
+  },
+  {
+   "id": "w0013",
+   "surface": "酒",
+   "kana": "さけ",
+   "morae": [
+    "さ",
+    "け"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "sake"
+  },
+  {
+   "id": "w0014",
+   "surface": "鮭",
+   "kana": "さけ",
+   "morae": [
+    "さ",
+    "け"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "salmon"
+  },
+  {
+   "id": "w0015",
+   "surface": "雲",
+   "kana": "くも",
+   "morae": [
+    "く",
+    "も"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "cloud"
+  },
+  {
+   "id": "w0016",
+   "surface": "蜘蛛",
+   "kana": "くも",
+   "morae": [
+    "く",
+    "も"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "spider"
+  },
+  {
+   "id": "w0017",
+   "surface": "亀",
+   "kana": "かめ",
+   "morae": [
+    "か",
+    "め"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "turtle"
+  },
+  {
+   "id": "w0018",
+   "surface": "瓶",
+   "kana": "びん",
+   "morae": [
+    "び",
+    "ん"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "bottle"
+  },
+  {
+   "id": "w0019",
+   "surface": "着物",
+   "kana": "きもの",
+   "morae": [
+    "き",
+    "も",
+    "の"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "kimono"
+  },
+  {
+   "id": "w0020",
+   "surface": "男",
+   "kana": "おとこ",
+   "morae": [
+    "お",
+    "と",
+    "こ"
+   ],
+   "accent": [
+    3
+   ],
+   "type": "odaka",
+   "gloss": "man"
+  },
+  {
+   "id": "w0021",
+   "surface": "女",
+   "kana": "おんな",
+   "morae": [
+    "お",
+    "ん",
+    "な"
+   ],
+   "accent": [
+    3
+   ],
+   "type": "odaka",
+   "gloss": "woman"
+  },
+  {
+   "id": "w0022",
+   "surface": "弟",
+   "kana": "おとうと",
+   "morae": [
+    "お",
+    "と",
+    "う",
+    "と"
+   ],
+   "accent": [
+    4
+   ],
+   "type": "odaka",
+   "gloss": "younger brother"
+  },
+  {
+   "id": "w0023",
+   "surface": "妹",
+   "kana": "いもうと",
+   "morae": [
+    "い",
+    "も",
+    "う",
+    "と"
+   ],
+   "accent": [
+    4
+   ],
+   "type": "odaka",
+   "gloss": "younger sister"
+  },
+  {
+   "id": "w0024",
+   "surface": "頭",
+   "kana": "あたま",
+   "morae": [
+    "あ",
+    "た",
+    "ま"
+   ],
+   "accent": [
+    2,
+    3
+   ],
+   "type": "nakadaka",
+   "gloss": "head"
+  },
+  {
+   "id": "w0025",
+   "surface": "心",
+   "kana": "こころ",
+   "morae": [
+    "こ",
+    "こ",
+    "ろ"
+   ],
+   "accent": [
+    2,
+    3
+   ],
+   "type": "nakadaka",
+   "gloss": "heart"
+  },
+  {
+   "id": "w0026",
+   "surface": "桜",
+   "kana": "さくら",
+   "morae": [
+    "さ",
+    "く",
+    "ら"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "cherry blossom"
+  },
+  {
+   "id": "w0027",
+   "surface": "鏡",
+   "kana": "かがみ",
+   "morae": [
+    "か",
+    "が",
+    "み"
+   ],
+   "accent": [
+    3
+   ],
+   "type": "odaka",
+   "gloss": "mirror"
+  },
+  {
+   "id": "w0028",
+   "surface": "朝",
+   "kana": "あさ",
+   "morae": [
+    "あ",
+    "さ"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "morning"
+  },
+  {
+   "id": "w0029",
+   "surface": "麻",
+   "kana": "あさ",
+   "morae": [
+    "あ",
+    "さ"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "odaka",
+   "gloss": "hemp"
+  },
+  {
+   "id": "w0030",
+   "surface": "秋",
+   "kana": "あき",
+   "morae": [
+    "あ",
+    "き"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "autumn"
+  },
+  {
+   "id": "w0031",
+   "surface": "空き",
+   "kana": "あき",
+   "morae": [
+    "あ",
+    "き"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "vacancy"
+  },
+  {
+   "id": "w0032",
+   "surface": "山",
+   "kana": "やま",
+   "morae": [
+    "や",
+    "ま"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "odaka",
+   "gloss": "mountain"
+  },
+  {
+   "id": "w0033",
+   "surface": "川",
+   "kana": "かわ",
+   "morae": [
+    "か",
+    "わ"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "odaka",
+   "gloss": "river"
+  },
+  {
+   "id": "w0034",
+   "surface": "皮",
+   "kana": "かわ",
+   "morae": [
+    "か",
+    "わ"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "odaka",
+   "gloss": "skin"
+  },
+  {
+   "id": "w0035",
+   "surface": "犬",
+   "kana": "いぬ",
+   "morae": [
+    "い",
+    "ぬ"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "odaka",
+   "gloss": "dog"
+  },
+  {
+   "id": "w0036",
+   "surface": "足",
+   "kana": "あし",
+   "morae": [
+    "あ",
+    "し"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "odaka",
+   "gloss": "foot"
+  },
+  {
+   "id": "w0037",
+   "surface": "音",
+   "kana": "おと",
+   "morae": [
+    "お",
+    "と"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "odaka",
+   "gloss": "sound"
+  },
+  {
+   "id": "w0038",
+   "surface": "休み",
+   "kana": "やすみ",
+   "morae": [
+    "や",
+    "す",
+    "み"
+   ],
+   "accent": [
+    3
+   ],
+   "type": "odaka",
+   "gloss": "holiday"
+  },
+  {
+   "id": "w0039",
+   "surface": "湖",
+   "kana": "みずうみ",
+   "morae": [
+    "み",
+    "ず",
+    "う",
+    "み"
+   ],
+   "accent": [
+    3
+   ],
+   "type": "nakadaka",
+   "gloss": "lake"
+  },
+  {
+   "id": "w0040",
+   "surface": "卵",
+   "kana": "たまご",
+   "morae": [
+    "た",
+    "ま",
+    "ご"
+   ],
+   "accent": [
+    0,
+    2
+   ],
+   "type": "heiban",
+   "gloss": "egg"
+  },
+  {
+   "id": "w0041",
+   "surface": "雪",
+   "kana": "ゆき",
+   "morae": [
+    "ゆ",
+    "き"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "odaka",
+   "gloss": "snow"
+  },
+  {
+   "id": "w0042",
+   "surface": "蛸",
+   "kana": "たこ",
+   "morae": [
+    "た",
+    "こ"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "octopus"
+  },
+  {
+   "id": "w0043",
+   "surface": "凧",
+   "kana": "たこ",
+   "morae": [
+    "た",
+    "こ"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "kite"
+  },
+  {
+   "id": "w0044",
+   "surface": "猫",
+   "kana": "ねこ",
+   "morae": [
+    "ね",
+    "こ"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "cat"
+  },
+  {
+   "id": "w0045",
+   "surface": "水",
+   "kana": "みず",
+   "morae": [
+    "み",
+    "ず"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "water"
+  },
+  {
+   "id": "w0046",
+   "surface": "火",
+   "kana": "ひ",
+   "morae": [
+    "ひ"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "fire"
+  },
+  {
+   "id": "w0047",
+   "surface": "木",
+   "kana": "き",
+   "morae": [
+    "き"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "tree"
+  },
+  {
+   "id": "w0048",
+   "surface": "目",
+   "kana": "め",
+   "morae": [
+    "め"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "eye"
+  },
+  {
+   "id": "w0049",
+   "surface": "手",
+   "kana": "て",
+   "morae": [
+    "て"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "hand"
+  },
+  {
+   "id": "w0050",
+   "surface": "歯",
+   "kana": "は",
+   "morae": [
+    "は"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "tooth"
+  },
+  {
+   "id": "w0051",
+   "surface": "葉",
+   "kana": "は",
+   "morae": [
+    "は"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "leaf"
+  },
+  {
+   "id": "w0052",
+   "surface": "血",
+   "kana": "ち",
+   "morae": [
+    "ち"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "blood"
+  },
+  {
+   "id": "w0053",
+   "surface": "蚊",
+   "kana": "か",
+   "morae": [
+    "か"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "mosquito"
+  },
+  {
+   "id": "w0054",
+   "surface": "口",
+   "kana": "くち",
+   "morae": [
+    "く",
+    "ち"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "mouth"
+  },
+  {
+   "id": "w0055",
+   "surface": "耳",
+   "kana": "みみ",
+   "morae": [
+    "み",
+    "み"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "odaka",
+   "gloss": "ear"
+  },
+  {
+   "id": "w0056",
+   "surface": "首",
+   "kana": "くび",
+   "morae": [
+    "く",
+    "び"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "neck"
+  },
+  {
+   "id": "w0057",
+   "surface": "顔",
+   "kana": "かお",
+   "morae": [
+    "か",
+    "お"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "face"
+  },
+  {
+   "id": "w0058",
+   "surface": "腕",
+   "kana": "うで",
+   "morae": [
+    "う",
+    "で"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "odaka",
+   "gloss": "arm"
+  },
+  {
+   "id": "w0059",
+   "surface": "指",
+   "kana": "ゆび",
+   "morae": [
+    "ゆ",
+    "び"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "odaka",
+   "gloss": "finger"
+  },
+  {
+   "id": "w0060",
+   "surface": "胸",
+   "kana": "むね",
+   "morae": [
+    "む",
+    "ね"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "odaka",
+   "gloss": "chest"
+  },
+  {
+   "id": "w0061",
+   "surface": "背中",
+   "kana": "せなか",
+   "morae": [
+    "せ",
+    "な",
+    "か"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "back"
+  },
+  {
+   "id": "w0062",
+   "surface": "お腹",
+   "kana": "おなか",
+   "morae": [
+    "お",
+    "な",
+    "か"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "belly"
+  },
+  {
+   "id": "w0063",
+   "surface": "体",
+   "kana": "からだ",
+   "morae": [
+    "か",
+    "ら",
+    "だ"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "body"
+  },
+  {
+   "id": "w0064",
+   "surface": "声",
+   "kana": "こえ",
+   "morae": [
+    "こ",
+    "え"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "voice"
+  },
+  {
+   "id": "w0065",
+   "surface": "肩",
+   "kana": "かた",
+   "morae": [
+    "か",
+    "た"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "shoulder"
+  },
+  {
+   "id": "w0066",
+   "surface": "膝",
+   "kana": "ひざ",
+   "morae": [
+    "ひ",
+    "ざ"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "knee"
+  },
+  {
+   "id": "w0067",
+   "surface": "腰",
+   "kana": "こし",
+   "morae": [
+    "こ",
+    "し"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "lower back"
+  },
+  {
+   "id": "w0068",
+   "surface": "舌",
+   "kana": "した",
+   "morae": [
+    "し",
+    "た"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "odaka",
+   "gloss": "tongue"
+  },
+  {
+   "id": "w0069",
+   "surface": "喉",
+   "kana": "のど",
+   "morae": [
+    "の",
+    "ど"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "throat"
+  },
+  {
+   "id": "w0070",
+   "surface": "父",
+   "kana": "ちち",
+   "morae": [
+    "ち",
+    "ち"
+   ],
+   "accent": [
+    2,
+    1
+   ],
+   "type": "odaka",
+   "gloss": "father"
+  },
+  {
+   "id": "w0071",
+   "surface": "母",
+   "kana": "はは",
+   "morae": [
+    "は",
+    "は"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "mother"
+  },
+  {
+   "id": "w0072",
+   "surface": "兄",
+   "kana": "あに",
+   "morae": [
+    "あ",
+    "に"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "older brother"
+  },
+  {
+   "id": "w0073",
+   "surface": "姉",
+   "kana": "あね",
+   "morae": [
+    "あ",
+    "ね"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "older sister"
+  },
+  {
+   "id": "w0074",
+   "surface": "子供",
+   "kana": "こども",
+   "morae": [
+    "こ",
+    "ど",
+    "も"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "child"
+  },
+  {
+   "id": "w0075",
+   "surface": "友達",
+   "kana": "ともだち",
+   "morae": [
+    "と",
+    "も",
+    "だ",
+    "ち"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "friend"
+  },
+  {
+   "id": "w0076",
+   "surface": "先生",
+   "kana": "せんせい",
+   "morae": [
+    "せ",
+    "ん",
+    "せ",
+    "い"
+   ],
+   "accent": [
+    3
+   ],
+   "type": "nakadaka",
+   "gloss": "teacher"
+  },
+  {
+   "id": "w0077",
+   "surface": "学生",
+   "kana": "がくせい",
+   "morae": [
+    "が",
+    "く",
+    "せ",
+    "い"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "student"
+  },
+  {
+   "id": "w0078",
+   "surface": "医者",
+   "kana": "いしゃ",
+   "morae": [
+    "い",
+    "しゃ"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "doctor"
+  },
+  {
+   "id": "w0079",
+   "surface": "家族",
+   "kana": "かぞく",
+   "morae": [
+    "か",
+    "ぞ",
+    "く"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "family"
+  },
+  {
+   "id": "w0080",
+   "surface": "人",
+   "kana": "ひと",
+   "morae": [
+    "ひ",
+    "と"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "person"
+  },
+  {
+   "id": "w0081",
+   "surface": "夫",
+   "kana": "おっと",
+   "morae": [
+    "お",
+    "っ",
+    "と"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "husband"
+  },
+  {
+   "id": "w0082",
+   "surface": "妻",
+   "kana": "つま",
+   "morae": [
+    "つ",
+    "ま"
+   ],
+   "accent": [
+    1,
+    2
+   ],
+   "type": "atamadaka",
+   "gloss": "wife"
+  },
+  {
+   "id": "w0083",
+   "surface": "娘",
+   "kana": "むすめ",
+   "morae": [
+    "む",
+    "す",
+    "め"
+   ],
+   "accent": [
+    3
+   ],
+   "type": "odaka",
+   "gloss": "daughter"
+  },
+  {
+   "id": "w0084",
+   "surface": "息子",
+   "kana": "むすこ",
+   "morae": [
+    "む",
+    "す",
+    "こ"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "son"
+  },
+  {
+   "id": "w0085",
+   "surface": "家",
+   "kana": "いえ",
+   "morae": [
+    "い",
+    "え"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "odaka",
+   "gloss": "house"
+  },
+  {
+   "id": "w0086",
+   "surface": "窓",
+   "kana": "まど",
+   "morae": [
+    "ま",
+    "ど"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "window"
+  },
+  {
+   "id": "w0087",
+   "surface": "門",
+   "kana": "もん",
+   "morae": [
+    "も",
+    "ん"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "gate"
+  },
+  {
+   "id": "w0088",
+   "surface": "庭",
+   "kana": "にわ",
+   "morae": [
+    "に",
+    "わ"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "garden"
+  },
+  {
+   "id": "w0089",
+   "surface": "部屋",
+   "kana": "へや",
+   "morae": [
+    "へ",
+    "や"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "odaka",
+   "gloss": "room"
+  },
+  {
+   "id": "w0090",
+   "surface": "机",
+   "kana": "つくえ",
+   "morae": [
+    "つ",
+    "く",
+    "え"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "desk"
+  },
+  {
+   "id": "w0091",
+   "surface": "椅子",
+   "kana": "いす",
+   "morae": [
+    "い",
+    "す"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "chair"
+  },
+  {
+   "id": "w0092",
+   "surface": "本",
+   "kana": "ほん",
+   "morae": [
+    "ほ",
+    "ん"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "book"
+  },
+  {
+   "id": "w0093",
+   "surface": "鞄",
+   "kana": "かばん",
+   "morae": [
+    "か",
+    "ば",
+    "ん"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "bag"
+  },
+  {
+   "id": "w0094",
+   "surface": "傘",
+   "kana": "かさ",
+   "morae": [
+    "か",
+    "さ"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "umbrella"
+  },
+  {
+   "id": "w0095",
+   "surface": "靴",
+   "kana": "くつ",
+   "morae": [
+    "く",
+    "つ"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "odaka",
+   "gloss": "shoes"
+  },
+  {
+   "id": "w0096",
+   "surface": "帽子",
+   "kana": "ぼうし",
+   "morae": [
+    "ぼ",
+    "う",
+    "し"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "hat"
+  },
+  {
+   "id": "w0097",
+   "surface": "眼鏡",
+   "kana": "めがね",
+   "morae": [
+    "め",
+    "が",
+    "ね"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "glasses"
+  },
+  {
+   "id": "w0098",
+   "surface": "時計",
+   "kana": "とけい",
+   "morae": [
+    "と",
+    "け",
+    "い"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "clock"
+  },
+  {
+   "id": "w0099",
+   "surface": "電話",
+   "kana": "でんわ",
+   "morae": [
+    "で",
+    "ん",
+    "わ"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "telephone"
+  },
+  {
+   "id": "w0100",
+   "surface": "車",
+   "kana": "くるま",
+   "morae": [
+    "く",
+    "る",
+    "ま"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "car"
+  },
+  {
+   "id": "w0101",
+   "surface": "電車",
+   "kana": "でんしゃ",
+   "morae": [
+    "で",
+    "ん",
+    "しゃ"
+   ],
+   "accent": [
+    0,
+    1
+   ],
+   "type": "heiban",
+   "gloss": "train"
+  },
+  {
+   "id": "w0102",
+   "surface": "駅",
+   "kana": "えき",
+   "morae": [
+    "え",
+    "き"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "station"
+  },
+  {
+   "id": "w0103",
+   "surface": "道",
+   "kana": "みち",
+   "morae": [
+    "み",
+    "ち"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "road"
+  },
+  {
+   "id": "w0104",
+   "surface": "町",
+   "kana": "まち",
+   "morae": [
+    "ま",
+    "ち"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "odaka",
+   "gloss": "town"
+  },
+  {
+   "id": "w0105",
+   "surface": "村",
+   "kana": "むら",
+   "morae": [
+    "む",
+    "ら"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "odaka",
+   "gloss": "village"
+  },
+  {
+   "id": "w0106",
+   "surface": "国",
+   "kana": "くに",
+   "morae": [
+    "く",
+    "に"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "country"
+  },
+  {
+   "id": "w0107",
+   "surface": "海",
+   "kana": "うみ",
+   "morae": [
+    "う",
+    "み"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "sea"
+  },
+  {
+   "id": "w0108",
+   "surface": "空",
+   "kana": "そら",
+   "morae": [
+    "そ",
+    "ら"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "sky"
+  },
+  {
+   "id": "w0109",
+   "surface": "星",
+   "kana": "ほし",
+   "morae": [
+    "ほ",
+    "し"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "star"
+  },
+  {
+   "id": "w0110",
+   "surface": "月",
+   "kana": "つき",
+   "morae": [
+    "つ",
+    "き"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "odaka",
+   "gloss": "moon"
+  },
+  {
+   "id": "w0111",
+   "surface": "島",
+   "kana": "しま",
+   "morae": [
+    "し",
+    "ま"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "odaka",
+   "gloss": "island"
+  },
+  {
+   "id": "w0112",
+   "surface": "池",
+   "kana": "いけ",
+   "morae": [
+    "い",
+    "け"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "odaka",
+   "gloss": "pond"
+  },
+  {
+   "id": "w0113",
+   "surface": "石",
+   "kana": "いし",
+   "morae": [
+    "い",
+    "し"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "odaka",
+   "gloss": "stone"
+  },
+  {
+   "id": "w0114",
+   "surface": "砂",
+   "kana": "すな",
+   "morae": [
+    "す",
+    "な"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "sand"
+  },
+  {
+   "id": "w0115",
+   "surface": "森",
+   "kana": "もり",
+   "morae": [
+    "も",
+    "り"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "forest"
+  },
+  {
+   "id": "w0116",
+   "surface": "林",
+   "kana": "はやし",
+   "morae": [
+    "は",
+    "や",
+    "し"
+   ],
+   "accent": [
+    0,
+    3
+   ],
+   "type": "heiban",
+   "gloss": "grove"
+  },
+  {
+   "id": "w0117",
+   "surface": "風",
+   "kana": "かぜ",
+   "morae": [
+    "か",
+    "ぜ"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "wind"
+  },
+  {
+   "id": "w0118",
+   "surface": "風邪",
+   "kana": "かぜ",
+   "morae": [
+    "か",
+    "ぜ"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "a cold"
+  },
+  {
+   "id": "w0119",
+   "surface": "雷",
+   "kana": "かみなり",
+   "morae": [
+    "か",
+    "み",
+    "な",
+    "り"
+   ],
+   "accent": [
+    3,
+    4
+   ],
+   "type": "nakadaka",
+   "gloss": "thunder"
+  },
+  {
+   "id": "w0120",
+   "surface": "虹",
+   "kana": "にじ",
+   "morae": [
+    "に",
+    "じ"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "rainbow"
+  },
+  {
+   "id": "w0121",
+   "surface": "春",
+   "kana": "はる",
+   "morae": [
+    "は",
+    "る"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "spring"
+  },
+  {
+   "id": "w0122",
+   "surface": "夏",
+   "kana": "なつ",
+   "morae": [
+    "な",
+    "つ"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "odaka",
+   "gloss": "summer"
+  },
+  {
+   "id": "w0123",
+   "surface": "冬",
+   "kana": "ふゆ",
+   "morae": [
+    "ふ",
+    "ゆ"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "odaka",
+   "gloss": "winter"
+  },
+  {
+   "id": "w0124",
+   "surface": "夜",
+   "kana": "よる",
+   "morae": [
+    "よ",
+    "る"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "night"
+  },
+  {
+   "id": "w0125",
+   "surface": "昼",
+   "kana": "ひる",
+   "morae": [
+    "ひ",
+    "る"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "odaka",
+   "gloss": "noon"
+  },
+  {
+   "id": "w0126",
+   "surface": "夕方",
+   "kana": "ゆうがた",
+   "morae": [
+    "ゆ",
+    "う",
+    "が",
+    "た"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "evening"
+  },
+  {
+   "id": "w0127",
+   "surface": "鳥",
+   "kana": "とり",
+   "morae": [
+    "と",
+    "り"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "bird"
+  },
+  {
+   "id": "w0128",
+   "surface": "魚",
+   "kana": "さかな",
+   "morae": [
+    "さ",
+    "か",
+    "な"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "fish"
+  },
+  {
+   "id": "w0129",
+   "surface": "馬",
+   "kana": "うま",
+   "morae": [
+    "う",
+    "ま"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "odaka",
+   "gloss": "horse"
+  },
+  {
+   "id": "w0130",
+   "surface": "牛",
+   "kana": "うし",
+   "morae": [
+    "う",
+    "し"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "cow"
+  },
+  {
+   "id": "w0131",
+   "surface": "豚",
+   "kana": "ぶた",
+   "morae": [
+    "ぶ",
+    "た"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "pig"
+  },
+  {
+   "id": "w0132",
+   "surface": "羊",
+   "kana": "ひつじ",
+   "morae": [
+    "ひ",
+    "つ",
+    "じ"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "sheep"
+  },
+  {
+   "id": "w0133",
+   "surface": "猿",
+   "kana": "さる",
+   "morae": [
+    "さ",
+    "る"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "monkey"
+  },
+  {
+   "id": "w0134",
+   "surface": "熊",
+   "kana": "くま",
+   "morae": [
+    "く",
+    "ま"
+   ],
+   "accent": [
+    2,
+    1
+   ],
+   "type": "odaka",
+   "gloss": "bear"
+  },
+  {
+   "id": "w0135",
+   "surface": "鼠",
+   "kana": "ねずみ",
+   "morae": [
+    "ね",
+    "ず",
+    "み"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "mouse"
+  },
+  {
+   "id": "w0136",
+   "surface": "兎",
+   "kana": "うさぎ",
+   "morae": [
+    "う",
+    "さ",
+    "ぎ"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "rabbit"
+  },
+  {
+   "id": "w0137",
+   "surface": "虫",
+   "kana": "むし",
+   "morae": [
+    "む",
+    "し"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "insect"
+  },
+  {
+   "id": "w0138",
+   "surface": "蛇",
+   "kana": "へび",
+   "morae": [
+    "へ",
+    "び"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "snake"
+  },
+  {
+   "id": "w0139",
+   "surface": "米",
+   "kana": "こめ",
+   "morae": [
+    "こ",
+    "め"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "odaka",
+   "gloss": "rice"
+  },
+  {
+   "id": "w0140",
+   "surface": "肉",
+   "kana": "にく",
+   "morae": [
+    "に",
+    "く"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "odaka",
+   "gloss": "meat"
+  },
+  {
+   "id": "w0141",
+   "surface": "野菜",
+   "kana": "やさい",
+   "morae": [
+    "や",
+    "さ",
+    "い"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "vegetables"
+  },
+  {
+   "id": "w0142",
+   "surface": "果物",
+   "kana": "くだもの",
+   "morae": [
+    "く",
+    "だ",
+    "も",
+    "の"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "nakadaka",
+   "gloss": "fruit"
+  },
+  {
+   "id": "w0143",
+   "surface": "林檎",
+   "kana": "りんご",
+   "morae": [
+    "り",
+    "ん",
+    "ご"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "apple"
+  },
+  {
+   "id": "w0144",
+   "surface": "蜜柑",
+   "kana": "みかん",
+   "morae": [
+    "み",
+    "か",
+    "ん"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "mandarin orange"
+  },
+  {
+   "id": "w0145",
+   "surface": "苺",
+   "kana": "いちご",
+   "morae": [
+    "い",
+    "ち",
+    "ご"
+   ],
+   "accent": [
+    0,
+    1
+   ],
+   "type": "heiban",
+   "gloss": "strawberry"
+  },
+  {
+   "id": "w0146",
+   "surface": "桃",
+   "kana": "もも",
+   "morae": [
+    "も",
+    "も"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "peach"
+  },
+  {
+   "id": "w0147",
+   "surface": "梨",
+   "kana": "なし",
+   "morae": [
+    "な",
+    "し"
+   ],
+   "accent": [
+    0,
+    2
+   ],
+   "type": "heiban",
+   "gloss": "pear"
+  },
+  {
+   "id": "w0148",
+   "surface": "葡萄",
+   "kana": "ぶどう",
+   "morae": [
+    "ぶ",
+    "ど",
+    "う"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "grapes"
+  },
+  {
+   "id": "w0149",
+   "surface": "ご飯",
+   "kana": "ごはん",
+   "morae": [
+    "ご",
+    "は",
+    "ん"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "cooked rice"
+  },
+  {
+   "id": "w0150",
+   "surface": "牛乳",
+   "kana": "ぎゅうにゅう",
+   "morae": [
+    "ぎゅ",
+    "う",
+    "にゅ",
+    "う"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "milk"
+  },
+  {
+   "id": "w0151",
+   "surface": "塩",
+   "kana": "しお",
+   "morae": [
+    "し",
+    "お"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "odaka",
+   "gloss": "salt"
+  },
+  {
+   "id": "w0152",
+   "surface": "砂糖",
+   "kana": "さとう",
+   "morae": [
+    "さ",
+    "と",
+    "う"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "nakadaka",
+   "gloss": "sugar"
+  },
+  {
+   "id": "w0153",
+   "surface": "味噌",
+   "kana": "みそ",
+   "morae": [
+    "み",
+    "そ"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "miso"
+  },
+  {
+   "id": "w0154",
+   "surface": "豆腐",
+   "kana": "とうふ",
+   "morae": [
+    "と",
+    "う",
+    "ふ"
+   ],
+   "accent": [
+    0,
+    3
+   ],
+   "type": "heiban",
+   "gloss": "tofu"
+  },
+  {
+   "id": "w0155",
+   "surface": "箱",
+   "kana": "はこ",
+   "morae": [
+    "は",
+    "こ"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "box"
+  },
+  {
+   "id": "w0156",
+   "surface": "袋",
+   "kana": "ふくろ",
+   "morae": [
+    "ふ",
+    "く",
+    "ろ"
+   ],
+   "accent": [
+    3
+   ],
+   "type": "odaka",
+   "gloss": "sack"
+  },
+  {
+   "id": "w0157",
+   "surface": "皿",
+   "kana": "さら",
+   "morae": [
+    "さ",
+    "ら"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "plate"
+  },
+  {
+   "id": "w0158",
+   "surface": "茶碗",
+   "kana": "ちゃわん",
+   "morae": [
+    "ちゃ",
+    "わ",
+    "ん"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "rice bowl"
+  },
+  {
+   "id": "w0159",
+   "surface": "鍋",
+   "kana": "なべ",
+   "morae": [
+    "な",
+    "べ"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "pot"
+  },
+  {
+   "id": "w0160",
+   "surface": "刀",
+   "kana": "かたな",
+   "morae": [
+    "か",
+    "た",
+    "な"
+   ],
+   "accent": [
+    2,
+    3
+   ],
+   "type": "nakadaka",
+   "gloss": "sword"
+  },
+  {
+   "id": "w0161",
+   "surface": "糸",
+   "kana": "いと",
+   "morae": [
+    "い",
+    "と"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "thread"
+  },
+  {
+   "id": "w0162",
+   "surface": "服",
+   "kana": "ふく",
+   "morae": [
+    "ふ",
+    "く"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "odaka",
+   "gloss": "clothes"
+  },
+  {
+   "id": "w0163",
+   "surface": "色",
+   "kana": "いろ",
+   "morae": [
+    "い",
+    "ろ"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "odaka",
+   "gloss": "color"
+  },
+  {
+   "id": "w0164",
+   "surface": "形",
+   "kana": "かたち",
+   "morae": [
+    "か",
+    "た",
+    "ち"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "shape"
+  },
+  {
+   "id": "w0165",
+   "surface": "言葉",
+   "kana": "ことば",
+   "morae": [
+    "こ",
+    "と",
+    "ば"
+   ],
+   "accent": [
+    3
+   ],
+   "type": "odaka",
+   "gloss": "word"
+  },
+  {
+   "id": "w0166",
+   "surface": "名前",
+   "kana": "なまえ",
+   "morae": [
+    "な",
+    "ま",
+    "え"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "name"
+  },
+  {
+   "id": "w0167",
+   "surface": "話",
+   "kana": "はなし",
+   "morae": [
+    "は",
+    "な",
+    "し"
+   ],
+   "accent": [
+    3
+   ],
+   "type": "odaka",
+   "gloss": "story"
+  },
+  {
+   "id": "w0168",
+   "surface": "歌",
+   "kana": "うた",
+   "morae": [
+    "う",
+    "た"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "odaka",
+   "gloss": "song"
+  },
+  {
+   "id": "w0169",
+   "surface": "絵",
+   "kana": "え",
+   "morae": [
+    "え"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "picture"
+  },
+  {
+   "id": "w0170",
+   "surface": "夢",
+   "kana": "ゆめ",
+   "morae": [
+    "ゆ",
+    "め"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "odaka",
+   "gloss": "dream"
+  },
+  {
+   "id": "w0171",
+   "surface": "命",
+   "kana": "いのち",
+   "morae": [
+    "い",
+    "の",
+    "ち"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "life"
+  },
+  {
+   "id": "w0172",
+   "surface": "力",
+   "kana": "ちから",
+   "morae": [
+    "ち",
+    "か",
+    "ら"
+   ],
+   "accent": [
+    3
+   ],
+   "type": "odaka",
+   "gloss": "strength"
+  },
+  {
+   "id": "w0173",
+   "surface": "涙",
+   "kana": "なみだ",
+   "morae": [
+    "な",
+    "み",
+    "だ"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "tears"
+  },
+  {
+   "id": "w0174",
+   "surface": "汗",
+   "kana": "あせ",
+   "morae": [
+    "あ",
+    "せ"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "sweat"
+  },
+  {
+   "id": "w0175",
+   "surface": "光",
+   "kana": "ひかり",
+   "morae": [
+    "ひ",
+    "か",
+    "り"
+   ],
+   "accent": [
+    3
+   ],
+   "type": "odaka",
+   "gloss": "light"
+  },
+  {
+   "id": "w0176",
+   "surface": "影",
+   "kana": "かげ",
+   "morae": [
+    "か",
+    "げ"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "shadow"
+  },
+  {
+   "id": "w0177",
+   "surface": "煙",
+   "kana": "けむり",
+   "morae": [
+    "け",
+    "む",
+    "り"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "smoke"
+  },
+  {
+   "id": "w0178",
+   "surface": "氷",
+   "kana": "こおり",
+   "morae": [
+    "こ",
+    "お",
+    "り"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "ice"
+  },
+  {
+   "id": "w0179",
+   "surface": "波",
+   "kana": "なみ",
+   "morae": [
+    "な",
+    "み"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "odaka",
+   "gloss": "wave"
+  },
+  {
+   "id": "w0180",
+   "surface": "草",
+   "kana": "くさ",
+   "morae": [
+    "く",
+    "さ"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "odaka",
+   "gloss": "grass"
+  },
+  {
+   "id": "w0181",
+   "surface": "種",
+   "kana": "たね",
+   "morae": [
+    "た",
+    "ね"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "seed"
+  },
+  {
+   "id": "w0182",
+   "surface": "枝",
+   "kana": "えだ",
+   "morae": [
+    "え",
+    "だ"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "branch"
+  },
+  {
+   "id": "w0183",
+   "surface": "竹",
+   "kana": "たけ",
+   "morae": [
+    "た",
+    "け"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "bamboo"
+  },
+  {
+   "id": "w0184",
+   "surface": "松",
+   "kana": "まつ",
+   "morae": [
+    "ま",
+    "つ"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "pine"
+  },
+  {
+   "id": "w0185",
+   "surface": "薬",
+   "kana": "くすり",
+   "morae": [
+    "く",
+    "す",
+    "り"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "medicine"
+  },
+  {
+   "id": "w0186",
+   "surface": "病気",
+   "kana": "びょうき",
+   "morae": [
+    "びょ",
+    "う",
+    "き"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "illness"
+  },
+  {
+   "id": "w0187",
+   "surface": "仕事",
+   "kana": "しごと",
+   "morae": [
+    "し",
+    "ご",
+    "と"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "work"
+  },
+  {
+   "id": "w0188",
+   "surface": "会社",
+   "kana": "かいしゃ",
+   "morae": [
+    "か",
+    "い",
+    "しゃ"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "company"
+  },
+  {
+   "id": "w0189",
+   "surface": "学校",
+   "kana": "がっこう",
+   "morae": [
+    "が",
+    "っ",
+    "こ",
+    "う"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "school"
+  },
+  {
+   "id": "w0190",
+   "surface": "病院",
+   "kana": "びょういん",
+   "morae": [
+    "びょ",
+    "う",
+    "い",
+    "ん"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "hospital"
+  },
+  {
+   "id": "w0191",
+   "surface": "銀行",
+   "kana": "ぎんこう",
+   "morae": [
+    "ぎ",
+    "ん",
+    "こ",
+    "う"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "bank"
+  },
+  {
+   "id": "w0192",
+   "surface": "店",
+   "kana": "みせ",
+   "morae": [
+    "み",
+    "せ"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "odaka",
+   "gloss": "shop"
+  },
+  {
+   "id": "w0193",
+   "surface": "切符",
+   "kana": "きっぷ",
+   "morae": [
+    "き",
+    "っ",
+    "ぷ"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "ticket"
+  },
+  {
+   "id": "w0194",
+   "surface": "手紙",
+   "kana": "てがみ",
+   "morae": [
+    "て",
+    "が",
+    "み"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "letter"
+  },
+  {
+   "id": "w0195",
+   "surface": "写真",
+   "kana": "しゃしん",
+   "morae": [
+    "しゃ",
+    "し",
+    "ん"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "photo"
+  },
+  {
+   "id": "w0196",
+   "surface": "映画",
+   "kana": "えいが",
+   "morae": [
+    "え",
+    "い",
+    "が"
+   ],
+   "accent": [
+    0,
+    1
+   ],
+   "type": "heiban",
+   "gloss": "movie"
+  },
+  {
+   "id": "w0197",
+   "surface": "音楽",
+   "kana": "おんがく",
+   "morae": [
+    "お",
+    "ん",
+    "が",
+    "く"
+   ],
+   "accent": [
+    1,
+    0
+   ],
+   "type": "atamadaka",
+   "gloss": "music"
+  },
+  {
+   "id": "w0198",
+   "surface": "天気",
+   "kana": "てんき",
+   "morae": [
+    "て",
+    "ん",
+    "き"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "weather"
+  },
+  {
+   "id": "w0199",
+   "surface": "旅行",
+   "kana": "りょこう",
+   "morae": [
+    "りょ",
+    "こ",
+    "う"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "trip"
+  },
+  {
+   "id": "w0200",
+   "surface": "宿題",
+   "kana": "しゅくだい",
+   "morae": [
+    "しゅ",
+    "く",
+    "だ",
+    "い"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "homework"
+  },
+  {
+   "id": "w0201",
+   "surface": "試験",
+   "kana": "しけん",
+   "morae": [
+    "し",
+    "け",
+    "ん"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "nakadaka",
+   "gloss": "exam"
+  },
+  {
+   "id": "w0202",
+   "surface": "問題",
+   "kana": "もんだい",
+   "morae": [
+    "も",
+    "ん",
+    "だ",
+    "い"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "problem"
+  },
+  {
+   "id": "w0203",
+   "surface": "答え",
+   "kana": "こたえ",
+   "morae": [
+    "こ",
+    "た",
+    "え"
+   ],
+   "accent": [
+    2,
+    3
+   ],
+   "type": "nakadaka",
+   "gloss": "answer"
+  },
+  {
+   "id": "w0204",
+   "surface": "意味",
+   "kana": "いみ",
+   "morae": [
+    "い",
+    "み"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "meaning"
+  },
+  {
+   "id": "w0205",
+   "surface": "時間",
+   "kana": "じかん",
+   "morae": [
+    "じ",
+    "か",
+    "ん"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "time"
+  },
+  {
+   "id": "w0206",
+   "surface": "台所",
+   "kana": "だいどころ",
+   "morae": [
+    "だ",
+    "い",
+    "ど",
+    "こ",
+    "ろ"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "kitchen"
+  },
+  {
+   "id": "w0207",
+   "surface": "階段",
+   "kana": "かいだん",
+   "morae": [
+    "か",
+    "い",
+    "だ",
+    "ん"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "stairs"
+  },
+  {
+   "id": "w0208",
+   "surface": "鍵",
+   "kana": "かぎ",
+   "morae": [
+    "か",
+    "ぎ"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "odaka",
+   "gloss": "key"
+  },
+  {
+   "id": "w0209",
+   "surface": "財布",
+   "kana": "さいふ",
+   "morae": [
+    "さ",
+    "い",
+    "ふ"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "wallet"
+  },
+  {
+   "id": "w0210",
+   "surface": "新聞",
+   "kana": "しんぶん",
+   "morae": [
+    "し",
+    "ん",
+    "ぶ",
+    "ん"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "newspaper"
+  },
+  {
+   "id": "w0211",
+   "surface": "手袋",
+   "kana": "てぶくろ",
+   "morae": [
+    "て",
+    "ぶ",
+    "く",
+    "ろ"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "nakadaka",
+   "gloss": "gloves"
+  },
+  {
+   "id": "w0212",
+   "surface": "布団",
+   "kana": "ふとん",
+   "morae": [
+    "ふ",
+    "と",
+    "ん"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "futon"
+  },
+  {
+   "id": "w0213",
+   "surface": "枕",
+   "kana": "まくら",
+   "morae": [
+    "ま",
+    "く",
+    "ら"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "pillow"
+  },
+  {
+   "id": "w0214",
+   "surface": "動物",
+   "kana": "どうぶつ",
+   "morae": [
+    "ど",
+    "う",
+    "ぶ",
+    "つ"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "animal"
+  },
+  {
+   "id": "w0215",
+   "surface": "船",
+   "kana": "ふね",
+   "morae": [
+    "ふ",
+    "ね"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "ship"
+  },
+  {
+   "id": "w0216",
+   "surface": "港",
+   "kana": "みなと",
+   "morae": [
+    "み",
+    "な",
+    "と"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "harbor"
+  },
+  {
+   "id": "w0217",
+   "surface": "公園",
+   "kana": "こうえん",
+   "morae": [
+    "こ",
+    "う",
+    "え",
+    "ん"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "park"
+  },
+  {
+   "id": "w0218",
+   "surface": "畑",
+   "kana": "はたけ",
+   "morae": [
+    "は",
+    "た",
+    "け"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "farm field"
+  },
+  {
+   "id": "w0219",
+   "surface": "坂",
+   "kana": "さか",
+   "morae": [
+    "さ",
+    "か"
+   ],
+   "accent": [
+    2,
+    1
+   ],
+   "type": "odaka",
+   "gloss": "slope"
+  },
+  {
+   "id": "w0220",
+   "surface": "隣",
+   "kana": "となり",
+   "morae": [
+    "と",
+    "な",
+    "り"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "next door"
+  },
+  {
+   "id": "w0221",
+   "surface": "後ろ",
+   "kana": "うしろ",
+   "morae": [
+    "う",
+    "し",
+    "ろ"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "back side"
+  },
+  {
+   "id": "w0222",
+   "surface": "左",
+   "kana": "ひだり",
+   "morae": [
+    "ひ",
+    "だ",
+    "り"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "left"
+  },
+  {
+   "id": "w0223",
+   "surface": "南",
+   "kana": "みなみ",
+   "morae": [
+    "み",
+    "な",
+    "み"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "south"
+  },
+  {
+   "id": "w0224",
+   "surface": "東",
+   "kana": "ひがし",
+   "morae": [
+    "ひ",
+    "が",
+    "し"
+   ],
+   "accent": [
+    0,
+    3
+   ],
+   "type": "heiban",
+   "gloss": "east"
+  },
+  {
+   "id": "w0225",
+   "surface": "貝",
+   "kana": "かい",
+   "morae": [
+    "か",
+    "い"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "shellfish"
+  },
+  {
+   "id": "w0226",
+   "surface": "蟹",
+   "kana": "かに",
+   "morae": [
+    "か",
+    "に"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "crab"
+  },
+  {
+   "id": "w0227",
+   "surface": "鶏",
+   "kana": "にわとり",
+   "morae": [
+    "に",
+    "わ",
+    "と",
+    "り"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "chicken"
+  },
+  {
+   "id": "w0228",
+   "surface": "狐",
+   "kana": "きつね",
+   "morae": [
+    "き",
+    "つ",
+    "ね"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "fox"
+  },
+  {
+   "id": "w0229",
+   "surface": "扉",
+   "kana": "とびら",
+   "morae": [
+    "と",
+    "び",
+    "ら"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "door"
+  },
+  {
+   "id": "w0230",
+   "surface": "宝",
+   "kana": "たから",
+   "morae": [
+    "た",
+    "か",
+    "ら"
+   ],
+   "accent": [
+    3
+   ],
+   "type": "odaka",
+   "gloss": "treasure"
+  },
+  {
+   "id": "w0231",
+   "surface": "鬼",
+   "kana": "おに",
+   "morae": [
+    "お",
+    "に"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "odaka",
+   "gloss": "ogre"
+  },
+  {
+   "id": "w0232",
+   "surface": "人形",
+   "kana": "にんぎょう",
+   "morae": [
+    "に",
+    "ん",
+    "ぎょ",
+    "う"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "doll"
+  },
+  {
+   "id": "w0233",
+   "surface": "花火",
+   "kana": "はなび",
+   "morae": [
+    "は",
+    "な",
+    "び"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "fireworks"
+  },
+  {
+   "id": "w0234",
+   "surface": "昔",
+   "kana": "むかし",
+   "morae": [
+    "む",
+    "か",
+    "し"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "long ago"
+  },
+  {
+   "id": "w0235",
+   "surface": "世界",
+   "kana": "せかい",
+   "morae": [
+    "せ",
+    "か",
+    "い"
+   ],
+   "accent": [
+    1,
+    2
+   ],
+   "type": "atamadaka",
+   "gloss": "world"
+  },
+  {
+   "id": "w0236",
+   "surface": "袖",
+   "kana": "そで",
+   "morae": [
+    "そ",
+    "で"
+   ],
+   "accent": [
+    0
+   ],
+   "type": "heiban",
+   "gloss": "sleeve"
+  },
+  {
+   "id": "w0237",
+   "surface": "鶴",
+   "kana": "つる",
+   "morae": [
+    "つ",
+    "る"
+   ],
+   "accent": [
+    1
+   ],
+   "type": "atamadaka",
+   "gloss": "crane"
+  },
+  {
+   "id": "w0238",
+   "surface": "朝ご飯",
+   "kana": "あさごはん",
+   "morae": [
+    "あ",
+    "さ",
+    "ご",
+    "は",
+    "ん"
+   ],
+   "accent": [
+    3
+   ],
+   "type": "nakadaka",
+   "gloss": "breakfast"
+  },
+  {
+   "id": "w0239",
+   "surface": "昼ご飯",
+   "kana": "ひるごはん",
+   "morae": [
+    "ひ",
+    "る",
+    "ご",
+    "は",
+    "ん"
+   ],
+   "accent": [
+    3
+   ],
+   "type": "nakadaka",
+   "gloss": "lunch"
+  },
+  {
+   "id": "w0240",
+   "surface": "晩ご飯",
+   "kana": "ばんごはん",
+   "morae": [
+    "ば",
+    "ん",
+    "ご",
+    "は",
+    "ん"
+   ],
+   "accent": [
+    3
+   ],
+   "type": "nakadaka",
+   "gloss": "dinner"
+  },
+  {
+   "id": "w0241",
+   "surface": "従兄弟",
+   "kana": "いとこ",
+   "morae": [
+    "い",
+    "と",
+    "こ"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "nakadaka",
+   "gloss": "cousin"
+  },
+  {
+   "id": "w0242",
+   "surface": "男の子",
+   "kana": "おとこのこ",
+   "morae": [
+    "お",
+    "と",
+    "こ",
+    "の",
+    "こ"
+   ],
+   "accent": [
+    3
+   ],
+   "type": "nakadaka",
+   "gloss": "boy"
+  },
+  {
+   "id": "w0243",
+   "surface": "女の子",
+   "kana": "おんなのこ",
+   "morae": [
+    "お",
+    "ん",
+    "な",
+    "の",
+    "こ"
+   ],
+   "accent": [
+    3
+   ],
+   "type": "nakadaka",
+   "gloss": "girl"
+  },
+  {
+   "id": "w0244",
+   "surface": "平仮名",
+   "kana": "ひらがな",
+   "morae": [
+    "ひ",
+    "ら",
+    "が",
+    "な"
+   ],
+   "accent": [
+    3
+   ],
+   "type": "nakadaka",
+   "gloss": "hiragana"
+  },
+  {
+   "id": "w0245",
+   "surface": "片仮名",
+   "kana": "かたかな",
+   "morae": [
+    "か",
+    "た",
+    "か",
+    "な"
+   ],
+   "accent": [
+    3,
+    2
+   ],
+   "type": "nakadaka",
+   "gloss": "katakana"
+  },
+  {
+   "id": "w0246",
+   "surface": "建物",
+   "kana": "たてもの",
+   "morae": [
+    "た",
+    "て",
+    "も",
+    "の"
+   ],
+   "accent": [
+    2,
+    3
+   ],
+   "type": "nakadaka",
+   "gloss": "building"
+  },
+  {
+   "id": "w0247",
+   "surface": "窓口",
+   "kana": "まどぐち",
+   "morae": [
+    "ま",
+    "ど",
+    "ぐ",
+    "ち"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "nakadaka",
+   "gloss": "counter window"
+  },
+  {
+   "id": "w0248",
+   "surface": "紙袋",
+   "kana": "かみぶくろ",
+   "morae": [
+    "か",
+    "み",
+    "ぶ",
+    "く",
+    "ろ"
+   ],
+   "accent": [
+    3
+   ],
+   "type": "nakadaka",
+   "gloss": "paper bag"
+  },
+  {
+   "id": "w0249",
+   "surface": "番号",
+   "kana": "ばんごう",
+   "morae": [
+    "ば",
+    "ん",
+    "ご",
+    "う"
+   ],
+   "accent": [
+    3
+   ],
+   "type": "nakadaka",
+   "gloss": "number"
+  },
+  {
+   "id": "w0250",
+   "surface": "肉屋",
+   "kana": "にくや",
+   "morae": [
+    "に",
+    "く",
+    "や"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "nakadaka",
+   "gloss": "butcher"
+  },
+  {
+   "id": "w0251",
+   "surface": "花屋",
+   "kana": "はなや",
+   "morae": [
+    "は",
+    "な",
+    "や"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "nakadaka",
+   "gloss": "florist"
+  },
+  {
+   "id": "w0252",
+   "surface": "食べ物",
+   "kana": "たべもの",
+   "morae": [
+    "た",
+    "べ",
+    "も",
+    "の"
+   ],
+   "accent": [
+    2,
+    3
+   ],
+   "type": "nakadaka",
+   "gloss": "food"
+  },
+  {
+   "id": "w0253",
+   "surface": "飲み物",
+   "kana": "のみもの",
+   "morae": [
+    "の",
+    "み",
+    "も",
+    "の"
+   ],
+   "accent": [
+    2,
+    3
+   ],
+   "type": "nakadaka",
+   "gloss": "drink"
+  },
+  {
+   "id": "w0254",
+   "surface": "弁当",
+   "kana": "べんとう",
+   "morae": [
+    "べ",
+    "ん",
+    "と",
+    "う"
+   ],
+   "accent": [
+    3
+   ],
+   "type": "nakadaka",
+   "gloss": "boxed lunch"
+  },
+  {
+   "id": "w0255",
+   "surface": "お握り",
+   "kana": "おにぎり",
+   "morae": [
+    "お",
+    "に",
+    "ぎ",
+    "り"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "nakadaka",
+   "gloss": "rice ball"
+  },
+  {
+   "id": "w0256",
+   "surface": "納豆",
+   "kana": "なっとう",
+   "morae": [
+    "な",
+    "っ",
+    "と",
+    "う"
+   ],
+   "accent": [
+    3
+   ],
+   "type": "nakadaka",
+   "gloss": "natto"
+  },
+  {
+   "id": "w0257",
+   "surface": "胡椒",
+   "kana": "こしょう",
+   "morae": [
+    "こ",
+    "しょ",
+    "う"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "nakadaka",
+   "gloss": "pepper"
+  },
+  {
+   "id": "w0258",
+   "surface": "玉葱",
+   "kana": "たまねぎ",
+   "morae": [
+    "た",
+    "ま",
+    "ね",
+    "ぎ"
+   ],
+   "accent": [
+    3
+   ],
+   "type": "nakadaka",
+   "gloss": "onion"
+  },
+  {
+   "id": "w0259",
+   "surface": "白菜",
+   "kana": "はくさい",
+   "morae": [
+    "は",
+    "く",
+    "さ",
+    "い"
+   ],
+   "accent": [
+    3,
+    0
+   ],
+   "type": "nakadaka",
+   "gloss": "napa cabbage"
+  },
+  {
+   "id": "w0260",
+   "surface": "氷水",
+   "kana": "こおりみず",
+   "morae": [
+    "こ",
+    "お",
+    "り",
+    "み",
+    "ず"
+   ],
+   "accent": [
+    3
+   ],
+   "type": "nakadaka",
+   "gloss": "ice water"
+  },
+  {
+   "id": "w0261",
+   "surface": "箸置き",
+   "kana": "はしおき",
+   "morae": [
+    "は",
+    "し",
+    "お",
+    "き"
+   ],
+   "accent": [
+    2,
+    3,
+    0
+   ],
+   "type": "nakadaka",
+   "gloss": "chopstick rest"
+  },
+  {
+   "id": "w0262",
+   "surface": "紫",
+   "kana": "むらさき",
+   "morae": [
+    "む",
+    "ら",
+    "さ",
+    "き"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "nakadaka",
+   "gloss": "purple"
+  }
+ ]
+}
