@@ -1,0 +1,331 @@
+<title>Midas 収益ダッシュボード</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Zen+Kaku+Gothic+New:wght@700;900&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: a ledger. Summary strip → range chart → map table → priority → 4-week plan. One column, max 1080px. */
+:root {
+  --bg: #f3f5f4;
+  --surface: #ffffff;
+  --ink: #17221f;
+  --muted: #5b6b66;
+  --line: #d6dedb;
+  --accent: #0d6b5c;      /* ledger green */
+  --accent-soft: #dcefe9;
+  --gold: #a5741a;        /* yen highlight */
+  --ok: #0d6b5c;
+  --warn: #9a6400;
+  --warn-soft: #fbefd6;
+  --stop: #a63a2b;
+  --stop-soft: #f8e1dc;
+  --bar: #b9cfc8;
+  --f-display: "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", sans-serif;
+  --f-body: "BIZ UDPGothic", "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+  --f-num: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1614; --surface: #17211e; --ink: #e4ece9; --muted: #98aaa4; --line: #2b3a36;
+    --accent: #4fc2a8; --accent-soft: #173a33; --gold: #e0b45a;
+    --ok: #4fc2a8; --warn: #e5ad4a; --warn-soft: #3a2e14; --stop: #ec8a78; --stop-soft: #3d1f1a; --bar: #2f5249;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1614; --surface: #17211e; --ink: #e4ece9; --muted: #98aaa4; --line: #2b3a36;
+  --accent: #4fc2a8; --accent-soft: #173a33; --gold: #e0b45a;
+  --ok: #4fc2a8; --warn: #e5ad4a; --warn-soft: #3a2e14; --stop: #ec8a78; --stop-soft: #3d1f1a; --bar: #2f5249;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.7; }
+.wrap { max-width: 1080px; margin: 0 auto; padding-inline: 16px; padding-block: 28px 64px; display: grid; gap: 40px; }
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; line-height: 1.35; }
+h1 { font-size: clamp(26px, 4.5vw, 36px); font-weight: 900; }
+h2 { font-size: 21px; font-weight: 900; }
+h3 { font-size: 16px; font-weight: 700; }
+p { margin: 0; }
+.num { font-family: var(--f-num); font-variant-numeric: tabular-nums; }
+.eyebrow { font-size: 12px; letter-spacing: .12em; color: var(--muted); }
+.lede { color: var(--muted); max-width: 62ch; }
+header { display: grid; gap: 8px; border-bottom: 2px solid var(--ink); padding-bottom: 18px; }
+.meta { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--muted); }
+section { display: grid; gap: 14px; min-width: 0; }
+.sec-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; }
+.note { font-size: 13px; color: var(--muted); }
+
+/* summary strip */
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: 1px solid var(--line); background: var(--surface); }
+.kpi { padding: 16px 18px; display: grid; gap: 4px; align-content: start; border-left: 1px solid var(--line); }
+.kpi:first-child { border-left: 0; }
+.kpi .label { font-size: 12px; color: var(--muted); letter-spacing: .06em; }
+.kpi .value { font-family: var(--f-num); font-size: 28px; font-weight: 600; color: var(--gold); line-height: 1.2; }
+.kpi .value small { font-size: 15px; font-family: var(--f-body); color: var(--ink); margin-left: 2px; }
+.kpi .sub { font-size: 12.5px; color: var(--muted); }
+@media (max-width: 760px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } .kpi:nth-child(3) { border-left: 0; } .kpi:nth-child(n+3) { border-top: 1px solid var(--line); } }
+
+/* chips */
+.chip { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 3px; font-weight: 700; white-space: nowrap; }
+.chip.focus { background: var(--accent-soft); color: var(--ok); }
+.chip.light { background: var(--accent-soft); color: var(--ok); opacity: .85; }
+.chip.hold { background: var(--warn-soft); color: var(--warn); }
+.chip.exit { background: var(--stop-soft); color: var(--stop); }
+.tag { font-size: 11px; padding: 0 5px; border: 1px solid var(--line); border-radius: 3px; color: var(--muted); white-space: nowrap; }
+
+/* chart */
+.chart-box { background: var(--surface); border: 1px solid var(--line); padding: 14px 10px 8px; overflow-x: auto; }
+.chart-box svg { display: block; width: 100%; min-width: 560px; height: auto; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 18px; font-size: 12.5px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.sw { display: inline-block; width: 18px; height: 8px; background: var(--bar); }
+.sw.std { width: 4px; height: 14px; background: var(--gold); }
+
+/* table */
+.table-box { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); }
+table { border-collapse: collapse; width: 100%; min-width: 980px; font-size: 13.5px; }
+th, td { text-align: left; vertical-align: top; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+th { font-size: 12px; color: var(--muted); font-weight: 700; letter-spacing: .04em; background: var(--bg); position: sticky; top: 0; }
+td.r, th.r { text-align: right; white-space: nowrap; }
+td.name { font-weight: 700; white-space: nowrap; }
+tr.focus td.name { color: var(--accent); }
+td .num { font-weight: 600; }
+td.std .num { color: var(--gold); }
+
+/* priority */
+.prio { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.pcard { background: var(--surface); border: 1px solid var(--line); padding: 16px; display: grid; gap: 8px; align-content: start; }
+.pcard.top { border-color: var(--accent); }
+.pcard .rank { font-family: var(--f-num); font-size: 13px; color: var(--accent); }
+.pcard ul { margin: 0; padding-left: 1.1em; font-size: 13.5px; }
+.holdlist { display: grid; gap: 0; background: var(--surface); border: 1px solid var(--line); }
+.hrow { display: grid; grid-template-columns: 170px 150px minmax(0, 1fr); gap: 12px; padding: 10px 14px; border-top: 1px solid var(--line); font-size: 13.5px; align-items: baseline; }
+.hrow:first-child { border-top: 0; }
+@media (max-width: 760px) { .prio { grid-template-columns: 1fr; } .hrow { grid-template-columns: 1fr; gap: 2px; } }
+
+/* effort vs effect */
+.ee { display: grid; gap: 6px; }
+
+/* weeks */
+.weeks { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.week { background: var(--surface); border: 1px solid var(--line); padding: 14px; display: grid; gap: 10px; align-content: start; }
+.week .when { font-size: 12px; color: var(--muted); }
+.week .target { font-family: var(--f-num); font-size: 20px; font-weight: 600; color: var(--gold); line-height: 1.2; }
+.week .target small { display: block; font-family: var(--f-body); font-size: 12px; color: var(--muted); font-weight: 400; }
+.week ul { margin: 0; padding-left: 1.1em; font-size: 13.5px; }
+.ask { border-top: 1px dashed var(--line); padding-top: 8px; font-size: 13px; }
+.ask b { color: var(--accent); }
+@media (max-width: 900px) { .weeks { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .weeks { grid-template-columns: 1fr; } }
+
+.asks { counter-reset: a; display: grid; gap: 0; background: var(--surface); border: 1px solid var(--line); }
+.asks li { list-style: none; display: grid; grid-template-columns: 2.2em minmax(0, 1fr) auto; gap: 10px; padding: 12px 14px; border-top: 1px solid var(--line); align-items: baseline; }
+.asks li:first-child { border-top: 0; }
+.asks .n { font-family: var(--f-num); color: var(--accent); font-weight: 600; }
+.asks .t { font-family: var(--f-num); font-size: 12.5px; color: var(--muted); white-space: nowrap; }
+ol.asks { margin: 0; padding: 0; }
+
+.foot { font-size: 12.5px; color: var(--muted); display: grid; gap: 4px; border-top: 1px solid var(--line); padding-top: 14px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">ピーター本部 ・ 収益戦略</div>
+    <h1>Midas 収益ダッシュボード</h1>
+    <p class="lede">どのプロジェクトが、誰から、いくら、いつ稼げるか。お金をかけずに、オーナーの手間を最小にして、最初の売上までの道筋をまとめました。</p>
+    <div class="meta"><span>作成 2026-10-08</span><span>対象期間 2026年10月〜2027年9月</span><span>1ドル＝150円で換算（仮置き）</span></div>
+  </header>
+
+  <section aria-label="要点">
+    <div class="kpis">
+      <div class="kpi"><span class="label">30日の目標（標準）</span><span class="value">2<small>万円</small></span><span class="sub">悲観 0円 ／ 楽観 約6.5万円</span></div>
+      <div class="kpi"><span class="label">12か月・集中3本（標準）</span><span class="value">60<small>万円</small></span><span class="sub">悲観 7万円 ／ 楽観 約300万円</span></div>
+      <div class="kpi"><span class="label">最初の1円が最も早い</span><span class="value">14<small>〜21日</small></span><span class="sub">P0 減算ゼロ（2,980円）</span></div>
+      <div class="kpi"><span class="label">オーナーへのお願い</span><span class="value">4<small>つ</small></span><span class="sub">30日間で合計 約1〜2時間</span></div>
+    </div>
+    <p class="note">集中するのは <b>P0 減算ゼロ</b> と <b>P2 Budget Guard</b>。<b>P1 Yuragi</b> は小さく確かめるだけ。残りは保留、または収益目的では撤退候補です。</p>
+  </section>
+
+  <section aria-labelledby="h-range">
+    <div class="sec-head"><h2 id="h-range">12か月の売上見込み</h2><span class="note">帯＝悲観〜楽観、金の線＝標準</span></div>
+    <div class="chart-box"><svg id="range" viewBox="0 0 900 400" role="img" aria-label="プロジェクト別の12か月売上見込み（悲観・標準・楽観）"></svg></div>
+    <div class="legend"><span><i class="sw"></i>悲観〜楽観の幅</span><span><i class="sw std"></i>標準</span><span>件数の前提はほぼすべて仮置き。価格と需要の証拠は各レポートが根拠です。</span></div>
+  </section>
+
+  <section aria-labelledby="h-map">
+    <div class="sec-head"><h2 id="h-map">収益の地図</h2><span class="note">表は横にスクロールできます</span></div>
+    <div class="table-box">
+      <table>
+        <thead><tr>
+          <th>プロジェクト</th><th>判定</th><th>誰が払うか</th><th>いくら</th><th>最初の1円までの最短手順</th><th class="r">日数</th><th>オーナーの作業</th><th class="r">悲観</th><th class="r">標準</th><th class="r">楽観</th>
+        </tr></thead>
+        <tbody id="map"></tbody>
+      </table>
+    </div>
+    <p class="note"><span class="tag">根拠</span> 価格・需要の証拠・粗利は各チームのレポートと計画書から。 <span class="tag">仮置き</span> 件数と伸び方は前提。30日の実績で置き換えます。詳細は peter-hq/strategy/2026-10-08-revenue-map.md。</p>
+  </section>
+
+  <section aria-labelledby="h-prio">
+    <div class="sec-head"><h2 id="h-prio">どこに集中するか</h2><span class="note">年収への効果 ÷ オーナーの手間 で比べました</span></div>
+    <div class="prio">
+      <div class="pcard top">
+        <span class="rank">1位</span>
+        <h3>P0 減算ゼロ <span class="chip focus">集中</span></h3>
+        <ul>
+          <li>公開の準備が済んでいて、最初の1円が最も早い</li>
+          <li>払うのは事業所（法人の経費）。毎年必要な書類</li>
+          <li>令和9年度の報酬改定（2027年春）が追い風</li>
+          <li>1件の粗利 約2,770円、AI 費用は1件 約50〜100円</li>
+        </ul>
+      </div>
+      <div class="pcard top">
+        <span class="rank">2位</span>
+        <h3>P2 Budget Guard ＋ Calculator <span class="chip focus">集中</span></h3>
+        <ul>
+          <li>完成品あり（テスト191件）。世界の開発者が対象</li>
+          <li>HN で643点の議論。「止めてくれる仕組み」の需要</li>
+          <li>Stripe を P0 と共用でき、追加の手間がほぼない</li>
+          <li>無料の Calculator を入口にする</li>
+        </ul>
+      </div>
+      <div class="pcard">
+        <span class="rank">3位</span>
+        <h3>P1 Yuragi <span class="chip light">小さく続行</span></h3>
+        <ul>
+          <li>単価が高く（$29〜99/月）、競合の空白がはっきり</li>
+          <li>払う意思はまだ未確認</li>
+          <li>試用5人と、1タイトル $49 の単発で確かめるだけ</li>
+        </ul>
+      </div>
+    </div>
+    <div class="holdlist">
+      <div class="hrow"><b>P3 Pitch</b><span><span class="chip hold">保留</span> 30日後に再判断</span><span>人の声での精度が未確認。オーナーやご家族が録音すれば無料で確かめられるので、2か月目の候補。</span></div>
+      <div class="hrow"><b>P5 Atlas</b><span><span class="chip hold">保留</span> 作業を止める</span><span>上振れは大きいが、企業への売り込みに時間と手間がかかる。デモは残し、Budget Guard で開発者とのつながりができてから再開。</span></div>
+      <div class="hrow"><b>P4 Collector Lens</b><span><span class="chip exit">保留・撤退候補</span></span><span>弁護士確認と Chrome ストア登録（$5）が必要で、お金をかけない方針と合わない。90日で法務の見通しが立たなければ撤退。</span></div>
+      <div class="hrow"><b>P7 アニメIP</b><span><span class="chip exit">収益目的では撤退候補</span></span><span>売上まで長く、AI で作った作品は著作権の保護が弱い可能性。続けるなら発信の材料として週数時間まで。</span></div>
+      <div class="hrow"><b>P8 四足ロボットゲーム</b><span><span class="chip exit">収益目的では撤退候補</span></span><span>同上。続けるなら itch.io に無料で出せる小さな版を1本まで。</span></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-plan">
+    <div class="sec-head"><h2 id="h-plan">30日の行動計画</h2><span class="note">10/9〜11/7。金額は累計の目安（標準）</span></div>
+    <div class="weeks">
+      <div class="week">
+        <span class="when">第1週 ・ 10/9〜10/15</span>
+        <h3>無料で公開する</h3>
+        <div class="target num">0円<small>土台づくり</small></div>
+        <ul>
+          <li>P0 を無料で公開（解説11本と書類の見本つき）</li>
+          <li>検索エンジンに登録</li>
+          <li>Calculator を無料で公開</li>
+        </ul>
+        <div class="ask"><b>お願い ①②</b> 無料サーバーへの登録、X アカウントの作成</div>
+      </div>
+      <div class="week">
+        <span class="when">第2週 ・ 10/16〜10/22</span>
+        <h3>売る準備</h3>
+        <div class="target num">0円<small>品質確認と待機リスト</small></div>
+        <ul>
+          <li>P0 で実際に書類を作り、品質を確認</li>
+          <li>Budget Guard の待機リストページ</li>
+          <li>P1 の試用者募集の文面</li>
+        </ul>
+        <div class="ask"><b>お願い ③</b> お金を受け取る仕組み（Stripe）の登録と本人確認</div>
+      </div>
+      <div class="week">
+        <span class="when">第3週 ・ 10/23〜10/29</span>
+        <h3>最初の売上</h3>
+        <div class="target num">2,980〜14,900円<small>P0 を1〜5件</small></div>
+        <ul>
+          <li>P0 の有料販売を開始（2,980円）</li>
+          <li>解説ページを毎日1本追加</li>
+          <li>Budget Guard を5人に無料で試してもらう</li>
+        </ul>
+        <div class="ask"><b>お願い ④</b> AI を使うための鍵の発行（使いすぎ防止の上限つき）</div>
+      </div>
+      <div class="week">
+        <span class="when">第4週 ・ 10/30〜11/7</span>
+        <h3>2本目の売上</h3>
+        <div class="target num">約20,000円<small>累計：P0 6件前後＋Budget Guard 1〜2人</small></div>
+        <ul>
+          <li>Budget Guard の有料販売（月 $9）</li>
+          <li>P1 の試用を開始</li>
+          <li>30日の振り返り、P3 の再判断</li>
+        </ul>
+        <div class="ask"><b>お願い</b> なし（振り返りを読むだけ）</div>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-asks">
+    <div class="sec-head"><h2 id="h-asks">オーナーにお願いすること</h2><span class="note">本人にしかできないことだけです</span></div>
+    <ol class="asks">
+      <li><span class="n">1</span><span>無料のサーバーに登録する（GitHub でログインするだけ）</span><span class="t">約15分 ・ 第1週</span></li>
+      <li><span class="n">2</span><span>X アカウントを作る。投稿の下書きは本部が作り、オーナーは確認だけ</span><span class="t">約10分 ・ 第1週</span></li>
+      <li><span class="n">3</span><span>Stripe（ネットでお金を受け取る仕組み）に登録して本人確認。販売者として表示する名前と連絡先を教える</span><span class="t">約30分 ・ 第2週</span></li>
+      <li><span class="n">4</span><span>AI を使うための鍵を発行し、月の上限を設定する</span><span class="t">約10分 ・ 第3週</span></li>
+    </ol>
+    <p class="note">お金がかかるのは AI の生成費用だけ（1件 約50〜100円、売上から十分まかなえます）。独自ドメイン（年 約1,500円）は最初の売上が出てから、その売上で取ります。Vercel の無料プランは商用利用ができないため、有料販売に使うサーバーは本部が第1週に確かめます。</p>
+  </section>
+
+  <footer class="foot">
+    <span>作成：Midas（本部・収益戦略担当）。数字は誇張せず、根拠のあるものと仮置きを分けています。</span>
+    <span>P7・P8 は本部にまだ資料がないため、数字はすべて仮置きです。</span>
+  </footer>
+</div>
+
+<script>
+const P = [
+  { id: "P0", name: "P0 減算ゼロ", st: "focus", stl: "集中", who: "障害福祉事業所（法人の経費）", price: "2,980円/年（1回払い）。後で年間更新4,980円・法人プラン", steps: "無料公開 → Stripe と販売者情報 → 有料ボタンをオン → 解説ページから購入", days: "14〜21日", owner: "Stripe・販売者情報・AIの鍵・無料サーバー（計2〜3時間）", lo: 6, mid: 25, hi: 100 },
+  { id: "P2", name: "P2 Budget Guard", st: "focus", stl: "集中", who: "クラウド・AI API を自腹で払う開発者（海外中心）", price: "$9/月 または $79/年", steps: "待機リスト → 外部5人に無料で試用 → 同じ Stripe で課金", days: "25〜35日", owner: "告知の承認（Stripe は P0 と共用）", lo: 1, mid: 20, hi: 120 },
+  { id: "P2c", name: "P2 Calculator", st: "focus", stl: "集中（入口）", who: "直接は払われない。Budget Guard への送客", price: "無料（寄付は任意）", steps: "無料公開して Budget Guard の入口にする", days: "7日（公開）", owner: "告知の承認だけ", lo: 0, mid: 0.5, hi: 3 },
+  { id: "P1", name: "P1 Yuragi", st: "light", stl: "小さく続行", who: "日英ゲームの翻訳者・LQA担当・小さなパブリッシャー", price: "$49/タイトル、$29/月、$99/月（5席）", steps: "試用5人で実台本テスト → 単発 $49 で初売上", days: "45〜60日", owner: "試用者の紹介か募集の承認（約2時間）", lo: 0, mid: 15, hi: 80 },
+  { id: "P3", name: "P3 Pitch", st: "hold", stl: "保留", who: "上級の日本語学習者（海外の個人）", price: "$9/月、$69/年、$149 買い切り", steps: "人の声で精度確認 → 無料公開 → 課金", days: "60〜90日", owner: "録音者4人以上とアクセント確認役", lo: 0, mid: 15, hi: 120 },
+  { id: "P4", name: "P4 Collector Lens", st: "exit", stl: "保留・撤退候補", who: "ヤフオクで買う海外のカメラ・時計コレクター", price: "$3.99/月、$29/年、$59 買い切り", steps: "弁護士確認 → Chrome ストア登録 → 課金", days: "60〜90日", owner: "弁護士確認（有料の可能性）、$5 の登録", lo: 0, mid: 8, hi: 50 },
+  { id: "P5", name: "P5 Atlas", st: "hold", stl: "保留", who: "50〜500人規模の会社の基盤・セキュリティ担当", price: "$99〜499/月、年 $6k〜12k", steps: "無料の判定ページ → 5チームに試験提供 → 契約", days: "90〜150日", owner: "企業への紹介・声かけ、請求書払い", lo: 0, mid: 9, hi: 150 },
+  { id: "P7", name: "P7 アニメIP", st: "exit", stl: "収益目的では撤退候補", who: "視聴者・ファン（広告・グッズ・支援）", price: "グッズ数百〜数千円、広告は条件達成後", steps: "作品を無料公開 → ファンを集める → グッズ・支援", days: "120日以上", owner: "方向決め、アカウント、権利の確認", lo: 0, mid: 1, hi: 30 },
+  { id: "P8", name: "P8 四足ロボットゲーム", st: "exit", stl: "収益目的では撤退候補", who: "ゲームの購入者", price: "数百〜1,500円の買い切り", steps: "遊べる版 → itch.io で投げ銭付き公開 → Steam", days: "90日以上", owner: "出品アカウント（Steam は $100）", lo: 0, mid: 2, hi: 50 }
+];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const man = v => (v === 0 ? "0" : (Number.isInteger(v) ? v : v.toFixed(1))) + "万円";
+
+document.getElementById("map").innerHTML = P.map(p => `
+  <tr class="${p.st === "focus" ? "focus" : ""}">
+    <td class="name">${esc(p.name)}</td>
+    <td><span class="chip ${p.st}">${esc(p.stl)}</span></td>
+    <td>${esc(p.who)}</td>
+    <td>${esc(p.price)} <span class="tag">根拠</span></td>
+    <td>${esc(p.steps)}</td>
+    <td class="r">${esc(p.days)}</td>
+    <td>${esc(p.owner)}</td>
+    <td class="r"><span class="num">${man(p.lo)}</span></td>
+    <td class="r std"><span class="num">${man(p.mid)}</span></td>
+    <td class="r"><span class="num">${man(p.hi)}</span></td>
+  </tr>`).join("");
+
+(function drawRange() {
+  const svg = document.getElementById("range");
+  const W = 900, left = 190, right = 30, top = 18, rowH = 38, max = 150;
+  const H = top + P.length * rowH + 34;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  const x = v => left + (v / max) * (W - left - right);
+  let g = "";
+  [0, 25, 50, 75, 100, 125, 150].forEach(t => {
+    g += `<line x1="${x(t)}" x2="${x(t)}" y1="${top - 6}" y2="${top + P.length * rowH}" stroke="var(--line)" stroke-width="1"/>`;
+    g += `<text x="${x(t)}" y="${top + P.length * rowH + 20}" text-anchor="middle" font-size="12" fill="var(--muted)" font-family="IBM Plex Mono, monospace">${t}万</text>`;
+  });
+  P.forEach((p, i) => {
+    const cy = top + i * rowH + rowH / 2;
+    const col = p.st === "focus" ? "var(--accent)" : p.st === "light" ? "var(--accent)" : "var(--muted)";
+    g += `<text x="${left - 12}" y="${cy + 4}" text-anchor="end" font-size="13" fill="${p.st === "focus" ? "var(--ink)" : "var(--muted)"}" font-weight="${p.st === "focus" ? 700 : 400}" font-family="BIZ UDPGothic, sans-serif">${esc(p.name)}</text>`;
+    const x1 = x(p.lo), x2 = Math.max(x(p.hi), x1 + 2);
+    g += `<rect x="${x1}" y="${cy - 6}" width="${x2 - x1}" height="12" fill="${p.st === "focus" ? "var(--accent)" : "var(--bar)"}" opacity="${p.st === "focus" ? 0.35 : 1}"/>`;
+    g += `<rect x="${x(p.mid) - 2}" y="${cy - 10}" width="4" height="20" fill="var(--gold)"/>`;
+    const lx = x2 + 6;
+    const label = `${man(p.mid)}（${man(p.lo)}〜${man(p.hi)}）`;
+    const anchorEnd = lx > W - 170;
+    g += `<text x="${anchorEnd ? x1 + 0 : lx}" y="${anchorEnd ? cy - 12 : cy + 4}" text-anchor="start" font-size="11.5" fill="${col}" font-family="IBM Plex Mono, monospace">${anchorEnd ? "" : label}</text>`;
+    if (anchorEnd) g += `<text x="${W - right}" y="${cy - 12}" text-anchor="end" font-size="11.5" fill="${col}" font-family="IBM Plex Mono, monospace">${label}</text>`;
+  });
+  svg.innerHTML = g;
+})();
+</script>
