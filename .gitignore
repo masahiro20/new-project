@@ -6,3 +6,9 @@ out/
 *.tsbuildinfo
 next-env.d.ts
 .vercel
+
+# Cloudflare (OpenNext)
+.open-next/
+.wrangler/
+.dev.vars
+cloudflare-env.d.ts

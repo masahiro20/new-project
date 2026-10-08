@@ -18,7 +18,8 @@ let stripe: Stripe | null = null;
 function getStripe(): Stripe {
   const key = process.env.STRIPE_SECRET_KEY;
   if (!key) throw new Error("STRIPE_SECRET_KEY is not set");
-  stripe ??= new Stripe(key);
+  // Fetch-based client works on both Node (Vercel) and Cloudflare Workers.
+  stripe ??= new Stripe(key, { httpClient: Stripe.createFetchHttpClient() });
   return stripe;
 }
 

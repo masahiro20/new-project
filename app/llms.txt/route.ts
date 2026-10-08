@@ -4,6 +4,9 @@ import { siteUrl, SITE_NAME } from "@/lib/site";
 import { aiEnabled, salesEnabled } from "@/lib/launch";
 import { priceJpy } from "@/lib/stripe";
 
+// Prerendered at build time (no per-request CPU on Workers Free).
+export const dynamic = "force-static";
+
 // llms.txt: a plain-text map of the site for AI assistants and AI search crawlers.
 export function GET() {
   const base = siteUrl();
