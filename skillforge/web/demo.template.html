@@ -305,6 +305,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
   const SEV_ORDER = ["error", "warning", "info"];
   const LANG = { ja: "JA", en: "EN" };
   const KIND = { voice: "口調", "unglossaried-term": "未登録用語" };
+  const KNOWN_EXT = /\.(csv|tsv|json|xlf|xliff)$/i;
 
   const state = {
     files: [], // {name, text, format}
@@ -339,10 +340,16 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
   function fmtSize(n) { return n < 1024 ? `${n} 文字` : `${(n / 1024).toFixed(1)}k 文字`; }
 
   async function addFiles(fileList) {
+    const failed = [];
     for (const file of fileList) {
-      const text = await readFileText(file);
-      state.files.push({ name: uniqueName(file.name), text, format: "auto" });
+      try {
+        const text = await readFileText(file);
+        state.files.push({ name: uniqueName(file.name), text, format: "auto" });
+      } catch (e) {
+        failed.push({ where: file.name, msg: (e && e.message) || String(e) });
+      }
     }
+    if (failed.length) showErrors(failed, true);
     markDirty();
     renderFileList();
   }
@@ -353,6 +360,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
     if (head.startsWith("{") || head.startsWith("[")) return "json";
     const first = head.split(/\r?\n/, 1)[0] || "";
     if (first.includes("\t") && !first.includes(",")) return "tsv";
+    if (first.includes(",") && !first.includes("\t")) return "csv";
     const byName = Yuragi.detectFormat(name, "");
     return byName === "tsv" ? "tsv" : "csv";
   }
@@ -384,13 +392,14 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
     if (!inputs.length) {
       showErrors([{ where: "台本", msg: "台本が空です。テキストを貼り付けるか、ファイルを追加してください。" }]);
       $("results").innerHTML = "";
+      state.result = null;
       return;
     }
     const tables = [];
     for (const inp of inputs) {
       try {
         let format = inp.format;
-        if (format === "auto") format = inp.pasted ? sniffPasted(inp.name, inp.text) : Yuragi.detectFormat(inp.name, inp.text);
+        if (format === "auto") format = inp.pasted || !KNOWN_EXT.test(inp.name) ? sniffPasted(inp.name, inp.text) : Yuragi.detectFormat(inp.name, inp.text);
         const t = Yuragi.parseTable(inp.text, inp.name, { format });
         if (!t.rows.length) throw new Error("翻訳行が1行も見つかりませんでした。形式や列名を確認してください。");
         tables.push(t);
@@ -419,6 +428,8 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
     } catch (e) {
       errors.push({ where: "チェック", msg: (e && e.message) || String(e) });
       showErrors(errors);
+      $("results").innerHTML = "";
+      state.result = null;
       return;
     }
     showErrors(errors, true);
@@ -428,7 +439,11 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
     state.tableByFile = new Map();
     for (const t of tables) {
       state.tableByFile.set(t.file, t);
-      for (const r of t.rows) state.rows.set(t.file + "\u0000" + r.line, r);
+      for (const r of t.rows) {
+        state.rows.set(t.file + "\u0000" + r.line + "\u0000" + r.id, r);
+        const lk = t.file + "\u0000" + r.line;
+        if (!state.rows.has(lk)) state.rows.set(lk, r);
+      }
     }
     state.isSample = state.sampleKey && !state.dirty ? state.sampleKey : null;
     state.cat = "all";
@@ -462,7 +477,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
   }
 
   function findingHtml(f) {
-    const row = state.rows.get(f.file + "\u0000" + f.line);
+    const row = state.rows.get(f.file + "\u0000" + f.line + "\u0000" + f.id) || state.rows.get(f.file + "\u0000" + f.line);
     const table = state.tableByFile.get(f.file);
     const sl = table ? LANG[table.sourceLang] || table.sourceLang : "";
     const tl = table ? LANG[table.targetLang] || table.targetLang : "";
@@ -606,11 +621,11 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
     } else if (b.dataset.edit != null) {
       const i = Number(b.dataset.edit);
       const cur = $("script-text").value;
-      if (cur.trim()) state.files.push({ name: uniqueName($("script-name").value.trim() || "script.csv"), text: cur, format: $("script-format").value });
+      if (cur.trim()) state.files.push({ name: uniqueName($("script-name").value.trim() || "script.csv"), text: cur, format: $("script-format").value, pasted: true });
       const f = state.files.splice(i, 1)[0];
       $("script-text").value = f.text;
       $("script-name").value = f.name;
-      $("script-format").value = "auto";
+      $("script-format").value = f.format || "auto";
       $("script-text").focus();
     }
     markDirty();

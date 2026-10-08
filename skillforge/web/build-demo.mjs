@@ -73,6 +73,10 @@ async function main() {
 
   const template = readFileSync(templatePath, "utf8");
   const safeBundle = bundle.replace(/<\/script/gi, "<\\/script");
+  // "<!--" followed by "<script" inside inline script data switches the HTML tokenizer into the
+  // double-escaped state, where the real closing tag is swallowed. No safe generic rewrite exists
+  // (e.g. "<\!--" is invalid inside a /u regex), so fail loudly instead of emitting a broken page.
+  if (/<!--/.test(safeBundle)) throw new Error("build-demo: engine bundle contains \"<!--\"; cannot inline it safely");
   let html = replaceOnce(template, ENGINE_MARKER, `<script>${safeBundle}</script>`, "engine");
   html = replaceOnce(html, SAMPLES_MARKER, samplesJson(), "samples");
 
