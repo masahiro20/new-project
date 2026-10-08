@@ -76,7 +76,8 @@ export default function CheckClient() {
               </p>
               <div className="actions">
                 <Link href="/generate" className="btn">書類を作る</Link>
-                <Link href="/guide/unei-shidou-junbi" className="btn secondary">運営指導の準備を確認する</Link>
+                <Link href="/samples" className="btn secondary">書類サンプルを見る</Link>
+                <Link href="/guide" className="btn secondary">サービス種別ごとの解説</Link>
               </div>
             </>
           )}

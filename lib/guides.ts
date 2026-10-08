@@ -1,15 +1,10 @@
-export type Guide = {
-  slug: string;
-  title: string;
-  description: string;
-  updated: string;
-  /** Answer-first summary: the passage AI search engines are most likely to quote. */
-  summary: string;
-  body: string;
-  sources: { label: string; url: string }[];
-};
+import { SERVICE_GUIDES } from "./guide-pages";
+import type { Guide } from "./guide-pages/types";
 
-export const GUIDES: Guide[] = [
+export type { Guide };
+
+/** Cross-service explainers (減算の制度・運営指導). */
+export const TOPIC_GUIDES: Guide[] = [
   {
     slug: "gyakutai-boushi-gensan",
     title: "虐待防止措置未実施減算とは？3つの要件と必要な書類",
@@ -143,6 +138,10 @@ export const GUIDES: Guide[] = [
     ],
   },
 ];
+
+export { SERVICE_GUIDES };
+
+export const GUIDES: Guide[] = [...TOPIC_GUIDES, ...SERVICE_GUIDES];
 
 export function getGuide(slug: string): Guide | undefined {
   return GUIDES.find((g) => g.slug === slug);

@@ -1,4 +1,5 @@
-import { GUIDES } from "@/lib/guides";
+import { SERVICE_GUIDES, TOPIC_GUIDES } from "@/lib/guides";
+import { PARTS, PART_LABELS } from "@/lib/parts";
 import { siteUrl, SITE_NAME } from "@/lib/site";
 import { priceJpy } from "@/lib/stripe";
 
@@ -12,9 +13,13 @@ export function GET() {
 ## サービス
 - [書類を作成する](${base}/generate): 事業所情報を入力して書類を作成
 - [減算リスク無料診断](${base}/check): 虐待防止・身体拘束・BCPの減算リスクを1分でチェック
+- [書類サンプル（無料）](${base}/samples): 架空の放課後等デイサービスで作成した出力見本。${PARTS.map((p) => PART_LABELS[p]).join("、")}
 
-## 解説
-${GUIDES.map((g) => `- [${g.title}](${base}/guide/${g.slug}): ${g.summary}`).join("\n")}
+## 解説（制度の基本）
+${TOPIC_GUIDES.map((g) => `- [${g.title}](${base}/guide/${g.slug}): ${g.summary}`).join("\n")}
+
+## 解説（サービス種別ごと）
+${SERVICE_GUIDES.map((g) => `- [${g.title}](${base}/guide/${g.slug}): ${g.summary}`).join("\n")}
 `;
   return new Response(body, { headers: { "Content-Type": "text/plain; charset=utf-8" } });
 }

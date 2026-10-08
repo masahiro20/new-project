@@ -114,3 +114,11 @@ textarea { min-height: 110px; resize: vertical; }
 .purchase-summary th { white-space: nowrap; width: 7.5em; color: var(--muted); font-weight: 700; }
 .purchase-summary .hint { margin: 0; }
 .turnstile { margin: 8px 0 16px; min-height: 65px; }
+
+.breadcrumb { font-size: .85rem; color: var(--muted); margin-bottom: 12px; }
+.breadcrumb a { color: var(--muted); }
+.cta-inline { margin: 20px 0 8px; }
+.cta-inline .actions { margin-top: 12px; }
+.sample-meta { font-size: .92rem; }
+.sample-meta th { white-space: nowrap; }
+.tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }

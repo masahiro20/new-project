@@ -24,6 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <nav>
               <Link href="/check">無料診断</Link>
               <Link href="/guide">解説</Link>
+              <Link href="/samples">サンプル</Link>
               <Link href="/generate" className="nav-cta">書類を作る</Link>
             </nav>
           </div>

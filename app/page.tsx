@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { GUIDES } from "@/lib/guides";
+import { SERVICE_GUIDES, TOPIC_GUIDES } from "@/lib/guides";
 import { siteUrl, SITE_NAME } from "@/lib/site";
 import { priceJpy } from "@/lib/stripe";
 
@@ -155,12 +155,24 @@ export default function Home() {
         <div className="wrap narrow">
           <h2>減算と書類の解説</h2>
           <ul>
-            {GUIDES.map((g) => (
+            {TOPIC_GUIDES.map((g) => (
               <li key={g.slug}>
                 <Link href={`/guide/${g.slug}`}>{g.title}</Link>
               </li>
             ))}
           </ul>
+          <h3>サービス種別ごとの解説</h3>
+          <p>
+            {SERVICE_GUIDES.map((g, i) => (
+              <span key={g.slug}>
+                {i > 0 && "／"}
+                <Link href={`/guide/${g.slug}`}>{g.serviceType}</Link>
+              </span>
+            ))}
+          </p>
+          <p>
+            書類の完成イメージは<Link href="/samples">無料の書類サンプル</Link>で確認できます。
+          </p>
         </div>
       </section>
     </>
