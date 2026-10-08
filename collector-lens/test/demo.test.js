@@ -235,10 +235,17 @@ test("page panel: every sample decodes with fixed sections and no repeated items
     const body = d.getElementById("panel-body");
     const heads = [...body.querySelectorAll("h3")].map((h) => h.firstChild.textContent);
     assert.deepEqual(heads, ["Condition", "Grade", "Returns", "Warnings", "Worth noting"], id);
-    // A Japanese term may appear only once across the whole panel.
-    const ja = [...body.querySelectorAll(".item .ja")].map((n) => n.textContent);
-    assert.deepEqual(ja.filter((v, i) => ja.indexOf(v) !== i), [], `${id}: repeated ${ja}`);
+    // Each term is explained only once across the panel. A risky term from the
+    // condition/returns line is referenced there ("Explained under Warnings.").
+    const ex = [...body.querySelectorAll(".item")]
+      .map((n) => (n.querySelector(".ja") || {}).textContent + "|" + (n.querySelector(".ex") || {}).textContent)
+      .filter((k) => !k.endsWith("|Explained under Warnings."));
+    assert.deepEqual(ex.filter((v, i) => ex.indexOf(v) !== i), [], `${id}: repeated ${ex}`);
     const r = w.__lastResult;
+    // The badge counts exactly the items under Warnings.
+    const warnH = [...body.querySelectorAll("h3")].find((h) => h.firstChild.textContent === "Warnings");
+    const warnItems = warnH.nextElementSibling.querySelectorAll(".item").length;
+    assert.equal(warnItems, r.score.total, `${id}: badge ${r.score.label} vs ${warnItems} warnings`);
     assert.equal(d.getElementById("score").textContent, r.score.label, id);
     assert.equal(d.getElementById("score").className, "badge lvl-" + r.score.level, id);
     // Every sample shows something under Condition (a term or a grade) and Returns.

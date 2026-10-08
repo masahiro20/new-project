@@ -80,35 +80,31 @@
 
     var body = el(doc, "div", "body");
 
-    if (result.condition) {
-      var cond = result.condition.terms.map(function (t) { return item(doc, t.risk, t.ja, t.en, t.explain); });
+    var g = NS.groupForPanel(result);
+    var fieldItem = function (t) { return item(doc, t.risk, t.ja, t.en, t.explain); };
+    if (g.condition) {
+      var cond = g.condition.map(fieldItem);
       if (!cond.length) cond = [item(doc, "info", result.condition.raw, "(no dictionary entry yet)", null)];
       body.appendChild(section(doc, "Condition (as stated)", cond));
     }
     if (result.ranks.length) {
       body.appendChild(section(doc, "Grade", result.ranks.map(function (r) { return item(doc, "info", null, r.label, r.explain, r.snippet); })));
     }
-    if (result.returns) {
-      var ret = result.returns.terms.map(function (t) { return item(doc, t.risk, t.ja, t.en, t.explain); });
+    if (g.returns) {
+      var ret = g.returns.map(fieldItem);
       if (!ret.length) ret = [item(doc, "info", result.returns.raw, "(no dictionary entry yet)", null)];
       body.appendChild(section(doc, "Returns", ret));
     }
 
-    // Terms read from the condition/returns fields already appear above.
-    var shown = result.flags.filter(function (f) {
-      return !(f.field === "condition" && result.condition) && !(f.field === "returns" && result.returns);
-    });
     var toItem = function (f) { return item(doc, f.risk, f.ja, f.en, f.explain, f.snippet); };
-    var warn = shown.filter(function (f) { return f.risk === "high" || f.risk === "medium"; }).map(toItem);
-    var notes = shown.filter(function (f) { return f.risk === "low"; }).map(toItem);
-    body.appendChild(section(doc, "Warnings", warn.length ? warn : [el(doc, "li", "empty", "No rule-based warnings found. That is not a guarantee.")]));
-    if (notes.length) body.appendChild(section(doc, "Worth noting", notes));
+    body.appendChild(section(doc, "Warnings", g.warnings.length ? g.warnings.map(toItem) : [el(doc, "li", "empty", "No rule-based warnings found. That is not a guarantee.")]));
+    if (g.notes.length) body.appendChild(section(doc, "Worth noting", g.notes.map(toItem)));
 
-    if (result.reassurances.length) {
-      body.appendChild(section(doc, "Seller states", result.reassurances.map(function (f) { return item(doc, "positive", f.ja, f.en, f.explain, f.snippet); })));
+    if (g.sellerStates.length) {
+      body.appendChild(section(doc, "Seller states", g.sellerStates.map(function (f) { return item(doc, "positive", f.ja, f.en, f.explain, f.snippet); })));
     }
-    if (result.terms.length) {
-      body.appendChild(section(doc, "Terms on this page", result.terms.map(function (t) { return item(doc, "info", t.ja, t.en, t.explain); })));
+    if (g.terms.length) {
+      body.appendChild(section(doc, "Terms on this page", g.terms.map(function (t) { return item(doc, "info", t.ja, t.en, t.explain); })));
     }
     panel.appendChild(body);
 

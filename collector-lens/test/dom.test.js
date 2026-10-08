@@ -110,11 +110,61 @@ test("content scripts make no network or storage calls", () => {
   }
 });
 
-test("a returns-field warning is listed once (under Returns), but still scored", () => {
+test("a returns-field warning is explained once (under Warnings) and referenced under Returns", () => {
   const { JSDOM } = require("jsdom");
   const dom = new JSDOM("<!doctype html><body></body>");
   const result = CL.analyze({ title: "カメラ", description: "動作確認済みのカメラです。外観にスレがあります。", returns: "返品不可" }, null, index);
   assert.equal(result.score.level, "high");
   const shadow = CL.renderOverlay(dom.window.document, result, { openShadow: true });
-  assert.equal(shadow.textContent.split("No returns").length - 1, 1);
+  const entry = CL.GLOSSARY.entries.find((e) => e.ja.includes("返品不可"));
+  assert.equal(shadow.textContent.split(entry.explain).length - 1, 1);
+  assert.ok(shadow.textContent.includes("Explained under Warnings."));
+});
+
+// Regression: issue 1 — a positive returns term was repeated under Seller states.
+test("positive returns term is not repeated under Seller states", () => {
+  const { JSDOM } = require("jsdom");
+  const dom = new JSDOM("<!doctype html><body></body>");
+  const result = CL.analyze({ title: "カメラ", description: "動作確認済みです。到着後3日以内なら返品可です。", returns: "返品可" }, null, index);
+  const g = CL.groupForPanel(result);
+  assert.ok(g.returns.some((t) => t.risk === "positive"));
+  assert.ok(!g.sellerStates.some((f) => f.field === "returns"));
+  const shadow = CL.renderOverlay(dom.window.document, result, { openShadow: true });
+  const ret = g.returns.find((t) => t.risk === "positive");
+  assert.equal(shadow.textContent.split(ret.explain).length - 1, 1);
+});
+
+// Regression: issue 2 — "カビなし" in the condition line was shown as a risk.
+test("negated defect in the condition line is a reassurance, not a risk", () => {
+  const result = CL.analyze({ title: "レンズ", description: "50mmの単焦点レンズです。前後キャップ付き。ピントリングは軽く回り、絞り羽根に油染みはありません。", condition: "カビなし、くもりなし" }, null, index);
+  const terms = result.condition.terms;
+  assert.ok(terms.length >= 2);
+  for (const t of terms) {
+    assert.equal(t.risk, "positive", t.ja);
+    assert.match(t.en, /^No .*\(stated\)$/);
+  }
+  assert.ok(!result.flags.some((f) => f.risk === "high" || f.risk === "medium"));
+  const affirmed = CL.analyze({ title: "レンズ", description: "50mmのレンズです。", condition: "カビあり" }, null, index);
+  assert.equal(affirmed.condition.terms[0].risk, "high");
+});
+
+// Regression: issue 3 — badge count and the Warnings list disagreed.
+test("badge count equals the number of items under Warnings", () => {
+  const { JSDOM } = require("jsdom");
+  const cases = [
+    { title: "腕時計", description: "真贋不明の腕時計です。リダンの可能性あり。動作未確認。", condition: "現状品", returns: "返品不可" },
+    { title: "カメラ", description: "ジャンク品。カビ、くもりあり。素人のため詳細不明です。", condition: "ジャンク品", returns: "ノークレームノーリターン" },
+    { title: "カメラ", description: "動作確認済み。カビ、くもりなし。小傷あり。", condition: "目立った傷や汚れなし", returns: "返品可" }
+  ];
+  for (const listing of cases) {
+    const result = CL.analyze(listing, null, index);
+    const g = CL.groupForPanel(result);
+    assert.equal(g.warnings.length, result.score.total, result.score.label);
+    const dom = new JSDOM("<!doctype html><body></body>");
+    const shadow = CL.renderOverlay(dom.window.document, result, { openShadow: true });
+    const warnH = [...shadow.querySelectorAll("h3")].find((h) => h.textContent === "Warnings");
+    const n = warnH.nextElementSibling.querySelectorAll("li:not(.empty)").length;
+    assert.equal(n, result.score.total, result.score.label);
+    if (result.score.total) assert.match(shadow.querySelector(".badge").textContent, new RegExp("^" + n + " warning"));
+  }
 });

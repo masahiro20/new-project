@@ -241,7 +241,7 @@
       var e = h.entry;
       var item = { id: e.id, ja: h.form, en: e.en, explain: e.explain, risk: e.risk, category: e.category, field: h.field, snippet: h.snippet, negated: h.negated };
       if (h.negated) {
-        reassurances.push(Object.assign({}, item, { risk: "positive", en: "No " + e.en.toLowerCase().replace(/\s*\(.*\)$/, "") + " (stated)", explain: "Seller states there is none. Check photos — sellers' 'none' can mean 'none I noticed'." }));
+        reassurances.push(Object.assign({}, item, { risk: "positive", en: negatedLabel(e), explain: NEGATED_EXPLAIN }));
       } else if (e.risk === "positive") {
         reassurances.push(item);
       } else if (e.risk === "high" || e.risk === "medium" || e.risk === "low") {
@@ -263,11 +263,16 @@
     var ranks = findRanks(rankText.filter(Boolean).join("\n"));
     var conditionHits = listing.condition ? findTerms(listing.condition, index) : [];
     var returnHits = listing.returns ? findTerms(listing.returns, index) : [];
+    // A negated defect in the condition line ("カビなし") is a reassurance, not a risk.
+    var fieldTerm = function (h) {
+      if (h.negated) return { ja: h.form, en: negatedLabel(h.entry), explain: NEGATED_EXPLAIN, risk: "positive", negated: true };
+      return { ja: h.form, en: h.entry.en, explain: h.entry.explain, risk: h.entry.risk };
+    };
 
     return {
       genre: genre,
-      condition: listing.condition ? { raw: normalize(listing.condition), terms: conditionHits.map(function (h) { return { ja: h.form, en: h.entry.en, explain: h.entry.explain, risk: h.entry.risk }; }) } : null,
-      returns: listing.returns ? { raw: normalize(listing.returns), terms: returnHits.map(function (h) { return { ja: h.form, en: h.entry.en, explain: h.entry.explain, risk: h.entry.risk }; }) } : null,
+      condition: listing.condition ? { raw: normalize(listing.condition), terms: conditionHits.map(fieldTerm) } : null,
+      returns: listing.returns ? { raw: normalize(listing.returns), terms: returnHits.map(fieldTerm) } : null,
       ranks: ranks,
       flags: flags,
       reassurances: reassurances,
@@ -276,12 +281,51 @@
     };
   }
 
+  var NEGATED_EXPLAIN = "Seller states there is none. Check photos — sellers' 'none' can mean 'none I noticed'.";
+  function negatedLabel(entry) {
+    return "No " + entry.en.toLowerCase().replace(/\s*\(.*\)$/, "") + " (stated)";
+  }
+
+  // The badge counts exactly the items listed under Warnings (high + medium flags).
   function summarize(flags) {
     var high = flags.filter(function (f) { return f.risk === "high"; }).length;
     var med = flags.filter(function (f) { return f.risk === "medium"; }).length;
-    if (high > 0) return { level: "high", label: high + " serious warning" + (high > 1 ? "s" : "") };
-    if (med > 0) return { level: "medium", label: med + " caution" + (med > 1 ? "s" : "") };
-    return { level: "low", label: "No rule-based warnings" };
+    var total = high + med;
+    var level = high > 0 ? "high" : med > 0 ? "medium" : "low";
+    if (!total) return { level: level, high: 0, medium: 0, total: 0, label: "No rule-based warnings" };
+    var parts = [];
+    if (high) parts.push(high + " serious");
+    if (med) parts.push(med + " caution" + (med > 1 ? "s" : ""));
+    return { level: level, high: high, medium: med, total: total, label: total + " warning" + (total > 1 ? "s" : "") + " · " + parts.join(", ") };
+  }
+
+  /**
+   * Group a result into the panel's sections. Shared by the overlay and the demo.
+   * - Warnings lists every high/medium flag, so its length equals score.total.
+   *   A risky term from the condition/returns line is explained there once and
+   *   only referenced ("see Warnings") in the Condition/Returns section.
+   * - Seller states and Terms leave out anything already shown under
+   *   Condition or Returns.
+   */
+  function groupForPanel(result) {
+    var shownAbove = function (f) {
+      return (f.field === "condition" && !!result.condition) || (f.field === "returns" && !!result.returns);
+    };
+    var isWarning = function (f) { return f.risk === "high" || f.risk === "medium"; };
+    var fieldItems = function (field) {
+      if (!field) return null;
+      return field.terms.map(function (t) {
+        return isWarning(t) ? Object.assign({}, t, { explain: "Explained under Warnings.", ref: true }) : t;
+      });
+    };
+    return {
+      condition: fieldItems(result.condition),
+      returns: fieldItems(result.returns),
+      warnings: result.flags.filter(isWarning),
+      notes: result.flags.filter(function (f) { return f.risk === "low" && !shownAbove(f); }),
+      sellerStates: result.reassurances.filter(function (f) { return !shownAbove(f); }),
+      terms: result.terms.filter(function (f) { return !shownAbove(f); })
+    };
   }
 
   NS.normalize = normalize;
@@ -290,6 +334,7 @@
   NS.findRanks = findRanks;
   NS.detectGenre = detectGenre;
   NS.analyze = analyze;
+  NS.groupForPanel = groupForPanel;
 
   if (typeof module !== "undefined" && module.exports) module.exports = NS;
 })(typeof globalThis !== "undefined" ? globalThis : this);
