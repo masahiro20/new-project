@@ -1,0 +1,1200 @@
+<title>Model Switch Calculator</title>
+<style>
+:root{
+  --bg:#f3f4f1; --surface:#ffffff; --fg:#191c1a; --muted:#5a625d; --line:#d6dbd5; --line-soft:#e8ebe6;
+  --accent:#1c5ca3; --accent-soft:#e2ebf6; --bar:#8fb0d6;
+  --ok:#1d7446; --ok-soft:#e0f1e6; --warn:#8f5b00; --warn-soft:#faefd6; --crit:#b0291f; --crit-soft:#f8e2df;
+  --font-sans:"IBM Plex Sans JP","Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic UI",system-ui,sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#131615; --surface:#1b1f1d; --fg:#e6e9e6; --muted:#9aa29c; --line:#323935; --line-soft:#262b28;
+    --accent:#86b4ea; --accent-soft:#1c2a3b; --bar:#3e5a7d;
+    --ok:#6fcb97; --ok-soft:#17281e; --warn:#e2b45c; --warn-soft:#2d2615; --crit:#f08b81; --crit-soft:#33201d;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#131615; --surface:#1b1f1d; --fg:#e6e9e6; --muted:#9aa29c; --line:#323935; --line-soft:#262b28;
+  --accent:#86b4ea; --accent-soft:#1c2a3b; --bar:#3e5a7d;
+  --ok:#6fcb97; --ok-soft:#17281e; --warn:#e2b45c; --warn-soft:#2d2615; --crit:#f08b81; --crit-soft:#33201d;
+  color-scheme: dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font-sans);font-size:15px;line-height:1.6;
+  padding-inline:16px;padding-block:24px 48px}
+.wrap{max-width:1120px;margin-inline:auto}
+h1{font-size:1.5rem;margin:0 0 4px;letter-spacing:.01em}
+h2{font-size:1.05rem;margin:0 0 12px;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+h2 .step{font-family:var(--font-mono);font-size:.8rem;color:var(--muted);font-weight:500}
+p{margin:0 0 8px}
+.lede{color:var(--muted);margin-bottom:12px;max-width:72ch}
+.privacy{display:flex;gap:8px;align-items:flex-start;border-left:3px solid var(--ok);background:var(--ok-soft);
+  padding:8px 12px;margin:0 0 20px;font-size:.92rem}
+.privacy b{color:var(--ok)}
+section.card{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:18px;margin-bottom:18px;min-width:0}
+.grid2{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:18px}
+@media (max-width:860px){.grid2{grid-template-columns:minmax(0,1fr)}}
+.grid2>*{min-width:0}
+label{font-size:.9rem}
+textarea{width:100%;min-height:220px;resize:vertical;font-family:var(--font-mono);font-size:12.5px;line-height:1.45;
+  background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:4px;padding:10px;white-space:pre;overflow:auto}
+.drop{position:relative}
+.drop.over textarea{border-color:var(--accent);background:var(--accent-soft)}
+.badge{display:inline-block;font-size:.75rem;padding:1px 7px;border-radius:3px;border:1px solid var(--line);
+  color:var(--muted);background:var(--surface);font-weight:500;white-space:nowrap;line-height:1.5}
+.badge.sample{color:var(--warn);border-color:var(--warn);background:var(--warn-soft)}
+.badge.ok{color:var(--ok);border-color:var(--ok);background:var(--ok-soft)}
+.badge.warn{color:var(--warn);border-color:var(--warn);background:var(--warn-soft)}
+.badge.crit{color:var(--crit);border-color:var(--crit);background:var(--crit-soft)}
+.badge.acc{color:var(--accent);border-color:var(--accent);background:var(--accent-soft)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-block:10px}
+.row>*{min-width:0}
+button,.filebtn{font:inherit;font-size:.88rem;padding:6px 12px;border-radius:4px;border:1px solid var(--line);
+  background:var(--surface);color:var(--fg);cursor:pointer}
+button:hover,.filebtn:hover{border-color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.filebtn input{position:absolute;opacity:0;width:1px;height:1px}
+.filebtn{position:relative;display:inline-block}
+.filebtn:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+.hint{color:var(--muted);font-size:.85rem}
+.err{border-left:3px solid var(--crit);background:var(--crit-soft);padding:10px 12px;font-size:.9rem;margin-top:10px;white-space:pre-line}
+.err b{color:var(--crit)}
+dl.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 16px;margin:0}
+dl.stats div{min-width:0;border-top:1px solid var(--line-soft);padding-top:6px}
+dl.stats dt{font-size:.78rem;color:var(--muted)}
+dl.stats dd{margin:0;font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-size:1.02rem;overflow-wrap:anywhere}
+dl.stats .wide{grid-column:1/-1}
+fieldset{border:1px solid var(--line);border-radius:4px;padding:8px 12px;margin:12px 0 0}
+legend{font-size:.82rem;color:var(--muted);padding:0 4px}
+.opt{display:flex;gap:6px;align-items:center;margin-block:4px;font-size:.9rem}
+.opt input{accent-color:var(--accent)}
+.tablewrap{overflow-x:auto;border:1px solid var(--line-soft);border-radius:4px}
+table{border-collapse:collapse;width:100%;font-size:.88rem}
+th,td{padding:7px 10px;text-align:left;border-bottom:1px solid var(--line-soft);vertical-align:middle;white-space:nowrap}
+th{font-size:.78rem;color:var(--muted);font-weight:500;background:var(--bg)}
+td.num,th.num{text-align:right;font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+tr.cheapest td{background:var(--ok-soft)}
+tr.current td{background:var(--accent-soft)}
+tr.excluded td{color:var(--muted)}
+.pos{color:var(--crit)} .neg{color:var(--ok)}
+.prov{font-size:.75rem;color:var(--muted);display:block;line-height:1.2}
+.mname{font-weight:500}
+.mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.unv{color:var(--warn);font-size:.78rem;display:block;line-height:1.2}
+td input[type=number]{width:84px;font:inherit;font-family:var(--font-mono);font-size:.82rem;padding:2px 5px;border:1px solid var(--line);
+  border-radius:3px;background:var(--bg);color:var(--fg)}
+.chart{margin-top:14px}
+.chart svg{display:block;width:100%;height:auto}
+.chart text{font-family:var(--font-sans);font-size:12px}
+.chart .lbl{fill:var(--fg)} .chart .sub{fill:var(--muted)}
+.chart .grid{stroke:var(--line-soft)}
+.chart .barr{fill:var(--bar)} .chart .barr.best{fill:var(--accent)}
+.chart .cur{stroke:var(--fg);stroke-dasharray:4 3}
+.chart .hit:hover+.barr,.chart g.b:hover .barr{opacity:.85}
+.notes{font-size:.86rem;color:var(--muted);padding-left:1.2em;margin:8px 0 0}
+.notes li{margin-bottom:4px}
+.notes b{color:var(--fg);font-weight:500}
+.headline{display:flex;flex-wrap:wrap;gap:20px;margin-bottom:6px}
+.headline div{min-width:0}
+.headline .k{font-size:.78rem;color:var(--muted)}
+.headline .v{font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-size:1.35rem;font-weight:600}
+#export-fallback{min-height:120px;margin-top:8px}
+.status-line{font-size:.86rem;color:var(--muted);min-height:1.4em}
+a{color:var(--accent)}
+details.legacy{margin-top:12px}
+details.legacy summary{cursor:pointer;font-size:.9rem;padding:4px 0;color:var(--muted)}
+details.legacy[open] summary{margin-bottom:8px}
+footer{color:var(--muted);font-size:.8rem;margin-top:24px}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+@media (max-width:480px){
+  section.card{padding:14px}
+  dl.stats{grid-template-columns:minmax(0,1fr)}
+  .headline .v{font-size:1.15rem}
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Model Switch Calculator</h1>
+    <p class="lede">API の使用量データを貼り付けると、全トラフィックを別モデルに移した場合の月額コストを試算します。対応: Anthropic Console CSV / Admin API JSON、OpenAI 使用量 CSV / Admin API JSON、汎用 CSV。</p>
+    <p class="privacy" id="privacy"><b>プライバシー</b><span>データはこのブラウザの中だけで処理され、外部には送信されません。このページは外部への通信を一切行いません。</span></p>
+  </header>
+
+  <div class="grid2">
+    <section class="card" aria-labelledby="h-input">
+      <h2 id="h-input"><span class="step">01</span>使用量データ <span id="sample-badge" class="badge sample">サンプル</span></h2>
+      <div class="drop" id="dropzone">
+        <label for="usage-input" class="hint">CSV または JSON を貼り付けるか、ファイルをここにドロップしてください。</label>
+        <textarea id="usage-input" spellcheck="false" aria-describedby="parse-status"></textarea>
+      </div>
+      <div class="row">
+        <label class="filebtn" for="file-input">ファイルを選択<input type="file" id="file-input" accept=".csv,.tsv,.json,.txt,text/csv,application/json"></label>
+        <button type="button" id="sample-anthropic">サンプルデータを読み込む（Anthropic）</button>
+        <button type="button" id="sample-openai">サンプルデータを読み込む（OpenAI）</button>
+        <button type="button" id="clear-input">クリア</button>
+      </div>
+      <div id="parse-error" class="err" hidden></div>
+    </section>
+
+    <section class="card" aria-labelledby="h-summary">
+      <h2 id="h-summary"><span class="step">02</span>読み込み結果</h2>
+      <p id="parse-status" class="status-line" aria-live="polite"></p>
+      <dl class="stats" id="stats"></dl>
+      <fieldset>
+        <legend>集計方法</legend>
+        <label class="opt"><input type="radio" name="period" id="period-30d" value="30d" checked> 30日換算（期間の日数で割って30倍）</label>
+        <label class="opt"><input type="radio" name="period" id="period-raw" value="raw"> そのまま合計</label>
+        <label class="opt"><input type="checkbox" id="keep-cache" checked> キャッシュ率を維持する</label>
+        <p class="hint" id="period-note"></p>
+      </fieldset>
+    </section>
+  </div>
+
+  <section class="card" aria-labelledby="h-compare">
+    <h2 id="h-compare"><span class="step">03</span>モデル別の月額コスト比較 <span class="hint" id="compare-unit">USD / 月</span></h2>
+    <div class="headline" id="headline"></div>
+    <div class="tablewrap"><table id="compare-table" aria-describedby="compare-notes"></table></div>
+    <div class="chart" id="chart" role="img" aria-label="候補モデル別の月額コスト（横棒グラフ）"></div>
+    <div class="row">
+      <button type="button" id="copy-md">Markdown でコピー</button>
+      <button type="button" id="copy-csv">CSV でコピー</button>
+      <span class="status-line" id="copy-status" aria-live="polite"></span>
+    </div>
+    <textarea id="export-fallback" hidden readonly aria-label="コピー用テキスト"></textarea>
+    <ul class="notes" id="compare-notes"></ul>
+  </section>
+
+  <section class="card" aria-labelledby="h-models">
+    <h2 id="h-models"><span class="step">04</span>データ内のモデル別内訳（現在のコスト）</h2>
+    <div class="tablewrap"><table id="model-table"></table></div>
+  </section>
+
+  <section class="card" id="price-section" aria-labelledby="h-prices">
+    <h2 id="h-prices"><span class="step">05</span>価格表 <span class="hint">USD / 100万トークン・標準料金（Batch・長文脈・地域加算を除く）</span></h2>
+    <p class="hint">「比較」にチェックしたモデルが比較表に入ります。未確認の価格は計算から除外されます。未確認の行に価格を手入力すると、その値で計算に含めます（手入力として表示）。</p>
+    <div class="tablewrap"><table id="price-table"></table></div>
+    <details id="legacy-details" class="legacy">
+      <summary id="legacy-summary">旧世代のモデル（<span id="legacy-count">0</span>件）</summary>
+      <div class="tablewrap"><table id="price-table-legacy"></table></div>
+    </details>
+    <ul class="notes" id="price-notes"></ul>
+    <details id="research-details" class="legacy">
+      <summary id="research-summary">価格調査メモ（原文・英語）</summary>
+      <ul class="notes" id="research-notes"></ul>
+    </details>
+  </section>
+
+  <footer>Model Switch Calculator · P2 Signal Lab · 価格は表示の確認日時点のものです。請求額の保証ではありません。</footer>
+</div>
+
+<script>
+"use strict";
+/* =====================================================================
+   PRICES — price table. Swap this whole constant to update prices.
+   Shape: {checkedOn, models:[{provider,id,name,input,output,cacheRead,
+   cacheWrite,status:"verified"|"unverified",source,note}], notes}
+   Prices are USD per 1M tokens. null = unknown.
+   ===================================================================== */
+const PRICES = {
+  "checkedOn": "2026-10-08",
+  "models": [
+    {
+      "provider": "anthropic",
+      "id": "claude-fable-5-1",
+      "name": "Claude Fable 5.1",
+      "input": 10,
+      "output": 50,
+      "cacheRead": 0.25,
+      "cacheWrite": 12.5,
+      "status": "verified",
+      "source": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "note": "Cache read 0.025x input. 1h cache write $20. Batch $5/$25. 1M context at standard price. ID from models overview page."
+    },
+    {
+      "provider": "anthropic",
+      "id": "claude-opus-5-5",
+      "name": "Claude Opus 5.5",
+      "input": 4,
+      "output": 20,
+      "cacheRead": 0.2,
+      "cacheWrite": 5,
+      "status": "verified",
+      "source": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "note": "Cache read 0.05x input. 1h write $8. Batch $2/$10. Fast mode $8/$40. 1M context at standard price."
+    },
+    {
+      "provider": "anthropic",
+      "id": "claude-sonnet-5-5",
+      "name": "Claude Sonnet 5.5",
+      "input": 2,
+      "output": 10,
+      "cacheRead": 0.1,
+      "cacheWrite": 2.5,
+      "status": "verified",
+      "source": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "note": "Cache read 0.05x input. 1h write $4. Batch $1/$5. 1M context at standard price."
+    },
+    {
+      "provider": "anthropic",
+      "id": "claude-haiku-5-5",
+      "name": "Claude Haiku 5.5",
+      "input": 0.1,
+      "output": 0.5,
+      "cacheRead": 0.01,
+      "cacheWrite": 0.125,
+      "status": "verified",
+      "source": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "note": "Prompts up to 100K tokens. Over 100K: input $0.50, output $2.50, cache read $0.05, 5m write $0.625, 1h write $1. Batch $0.05/$0.25 (up to 100K), $0.25/$1.25 (over 100K)."
+    },
+    {
+      "provider": "anthropic",
+      "id": "claude-opus-5",
+      "name": "Claude Opus 5",
+      "input": 5,
+      "output": 25,
+      "cacheRead": 0.5,
+      "cacheWrite": 6.25,
+      "status": "verified",
+      "source": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "note": "Legacy (still available). Batch $2.50/$12.50. Fast mode $10/$50."
+    },
+    {
+      "provider": "anthropic",
+      "id": "claude-sonnet-5",
+      "name": "Claude Sonnet 5",
+      "input": 2,
+      "output": 10,
+      "cacheRead": 0.2,
+      "cacheWrite": 2.5,
+      "status": "verified",
+      "source": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "note": "Legacy (still available). The $2/$10 launch pricing is now permanent; the planned increase to $3/$15 was cancelled. Batch $1/$5."
+    },
+    {
+      "provider": "anthropic",
+      "id": "claude-opus-4-8",
+      "name": "Claude Opus 4.8",
+      "input": 5,
+      "output": 25,
+      "cacheRead": 0.5,
+      "cacheWrite": 6.25,
+      "status": "verified",
+      "source": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "note": "Legacy. Batch $2.50/$12.50."
+    },
+    {
+      "provider": "anthropic",
+      "id": "claude-opus-4-7",
+      "name": "Claude Opus 4.7",
+      "input": 5,
+      "output": 25,
+      "cacheRead": 0.5,
+      "cacheWrite": 6.25,
+      "status": "verified",
+      "source": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "note": "Legacy."
+    },
+    {
+      "provider": "anthropic",
+      "id": "claude-opus-4-6",
+      "name": "Claude Opus 4.6",
+      "input": 5,
+      "output": 25,
+      "cacheRead": 0.5,
+      "cacheWrite": 6.25,
+      "status": "verified",
+      "source": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "note": "Legacy."
+    },
+    {
+      "provider": "anthropic",
+      "id": "claude-opus-4-5",
+      "name": "Claude Opus 4.5",
+      "input": 5,
+      "output": 25,
+      "cacheRead": 0.5,
+      "cacheWrite": 6.25,
+      "status": "verified",
+      "source": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "note": "Legacy. This is the alias. The dated snapshot ID was not seen today."
+    },
+    {
+      "provider": "anthropic",
+      "id": "claude-sonnet-4-6",
+      "name": "Claude Sonnet 4.6",
+      "input": 3,
+      "output": 15,
+      "cacheRead": 0.3,
+      "cacheWrite": 3.75,
+      "status": "verified",
+      "source": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "note": "Legacy. Batch $1.50/$7.50."
+    },
+    {
+      "provider": "anthropic",
+      "id": "claude-sonnet-4-5-20250929",
+      "name": "Claude Sonnet 4.5",
+      "input": 3,
+      "output": 15,
+      "cacheRead": 0.3,
+      "cacheWrite": 3.75,
+      "status": "verified",
+      "source": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "note": "Legacy/deprecated. Alias claude-sonnet-4-5."
+    },
+    {
+      "provider": "anthropic",
+      "id": "claude-haiku-4-5-20251001",
+      "name": "Claude Haiku 4.5",
+      "input": 1,
+      "output": 5,
+      "cacheRead": 0.1,
+      "cacheWrite": 1.25,
+      "status": "verified",
+      "source": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "note": "Legacy. Alias claude-haiku-4-5. Batch $0.50/$2.50."
+    },
+    {
+      "provider": "openai",
+      "id": "gpt-6-astra",
+      "name": "GPT-6 Astra",
+      "input": 10,
+      "output": 50,
+      "cacheRead": 1,
+      "cacheWrite": 12.5,
+      "status": "verified",
+      "source": "https://developers.openai.com/api/docs/pricing",
+      "note": "Listed under 'Flagship models - Our latest models'. Long context (>272K input): $20/$75, cached $2, cache write $25. Batch/Flex $5/$25. Fast $20/$100. Ultrafast $60/$300."
+    },
+    {
+      "provider": "openai",
+      "id": "gpt-6.1-sol",
+      "name": "GPT-6.1 Sol",
+      "input": 2,
+      "output": 10,
+      "cacheRead": 0.1,
+      "cacheWrite": 2.5,
+      "status": "verified",
+      "source": "https://developers.openai.com/api/docs/pricing",
+      "note": "Latest flagship section. Long context: $4/$15, cached $0.20, write $5. Batch/Flex $1/$5. Fast $4/$20."
+    },
+    {
+      "provider": "openai",
+      "id": "gpt-6-luna",
+      "name": "GPT-6 Luna",
+      "input": 0.1,
+      "output": 0.5,
+      "cacheRead": 0.01,
+      "cacheWrite": 0.125,
+      "status": "verified",
+      "source": "https://developers.openai.com/api/docs/pricing",
+      "note": "Latest flagship section (small tier). Long context: $0.20/$0.75, cached $0.02, write $0.25. Batch/Flex $0.05/$0.25."
+    },
+    {
+      "provider": "openai",
+      "id": "gpt-6-sol",
+      "name": "GPT-6 Sol",
+      "input": 2,
+      "output": 10,
+      "cacheRead": 0.2,
+      "cacheWrite": 2.5,
+      "status": "verified",
+      "source": "https://developers.openai.com/api/docs/pricing",
+      "note": "All models table."
+    },
+    {
+      "provider": "openai",
+      "id": "gpt-5.6-sol",
+      "name": "GPT-5.6 Sol",
+      "input": 4,
+      "output": 20,
+      "cacheRead": 0.4,
+      "cacheWrite": 5,
+      "status": "verified",
+      "source": "https://developers.openai.com/api/docs/pricing",
+      "note": "Promotional pricing guaranteed at least through 2026-11-21. Long context: $8/$30, cached $0.80, write $10."
+    },
+    {
+      "provider": "openai",
+      "id": "gpt-5.5",
+      "name": "GPT-5.5",
+      "input": 5,
+      "output": 30,
+      "cacheRead": 0.5,
+      "cacheWrite": null,
+      "status": "verified",
+      "source": "https://developers.openai.com/api/docs/pricing",
+      "note": "<272K context. Cache write shown as '-'. Long-context row not captured."
+    },
+    {
+      "provider": "openai",
+      "id": "gpt-5.5-pro",
+      "name": "GPT-5.5 Pro",
+      "input": 30,
+      "output": 180,
+      "cacheRead": null,
+      "cacheWrite": null,
+      "status": "verified",
+      "source": "https://developers.openai.com/api/docs/pricing",
+      "note": "<272K context. No cached input listed. Pro reasoning model."
+    },
+    {
+      "provider": "openai",
+      "id": "gpt-5.4-mini",
+      "name": "GPT-5.4 mini",
+      "input": 0.75,
+      "output": 4.5,
+      "cacheRead": 0.075,
+      "cacheWrite": null,
+      "status": "verified",
+      "source": "https://developers.openai.com/api/docs/pricing",
+      "note": "Newest model labelled 'mini' on the page."
+    },
+    {
+      "provider": "openai",
+      "id": "gpt-5.4-nano",
+      "name": "GPT-5.4 nano",
+      "input": 0.2,
+      "output": 1.25,
+      "cacheRead": 0.02,
+      "cacheWrite": null,
+      "status": "verified",
+      "source": "https://developers.openai.com/api/docs/pricing",
+      "note": "Newest model labelled 'nano' on the page."
+    },
+    {
+      "provider": "openai",
+      "id": "o3",
+      "name": "o3",
+      "input": 2,
+      "output": 8,
+      "cacheRead": 0.5,
+      "cacheWrite": null,
+      "status": "verified",
+      "source": "https://developers.openai.com/api/docs/pricing",
+      "note": "o-series reasoning model (older)."
+    },
+    {
+      "provider": "openai",
+      "id": "o4-mini",
+      "name": "o4-mini",
+      "input": 1.1,
+      "output": 4.4,
+      "cacheRead": 0.275,
+      "cacheWrite": null,
+      "status": "verified",
+      "source": "https://developers.openai.com/api/docs/pricing",
+      "note": "o-series reasoning model (older)."
+    }
+  ],
+  "notes": [
+    "Anthropic prices were read today from the official pricing page (platform.claude.com/docs/en/about-claude/pricing). Model IDs come from platform.claude.com/docs/en/about-claude/models/overview and model-ids-and-versions. The claude-api skill was not used as a price source.",
+    "Anthropic cacheWrite = 5-minute cache write (1.25x input). 1h write = 2x input. Cache read = 0.1x input by default, 0.05x on Opus 5.5 / Sonnet 5.5, and 0.025x on Fable 5.1 / Mythos 5.1.",
+    "Anthropic Batch API: 50% off input and output. Stacks with caching. Fast mode is not available with Batch.",
+    "Anthropic long context: Claude 4.6+ models (except Haiku 5.5) get the full 1M context at standard pricing. Haiku 5.5 has two price tiers split at 100K prompt tokens.",
+    "Anthropic inference_geo='us' applies a 1.1x multiplier (4.6+ models).",
+    "Also listed but not included above: Claude Mythos 5.1 / Mythos 5 (limited availability, same prices as Fable 5.1 / Fable 5), Claude Fable 5 ($10/$50, cache read $1), and retired models Opus 4.1/4, Sonnet 4, Haiku 3.5.",
+    "OpenAI prices were read today from the raw HTML of developers.openai.com/api/docs/pricing (platform.openai.com/docs/pricing redirects there, 301). The WebFetch summary had mis-transcribed the long-context columns; the figures here come from the raw data.",
+    "OpenAI columns are Input / Cached input / Cache writes / Output. The page notes that cache writes are not an extra fee: each input token is billed as exactly one of input, cached input, or cache write.",
+    "OpenAI short context = <=272K input tokens; long context = >272K. Tiers: Standard, Batch, Flex, Fast (Priority processing was renamed Fast mode on 2026-07-30), Ultrafast (gpt-6-astra only). Batch and Flex are 50% of Standard for the latest models.",
+    "OpenAI: data-residency and FedRAMP endpoints add a 10% uplift for models released on or after 2026-03-05.",
+    "OpenAI's page does not label tiers as flagship/mini/nano/reasoning. The page header 'Flagship models - Our latest models' covers gpt-6-astra, gpt-6.1-sol and gpt-6-luna. Other category labels in this file are inferred from the model names."
+  ]
+};
+/* ======================== END PRICES ================================ */
+
+/* ---------------------------------------------------------------------
+   Pure logic (no DOM): parsing, aggregation, cost calculation
+   --------------------------------------------------------------------- */
+const Logic = (() => {
+  const normKey = (s) => String(s == null ? "" : s).toLowerCase().replace(/[^a-z0-9]/g, "");
+  const normModel = (s) => String(s == null ? "" : s).trim().toLowerCase().replace(/[._\s]+/g, "-");
+
+  function inferProvider(model) {
+    const m = normModel(model);
+    if (/^(anthropic-|us-anthropic-|eu-anthropic-)?claude/.test(m) || m.includes("claude")) return "anthropic";
+    if (/^(gpt|o\d|chatgpt|text-|davinci|babbage|codex|omni)/.test(m)) return "openai";
+    return null;
+  }
+
+  function toNum(v) {
+    if (v == null || v === "") return 0;
+    if (typeof v === "number") return isFinite(v) ? v : 0;
+    const s = String(v).replace(/[\s,"'_]/g, "");
+    if (s === "" || s === "-") return 0;
+    const n = Number(s);
+    return isFinite(n) ? n : NaN;
+  }
+
+  // Returns "YYYY-MM-DD" (UTC) or null
+  function toDay(v) {
+    if (v == null || v === "") return null;
+    if (typeof v === "number" || /^\d{9,13}$/.test(String(v).trim())) {
+      let n = Number(v);
+      if (n < 1e11) n *= 1000; // seconds -> ms
+      const d = new Date(n);
+      return isNaN(d) ? null : d.toISOString().slice(0, 10);
+    }
+    const s = String(v).trim();
+    const m = s.match(/(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/);
+    if (m) {
+      // ISO with time and zone: let Date resolve to UTC day
+      if (/T\d{2}:\d{2}/.test(s) && /(Z|[+-]\d{2}:?\d{2})$/.test(s)) {
+        const d = new Date(s);
+        if (!isNaN(d)) return d.toISOString().slice(0, 10);
+      }
+      return `${m[1]}-${m[2].padStart(2, "0")}-${m[3].padStart(2, "0")}`;
+    }
+    const d = new Date(s);
+    return isNaN(d) ? null : d.toISOString().slice(0, 10);
+  }
+
+  // CSV/TSV parser with quotes
+  function parseDelimited(text) {
+    const firstLine = (text.split(/\r?\n/).find((l) => l.trim() !== "") || "");
+    const count = (ch) => firstLine.split(ch).length - 1;
+    const cands = [[",", count(",")], ["\t", count("\t")], [";", count(";")]];
+    cands.sort((a, b) => b[1] - a[1]);
+    const delim = cands[0][1] > 0 ? cands[0][0] : ",";
+    const rows = [];
+    let row = [], field = "", q = false;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (q) {
+        if (c === '"') { if (text[i + 1] === '"') { field += '"'; i++; } else q = false; }
+        else field += c;
+      } else if (c === '"') q = true;
+      else if (c === delim) { row.push(field); field = ""; }
+      else if (c === "\n" || c === "\r") {
+        if (c === "\r" && text[i + 1] === "\n") i++;
+        row.push(field); field = "";
+        if (row.some((x) => x.trim() !== "")) rows.push(row);
+        row = [];
+      } else field += c;
+    }
+    row.push(field);
+    if (row.some((x) => x.trim() !== "")) rows.push(row);
+    return rows.map((r) => r.map((x) => x.trim()));
+  }
+
+  // Map a header to a role
+  function classifyHeader(h) {
+    const n = normKey(h);
+    if (!n) return null;
+    if (/audio|image|cost|usd|price|amount|websearch|request|apikey|workspace|project|user|batch|tier|contextwindow|endtime|endingat|enddate|currency|inferencegeo|^geo$|region/.test(n)) return null;
+    if (["model", "models", "modelversion", "modelname", "modelid", "snapshot", "snapshotid", "modelversionname"].includes(n)) return "model";
+    if (["date", "day", "usagedate", "usagedateutc", "starttime", "startingat", "timestamp", "bucketstart", "period", "time", "datetime", "startdate", "bucket"].includes(n) || /date/.test(n)) return "date";
+    if (/uncached|nocache|noncached|withoutcache/.test(n)) return "unc";
+    if (/cache/.test(n) && /write|creation|create|created/.test(n)) {
+      if (/1h|1hr|onehour|60m/.test(n)) return "cw1";
+      return "cw5";
+    }
+    if ((/cache/.test(n) && /read|hit/.test(n)) || /cached/.test(n)) return "cr";
+    if (/output|generated|completion/.test(n)) return "out";
+    if (/input|prompt|context/.test(n)) return "in";
+    return null;
+  }
+
+  function mapHeaders(headers) {
+    const map = {};
+    headers.forEach((h, i) => { const r = classifyHeader(h); if (r && map[r] == null) map[r] = i; });
+    return map;
+  }
+
+  const EXPECTED_HELP =
+    "想定している形式:\n" +
+    "・Anthropic Console 使用量CSV（例: usage_date_utc, model_version, usage_input_tokens_no_cache, usage_input_tokens_cache_write_5m, usage_input_tokens_cache_write_1h, usage_input_tokens_cache_read, usage_output_tokens）\n" +
+    "・Anthropic Admin API usage_report/messages JSON（data[].results[] に uncached_input_tokens, cache_creation, cache_read_input_tokens, output_tokens, model）\n" +
+    "・OpenAI 使用量CSV（start_time, model, input_tokens, input_cached_tokens, output_tokens）\n" +
+    "・OpenAI Admin API /v1/organization/usage/completions JSON（data[].results[] に input_tokens, input_cached_tokens, output_tokens, model）\n" +
+    "・汎用CSV: date,model,input_tokens,output_tokens[,cached_input_tokens]（cached は input の内数として扱います）\n" +
+    "列名は大文字小文字・空白・アンダースコアの違いを無視して照合します。最低限「入力トークン」と「出力トークン」の列が必要です。";
+
+  function rowsFromTable(headers, body, hint) {
+    const map = mapHeaders(headers);
+    const hasIn = map.in != null || map.unc != null;
+    if (!hasIn || map.out == null) {
+      const found = headers.filter((h) => h !== "").slice(0, 12).join(", ") || "（なし）";
+      throw new Error(`入力トークンまたは出力トークンの列が見つかりません。\n見つかった列: ${found}\n\n${EXPECTED_HELP}`);
+    }
+    const hasCW = map.cw5 != null || map.cw1 != null;
+    // "cached_input_tokens"/"input_cached_tokens" (OpenAI wording) = subset of input_tokens
+    const crIsSubset = map.cr != null && /cached/.test(normKey(headers[map.cr]));
+    const rows = [];
+    let bad = 0;
+    for (const r of body) {
+      const get = (role) => (map[role] == null ? 0 : toNum(r[map[role]]));
+      const model = map.model != null && r[map.model] ? r[map.model] : "(不明)";
+      const provider = inferProvider(model) || hint || null;
+      const vals = { inp: get("in"), unc: get("unc"), cw5: get("cw5"), cw1: get("cw1"), cr: get("cr"), out: get("out") };
+      if (Object.values(vals).some((x) => isNaN(x))) { bad++; continue; }
+      let unc;
+      if (map.unc != null) unc = vals.unc;
+      else if (hasCW || (!crIsSubset && provider === "anthropic")) unc = vals.inp; // Anthropic: input excludes cache
+      else unc = Math.max(0, vals.inp - vals.cr - vals.cw5 - vals.cw1); // OpenAI/generic: cached is a subset of input
+      rows.push({ date: map.date != null ? toDay(r[map.date]) : null, model, provider,
+        unc, cw5: vals.cw5, cw1: vals.cw1, cr: vals.cr, out: vals.out });
+    }
+    return { rows, map, bad, hasCW };
+  }
+
+  function detectCsvKind(headers, rows, hasCW, map) {
+    const ns = headers.map(normKey);
+    const anthHdr = hasCW || map.unc != null || ns.some((n) => /modelversion|usagedateutc|usageinputtokens|usageoutputtokens/.test(n));
+    const oaHdr = ns.some((n) => /inputcachedtokens|nummodelrequests|ncontexttokens|ngeneratedtokens/.test(n));
+    const provs = rows.map((r) => r.provider);
+    const a = provs.filter((p) => p === "anthropic").length, o = provs.filter((p) => p === "openai").length;
+    if (anthHdr && !oaHdr) return "anthropic-csv";
+    if (oaHdr && !anthHdr) return "openai-csv";
+    const generic = ns.length <= 6 && ns.every((n) => ["date", "model", "inputtokens", "outputtokens", "cachedinputtokens"].includes(n));
+    if (generic) return "generic-csv";
+    if (a > o) return "anthropic-csv";
+    if (o > a) return "openai-csv";
+    return "generic-csv";
+  }
+
+  function parseJson(obj) {
+    let buckets = [];
+    if (Array.isArray(obj) && obj.length && obj[0] && Array.isArray(obj[0].data)) obj.forEach((p) => buckets.push(...p.data));
+    else if (obj && Array.isArray(obj.data)) buckets = obj.data;
+    else if (Array.isArray(obj)) buckets = obj;
+    else throw new Error("JSON の構造を認識できません（data 配列がありません）。\n\n" + EXPECTED_HELP);
+
+    const hasResults = buckets.some((b) => b && Array.isArray(b.results));
+    if (hasResults) {
+      const all = [];
+      buckets.forEach((b) => (b.results || []).forEach((r) => all.push([b, r])));
+      if (!all.length) throw new Error("JSON に results が含まれていません（期間内の使用量が 0 件）。");
+      const isAnth = all.some(([, r]) => "uncached_input_tokens" in r || "cache_creation" in r || "cache_read_input_tokens" in r);
+      const isOA = all.some(([, r]) => "input_cached_tokens" in r || "num_model_requests" in r) || buckets.some((b) => typeof b.start_time === "number");
+      const rows = [];
+      if (isAnth) {
+        for (const [b, r] of all) {
+          const cc = r.cache_creation || {};
+          const model = r.model || "(不明)";
+          rows.push({ date: toDay(b.starting_at || b.start_time || r.starting_at), model, provider: inferProvider(model) || "anthropic",
+            unc: toNum(r.uncached_input_tokens), cw5: toNum(cc.ephemeral_5m_input_tokens) + (typeof r.cache_creation_input_tokens === "number" ? r.cache_creation_input_tokens : 0),
+            cw1: toNum(cc.ephemeral_1h_input_tokens), cr: toNum(r.cache_read_input_tokens), out: toNum(r.output_tokens) });
+        }
+        return { format: "anthropic-api", rows, bad: 0 };
+      }
+      if (isOA) {
+        for (const [b, r] of all) {
+          const model = r.model || "(不明)";
+          const cached = toNum(r.input_cached_tokens);
+          const cwKey = Object.keys(r).find((k) => /cache/.test(k) && /write|creation/.test(k));
+          const cw = cwKey ? toNum(r[cwKey]) : 0;
+          rows.push({ date: toDay(b.start_time != null ? b.start_time : r.start_time), model, provider: inferProvider(model) || "openai",
+            unc: Math.max(0, toNum(r.input_tokens) - cached - cw), cw5: cw, cw1: 0, cr: cached, out: toNum(r.output_tokens) });
+        }
+        return { format: "openai-api", rows, bad: 0 };
+      }
+      throw new Error("results の中にトークン数のフィールドが見つかりません。\n\n" + EXPECTED_HELP);
+    }
+    // Flat row objects
+    const objs = buckets.filter((x) => x && typeof x === "object");
+    if (!objs.length) throw new Error("JSON に行データがありません。\n\n" + EXPECTED_HELP);
+    const headers = [...new Set(objs.flatMap((o) => Object.keys(o)))];
+    const body = objs.map((o) => headers.map((h) => (o[h] == null ? "" : typeof o[h] === "object" ? "" : String(o[h]))));
+    const t = rowsFromTable(headers, body, null);
+    return { format: "json-rows", rows: t.rows, bad: t.bad };
+  }
+
+  // Entry: auto-detect format. Returns {format, formatLabel, rows, bad}
+  function parseUsage(text) {
+    const src = String(text || "").replace(/^﻿/, "").trim();
+    if (!src) throw new Error("データが空です。CSV または JSON を貼り付けてください。\n\n" + EXPECTED_HELP);
+    let res;
+    if (src[0] === "{" || src[0] === "[") {
+      let obj;
+      try { obj = JSON.parse(src); }
+      catch (e) { throw new Error("JSON として読み込めませんでした: " + e.message + "\n\n" + EXPECTED_HELP); }
+      res = parseJson(obj);
+    } else {
+      const table = parseDelimited(src);
+      if (table.length < 2) throw new Error("ヘッダー行とデータ行が必要です（行数が足りません）。\n\n" + EXPECTED_HELP);
+      // Header = first row (within first 10) that contains an output-like column
+      let hi = table.slice(0, 10).findIndex((r) => r.some((h) => classifyHeader(h) === "out"));
+      if (hi < 0) hi = 0;
+      const headers = table[hi];
+      const t = rowsFromTable(headers, table.slice(hi + 1), null);
+      res = { format: detectCsvKind(headers, t.rows, t.hasCW, t.map), rows: t.rows, bad: t.bad };
+    }
+    if (!res.rows.length) throw new Error("集計できる行がありませんでした。\n\n" + EXPECTED_HELP);
+    res.formatLabel = FORMAT_LABELS[res.format] || res.format;
+    return res;
+  }
+
+  const FORMAT_LABELS = {
+    "anthropic-api": "Anthropic Admin API（usage_report/messages JSON）",
+    "openai-api": "OpenAI Admin API（usage/completions JSON）",
+    "anthropic-csv": "Anthropic Console 使用量CSV",
+    "openai-csv": "OpenAI 使用量CSV",
+    "generic-csv": "汎用CSV",
+    "json-rows": "JSON（行オブジェクト）",
+  };
+
+  const emptyTok = () => ({ unc: 0, cw5: 0, cw1: 0, cr: 0, out: 0 });
+  function addTok(a, b) { a.unc += b.unc; a.cw5 += b.cw5; a.cw1 += b.cw1; a.cr += b.cr; a.out += b.out; return a; }
+  function scaleTok(t, f) { return { unc: t.unc * f, cw5: t.cw5 * f, cw1: t.cw1 * f, cr: t.cr * f, out: t.out * f }; }
+
+  function aggregate(rows) {
+    const totals = emptyTok();
+    const byModel = new Map();
+    const days = new Set();
+    for (const r of rows) {
+      addTok(totals, r);
+      if (!byModel.has(r.model)) byModel.set(r.model, { model: r.model, provider: r.provider, tok: emptyTok() });
+      addTok(byModel.get(r.model).tok, r);
+      if (r.date) days.add(r.date);
+    }
+    const sorted = [...days].sort();
+    const minDate = sorted[0] || null, maxDate = sorted[sorted.length - 1] || null;
+    const spanDays = minDate ? Math.round((Date.parse(maxDate) - Date.parse(minDate)) / 86400000) + 1 : null;
+    return { totals, byModel: [...byModel.values()], minDate, maxDate, spanDays, activeDays: days.size, rowCount: rows.length };
+  }
+
+  function periodFactor(agg, mode) {
+    if (mode !== "30d" || !agg.spanDays) return 1;
+    return 30 / agg.spanDays;
+  }
+
+  // Price lookup
+  function priceIds(m) {
+    const ids = [normModel(m.id)];
+    const base = normModel(m.id).replace(/-(\d{8})$/, "");
+    if (base !== ids[0]) ids.push(base);
+    (m.aliases || []).forEach((a) => ids.push(normModel(a)));
+    return ids;
+  }
+  function matchModel(name, models) {
+    const n = normModel(name).replace(/^(us-|eu-|apac-|global-)?anthropic-/, "").replace(/^models\//, "");
+    let best = null, bestLen = -1;
+    for (const m of models) {
+      for (const id of priceIds(m)) {
+        const ok = n === id || (n.startsWith(id + "-") && /^-(\d{4}-?\d{2}-?\d{2}|\d{8}|latest|v\d+(-\d+)?(:\d+)?)$/.test(n.slice(id.length)))
+          || (n.startsWith(id + "@"));
+        if (ok && id.length > bestLen) { best = m; bestLen = id.length; }
+      }
+    }
+    return best;
+  }
+
+  // Effective price for a model: verified prices, or manual override for unverified rows.
+  // Returns null when not usable.
+  function effectivePrice(m, manual) {
+    if (!m) return null;
+    if (m.status === "verified" && m.input != null && m.output != null) {
+      return { input: m.input, output: m.output, cacheRead: m.cacheRead, cacheWrite: m.cacheWrite, cacheWrite1h: m.cacheWrite1h, provider: m.provider, kind: "verified" };
+    }
+    const o = manual && manual[m.id];
+    if (o && isFinite(o.input) && isFinite(o.output) && o.input !== null && o.output !== null) {
+      return { input: o.input, output: o.output, cacheRead: isFinite(o.cacheRead) ? o.cacheRead : null,
+        cacheWrite: isFinite(o.cacheWrite) ? o.cacheWrite : null, provider: m.provider, kind: "manual" };
+    }
+    return null;
+  }
+
+  // Unit prices (USD / 1M tokens) actually applied per token class
+  function unitPrices(p) {
+    // Anthropic: cacheWrite = 5-minute write; 1h write = 2x input unless given.
+    // OpenAI (and others): cache-write tokens are billed as normal input (no extra fee).
+    const anth = p.provider === "anthropic";
+    const cw5 = anth ? (p.cacheWrite != null ? p.cacheWrite : p.input * 1.25) : p.input;
+    const cw1 = anth ? (p.cacheWrite1h != null ? p.cacheWrite1h : p.input * 2) : p.input;
+    const cr = p.cacheRead != null ? p.cacheRead : p.input;
+    return { unc: p.input, cw5, cw1, cr, out: p.output };
+  }
+
+  // Cost in USD for a token bundle at price p.
+  function costOf(tok, p, keepCache) {
+    if (!p) return null;
+    const u = unitPrices(p);
+    if (!keepCache) return ((tok.unc + tok.cw5 + tok.cw1 + tok.cr) * u.unc + tok.out * u.out) / 1e6;
+    return (tok.unc * u.unc + tok.cw5 * u.cw5 + tok.cw1 * u.cw1 + tok.cr * u.cr + tok.out * u.out) / 1e6;
+  }
+
+  // Full computation
+  function compute(agg, prices, opts) {
+    const models = prices.models || [];
+    const f = periodFactor(agg, opts.mode);
+    const tokens = scaleTok(agg.totals, f);
+    // current cost: each model in data priced at its own (actual) price, cache as-is
+    let current = 0, covered = emptyTok(), unpricedModels = [];
+    const breakdown = agg.byModel.map((bm) => {
+      const m = matchModel(bm.model, models);
+      const p = effectivePrice(m, opts.manual);
+      const tok = scaleTok(bm.tok, f);
+      const cost = costOf(tok, p, true);
+      if (cost != null) { current += cost; addTok(covered, tok); }
+      else unpricedModels.push(bm.model);
+      return { model: bm.model, provider: bm.provider || (m && m.provider) || null, matched: m, price: p, tok, cost };
+    });
+    const sumTok = (t) => t.unc + t.cw5 + t.cw1 + t.cr + t.out;
+    const coverage = sumTok(tokens) ? sumTok(covered) / sumTok(tokens) : 0;
+    const currentComplete = unpricedModels.length === 0 && breakdown.length > 0;
+    const currentIds = new Set(breakdown.filter((b) => b.matched).map((b) => b.matched.id));
+
+    const candidates = models.filter((m) => opts.selected ? opts.selected.has(m.id) || currentIds.has(m.id) : true);
+    const scenarios = [], excluded = [];
+    for (const m of candidates) {
+      const p = effectivePrice(m, opts.manual);
+      if (!p) { excluded.push(m); continue; }
+      const cost = costOf(tokens, p, opts.keepCache);
+      const delta = currentComplete ? cost - current : null;
+      const pct = currentComplete && current > 0 ? (delta / current) * 100 : null;
+      scenarios.push({ model: m, price: p, cost, delta, pct, isCurrent: currentIds.has(m.id) });
+    }
+    scenarios.sort((a, b) => a.cost - b.cost);
+    return { factor: f, tokens, current: breakdown.length ? current : null, currentComplete, coverage, unpricedModels, breakdown, scenarios, excluded,
+      cheapest: scenarios[0] || null };
+  }
+
+  return { normKey, normModel, inferProvider, toNum, toDay, parseDelimited, classifyHeader, parseUsage, aggregate,
+    periodFactor, matchModel, effectivePrice, unitPrices, costOf, compute, EXPECTED_HELP, FORMAT_LABELS };
+})();
+
+/* ---------------------------------------------------------------------
+   Sample data (synthetic, deterministic)
+   --------------------------------------------------------------------- */
+const Samples = (() => {
+  function anthropicCsv() {
+    const lines = ["usage_date_utc,model_version,workspace,usage_input_tokens_no_cache,usage_input_tokens_cache_write_5m,usage_input_tokens_cache_write_1h,usage_input_tokens_cache_read,usage_output_tokens"];
+    const models = [
+      ["claude-sonnet-5-5", 1800000, 240000, 60000, 5200000, 420000],
+      ["claude-haiku-5-5", 3100000, 120000, 0, 2600000, 610000],
+      ["claude-opus-5-5", 260000, 40000, 20000, 900000, 95000],
+    ];
+    for (let d = 1; d <= 14; d++) {
+      const day = `2026-09-${String(d).padStart(2, "0")}`;
+      const weekend = [6, 7, 13, 14].includes(d);
+      const k = (weekend ? 0.55 : 1) * (1 + ((d * 7) % 5) / 20);
+      for (const [m, a, b, c, e, o] of models) {
+        lines.push([day, m, "Default", Math.round(a * k), Math.round(b * k), Math.round(c * k), Math.round(e * k), Math.round(o * k)].join(","));
+      }
+    }
+    return lines.join("\n");
+  }
+  function openaiJson() {
+    const start = Date.UTC(2026, 8, 1) / 1000;
+    const data = [];
+    for (let d = 0; d < 7; d++) {
+      const k = 1 + ((d * 3) % 4) / 10;
+      data.push({ object: "bucket", start_time: start + d * 86400, end_time: start + (d + 1) * 86400, results: [
+        { object: "organization.usage.completions.result", input_tokens: Math.round(4200000 * k), output_tokens: Math.round(380000 * k),
+          num_model_requests: Math.round(2100 * k), project_id: null, user_id: null, api_key_id: null, model: "gpt-6.1-sol", batch: null,
+          input_cached_tokens: Math.round(2500000 * k), input_audio_tokens: 0, output_audio_tokens: 0 },
+        { object: "organization.usage.completions.result", input_tokens: Math.round(6800000 * k), output_tokens: Math.round(900000 * k),
+          num_model_requests: Math.round(9400 * k), project_id: null, user_id: null, api_key_id: null, model: "gpt-5.4-mini", batch: null,
+          input_cached_tokens: Math.round(3000000 * k), input_audio_tokens: 0, output_audio_tokens: 0 },
+      ] });
+    }
+    return JSON.stringify({ object: "page", data, has_more: false, next_page: null }, null, 2);
+  }
+  return { anthropic: anthropicCsv(), openai: openaiJson() };
+})();
+
+if (typeof module !== "undefined" && module.exports) module.exports = { Logic, Samples, PRICES };
+
+/* ---------------------------------------------------------------------
+   UI
+   --------------------------------------------------------------------- */
+if (typeof document !== "undefined") (() => {
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const fmtUSD = (v) => v == null ? "—" : "$" + v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmtSigned = (v) => v == null ? "—" : (v > 0 ? "+" : v < 0 ? "−" : "±") + fmtUSD(Math.abs(v));
+  const fmtPct = (v) => v == null ? "—" : (v > 0 ? "+" : v < 0 ? "−" : "±") + Math.abs(v).toFixed(1) + "%";
+  const fmtInt = (v) => Math.round(v).toLocaleString("en-US");
+  const fmtTok = (v) => v >= 1e9 ? (v / 1e9).toFixed(2) + "B" : v >= 1e6 ? (v / 1e6).toFixed(2) + "M" : v >= 1e3 ? (v / 1e3).toFixed(1) + "K" : fmtInt(v);
+  const fmtP = (v) => v == null ? "—" : "$" + (+v).toString();
+  const PROV = { anthropic: "Anthropic", openai: "OpenAI" };
+
+  const state = { parsed: null, agg: null, result: null, manual: {}, selected: new Set(), isSample: false };
+  // Main (current-generation) models: selected by default and shown in the main price table.
+  const MAIN_IDS = ["claude-fable-5-1", "claude-opus-5-5", "claude-sonnet-5-5", "claude-haiku-5-5",
+    "gpt-6-astra", "gpt-6.1-sol", "gpt-6-luna", "gpt-5.4-mini", "gpt-5.4-nano", "o4-mini"];
+  const isMain = (m) => MAIN_IDS.includes(m.id) || m.main === true;
+  const defaultOn = isMain;
+  (PRICES.models || []).forEach((m) => { if (defaultOn(m)) state.selected.add(m.id); });
+
+  const input = $("usage-input");
+
+  function setSample(which) {
+    input.value = Samples[which];
+    state.isSample = true;
+    $("sample-badge").hidden = false;
+    $("sample-badge").textContent = which === "anthropic" ? "サンプル（Anthropic）" : "サンプル（OpenAI）";
+    run();
+  }
+
+  function run() {
+    const err = $("parse-error");
+    try {
+      state.parsed = Logic.parseUsage(input.value);
+      state.agg = Logic.aggregate(state.parsed.rows);
+      err.hidden = true;
+    } catch (e) {
+      state.parsed = null; state.agg = null;
+      err.hidden = false;
+      err.innerHTML = "<b>読み込めませんでした。</b>\n" + esc(e.message);
+    }
+    render();
+  }
+
+  function opts() {
+    return { mode: $("period-30d").checked ? "30d" : "raw", keepCache: $("keep-cache").checked, manual: state.manual, selected: state.selected };
+  }
+
+  function render() {
+    renderPrices();
+    const a = state.agg;
+    if (!a) {
+      $("parse-status").textContent = "データ未読み込み";
+      $("stats").innerHTML = ""; $("headline").innerHTML = ""; $("compare-table").innerHTML = "";
+      $("chart").innerHTML = ""; $("model-table").innerHTML = ""; $("compare-notes").innerHTML = ""; $("period-note").textContent = "";
+      state.result = null;
+      return;
+    }
+    const o = opts();
+    const r = state.result = Logic.compute(a, PRICES, o);
+    const p = state.parsed;
+    $("parse-status").innerHTML = `検出した形式: <b>${esc(p.formatLabel)}</b>` + (p.bad ? ` <span class="badge warn">数値でない行を ${p.bad} 行スキップ</span>` : "");
+    const t = a.totals;
+    $("stats").innerHTML = [
+      ["行数", fmtInt(a.rowCount)],
+      ["期間", a.minDate ? `${a.minDate} 〜 ${a.maxDate}（${a.spanDays}日）` : "日付なし", "wide"],
+      ["入力（キャッシュなし）", fmtInt(t.unc)],
+      ["キャッシュ書き込み", fmtInt(t.cw5 + t.cw1)],
+      ["キャッシュ読み取り", fmtInt(t.cr)],
+      ["出力", fmtInt(t.out)],
+    ].map(([k, v, c]) => `<div class="${c || ""}"><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join("");
+    $("period-note").textContent = o.mode === "30d"
+      ? (a.spanDays ? `${a.spanDays}日分のデータを 30/${a.spanDays} = ×${r.factor.toFixed(3)} で月額に換算しています。` : "日付列がないため換算できません。そのまま合計を月額として扱います。")
+      : "データ期間の合計をそのまま表示しています（月額換算なし）。";
+    $("compare-unit").textContent = o.mode === "30d" && a.spanDays ? "USD / 月（30日換算）" : "USD / データ期間合計";
+
+    // headline
+    const cur = r.current;
+    const best = r.cheapest;
+    $("headline").innerHTML =
+      `<div><div class="k">現在のコスト${r.currentComplete ? "" : "（価格確認済み分のみ）"}</div><div class="v">${fmtUSD(cur)}</div></div>` +
+      (best ? `<div><div class="k">最安の候補</div><div class="v">${esc(best.model.name)} ${fmtUSD(best.cost)}</div></div>` : "") +
+      (best && best.delta != null ? `<div><div class="k">最安に切り替えた場合の差額</div><div class="v ${best.delta < 0 ? "neg" : "pos"}">${fmtSigned(best.delta)}（${fmtPct(best.pct)}）</div></div>` : "");
+
+    // compare table
+    let html = `<thead><tr><th>#</th><th>移行先モデル</th><th class="num">月額コスト</th><th class="num">現在との差</th><th class="num">差（%）</th><th>価格</th></tr></thead><tbody>`;
+    r.scenarios.forEach((s, i) => {
+      const cls = [s === best ? "cheapest" : "", s.isCurrent ? "current" : ""].join(" ").trim();
+      const tags = (s === best ? ` <span class="badge ok">最安</span>` : "") + (s.isCurrent ? ` <span class="badge acc">現在使用中</span>` : "");
+      html += `<tr class="${cls}"><td class="num">${i + 1}</td><td><span class="prov">${esc(PROV[s.model.provider] || s.model.provider)}</span><span class="mname">${esc(s.model.name)}</span>${tags}</td>` +
+        `<td class="num">${fmtUSD(s.cost)}</td><td class="num ${s.delta < 0 ? "neg" : s.delta > 0 ? "pos" : ""}">${fmtSigned(s.delta)}</td>` +
+        `<td class="num ${s.pct < 0 ? "neg" : s.pct > 0 ? "pos" : ""}">${fmtPct(s.pct)}</td>` +
+        `<td>${s.price.kind === "manual" ? '<span class="badge warn">手入力</span>' : '<span class="badge ok">確認済み</span>'}</td></tr>`;
+    });
+    r.excluded.forEach((m) => {
+      html += `<tr class="excluded"><td class="num">—</td><td><span class="prov">${esc(PROV[m.provider] || m.provider)}</span><span class="mname">${esc(m.name)}</span></td>` +
+        `<td class="num">未確認</td><td class="num">—</td><td class="num">—</td><td><span class="badge warn">未確認・除外</span></td></tr>`;
+    });
+    if (!r.scenarios.length && !r.excluded.length) html += `<tr><td colspan="6">比較するモデルが選ばれていません。価格表の「比較」にチェックしてください。</td></tr>`;
+    $("compare-table").innerHTML = html + "</tbody>";
+
+    renderChart(r);
+    renderModels(r);
+
+    // notes
+    const notes = [];
+    if (!r.currentComplete) notes.push(`<b>現在のコストは一部のみ。</b>価格が未確認、または価格表にないモデル（${r.unpricedModels.map(esc).join(", ")}）を除いて計算しています（トークン量の ${(r.coverage * 100).toFixed(1)}% をカバー）。そのため差額は表示していません。`);
+    if (r.excluded.length) notes.push(`<b>価格未確認のモデル ${r.excluded.length} 件は合計から除外しています。</b>価格表で手入力すると計算に含められます。`);
+    notes.push(o.keepCache
+      ? "<b>キャッシュの扱い:</b> 現在のキャッシュ率を維持すると仮定し、キャッシュ読み取りトークンには移行先のキャッシュ読み取り単価、キャッシュ書き込みトークンには移行先のキャッシュ書き込み単価を適用しています。キャッシュ書き込み単価がない場合は通常入力単価（Anthropic で未掲載なら 5分 = 入力×1.25、1時間 = 入力×2）を使います。"
+      : "<b>キャッシュの扱い:</b> キャッシュを使わないと仮定し、キャッシュ書き込み・読み取りを含むすべての入力トークンを通常の入力単価で計算しています。");
+    notes.push("<b>トークン数は概算です。</b>Anthropic と OpenAI はトークナイザーが異なるため、同じテキストでもトークン数が変わります。プロバイダーをまたぐ比較は目安として扱ってください。");
+    notes.push("<b>品質とレイテンシーはモデルごとに異なります。</b>この表はコストだけを比べています。移行前に実際のタスクで評価してください。");
+    notes.push("標準料金で計算しています。Batch 割引、長文脈の割増（例: Haiku 5.5 の 10万トークン超、OpenAI の 272K 超）、地域・データ所在地の加算は含みません。");
+    $("compare-notes").innerHTML = notes.map((n) => `<li>${n}</li>`).join("");
+  }
+
+  function renderChart(r) {
+    const el = $("chart");
+    const rows = r.scenarios;
+    if (!rows.length) { el.innerHTML = ""; return; }
+    const W = Math.max(300, Math.round(el.clientWidth || 720));
+    const labelW = Math.min(W < 520 ? 118 : 200, Math.max(100, ...rows.map((s) => s.model.name.length * 7.2 + 12))), valW = W < 520 ? 74 : 92, rowH = 26, top = 22, bottom = 26;
+    const H = top + rows.length * rowH + bottom;
+    const rawMax = Math.max(...rows.map((s) => s.cost), r.currentComplete && r.current ? r.current : 0) || 1;
+    const want = W < 520 ? 2 : 4;
+    const mag = Math.pow(10, Math.floor(Math.log10(rawMax / want)));
+    const step = [1, 2, 2.5, 5, 10].map((k) => k * mag).find((st) => st * want >= rawMax) || 10 * mag;
+    const ticks = Math.ceil(rawMax / step - 1e-9);
+    const max = ticks * step;
+    const plotW = W - labelW - valW;
+    const x = (v) => labelW + (v / max) * plotW;
+    let s = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+    // grid
+    for (let i = 0; i <= ticks; i++) {
+      const v = step * i, gx = x(v);
+      s += `<line class="grid" x1="${gx}" x2="${gx}" y1="${top - 6}" y2="${H - bottom}" stroke-width="1"/>`;
+      s += `<text class="sub" x="${gx}" y="${top - 10}" text-anchor="${i === 0 ? "start" : i === ticks ? "end" : "middle"}">${esc(compactUSD(v))}</text>`;
+    }
+    if (r.currentComplete && r.current != null) {
+      const cx = x(r.current);
+      s += `<line class="cur" x1="${cx}" x2="${cx}" y1="${top - 4}" y2="${H - bottom + 4}" stroke-width="1.5"/>`;
+      s += `<text class="lbl" x="${cx}" y="${H - 8}" text-anchor="${cx > W - 90 ? "end" : cx < labelW + 60 ? "start" : "middle"}" font-size="11">現在 ${esc(fmtUSD(r.current))}</text>`;
+    }
+    rows.forEach((sc, i) => {
+      const y = top + i * rowH;
+      const w = Math.max(2, x(sc.cost) - labelW);
+      const best = sc === r.cheapest;
+      s += `<g class="b"><title>${esc(sc.model.name)}: ${esc(fmtUSD(sc.cost))}${sc.delta != null ? "（現在との差 " + esc(fmtSigned(sc.delta)) + "）" : ""}</title>`;
+      s += `<rect x="0" y="${y}" width="${W}" height="${rowH}" fill="transparent"/>`;
+      s += `<text class="lbl" font-size="${W < 520 ? 11 : 12}" x="${labelW - 8}" y="${y + rowH / 2 + 4}" text-anchor="end"${best ? ' font-weight="600"' : ""}>${esc(sc.model.name)}</text>`;
+      s += `<rect class="barr${best ? " best" : ""}" x="${labelW}" y="${y + 5}" width="${w}" height="${rowH - 10}" rx="3"/>`;
+      s += `<text class="${best ? "lbl" : "sub"}" font-size="${W < 520 ? 11 : 12}" x="${labelW + w + 6}" y="${y + rowH / 2 + 4}"${best ? ' font-weight="600"' : ""}>${esc(fmtUSD(sc.cost))}</text></g>`;
+    });
+    el.innerHTML = s + "</svg>";
+  }
+  function compactUSD(v) { return v >= 1000 ? "$" + +(v / 1000).toFixed(1) + "k" : "$" + +v.toFixed(v < 10 ? 2 : 0); }
+
+  function renderModels(r) {
+    let html = `<thead><tr><th>モデル（データ内の表記）</th><th>価格表の対応</th><th class="num">入力（キャッシュなし）</th><th class="num">キャッシュ書込</th><th class="num">キャッシュ読取</th><th class="num">出力</th><th class="num">現在のコスト</th></tr></thead><tbody>`;
+    r.breakdown.forEach((b) => {
+      html += `<tr><td class="mono">${esc(b.model)}</td><td>${b.matched ? esc(b.matched.name) : '<span class="badge crit">価格表になし</span>'}</td>` +
+        `<td class="num">${fmtTok(b.tok.unc)}</td><td class="num">${fmtTok(b.tok.cw5 + b.tok.cw1)}</td><td class="num">${fmtTok(b.tok.cr)}</td><td class="num">${fmtTok(b.tok.out)}</td>` +
+        `<td class="num">${b.cost == null ? '<span class="badge warn">未確認・除外</span>' : fmtUSD(b.cost)}</td></tr>`;
+    });
+    const t = r.tokens;
+    html += `<tr><td><b>合計</b></td><td></td><td class="num">${fmtTok(t.unc)}</td><td class="num">${fmtTok(t.cw5 + t.cw1)}</td><td class="num">${fmtTok(t.cr)}</td><td class="num">${fmtTok(t.out)}</td><td class="num"><b>${fmtUSD(r.current)}</b></td></tr>`;
+    $("model-table").innerHTML = html + "</tbody>";
+  }
+
+  let pricesBuilt = false;
+  function renderPrices() {
+    if (pricesBuilt) { refreshPriceStatus(); return; }
+    pricesBuilt = true;
+    const thead = `<thead><tr><th>比較</th><th>モデル</th><th class="num">入力</th><th class="num">出力</th><th class="num">キャッシュ読取</th><th class="num">キャッシュ書込</th><th>状態</th><th>確認日</th><th>出典</th></tr></thead><tbody>`;
+    let main = "", legacy = "", nLegacy = 0;
+    (PRICES.models || []).forEach((m, i) => {
+      let html = "";
+      const verified = m.status === "verified" && m.input != null && m.output != null;
+      const cell = (k) => verified
+        ? `<td class="num">${fmtP(m[k])}</td>`
+        : `<td class="num"><span class="unv">未確認</span><input type="number" min="0" step="any" id="mp-${i}-${k}" data-id="${esc(m.id)}" data-k="${k}" aria-label="${esc(m.name)} ${k} 手入力" placeholder="${m[k] != null ? esc(m[k]) : "$"}"></td>`;
+      html += `<tr title="${esc(m.note || "")}"><td><input type="checkbox" id="cand-${i}" data-id="${esc(m.id)}" ${state.selected.has(m.id) ? "checked" : ""} aria-label="${esc(m.name)} を比較に含める"></td>` +
+        `<td><span class="prov">${esc(PROV[m.provider] || m.provider)}</span><span class="mname">${esc(m.name)}</span> <span class="hint mono">${esc(m.id)}</span></td>` +
+        cell("input") + cell("output") + cell("cacheRead") + cell("cacheWrite") +
+        `<td id="pst-${i}"></td><td class="mono">${esc(m.checkedOn || PRICES.checkedOn || "—")}</td>` +
+        `<td>${m.source ? `<a href="${esc(m.source)}" target="_blank" rel="noopener noreferrer">${esc(hostOf(m.source))}</a>` : "—"}</td></tr>`;
+      if (isMain(m)) main += html; else { legacy += html; nLegacy++; }
+    });
+    $("price-table").innerHTML = thead + main + "</tbody>";
+    $("legacy-details").hidden = nLegacy === 0;
+    $("legacy-count").textContent = String(nLegacy);
+    $("price-table-legacy").innerHTML = thead + legacy + "</tbody>";
+    const pn = [];
+    pn.push(`価格の確認日: <b>${esc(PRICES.checkedOn || "—")}</b>。行にカーソルを合わせると補足メモを表示します。`);
+    pn.push("<b>計算上の前提:</b> Anthropic のキャッシュ書込は 5分キャッシュの単価（1時間キャッシュの書込は入力×2）。OpenAI はキャッシュ書込に追加料金がないため、書込トークンを通常の入力単価で計算します。OpenAI は Standard 料金・プロンプト 272K トークン以下の単価です。");
+    pn.push("<b>Claude Haiku 5.5</b> は 10万トークン以下のプロンプトの単価で計算しています。10万トークン超のプロンプトは入力 $0.50 / 出力 $2.50 / キャッシュ読取 $0.05 / 5分書込 $0.625 です。");
+    pn.push(`出典: <a href="https://platform.claude.com/docs/en/about-claude/pricing" target="_blank" rel="noopener noreferrer">Anthropic 料金ページ</a> / <a href="https://developers.openai.com/api/docs/pricing" target="_blank" rel="noopener noreferrer">OpenAI 料金ページ</a>`);
+    $("price-notes").innerHTML = pn.map((n) => `<li>${n}</li>`).join("");
+    const raw = Array.isArray(PRICES.notes) ? PRICES.notes : PRICES.notes ? [PRICES.notes] : [];
+    $("research-details").hidden = raw.length === 0;
+    $("research-notes").innerHTML = raw.map((n) => `<li>${esc(n)}</li>`).join("");
+    refreshPriceStatus();
+  }
+  function refreshPriceStatus() {
+    (PRICES.models || []).forEach((m, i) => {
+      const p = Logic.effectivePrice(m, state.manual);
+      $("pst-" + i).innerHTML = !p ? '<span class="badge warn">未確認</span>' : p.kind === "manual" ? '<span class="badge warn">手入力</span>' : '<span class="badge ok">確認済み</span>';
+    });
+  }
+  function hostOf(u) { try { return new URL(u).hostname; } catch (e) { return u; } }
+
+  // Export
+  function exportRows() {
+    const r = state.result;
+    if (!r) return null;
+    const head = ["順位", "移行先モデル", "プロバイダー", "コスト(USD)", "現在との差(USD)", "差(%)", "価格"];
+    const rows = r.scenarios.map((s, i) => [i + 1, s.model.name, PROV[s.model.provider] || s.model.provider, s.cost.toFixed(2),
+      s.delta == null ? "" : s.delta.toFixed(2), s.pct == null ? "" : s.pct.toFixed(1), s.price.kind === "manual" ? "手入力" : "確認済み"]);
+    r.excluded.forEach((m) => rows.push(["", m.name, PROV[m.provider] || m.provider, "未確認", "", "", "除外"]));
+    return { head, rows };
+  }
+  function toMarkdown() {
+    const e = exportRows(); if (!e) return "";
+    const o = opts(), a = state.agg, r = state.result;
+    const lines = [`## Model Switch Calculator 試算結果`, ``,
+      `- 形式: ${state.parsed.formatLabel} / ${a.rowCount}行 / ${a.minDate || "-"} 〜 ${a.maxDate || "-"}`,
+      `- 集計: ${o.mode === "30d" ? "30日換算" : "そのまま合計"} / キャッシュ率を維持: ${o.keepCache ? "はい" : "いいえ"}`,
+      `- 現在のコスト: ${fmtUSD(r.current)}${r.currentComplete ? "" : "（価格確認済み分のみ）"} / 価格確認日: ${PRICES.checkedOn || "-"}`, ``,
+      `| ${e.head.join(" | ")} |`, `| ${e.head.map((_, i) => (i === 1 || i === 2 || i === 6 ? "---" : "---:")).join(" | ")} |`];
+    e.rows.forEach((r) => lines.push(`| ${r.join(" | ")} |`));
+    lines.push("", "※ トークナイザーの違いによりプロバイダー間のトークン数は概算です。品質・レイテンシーは考慮していません。");
+    return lines.join("\n");
+  }
+  function toCSV() {
+    const e = exportRows(); if (!e) return "";
+    const q = (v) => /[",\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v);
+    return [e.head, ...e.rows].map((r) => r.map(q).join(",")).join("\n");
+  }
+  async function copy(text, label) {
+    const st = $("copy-status"), fb = $("export-fallback");
+    if (!text) { st.textContent = "コピーする結果がありません。"; return; }
+    try {
+      if (!navigator.clipboard || !navigator.clipboard.writeText) throw new Error("no clipboard");
+      await navigator.clipboard.writeText(text);
+      st.textContent = `${label} をクリップボードにコピーしました。`;
+      fb.hidden = true;
+    } catch (e) {
+      fb.hidden = false; fb.value = text; fb.focus(); fb.select();
+      st.textContent = "自動コピーできませんでした。下のテキストが選択されているので、Ctrl+C（⌘C）でコピーしてください。";
+    }
+  }
+
+  // Events
+  let t = null;
+  input.addEventListener("input", () => {
+    if (state.isSample) { state.isSample = false; $("sample-badge").hidden = true; }
+    clearTimeout(t); t = setTimeout(run, 250);
+  });
+  $("sample-anthropic").addEventListener("click", () => setSample("anthropic"));
+  $("sample-openai").addEventListener("click", () => setSample("openai"));
+  $("clear-input").addEventListener("click", () => { input.value = ""; state.isSample = false; $("sample-badge").hidden = true; run(); input.focus(); });
+  function loadFile(file) {
+    if (!file) return;
+    const fr = new FileReader();
+    fr.onload = () => { input.value = String(fr.result || ""); state.isSample = false; $("sample-badge").hidden = true; run(); };
+    fr.onerror = () => { const err = $("parse-error"); err.hidden = false; err.innerHTML = "<b>ファイルを読み込めませんでした。</b>"; };
+    fr.readAsText(file);
+  }
+  $("file-input").addEventListener("change", (e) => { loadFile(e.target.files && e.target.files[0]); e.target.value = ""; });
+  const dz = $("dropzone");
+  ["dragenter", "dragover"].forEach((ev) => dz.addEventListener(ev, (e) => { e.preventDefault(); dz.classList.add("over"); }));
+  ["dragleave", "drop"].forEach((ev) => dz.addEventListener(ev, () => dz.classList.remove("over")));
+  dz.addEventListener("drop", (e) => { e.preventDefault(); const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]; if (f) loadFile(f); });
+  ["period-30d", "period-raw", "keep-cache"].forEach((id) => $(id).addEventListener("change", render));
+  const priceSection = $("price-section");
+  priceSection.addEventListener("change", (e) => {
+    const el = e.target;
+    if (el.type === "checkbox") { el.checked ? state.selected.add(el.dataset.id) : state.selected.delete(el.dataset.id); render(); }
+  });
+  priceSection.addEventListener("input", (e) => {
+    const el = e.target;
+    if (el.type !== "number") return;
+    const id = el.dataset.id, k = el.dataset.k;
+    state.manual[id] = state.manual[id] || {};
+    state.manual[id][k] = el.value === "" ? null : Number(el.value);
+    render();
+  });
+  let rz = null, lastW = 0;
+  window.addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => { const w = $("chart").clientWidth; if (state.result && w !== lastW) { lastW = w; renderChart(state.result); } }, 150); });
+  $("copy-md").addEventListener("click", () => copy(toMarkdown(), "Markdown"));
+  $("copy-csv").addEventListener("click", () => copy(toCSV(), "CSV"));
+
+  setSample("anthropic");
+})();
+</script>
