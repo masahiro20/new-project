@@ -125,14 +125,20 @@
     </g>
   </g>
 
-  <!-- ============ 2. NIL (x=300) : porcelain mask, floor-length black coat, long fingers, chain of ledger pages ============ -->
+  <!-- ============ 2. NIL (x=300) : ledger-cover mask, tall flat-brimmed cap, stiff high collar, floor-length black frock coat, long fingers, chain of ledger pages ============ -->
   <g transform="translate(300 540)">
     <g filter="url(#rim)">
       <!-- coat with torn-page split hem -->
       <path d="M-34 -344 Q-46 -336 -46 -306 L-52 -210 L-70 -10 L-58 -24 L-52 -2 L-40 -22 L-30 -4 L-18 -26 L-8 -150 L8 -150 L18 -26 L30 -4 L40 -22 L52 -2 L58 -24 L70 -10 L52 -210 L46 -306 Q46 -336 34 -344 Q0 -354 -34 -344 Z" fill="#15161A"/>
       <path d="M-8 -150 L-12 0 L-2 0 L0 -120 L2 0 L12 0 L8 -150 Z" fill="#15161A"/>
-      <!-- high collar behind head -->
-      <path d="M-28 -342 Q-34 -382 -16 -402 Q4 -410 22 -398 Q34 -376 30 -340 Z" fill="#15161A"/>
+      <!-- cropped ash-grey hair (no hood) -->
+      <path d="M-18 -398 L22 -398 L24 -390 L21 -386 L24 -378 L20 -374 L22 -364 L16 -356 L-12 -356 L-18 -364 L-16 -374 L-20 -378 L-17 -386 L-20 -390 Z" fill="#8E8A84"/>
+      <!-- tall flat-brimmed collector's cap -->
+      <path d="M-11 -428 L17 -428 L20 -400 L-14 -400 Z" fill="#15161A"/>
+      <path d="M-24 -401 L30 -401 L30 -396 L-24 -396 Z" fill="#15161A"/>
+      <!-- stiff upturned collar wings -->
+      <path d="M-34 -340 L-30 -378 L-14 -356 L-4 -340 Z" fill="#15161A"/>
+      <path d="M40 -340 L38 -378 L22 -356 L12 -340 Z" fill="#15161A"/>
       <!-- long arms -->
       <path d="M-40 -334 Q-62 -270 -64 -160" stroke="#15161A" stroke-width="14" stroke-linecap="round" fill="none"/>
       <path d="M40 -334 Q60 -260 56 -170" stroke="#15161A" stroke-width="14" stroke-linecap="round" fill="none"/>
@@ -157,12 +163,16 @@
       <rect x="-52" y="-10" width="10" height="14" transform="rotate(85 -47 -3)"/>
     </g>
     <path d="M-66 -150 Q-76 -128 -74 -106" stroke="#8C949C" stroke-width="3" stroke-dasharray="6 3" fill="none"/>
-    <!-- porcelain mask: line through each eye hole, ruled engraving -->
-    <ellipse cx="4" cy="-370" rx="17" ry="23" fill="#F2EEE6"/>
-    <g stroke="#9A958C" stroke-width="0.8"><path d="M-10 -384 H18 M-12 -354 H20 M-10 -348 H18"/></g>
-    <ellipse cx="-3" cy="-370" rx="4" ry="3.2" fill="#15161A"/>
-    <ellipse cx="11" cy="-370" rx="4" ry="3.2" fill="#15161A"/>
-    <path d="M-9 -370 H3 M5 -370 H17" stroke="#F2EEE6" stroke-width="1.2"/>
+    <!-- ledger-cover mask: ivory, angular, ruled, single eye slit, spine seam -->
+    <g transform="rotate(4 4 -372)">
+      <path d="M-11 -393 L19 -393 L21 -391 L21 -351 L19 -349 L-11 -349 L-13 -351 L-13 -391 Z" fill="#E6DCC6"/>
+      <path d="M-13 -391 L-11 -393 L-7 -393 L-7 -349 L-11 -349 L-13 -351 Z" fill="#CFC4AC"/>
+      <path d="M-7 -392 V-350" stroke="#9A8F78" stroke-width="1"/>
+      <g stroke="#B8AD95" stroke-width="0.7"><path d="M-4 -386 H19 M-4 -381 H19 M-4 -364 H19 M-4 -359 H19 M-4 -354 H19"/></g>
+      <rect x="-5" y="-374" width="24" height="3" fill="#0A0A0C"/>
+    </g>
+    <!-- cap badge: ash-rimmed ledger tab -->
+    <path d="M1 -422 L7 -422 L7 -413 L4 -415 L1 -413 Z" fill="#0A0A0C" stroke="#9A958C" stroke-width="1"/>
     <!-- tally beads -->
     <g fill="#9A958C"><circle cx="-30" cy="-246" r="2.5"/><circle cx="-20" cy="-244" r="2.5"/><circle cx="-10" cy="-243" r="2.5"/><circle cx="0" cy="-243" r="2.5"/><circle cx="10" cy="-243" r="2.5"/><circle cx="20" cy="-244" r="2.5"/><circle cx="30" cy="-246" r="2.5"/></g>
     <!-- ledger mark: Collector Black (non-glowing) with ash rim -->

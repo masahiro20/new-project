@@ -113,21 +113,21 @@ Palette: Kappōgi Cream #E6DCC6, Collector Vest Black #1E1E24, Faded Indigo #6F7
 
 ## 5. ニル — Nil（年齢不詳, 仮面の取立人）
 
-**Silhouette key**: white porcelain oval mask; floor-length black coat with a split hem like torn ledger pages; unnaturally long gloved fingers; tall, thin, slightly stooped; a gray chain made of linked ledger pages.
+**Silhouette key**: NO hood — cropped ash-gray hair under a tall flat-brimmed collector's cap; rectangular ivory porcelain mask shaped like a closed ledger cover; stiff, tall upturned collar on a floor-length black frock coat with a split hem like torn ledger pages; unnaturally long gloved fingers; tall, thin, slightly stooped; a gray chain made of linked ledger pages.
 
 ```
 Character design sheet, full-body turnaround (front, three-quarter, side, back) plus 3 poses (idle menace, chain throw, mask cracked), original anime character, clean anime cel-shading, crisp ink lineart, plain dark slate background.
-Masked collector of indeterminate age, very tall and thin (185 cm), slightly stooped, abnormally long gloved fingers.
-Mask: smooth white porcelain oval mask (#F2EEE6) with no mouth; each eye hole is crossed by a single horizontal line, and faint ruled ledger lines are engraved across the surface.
-Outfit: floor-length black collector's coat (#15161A) with a high collar and a deep split hem that flares like torn pages, charcoal gloves (#2A2C33) with elongated fingers, a belt of small tally beads.
+Masked collector of indeterminate age, very tall and thin (185 cm), slightly stooped, abnormally long gloved fingers, no hood: short cropped ash-gray hair (#8E8A84) under a tall, flat-topped, flat-brimmed black collector's cap with a small ledger-tab badge.
+Mask: rectangular ivory porcelain mask (#E6DCC6) shaped like a closed ledger cover, with angular clipped corners and no mouth; ruled ledger lines across the surface, a single narrow horizontal slit for the eyes (no separate eye holes), and a vertical seam like a book spine down one side.
+Outfit: floor-length black frock coat (#15161A) with a stiff, tall upturned collar that frames the jaw, and a deep split hem that flares like torn pages, charcoal gloves (#2A2C33) with elongated fingers, a belt of small tally beads.
 Prop / power: the "Seizure Chain" — a long gray chain (#8C949C) whose links look like folded ledger pages, wrapped around his right arm and trailing to the ground.
 Ledger mark: on the LEFT wrist, a BLACK collector employment mark (#0A0A0C) that does not glow — it seems to swallow light — outlined by a thin ash-gray rim (#9A958C).
-Palette: Writ Black #15161A, Porcelain Mask #F2EEE6, Collector Black #0A0A0C, Seizure Chain Gray #8C949C, gloves #2A2C33.
+Palette: Writ Black #15161A, Ivory Mask #E6DCC6, Ash Hair #8E8A84, Collector Black #0A0A0C, Seizure Chain Gray #8C949C, gloves #2A2C33.
 ```
 
-**Negative**: 共通ネガ + `visible face, mouth on mask, skull face, gore, hockey mask, scythe, hook, blue glow, glowing eyes, colored mark`
+**Negative**: 共通ネガ + `no hood, no oval mask, hood, hooded cloak, cape, oval mask, round mask, pure white mask, almond eye holes, two eye holes, visible face, mouth on mask, skull face, gore, hockey mask, scythe, hook, blue glow, glowing eyes, colored mark`
 
-> **設計メモ（JP）**：顔がない＝「名前を奪われた人」。印は黒＝バースの雇用契約の色で、光らずに周りの光を吸う。〈差押鎖〉は鉄の貸主からバース経由で借りた力なので鉄系の灰。鎖の輪は帳簿の頁を折ったデザインにし、縛った相手から担保が“頁”として引きずり出される。コートの裾も頁のように割れて揺れる。
+> **設計メモ（JP）**：顔がない＝「名前を奪われた人」。仮面は閉じた帳簿の表紙＝「中身（名前）を閉じられた人」。フードと楕円の面は使わない（既存作品との差別化、`docs/review-originality-vol0.md` C-1）。印は黒＝バースの雇用契約の色で、光らずに周りの光を吸う。〈差押鎖〉は鉄の貸主からバース経由で借りた力なので鉄系の灰。鎖の輪は帳簿の頁を折ったデザインにし、縛った相手から担保が“頁”として引きずり出される。コートの裾も頁のように割れて揺れる。
 
 ---
 

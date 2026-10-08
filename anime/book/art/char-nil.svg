@@ -145,27 +145,62 @@
     <path d="M388,730 C384,748 384,766 390,780" fill="none" stroke="#0B0910" stroke-width="12"/>
     <path d="M388,730 C384,748 384,766 390,780" fill="none" stroke="#2A2C33" stroke-width="7"/>
 
-    <!-- hood / high collar -->
-    <path d="M300,48 C248,48 224,90 222,150 C220,204 218,246 206,292 L394,292 C382,246 380,204 378,150 C376,90 352,48 300,48 Z" fill="#15161A"/>
-    <path d="M340,62 C368,84 374,120 374,160 C376,210 380,250 394,292 L360,292 C360,220 362,140 340,62 Z" fill="#0C0D10" stroke="none"/>
-    <path d="M238,120 C232,180 232,240 224,286" fill="none" stroke="#2A2C33" stroke-width="4"/>
-    <ellipse cx="302" cy="152" rx="56" ry="74" fill="#07080A"/>
-    <clipPath id="maskclip"><ellipse cx="302" cy="152" rx="42" ry="58"/></clipPath>
-    <!-- porcelain mask (slightly tilted) -->
-    <g transform="rotate(6 302 152)">
-      <ellipse cx="302" cy="152" rx="44" ry="60" fill="#F2EEE6"/>
-      <path d="M320,96 C346,110 350,180 330,206 C344,176 344,124 320,96 Z" fill="#CFC9BD" stroke="none"/>
-      <g stroke="#D6CFC0" stroke-width="1.2" fill="none" clip-path="url(#maskclip)">
-        <path d="M264,110 L340,110 M260,124 L344,124 M258,166 L346,166 M260,180 L344,180 M264,194 L340,194"/>
-      </g>
-      <path d="M270,96 L270,206" stroke="#D6CFC0" stroke-width="1.2" fill="none" clip-path="url(#maskclip)"/>
-      <path d="M272,146 Q284,136 296,146 Q284,154 272,146 Z" fill="#0A0A0C" stroke="none"/>
-      <path d="M308,146 Q320,136 332,146 Q320,154 308,146 Z" fill="#0A0A0C" stroke="none"/>
-      <path d="M268,146 L276,146 M292,146 L298,146 M306,146 L312,146 M328,146 L336,146" stroke="#0A0A0C" stroke-width="2" fill="none"/>
-      <path d="M276,128 C284,124 292,126 296,130" fill="none" stroke="#B5AE9F" stroke-width="1.6"/>
-      <path d="M262,124 C262,108 274,98 288,96" fill="none" stroke="#FFFFFF" stroke-width="3"/>
+    <!-- shoulder yoke (no hood: the coat simply ends at a stiff collar) -->
+    <path d="M204,304 C206,286 238,276 282,272 L318,272 C362,276 394,286 396,304 C360,296 240,296 204,304 Z" fill="#15161A"/>
+    <!-- stiff upturned frock-coat collar: back panel behind the head -->
+    <path d="M246,286 L238,168 C258,156 342,156 362,168 L354,286 Z" fill="#0C0D10"/>
+    <!-- neck (dark stock) -->
+    <path d="M284,206 L316,206 L320,282 L280,282 Z" fill="#1E2026"/>
+    <path d="M292,236 L308,236 M290,254 L310,254" stroke="#2A2C33" stroke-width="2" fill="none"/>
+
+    <!-- head: cropped ash-grey hair at the temples and nape -->
+    <path d="M246,100 L354,100 L358,112 L352,118 L357,130 L351,136 L355,150 L349,156 L352,170 L344,176 L344,190 L330,206 L270,206 L256,190 L256,176 L248,170 L251,156 L245,150 L249,136 L243,130 L248,118 L242,112 Z" fill="#8E8A84"/>
+    <g stroke="#6E6A64" stroke-width="1.6" fill="none">
+      <path d="M252,106 L254,118 M258,104 L259,114 M342,104 L341,114 M348,106 L346,118 M252,140 L254,150 M348,140 L346,150 M256,160 L258,168 M344,160 L342,168"/>
     </g>
+    <path d="M250,120 C250,146 252,166 258,184" stroke="#B4AFA6" stroke-width="2.5" fill="none"/>
+
+    <!-- tall flat-brimmed collector's cap -->
+    <path d="M264,30 L336,30 L344,92 L256,92 Z" fill="#15161A"/>
+    <path d="M318,30 L336,30 L344,92 L326,92 Z" fill="#0C0D10" stroke="none"/>
+    <path d="M264,30 L336,30" stroke="#2A2C33" stroke-width="4" fill="none"/>
+    <path d="M258,70 L342,70 L343,84 L257,84 Z" fill="#0A0A0C" stroke-width="2"/>
+    <!-- badge: a small ledger tab, ash-rimmed -->
+    <path d="M290,44 L310,44 L310,64 L300,58 L290,64 Z" fill="#0A0A0C" stroke="#9A958C" stroke-width="1.8"/>
+    <!-- flat brim -->
+    <path d="M236,92 L364,92 L366,104 L234,104 Z" fill="#0C0D10"/>
+    <path d="M238,93 L362,93" stroke="#2A2C33" stroke-width="2" fill="none"/>
+
+    <!-- ledger-cover porcelain mask (ivory, angular, slightly tilted) -->
+    <g transform="rotate(4 300 160)">
+      <path d="M266,106 L334,106 L340,112 L340,214 L334,220 L266,220 L260,214 L260,112 Z" fill="#E6DCC6"/>
+      <!-- spine side: shaded band with a vertical seam -->
+      <path d="M260,112 L266,106 L278,106 L278,220 L266,220 L260,214 Z" fill="#CFC4AC" stroke="none"/>
+      <path d="M278,108 L278,218" stroke="#9A8F78" stroke-width="2" fill="none"/>
+      <g stroke="#9A8F78" stroke-width="1.6" fill="none">
+        <path d="M262,124 L276,124 M262,128 L276,128 M262,198 L276,198 M262,202 L276,202"/>
+      </g>
+      <!-- faint red margin rule beside the spine -->
+      <path d="M284,110 L284,216" stroke="#B0404A" stroke-opacity="0.5" stroke-width="1.2" fill="none"/>
+      <!-- ruled lines -->
+      <g stroke="#B8AD95" stroke-width="1.2" fill="none">
+        <path d="M286,122 L334,122 M286,134 L334,134 M286,170 L334,170 M286,182 L334,182 M286,194 L334,194 M286,206 L334,206"/>
+      </g>
+      <!-- single horizontal eye slit -->
+      <path d="M280,149 L336,149 L336,155 L280,155 Z" fill="#0A0A0C" stroke="none"/>
+      <!-- cover edge bevel + highlight -->
+      <path d="M266,106 L334,106 L340,112 L340,214 L334,220 L266,220 L260,214 L260,112 Z" fill="none" stroke="#0B0910" stroke-width="3"/>
+      <path d="M268,111 L332,111" stroke="#FAF5E8" stroke-width="2.5" fill="none"/>
+      <path d="M336,116 L336,210" stroke="#BDB29A" stroke-width="2" fill="none"/>
+    </g>
+
+    <!-- stiff collar front wings, flaring up beside the jaw -->
+    <path d="M226,300 L222,164 L258,214 L288,292 Z" fill="#15161A"/>
+    <path d="M374,300 L378,164 L342,214 L312,292 Z" fill="#15161A"/>
+    <path d="M230,184 L256,220 L280,284" stroke="#2A2C33" stroke-width="3" fill="none"/>
+    <path d="M370,184 L344,220 L320,284" stroke="#2A2C33" stroke-width="3" fill="none"/>
+    <path d="M356,196 L360,292 L374,300 L378,164 Z" fill="#0C0D10" stroke="none"/>
     <!-- collar edge over shoulders -->
-    <path d="M206,292 C240,310 360,310 394,292" fill="none" stroke="#2A2C33" stroke-width="3"/>
+    <path d="M206,300 C240,312 360,312 394,300" fill="none" stroke="#2A2C33" stroke-width="3"/>
   </g>
 </svg>

@@ -100,3 +100,11 @@
 - "red in my ledger"（『アベンジャーズ』2012年）：https://comicbook.com/marvel/news/avengers-endgame-black-widow-sacrifice-erased-red-in-her-ledger/ ／ https://looper.com/737663/most-memorable-black-widow-quotes-in-the-mcu
 - 「LEDGER」の商標一覧（集計サイト）：https://trademarkdir.com/owner/ledger
 - 「Red Ledger」で検索したゲーム・漫画・WEBTOON・映画：同名の作品は見つからなかった。「赤い帳簿」で検索した小説・漫画・ゲーム：同名の作品は見つからなかった。
+
+---
+
+## ショーランナー対応（2026-10-08）
+- **ニルの外見（中）→ 対応済み**：フードと楕円の白い仮面をやめ、「閉じた帳簿の表紙」形の長方形の象牙色仮面（横一本のスリット、背表紙の綴じ目）、平たいつばの制帽、高い立ち襟のフロックコートに変更。挿絵・キャラ並び図・バイブル・プロンプト・Vol.0 本文（JA/EN）を更新し、PDFを再生成。
+- **Ko-fi の AI 表記 → 対応済み**：BOOTH と同じ「特定の作家・既存作品の模倣を目的とした生成はしていない」という表現に統一。
+- **タイトル（中）→ オーナー作業**：販売前に J-PlatPat・USPTO で「RED LEDGER」を検索。ストア表記は常に「RED LEDGER 帳簿の書 Vol.0」とし、「The Red Ledger」とは書かない。
+- 判定：**条件付き販売可**（条件＝タイトルの商標確認）。

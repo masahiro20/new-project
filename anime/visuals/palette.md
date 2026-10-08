@@ -106,12 +106,13 @@
 | Hair / Eye | Black + Temple White 髪 / Black 瞳 | `#1A1718` / `#D8D4CC`（白髪） |
 
 ### 5. ニル Nil
-白い陶器の仮面（目の穴に横線一本、罫線模様）／長い黒コート／異様に長い手袋の指／痩せて長身／灰色の〈差押鎖〉。
+象牙色の帳簿表紙形の仮面（角ばった長方形、罫線模様、横一本の目の切れ込み、背表紙の継ぎ目）／フードなし・灰色の短髪につば平らの取立帽／高い立ち襟の黒フロックコート／異様に長い手袋の指／痩せて長身／灰色の〈差押鎖〉。
 
 | Role | Name | HEX |
 |---|---|---|
 | Key | Writ Black（長い黒コート） | `#15161A` |
-| Sub | Porcelain Mask（仮面） | `#F2EEE6` |
+| Sub | Ivory Mask（帳簿表紙の仮面） | `#E6DCC6` |
+| Hair | Ash Hair（灰色の短髪） | `#8E8A84` |
 | Accent / Mark | Collector Black（印）＋縁 Collector Ash | `#0A0A0C` / `#9A958C` |
 | Chain | Seizure Chain Gray（帳簿の頁を連ねた鎖） | `#8C949C` |
 | Gloves / Lining | Glove Charcoal | `#2A2C33` |
