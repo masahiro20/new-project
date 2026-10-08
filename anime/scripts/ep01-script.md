@@ -632,8 +632,8 @@
 
 タイトルカード：
 
-**第2話「与信ゼロの投資先」**
-**Episode 2: "Zero Credit, Infinite Return"**
+**第2話「投資契約」**
+**Episode 2: "Terms and Conditions"**
 
 【SE】判子。終わり。
 
