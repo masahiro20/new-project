@@ -1,133 +1,342 @@
 <title>Peter HQ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
-/* Layout: an architect's floor plan. Each project is a room on one floor; the HQ room sits at the entrance. */
+/* Layout: a live pixel-art office floor on top; status strip, staff roster and activity log under it. */
 :root{
-  --bg:#eef1ef; --paper:#f8faf9; --ink:#1d2a26; --muted:#5d6b66; --wall:#2f4a42; --line:#c6d0cc;
-  --accent:#1f7a5c; --accent-soft:#d6ebe2; --warn:#a8661a; --warn-soft:#f5e6d2;
+  --bg:#e9ecef; --panel:#f7f8fa; --ink:#1e2430; --muted:#5f6878; --line:#cfd5de;
+  --accent:#3d5afe; --ok:#1b8a4b; --ok-soft:#d7f0e1; --warn:#a86a00; --warn-soft:#f6e7c8; --bad:#c62828; --bad-soft:#f8d9d9;
+  --pixel:"DotGothic16","Zen Kaku Gothic New",system-ui,sans-serif;
   --sans:"Zen Kaku Gothic New",system-ui,"Hiragino Sans","Noto Sans JP",sans-serif;
   --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#121816; --paper:#18201d; --ink:#e3ebe7; --muted:#97a6a0; --wall:#7fb3a1; --line:#2c3833;
-  --accent:#5cc49c; --accent-soft:#1d3a2f; --warn:#e0a35a; --warn-soft:#3a2c1a; color-scheme:dark}}
+  --bg:#12151b; --panel:#1a1e26; --ink:#e6e9ef; --muted:#9aa3b2; --line:#2b313c;
+  --accent:#8c9eff; --ok:#5fd394; --ok-soft:#173526; --warn:#f0b84a; --warn-soft:#3a2d12; --bad:#ff7a7a; --bad-soft:#3d1a1a; color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#121816; --paper:#18201d; --ink:#e3ebe7; --muted:#97a6a0; --wall:#7fb3a1; --line:#2c3833;
-  --accent:#5cc49c; --accent-soft:#1d3a2f; --warn:#e0a35a; --warn-soft:#3a2c1a; color-scheme:dark}
-body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.6}
-.wrap{max-width:1080px;margin:0 auto;padding-inline:16px;padding-block:28px 48px;display:grid;gap:28px}
-header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:end;gap:12px}
-h1{font-size:2rem;margin:0;letter-spacing:.02em;text-wrap:balance}
-.sub{color:var(--muted);margin:2px 0 0}
-.meta{font-family:var(--mono);font-size:.78rem;color:var(--muted);text-align:right}
-.meta b{color:var(--accent);font-weight:600}
-.label{font-family:var(--mono);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
-.floor{border:3px solid var(--wall);background:var(--paper);padding:14px;display:grid;gap:10px;
-  grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));position:relative}
-.floor-name{position:absolute;top:-11px;left:16px;background:var(--bg);padding:0 8px}
-.room{border:1.5px solid var(--wall);padding:14px 14px 12px;display:grid;gap:8px;align-content:start;min-width:0;position:relative}
-.room::after{content:"";position:absolute;bottom:-2px;left:24px;width:34px;height:3px;background:var(--paper)}
-.room.hq{grid-column:1/-1;background:var(--accent-soft)}
-.room.hq::after{background:var(--accent-soft)}
-.room-top{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
-.room h2{margin:0;font-size:1.1rem}
-.who{font-family:var(--mono);font-size:.78rem;color:var(--muted)}
-.room p{margin:0;font-size:.9rem}
-.stages{display:flex;gap:3px}
-.stages span{flex:1;height:6px;background:var(--line)}
-.stages span.done{background:var(--accent)}
-.stages span.now{background:repeating-linear-gradient(90deg,var(--accent) 0 4px,transparent 4px 7px)}
-.status{display:flex;justify-content:space-between;font-size:.78rem;color:var(--muted);font-family:var(--mono)}
-.pill{display:inline-block;font-size:.72rem;padding:1px 8px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-family:var(--mono)}
-.hq .pill{background:var(--paper)}
-.cols{display:grid;gap:20px;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr))}
-section h3{margin:0 0 8px;font-size:1rem}
-ul{margin:0;padding-left:1.1em;display:grid;gap:4px;font-size:.9rem}
-.ask li::marker{color:var(--warn)}
-table{border-collapse:collapse;width:100%;font-size:.85rem}
-td,th{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
-th{font-weight:500;color:var(--muted)}
-td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
-.tbl{overflow-x:auto}
+  --bg:#12151b; --panel:#1a1e26; --ink:#e6e9ef; --muted:#9aa3b2; --line:#2b313c;
+  --accent:#8c9eff; --ok:#5fd394; --ok-soft:#173526; --warn:#f0b84a; --warn-soft:#3a2d12; --bad:#ff7a7a; --bad-soft:#3d1a1a; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.55}
+.wrap{max-width:1100px;margin:0 auto;padding-inline:16px;padding-block:20px 48px;display:grid;gap:16px}
+header{display:flex;flex-wrap:wrap;gap:8px 20px;align-items:baseline;justify-content:space-between}
+h1{font-family:var(--pixel);font-weight:400;font-size:2rem;margin:0;letter-spacing:.04em}
+.tag{color:var(--muted);font-size:.9rem;margin:0}
+.pulse{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;padding:10px 14px;border:1px solid var(--line);background:var(--panel);font-size:.9rem}
+.pulse .dot{width:12px;height:12px;border-radius:50%;background:var(--muted);flex:none}
+.pulse[data-state="ok"]{border-color:var(--ok);background:var(--ok-soft)} .pulse[data-state="ok"] .dot{background:var(--ok);animation:beat 1.6s infinite}
+.pulse[data-state="warn"]{border-color:var(--warn);background:var(--warn-soft)} .pulse[data-state="warn"] .dot{background:var(--warn)}
+.pulse[data-state="bad"]{border-color:var(--bad);background:var(--bad-soft)} .pulse[data-state="bad"] .dot{background:var(--bad)}
+.pulse b{font-weight:700}
+.pulse .sep{color:var(--muted)}
+.pulse .mono{font-family:var(--mono);font-size:.8rem;font-variant-numeric:tabular-nums}
+@keyframes beat{0%,100%{transform:scale(1)}15%{transform:scale(1.35)}30%{transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.pulse .dot{animation:none!important}}
+.stage{position:relative;width:100%;max-width:100%;aspect-ratio:512/356;background:#20242c;border:3px solid #20242c;overflow:hidden}
+.stage canvas{width:100%;height:100%;display:block;image-rendering:pixelated;cursor:pointer}
+.labels{position:absolute;inset:0;pointer-events:none}
+.rl{position:absolute;font-family:var(--pixel);font-size:clamp(8px,1.5vw,13px);color:#2a2f3a;background:rgba(255,255,255,.78);padding:0 5px;white-space:nowrap}
+.nt{position:absolute;transform:translate(-50%,-100%);font-family:var(--pixel);font-size:clamp(7px,1.25vw,11px);color:#fff;padding:0 4px;white-space:nowrap;border-radius:2px}
+.nt.sel{outline:2px solid #fff}
+.grid{display:grid;gap:16px;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)}
+@media (max-width:760px){.grid{grid-template-columns:minmax(0,1fr)}}
+h2{font-family:var(--pixel);font-weight:400;font-size:1.15rem;margin:0 0 8px;letter-spacing:.03em}
+.roster{display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr))}
+.card{border:1px solid var(--line);background:var(--panel);padding:10px 12px;display:grid;gap:4px;text-align:left;font:inherit;color:inherit;cursor:pointer;min-width:0}
+.card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.card.sel{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.card .top{display:flex;align-items:center;gap:8px}
+.sw{width:12px;height:12px;flex:none}
+.card .nm{font-weight:700}
+.card .rl2{color:var(--muted);font-size:.8rem;margin-left:auto;white-space:nowrap}
+.card .task{font-size:.85rem;overflow-wrap:anywhere}
+.card .meta{display:flex;justify-content:space-between;gap:8px;font-size:.75rem;color:var(--muted);font-family:var(--mono)}
+.pill{font-family:var(--sans);font-size:.72rem;padding:0 8px;border-radius:999px;border:1px solid currentColor;white-space:nowrap}
+.s-working,.s-research,.s-meeting{color:var(--accent)} .s-done{color:var(--ok)} .s-waiting{color:var(--warn)} .s-blocked{color:var(--bad)} .s-offline,.s-unknown{color:var(--muted)}
+.log{border:1px solid var(--line);background:var(--panel);padding:4px 12px;max-height:420px;overflow:auto}
+.log ol{list-style:none;margin:0;padding:0}
+.log li{padding:7px 0;border-bottom:1px solid var(--line);font-size:.85rem;display:grid;gap:2px}
+.log li:last-child{border-bottom:0}
+.log time{font-family:var(--mono);font-size:.72rem;color:var(--muted)}
+.empty{color:var(--muted);font-size:.85rem;padding:10px 0}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.78rem;color:var(--muted)}
 </style>
 
 <div class="wrap">
   <header>
     <div>
-      <div class="label">Virtual office · 1F</div>
       <h1>Peter HQ</h1>
-      <p class="sub">ニッチで最先端なプロダクトを6本同時に作る本部</p>
+      <p class="tag">ニッチで最先端なプロダクトを同時に作る、AIチームのオフィス</p>
     </div>
-    <div class="meta">更新 2026-10-08<br>次の定例報告 <b>毎晩 21:57 JST</b></div>
+    <div class="legend" aria-label="凡例">
+      <span>机で作業＝作業中</span><span>本棚・ボード往復＝調査中</span><span>ラウンジ＝承認待ち・完了</span><span>赤い！＝詰まり</span>
+    </div>
   </header>
 
-  <div class="floor" aria-label="オフィスの間取り">
-    <div class="label floor-name">Floor plan</div>
-
-    <div class="room hq">
-      <div class="room-top"><h2>本部 / INTEL デスク</h2><span class="who">Peter · Iris</span></div>
-      <p>全体の統括、ステージゲートの判定、毎晩の最先端ニュースと進捗の報告。</p>
-      <div class="status"><span>リーダー6人を起動済み</span><span class="pill">稼働中</span></div>
-    </div>
-
-    <div class="room">
-      <div class="room-top"><h2>P1 SkillForge</h2><span class="who">Forge</span></div>
-      <p>専門業務向けの Claude Code スキルをホスティングして月額提供。</p>
-      <div class="stages" title="ステージ 1/4"><span class="done"></span><span class="now"></span><span></span><span></span><span></span></div>
-      <div class="status"><span>ステージ1 検証</span><span class="pill">調査中</span></div>
-    </div>
-    <div class="room">
-      <div class="room-top"><h2>P2 Signal Lab</h2><span class="who">Vega</span></div>
-      <p>X のトレンドに48時間で応える小さなツールを量産。</p>
-      <div class="stages"><span class="done"></span><span class="now"></span><span></span><span></span><span></span></div>
-      <div class="status"><span>ステージ1 検証</span><span class="pill">調査中</span></div>
-    </div>
-    <div class="room">
-      <div class="room-top"><h2>P3 Pitch</h2><span class="who">Kana</span></div>
-      <p>日本語の高低アクセントを声から判定して直すアプリ。上級学習者向け。</p>
-      <div class="stages"><span class="done"></span><span class="now"></span><span></span><span></span><span></span></div>
-      <div class="status"><span>ステージ1 検証</span><span class="pill">調査中</span></div>
-    </div>
-    <div class="room">
-      <div class="room-top"><h2>P4 Mercari Lens（仮称）</h2><span class="who">Ren</span></div>
-      <p>海外コレクターが日本のフリマ・オークションを使うための Chrome 拡張。</p>
-      <div class="stages"><span class="done"></span><span class="now"></span><span></span><span></span><span></span></div>
-      <div class="status"><span>ステージ1 検証</span><span class="pill">調査中</span></div>
-    </div>
-    <div class="room">
-      <div class="room-top"><h2>P5 Atlas</h2><span class="who">Atlas</span></div>
-      <p>MCP サーバーとスキルを自動で安全検査する、信頼スコア付きディレクトリ。</p>
-      <div class="stages"><span class="done"></span><span class="now"></span><span></span><span></span><span></span></div>
-      <div class="status"><span>ステージ1 検証</span><span class="pill">調査中</span></div>
-    </div>
-    <div class="room">
-      <div class="room-top"><h2>P6 Fleet</h2><span class="who">Otto</span></div>
-      <p>並列で動く多数の Claude Code エージェントの管制ダッシュボード。</p>
-      <div class="stages"><span class="done"></span><span class="now"></span><span></span><span></span><span></span></div>
-      <div class="status"><span>ステージ1 検証</span><span class="pill">調査中</span></div>
-    </div>
+  <div class="pulse" id="pulse" data-state="unknown" role="status" aria-live="polite">
+    <span class="dot" aria-hidden="true"></span>
+    <b id="pulseTitle">オフィスに接続しています</b>
+    <span class="sep">|</span><span>最終心拍 <span class="mono" id="pulseLast">—</span></span>
+    <span class="sep">|</span><span>次の心拍 <span class="mono" id="pulseNext">—</span></span>
+    <span class="sep">|</span><span id="pulseNote" class="mono"></span>
   </div>
 
-  <div class="cols">
+  <div class="stage" id="stage">
+    <canvas id="cv" width="512" height="356" aria-label="オフィスの様子。各部屋でリーダーとチームが働いている"></canvas>
+    <div class="labels" id="labels"></div>
+  </div>
+
+  <div class="grid">
     <section>
-      <h3>ステージゲート</h3>
-      <div class="tbl"><table>
-        <tr><th>段階</th><th>次に進む条件</th></tr>
-        <tr><td class="num">0 企画</td><td>本部承認</td></tr>
-        <tr><td class="num">1 検証</td><td>需要の証拠（待機リスト20件など）</td></tr>
-        <tr><td class="num">2 MVP</td><td>外部ユーザー5人が実際に使う</td></tr>
-        <tr><td class="num">3 ローンチ</td><td>最初の有料ユーザー</td></tr>
-        <tr><td class="num">4 成長</td><td>90日で伸びなければ撤退</td></tr>
-      </table></div>
+      <h2>スタッフ</h2>
+      <div class="roster" id="roster"></div>
     </section>
     <section>
-      <h3>オーナーの判断待ち</h3>
-      <ul class="ask">
-        <li>プロジェクトごとに非公開の GitHub リポジトリを作ってよいか</li>
-        <li>既存の「減算ゼロ」を本部の管理対象に加えるか</li>
-        <li>MVP 以降で必要になるアカウント（Stripe、Apple、Chrome Web Store、ドメイン、X）</li>
-      </ul>
+      <h2>業務日誌</h2>
+      <div class="log"><ol id="log"><li class="empty">ピーターが心拍のたびにここへ記録します。</li></ol></div>
     </section>
   </div>
 </div>
+
+<script>
+(function(){
+"use strict";
+// ---------- Office structure (rooms and staff are the floor plan, not records) ----------
+const W=512,H=356,RW=152,RH=100,G=14;
+const COLX=[G,G*2+RW,G*3+RW*2], ROWY=[G,G*2+RH,G*3+RH*2];
+const ROOMS={
+  hq:{c:0,r:0,name:"本部・INTEL",floor:"#d8cbb0"},
+  p1:{c:1,r:0,name:"P1 SkillForge",floor:"#e3c9b4"},
+  p2:{c:2,r:0,name:"P2 Signal Lab",floor:"#bfdbe2"},
+  p3:{c:0,r:1,name:"P3 Pitch",floor:"#e8c6d6"},
+  lounge:{c:1,r:1,name:"ラウンジ",floor:"#c9b79c"},
+  p4:{c:2,r:1,name:"P4 Collector Lens",floor:"#c8dfc5"},
+  p5:{c:0,r:2,name:"P5 Atlas",floor:"#c4cde8"},
+  p6:{c:1,r:2,name:"P6 Fleet→HQ Ops",floor:"#d2d4d8"},
+  p0:{c:2,r:2,name:"P0 減算ゼロ",floor:"#efd2c3"},
+};
+for(const k in ROOMS){const R=ROOMS[k];R.x=COLX[R.c];R.y=ROWY[R.r];R.door={x:R.x+RW/2,y:R.y+RH-8};R.out={x:R.x+RW/2,y:R.y+RH+7};}
+const STAFF=[
+  {id:"peter",name:"Peter",role:"統括PM",room:"hq",desk:0,color:"#e0a020",hair:"#3b2a1a"},
+  {id:"iris",name:"Iris",role:"INTEL",room:"hq",desk:1,color:"#7a5cf0",hair:"#1d1d1d"},
+  {id:"forge",name:"Forge",role:"P1 リーダー",room:"p1",desk:0,color:"#d9622b",hair:"#5a3418"},
+  {id:"vega",name:"Vega",role:"P2 リーダー",room:"p2",desk:0,color:"#1f9ec4",hair:"#e8d27a"},
+  {id:"kana",name:"Kana",role:"P3 リーダー",room:"p3",desk:0,color:"#d0437f",hair:"#141414"},
+  {id:"ren",name:"Ren",role:"P4 リーダー",room:"p4",desk:0,color:"#3a9b4a",hair:"#2a2a2a"},
+  {id:"atlas",name:"Atlas",role:"P5 リーダー",room:"p5",desk:0,color:"#3460d0",hair:"#8a5a2b"},
+  {id:"otto",name:"Otto",role:"HQ Ops",room:"p6",desk:0,color:"#6d7480",hair:"#c9c9c9"},
+  {id:"mina",name:"Mina",role:"P0 リーダー",room:"p0",desk:0,color:"#e0603f",hair:"#3a2014"},
+];
+const STATUS_JA={working:"作業中",research:"調査中",meeting:"会議中",waiting:"承認待ち",blocked:"詰まり",done:"完了",offline:"休止",unknown:"未報告"};
+const SKIN=["#f2c9a0","#e0ac7e","#c68a5a","#f5d3b5"];
+
+// ---------- Live data ----------
+let agents={}, heartbeat=null, logEntries=[], selected=null, dbState="connecting";
+
+// ---------- Geometry helpers ----------
+const VX=[7,G*2+RW-7,G*3+RW*2-7,W-7];
+function deskSpot(room,i){const R=ROOMS[room];return{x:R.x+22+i*44+15,y:R.y+46};}
+function spotFor(a,kind){
+  const R=ROOMS[a.room];
+  if(kind==="desk") return deskSpot(a.room,a.desk);
+  if(kind==="shelf") return{x:R.x+20,y:R.y+80};
+  if(kind==="board") return{x:R.x+RW-22,y:R.y+70};
+  if(kind==="hq") return{x:ROOMS.hq.x+90+Math.random()*40,y:ROOMS.hq.y+70+Math.random()*12};
+  const L=ROOMS.lounge; return{x:L.x+30+Math.random()*(RW-60),y:L.y+52+Math.random()*30};
+}
+function roomOf(p){for(const k in ROOMS){const R=ROOMS[k];if(p.x>=R.x&&p.x<=R.x+RW&&p.y>=R.y&&p.y<=R.y+RH)return k;}return null;}
+function route(from,to){
+  const a=roomOf(from), b=roomOf(to);
+  if(!a||!b||a===b) return [to];
+  const A=ROOMS[a],B=ROOMS[b],pts=[A.door,A.out];
+  if(A.r===B.r){pts.push({x:B.out.x,y:A.out.y});}
+  else{
+    let vx=VX[0];for(const x of VX){if(Math.abs(x-A.out.x)<Math.abs(vx-A.out.x))vx=x;}
+    pts.push({x:vx,y:A.out.y},{x:vx,y:B.out.y},{x:B.out.x,y:B.out.y});
+  }
+  pts.push(B.door,to);return pts;
+}
+
+// ---------- Sprites ----------
+function mkSprite(def,i,isCrew){
+  const home=isCrew?deskSpot(def.room,1+((i)%2)):deskSpot(def.room,def.desk);
+  return{def,isCrew,crewIdx:i,x:home.x+(isCrew?0:0),y:home.y,path:[],sit:true,skin:SKIN[(i+def.id.length)%SKIN.length],t:Math.random()*1000,nextThink:0,sub:"desk"};
+}
+const sprites=[];
+for(const d of STAFF) sprites.push(mkSprite(d,0,false));
+const crew={}; // id -> array of crew sprites
+function syncCrew(){
+  for(const d of STAFF){
+    const want=Math.max(0,Math.min(4,Number((agents[d.id]||{}).crew)||0));
+    crew[d.id]=crew[d.id]||[];
+    while(crew[d.id].length<want){const s=mkSprite(d,crew[d.id].length,true);crew[d.id].push(s);sprites.push(s);}
+    while(crew[d.id].length>want){const s=crew[d.id].pop();sprites.splice(sprites.indexOf(s),1);}
+  }
+}
+function statusOf(id){const a=agents[id];if(!a)return dbState==="live"?"unknown":"unknown";return STATUS_JA[a.status]?a.status:"unknown";}
+function goTo(s,p){s.path=route({x:s.x,y:s.y},p);s.sit=false;}
+function think(s,now){
+  if(now<s.nextThink||s.path.length) return;
+  const st=statusOf(s.def.id);
+  let plan;
+  if(s.isCrew){
+    if(st==="working"||st==="research"){plan=Math.random()<.6?"crewdesk":"board";}
+    else plan="crewlounge";
+  }else if(st==="working"||st==="blocked"||st==="offline"||st==="unknown") plan="desk";
+  else if(st==="research") plan=["desk","shelf","board","desk"][Math.floor(Math.random()*4)];
+  else if(st==="meeting") plan="hq";
+  else plan="lounge";
+  let target;
+  if(plan==="crewdesk"){target=deskSpot(s.def.room,1+(s.crewIdx%2));target={x:target.x+(s.crewIdx>1?10:0),y:target.y};}
+  else if(plan==="crewlounge"){target=spotFor(s.def,"lounge");}
+  else target=spotFor(s.def,plan);
+  if(plan!==s.sub||plan==="lounge"||plan==="crewlounge"){ if(Math.hypot(target.x-s.x,target.y-s.y)>3) goTo(s,target); }
+  s.sub=plan; s.nextThink=now+4000+Math.random()*6000;
+}
+function step(s,dt){
+  if(!s.path.length){s.sit=(s.sub==="desk"||s.sub==="crewdesk");return;}
+  const p=s.path[0],dx=p.x-s.x,dy=p.y-s.y,d=Math.hypot(dx,dy),v=0.035*dt;
+  if(d<=v){s.x=p.x;s.y=p.y;s.path.shift();}else{s.x+=dx/d*v;s.y+=dy/d*v;s.dir=dx<0?-1:1;}
+}
+
+// ---------- Drawing ----------
+const cv=document.getElementById("cv"),ctx=cv.getContext("2d");ctx.imageSmoothingEnabled=false;
+function R_(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),w,h);}
+function jstHour(){try{return Number(new Date().toLocaleString("en-US",{timeZone:"Asia/Tokyo",hour:"numeric",hour12:false}))%24;}catch(e){return new Date().getHours();}}
+function sky(h){if(h>=6&&h<16)return["#8fd3ff","#c9ecff"];if(h>=16&&h<19)return["#ff9e6b","#ffd29a"];return["#141a3a","#26305e"];}
+function drawRoom(k){
+  const R=ROOMS[k];
+  R_(R.x-3,R.y-3,RW+6,RH+6,"#3a3f4b");           // walls
+  R_(R.x,R.y,RW,RH,R.floor);
+  for(let yy=R.y;yy<R.y+RH;yy+=10) R_(R.x,yy,RW,1,"rgba(0,0,0,.05)"); // floor boards
+  R_(R.door.x-9,R.y+RH,18,3,R.floor);           // door gap
+  const [s1,s2]=sky(jstHour());
+  if(R.r===0){ for(let i=0;i<3;i++){R_(R.x+12+i*48,R.y-3,26,3,s1);} }
+  if(k==="lounge"){
+    R_(R.x+14,R.y+14,60,14,"#7d5a3c");R_(R.x+14,R.y+12,60,4,"#93704f"); // sofa
+    R_(R.x+RW-30,R.y+10,14,18,"#555b66");R_(R.x+RW-27,R.y+13,8,5,"#a0e0ff"); // coffee machine
+    R_(R.x+60,R.y+60,34,18,"#8a6a48");                                        // table
+    R_(R.x+8,R.y+RH-20,8,8,"#3c8d3c");R_(R.x+10,R.y+RH-12,4,6,"#6b4a2f");   // plant
+    R_(R.x+RW-18,R.y+RH-22,8,8,"#3c8d3c");R_(R.x+RW-16,R.y+RH-14,4,6,"#6b4a2f");
+    return;
+  }
+  for(let i=0;i<3;i++){                                                    // desks + monitors
+    const dx=R.x+22+i*44,dy=R.y+22;
+    R_(dx,dy,30,12,"#8a6a48");R_(dx,dy+12,30,2,"#6b4f35");
+    const owner=sprites.find(s=>s.def.room===k&&!s.isCrew&&s.def.desk===i);
+    const on=owner?["working","research","blocked"].includes(statusOf(owner.def.id)):(crew[(STAFF.find(d=>d.room===k)||{}).id]||[]).length>i-1&&i>0;
+    R_(dx+9,dy-6,12,8,"#2b2f38");R_(dx+10,dy-5,10,6,on?((performance.now()/400+i)%2<1?"#9fe8ff":"#7fd4f0"):"#3d4452");
+    R_(dx+8,dy+18,14,10,"#4a4f5a");                                          // chair
+  }
+  R_(R.x+6,R.y+60,22,30,"#6b4a2f");for(let j=0;j<3;j++)R_(R.x+8,R.y+64+j*9,18,5,["#c94f4f","#4f7ac9","#d9b84a"][j]); // bookshelf
+  R_(R.x+RW-12,R.y+44,6,36,"#f4f4f4");R_(R.x+RW-11,R.y+50,4,2,"#e05050");R_(R.x+RW-11,R.y+56,4,2,"#4060e0"); // whiteboard
+}
+function drawSprite(s,now){
+  const d=s.def,x=Math.round(s.x),y=Math.round(s.y),walking=s.path.length>0;
+  const sc=s.isCrew?0.8:1, bodyC=s.isCrew?shade(d.color,.25):d.color;
+  R_(x-4,y+1,8,2,"rgba(0,0,0,.25)");
+  if(!s.sit){const ph=walking?Math.floor(now/150)%2:0;R_(x-3,y-3-ph,2,3+ph,"#2b2f38");R_(x+1,y-3-(1-ph),2,3+(1-ph),"#2b2f38");}
+  const by=s.sit?y-6:y-8;
+  R_(x-3*sc,by,Math.round(6*sc),5,bodyC);
+  if(s.sit&&["working","research"].includes(statusOf(d.id))&&Math.floor(now/120)%2) R_(x-4,by+1,1,2,s.skin);
+  R_(x-2,by-4,4,4,s.skin);R_(x-2,by-5,4,2,d.hair);
+  if(!s.isCrew){
+    const st=statusOf(d.id);
+    if(st==="blocked"){R_(x-2,by-14,5,8,"#e53935");R_(x,by-13,1,4,"#fff");R_(x,by-8,1,1,"#fff");}
+    else if(st==="done"){R_(x-3,by-13,7,7,"#2e9d57");R_(x-1,by-10,1,1,"#fff");R_(x,by-9,1,1,"#fff");R_(x+1,by-10,1,1,"#fff");R_(x+2,by-11,1,1,"#fff");}
+    else if(st==="waiting"){R_(x-4,by-12,9,5,"#fff");for(let i=0;i<3;i++)if(Math.floor(now/300)%4>i)R_(x-3+i*3,by-10,1,1,"#555");}
+    else if(st==="offline"||st==="unknown"){if(Math.floor(now/600)%2)R_(x+3,by-10,3,1,"#9aa");R_(x+4,by-12,2,1,"#9aa");}
+    if(selected===d.id){ctx.strokeStyle="#fff";ctx.lineWidth=1;ctx.strokeRect(x-6.5,by-7.5,13,17);}
+  }
+}
+function shade(hex,amt){const n=parseInt(hex.slice(1),16);let r=n>>16,g=(n>>8)&255,b=n&255;r=Math.round(r+(255-r)*amt);g=Math.round(g+(255-g)*amt);b=Math.round(b+(255-b)*amt);return"#"+((1<<24)|(r<<16)|(g<<8)|b).toString(16).slice(1);}
+function pulseState(){
+  if(!heartbeat||!heartbeat.at) return dbState==="live"?"bad":"unknown";
+  const age=(Date.now()-Date.parse(heartbeat.at))/36e5;
+  return age<3?"ok":age<8?"warn":"bad";
+}
+let last=performance.now();
+function frame(now){
+  const dt=Math.min(64,now-last);last=now;
+  R_(0,0,W,H,"#59606e");
+  for(let yy=0;yy<H;yy+=8)R_(0,yy,W,1,"rgba(255,255,255,.04)");
+  for(const k in ROOMS) drawRoom(k);
+  for(const s of sprites){think(s,now);step(s,dt);}
+  const order=sprites.slice().sort((a,b)=>a.y-b.y);
+  for(const s of order) drawSprite(s,now);
+  const ps=pulseState();
+  if(ps==="bad"){ctx.fillStyle="rgba(10,14,30,.45)";ctx.fillRect(0,0,W,H);}
+  else if(jstHour()>=19||jstHour()<6){ctx.fillStyle="rgba(20,30,80,.12)";ctx.fillRect(0,0,W,H);}
+  placeTags();
+  requestAnimationFrame(frame);
+}
+
+// ---------- HTML overlay labels ----------
+const labels=document.getElementById("labels"),tags={};
+for(const k in ROOMS){const R=ROOMS[k],el=document.createElement("div");el.className="rl";el.textContent=R.name;el.style.left=(R.x+2)/W*100+"%";el.style.top=(R.y+RH-1)/H*100+"%";el.style.transform="translateY(-100%)";if(k!=="lounge"){el.style.top=(R.y+1)/H*100+"%";el.style.transform="none";el.style.left=(R.x+RW-2)/W*100+"%";el.style.transform="translateX(-100%)";}labels.appendChild(el);}
+for(const d of STAFF){const el=document.createElement("div");el.className="nt";el.style.background=d.color;el.textContent=d.name;labels.appendChild(el);tags[d.id]=el;}
+function placeTags(){for(const s of sprites){if(s.isCrew)continue;const el=tags[s.def.id];el.style.left=s.x/W*100+"%";el.style.top=(s.y-(s.sit?14:17))/H*100+"%";el.classList.toggle("sel",selected===s.def.id);}}
+
+// ---------- Panels ----------
+function rel(iso){if(!iso)return"—";const t=Date.parse(iso);if(isNaN(t))return"—";const m=Math.round((Date.now()-t)/6e4);if(m<1)return"たった今";if(m<60)return m+"分前";const h=Math.floor(m/60);if(h<48)return h+"時間前";return Math.floor(h/24)+"日前";}
+function until(iso){if(!iso)return"—";const t=Date.parse(iso);if(isNaN(t))return"—";const m=Math.round((t-Date.now())/6e4);const hhmm=new Date(t).toLocaleTimeString("ja-JP",{timeZone:"Asia/Tokyo",hour:"2-digit",minute:"2-digit"});if(m<=0)return hhmm+"（予定時刻を過ぎています）";return hhmm+"（あと"+(m<60?m+"分":Math.round(m/60)+"時間")+"）";}
+function renderPulse(){
+  const el=document.getElementById("pulse"),ps=pulseState();el.dataset.state=ps;
+  const title={ok:"稼働中：ピーターは定期的に起きて指示を出しています",warn:"心拍が遅れています：次の定期起動を待っています",bad:dbState==="live"?(heartbeat?"停止の可能性：長時間、心拍がありません":"まだ心拍の記録がありません"):"",unknown:dbState==="none"?"オフィスのデータに接続できません":"オフィスに接続しています"}[ps];
+  document.getElementById("pulseTitle").textContent=title||"停止の可能性：長時間、心拍がありません";
+  document.getElementById("pulseLast").textContent=heartbeat?rel(heartbeat.at):"—";
+  document.getElementById("pulseNext").textContent=heartbeat?until(heartbeat.nextAt):"—";
+  document.getElementById("pulseNote").textContent=heartbeat&&heartbeat.cycle?("サイクル #"+heartbeat.cycle):"";
+}
+function renderRoster(){
+  const root=document.getElementById("roster");root.textContent="";
+  for(const d of STAFF){
+    const a=agents[d.id]||{},st=statusOf(d.id);
+    const b=document.createElement("button");b.type="button";b.className="card"+(selected===d.id?" sel":"");b.id="card-"+d.id;
+    const top=document.createElement("div");top.className="top";
+    const sw=document.createElement("span");sw.className="sw";sw.style.background=d.color;
+    const nm=document.createElement("span");nm.className="nm";nm.textContent=d.name;
+    const rl=document.createElement("span");rl.className="rl2";rl.textContent=a.role||d.role;
+    top.append(sw,nm,rl);
+    const task=document.createElement("div");task.className="task";task.textContent=a.task||(dbState==="live"?"まだ報告がありません":"読み込み中");
+    const meta=document.createElement("div");meta.className="meta";
+    const pill=document.createElement("span");pill.className="pill s-"+st;pill.textContent=STATUS_JA[st];
+    const when=document.createElement("span");when.textContent=(a.crew?("部下 "+a.crew+"人 · "):"")+rel(a.updatedAt);
+    meta.append(pill,when);
+    b.append(top,task,meta);
+    b.addEventListener("click",()=>{selected=selected===d.id?null:d.id;renderRoster();});
+    root.appendChild(b);
+  }
+}
+function renderLog(){
+  const ol=document.getElementById("log");ol.textContent="";
+  if(!logEntries.length){const li=document.createElement("li");li.className="empty";li.textContent=dbState==="live"?"まだ記録がありません。ピーターが心拍のたびにここへ書きます。":"読み込み中";ol.appendChild(li);return;}
+  for(const e of logEntries.slice().sort((a,b)=>Date.parse(b.at)-Date.parse(a.at)).slice(0,40)){
+    const li=document.createElement("li");const t=document.createElement("time");
+    t.textContent=new Date(e.at).toLocaleString("ja-JP",{timeZone:"Asia/Tokyo",month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"})+" · "+(e.who||"");
+    const p=document.createElement("span");p.textContent=e.text||"";li.append(t,p);ol.appendChild(li);
+  }
+}
+cv.addEventListener("click",ev=>{
+  const r=cv.getBoundingClientRect(),x=(ev.clientX-r.left)/r.width*W,y=(ev.clientY-r.top)/r.height*H;
+  let best=null,bd=14;for(const s of sprites){if(s.isCrew)continue;const d=Math.hypot(s.x-x,s.y-6-y);if(d<bd){bd=d;best=s.def.id;}}
+  selected=best;renderRoster();
+  if(best){const c=document.getElementById("card-"+best);if(c)c.scrollIntoView({block:"nearest",behavior:"smooth"});}
+});
+
+renderPulse();renderRoster();renderLog();
+requestAnimationFrame(frame);
+setInterval(()=>{renderPulse();renderRoster();},30000);
+
+// ---------- Connect to the shared store ----------
+(async()=>{
+  let db=null;
+  try{db=window.claude&&window.claude.use?await window.claude.use("db"):null;}catch(e){db=null;}
+  if(!db){dbState="none";renderPulse();renderRoster();renderLog();return;}
+  dbState="live";
+  db.collection("agents").onSnapshot(snap=>{const m={};for(const d of snap.docs){const v=d.data();if(v)m[d.id]=v;}agents=m;syncCrew();renderRoster();},()=>{});
+  db.doc("hq/heartbeat").onSnapshot(s=>{heartbeat=s.exists?s.data():null;renderPulse();},()=>{});
+  db.doc("hq/log").onSnapshot(s=>{const v=s.exists?s.data():null;logEntries=v&&Array.isArray(v.entries)?v.entries:[];renderLog();},()=>{});
+  renderPulse();renderRoster();renderLog();
+})();
+})();
+</script>
