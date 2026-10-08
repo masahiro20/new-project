@@ -626,7 +626,7 @@ select{border:1px solid var(--line);border-radius:4px;background:var(--surface);
     var ts = nowTs();
     ORDER.forEach(function (id) {
       var c = S.conns[id], p = pct(c);
-      if (p >= 0.8 && !c.alert80) {
+      if (p >= 0.8 && p < 1 && !c.alert80 && !c.hit100) {
         c.alert80 = ts;
         addLog(ts, 'notify', c.label + ' (' + c.provider + ') が予算の ' + pctText(p) + ' に達しました。メールとSlackに通知しました(モック)。この月はもう通知しません。');
         toast('warn', 'メール + Slack #alerts(モック)', '[Budget Guard] ' + c.label + ' が予算の80%を超えました',
