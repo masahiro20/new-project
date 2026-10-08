@@ -167,7 +167,7 @@ footer { font-size: 12.5px; color: var(--muted); border-top: 1px solid var(--lin
         <span class="btnrow"><span class="copied" id="copied" hidden>コピーしました</span><button class="btn primary" id="copy" type="button">コピー</button></span>
       </div>
       <pre class="out" id="out" tabindex="0"></pre>
-      <p class="hint" style="margin-top:8px" id="out-note">シークレットの直書き（env・ヘッダー・URL のクエリ・--password などの引数）は ${VAR} に置き換えてから出力します。URL を置き換えた場合、serverUrl は実際の URL と一致しないため、配布前に調整してください。managed-mcp.json はマシン上の全ユーザーが読めるため、値は各ユーザーの環境で設定してください。</p>
+      <p class="hint" style="margin-top:8px" id="out-note">シークレットの直書き（env・ヘッダー・URL のクエリ・--password などの引数）は ${VAR} に置き換えてから出力します。URL のクエリを置き換えたサーバーは、serverUrl をホストとパスで照合するパターン（例：https://host/path?*）にして、実際の URL と照合できるようにします（Claude Code の serverUrl は * に対応。Copilot 側の * 対応は未確認）。引数を置き換えた stdio サーバーの serverCommand は完全一致なので、配布前に確認してください。managed-mcp.json はマシン上の全ユーザーが読めるため、値は各ユーザーの環境で設定してください。</p>
     </div>
   </section>
 

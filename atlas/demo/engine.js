@@ -758,8 +758,18 @@
     }
     return out;
   }
+  // A URL whose query credential was replaced by ${ATLAS_URL_TOKEN...} would never equal the real URL,
+  // so match on scheme + host + path and let the query vary (serverUrl supports * wildcards).
+  function urlMatchPattern(u) {
+    u = str(u);
+    if (u.indexOf('${ATLAS_URL_TOKEN') === -1) return u;
+    var q = u.indexOf('?');
+    var h = u.indexOf('#');
+    var end = q === -1 ? (h === -1 ? u.length : h) : q;
+    return u.slice(0, end) + '?*';
+  }
   function matcher(cfg) {
-    if (truthy(cfg.url) && !truthy(cfg.command)) return { serverUrl: str(cfg.url) };
+    if (truthy(cfg.url) && !truthy(cfg.command)) return { serverUrl: urlMatchPattern(cfg.url) };
     return { serverCommand: argvOf(cfg) };
   }
 
@@ -803,7 +813,7 @@
     argvOf: argvOf,
     hasSecret: hasSecret,
     redact: redact,
-    claudeServerEntry: claudeServerEntry,
+    urlMatchPattern: urlMatchPattern, claudeServerEntry: claudeServerEntry,
     matcher: matcher,
     stripJsonc: stripJsonc,
     CONFIG_RULES: CONFIG_RULES,

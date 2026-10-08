@@ -352,3 +352,21 @@ test('credential in URL query and after --password flag is redacted everywhere (
     assert.ok(i.findings.some((f) => f.rule === 'ATL-CR-005'), i.name);
   }
 });
+
+test('serverUrl matcher still matches the real URL after a query credential is replaced', () => {
+  const real = 'https://x.example.com/mcp?token=abcd1234secret&x=1';
+  const t = JSON.stringify({ mcpServers: { a: { type: 'http', url: real }, b: { type: 'http', url: 'https://plain.example.com/mcp?x=1' } } });
+  const r = E.evaluate(t, {});
+  const o = E.buildOutputs(r.items, ['a', 'b'], {});
+  const [ma, mb] = o.claudeSettings.allowedMcpServers;
+  assert.deepEqual(ma, { serverUrl: 'https://x.example.com/mcp?*' });
+  assert.deepEqual(mb, { serverUrl: 'https://plain.example.com/mcp?x=1' });   // no credential: exact URL kept
+  assert.deepEqual(o.copilotSettings.allowedMcpServers[0], ma);
+  assert.ok(!JSON.stringify(o).includes('abcd1234secret'));
+  // Claude Code serverUrl semantics: '*' matches any run of characters
+  const re = new RegExp('^' + ma.serverUrl.split('*').map((x) => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('.*') + '$');
+  assert.ok(re.test(real));
+  assert.ok(re.test('https://x.example.com/mcp?token=rotated-value'));
+  assert.ok(!re.test('https://x.example.com/other?token=abcd1234secret'));
+  assert.ok(!re.test('https://evil.example.net/mcp?token=abcd1234secret'));
+});
