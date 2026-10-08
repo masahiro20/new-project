@@ -5,9 +5,11 @@ score (atlas/scanner/trust.py) and turns the items a human approved into
 allowlist files.
 
 Safety: this module never installs, imports, builds or executes anything it
-evaluates. The optional fetch path only downloads registry JSON metadata and
-shallow-clones git repos (hooks disabled, LFS smudge off) so that the
-read-only regex scanner (atlas/scanner/scan.py) can read the files as text.
+evaluates. The optional fetch path downloads registry JSON metadata and the
+published package archive (extracted as data by atlas/scanner/pkgfetch.py),
+shallow-clones the declared repo (hooks disabled, LFS smudge off) for the
+DP-004 comparison (atlas/scanner/dp004.py), and queries OSV
+(atlas/scanner/osv.py). The read-only scanner reads every file as text.
 
 Wording rule: verdicts say "pattern detected" / "パターンを検出". The only
 exception is quoting an OSV MAL-* id, which trust.py phrases itself.
@@ -29,11 +31,9 @@ import os
 import re
 import shlex
 import shutil
-import subprocess
 import sys
 import tempfile
 import urllib.parse
-import urllib.request
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SCANNER_DIR = os.path.normpath(os.path.join(HERE, "..", "scanner"))
@@ -43,7 +43,16 @@ for _p in (HERE, SCANNER_DIR):
 
 sys.dont_write_bytecode = True  # do not drop __pycache__ into atlas/scanner (owned by the lead)
 import scan as _scan  # noqa: E402  (atlas/scanner/scan.py, read-only regex scanner)
+import dp004 as _dp004  # noqa: E402  (package <-> repo comparison, safe clone)
+import osv as _osv  # noqa: E402  (OSV querybatch, DP-002)
+import pkgfetch as _pkgfetch  # noqa: E402  (registry metadata + guarded archive extraction)
 from trust import trust as _trust  # noqa: E402
+
+# moved to atlas/scanner/dp004.py; kept here as aliases for existing callers
+norm_repo = _dp004.norm_repo
+split_tree_url = _dp004.split_tree_url
+find_package_dir = _dp004.find_package_dir
+safe_clone = _dp004.safe_clone
 
 DEFAULT_INDEX = os.path.normpath(os.path.join(HERE, "..", "data", "index.json"))
 DOCS_CHECKED = "2026-10-08"
@@ -521,22 +530,6 @@ def _literal_cred(v):
 # ---------------------------------------------------------------------------
 # Index
 # ---------------------------------------------------------------------------
-def norm_repo(u):
-    if not u:
-        return ""
-    u = str(u).strip()
-    u = re.sub(r"^git\+", "", u)
-    m = re.match(r"^(?:git@|ssh://git@)([^:/]+)[:/](.+)$", u)
-    if m:
-        u = f"https://{m.group(1)}/{m.group(2)}"
-    u = re.sub(r"^(git|http)://", "https://", u)
-    u = re.sub(r"^github:", "https://github.com/", u)
-    u = u.split("#")[0].rstrip("/")
-    if u.endswith(".git"):
-        u = u[:-4]
-    return u.lower()
-
-
 def load_index(path):
     if not path or not os.path.isfile(path):
         return None
@@ -571,155 +564,114 @@ def index_lookup(index, pkgs=(), repos=()):
 # ---------------------------------------------------------------------------
 # Optional fetch (metadata JSON + shallow clone). Never installs or executes.
 # ---------------------------------------------------------------------------
-UA = "atlas-allowlist-prototype/0.1 (metadata only)"
-
-
-def _get_json(url, timeout=20):
-    req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept": "application/json"})
-    with urllib.request.urlopen(req, timeout=timeout) as r:  # noqa: S310 (fixed https hosts)
-        if r.status != 200:
-            raise OSError(f"HTTP {r.status}")
-        return json.loads(r.read(20_000_000).decode("utf-8", "replace"))
-
-
-def resolve_npm(name, version=None):
-    meta = _get_json("https://registry.npmjs.org/" + urllib.parse.quote(name, safe="@"))
-    ver = version if version in (meta.get("versions") or {}) else (meta.get("dist-tags") or {}).get("latest")
-    vinfo = (meta.get("versions") or {}).get(ver) or {}
-    repo = vinfo.get("repository") or meta.get("repository") or {}
-    if isinstance(repo, str):
-        repo = {"url": repo}
-    lic = vinfo.get("license") or meta.get("license")
-    return {"repo": repo.get("url"), "subdir": repo.get("directory"), "version": ver,
-            "license": lic if isinstance(lic, str) else None,
-            "attested": bool(((vinfo.get("dist") or {}).get("attestations"))),
-            "registry_url": f"https://www.npmjs.com/package/{name}"}
-
-
-def resolve_pypi(name, version=None):
-    meta = _get_json(f"https://pypi.org/pypi/{urllib.parse.quote(name)}/json")
-    info = meta.get("info") or {}
-    repo = None
-    for k, v in (info.get("project_urls") or {}).items():
-        if re.search(r"source|repo|code|github|homepage", k, re.I) and re.search(r"github\.com|gitlab\.com|codeberg\.org|bitbucket\.org", str(v)):
-            repo = v
-            break
-    if not repo and re.search(r"github\.com|gitlab\.com", str(info.get("home_page") or "")):
-        repo = info["home_page"]
-    osi = any("OSI Approved" in c for c in info.get("classifiers") or [])
-    return {"repo": repo, "subdir": None, "version": info.get("version"),
-            "license": info.get("license_expression") or (info.get("license") or "")[:40] or None,
-            "osi": osi, "attested": False, "registry_url": f"https://pypi.org/project/{name}/"}
-
-
 OSI_SPDX = {"MIT", "APACHE-2.0", "BSD-2-CLAUSE", "BSD-3-CLAUSE", "ISC", "MPL-2.0", "GPL-2.0", "GPL-3.0",
             "LGPL-2.1", "LGPL-3.0", "AGPL-3.0", "UNLICENSE", "0BSD", "EPL-2.0", "GPL-3.0-OR-LATER",
             "GPL-2.0-OR-LATER", "LGPL-3.0-OR-LATER", "BSL-1.0", "ZLIB", "PSF-2.0"}
 
 
-def split_tree_url(u):
-    """https://github.com/o/r/tree/<ref>/sub/dir -> (https://github.com/o/r, sub/dir)."""
-    m = re.match(r"^(https://(?:github\.com|gitlab\.com|codeberg\.org)/[\w.\-]+/[\w.\-]+)(?:/-)?/(?:tree|blob)/[^/]+/?(.*)$", str(u or ""))
-    if m:
-        return m.group(1), (m.group(2).strip("/") or None)
-    return u, None
-
-
-def find_package_dir(root, eco, name, max_depth=4):
-    """Locate a monorepo package by reading manifests as text (never executed)."""
-    want = (name or "").lower()
-    if not want:
-        return None
-    for dp, dns, fns in os.walk(root):
-        depth = os.path.relpath(dp, root).count(os.sep)
-        dns[:] = [d for d in dns if d not in _scan.SKIP_DIRS and not d.startswith(".")] if depth < max_depth else []
-        try:
-            if eco == "npm" and "package.json" in fns:
-                with open(os.path.join(dp, "package.json"), encoding="utf-8", errors="replace") as fh:
-                    if str(json.load(fh).get("name", "")).lower() == want:
-                        return dp
-            if eco == "pypi" and "pyproject.toml" in fns:
-                with open(os.path.join(dp, "pyproject.toml"), encoding="utf-8", errors="replace") as fh:
-                    m = re.search(r'^name\s*=\s*["\']([^"\']+)', fh.read(), re.M)
-                if m and re.sub(r"[-_.]+", "-", m.group(1).lower()) == re.sub(r"[-_.]+", "-", want):
-                    return dp
-        except (OSError, ValueError, AttributeError):
-            continue
-    return None
-
-
-def safe_clone(repo_url, dest, ref=None, timeout=120):
-    """Shallow clone with hooks disabled and LFS smudge off. Returns commit sha or raises."""
-    u = norm_repo(repo_url)
-    if not re.match(r"^https://[a-z0-9.\-]+/[\w.\-]+/[\w.\-]+(/[\w.\-]+)*$", u):
-        raise ValueError(f"refusing to clone non-https / unexpected URL: {repo_url!r}")
-    env = dict(os.environ, GIT_LFS_SKIP_SMUDGE="1", GIT_TERMINAL_PROMPT="0", GIT_ASKPASS="true",
-               GIT_CONFIG_NOSYSTEM="1")
-    base = ["git", "-c", "core.hooksPath=/dev/null", "-c", "core.fsmonitor=false",
-            "-c", "protocol.file.allow=never", "-c", "protocol.ext.allow=never",
-            "-c", "submodule.recurse=false", "clone", "--depth", "1", "--single-branch", "--no-tags", "--quiet"]
-    tries = []
-    if ref:
-        tries += [["--branch", "v" + ref.lstrip("v")], ["--branch", ref]]
-    tries.append([])
-    last = None
-    for extra in tries:
-        if os.path.exists(dest):
-            shutil.rmtree(dest, ignore_errors=True)
-        r = subprocess.run(base + extra + ["--", u + ".git", dest], env=env, capture_output=True,
-                           text=True, timeout=timeout)
-        if r.returncode == 0:
-            sha = subprocess.run(["git", "-c", "core.hooksPath=/dev/null", "-C", dest, "rev-parse", "HEAD"],
-                                 env=env, capture_output=True, text=True, timeout=30).stdout.strip()
-            return sha, (extra[1] if extra else "default-branch")
-        last = r.stderr.strip()[-300:]
-    raise OSError(f"git clone failed: {last}")
-
-
 def fetch_and_scan(pkg=None, repo=None):
-    """Return dict {findings, files, commit, ref, repo, meta} or {error}."""
-    meta = {}
+    """Clone-and-scan a repo (skills given as git URLs). Return {findings, files, commit, ref, repo} or {error}."""
     try:
-        if pkg and pkg["kind"] == "registry" and pkg["eco"] == "npm":
-            meta = resolve_npm(pkg["name"], pkg.get("version"))
-        elif pkg and pkg["kind"] == "registry" and pkg["eco"] == "pypi":
-            meta = resolve_pypi(pkg["name"], (pkg.get("version") or "").lstrip("=@") or None)
-        repo = repo or meta.get("repo")
         repo, tree_sub = split_tree_url(repo)
-        if tree_sub and not meta.get("subdir"):
-            meta["subdir"] = tree_sub
         if not repo:
-            return {"error": "no repository URL in registry metadata", "meta": meta}
+            return {"error": "no repository URL"}
         tmp = tempfile.mkdtemp(prefix="atlas-allowlist-")
         try:
             dest = os.path.join(tmp, "repo")
-            sha, ref = safe_clone(repo, dest, meta.get("version"))
+            sha, ref = safe_clone(repo, dest)
             root = dest
-            if meta.get("subdir"):
-                cand = os.path.normpath(os.path.join(dest, meta["subdir"]))
+            if tree_sub:
+                cand = os.path.normpath(os.path.join(dest, tree_sub))
                 if cand.startswith(dest + os.sep) and os.path.isdir(cand):
                     root = cand
-            elif pkg:
-                root = find_package_dir(dest, pkg["eco"], pkg["name"]) or dest
             subdir = os.path.relpath(root, dest)
             f, nfiles, _ = _scan.scan_repo(root)
-            return {"findings": f, "files": nfiles, "commit": sha, "ref": ref, "repo": norm_repo(repo), "meta": meta,
+            return {"findings": f, "files": nfiles, "commit": sha, "ref": ref, "repo": norm_repo(repo),
                     "subdir": None if subdir == "." else subdir}
         finally:
             shutil.rmtree(tmp, ignore_errors=True)
     except Exception as e:  # network / git errors are reported, never fatal
-        return {"error": f"{type(e).__name__}: {e}"[:300], "meta": meta}
+        return {"error": f"{type(e).__name__}: {e}"[:300]}
+
+
+def fetch_package(pkg):
+    """--fetch for a registry npm/PyPI server: download the published archive (data only),
+    clone the declared repo at the version tag, run DP-004 and scan both trees.
+    Returns the dp004.check() dict plus {"info", "deps"}, or {"error", "info"}."""
+    info = None
+    tmp = tempfile.mkdtemp(prefix="atlas-allowlist-")
+    try:
+        ver = (pkg.get("version") or "").lstrip("=@") if pkg.get("pinned") else None
+        info = _pkgfetch.resolve(pkg["eco"], pkg["name"], ver or None)
+        pkg_root = _pkgfetch.fetch_extract(info, os.path.join(tmp, "pkg"))
+        res = _dp004.check(info, pkg_root, tmp)
+        res["info"] = info
+        res["deps"] = _osv.deps_from_package(pkg_root, pkg["eco"])
+        return res
+    except Exception as e:  # network / registry / archive errors are reported, never fatal
+        return {"error": f"{type(e).__name__}: {e}"[:300], "info": info}
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
 
 
 # ---------------------------------------------------------------------------
-# Verdicts
+# Verdicts and org policy
 # ---------------------------------------------------------------------------
-def recommend(t):
-    if t["quarantined"] or t["grade"] in ("D", "F"):
-        return "deny"
-    if t["grade"] in ("A", "B"):
-        return "approve"
-    return "review"
+DEFAULT_POLICY = {
+    # high findings in a skill or in the launch config: "review" (never auto-approve) or "deny"
+    "high_in_skill_or_launch": "review",
+    # "approve" needs verified provenance: DP-004 clean (repo matches package) or npm attestation
+    "require_provenance_for_approve": True,
+}
+
+
+def load_policy(policy=None):
+    """dict | path to policy.json | None -> validated policy dict (defaults filled in)."""
+    if isinstance(policy, str) and policy:
+        with open(policy, encoding="utf-8") as fh:
+            policy = json.load(fh)
+    pol = dict(DEFAULT_POLICY)
+    for k, v in (policy or {}).items():
+        if k not in DEFAULT_POLICY:
+            raise ValueError(f"unknown policy key: {k!r} (known: {', '.join(DEFAULT_POLICY)})")
+        pol[k] = v
+    if pol["high_in_skill_or_launch"] not in ("review", "deny"):
+        raise ValueError("policy high_in_skill_or_launch must be 'review' or 'deny'")
+    pol["require_provenance_for_approve"] = bool(pol["require_provenance_for_approve"])
+    return pol
+
+
+def recommend(t, findings=(), kind="mcp", provenance=None, policy=None):
+    """-> (recommendation, [policy notes]).
+    1. OSV MAL-* (quarantined) or a critical finding in src/skill/launch config -> deny.
+    2. Grade: A/B approve, C review, D/F deny.
+    3. High finding in a skill or in the launch config -> at least review (policy: or deny).
+    4. Approve needs verified provenance (policy require_provenance_for_approve)."""
+    pol = load_policy(policy)
+    live = [f for f in findings if not f.get("suppressed")]
+    if t["quarantined"]:
+        return "deny", ["policy: OSV MAL-* id -> quarantined, deny"]
+    crit = [f for f in live if f.get("sev") == "critical" and f.get("ctx", "src") in ("src", "skill")]
+    if crit:
+        return "deny", [f"policy: critical pattern detected ({crit[0]['rule']}) -> deny"]
+    notes = []
+    rec = "approve" if t["grade"] in ("A", "B") else "review" if t["grade"] == "C" else "deny"
+    highs = [f for f in live if f.get("sev") == "high"
+             and (f.get("source") == "config" or (kind == "skill" and f.get("ctx", "src") in ("skill", "src")))]
+    if highs and rec != "deny":
+        where = "launch config" if kind == "mcp" else "skill"
+        if pol["high_in_skill_or_launch"] == "deny":
+            rec = "deny"
+            notes.append(f"policy: high pattern in {where} ({highs[0]['rule']}) -> deny (org policy)")
+        elif rec == "approve":
+            rec = "review"
+            notes.append(f"policy: high pattern in {where} ({highs[0]['rule']}) -> review, never auto-approve")
+    p = provenance or {}
+    if rec == "approve" and pol["require_provenance_for_approve"] and not (
+            p.get("repo_matches_package") or p.get("provenance_attested")):
+        rec = "review"
+        notes.append("policy: no verified provenance (DP-004 clean or npm attestation) -> review")
+    return rec, notes
 
 
 def _evidence_lines(findings, n=6):
@@ -732,31 +684,38 @@ def _evidence_lines(findings, n=6):
     return out
 
 
+def _verdict(t, n, rec):
+    if n == 0:
+        return (f"Grade {t['grade']} ({t['trust']}/100) - no pattern detected / パターン検出なし - "
+                f"{rec} / {REC_LABEL[rec]}")
+    return (f"Grade {t['grade']} ({t['trust']}/100) - {n} pattern(s) detected / パターンを検出: {n}件 - "
+            f"{rec} / {REC_LABEL[rec]}")
+
+
 def build_item(name, kind, findings, provenance, maintenance, osv_ids, scan_status, scan_detail,
-               config=None, packages=(), urls=(), notes=(), source=None):
+               config=None, packages=(), urls=(), notes=(), source=None, policy=None, extra_evidence=()):
     t = _trust(findings, provenance, maintenance, osv_ids)
-    rec = recommend(t)
+    rec, pnotes = recommend(t, findings, kind, provenance, policy)
     active = [f for f in findings if not f.get("suppressed")]
     n = len(active)
     status_label = {
         "remote-only": "remote-only: not statically scanned / リモート専用：静的検査なし",
         "config-only": "launch config only: source not statically scanned / 起動設定のみ：ソース未検査",
         "index": "source scanned (Atlas index) / ソース検査済み（Atlas インデックス）",
-        "fetched": "source scanned (shallow clone) / ソース検査済み（浅いクローン）",
+        "fetched": "source + published package scanned (--fetch) / ソースと公開パッケージを検査済み",
         "local-scan": "source scanned (local files) / ソース検査済み（ローカル）",
         "not-scanned": "not statically scanned / 静的検査なし",
     }[scan_status]
-    verdict = (f"Grade {t['grade']} ({t['trust']}/100) - {n} pattern(s) detected / パターンを検出: {n}件 - "
-               f"{rec} / {REC_LABEL[rec]}")
-    if n == 0:
-        verdict = (f"Grade {t['grade']} ({t['trust']}/100) - no pattern detected / パターン検出なし - "
-                   f"{rec} / {REC_LABEL[rec]}")
     reasons = []
     for p in sorted(t["penalties"], key=lambda p: -p["penalty"])[:3]:
         title = next((f["title"] for f in active if f["rule"] == p["rule"]), p["rule"])
-        reasons.append(f"-{p['penalty']} {p['rule']} ({p['sev']}, {p['ctx']}, x{p['count']}): {title} - pattern detected")
+        if p["rule"] == "ATL-DP-002" and p["sev"] == "critical":
+            reasons.append(f"-{p['penalty']} {p['rule']} ({p['sev']}, x{p['count']}): {title}")
+        else:
+            reasons.append(f"-{p['penalty']} {p['rule']} ({p['sev']}, {p['ctx']}, x{p['count']}): {title} - pattern detected")
     for c in t["caps"]:
         reasons.append(f"cap {c['cap']}: {c['reason']}")
+    reasons += pnotes
     if t["badges"]:
         reasons.append("capability badges: " + ", ".join(t["badges"]))
     if t["provenance"] == 0:
@@ -767,12 +726,16 @@ def build_item(name, kind, findings, provenance, maintenance, osv_ids, scan_stat
         "name": name, "kind": kind, "source": source, "config": config, "packages": list(packages),
         "urls": list(urls), "scan_status": scan_status, "scan_label": status_label, "scan_detail": scan_detail,
         "trust": t, "grade": t["grade"], "score": t["trust"], "recommendation": rec,
-        "recommendation_ja": REC_LABEL[rec], "verdict": verdict, "reasons": reasons,
-        "evidence": _evidence_lines(findings), "findings": findings,
+        "recommendation_ja": REC_LABEL[rec], "verdict": _verdict(t, n, rec), "reasons": reasons,
+        "provenance_inputs": dict(provenance or {}), "policy_notes": pnotes,
+        "evidence": list(extra_evidence) + _evidence_lines(findings), "findings": findings,
     }
 
 
-def evaluate(input_path_or_text, index_path=DEFAULT_INDEX, fetch=False, display=None):
+def evaluate(input_path_or_text, index_path=DEFAULT_INDEX, fetch=False, display=None, osv=False, policy=None):
+    """fetch=True implies osv=True (network: registry + git + OSV). osv=True alone queries OSV only."""
+    pol = load_policy(policy)
+    osv = bool(osv or fetch)
     kind, data, raw, display = load_input(input_path_or_text, display)
     index = load_index(index_path)
     items = []
@@ -781,52 +744,106 @@ def evaluate(input_path_or_text, index_path=DEFAULT_INDEX, fetch=False, display=
         for name, cfg in data["servers"].items():
             if not isinstance(cfg, dict):
                 continue
-            items.append(_eval_server(str(name), cfg, display, key, raw, index, fetch))
+            items.append(_eval_server(str(name), cfg, display, key, raw, index, fetch, osv, pol))
     else:
         for it in data:
-            items.append(_eval_skill(it, index, fetch))
+            items.append(_eval_skill(it, index, fetch, pol))
     return {
-        "tool": "atlas-allowlist", "version": "0.1-prototype", "generated": _now(),
+        "tool": "atlas-allowlist", "version": "0.2-prototype", "generated": _now(),
         "input": {"display": display, "kind": kind, "key": data["key"] if kind == "mcp" else None},
         "index": {"path": index["path"], "generated": index["generated"], "entries": index["n"]} if index else None,
-        "fetch": bool(fetch),
+        "fetch": bool(fetch), "osv": osv, "policy": pol,
         "wording": "Verdicts report detected patterns (パターンを検出); they are not a judgement of intent.",
         "docs_checked": DOCS_CHECKED, "doc_urls": DOC_URLS,
         "items": items,
     }
 
 
-def _prov_maint(entry, pkgs, meta=None):
+def _osi(lic):
+    if isinstance(lic, dict):
+        lic = lic.get("type")
+    s = str(lic or "").strip().upper().strip("()")
+    return bool(s) and all(part.strip() in OSI_SPDX for part in re.split(r"\s+OR\s+", s))
+
+
+def _prov_maint(entry, pkgs, fetched=None):
     prov = {"pinned_launch": bool(pkgs) and all(p["pinned"] for p in pkgs)}
     maint = None
-    osv = []
+    osv_ids = []
     if entry:
-        prov["repo_matches_package"] = bool(entry.get("repo") and entry.get("packages"))
+        # repo_matches_package is granted only by a clean DP-004 (from --fetch, or recorded in the index)
         for k, v in (entry.get("provenance") or {}).items():
             prov[k] = prov.get(k) or bool(v)
-        lic = str(entry.get("license") or "").upper()
-        if lic in OSI_SPDX:
+        if _osi(entry.get("license")):
             prov["osi_license"] = True
         maint = entry.get("maintenance")
-        osv = list(entry.get("osv_ids") or [])
-    if meta:
-        if meta.get("repo"):
-            prov["repo_matches_package"] = prov.get("repo_matches_package") or False  # unverified (DP-004 is v1)
-        if meta.get("attested"):
+        osv_ids = list(entry.get("osv_ids") or [])
+    if fetched:
+        info = fetched.get("info") or {}
+        prov["repo_matches_package"] = fetched.get("status") == "clean"
+        if info.get("attestations"):
             prov["provenance_attested"] = True
-        if str(meta.get("license") or "").upper() in OSI_SPDX or meta.get("osi"):
+        if _osi(info.get("license")):
             prov["osi_license"] = True
-    return prov, maint, osv
+    return prov, maint, osv_ids
 
 
-def _eval_server(name, cfg, display, key, raw, index, fetch):
+def _prov_line(prov, fetched, info):
+    def yn(k):
+        return "yes" if prov.get(k) else "no"
+    if fetched is None:
+        rm = "yes (index)" if prov.get("repo_matches_package") else "not checked (use --fetch)"
+        at = "yes (index)" if prov.get("provenance_attested") else "not checked (use --fetch)"
+    else:
+        rm = "yes (DP-004 clean)" if prov.get("repo_matches_package") else f"no (DP-004 {fetched.get('status')})"
+        at = yn("provenance_attested") + (" (npm dist.attestations)" if (info or {}).get("eco") == "npm" else " (PyPI: not read)")
+    lic = (info or {}).get("license")
+    if isinstance(lic, dict):
+        lic = lic.get("type")
+    lic_s = f"{yn('osi_license')}" + (f" ({str(lic)[:40]})" if lic else "")
+    return (f"provenance: repo_matches_package={rm}; provenance_attested={at}; osi_license={lic_s}; "
+            f"pinned_launch={yn('pinned_launch')}")
+
+
+def _eval_server(name, cfg, display, key, raw, index, fetch, osv_on=False, policy=None):
     cf, san, notes, pkgs, urls = config_findings(name, cfg, display, key, raw)
+    notes = list(notes)
     findings = list(cf)
     is_remote = bool(cfg.get("url")) and not cfg.get("command")
     entry, matched = index_lookup(index, pkgs, [u for u in urls if re.search(r"github\.com|gitlab\.com", u)])
+    reg = pkgs[0] if pkgs and pkgs[0]["kind"] == "registry" and pkgs[0]["eco"] in ("npm", "pypi") else None
     detail = {}
-    meta = None
-    if entry:
+    fetched = None
+    if fetch and reg and not is_remote:
+        res = fetch_package(reg)
+        if "error" in res:
+            detail["fetch_error"] = res["error"]
+        else:
+            fetched = res
+    extra = []
+    info = (fetched or {}).get("info") or {}
+    if fetched:
+        sub = fetched.get("subdir") or ""
+        for f in fetched["repo_scan"]:
+            g = dict(f)
+            g["file"] = f"{fetched['repo']}@{fetched['commit'][:12]}:{os.path.join(sub, f['file'])}"
+            g["source"] = "fetch"
+            findings.append(g)
+        plabel = f"{info.get('eco')}:{info.get('name')}@{info.get('version')}"
+        for f in fetched["pkg_scan"]:
+            g = dict(f)
+            g["file"] = f"{plabel}:{f['file']}"
+            findings.append(g)
+        findings += fetched["findings"]
+        status = "fetched"
+        detail.update({"repo": fetched.get("repo"), "commit": fetched.get("commit"), "ref": fetched.get("ref"),
+                       "files": fetched.get("files"), "package_files": fetched.get("pkg_files"),
+                       "subdir": fetched.get("subdir"), "version": info.get("version"),
+                       "tarball": info.get("tarball"), "dp004": {"status": fetched["status"], **fetched["stats"]}})
+        if fetched.get("note"):
+            notes.append(fetched["note"])
+        extra.append(_dp004.summary_line(fetched))
+    elif entry:
         # monorepos: keep only findings under the matched package's own directory
         sub = (entry.get("package_paths") or {}).get(matched) if matched else None
         for f in entry.get("findings") or []:
@@ -838,46 +855,38 @@ def _eval_server(name, cfg, display, key, raw, index, fetch):
             g["source"] = "index"
             findings.append(g)
         status = "index"
-        detail = {"matched": matched, "repo": entry.get("repo"), "commit": entry.get("commit"), "subdir": sub,
-                  "files": entry.get("files"), "index_generated": index.get("generated")}
+        detail.update({"matched": matched, "repo": entry.get("repo"), "commit": entry.get("commit"), "subdir": sub,
+                       "files": entry.get("files"), "index_generated": index.get("generated")})
     elif is_remote:
         status = "remote-only"
         detail = {"note": "Remote-only server: only the URL was checked; no source is available to scan."}
-    elif fetch and pkgs and pkgs[0]["kind"] == "registry" and pkgs[0]["eco"] in ("npm", "pypi"):
-        res = fetch_and_scan(pkg=pkgs[0])
-        meta = res.get("meta")
-        if "error" in res:
-            status = "config-only"
-            detail = {"fetch_error": res["error"], "registry": (meta or {}).get("registry_url")}
-        else:
-            for f in res["findings"]:
-                g = dict(f)
-                g["file"] = f"{res['repo']}@{res['commit'][:12]}:{os.path.join(res.get('subdir') or '', f['file'])}"
-                g["source"] = "fetch"
-                findings.append(g)
-            status = "fetched"
-            detail = {"repo": res["repo"], "commit": res["commit"], "ref": res["ref"], "files": res["files"],
-                      "subdir": res.get("subdir"),
-                      "registry": meta.get("registry_url"), "version": meta.get("version"),
-                      "note": "Registry repository URL is not verified against package contents (DP-004 is v1)."}
-            if res["ref"] == "default-branch":
-                notes = list(notes) + ["Scanned the default branch: no tag matched the package version."]
     else:
         status = "config-only"
         if pkgs and pkgs[0]["eco"] == "oci":
-            detail = {"note": "OCI image: image contents are not scanned in this prototype."}
+            detail.setdefault("note", "OCI image: image contents are not scanned in this prototype.")
         elif not pkgs:
-            detail = {"note": "Local command: no package to resolve; source not scanned."}
+            detail.setdefault("note", "Local command: no package to resolve; source not scanned.")
         else:
-            detail = {"note": "Not in the Atlas index; run with --fetch to scan the source."}
-    prov, maint, osv = _prov_maint(entry, pkgs, meta)
+            detail.setdefault("note", "Not in the Atlas index; run with --fetch to scan the source and package.")
+    prov, maint, osv_ids = _prov_maint(entry, pkgs, fetched)
     if is_remote:
         prov["pinned_launch"] = False
-    return build_item(name, "mcp", findings, prov, maint, osv, status, detail, config=san,
-                      packages=pkgs, urls=urls, notes=notes)
+    if osv_on and reg:
+        ver = (reg.get("version") or "").lstrip("=@") or None
+        o = _osv.check(reg["eco"], reg["name"], ver, reg["pinned"], (fetched or {}).get("deps"),
+                       resolved_version=None if reg["pinned"] else info.get("version"))
+        findings += o["findings"]
+        osv_ids = sorted(set(osv_ids) | set(o["osv_ids"]))
+        detail["osv"] = {k: o.get(k) for k in ("status", "mal_ids", "package", "error") if o.get(k) is not None}
+        detail["osv"]["deps_checked"] = len(o.get("deps") or [])
+        extra.append(_osv.summary_line(o))
+    if reg or fetched:
+        extra.insert(0, _prov_line(prov, fetched, info or {"eco": reg["eco"] if reg else None}))
+    return build_item(name, "mcp", findings, prov, maint, osv_ids, status, detail, config=san,
+                      packages=pkgs, urls=urls, notes=notes, policy=policy, extra_evidence=[e for e in extra if e])
 
 
-def _eval_skill(it, index, fetch):
+def _eval_skill(it, index, fetch, policy=None):
     src = it["source"]
     name = it["name"]
     findings = []
@@ -920,9 +929,9 @@ def _eval_skill(it, index, fetch):
         else:
             status = "not-scanned"
             detail = {"note": "Remote source not in the Atlas index; run with --fetch to scan it."}
-    prov, maint, osv = _prov_maint(entry, [])
+    prov, maint, osv_ids = _prov_maint(entry, [])
     prov["pinned_launch"] = bool(re.search(r"[#@][0-9a-f]{40}\b", src))
-    return build_item(name, "skill", findings, prov, maint, osv, status, detail, source=src)
+    return build_item(name, "skill", findings, prov, maint, osv_ids, status, detail, source=src, policy=policy)
 
 
 # ---------------------------------------------------------------------------
@@ -944,7 +953,9 @@ def format_table(report):
         for e in it["evidence"]:
             out.append("   " + e)
     out.append("")
-    out.append("approve = grade A/B (承認推奨), review = C (要レビュー), deny = D/F or quarantined (拒否推奨).")
+    out.append("approve = grade A/B with verified provenance (承認推奨), review = C or high pattern in launch config/skill "
+               "(要レビュー), deny = D/F, critical, or OSV MAL-* quarantine (拒否推奨). Policy: "
+               + json.dumps(report.get("policy") or DEFAULT_POLICY))
     out.append("Verdicts report detected patterns (パターンを検出), not intent.")
     return "\n".join(out)
 
@@ -982,22 +993,35 @@ def _matcher(cfg):
     return {"serverCommand": argv_of(cfg)}
 
 
-def build_outputs(report, approve=None, approve_recommended=False, by=None, when=None, allow_deny=False):
+def build_outputs(report, approve=None, approve_recommended=False, by=None, when=None, allow_deny=False,
+                  reasons=None):
+    """Approved items only. Approving an item whose recommendation is not 'approve' is an override and
+    needs a recorded reason (reasons={name: text}); 'deny' items additionally need allow_deny."""
     items = report.get("items") or []
     names = {i["name"] for i in items}
     approve = list(approve or [])
     unknown = [n for n in approve if n not in names]
     if unknown:
         raise ValueError("unknown item name(s): " + ", ".join(unknown))
+    reasons = {str(k): str(v).strip() for k, v in (reasons or {}).items()}
+    unknown = [n for n in reasons if n not in names]
+    if unknown:
+        raise ValueError("--reason given for unknown item name(s): " + ", ".join(unknown))
     approved = set(approve)
     if approve_recommended:
         approved |= {i["name"] for i in items if i["recommendation"] == "approve"}
     denied = sorted(i["name"] for i in items if i["name"] in approved and i["recommendation"] == "deny")
     if denied and not allow_deny:
         raise ValueError("approving item(s) recommended 'deny' needs an explicit override "
-                         "(CLI --allow-deny): " + ", ".join(denied))
+                         "(CLI --allow-deny plus --reason NAME=\"text\"): " + ", ".join(denied))
+    over = [i for i in items if i["name"] in approved and i["recommendation"] != "approve"]
+    missing = [i["name"] for i in over if len(reasons.get(i["name"], "")) < 3]
+    if missing:
+        raise ValueError("override approval needs a recorded reason for item(s) not recommended 'approve' "
+                         "(CLI --reason NAME=\"text\", web UI reason box): " + ", ".join(missing))
     by = by or os.environ.get("USER") or os.environ.get("USERNAME") or "unknown"
     when = when or _now()
+    overrides = [_override_record(i, by, when, reasons[i["name"]]) for i in over]
     mcp_ok = [i for i in items if i["name"] in approved and i["kind"] == "mcp"]
     skills_ok = [i for i in items if i["name"] in approved and i["kind"] == "skill"]
     managed_mcp = {"mcpServers": {i["name"]: _claude_server_entry(i["config"]) for i in mcp_ok}}
@@ -1007,12 +1031,14 @@ def build_outputs(report, approve=None, approve_recommended=False, by=None, when
         "allowedMcpServers": matchers,
     }
     copilot = {"allowedMcpServers": matchers}
-    md = _decisions_md(report, items, approved, by, when, approve_recommended)
+    md = _decisions_md(report, items, approved, by, when, approve_recommended, overrides)
+    dj = _decisions_json(report, items, approved, by, when, approve_recommended, overrides)
     files = {
         "managed-mcp.json": json.dumps(managed_mcp, indent=2, ensure_ascii=False) + "\n",
         "claude-managed-settings.json": json.dumps(claude_settings, indent=2, ensure_ascii=False) + "\n",
         "copilot-managed-settings.json": json.dumps(copilot, indent=2, ensure_ascii=False) + "\n",
         "decisions.md": md,
+        "decisions.json": json.dumps(dj, indent=2, ensure_ascii=False) + "\n",
     }
     if skills_ok:
         files["approved-skills.json"] = json.dumps(
@@ -1022,13 +1048,45 @@ def build_outputs(report, approve=None, approve_recommended=False, by=None, when
     return files
 
 
-def _decisions_md(report, items, approved, by, when, approve_recommended):
+def _top_findings(i, n=3):
+    return [redact(e)[:200] for e in _evidence_lines(i.get("findings") or [], n)]
+
+
+def _override_record(i, by, when, reason):
+    return {"item": i["name"], "kind": i["kind"], "recommendation": i["recommendation"],
+            "grade": i["grade"], "score": i["score"], "quarantined": bool((i.get("trust") or {}).get("quarantined")),
+            "approver": by, "time": when, "reason": redact(reason)[:1000],
+            "policy_notes": i.get("policy_notes") or [], "top_findings": _top_findings(i)}
+
+
+def _decisions_json(report, items, approved, by, when, approve_recommended, overrides):
+    ov = {o["item"]: o for o in overrides}
+    return {
+        "tool": "atlas-allowlist", "schema": "atlas-decisions/1",
+        "decided_by": by, "decided_at": when,
+        "report": {"generated": report.get("generated"), "input": (report.get("input") or {}).get("display"),
+                   "index": (report.get("index") or {}).get("path"), "fetch": report.get("fetch"),
+                   "osv": report.get("osv")},
+        "policy": report.get("policy") or DEFAULT_POLICY,
+        "mode": "approve-recommended" if approve_recommended else "explicit",
+        "items": [{"name": i["name"], "kind": i["kind"], "grade": i["grade"], "score": i["score"],
+                   "recommendation": i["recommendation"],
+                   "decision": "approved" if i["name"] in approved else "not_approved",
+                   "override": i["name"] in ov, "reason": ov[i["name"]]["reason"] if i["name"] in ov else None}
+                  for i in items],
+        "overrides": overrides,
+    }
+
+
+def _decisions_md(report, items, approved, by, when, approve_recommended, overrides=()):
+    pol = report.get("policy") or DEFAULT_POLICY
     L = ["# Atlas Allowlist Builder - decisions / 判定記録", "",
          f"- Decided by / 承認者: {by}",
          f"- Decided at / 日時 (UTC): {when}",
          f"- Report generated: {report.get('generated')} from `{(report.get('input') or {}).get('display')}`",
          f"- Index: {(report.get('index') or {}).get('path', 'none')} (generated {(report.get('index') or {}).get('generated', '-')})",
          f"- Mode: {'--approve-recommended' if approve_recommended else 'explicit --approve'}",
+         f"- Policy / ポリシー: `{json.dumps(pol, ensure_ascii=False)}`",
          f"- Output formats checked against official docs on {report.get('docs_checked', DOCS_CHECKED)}:",
          ]
     for u in (report.get("doc_urls") or DOC_URLS).values():
@@ -1040,6 +1098,19 @@ def _decisions_md(report, items, approved, by, when, approve_recommended):
         if i["name"] in approved and i["recommendation"] != "approve":
             dec += f" (override of '{i['recommendation']}')"
         L.append(f"| {i['name']} | {i['kind']} | {i['grade']} | {i['score']} | {i['recommendation']} | {dec} |")
+    L += ["", "## Overrides / 上書き承認"]
+    if not overrides:
+        L.append("(none)")
+    for o in overrides:
+        L += ["", f"### {o['item']} ({o['kind']}) - override of '{o['recommendation']}'",
+              f"- Approver / 承認者: {o['approver']}",
+              f"- Time / 日時 (UTC): {o['time']}",
+              f"- Reason / 理由: {o['reason']}",
+              f"- Grade / score: {o['grade']} ({o['score']}/100){' - quarantined (OSV MAL-*)' if o['quarantined'] else ''}"]
+        for pn in o["policy_notes"]:
+            L.append(f"- {pn}")
+        for e in o["top_findings"]:
+            L.append(f"  - top finding: `{e}`")
     for title, sel in (("Approved / 承認", True), ("Not approved / 不承認", False)):
         L += ["", f"## {title}"]
         chosen = [i for i in items if (i["name"] in approved) == sel]
@@ -1059,6 +1130,7 @@ def _decisions_md(report, items, approved, by, when, approve_recommended):
     L += ["", "## Files", "- managed-mcp.json: Claude Code fixed server set (exclusive control).",
           "- claude-managed-settings.json: Claude Code managed-settings fragment (approved catalog; allowManagedMcpServersOnly).",
           "- copilot-managed-settings.json: fragment for `copilot/managed-settings.json` in the `.github-private` repo (Copilot app, Copilot CLI, VS Code).",
+          "- decisions.json: machine-readable copy of these decisions, including overrides.",
           "- serverName matchers are not emitted: the docs say a name is a user-assigned label, not a security control.",
           ""]
     return "\n".join(L)

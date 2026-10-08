@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 """Atlas Allowlist Builder - local web UI (prototype, stdlib http.server).
 
-    python3 -I web.py [--port 8765] [--index ../data/index.json] [--fetch]
+    python3 -I web.py [--port 8765] [--index ../data/index.json] [--osv] [--fetch]
 
 Binds 127.0.0.1 only. Single inline page (no CDN). API:
-    POST /api/evaluate  {"config": "<json text>", "name": "optional display name"} -> report
-    POST /api/build     {"report": {...}, "approve": ["name", ...], "by": "who", "allow_deny": false}
-                        -> {"files": {"managed-mcp.json": "...", ...}}
---fetch is off by default (network access to npm/PyPI/git hosts).
+    POST /api/evaluate  {"config": "<json text>", "name": "optional display name",
+                         "policy": {"high_in_skill_or_launch": "review"|"deny", "require_provenance_for_approve": bool}}
+                        -> report
+    POST /api/build     {"report": {...}, "approve": ["name", ...], "by": "who", "allow_deny": false,
+                         "reasons": {"name": "why this override is acceptable"}}
+                        -> {"files": {"managed-mcp.json": "...", "decisions.json": "...", ...}}
+--osv (api.osv.dev) and --fetch (npm/PyPI archives, git hosts, OSV) are off by default.
 """
 import argparse
 import json
@@ -22,7 +25,7 @@ sys.path.insert(0, HERE)
 import allowlist_core as core  # noqa: E402
 
 MAX_BODY = 2_000_000
-CFG = {"index": core.DEFAULT_INDEX, "fetch": False, "port": 8765}
+CFG = {"index": core.DEFAULT_INDEX, "fetch": False, "osv": False, "port": 8765}
 
 PAGE = r"""<!doctype html>
 <html lang="ja"><head><meta charset="utf-8">
@@ -45,11 +48,19 @@ button.sec{background:transparent;color:var(--accent)}
 ul{margin:6px 0;padding-left:18px}code,.ev{font:12px ui-monospace,Menlo,monospace;word-break:break-all}
 .ev{color:var(--muted)}label.pick{margin-left:auto;display:flex;gap:6px;align-items:center}
 #err{color:var(--bad);white-space:pre-wrap}#files a{display:inline-block;margin:4px 12px 4px 0}
+select,input.reason{font:inherit;padding:3px 6px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--fg)}
+input.reason{width:100%;margin-top:8px}.pol{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px}
 </style></head><body><main>
 <h1>Atlas Allowlist Builder <span class="muted">/ 許可リスト作成</span></h1>
 <p class="sub">MCP 設定（.mcp.json / managed-mcp.json / Claude Desktop / VS Code mcp.json）またはスキル一覧 JSON を貼り付けてください。
 Paste an MCP config or a skill list. Nothing is installed or executed; verdicts report detected patterns (パターンを検出), not intent.</p>
 <textarea id="cfg" spellcheck="false" placeholder='{"mcpServers": {"filesystem": {"command": "npx", "args": ["-y", "@modelcontextprotocol/server-filesystem@2025.8.21", "/srv"]}}}'></textarea>
+<div class="pol">
+  <label>High pattern in launch config / skill / 起動設定・スキル内の high:
+    <select id="pol-high"><option value="review">review / 要レビュー</option><option value="deny">deny / 拒否</option></select></label>
+  <label>Approve needs provenance / 承認には出所確認が必要:
+    <select id="pol-prov"><option value="true">yes</option><option value="false">no</option></select></label>
+</div>
 <div><button id="go">Evaluate / 評価</button><span id="mode" class="muted"></span></div>
 <div id="err"></div>
 <div id="out"></div>
@@ -71,27 +82,37 @@ async function post(path,body){
 function dl(name,text){const a=el("a",null,name);a.href=URL.createObjectURL(new Blob([text],{type:"application/octet-stream"}));a.download=name;return a;}
 function render(rep){
   const out=$("out");out.textContent="";
-  out.appendChild(el("p","muted","Index: "+(rep.index?rep.index.path+" ("+rep.index.entries+" entries)":"none")+" | fetch: "+(rep.fetch?"on":"off")+" | formats checked "+rep.docs_checked));
+  out.appendChild(el("p","muted","Index: "+(rep.index?rep.index.path+" ("+rep.index.entries+" entries)":"none")+" | fetch: "+(rep.fetch?"on":"off")+" | OSV: "+(rep.osv?"on":"off")+" | policy: "+JSON.stringify(rep.policy||{})+" | formats checked "+rep.docs_checked));
   rep.items.forEach((it,idx)=>{
     const c=el("div","card");const h=el("div","head");
     h.appendChild(el("div","grade "+it.recommendation,it.grade));
     const t=el("div");t.appendChild(el("div","name",it.name+"  ("+it.kind+")"));t.appendChild(el("div",it.recommendation,it.verdict));h.appendChild(t);
     const lab=el("label","pick");const cb=document.createElement("input");cb.type="checkbox";cb.dataset.name=it.name;cb.dataset.rec=it.recommendation;
-    cb.checked=it.recommendation==="approve";lab.appendChild(cb);lab.appendChild(document.createTextNode(it.recommendation==="deny"?"approve (override) / 上書き承認":"approve / 承認"));h.appendChild(lab);
+    cb.checked=it.recommendation==="approve";lab.appendChild(cb);lab.appendChild(document.createTextNode(it.recommendation!=="approve"?"approve (override) / 上書き承認":"approve / 承認"));h.appendChild(lab);
     c.appendChild(h);
+    const rs=document.createElement("input");rs.className="reason";rs.dataset.name=it.name;rs.maxLength=500;
+    rs.placeholder="Override reason (required) / 上書き承認の理由（必須）";rs.style.display="none";
+    cb.onchange=()=>{rs.style.display=(cb.checked&&it.recommendation!=="approve")?"block":"none";};
+    c.appendChild(rs);
     c.appendChild(el("div","muted",it.scan_label));
     const ul=el("ul");it.reasons.forEach(r=>ul.appendChild(el("li",null,r)));c.appendChild(ul);
     if(it.evidence.length){c.appendChild(el("div",null,"Evidence / 根拠:"));const ev=el("ul");it.evidence.forEach(e=>ev.appendChild(el("li","ev",e)));c.appendChild(ev);}
     out.appendChild(c);});
   $("buildbox").style.display="block";$("files").textContent="";}
 $("go").onclick=async()=>{$("err").textContent="";$("out").textContent="evaluating...";
-  try{REPORT=await post("/api/evaluate",{config:$("cfg").value});render(REPORT);}catch(e){$("out").textContent="";$("err").textContent=String(e.message||e);}};
+  const policy={high_in_skill_or_launch:$("pol-high").value,require_provenance_for_approve:$("pol-prov").value==="true"};
+  try{REPORT=await post("/api/evaluate",{config:$("cfg").value,policy});render(REPORT);}catch(e){$("out").textContent="";$("err").textContent=String(e.message||e);}};
 $("dlreport").onclick=()=>{if(REPORT){const a=dl("report.json",JSON.stringify(REPORT,null,1));a.click();}};
 $("build").onclick=async()=>{$("err").textContent="";
   const picks=[...document.querySelectorAll("input[type=checkbox][data-name]")].filter(x=>x.checked);
   const deny=picks.filter(x=>x.dataset.rec==="deny").map(x=>x.dataset.name);
+  const reasons={};const missing=[];
+  picks.filter(x=>x.dataset.rec!=="approve").forEach(x=>{
+    const r=document.querySelector('input.reason[data-name="'+CSS.escape(x.dataset.name)+'"]');
+    const v=r?r.value.trim():"";if(v.length<3)missing.push(x.dataset.name);else reasons[x.dataset.name]=v;});
+  if(missing.length){$("err").textContent="Override reason required / 上書き承認には理由が必要です: "+missing.join(", ");return;}
   if(deny.length&&!confirm("Approve items Atlas recommends to deny? / 拒否推奨の項目を承認しますか？\n"+deny.join(", ")))return;
-  try{const r=await post("/api/build",{report:REPORT,approve:picks.map(x=>x.dataset.name),by:$("by").value,allow_deny:deny.length>0});
+  try{const r=await post("/api/build",{report:REPORT,approve:picks.map(x=>x.dataset.name),by:$("by").value,allow_deny:deny.length>0,reasons});
     const f=$("files");f.textContent="";Object.entries(r.files).forEach(([n,t])=>f.appendChild(dl(n,t)));}
   catch(e){$("err").textContent=String(e.message||e);}};
 </script></body></html>
@@ -152,8 +173,11 @@ class Handler(BaseHTTPRequestHandler):
                 text = body.get("config")
                 if not isinstance(text, str) or not text.strip():
                     return self._json(400, {"error": "'config' (JSON text) is required"})
-                rep = core.evaluate(text, index_path=CFG["index"], fetch=CFG["fetch"],
-                                    display=str(body.get("name") or "pasted-config")[:80])
+                pol = body.get("policy")
+                if pol is not None and not isinstance(pol, dict):
+                    return self._json(400, {"error": "'policy' must be an object"})
+                rep = core.evaluate(text, index_path=CFG["index"], fetch=CFG["fetch"], osv=CFG["osv"],
+                                    display=str(body.get("name") or "pasted-config")[:80], policy=pol)
                 return self._json(200, rep)
             if self.path == "/api/build":
                 rep = body.get("report")
@@ -162,9 +186,13 @@ class Handler(BaseHTTPRequestHandler):
                 approve = body.get("approve") or []
                 if not isinstance(approve, list):
                     return self._json(400, {"error": "'approve' must be a list of names"})
+                reasons = body.get("reasons") or {}
+                if not isinstance(reasons, dict):
+                    return self._json(400, {"error": "'reasons' must be an object {name: text}"})
                 files = core.build_outputs(rep, approve=[str(x) for x in approve],
                                            by=str(body.get("by") or "web-ui")[:80],
-                                           allow_deny=bool(body.get("allow_deny")))
+                                           allow_deny=bool(body.get("allow_deny")),
+                                           reasons={str(k): str(v)[:1000] for k, v in reasons.items()})
                 return self._json(200, {"files": files})
         except (ValueError, KeyError, TypeError) as e:
             return self._json(400, {"error": f"{type(e).__name__}: {e}"})
@@ -175,11 +203,13 @@ def main(argv=None):
     ap = argparse.ArgumentParser(prog="web.py")
     ap.add_argument("--port", type=int, default=8765)
     ap.add_argument("--index", default=core.DEFAULT_INDEX)
-    ap.add_argument("--fetch", action="store_true", help="allow network fetch+clone (off by default)")
+    ap.add_argument("--fetch", action="store_true", help="allow package download + clone + OSV (off by default)")
+    ap.add_argument("--osv", action="store_true", help="allow OSV queries only (off by default)")
     a = ap.parse_args(argv)
-    CFG.update(index=a.index, fetch=a.fetch, port=a.port)
+    CFG.update(index=a.index, fetch=a.fetch, osv=a.osv or a.fetch, port=a.port)
     srv = ThreadingHTTPServer(("127.0.0.1", a.port), Handler)  # loopback only, by design
-    print(f"Atlas Allowlist Builder on http://127.0.0.1:{a.port}/ (fetch={'on' if a.fetch else 'off'})", flush=True)
+    print(f"Atlas Allowlist Builder on http://127.0.0.1:{a.port}/ (fetch={'on' if a.fetch else 'off'}, "
+          f"osv={'on' if CFG['osv'] else 'off'})", flush=True)
     try:
         srv.serve_forever()
     except KeyboardInterrupt:

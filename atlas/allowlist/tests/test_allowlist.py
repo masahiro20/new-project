@@ -192,7 +192,10 @@ class TestBuild(unittest.TestCase):
         self.assertIn("https://code.claude.com/docs/en/managed-mcp", md)
 
     def test_explicit_approve_and_secret_placeholder(self):
-        files = core.build_outputs(self.rep, approve=["github", "demo-remote"], by="t")
+        with self.assertRaises(ValueError):  # 'review' items need a recorded reason
+            core.build_outputs(self.rep, approve=["github", "demo-remote"], by="t")
+        files = core.build_outputs(self.rep, approve=["github", "demo-remote"], by="t",
+                                   reasons={"github": "secret moved to vault", "demo-remote": "internal demo only"})
         self.check_only(files, {"github", "demo-remote"})
         mm = json.loads(files["managed-mcp.json"])
         self.assertEqual(mm["mcpServers"]["demo-remote"], {"type": "http", "url": "https://quiet-river-1234.trycloudflare.com/mcp"})
@@ -206,7 +209,10 @@ class TestBuild(unittest.TestCase):
     def test_deny_needs_override(self):
         with self.assertRaises(ValueError):
             core.build_outputs(self.rep, approve=["installer"])
-        files = core.build_outputs(self.rep, approve=["installer"], allow_deny=True)
+        with self.assertRaises(ValueError):  # deny override also needs a reason
+            core.build_outputs(self.rep, approve=["installer"], allow_deny=True)
+        files = core.build_outputs(self.rep, approve=["installer"], allow_deny=True,
+                                   reasons={"installer": "vendored installer reviewed by secops"})
         self.assertIn("override of 'deny'", files["decisions.md"])
 
     def test_unknown_name(self):
@@ -221,7 +227,8 @@ class TestBuild(unittest.TestCase):
             buf = io.StringIO()
             with contextlib.redirect_stdout(buf):
                 self.assertEqual(cli.main(["evaluate", os.path.join(FX, "mixed.mcp.json"), "--index", INDEX, "--json", rp]), 0)
-                self.assertEqual(cli.main(["build", rp, "--approve", "filesystem,foo", "--out-dir", os.path.join(d, "o"), "--by", "cli"]), 0)
+                self.assertEqual(cli.main(["build", rp, "--approve", "filesystem,foo", "--out-dir", os.path.join(d, "o"), "--by", "cli",
+                                           "--reason", "foo=pinned internally via proxy"]), 0)
             out = buf.getvalue()
             self.assertIn("installer", out)
             mm = json.loads(read(os.path.join(d, "o", "managed-mcp.json")))
@@ -242,7 +249,8 @@ class TestWording(unittest.TestCase):
             assert_wording(self, core.format_table(r), "table")
             for i in r["items"]:
                 self.assertRegex(i["verdict"], r"pattern|パターン")
-            files = core.build_outputs(r, approve=[i["name"] for i in r["items"]], allow_deny=True)
+            files = core.build_outputs(r, approve=[i["name"] for i in r["items"]], allow_deny=True,
+                                       reasons={i["name"]: "accepted in test" for i in r["items"]})
             for n, t in files.items():
                 assert_wording(self, t, n)
         assert_wording(self, web.PAGE, "web page")

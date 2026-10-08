@@ -6,6 +6,7 @@
       "packages": ["npm:@modelcontextprotocol/server-filesystem", "npm:@modelcontextprotocol/server-github", "pypi:mcp-server-fetch"],
       "commit": "0123456789abcdef0123456789abcdef01234567",
       "license": "MIT",
+      "provenance": {"repo_matches_package": true},
       "files": 812,
       "findings": [
         {"rule": "ATL-CE-001", "sev": "medium", "file": "src/git/server.py", "line": 41, "snippet": "subprocess.run(cmd, shell=True)", "ctx": "src", "title": "Shell command execution"},
