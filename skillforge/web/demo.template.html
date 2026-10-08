@@ -1,0 +1,657 @@
+<title>Yuragi 台本チェッカー</title>
+<style>
+@import url("https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap");
+/* Tokens: paper + ink for the page, 藍 (indigo) for interaction, 朱 red-pen / ochre / slate for severity only. */
+/* Layout: one centered .wrap (gutter via padding-inline) → header, input grid (script | glossary), options bar, results (filters → grouped findings → packets), footer. */
+:root {
+  --bg: #f1f1ee;
+  --surface: #ffffff;
+  --surface-2: #e8e8e4;
+  --ink: #16171b;
+  --ink-2: #464851;
+  --ink-3: #686a73;
+  --rule: #d3d2cc;
+  --rule-strong: #16171b;
+  --accent: #2a4a8a;
+  --accent-hover: #1f3a70;
+  --accent-ink: #ffffff;
+  --accent-soft: #e2e8f4;
+  --err: #b8261a;
+  --err-soft: #fae6e2;
+  --warn: #835600;
+  --warn-soft: #f6ead0;
+  --info: #3a5f6b;
+  --info-soft: #e0ebee;
+  --focus: #2a4a8a;
+  --font-ui: "BIZ UDPGothic", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Meiryo", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, "BIZ UDGothic", monospace;
+  --radius: 3px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111215; --surface: #191b20; --surface-2: #23252c; --ink: #e7e7e4; --ink-2: #b4b6be; --ink-3: #8f929b;
+    --rule: #34373f; --rule-strong: #e7e7e4; --accent: #93acee; --accent-hover: #b0c3f5; --accent-ink: #0c1222; --accent-soft: #1e2943;
+    --err: #ff7f6e; --err-soft: #3a1b17; --warn: #e5b44f; --warn-soft: #33280f; --info: #85c2d1; --info-soft: #15292e; --focus: #93acee;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111215; --surface: #191b20; --surface-2: #23252c; --ink: #e7e7e4; --ink-2: #b4b6be; --ink-3: #8f929b;
+  --rule: #34373f; --rule-strong: #e7e7e4; --accent: #93acee; --accent-hover: #b0c3f5; --accent-ink: #0c1222; --accent-soft: #1e2943;
+  --err: #ff7f6e; --err-soft: #3a1b17; --warn: #e5b44f; --warn-soft: #33280f; --info: #85c2d1; --info-soft: #15292e; --focus: #93acee;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-ui); font-size: 15px; line-height: 1.6; }
+.wrap { max-width: 1120px; margin-inline: auto; padding-inline: clamp(16px, 4vw, 32px); padding-block: 0 48px; }
+code, .mono { font-family: var(--font-mono); font-size: 0.86em; }
+.num { font-variant-numeric: tabular-nums; }
+.en { color: var(--ink-3); font-size: 0.78em; font-weight: 400; letter-spacing: 0.01em; }
+p { margin: 0; }
+h1, h2, h3, h4 { margin: 0; line-height: 1.3; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* Header: manuscript double rule */
+.mast { padding-block: 28px 16px; border-bottom: 3px double var(--rule-strong); display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: flex-end; justify-content: space-between; }
+.mast > * { min-width: 0; }
+.mast h1 { font-size: 26px; font-weight: 700; letter-spacing: 0.02em; }
+.mast h1 small { font-size: 13px; font-weight: 400; color: var(--ink-3); margin-left: 6px; }
+.mast .lede { color: var(--ink-2); font-size: 14px; margin-top: 4px; }
+.samples { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+/* Buttons */
+button, .btn { font: inherit; font-size: 14px; cursor: pointer; border-radius: var(--radius); border: 1px solid var(--rule); background: var(--surface); color: var(--ink); padding: 7px 12px; line-height: 1.3; }
+button:hover { border-color: var(--ink-3); }
+.btn-primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 700; }
+.btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+.btn-quiet { background: transparent; border-color: transparent; color: var(--accent); padding: 4px 6px; text-decoration: underline; text-underline-offset: 3px; }
+.btn-quiet:hover { border-color: transparent; color: var(--accent-hover); }
+.btn-small { font-size: 13px; padding: 5px 9px; }
+
+/* Inputs */
+.inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 20px; margin-top: 24px; }
+.panel { min-width: 0; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.panel.drag { outline: 2px dashed var(--accent); outline-offset: -6px; }
+.panel h2 { font-size: 16px; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.panel .hint { font-size: 13px; color: var(--ink-3); }
+label { font-size: 13px; color: var(--ink-2); }
+textarea, input[type="text"], select { font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--rule); border-radius: var(--radius); padding: 7px 9px; width: 100%; min-width: 0; }
+textarea { font-family: var(--font-mono); font-size: 12.5px; line-height: 1.55; min-height: 150px; resize: vertical; }
+input[type="file"] { font: inherit; font-size: 13px; color: var(--ink-2); max-width: 100%; }
+input[type="file"]::file-selector-button { font: inherit; font-size: 13px; margin-right: 10px; border: 1px solid var(--rule); background: var(--surface-2); color: var(--ink); border-radius: var(--radius); padding: 5px 10px; cursor: pointer; }
+.field-row { display: flex; flex-wrap: wrap; gap: 10px; }
+.field-row > .field { flex: 1 1 160px; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.files { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.files li { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; padding: 5px 8px; background: var(--surface-2); border-radius: var(--radius); }
+.files li .name { font-family: var(--font-mono); font-weight: 600; overflow-wrap: anywhere; min-width: 0; flex: 1 1 auto; }
+.files li .meta { color: var(--ink-3); }
+
+.runbar { margin-top: 16px; display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; padding: 12px 16px; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); }
+.runbar .opts { display: flex; flex-wrap: wrap; gap: 8px 20px; flex: 1 1 320px; min-width: 0; }
+.run-status { font-size: 13px; color: var(--ink-2); min-width: 0; overflow-wrap: anywhere; }
+.run-status a { color: var(--accent); text-underline-offset: 3px; }
+.run-status:empty { display: none; }
+.check { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; color: var(--ink); cursor: pointer; }
+.check input { margin-top: 4px; accent-color: var(--accent); width: 16px; height: 16px; flex: none; }
+
+/* Errors */
+.errors { margin-top: 16px; border-left: 4px solid var(--err); background: var(--err-soft); padding: 10px 14px; border-radius: 0 var(--radius) var(--radius) 0; }
+.errors[hidden] { display: none; }
+.errors h3 { font-size: 14px; color: var(--err); margin-bottom: 4px; }
+.errors ul { margin: 0; padding-left: 18px; font-size: 14px; }
+.errors li { overflow-wrap: anywhere; }
+.errors.soft { border-left-color: var(--warn); background: var(--warn-soft); }
+.errors.soft h3 { color: var(--warn); }
+
+/* Results */
+.results { margin-top: 32px; scroll-margin-top: 12px; }
+.results:focus { outline: none; }
+.res-head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; padding-bottom: 10px; border-bottom: 1px solid var(--rule-strong); }
+.res-head > * { min-width: 0; }
+.res-head h2 { font-size: 20px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.badge-sample { font-size: 12px; font-weight: 700; letter-spacing: 0.04em; border: 1.5px solid var(--err); color: var(--err); padding: 1px 7px; border-radius: 2px; transform: rotate(-2deg); display: inline-block; }
+.res-meta { font-size: 13px; color: var(--ink-2); margin-top: 8px; overflow-wrap: anywhere; }
+.copy-status { font-size: 13px; color: var(--ink-2); }
+.copy-status:empty { display: none; }
+#md-fallback { margin-top: 8px; min-height: 120px; }
+
+.summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 12px 24px; margin-top: 14px; }
+.summary > * { min-width: 0; }
+.filter-label { font-size: 12px; color: var(--ink-3); margin-bottom: 6px; letter-spacing: 0.04em; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { display: inline-flex; align-items: baseline; gap: 6px; font-size: 13px; padding: 5px 10px; border-radius: 2px; background: var(--surface); border: 1px solid var(--rule); color: var(--ink); }
+.chip .n { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-weight: 600; }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.chip[aria-pressed="true"] .en { color: inherit; opacity: 0.75; }
+.chip.zero .n { opacity: 0.5; }
+.chip.sev-error[aria-pressed="true"] { background: var(--err); border-color: var(--err); color: var(--surface); }
+.chip.sev-warning[aria-pressed="true"] { background: var(--warn); border-color: var(--warn); color: var(--surface); }
+.chip.sev-info[aria-pressed="true"] { background: var(--info); border-color: var(--info); color: var(--surface); }
+.chip.sev-error .n { color: var(--err); }
+.chip.sev-warning .n { color: var(--warn); }
+.chip.sev-info .n { color: var(--info); }
+.chip[aria-pressed="true"] .n { color: inherit; }
+
+.cat { margin-top: 28px; }
+.cat > h3 { font-size: 17px; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; padding-bottom: 6px; border-bottom: 1px solid var(--rule); }
+.cat > h3 .n { font-family: var(--font-mono); font-size: 13px; color: var(--ink-3); font-weight: 400; }
+.group { margin-top: 14px; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); }
+.group-head { padding: 10px 14px; border-bottom: 1px solid var(--rule); display: flex; flex-direction: column; gap: 6px; }
+.group-head h4 { font-size: 15px; overflow-wrap: anywhere; }
+.usage { display: flex; flex-wrap: wrap; gap: 4px 6px; align-items: baseline; font-size: 13px; }
+.usage .lbl { color: var(--ink-3); font-size: 12px; margin-right: 2px; }
+.usage .u { font-family: var(--font-mono); font-size: 12.5px; padding: 1px 6px; border-radius: 2px; background: var(--surface-2); overflow-wrap: anywhere; }
+.usage .u.minor { background: var(--err-soft); color: var(--err); }
+.usage .u b { font-variant-numeric: tabular-nums; }
+
+.flist { list-style: none; margin: 0; padding: 0; }
+.f { padding: 12px 14px; border-top: 1px solid var(--rule); display: grid; gap: 6px; min-width: 0; }
+.f:first-child { border-top: 0; }
+.f > * { min-width: 0; }
+.f-head { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; font-size: 13px; }
+.ref { font-weight: 600; color: var(--ink); overflow-wrap: anywhere; }
+.fid { color: var(--ink-3); overflow-wrap: anywhere; }
+.side { color: var(--ink-3); font-size: 12px; }
+.pill { font-size: 11.5px; font-weight: 700; padding: 1px 7px; border-radius: 2px; border: 1px solid currentColor; letter-spacing: 0.03em; }
+.pill.error { color: var(--err); background: var(--err-soft); }
+.pill.warning { color: var(--warn); background: var(--warn-soft); }
+.pill.info { color: var(--info); background: var(--info-soft); }
+.msg { font-size: 14px; overflow-wrap: anywhere; }
+.fix { font-size: 13px; display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline; }
+.fix .k { color: var(--ink-3); font-size: 12px; }
+.fix del { color: var(--err); text-decoration: line-through; text-decoration-thickness: 1.5px; font-family: var(--font-mono); overflow-wrap: anywhere; }
+.fix ins { text-decoration: none; font-family: var(--font-mono); font-weight: 600; border-bottom: 1.5px solid var(--err); overflow-wrap: anywhere; }
+.fix .arrow { color: var(--err); }
+.lines { margin: 2px 0 0; display: grid; gap: 2px; font-size: 14px; }
+.lines > div { display: grid; grid-template-columns: 5.5em minmax(0, 1fr); gap: 10px; padding: 4px 8px; background: var(--bg); border-radius: 2px; }
+.lines > div.is-side { box-shadow: inset 3px 0 0 var(--err); }
+.lines dt { font-size: 12px; color: var(--ink-3); padding-top: 2px; }
+.lines dd { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; min-width: 0; }
+.lines mark { background: transparent; color: inherit; text-decoration: underline wavy var(--err); text-decoration-thickness: 1.5px; text-underline-offset: 3px; text-decoration-skip-ink: none; }
+.speaker { color: var(--ink-2); font-size: 12px; }
+.empty { margin-top: 24px; padding: 20px; text-align: center; color: var(--ink-2); border: 1px dashed var(--rule); border-radius: var(--radius); }
+
+details.packets { margin-top: 32px; border-top: 1px solid var(--rule-strong); padding-top: 12px; }
+details.packets > summary { cursor: pointer; font-size: 17px; font-weight: 700; padding: 4px 0; }
+details.packets > summary .n { font-family: var(--font-mono); font-size: 13px; color: var(--ink-3); font-weight: 400; }
+.packets-intro { font-size: 14px; color: var(--ink-2); margin: 8px 0 12px; display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
+.packets-intro p { flex: 1 1 280px; min-width: 0; }
+.packet { margin-top: 10px; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); }
+.packet > summary { cursor: pointer; padding: 10px 14px; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+.packet > summary .kind { font-size: 12px; font-weight: 700; color: var(--accent); border: 1px solid var(--accent); border-radius: 2px; padding: 0 6px; }
+.packet > summary .subj { font-weight: 700; overflow-wrap: anywhere; }
+.packet-body { padding: 0 14px 12px; display: grid; gap: 8px; }
+.packet-body .instr { font-size: 13px; color: var(--ink-2); overflow-wrap: anywhere; }
+.packet-body ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.packet-body li { display: grid; gap: 2px; font-size: 13.5px; padding: 6px 8px; background: var(--bg); border-radius: 2px; min-width: 0; }
+.packet-body li > * { overflow-wrap: anywhere; min-width: 0; white-space: pre-wrap; }
+.packet-body li .flag { color: var(--err); font-size: 12.5px; }
+
+footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule); font-size: 13px; color: var(--ink-3); display: grid; gap: 4px; }
+
+@media (prefers-reduced-motion: no-preference) {
+  button, .chip { transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease; }
+}
+@media (max-width: 520px) {
+  .mast h1 { font-size: 22px; }
+  .lines > div { grid-template-columns: 1fr; gap: 0; }
+}
+</style>
+
+<div class="wrap">
+  <header class="mast">
+    <div>
+      <h1>Yuragi<small>（仮称）台本の揺れチェッカー</small></h1>
+      <p class="lede">日英ゲーム台本の訳揺れ・表記揺れ・キャラ名・敬称・口調をまとめて点検します。<span class="en">JA↔EN script consistency checker</span></p>
+    </div>
+    <div class="samples">
+      <button type="button" id="btn-sample-jaen" class="btn-primary">サンプル台本で試す（日→英）</button>
+      <button type="button" id="btn-sample-enja" class="btn-small">英→日 XLIFF サンプル</button>
+    </div>
+  </header>
+
+  <section class="inputs" aria-label="入力">
+    <div class="panel" id="panel-script">
+      <h2>台本 <span class="en">Script</span></h2>
+      <p class="hint">CSV / TSV / JSON / XLIFF。ファイルは複数選択・ドラッグ＆ドロップ可。CSV は ja / en（または source / target）列が必要です。</p>
+      <div class="field">
+        <label for="script-files">ファイルを追加 <span class="en">Add files</span></label>
+        <input type="file" id="script-files" multiple accept=".csv,.tsv,.json,.xlf,.xliff">
+      </div>
+      <ul class="files" id="file-list" aria-label="読み込み済みファイル"></ul>
+      <div class="field">
+        <label for="script-text">または貼り付け <span class="en">or paste</span></label>
+        <textarea id="script-text" spellcheck="false" placeholder="id,speaker,ja,en&#10;ch1_001,リゼット,ようこそ。,Welcome."></textarea>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="script-name">ファイル名（結果の表示用）</label>
+          <input type="text" id="script-name" value="script.csv" spellcheck="false" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="script-format">形式 <span class="en">Format</span></label>
+          <select id="script-format">
+            <option value="auto">自動判定 (auto)</option>
+            <option value="csv">CSV</option>
+            <option value="tsv">TSV</option>
+            <option value="json">JSON</option>
+            <option value="xliff">XLIFF</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-gloss">
+      <h2>用語集・キャラ設定 <span class="en">Glossary (optional)</span></h2>
+      <p class="hint">JSON または CSV。省略しても表記揺れ・話者名・タグ等は検出できますが、訳揺れ・敬称・口調のチェックには用語集が必要です。</p>
+      <div class="field">
+        <label for="gloss-file">ファイルを読み込む <span class="en">Load file</span></label>
+        <input type="file" id="gloss-file" accept=".json,.csv">
+      </div>
+      <div class="field">
+        <label for="gloss-text">内容 <span class="en">Contents</span></label>
+        <textarea id="gloss-text" spellcheck="false" placeholder='{ "terms": [ { "source": "魔導石", "target": "Mana Stone" } ], "characters": [] }'></textarea>
+      </div>
+    </div>
+  </section>
+
+  <div class="runbar">
+    <div class="opts" role="group" aria-label="オプション">
+      <label class="check" for="opt-rules"><input type="checkbox" id="opt-rules" checked><span>追加ルール（プレースホルダー・タグ・ルビ・文字数）<span class="en"> bonus rules</span></span></label>
+      <label class="check" for="opt-wide"><input type="checkbox" id="opt-wide"><span>全角を2文字として数える<span class="en"> wide = 2</span></span></label>
+    </div>
+    <p class="run-status" id="run-status" role="status"></p>
+    <button type="button" id="btn-run" class="btn-primary">チェック実行 <span class="sr-only">Run checks</span></button>
+  </div>
+
+  <div class="errors" id="errors" role="alert" hidden></div>
+
+  <section class="results" id="results" tabindex="-1" aria-label="チェック結果"></section>
+
+  <footer>
+    <p>すべての処理はこのブラウザ内で行われます。台本や用語集はどこにもアップロードされません。<span class="en">Everything runs in your browser; nothing is uploaded.</span></p>
+    <p>Yuragi（仮称） — 作業名です。チェック結果のメッセージは現在英語のみです。</p>
+  </footer>
+</div>
+
+<!--YURAGI_ENGINE-->
+<script>
+(function () {
+  "use strict";
+  const SAMPLES = /*YURAGI_SAMPLES*/null;
+  const $ = (id) => document.getElementById(id);
+  const ESC = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ESC[c]);
+
+  const CAT_ORDER = ["term", "notation", "name", "honorific", "voice", "placeholder", "tag", "ruby", "length"];
+  const CAT_TITLE = {
+    term: ["用語の訳揺れ", "Glossary term drift"], notation: ["表記揺れ", "Katakana notation"], name: ["キャラ名の揺れ", "Character names"],
+    honorific: ["敬称の揺れ", "Honorifics"], voice: ["口調の揺れ", "Voice"], placeholder: ["プレースホルダー", "Placeholders"],
+    tag: ["タグ", "Tags"], ruby: ["ルビ", "Ruby"], length: ["文字数制限", "Length limits"],
+  };
+  const FILTERS = [
+    { key: "all", ja: "すべて", en: "all", cats: CAT_ORDER },
+    { key: "term", ja: "訳揺れ", en: "term", cats: ["term"] },
+    { key: "notation", ja: "表記揺れ", en: "notation", cats: ["notation"] },
+    { key: "name", ja: "キャラ名", en: "name", cats: ["name"] },
+    { key: "honorific", ja: "敬称", en: "honorific", cats: ["honorific"] },
+    { key: "voice", ja: "口調", en: "voice", cats: ["voice"] },
+    { key: "other", ja: "その他", en: "tags etc.", cats: ["placeholder", "tag", "ruby", "length"] },
+  ];
+  const SEV = { error: ["エラー", "error"], warning: ["警告", "warning"], info: ["参考", "info"] };
+  const SEV_ORDER = ["error", "warning", "info"];
+  const LANG = { ja: "JA", en: "EN" };
+  const KIND = { voice: "口調", "unglossaried-term": "未登録用語" };
+
+  const state = {
+    files: [], // {name, text, format}
+    sampleKey: null, dirty: false,
+    result: null, md: "", rows: new Map(), tableByFile: new Map(),
+    isSample: null, cat: "all", sev: { error: true, warning: true, info: true },
+  };
+
+  // ---------- input helpers ----------
+  async function readFileText(file) {
+    const buf = await file.arrayBuffer();
+    try { return new TextDecoder("utf-8", { fatal: true }).decode(buf); }
+    catch (_) {
+      try { return new TextDecoder("shift_jis").decode(buf); } catch (_) { return new TextDecoder("utf-8").decode(buf); }
+    }
+  }
+  function uniqueName(name) {
+    const taken = new Set(state.files.map((f) => f.name));
+    if (!taken.has(name)) return name;
+    const m = name.match(/^(.*?)(\.[^.]*)?$/);
+    for (let i = 2; ; i++) { const n = `${m[1]}-${i}${m[2] || ""}`; if (!taken.has(n)) return n; }
+  }
+  function markDirty() { state.dirty = true; }
+
+  function renderFileList() {
+    const ul = $("file-list");
+    ul.innerHTML = state.files.map((f, i) => `
+      <li><span class="name">${esc(f.name)}</span><span class="meta num">${esc(fmtSize(f.text.length))}</span>
+        <button type="button" class="btn-quiet btn-small" id="file-edit-${i}" data-edit="${i}">編集</button>
+        <button type="button" class="btn-quiet btn-small" id="file-del-${i}" data-del="${i}" aria-label="${esc(f.name)} を外す">外す</button></li>`).join("");
+  }
+  function fmtSize(n) { return n < 1024 ? `${n} 文字` : `${(n / 1024).toFixed(1)}k 文字`; }
+
+  async function addFiles(fileList) {
+    for (const file of fileList) {
+      const text = await readFileText(file);
+      state.files.push({ name: uniqueName(file.name), text, format: "auto" });
+    }
+    markDirty();
+    renderFileList();
+  }
+
+  function sniffPasted(name, text) {
+    const head = text.trimStart();
+    if (head.startsWith("<")) return "xliff";
+    if (head.startsWith("{") || head.startsWith("[")) return "json";
+    const first = head.split(/\r?\n/, 1)[0] || "";
+    if (first.includes("\t") && !first.includes(",")) return "tsv";
+    const byName = Yuragi.detectFormat(name, "");
+    return byName === "tsv" ? "tsv" : "csv";
+  }
+
+  // ---------- run ----------
+  function showErrors(list, soft) {
+    const box = $("errors");
+    if (!soft) $("run-status").textContent = "";
+    if (!list.length) { box.hidden = true; box.innerHTML = ""; return; }
+    box.className = "errors" + (soft ? " soft" : "");
+    box.innerHTML = `<h3>${soft ? "一部の入力を読み込めませんでした（他のファイルでチェックを続行）" : "入力を確認してください"}</h3>
+      <ul>${list.map((e) => `<li><strong>${esc(e.where)}</strong>：${esc(e.msg)}</li>`).join("")}</ul>`;
+    box.hidden = false;
+  }
+
+  function run() {
+    if (typeof Yuragi === "undefined") {
+      showErrors([{ where: "エンジン", msg: "チェックエンジンが組み込まれていません。web/build-demo.mjs でビルドしたHTMLを開いてください。" }]);
+      return;
+    }
+    const errors = [];
+    const inputs = state.files.map((f) => ({ ...f }));
+    const pasted = $("script-text").value;
+    if (pasted.trim()) {
+      let name = $("script-name").value.trim() || "script.csv";
+      if (inputs.some((f) => f.name === name)) name = "(貼り付け) " + name;
+      inputs.push({ name, text: pasted, format: $("script-format").value, pasted: true });
+    }
+    if (!inputs.length) {
+      showErrors([{ where: "台本", msg: "台本が空です。テキストを貼り付けるか、ファイルを追加してください。" }]);
+      $("results").innerHTML = "";
+      return;
+    }
+    const tables = [];
+    for (const inp of inputs) {
+      try {
+        let format = inp.format;
+        if (format === "auto") format = inp.pasted ? sniffPasted(inp.name, inp.text) : Yuragi.detectFormat(inp.name, inp.text);
+        const t = Yuragi.parseTable(inp.text, inp.name, { format });
+        if (!t.rows.length) throw new Error("翻訳行が1行も見つかりませんでした。形式や列名を確認してください。");
+        tables.push(t);
+      } catch (e) {
+        errors.push({ where: inp.name, msg: (e && e.message) || String(e) });
+      }
+    }
+    let glossary = Yuragi.EMPTY_GLOSSARY;
+    const gtext = $("gloss-text").value;
+    let glossError = false;
+    if (gtext.trim()) {
+      const head = gtext.trimStart();
+      const gname = head.startsWith("{") || head.startsWith("[") ? "glossary.json" : "glossary.csv";
+      try { glossary = Yuragi.parseGlossary(gtext, gname); }
+      catch (e) { glossError = true; errors.push({ where: "用語集 " + gname, msg: (e && e.message) || String(e) }); }
+    }
+    if (glossError || !tables.length) {
+      showErrors(errors);
+      $("results").innerHTML = "";
+      state.result = null;
+      return;
+    }
+    let result;
+    try {
+      result = Yuragi.runChecks(tables, glossary, { rules: $("opt-rules").checked, wideAsTwo: $("opt-wide").checked });
+    } catch (e) {
+      errors.push({ where: "チェック", msg: (e && e.message) || String(e) });
+      showErrors(errors);
+      return;
+    }
+    showErrors(errors, true);
+    state.result = result;
+    state.md = Yuragi.renderMarkdown(result);
+    state.rows = new Map();
+    state.tableByFile = new Map();
+    for (const t of tables) {
+      state.tableByFile.set(t.file, t);
+      for (const r of t.rows) state.rows.set(t.file + "\u0000" + r.line, r);
+    }
+    state.isSample = state.sampleKey && !state.dirty ? state.sampleKey : null;
+    state.cat = "all";
+    state.sev = { error: true, warning: true, info: true };
+    renderResults();
+    const n = result.findings.length;
+    $("run-status").innerHTML = `${state.isSample ? "サンプルを実行しました：" : "チェック完了："}<span class="num">${n}</span>件の指摘 · <a href="#results" id="jump-results">結果を見る ↓</a>`;
+  }
+
+  // ---------- rendering ----------
+  function highlight(text, needle) {
+    text = String(text == null ? "" : text);
+    if (!needle) return esc(text);
+    let i = text.indexOf(needle);
+    if (i < 0) i = text.toLowerCase().indexOf(String(needle).toLowerCase());
+    if (i < 0) return esc(text);
+    return esc(text.slice(0, i)) + "<mark>" + esc(text.slice(i, i + needle.length)) + "</mark>" + esc(text.slice(i + needle.length));
+  }
+
+  function usageFor(cat, group) {
+    if (!group) return [];
+    return state.result.usage.filter((u) => u.category === cat && Object.keys(u.counts).length > 1 &&
+      (u.group === group || u.group.startsWith(group + ":") || u.group.startsWith(group + " (")));
+  }
+  function usageHtml(u, group) {
+    const entries = Object.entries(u.counts).filter(([, n]) => n > 0).sort((a, b) => b[1] - a[1]);
+    if (entries.length < 2) return "";
+    const suffix = u.group === group ? "" : u.group.slice(group.length).replace(/^[:\s]+/, "");
+    return `<div class="usage"><span class="lbl">使用状況${suffix ? "（" + esc(suffix) + "）" : ""}</span>${entries.map(([k, n], i) =>
+      `<span class="u${i > 0 ? " minor" : ""}">${esc(k)} <b>×${n}</b></span>`).join("")}</div>`;
+  }
+
+  function findingHtml(f) {
+    const row = state.rows.get(f.file + "\u0000" + f.line);
+    const table = state.tableByFile.get(f.file);
+    const sl = table ? LANG[table.sourceLang] || table.sourceLang : "";
+    const tl = table ? LANG[table.targetLang] || table.targetLang : "";
+    const mark = f.category === "length" ? "" : f.found;
+    let fix = "";
+    if (f.found || f.expected) {
+      fix = `<p class="fix">${f.found ? `<span class="k">検出</span><del>${esc(f.found)}</del>` : ""}${f.found && f.expected ? `<span class="arrow" aria-hidden="true">→</span>` : ""}${f.expected ? `<span class="k">${f.found ? "" : "期待"}</span><ins>${esc(f.expected)}</ins>` : ""}</p>`;
+    }
+    let lines = "";
+    if (row) {
+      lines = `<dl class="lines">
+        <div class="${f.side === "source" ? "is-side" : ""}"><dt>原文 ${esc(sl)}${row.speaker ? `<br><span class="speaker">${esc(row.speaker)}</span>` : ""}</dt><dd>${f.side === "source" ? highlight(row.source, mark) : esc(row.source)}</dd></div>
+        <div class="${f.side === "target" ? "is-side" : ""}"><dt>訳文 ${esc(tl)}</dt><dd>${f.side === "target" ? highlight(row.target, mark) : esc(row.target)}</dd></div>
+      </dl>`;
+    }
+    return `<li class="f">
+      <div class="f-head"><span class="pill ${esc(f.severity)}">${esc((SEV[f.severity] || [f.severity])[0])}</span><code class="ref">${esc(f.file)}:${esc(f.line)}</code><code class="fid">${esc(f.id)}</code><span class="side">${f.side === "source" ? "原文側" : "訳文側"} · <span class="mono">${esc(f.rule)}</span></span></div>
+      <p class="msg">${esc(f.message)}</p>${fix}${lines}</li>`;
+  }
+
+  function renderResults() {
+    const r = state.result;
+    const el = $("results");
+    if (!r) { el.innerHTML = ""; return; }
+    const all = r.findings;
+    const sevCount = (s) => all.filter((f) => f.severity === s).length;
+    const catCount = (cats) => all.filter((f) => cats.includes(f.category)).length;
+    const activeCats = FILTERS.find((x) => x.key === state.cat).cats;
+    const shown = all.filter((f) => activeCats.includes(f.category) && state.sev[f.severity]);
+
+    const meta = r.tables.map((t) => `<span class="mono">${esc(t.file)}</span> ${esc(String(t.format).toUpperCase())} <span class="num">${t.rows}</span>行 ${esc(t.sourceLang)}→${esc(t.targetLang)}`).join(" ／ ")
+      + ` ／ 用語集 <span class="num">${r.glossary.terms}</span>語・キャラ <span class="num">${r.glossary.characters}</span>人`;
+
+    let html = `<div class="res-head">
+      <div><h2>チェック結果 <span class="en">Results</span>${state.isSample ? `<span class="badge-sample">サンプル${state.isSample === "ja-en" ? "（日→英）" : "（英→日）"}</span>` : ""}</h2></div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="copy-status" id="copy-status" role="status"></span><button type="button" id="btn-copy-md">Markdown をコピー</button></div>
+    </div>
+    <p class="res-meta">${meta}</p>
+    <textarea id="md-fallback" readonly hidden aria-label="Markdown レポート"></textarea>
+    <div class="summary">
+      <div><div class="filter-label" id="lbl-sev">重要度 <span class="en">severity · 合計 ${all.length}件</span></div>
+        <div class="chips" role="group" aria-labelledby="lbl-sev">${SEV_ORDER.map((s) => {
+          const n = sevCount(s);
+          return `<button type="button" class="chip sev-${s}${n ? "" : " zero"}" id="sev-${s}" data-sev="${s}" aria-pressed="${state.sev[s]}">${SEV[s][0]} <span class="n">${n}</span></button>`;
+        }).join("")}</div></div>
+      <div><div class="filter-label" id="lbl-cat">分類 <span class="en">category</span></div>
+        <div class="chips" role="group" aria-labelledby="lbl-cat">${FILTERS.map((c) => {
+          const n = catCount(c.cats);
+          return `<button type="button" class="chip${n ? "" : " zero"}" id="cat-${c.key}" data-cat="${c.key}" aria-pressed="${state.cat === c.key}">${c.ja} <span class="en">${c.en}</span> <span class="n">${n}</span></button>`;
+        }).join("")}</div></div>
+    </div>`;
+
+    if (!all.length) {
+      html += `<p class="empty">揺れは見つかりませんでした。 <span class="en">No issues found.</span></p>`;
+    } else if (!shown.length) {
+      html += `<p class="empty">この絞り込みに該当する指摘はありません。</p>`;
+    } else {
+      for (const cat of CAT_ORDER) {
+        const fs = shown.filter((f) => f.category === cat);
+        if (!fs.length) continue;
+        const groups = new Map();
+        for (const f of fs) { const g = f.group || ""; if (!groups.has(g)) groups.set(g, []); groups.get(g).push(f); }
+        html += `<section class="cat" aria-labelledby="cat-h-${cat}"><h3 id="cat-h-${cat}">${CAT_TITLE[cat][0]} <span class="en">${CAT_TITLE[cat][1]}</span> <span class="n">${fs.length}件</span></h3>`;
+        for (const [g, list] of groups) {
+          const usages = usageFor(cat, g).map((u) => usageHtml(u, g)).join("");
+          html += `<div class="group">${g || usages ? `<div class="group-head">${g ? `<h4>${esc(g)}</h4>` : ""}${usages}</div>` : ""}
+            <ul class="flist">${list.map(findingHtml).join("")}</ul></div>`;
+        }
+        html += `</section>`;
+      }
+    }
+
+    const packets = r.reviewPackets || [];
+    if (packets.length) {
+      html += `<details class="packets" id="packets"><summary>要判断パケット <span class="en">Review packets</span> <span class="n">${packets.length}件</span></summary>
+        <div class="packets-intro"><p>ルールだけでは判断できない行（口調・用語集にない頻出語）をまとめたものです。AIアシスタントや校正担当に渡して確認してください。</p>
+        <button type="button" class="btn-small" id="btn-copy-packets">パケットを JSON でコピー</button></div>
+        ${packets.map((p, i) => `<details class="packet" id="packet-${i}"><summary><span class="kind">${esc(KIND[p.kind] || p.kind)}</span><span class="subj">${esc(p.subject)}</span><span class="en num">${p.lines.length}行</span></summary>
+          <div class="packet-body"><p class="instr">${esc(p.instructions)}</p>
+          <ol>${p.lines.map((l) => `<li><span><code class="ref">${esc(l.ref)}</code> <code class="fid">${esc(l.id)}</code>${l.speaker ? ` <span class="speaker">${esc(l.speaker)}</span>` : ""}</span>
+            <span>${esc(l.source)}</span><span>${esc(l.target)}</span>${l.flagged ? `<span class="flag">${esc(l.flagged)}</span>` : ""}</li>`).join("")}</ol></div></details>`).join("")}
+      </details>`;
+    }
+    el.innerHTML = html;
+  }
+
+  // ---------- copy ----------
+  async function copyText(text, label) {
+    const status = $("copy-status");
+    const fb = $("md-fallback");
+    try {
+      if (!navigator.clipboard || !navigator.clipboard.writeText) throw new Error("no clipboard");
+      await navigator.clipboard.writeText(text);
+      fb.hidden = true;
+      if (status) status.textContent = label + "をコピーしました。";
+    } catch (_) {
+      fb.value = text;
+      fb.hidden = false;
+      fb.focus();
+      fb.select();
+      if (status) status.textContent = "自動コピーできませんでした。下のテキストを選択済みです（Ctrl+C / ⌘C でコピー）。";
+    }
+  }
+
+  // ---------- samples ----------
+  function loadSample(key) {
+    if (!SAMPLES || !SAMPLES[key]) {
+      showErrors([{ where: "サンプル", msg: "サンプルが組み込まれていません。web/build-demo.mjs でビルドしたHTMLを開いてください。" }]);
+      return;
+    }
+    const s = SAMPLES[key];
+    state.files = [s.script, s.script2].filter(Boolean).map((f) => ({ name: f.name, text: f.text, format: "auto" }));
+    $("script-text").value = "";
+    $("script-name").value = "script.csv";
+    $("script-format").value = "auto";
+    $("gloss-text").value = s.glossary ? s.glossary.text : "";
+    renderFileList();
+    state.sampleKey = key;
+    state.dirty = false;
+    run();
+  }
+
+  // ---------- events ----------
+  $("btn-sample-jaen").addEventListener("click", () => loadSample("ja-en"));
+  $("btn-sample-enja").addEventListener("click", () => loadSample("en-ja"));
+  $("btn-run").addEventListener("click", run);
+  $("script-files").addEventListener("change", async (e) => { await addFiles(e.target.files); e.target.value = ""; });
+  $("gloss-file").addEventListener("change", async (e) => {
+    const f = e.target.files[0];
+    if (f) { $("gloss-text").value = await readFileText(f); markDirty(); }
+    e.target.value = "";
+  });
+  for (const id of ["script-text", "script-name", "script-format", "gloss-text"]) $(id).addEventListener("input", markDirty);
+  for (const id of ["opt-rules", "opt-wide"]) $(id).addEventListener("change", () => { if (state.result) { const keep = state.dirty; run(); state.dirty = keep; } });
+
+  $("file-list").addEventListener("click", (e) => {
+    const b = e.target.closest("button");
+    if (!b) return;
+    if (b.dataset.del != null) {
+      state.files.splice(Number(b.dataset.del), 1);
+    } else if (b.dataset.edit != null) {
+      const i = Number(b.dataset.edit);
+      const cur = $("script-text").value;
+      if (cur.trim()) state.files.push({ name: uniqueName($("script-name").value.trim() || "script.csv"), text: cur, format: $("script-format").value });
+      const f = state.files.splice(i, 1)[0];
+      $("script-text").value = f.text;
+      $("script-name").value = f.name;
+      $("script-format").value = "auto";
+      $("script-text").focus();
+    }
+    markDirty();
+    renderFileList();
+  });
+
+  $("run-status").addEventListener("click", (e) => {
+    if (e.target.id !== "jump-results") return;
+    e.preventDefault();
+    const r = $("results");
+    r.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+    r.focus({ preventScroll: true });
+  });
+
+  const panel = $("panel-script");
+  panel.addEventListener("dragover", (e) => { e.preventDefault(); panel.classList.add("drag"); });
+  panel.addEventListener("dragleave", (e) => { if (!panel.contains(e.relatedTarget)) panel.classList.remove("drag"); });
+  panel.addEventListener("drop", async (e) => {
+    e.preventDefault(); panel.classList.remove("drag");
+    if (e.dataTransfer && e.dataTransfer.files.length) await addFiles(e.dataTransfer.files);
+  });
+
+  $("results").addEventListener("click", (e) => {
+    const b = e.target.closest("button");
+    if (!b) return;
+    if (b.id === "btn-copy-md") { copyText(state.md, "Markdown レポート"); return; }
+    if (b.id === "btn-copy-packets") { copyText(JSON.stringify(state.result.reviewPackets, null, 2), "レビューパケット"); return; }
+    if (b.dataset.sev) {
+      state.sev[b.dataset.sev] = !state.sev[b.dataset.sev];
+      if (!SEV_ORDER.some((s) => state.sev[s])) state.sev = { error: true, warning: true, info: true };
+    } else if (b.dataset.cat) {
+      state.cat = b.dataset.cat;
+    } else return;
+    const openPackets = $("packets") && $("packets").open;
+    const focusId = b.id;
+    renderResults();
+    if (openPackets) $("packets").open = true;
+    const nb = $(focusId); if (nb) nb.focus();
+  });
+
+  // Open in a working state: run the JA→EN sample immediately.
+  loadSample("ja-en");
+})();
+</script>
