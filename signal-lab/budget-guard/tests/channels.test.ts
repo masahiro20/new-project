@@ -66,7 +66,7 @@ describe("Slack", () => {
 describe("Vercel Spend Management webhook", () => {
   async function setup(opts: { secret?: string; stopMode?: "test" | "live" } = {}) {
     const kv = createMemoryKV();
-    const { entitlement } = await upsertEntitlement(kv, { id: "dev_hook", email: "a@example.com", plan: "monthly", source: "dev" });
+    const { entitlement } = await upsertEntitlement(kv, { id: "dev_hook", email: "a@example.com", plan: "monthly", source: "demo" });
     const conn = await addConnection(kv, entitlement.id, {
       label: "Vercel prod",
       target: { provider: "vercel", teamId: "team_1", projectIds: ["prj_1"] },

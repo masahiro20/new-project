@@ -6,9 +6,11 @@ Vercel・OpenAI・Anthropic の利用額を毎時取得し、月の予算の **8
 ## 動かす
 ```bash
 npm install
-npm run dev        # 環境変数なしで動く。/pricing → 開発用チェックアウト → /app
+npm run dev        # 環境変数なしで動く。/pricing → デモ決済（カード 4242 4242 4242 4242）→ /app
 npm run typecheck && npm test && npm run build
 ```
+- 決済は `PAYMENTS_MODE` で切り替える。Stripe キーがなければ **demo**（お金は動かない。全ページに「デモ：実際の請求はありません」を表示）。`STRIPE_SECRET_KEY` を入れると、コードを変えずに **stripe** になる。詳しくは [docs/demo-payments.md](docs/demo-payments.md)。
+- 本番ビルドでデモを見せる：`npm run build && PAYMENTS_MODE=demo ACCESS_SECRET=<32文字以上> npm start`（Upstash なしならメモリ上の KV。再起動で消える）
 連携追加でトークンに `demo` と入れると、外部APIを呼ばずに固定データで動く（開発時のみ。本番では拒否）。
 
 ## 構成（テンプレートに足したもの）

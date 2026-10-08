@@ -28,7 +28,7 @@ const ja = {
     refund: "返金条件",
     agree: "購入ボタンを押すと、利用規約とプライバシーポリシーに同意したものとみなします。",
   },
-  buy: { pending: "決済ページへ移動中…", error: "決済ページを開けませんでした。時間をおいて再度お試しください。", dev: "開発モード：Stripe を使わずにアクセスを付与します", canceled: "決済はキャンセルされました。" },
+  buy: { pending: "決済ページへ移動中…", error: "決済ページを開けませんでした。時間をおいて再度お試しください。", demo: "デモ：実際の請求はありません。テストカード 4242 4242 4242 4242 で購入の流れを試せます", canceled: "決済はキャンセルされました。" },
   success: {
     title: "ご購入ありがとうございます",
     notPaid: "お支払いを確認できませんでした。決済が完了している場合は、しばらくしてからこのページを再読み込みしてください。",
@@ -93,7 +93,7 @@ const en: Dict = {
     refund: "Refunds",
     agree: "By purchasing you agree to the Terms and Privacy Policy.",
   },
-  buy: { pending: "Opening checkout…", error: "Couldn't open checkout. Please try again.", dev: "Dev mode: grants access without Stripe", canceled: "Checkout was canceled." },
+  buy: { pending: "Opening checkout…", error: "Couldn't open checkout. Please try again.", demo: "Demo mode: no real charges. Try the flow with test card 4242 4242 4242 4242", canceled: "Checkout was canceled." },
   success: {
     title: "Thanks for your purchase",
     notPaid: "We couldn't confirm your payment yet. If you were charged, reload this page in a moment.",

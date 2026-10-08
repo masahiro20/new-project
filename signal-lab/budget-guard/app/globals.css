@@ -101,3 +101,12 @@ select, input[type="number"], input[type="password"] { font: inherit; padding: 1
 .log li { padding: 6px 0; border-bottom: 1px solid var(--line); }
 .log time { color: var(--muted); font-family: ui-monospace, monospace; }
 .log-stopped, .log-stop-failed { color: #b4232c; }
+
+/* Demo payments banner (PAYMENTS_MODE=demo) */
+.demo-banner { background: #fff4c2; color: #4a3b00; border-bottom: 1px solid #e6cf6a; text-align: center; font-size: .9rem; padding: 6px 16px; line-height: 1.5; }
+.demo-banner span { opacity: .8; margin-left: 6px; }
+.demo-banner.inline { border: 1px solid #e6cf6a; border-radius: var(--radius); margin-bottom: 16px; }
+.card-form { max-width: 420px; }
+.card-form .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.card-form input[aria-invalid="true"] { border-color: var(--warn); }
+.field-err { color: var(--warn); font-size: .85rem; font-weight: 400; }

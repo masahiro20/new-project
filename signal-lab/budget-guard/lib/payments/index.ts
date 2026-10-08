@@ -4,26 +4,57 @@ import { findByLicense, getEntitlement, upsertEntitlement, type Entitlement } fr
 import { t } from "../i18n";
 import { sendMail } from "../mail";
 import type { KV } from "../redis";
-import { isProduction, siteUrl } from "../site";
-import { isCheckoutSessionId, stripeConfigured, stripeProvider } from "../stripe";
-import { devProvider, isDevCheckoutId } from "./dev";
-import type { CompletedCheckout, PaymentProvider } from "./types";
+import { isProduction, siteUrl, warnOnce } from "../site";
+import { demoProvider } from "./demo";
+import { getPaymentsMode, isDemoMode } from "./mode";
+import { stripeProvider } from "./stripe";
+import type { CompletedCheckout, PaymentProvider, PaymentsMode } from "./types";
 
-export type { CompletedCheckout, PaymentProvider } from "./types";
+export type { CompletedCheckout, PaymentProvider, PaymentsMode } from "./types";
+export { getPaymentsMode, isDemoMode, PaymentsConfigError, showDemoBanner, DEMO_BANNER } from "./mode";
 
-/** Dev checkout: no Stripe key, or PAYMENT_DISABLED=true — and never in production. */
-export function devCheckoutEnabled(env: Record<string, string | undefined> = process.env): boolean {
-  if (env.NODE_ENV === "production") return false;
-  return !env.STRIPE_SECRET_KEY || env.PAYMENT_DISABLED === "true";
+type Env = Record<string, string | undefined>;
+
+const PROVIDERS: Record<PaymentsMode, PaymentProvider> = { demo: demoProvider, stripe: stripeProvider };
+
+/**
+ * The provider for new checkouts. The only place that picks one.
+ * Throws PaymentsConfigError when PAYMENTS_MODE is invalid (e.g. stripe without a key).
+ */
+export function getPaymentProvider(env: Env = process.env, providers: Record<PaymentsMode, PaymentProvider> = PROVIDERS): PaymentProvider {
+  const mode = getPaymentsMode(env);
+  if (mode === "demo" && isProduction() && !env.PAYMENTS_MODE) {
+    warnOnce("payments-auto-demo", "[payments] STRIPE_SECRET_KEY is not set — running in DEMO mode (no real charges). Set the Stripe keys to go live.");
+  }
+  return providers[mode];
 }
 
-export function getPaymentProvider(): PaymentProvider {
-  if (devCheckoutEnabled()) return devProvider;
-  if (!stripeConfigured() && isProduction()) throw new Error("STRIPE_SECRET_KEY must be set in production");
-  return stripeProvider;
+/** Like getPaymentsMode but null instead of throwing (for lookups that must not crash every page). */
+function activeMode(env: Env): PaymentsMode | null {
+  try {
+    return getPaymentsMode(env);
+  } catch {
+    return null;
+  }
 }
 
-/** Turn a paid checkout into an entitlement (idempotent). */
+/**
+ * Which provider issued a checkout id — null unless that provider is the active
+ * one. So demo_ ids are refused once billing is live (no free entitlements), and
+ * nothing calls Stripe while in demo mode. Entitlements already in KV still
+ * resolve from KV first (see resolveEntitlement).
+ */
+export function providerForCheckout(id: string, env: Env = process.env): PaymentProvider | null {
+  const provider = Object.values(PROVIDERS).find((p) => p.ownsCheckoutId(id));
+  return provider && provider.name === activeMode(env) ? provider : null;
+}
+
+/** Demo entitlements only count while demo mode is active. */
+export function entitlementUsable(e: Entitlement | null, env: Env = process.env): e is Entitlement {
+  return !!e && (e.source !== "demo" || isDemoMode(env));
+}
+
+/** Turn a paid checkout into an entitlement (idempotent). `source` is the provider's name. */
 export async function fulfillCheckout(kv: KV, checkout: CompletedCheckout, source: Entitlement["source"]) {
   if (!getPlan(checkout.planId)) throw new Error(`unknown plan "${checkout.planId}" on checkout ${checkout.id}`);
   return upsertEntitlement(kv, {
@@ -39,7 +70,7 @@ export async function fulfillCheckout(kv: KV, checkout: CompletedCheckout, sourc
 }
 
 /** Side effects for a brand-new entitlement. Run inside after(). */
-export async function onNewEntitlement(kv: KV, entitlement: Entitlement, provider = getPaymentProvider()): Promise<void> {
+export async function onNewEntitlement(kv: KV, entitlement: Entitlement, provider: PaymentProvider = PROVIDERS[entitlement.source]): Promise<void> {
   const results = await Promise.allSettled([
     sendMail({
       to: entitlement.email,
@@ -52,27 +83,20 @@ export async function onNewEntitlement(kv: KV, entitlement: Entitlement, provide
   for (const r of results) if (r.status === "rejected") console.error("[payments] post-purchase task failed", r.reason);
 }
 
-/** Which provider issued a checkout id — null if that provider isn't active here (e.g. dev_ ids in production). */
-export function providerForCheckout(id: string): PaymentProvider | null {
-  if (isDevCheckoutId(id)) return devCheckoutEnabled() ? devProvider : null;
-  if (isCheckoutSessionId(id)) return stripeConfigured() ? stripeProvider : null;
-  return null;
-}
-
 /** KV first; on a cache miss, ask the provider and re-cache (Stripe is the source of truth). */
 export async function resolveEntitlement(kv: KV, id: string): Promise<Entitlement | null> {
   const cached = await getEntitlement(kv, id);
-  if (cached) return cached;
+  if (cached) return entitlementUsable(cached) ? cached : null;
   const provider = providerForCheckout(id);
   const checkout = provider && (await provider.getCompletedCheckout(id));
   if (!checkout) return null;
-  return (await fulfillCheckout(kv, checkout, provider.name === "dev" ? "dev" : "stripe")).entitlement;
+  return (await fulfillCheckout(kv, checkout, provider.name)).entitlement;
 }
 
 export async function resolveLicense(kv: KV, licenseKey: string): Promise<Entitlement | null> {
   const cached = await findByLicense(kv, licenseKey);
-  if (cached) return cached;
-  if (!stripeConfigured() || devCheckoutEnabled()) return null;
+  if (cached) return entitlementUsable(cached) ? cached : null;
+  if (activeMode(process.env) !== "stripe") return null;
   const id = await stripeProvider.findCheckoutIdByLicense(licenseKey);
   return id ? resolveEntitlement(kv, id) : null;
 }

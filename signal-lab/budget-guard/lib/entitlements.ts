@@ -7,11 +7,11 @@ import { getJSON, key, setJSON, type KV } from "./redis";
 export type EntitlementStatus = "active" | "trialing" | "past_due" | "canceled" | "refunded" | "unpaid";
 
 export type Entitlement = {
-  id: string; // checkout session id (cs_…) or dev_… for dev checkout
+  id: string; // checkout session id (cs_…) or demo_… for demo checkout
   email: string;
   plan: string;
   status: EntitlementStatus;
-  source: "stripe" | "dev";
+  source: "stripe" | "demo"; // = PaymentProvider.name
   licenseKey: string;
   customerId?: string;
   subscriptionId?: string;

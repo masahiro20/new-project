@@ -1,8 +1,12 @@
 import Stripe from "stripe";
-import { config, type Plan } from "./config";
-import type { Entitlement, EntitlementStatus } from "./entitlements";
-import type { CompletedCheckout, PaymentProvider } from "./payments/types";
-import { siteUrl } from "./site";
+import { config, type Plan } from "../config";
+import type { Entitlement, EntitlementStatus } from "../entitlements";
+import { siteUrl } from "../site";
+import type { CompletedCheckout, PaymentProvider } from "./types";
+
+// STRIPE provider (real billing). Selected when getPaymentsMode() === "stripe",
+// i.e. STRIPE_SECRET_KEY is set and PAYMENTS_MODE is unset or "stripe". Assumed
+// to run with test-mode keys (sk_test_…) until the owner switches to live keys.
 
 let stripe: Stripe | null = null;
 export function getStripe(): Stripe {
@@ -91,6 +95,7 @@ export async function getCompletedCheckout(sessionId: string): Promise<Completed
 
 export const stripeProvider: PaymentProvider = {
   name: "stripe",
+  ownsCheckoutId: isCheckoutSessionId,
   createCheckout: createCheckoutUrl,
   getCompletedCheckout,
   async createPortalUrl(entitlement: Entitlement) {

@@ -42,7 +42,7 @@ describe("service with the demo token", () => {
   });
   it("cron skips accounts without an active entitlement", async () => {
     const kv = createMemoryKV();
-    const { entitlement: ent } = await upsertEntitlement(kv, { id: "dev_1", email: "a@example.com", plan: "monthly", source: "dev" });
+    const { entitlement: ent } = await upsertEntitlement(kv, { id: "dev_1", email: "a@example.com", plan: "monthly", source: "demo" });
     await addConnection(kv, ent.id, { label: "A", target, budgetUsd: 10, token: "demo" });
     await addConnection(kv, "dev_lapsed", { label: "B", target, budgetUsd: 10, token: "demo" });
     expect(await checkAll(kv)).toEqual({ accounts: 1, notices: 2 }); // limit + test-mode stop

@@ -1,7 +1,7 @@
 import { after } from "next/server";
 import { processStripeEvent } from "@/lib/payments/stripe-webhook";
 import { getKV } from "@/lib/redis";
-import { getStripe } from "@/lib/stripe";
+import { getStripe } from "@/lib/payments/stripe";
 
 // Node runtime (no `runtime` export). The raw body is needed for signature verification.
 export async function POST(request: Request) {

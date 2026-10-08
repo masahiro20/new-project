@@ -1,5 +1,6 @@
 import { Redis } from "@upstash/redis";
 import { config } from "./config";
+import { isExplicitDemo } from "./payments/mode";
 import { isBuildPhase, isProduction, warnOnce } from "./site";
 
 /**
@@ -176,10 +177,12 @@ export function getKV(): KV {
   if (url && token) {
     globalForKV.__slabKV = createUpstashKV(url, token);
   } else {
-    if (isProduction() && !isBuildPhase()) {
-      throw new Error("UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN must be set in production");
+    // Explicit PAYMENTS_MODE=demo may run in production without Upstash (single
+    // instance only; data is lost on restart). Never in stripe / auto mode.
+    if (isProduction() && !isBuildPhase() && !isExplicitDemo()) {
+      throw new Error("UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN must be set in production (or PAYMENTS_MODE=demo for a throwaway demo)");
     }
-    warnOnce("kv", "[kv] Upstash is not configured — using an in-memory store (data is lost on restart).");
+    warnOnce("kv", "[kv] Upstash is not configured — using an in-memory store (data is lost on restart; not shared between instances).");
     globalForKV.__slabKV = createMemoryKV();
   }
   return globalForKV.__slabKV;

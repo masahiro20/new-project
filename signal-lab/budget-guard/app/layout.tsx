@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { DemoBanner } from "@/components/DemoBanner";
 import { Track } from "@/components/Track";
 import { config } from "@/lib/config";
 import { t } from "@/lib/i18n";
@@ -19,6 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang={config.locale} style={brand}>
       <body>
+        <DemoBanner />
         <header className="site-header">
           <div className="wrap header-inner">
             <Link href="/" className="logo">{config.name}</Link>

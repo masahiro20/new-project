@@ -1,9 +1,12 @@
 import type { Plan } from "../config";
 import type { Entitlement, EntitlementStatus } from "../entitlements";
 
-// Provider boundary. Stripe is the only implementation for now; a Merchant of
-// Record (Lemon Squeezy / Polar) would implement the same interface plus its own
-// webhook route.
+// Provider boundary. Exactly two implementations: `demo` (no money moves, see
+// demo.ts) and `stripe` (stripe.ts). Which one is active is decided by
+// getPaymentsMode() in mode.ts — never by the caller.
+
+/** "demo": in-app fake card page, no external calls. "stripe": real Stripe Checkout. */
+export type PaymentsMode = "demo" | "stripe";
 
 /** A checkout that has been paid, normalised across providers. */
 export type CompletedCheckout = {
@@ -19,8 +22,11 @@ export type CompletedCheckout = {
 };
 
 export interface PaymentProvider {
-  readonly name: "stripe" | "dev";
-  /** Returns the URL to send the buyer to. */
+  /** Also used as Entitlement.source. */
+  readonly name: PaymentsMode;
+  /** Does this id look like one of this provider's checkouts (cs_… / demo_…)? Format check only. */
+  ownsCheckoutId(id: string): boolean;
+  /** Returns the URL to send the buyer to (absolute for Stripe, app-relative for demo). */
   createCheckout(plan: Plan, opts?: { email?: string }): Promise<string>;
   /** null unless `id` is a paid checkout for this product. */
   getCompletedCheckout(id: string): Promise<CompletedCheckout | null>;

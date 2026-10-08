@@ -52,7 +52,7 @@ npm run build
 | `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | 本番 | KV（待機リスト、entitlement、トークン、集計） |
 | `RESEND_API_KEY` / `MAIL_FROM` | 推奨 | ライセンスキー、マジックリンク、待機リストの確認メール |
 | `ADMIN_TOKEN` | 任意 | `GET /api/admin/stats`（`Authorization: Bearer …`）で14日分の集計と待機リスト件数を返す |
-| `PAYMENT_DISABLED` | 任意 | `true` で Stripe キーがあっても開発用チェックアウトを使う（本番では無視） |
+| `PAYMENTS_MODE` | 任意 | `demo` / `stripe` / 未設定（キーの有無で自動）。詳しくは `docs/demo-payments.md` |
 | `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` | 任意 | 複数インスタンス間で Server Action の暗号鍵を固定 |
 
 価格と商品名は環境変数にしません（config に置きます）。
@@ -63,12 +63,12 @@ npm run build
 |---|---|---|
 | Upstash | メモリ上の KV（`createMemoryKV`）。再起動で消えます | リクエスト時にエラー（ビルドは通る） |
 | Resend | メールをコンソールに出力し、直近20通を `devOutbox` に保持 | 警告を出してコンソール出力のみ |
-| Stripe（または `PAYMENT_DISABLED=true`） | **開発用チェックアウト**：Stripe を通さずに購入完了→ライセンス発行→`/app` まで進む。料金ページに「開発モード」と表示 | 無効。Stripe キーが必須 |
+| Stripe（または `PAYMENTS_MODE=demo`） | **デモ決済**：アプリ内のカード入力ページ（4242…）で購入完了→ライセンス発行→`/app` まで進む。全ページに「デモ：実際の請求はありません」と表示 | 同じ（demo は本番でも動く）。`PAYMENTS_MODE=stripe` でキーなしなら起動時エラー |
 | `ACCESS_SECRET` | 固定の開発用シークレット（警告を表示） | エラー |
 
 ## 仕組み
 
-### 決済（`lib/stripe.ts`, `lib/payments/`）
+### 決済（`lib/payments/`。demo / stripe の切り替えは `docs/demo-payments.md`）
 - `POST /api/checkout` が Checkout Session を作成。Stripe 側で商品を事前に作らず `price_data` をインライン指定し、`metadata` に `product`（slug）と `plan` を付けます。買い切りは `customer_creation: "always"`、サブスクは `recurring`。`allow_promotion_codes` 有効
 - `/success` は `cs_…` を retrieve して支払い済みを確認し、Webhook を待たずに entitlement を作成してライセンスキーを表示。「アプリを開く」で `/api/access/verify` に POST して Cookie を付けます（購入後24時間まで）
 - `POST /api/stripe/webhook`：`request.text()` → `constructEvent` で署名検証 → `event.id` を `SET NX EX 7d` で重複排除。entitlement の更新は同期で行い、メール送信などは `after()` に回します。失敗時は event.id の記録を消して 500 を返すので、Stripe の再送で再処理されます
@@ -165,8 +165,8 @@ lib/
   redis.ts               KV インターフェース（Upstash / メモリ）
   access.ts              JWT・マジックリンク（Next 非依存、テスト可能）
   session.ts             requireAccess / getAccess / grantAccess（next/headers を使う）
-  entitlements.ts license.ts mail.ts ratelimit.ts analytics.ts i18n.ts site.ts stripe.ts og.tsx
-  payments/              PaymentProvider 境界、開発用チェックアウト、Webhook 処理
+  entitlements.ts license.ts mail.ts ratelimit.ts analytics.ts i18n.ts site.ts og.tsx
+  payments/              PaymentProvider 境界（mode / demo / stripe）、デモ決済、Webhook 処理
 tests/                   vitest
 ```
 

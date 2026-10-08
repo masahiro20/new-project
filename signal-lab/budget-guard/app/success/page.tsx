@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { after } from "next/server";
+import { DemoBanner } from "@/components/DemoBanner";
+import { getPlan } from "@/lib/config";
 import { isActive } from "@/lib/entitlements";
 import { t } from "@/lib/i18n";
 import { fulfillCheckout, onNewEntitlement, providerForCheckout } from "@/lib/payments";
@@ -29,13 +31,15 @@ export default async function SuccessPage(props: PageProps<"/success">) {
   }
 
   const kv = getKV();
-  const { entitlement, created } = await fulfillCheckout(kv, checkout, provider.name === "dev" ? "dev" : "stripe");
+  const { entitlement, created } = await fulfillCheckout(kv, checkout, provider.name);
   if (created) after(() => onNewEntitlement(kv, entitlement, provider));
 
   return (
     <section>
       <div className="wrap narrow">
+        {provider.name === "demo" && <DemoBanner inline />}
         <h1>{t.success.title}</h1>
+        {provider.name === "demo" && <p className="hint">Plan: {getPlan(entitlement.plan)?.label ?? entitlement.plan}（デモ購入 / demo purchase）</p>}
         {isActive(entitlement) ? (
           <>
             <p>{t.success.key}</p>

@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { trackEvent } from "./Track";
 
-type Props = { planId: string; label: string; pendingLabel: string; errorLabel: string; devNote?: string };
+type Props = { planId: string; label: string; pendingLabel: string; errorLabel: string; note?: string };
 
-export function BuyButton({ planId, label, pendingLabel, errorLabel, devNote }: Props) {
+export function BuyButton({ planId, label, pendingLabel, errorLabel, note }: Props) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState(false);
 
@@ -31,7 +31,7 @@ export function BuyButton({ planId, label, pendingLabel, errorLabel, devNote }: 
   return (
     <div>
       <button type="button" className="btn" onClick={buy} disabled={pending}>{pending ? pendingLabel : label}</button>
-      {devNote && <p className="hint">{devNote}</p>}
+      {note && <p className="hint">{note}</p>}
       {error && <p className="msg err" role="alert">{errorLabel}</p>}
     </div>
   );

@@ -2,7 +2,7 @@ import type Stripe from "stripe";
 import { config } from "../config";
 import { findByCustomer, findByPaymentIntent, findBySubscription, setStatus } from "../entitlements";
 import { key, type KV } from "../redis";
-import { mapSubscriptionStatus } from "../stripe";
+import { mapSubscriptionStatus, stripeProvider } from "./stripe";
 import { fulfillCheckout, onNewEntitlement } from "./index";
 
 // Stripe webhook logic, kept free of Next.js so it can be unit-tested.
@@ -57,7 +57,7 @@ async function handle(event: Stripe.Event, { kv, after, onNew = onNewEntitlement
         "stripe",
       );
       // Email + purchase counter are the slow part; the entitlement itself is already saved.
-      if (created) after(() => onNew(kv, entitlement));
+      if (created) after(() => onNew(kv, entitlement, stripeProvider));
       return "handled";
     }
     case "customer.subscription.updated":

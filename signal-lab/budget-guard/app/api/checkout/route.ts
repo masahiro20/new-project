@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { track } from "@/lib/analytics";
 import { config, getPlan } from "@/lib/config";
-import { getPaymentProvider } from "@/lib/payments";
+import { getPaymentProvider, PaymentsConfigError } from "@/lib/payments";
 import { clientIp, rateLimit } from "@/lib/ratelimit";
 import { getKV } from "@/lib/redis";
 
@@ -17,8 +17,16 @@ export async function POST(request: Request) {
   if (!(await rateLimit(kv, `checkout:${clientIp(request.headers)}`, 10, 600))) {
     return Response.json({ error: "too many requests" }, { status: 429 });
   }
+  let provider;
   try {
-    const url = await getPaymentProvider().createCheckout(plan, { email: parsed.data.email });
+    provider = getPaymentProvider();
+  } catch (error) {
+    if (!(error instanceof PaymentsConfigError)) throw error;
+    console.error(`[checkout] payments misconfigured: ${error.message}`);
+    return Response.json({ error: "payments misconfigured", detail: error.message }, { status: 503 });
+  }
+  try {
+    const url = await provider.createCheckout(plan, { email: parsed.data.email });
     await track(kv, "checkout_start");
     return Response.json({ url });
   } catch (error) {
