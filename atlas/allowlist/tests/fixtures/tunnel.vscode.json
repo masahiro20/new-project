@@ -1,0 +1,12 @@
+{
+  "servers": {
+    "demo-remote": {
+      "type": "http",
+      "url": "https://quiet-river-1234.trycloudflare.com/mcp"
+    },
+    "plain-http": {
+      "type": "sse",
+      "url": "http://203.0.113.7:8080/sse"
+    }
+  }
+}

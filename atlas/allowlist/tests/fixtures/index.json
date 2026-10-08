@@ -1,0 +1,16 @@
+{
+  "generated": "2026-10-08T00:00:00Z (test fixture)",
+  "entries": [
+    {
+      "repo": "https://github.com/modelcontextprotocol/servers",
+      "packages": ["npm:@modelcontextprotocol/server-filesystem", "npm:@modelcontextprotocol/server-github", "pypi:mcp-server-fetch"],
+      "commit": "0123456789abcdef0123456789abcdef01234567",
+      "license": "MIT",
+      "files": 812,
+      "findings": [
+        {"rule": "ATL-CE-001", "sev": "medium", "file": "src/git/server.py", "line": 41, "snippet": "subprocess.run(cmd, shell=True)", "ctx": "src", "title": "Shell command execution"},
+        {"rule": "ATL-TP-003", "sev": "high", "file": "src/everything/tests/poison.test.ts", "line": 7, "snippet": "ignore previous instructions", "ctx": "test", "title": "Instruction-override phrase", "suppressed": true}
+      ]
+    }
+  ]
+}

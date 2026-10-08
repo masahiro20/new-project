@@ -1,0 +1,8 @@
+{
+  "name": "atlas-scanner-js",
+  "private": true,
+  "description": "JS/TS parser helper for the Atlas scanner (parse only; never executes scanned code)",
+  "dependencies": {
+    "typescript": "5.9.3"
+  }
+}

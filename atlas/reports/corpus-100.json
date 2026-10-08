@@ -1,0 +1,773 @@
+{
+ "note": "100 public repos scanned 2026-10-08. 18 curated + 82 sampled (seeded) from the first 1,500 official MCP Registry entries that list a GitHub repo and a package; 14 sampled repos were unreachable and replaced.",
+ "unreachable_registry_repos": [
+  "https://github.com/deinai/deinai_backend",
+  "https://github.com/mikeslone/snowsure-web",
+  "https://github.com/NUDG3-AI/nudg3-mcp",
+  "https://github.com/trebu-org/interviewer",
+  "https://github.com/obris-dev/obris-mcp",
+  "https://github.com/rooz21/x402",
+  "https://github.com/ClaudioGodoyB/ponlo-ai",
+  "https://github.com/CircularRoute/circulara-core",
+  "https://github.com/valentil/featureboard-mcp",
+  "https://github.com/Comet-Studio-Io/shippp",
+  "https://github.com/SocialAPI-AI/mcp-socialapi",
+  "https://github.com/SpiderIQ/SpiderIQ",
+  "https://github.com/AeroSpark-ai/hidden-content-service",
+  "https://github.com/kmdesle/sendinel-ai"
+ ],
+ "repos": [
+  {
+   "repo": "https://github.com/invariantlabs-ai/mcp-injection-experiments",
+   "kind": "control-positive",
+   "packages": []
+  },
+  {
+   "repo": "https://github.com/modelcontextprotocol/servers",
+   "kind": "reference",
+   "packages": []
+  },
+  {
+   "repo": "https://github.com/anthropics/skills",
+   "kind": "skills",
+   "packages": []
+  },
+  {
+   "repo": "https://github.com/anthropics/claude-plugins-official",
+   "kind": "plugins",
+   "packages": []
+  },
+  {
+   "repo": "https://github.com/obra/superpowers",
+   "kind": "skills",
+   "packages": []
+  },
+  {
+   "repo": "https://github.com/wshobson/agents",
+   "kind": "plugins",
+   "packages": []
+  },
+  {
+   "repo": "https://github.com/ComposioHQ/awesome-claude-skills",
+   "kind": "skills",
+   "packages": []
+  },
+  {
+   "repo": "https://github.com/wonderwhy-er/DesktopCommanderMCP",
+   "kind": "mcp",
+   "packages": []
+  },
+  {
+   "repo": "https://github.com/github/github-mcp-server",
+   "kind": "mcp",
+   "packages": []
+  },
+  {
+   "repo": "https://github.com/microsoft/playwright-mcp",
+   "kind": "mcp",
+   "packages": []
+  },
+  {
+   "repo": "https://github.com/upstash/context7",
+   "kind": "mcp",
+   "packages": []
+  },
+  {
+   "repo": "https://github.com/cisco-ai-defense/mcp-scanner",
+   "kind": "scanner-expected-fp",
+   "packages": []
+  },
+  {
+   "repo": "https://github.com/snyk/agent-scan",
+   "kind": "scanner-expected-fp",
+   "packages": []
+  },
+  {
+   "repo": "https://github.com/DataDog/guarddog",
+   "kind": "scanner-expected-fp",
+   "packages": []
+  },
+  {
+   "repo": "https://github.com/punkpeye/awesome-mcp-servers",
+   "kind": "awesome-list",
+   "packages": []
+  },
+  {
+   "repo": "https://github.com/geelen/mcp-remote",
+   "kind": "mcp",
+   "packages": []
+  },
+  {
+   "repo": "https://github.com/modelcontextprotocol/inspector",
+   "kind": "mcp",
+   "packages": []
+  },
+  {
+   "repo": "https://github.com/anthropics/claude-code",
+   "kind": "plugins",
+   "packages": []
+  },
+  {
+   "repo": "https://github.com/frod27/overwing-mcp",
+   "kind": "registry-sample",
+   "name": "ai.overwing/mcp",
+   "packages": [
+    "npm:overwing-mcp"
+   ]
+  },
+  {
+   "repo": "https://github.com/CommonNinja/sendraven-mcp-server",
+   "kind": "registry-sample",
+   "name": "ai.sendraven/mcp",
+   "packages": [
+    "npm:@sendraven/mcp"
+   ]
+  },
+  {
+   "repo": "https://github.com/papyruslabs-ai/seshat-mcp",
+   "kind": "registry-sample",
+   "name": "ai.papyruslabs/seshat-mcp",
+   "packages": [
+    "npm:@papyruslabsai/seshat-mcp"
+   ]
+  },
+  {
+   "repo": "https://github.com/agenttrust/mcp-server",
+   "kind": "registry-sample",
+   "name": "ai.agenttrust/mcp-server",
+   "packages": [
+    "npm:@agenttrust/mcp-server"
+   ]
+  },
+  {
+   "repo": "https://github.com/flowdot-llc/mcp-server",
+   "kind": "registry-sample",
+   "name": "ai.flowdot/mcp-server",
+   "packages": [
+    "npm:@flowdot.ai/mcp-server"
+   ]
+  },
+  {
+   "repo": "https://github.com/Luvi-io/luw-mcp",
+   "kind": "registry-sample",
+   "name": "ai.luw/mcp",
+   "packages": [
+    "npm:@luw-ai/mcp"
+   ]
+  },
+  {
+   "repo": "https://github.com/clawfetch/clawfetch-mcp",
+   "kind": "registry-sample",
+   "name": "ai.clawfetch/mcp",
+   "packages": [
+    "npm:@clawfetch/mcp"
+   ]
+  },
+  {
+   "repo": "https://github.com/hivemindunit/llmintel-mcp",
+   "kind": "registry-sample",
+   "name": "ai.llmintel/llmintel",
+   "packages": [
+    "npm:@llmintel/mcp"
+   ]
+  },
+  {
+   "repo": "https://github.com/cooldk/clize-cli",
+   "kind": "registry-sample",
+   "name": "ai.clize/clize",
+   "packages": [
+    "npm:@clize/clize",
+    "npm:@clize/domains",
+    "npm:@clize/inbox",
+    "npm:@clize/sites",
+    "npm:@clize/storefront"
+   ]
+  },
+  {
+   "repo": "https://github.com/RoscoNL/intodns-mcp-server",
+   "kind": "registry-sample",
+   "name": "ai.intodns/scanner",
+   "packages": [
+    "npm:intodns-mcp"
+   ]
+  },
+  {
+   "repo": "https://github.com/fortisil/gateco-sdk-python",
+   "kind": "registry-sample",
+   "name": "ai.gateco/gateco",
+   "packages": [
+    "pypi:gateco"
+   ]
+  },
+  {
+   "repo": "https://github.com/makeaivideo-ai/mcp",
+   "kind": "registry-sample",
+   "name": "ai.makeaivideo/video-generator",
+   "packages": [
+    "npm:@makeaivideo/mcp"
+   ]
+  },
+  {
+   "repo": "https://github.com/dealfluence/adeu",
+   "kind": "registry-sample",
+   "name": "ai.adeu/adeu",
+   "packages": [
+    "npm:@adeu/mcp-server"
+   ]
+  },
+  {
+   "repo": "https://github.com/Auctalis/nocturnusai",
+   "kind": "registry-sample",
+   "name": "ai.nocturnus/logic-server",
+   "packages": [
+    "npm:nocturnusai-mcp"
+   ]
+  },
+  {
+   "repo": "https://github.com/bobberrisford/affiliatemcp",
+   "kind": "registry-sample",
+   "name": "ai.agenticaffiliate/affiliate-networks-mcp",
+   "packages": [
+    "npm:affiliate-networks-mcp"
+   ]
+  },
+  {
+   "repo": "https://github.com/arsentev-ai/contextburn",
+   "kind": "registry-sample",
+   "name": "ai.arsentev/contextburn",
+   "packages": [
+    "pypi:contextburn"
+   ]
+  },
+  {
+   "repo": "https://github.com/Primate-Intelligence/primate-intelligence-mcp",
+   "kind": "registry-sample",
+   "name": "ai.primateintelligence/mcp",
+   "packages": [
+    "npm:@primate-intelligence/mcp"
+   ]
+  },
+  {
+   "repo": "https://github.com/RoboFinSystems/xbrlkit",
+   "kind": "registry-sample",
+   "name": "ai.robosystems/xbrlkit",
+   "packages": [
+    "pypi:xbrlkit"
+   ]
+  },
+  {
+   "repo": "https://github.com/Trac-Systems/openmayhem-mcp",
+   "kind": "registry-sample",
+   "name": "ai.openmayhem/openmayhem",
+   "packages": [
+    "mcpb:https://github.com/Trac-Systems/openmayhem-mcp/releases/download/v1.0.0/openmayhem-mcp-v1.0.0.mcpb"
+   ]
+  },
+  {
+   "repo": "https://github.com/cueapi/cueapi-mcp",
+   "kind": "registry-sample",
+   "name": "ai.cueapi/mcp",
+   "packages": [
+    "npm:@cueapi/mcp"
+   ]
+  },
+  {
+   "repo": "https://github.com/Chronary/chronary-mcp",
+   "kind": "registry-sample",
+   "name": "ai.chronary/mcp",
+   "packages": [
+    "npm:@chronary/mcp"
+   ]
+  },
+  {
+   "repo": "https://github.com/firelock-ai/kin",
+   "kind": "registry-sample",
+   "name": "ai.kinlab/kin",
+   "packages": [
+    "npm:@kinlab/kin"
+   ]
+  },
+  {
+   "repo": "https://github.com/mirastacklabs-ai/mirastack-redfish-mcp",
+   "kind": "registry-sample",
+   "name": "ai.mirastacklabs/mirastack-redfish-mcp",
+   "packages": [
+    "oci:docker.io/mirastack/mirastack-redfish-mcp:0.1.1",
+    "pypi:mirastack-redfish-mcp"
+   ]
+  },
+  {
+   "repo": "https://github.com/aabhisrv/Spiderbrain.ai-Coremind",
+   "kind": "registry-sample",
+   "name": "ai.spiderbrain/spiderbrain",
+   "packages": [
+    "npm:spiderbrain"
+   ]
+  },
+  {
+   "repo": "https://github.com/jmagar/apprise-rmcp",
+   "kind": "registry-sample",
+   "name": "ai.dinglebear/apprise-rmcp",
+   "packages": [
+    "npm:apprise-rmcp"
+   ]
+  },
+  {
+   "repo": "https://github.com/risk-ai/lawai-mcp-server",
+   "kind": "registry-sample",
+   "name": "ai.law/lawyer-search",
+   "packages": [
+    "npm:lawai-mcp-server"
+   ]
+  },
+  {
+   "repo": "https://github.com/dinglebear-ai/cortex",
+   "kind": "registry-sample",
+   "name": "ai.dinglebear/cortex",
+   "packages": [
+    "npm:@dinglebear/cortex"
+   ]
+  },
+  {
+   "repo": "https://github.com/mixelpixx/Nimrod",
+   "kind": "registry-sample",
+   "name": "ai.orchis/nimrod",
+   "packages": [
+    "mcpb:https://github.com/mixelpixx/Nimrod/releases/download/v2.1.0/nimrod.mcpb"
+   ]
+  },
+  {
+   "repo": "https://github.com/proxyllm-ai/proxyllm-mcp",
+   "kind": "registry-sample",
+   "name": "ai.proxyllm/proxyllm-mcp",
+   "packages": [
+    "npm:proxyllm-mcp"
+   ]
+  },
+  {
+   "repo": "https://github.com/AIStoryHub/etincel",
+   "kind": "registry-sample",
+   "name": "ai.etincel/etincel-nonfiction",
+   "packages": [
+    "npm:etincel"
+   ]
+  },
+  {
+   "repo": "https://github.com/metavolve-labs/lbrain-coding-agents",
+   "kind": "registry-sample",
+   "name": "ai.lbrain/lbrain",
+   "packages": [
+    "pypi:lbrain-coding-agents"
+   ]
+  },
+  {
+   "repo": "https://github.com/anomalyarmor/agents",
+   "kind": "registry-sample",
+   "name": "ai.anomalyarmor/armor-mcp",
+   "packages": [
+    "pypi:armor-mcp"
+   ]
+  },
+  {
+   "repo": "https://github.com/marchward/marchward",
+   "kind": "registry-sample",
+   "name": "ai.marchward/mcp-server",
+   "packages": [
+    "npm:@marchward/mcp-server"
+   ]
+  },
+  {
+   "repo": "https://github.com/digital-science/dimensions-analytics-mcp",
+   "kind": "registry-sample",
+   "name": "ai.dimensions/analytics-mcp",
+   "packages": [
+    "npm:@digital-science-dsl/dimensions-analytics-mcp"
+   ]
+  },
+  {
+   "repo": "https://github.com/aliengiraffe/spotdb",
+   "kind": "registry-sample",
+   "name": "ai.aliengiraffe/spotdb",
+   "packages": [
+    "oci:docker.io/aliengiraffe/spotdb:0.1.0"
+   ]
+  },
+  {
+   "repo": "https://github.com/elicitly/elicitly",
+   "kind": "registry-sample",
+   "name": "ai.elicitly/elicitly",
+   "packages": [
+    "npm:elicitly"
+   ]
+  },
+  {
+   "repo": "https://github.com/hanshs474/kavel-mcp",
+   "kind": "registry-sample",
+   "name": "ai.kavel/kavel-mcp",
+   "packages": [
+    "npm:kavel-mcp"
+   ]
+  },
+  {
+   "repo": "https://github.com/matih-labs/matih-mcp",
+   "kind": "registry-sample",
+   "name": "ai.matih/mcp",
+   "packages": [
+    "npm:@matihlabs/mcp"
+   ]
+  },
+  {
+   "repo": "https://github.com/aimentiontracker/mcp",
+   "kind": "registry-sample",
+   "name": "ai.aimentiontracker/mcp",
+   "packages": [
+    "npm:@aimentiontracker/mcp"
+   ]
+  },
+  {
+   "repo": "https://github.com/Holetron-lab/fleet-memory",
+   "kind": "registry-sample",
+   "name": "ai.rcll/fleet-memory",
+   "packages": [
+    "npm:fleet-memory-mcp"
+   ]
+  },
+  {
+   "repo": "https://github.com/ankimcp/anki-mcp-server",
+   "kind": "registry-sample",
+   "name": "ai.ankimcp/anki-mcp-server",
+   "packages": [
+    "npm:@ankimcp/anki-mcp-server"
+   ]
+  },
+  {
+   "repo": "https://github.com/CallMCP/callmcp",
+   "kind": "registry-sample",
+   "name": "ai.callmcp/server",
+   "packages": [
+    "npm:@callmcp/server"
+   ]
+  },
+  {
+   "repo": "https://github.com/GregoireCasoetto/monnet-mcp",
+   "kind": "registry-sample",
+   "name": "ai.monnet/mcp",
+   "packages": [
+    "npm:@monnet/mcp"
+   ]
+  },
+  {
+   "repo": "https://github.com/jupiterspins/starsinger-mcp",
+   "kind": "registry-sample",
+   "name": "ai.starsinger/starsinger-mcp",
+   "packages": [
+    "npm:starsinger-mcp"
+   ]
+  },
+  {
+   "repo": "https://github.com/oscarsterling/clelp-skills",
+   "kind": "registry-sample",
+   "name": "ai.clelp/clelp",
+   "packages": [
+    "npm:clelp-mcp-server"
+   ]
+  },
+  {
+   "repo": "https://github.com/Nauro-AI/nauro",
+   "kind": "registry-sample",
+   "name": "ai.nauro/nauro",
+   "packages": [
+    "pypi:nauro"
+   ]
+  },
+  {
+   "repo": "https://github.com/Kaduno-systems/pullpush-mcp",
+   "kind": "registry-sample",
+   "name": "ai.pullpush/pullpush-mcp",
+   "packages": [
+    "npm:kaduno-pullpush-mcp"
+   ]
+  },
+  {
+   "repo": "https://github.com/keenableai/keenable-mcp",
+   "kind": "registry-sample",
+   "name": "ai.keenable/web-search",
+   "packages": [
+    "npm:@keenable/mcp"
+   ]
+  },
+  {
+   "repo": "https://github.com/0000F8/salt-mcp",
+   "kind": "registry-sample",
+   "name": "ai.saltapp/salt",
+   "packages": [
+    "oci:ghcr.io/0000f8/salt-mcp:v0.2.7"
+   ]
+  },
+  {
+   "repo": "https://github.com/posteverywhere/mcp",
+   "kind": "registry-sample",
+   "name": "ai.posteverywhere/mcp",
+   "packages": [
+    "npm:@posteverywhere/mcp"
+   ]
+  },
+  {
+   "repo": "https://github.com/Ekwo-ai/ekwo-os",
+   "kind": "registry-sample",
+   "name": "ai.ekwo/mcp",
+   "packages": [
+    "npm:@ekwo-ai/mcp"
+   ]
+  },
+  {
+   "repo": "https://github.com/magnemo-ai/magnemo",
+   "kind": "registry-sample",
+   "name": "ai.magnemo/magnemo",
+   "packages": [
+    "pypi:magnemo-mcp"
+   ]
+  },
+  {
+   "repo": "https://github.com/signaltech-org/bolthub-sdk",
+   "kind": "registry-sample",
+   "name": "ai.bolthub/mcp",
+   "packages": [
+    "npm:@bolthub/mcp",
+    "npm:@bolthub/mcp-registry"
+   ]
+  },
+  {
+   "repo": "https://github.com/rolliinc/rolli-mcp",
+   "kind": "registry-sample",
+   "name": "ai.rolli/mcp",
+   "packages": [
+    "npm:@rolli/mcp"
+   ]
+  },
+  {
+   "repo": "https://github.com/menaker/adtest-mcp",
+   "kind": "registry-sample",
+   "name": "ai.adtest/adtest-mcp",
+   "packages": [
+    "npm:adtest-mcp"
+   ]
+  },
+  {
+   "repo": "https://github.com/elfa-ai/mcp",
+   "kind": "registry-sample",
+   "name": "ai.elfa/mcp",
+   "packages": [
+    "npm:@elfa-ai/mcp"
+   ]
+  },
+  {
+   "repo": "https://github.com/human-beyond/mainbook-mcp",
+   "kind": "registry-sample",
+   "name": "ai.mainbook/bank-statement-converter",
+   "packages": [
+    "pypi:mainbook-mcp"
+   ]
+  },
+  {
+   "repo": "https://github.com/shumi-ai/shumi-mcp",
+   "kind": "registry-sample",
+   "name": "ai.shumi/mcp",
+   "packages": [
+    "npm:@shumi-ai/mcp"
+   ]
+  },
+  {
+   "repo": "https://github.com/Drumworks/ssid-mcp",
+   "kind": "registry-sample",
+   "name": "ai.ssid/ssid-mcp",
+   "packages": [
+    "npm:ssid-mcp"
+   ]
+  },
+  {
+   "repo": "https://github.com/BuyWhere/buywhere-mcp",
+   "kind": "registry-sample",
+   "name": "ai.buywhere/buywhere-mcp",
+   "packages": [
+    "npm:@buywhere/mcp-server"
+   ]
+  },
+  {
+   "repo": "https://github.com/eonik-ai/eonik-mcp",
+   "kind": "registry-sample",
+   "name": "ai.eonik/mcp",
+   "packages": [
+    "npm:eonik-mcp"
+   ]
+  },
+  {
+   "repo": "https://github.com/InstantStudioAI/instantclips-mcp",
+   "kind": "registry-sample",
+   "name": "ai.instantclips/instantclips",
+   "packages": [
+    "npm:instantclips-mcp"
+   ]
+  },
+  {
+   "repo": "https://github.com/Managed-Digital-LLC/justdrop-mcp",
+   "kind": "registry-sample",
+   "name": "ai.justdrop/mcp",
+   "packages": [
+    "npm:justdrop-mcp"
+   ]
+  },
+  {
+   "repo": "https://github.com/Johnny-Z13/proofslip",
+   "kind": "registry-sample",
+   "name": "ai.proofslip/mcp-server",
+   "packages": [
+    "npm:@proofslip/mcp-server"
+   ]
+  },
+  {
+   "repo": "https://github.com/OrangeproAI/orangepro-mcp",
+   "kind": "registry-sample",
+   "name": "ai.orangepro/mcp",
+   "packages": [
+    "npm:@orangepro/mcp-server"
+   ]
+  },
+  {
+   "repo": "https://github.com/memcell-ai/cli",
+   "kind": "registry-sample",
+   "name": "ai.memcell/memcell",
+   "packages": [
+    "npm:memcell"
+   ]
+  },
+  {
+   "repo": "https://github.com/auten-ai/auten-mcp",
+   "kind": "registry-sample",
+   "name": "ai.auten/mcp",
+   "packages": [
+    "npm:@autenai/mcp"
+   ]
+  },
+  {
+   "repo": "https://github.com/Autonomad1/computeback-mcp",
+   "kind": "registry-sample",
+   "name": "ai.autonomad/computeback",
+   "packages": [
+    "npm:@autonomad1/computeback-mcp"
+   ]
+  },
+  {
+   "repo": "https://github.com/ergoveritas1-alt/certscore.ai",
+   "kind": "registry-sample",
+   "name": "ai.certscore/mcp",
+   "packages": [
+    "npm:@certscore/mcp"
+   ]
+  },
+  {
+   "repo": "https://github.com/amado2k5/cookwala",
+   "kind": "registry-sample",
+   "name": "ai.cookwala/cookwala",
+   "packages": [
+    "npm:@cookwala/mcp"
+   ]
+  },
+  {
+   "repo": "https://github.com/i18n-agent/mcp-client",
+   "kind": "registry-sample",
+   "name": "ai.i18nagent/i18n-agent",
+   "packages": [
+    "npm:@i18n-agent/mcp-client"
+   ]
+  },
+  {
+   "repo": "https://github.com/popdot-ai/popdot-mcp",
+   "kind": "registry-sample",
+   "name": "ai.popdot/popdot-mcp",
+   "packages": [
+    "npm:popdot-mcp"
+   ]
+  },
+  {
+   "repo": "https://github.com/OOBE-PROTOCOL/sap-mcp",
+   "kind": "registry-sample",
+   "name": "ai.oobeprotocol.sap.mcp/sap-mcp",
+   "packages": [
+    "npm:@oobe-protocol-labs/sap-mcp-server"
+   ]
+  },
+  {
+   "repo": "https://github.com/mcpcap/mcpcap",
+   "kind": "registry-sample",
+   "name": "ai.mcpcap/mcpcap",
+   "packages": [
+    "pypi:mcpcap"
+   ]
+  },
+  {
+   "repo": "https://github.com/Thestral12/postfleet-mcp",
+   "kind": "registry-sample",
+   "name": "ai.postfleet/postfleet",
+   "packages": [
+    "npm:@postfleet/mcp"
+   ]
+  },
+  {
+   "repo": "https://github.com/smartmemory/stratum",
+   "kind": "registry-sample",
+   "name": "ai.smartmemory/stratum-mcp",
+   "packages": [
+    "npm:@smartmemory/stratum"
+   ]
+  },
+  {
+   "repo": "https://github.com/bobuilds/nexustoken-sdk",
+   "kind": "registry-sample",
+   "name": "ai.nexustoken/nexustoken-sdk",
+   "packages": [
+    "pypi:nexustoken-sdk"
+   ]
+  },
+  {
+   "repo": "https://github.com/JaxonAI/dsail",
+   "kind": "registry-sample",
+   "name": "ai.jaxon/dsail",
+   "packages": [
+    "pypi:dsail"
+   ]
+  },
+  {
+   "repo": "https://github.com/Software-As-Content/software-as-content-sdk",
+   "kind": "registry-sample",
+   "name": "ai.dynsoft/sac",
+   "packages": [
+    "pypi:sac-sdk"
+   ]
+  },
+  {
+   "repo": "https://github.com/inite-ai/inite-visibility",
+   "kind": "registry-sample",
+   "name": "ai.inite/inite-visibility",
+   "packages": [
+    "npm:@inite/visibility"
+   ]
+  },
+  {
+   "repo": "https://github.com/imboard-ai/ai-dossier",
+   "kind": "registry-sample",
+   "name": "ai.imboard/dossier",
+   "packages": [
+    "npm:@ai-dossier/mcp-server"
+   ]
+  },
+  {
+   "repo": "https://github.com/signal8ai/signal8-mcp",
+   "kind": "registry-sample",
+   "name": "ai.signal8/mcp",
+   "packages": [
+    "npm:@signal8ai/mcp"
+   ]
+  }
+ ]
+}
