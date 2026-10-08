@@ -1,8 +1,8 @@
 /*
  * Collector Lens (working title) — overlay panel.
  * Rendered inside a closed Shadow DOM so page CSS can't leak in and the page's
- * own layout is untouched. All page-derived text goes through textContent,
- * never innerHTML.
+ * own layout is untouched. All page-derived text goes through textContent and
+ * createTextNode only.
  */
 (function (root) {
   "use strict";
@@ -94,8 +94,15 @@
       body.appendChild(section(doc, "Returns", ret));
     }
 
-    var flags = result.flags.map(function (f) { return item(doc, f.risk, f.ja, f.en, f.explain, f.snippet); });
-    body.appendChild(section(doc, "Warnings", flags.length ? flags : [el(doc, "li", "empty", "No rule-based warnings found. That is not a guarantee.")]));
+    // Terms read from the condition/returns fields already appear above.
+    var shown = result.flags.filter(function (f) {
+      return !(f.field === "condition" && result.condition) && !(f.field === "returns" && result.returns);
+    });
+    var toItem = function (f) { return item(doc, f.risk, f.ja, f.en, f.explain, f.snippet); };
+    var warn = shown.filter(function (f) { return f.risk === "high" || f.risk === "medium"; }).map(toItem);
+    var notes = shown.filter(function (f) { return f.risk === "low"; }).map(toItem);
+    body.appendChild(section(doc, "Warnings", warn.length ? warn : [el(doc, "li", "empty", "No rule-based warnings found. That is not a guarantee.")]));
+    if (notes.length) body.appendChild(section(doc, "Worth noting", notes));
 
     if (result.reassurances.length) {
       body.appendChild(section(doc, "Seller states", result.reassurances.map(function (f) { return item(doc, "positive", f.ja, f.en, f.explain, f.snippet); })));

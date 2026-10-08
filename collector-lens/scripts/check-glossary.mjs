@@ -28,6 +28,7 @@ for (const e of g.entries) {
   if (!Array.isArray(e.genre) || !e.genre.length || !e.genre.every((x) => GENRES.has(x))) errors.push(`${where}: bad genre`);
   if (!CATS.has(e.category)) errors.push(`${where}: bad category ${e.category}`);
   if (!RISKS.has(e.risk)) errors.push(`${where}: bad risk ${e.risk}`);
+  if (e.exclude_next !== undefined && !(Array.isArray(e.exclude_next) && e.exclude_next.every((x) => typeof x === "string" && x))) errors.push(`${where}: exclude_next must be an array of strings`);
   if (typeof e.reviewed !== "boolean") errors.push(`${where}: reviewed must be boolean`);
 }
 

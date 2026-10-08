@@ -59,7 +59,8 @@
     function scan(list, k) {
       for (var i = 0; i < list.length; i++) {
         var p = tail.indexOf(list[i]);
-        if (p >= 0 && (best < 0 || p < best)) { best = p; kind = k; }
+        // On a tie ("あり" vs "ありません") the negator wins: it is the longer word.
+        if (p >= 0 && (best < 0 || p < best || (p === best && k === "neg"))) { best = p; kind = k; }
       }
     }
     scan(AFFIRMERS, "aff");
@@ -89,6 +90,8 @@
         // ASCII forms (OH, GP, NCNR...) must be whole words.
         if (/^[a-z0-9]/.test(f.lower) && p > 0 && /[a-z0-9]/.test(lower.charAt(p - 1))) continue;
         if (/[a-z0-9]$/.test(f.lower) && /[a-z0-9]/.test(lower.charAt(end) || "")) continue;
+        // Entry-specific guard, e.g. 日差 (daily rate) vs 日差し (sunlight).
+        if (f.entry.exclude_next && f.entry.exclude_next.some(function (x) { return lower.startsWith(x, end); })) continue;
         var clash = false;
         for (var k = p; k < end; k++) if (taken[k]) { clash = true; break; }
         if (clash) continue;
@@ -163,14 +166,17 @@
   var RULES = [
     {
       id: "no_return_and_untested",
-      test: function (ctx) { return ctx.has("return_none") && (ctx.has("untested") || ctx.has("junk")); },
+      test: function (ctx) {
+        return ctx.hasAny(["ncnr", "henpin_fuka", "hoshou_nashi", "genjou_watashi"]) &&
+          ctx.hasAny(["junk", "dousa_mikakunin", "mikakunin", "tsuuden_only", "genjouhin"]);
+      },
       risk: "high",
       en: "Untested + no returns",
       explain: "The seller doesn't confirm it works AND won't take it back. Price it as broken."
     },
     {
       id: "authenticity_disclaimer_luxury",
-      test: function (ctx) { return ctx.genre === "watch" && ctx.anyCategory("authenticity", ["high", "medium"]); },
+      test: function (ctx) { return ctx.genre === "watch" && ctx.hasAny(["shingan_fumei", "honmono_hoshou_nashi", "no_brand"]); },
       risk: "high",
       en: "Authenticity not guaranteed (watch)",
       explain: "For watches, an authenticity disclaimer is a strong warning. Ask for movement and caseback photos, and compare serial/reference."
@@ -225,9 +231,7 @@
       genre: genre,
       descriptionLength: normalize(listing.description || "").replace(/\s+/g, "").length,
       has: function (id) { return !!ids[id]; },
-      anyCategory: function (cat, risks) {
-        return all.some(function (h) { return !h.negated && h.entry.category === cat && risks.indexOf(h.entry.risk) >= 0; });
-      }
+      hasAny: function (list) { return list.some(function (id) { return !!ids[id]; }); }
     };
 
     var flags = [];
@@ -242,7 +246,9 @@
         reassurances.push(item);
       } else if (e.risk === "high" || e.risk === "medium" || e.risk === "low") {
         flags.push(item);
-      } else {
+      } else if (genre === "general" || e.genre.indexOf(genre) >= 0 || e.genre.indexOf("general") >= 0) {
+        // Neutral vocabulary is shown only if it fits the item's genre:
+        // "ダイヤル" is a watch dial, but also a camera's shutter-speed dial.
         terms.push(item);
       }
     });
@@ -251,7 +257,10 @@
     });
     flags.sort(function (a, b) { return RISK_ORDER[a.risk] - RISK_ORDER[b.risk]; });
 
-    var ranks = findRanks([listing.rank, listing.title, listing.description].filter(Boolean).join("\n"));
+    // A condition field holding just a grade ("B", "AB+") is a shop rank.
+    var bareGrade = /^(SA|AB|BC|S|A|B|C|D|J)[+\-]?$/i.test(normalize(listing.condition || "").trim());
+    var rankText = [listing.rank, bareGrade ? "ランク:" + normalize(listing.condition).trim() : "", listing.title, listing.description];
+    var ranks = findRanks(rankText.filter(Boolean).join("\n"));
     var conditionHits = listing.condition ? findTerms(listing.condition, index) : [];
     var returnHits = listing.returns ? findTerms(listing.returns, index) : [];
 
