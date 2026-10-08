@@ -1,0 +1,27 @@
+surface	reading	accent	source	rule	reason
+二つ	ふたつ	2	unidic-rule	二(2) + つ[C3]	counter-tsu-rule
+お菓子	おかし	2	unidic-rule	お[P2] + 菓子(1)	prefix-rule
+お茶	おちゃ	2	unidic-rule	お[P2] + 茶(0)	prefix-rule
+お金	おかね	2	unidic-rule	お[P2] + 金(0)	prefix-rule
+お土産	おみやげ	2	unidic-rule	お[P2] + 土産(0)	prefix-rule
+お風呂	おふろ	2	unidic-rule	お[P2] + 風呂(2,1)	prefix-rule
+お寺	おてら	2	unidic-rule	お[P2] + 寺(2,0)	prefix-rule
+三つ	みっつ	1	unidic-rule	三(1) + つ[C3]	counter-tsu-rule
+お茶碗	おちゃわん	2	unidic-rule	お[P2] + 茶碗(0)	prefix-rule
+お釣り	おつり	2	unidic-rule	お[P2] + 釣り(0)	prefix-rule
+お礼	おれい	2	unidic-rule	お[P2] + 礼(0,1)	prefix-rule
+お年玉	おとしだま	2	unidic-rule	お[P2] + 年玉(0)	prefix-rule
+お化け	おばけ	2	unidic-rule	お[P2] + 化け(2)	prefix-rule
+一つ	ひとつ	2	unidic-rule	一(2) + つ[C3]	counter-tsu-rule
+四つ	よっつ	1	unidic-rule	四(1) + つ[C3]	counter-tsu-rule
+五つ	いつつ	2	unidic-rule	五(1) + つ[C3]	counter-tsu-rule
+六つ	むっつ	1	unidic-rule	六(1) + つ[C3]	counter-tsu-rule
+七つ	ななつ	2	unidic-rule	七(1) + つ[C3]	counter-tsu-rule
+八つ	やっつ	1	unidic-rule	八(1) + つ[C3]	counter-tsu-rule
+九つ	ここのつ	3	unidic-rule	九(2) + つ[C3]	counter-tsu-rule
+お粥	おかゆ	2	unidic-rule	お[P2] + 粥(0)	prefix-rule
+御馳走	ごちそう	0	unidic-rule	御[P1] + 馳走(0)	prefix-rule
+不景気	ふけいき	2	unidic-rule	不[P2] + 景気(0)	prefix-rule
+お札	おさつ	2	unidic-rule	お[P2] + 札(0)	prefix-rule
+大文字	おおもじ	3	unidic-rule	大[P2] + 文字(1)	prefix-rule
+お手洗い	おてあらい	3	unidic-rule	お[P2] + 手洗い(2)	prefix-rule

@@ -34,7 +34,11 @@
       <tr><td>Accent prediction for words missing from UniDic</td>
         <td><a href="https://github.com/PKSHATechnology-Research/tdmelodic">tdmelodic</a> — © PKSHA Technology</td>
         <td>BSD-3-Clause</td>
-        <td>Planned for the 2,000-word list; <b>not used in the current data</b>. Predicted entries will be labelled as predicted.</td></tr>
+        <td>Optional fallback in <code>scripts/build_lexicon.py</code> (<code>--tdmelodic</code>) for words UniDic lacks. Its predictions are labelled <code>source: tdmelodic</code> and held back for native review — <b>none are in the current data</b>.</td></tr>
+      <tr><td>Accent of compound words (自転車, 図書館 …)</td>
+        <td>Combination rules from the UniDic manual (aConType tables C1–C5, P1–P14); implementation cross-checked against <a href="https://open-jtalk.sourceforge.net/">Open JTalk</a> (modified BSD)</td>
+        <td>UniDic BSD; Open JTalk modified BSD — © 2008-2014 Nagoya Institute of Technology, Department of Computer Science (<a href="data/OPENJTALK-BSD-LICENSE">notice</a>)</td>
+        <td>Entries marked <code>source: unidic-rule</code>. Prefix (お/ご) and number+つ results are held back until a native check.</td></tr>
       <tr><td>Word list and English glosses</td>
         <td>Written by the P3 Pitch team</td>
         <td>Ours</td>

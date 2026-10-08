@@ -1,0 +1,9 @@
+surface	reading	accent	source	rule	reason
+二つ	ふたつ	2	unidic-rule	二(2) + つ[C3]	counter-tsu-rule
+お菓子	おかし	2	unidic-rule	お[P2] + 菓子(1)	prefix-rule
+お茶	おちゃ	2	unidic-rule	お[P2] + 茶(0)	prefix-rule
+お金	おかね	2	unidic-rule	お[P2] + 金(0)	prefix-rule
+お土産	おみやげ	2	unidic-rule	お[P2] + 土産(0)	prefix-rule
+お風呂	おふろ	2	unidic-rule	お[P2] + 風呂(2,1)	prefix-rule
+お寺	おてら	2	unidic-rule	お[P2] + 寺(2,0)	prefix-rule
+三つ	みっつ	1	unidic-rule	三(1) + つ[C3]	counter-tsu-rule

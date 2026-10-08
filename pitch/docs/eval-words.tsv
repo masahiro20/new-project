@@ -1,0 +1,101 @@
+no	surface	kana	morae	accent	type	tags
+1	葉	は	1	0	heiban	minimal-pair
+2	飴	あめ	2	0	heiban	minimal-pair,vowel-initial
+3	夫	おっと	3	0	heiban	special-mora,vowel-initial
+4	学生	がくせい	4	0	heiban	devoicing-risk
+5	台所	だいどころ	5	0	heiban	
+6	血	ち	1	0	heiban	
+7	空き	あき	2	0	heiban	minimal-pair,vowel-initial
+8	電車	でんしゃ	3	0,1	heiban	special-mora,two-accents
+9	学校	がっこう	4	0	heiban	special-mora
+10	蚊	か	1	0	heiban	
+11	端	はし	2	0	heiban	minimal-pair
+12	苺	いちご	3	0,1	heiban	vowel-initial,two-accents
+13	病院	びょういん	4	0	heiban	special-mora
+14	鼻	はな	2	0	heiban	minimal-pair
+15	映画	えいが	3	0,1	heiban	vowel-initial,two-accents
+16	銀行	ぎんこう	4	0	heiban	special-mora
+17	柿	かき	2	0	heiban	minimal-pair
+18	布団	ふとん	3	0	heiban	devoicing-risk,special-mora
+19	問題	もんだい	4	0	heiban	special-mora
+20	酒	さけ	2	0	heiban	minimal-pair
+21	卵	たまご	3	0,2	heiban	two-accents
+22	階段	かいだん	4	0	heiban	special-mora
+23	口	くち	2	0	heiban	devoicing-risk
+24	お腹	おなか	3	0	heiban	vowel-initial
+25	新聞	しんぶん	4	0	heiban	special-mora
+26	歯	は	1	1	atamadaka	minimal-pair
+27	雨	あめ	2	1	atamadaka	minimal-pair,vowel-initial
+28	蜜柑	みかん	3	1	atamadaka	special-mora
+29	音楽	おんがく	4	1,0	atamadaka	special-mora,vowel-initial,two-accents
+30	絵	え	1	1	atamadaka	vowel-initial
+31	朝	あさ	2	1	atamadaka	minimal-pair,vowel-initial
+32	ご飯	ごはん	3	1	atamadaka	special-mora
+33	火	ひ	1	1	atamadaka	
+34	秋	あき	2	1	atamadaka	minimal-pair,vowel-initial
+35	命	いのち	3	1	atamadaka	vowel-initial
+36	木	き	1	1	atamadaka	
+37	箸	はし	2	1	atamadaka	minimal-pair
+38	天気	てんき	3	1	atamadaka	special-mora
+39	目	め	1	1	atamadaka	
+40	牡蠣	かき	2	1	atamadaka	minimal-pair
+41	世界	せかい	3	1,2	atamadaka	two-accents
+42	手	て	1	1	atamadaka	
+43	神	かみ	2	1	atamadaka	minimal-pair
+44	家族	かぞく	3	1	atamadaka	
+45	鮭	さけ	2	1	atamadaka	minimal-pair
+46	眼鏡	めがね	3	1	atamadaka	
+47	瓶	びん	2	1	atamadaka	special-mora
+48	涙	なみだ	3	1	atamadaka	
+49	兄	あに	2	1	atamadaka	vowel-initial
+50	枕	まくら	3	1	atamadaka	
+51	頭	あたま	3	2,3	nakadaka	vowel-initial,two-accents
+52	白菜	はくさい	4	3,0	nakadaka	devoicing-risk,two-accents
+53	朝ご飯	あさごはん	5	3	nakadaka	special-mora,vowel-initial
+54	試験	しけん	3	2	nakadaka	devoicing-risk,special-mora
+55	先生	せんせい	4	3	nakadaka	special-mora
+56	女の子	おんなのこ	5	3	nakadaka	special-mora,vowel-initial
+57	心	こころ	3	2,3	nakadaka	two-accents
+58	自転車	じてんしゃ	4	2	nakadaka	special-mora
+59	誕生日	たんじょうび	5	3	nakadaka	special-mora
+60	刀	かたな	3	2,3	nakadaka	two-accents
+61	雷	かみなり	4	3,4	nakadaka	two-accents
+62	昼ご飯	ひるごはん	5	3	nakadaka	special-mora
+63	答え	こたえ	3	2,3	nakadaka	two-accents
+64	図書館	としょかん	4	2	nakadaka	special-mora
+65	晩ご飯	ばんごはん	5	3	nakadaka	special-mora
+66	従兄弟	いとこ	3	2	nakadaka	vowel-initial
+67	飛行機	ひこうき	4	2	nakadaka	devoicing-risk
+68	男の子	おとこのこ	5	3	nakadaka	vowel-initial
+69	砂糖	さとう	3	2	nakadaka	
+70	片仮名	かたかな	4	3,2	nakadaka	two-accents
+71	紙袋	かみぶくろ	5	3	nakadaka	
+72	肉屋	にくや	3	2	nakadaka	
+73	建物	たてもの	4	2,3	nakadaka	two-accents
+74	氷水	こおりみず	5	3	nakadaka	
+75	花屋	はなや	3	2	nakadaka	
+76	麻	あさ	2	2	odaka	minimal-pair,vowel-initial
+77	女	おんな	3	3	odaka	special-mora,vowel-initial
+78	弟	おとうと	4	4	odaka	vowel-initial
+79	橋	はし	2	2	odaka	minimal-pair
+80	男	おとこ	3	3	odaka	vowel-initial
+81	妹	いもうと	4	4	odaka	vowel-initial
+82	花	はな	2	2	odaka	minimal-pair
+83	袋	ふくろ	3	3	odaka	devoicing-risk
+84	紙	かみ	2	2	odaka	minimal-pair
+85	力	ちから	3	3	odaka	devoicing-risk
+86	髪	かみ	2	2	odaka	minimal-pair
+87	光	ひかり	3	3	odaka	devoicing-risk
+88	父	ちち	2	2,1	odaka	devoicing-risk,two-accents
+89	鏡	かがみ	3	3	odaka	
+90	犬	いぬ	2	2	odaka	vowel-initial
+91	休み	やすみ	3	3	odaka	
+92	足	あし	2	2	odaka	vowel-initial
+93	娘	むすめ	3	3	odaka	
+94	音	おと	2	2	odaka	vowel-initial
+95	言葉	ことば	3	3	odaka	
+96	腕	うで	2	2	odaka	vowel-initial
+97	話	はなし	3	3	odaka	
+98	舌	した	2	2	odaka	devoicing-risk
+99	宝	たから	3	3	odaka	
+100	家	いえ	2	2	odaka	vowel-initial

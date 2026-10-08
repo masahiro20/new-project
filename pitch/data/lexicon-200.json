@@ -1,9 +1,10 @@
 {
  "source": {
   "accent": "UniDic 2.1.2 (unidic-lite), BSD licence option",
+  "accent_rules": "multi-token words (source: unidic-rule): UniDic aType/aConType combined with the UniDic manual's accent-combination tables (C1-C5, P1-P14)",
   "words_and_glosses": "P3 Pitch original word list"
  },
- "count": 262,
+ "count": 266,
  "words": [
   {
    "id": "w0001",
@@ -17,7 +18,8 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "chopsticks"
+   "gloss": "chopsticks",
+   "source": "unidic"
   },
   {
    "id": "w0002",
@@ -31,7 +33,8 @@
     2
    ],
    "type": "odaka",
-   "gloss": "bridge"
+   "gloss": "bridge",
+   "source": "unidic"
   },
   {
    "id": "w0003",
@@ -45,7 +48,8 @@
     0
    ],
    "type": "heiban",
-   "gloss": "edge"
+   "gloss": "edge",
+   "source": "unidic"
   },
   {
    "id": "w0004",
@@ -59,7 +63,8 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "rain"
+   "gloss": "rain",
+   "source": "unidic"
   },
   {
    "id": "w0005",
@@ -73,7 +78,8 @@
     0
    ],
    "type": "heiban",
-   "gloss": "candy"
+   "gloss": "candy",
+   "source": "unidic"
   },
   {
    "id": "w0006",
@@ -87,7 +93,8 @@
     2
    ],
    "type": "odaka",
-   "gloss": "flower"
+   "gloss": "flower",
+   "source": "unidic"
   },
   {
    "id": "w0007",
@@ -101,7 +108,8 @@
     0
    ],
    "type": "heiban",
-   "gloss": "nose"
+   "gloss": "nose",
+   "source": "unidic"
   },
   {
    "id": "w0008",
@@ -115,7 +123,8 @@
     0
    ],
    "type": "heiban",
-   "gloss": "persimmon"
+   "gloss": "persimmon",
+   "source": "unidic"
   },
   {
    "id": "w0009",
@@ -129,7 +138,8 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "oyster"
+   "gloss": "oyster",
+   "source": "unidic"
   },
   {
    "id": "w0010",
@@ -143,7 +153,8 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "god"
+   "gloss": "god",
+   "source": "unidic"
   },
   {
    "id": "w0011",
@@ -157,7 +168,8 @@
     2
    ],
    "type": "odaka",
-   "gloss": "paper"
+   "gloss": "paper",
+   "source": "unidic"
   },
   {
    "id": "w0012",
@@ -171,7 +183,8 @@
     2
    ],
    "type": "odaka",
-   "gloss": "hair"
+   "gloss": "hair",
+   "source": "unidic"
   },
   {
    "id": "w0013",
@@ -185,7 +198,8 @@
     0
    ],
    "type": "heiban",
-   "gloss": "sake"
+   "gloss": "sake",
+   "source": "unidic"
   },
   {
    "id": "w0014",
@@ -199,7 +213,8 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "salmon"
+   "gloss": "salmon",
+   "source": "unidic"
   },
   {
    "id": "w0015",
@@ -213,7 +228,8 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "cloud"
+   "gloss": "cloud",
+   "source": "unidic"
   },
   {
    "id": "w0016",
@@ -227,7 +243,8 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "spider"
+   "gloss": "spider",
+   "source": "unidic"
   },
   {
    "id": "w0017",
@@ -241,7 +258,8 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "turtle"
+   "gloss": "turtle",
+   "source": "unidic"
   },
   {
    "id": "w0018",
@@ -255,7 +273,8 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "bottle"
+   "gloss": "bottle",
+   "source": "unidic"
   },
   {
    "id": "w0019",
@@ -270,7 +289,8 @@
     0
    ],
    "type": "heiban",
-   "gloss": "kimono"
+   "gloss": "kimono",
+   "source": "unidic"
   },
   {
    "id": "w0020",
@@ -285,7 +305,8 @@
     3
    ],
    "type": "odaka",
-   "gloss": "man"
+   "gloss": "man",
+   "source": "unidic"
   },
   {
    "id": "w0021",
@@ -300,7 +321,8 @@
     3
    ],
    "type": "odaka",
-   "gloss": "woman"
+   "gloss": "woman",
+   "source": "unidic"
   },
   {
    "id": "w0022",
@@ -316,7 +338,8 @@
     4
    ],
    "type": "odaka",
-   "gloss": "younger brother"
+   "gloss": "younger brother",
+   "source": "unidic"
   },
   {
    "id": "w0023",
@@ -332,7 +355,8 @@
     4
    ],
    "type": "odaka",
-   "gloss": "younger sister"
+   "gloss": "younger sister",
+   "source": "unidic"
   },
   {
    "id": "w0024",
@@ -348,7 +372,8 @@
     3
    ],
    "type": "nakadaka",
-   "gloss": "head"
+   "gloss": "head",
+   "source": "unidic"
   },
   {
    "id": "w0025",
@@ -364,7 +389,8 @@
     3
    ],
    "type": "nakadaka",
-   "gloss": "heart"
+   "gloss": "heart",
+   "source": "unidic"
   },
   {
    "id": "w0026",
@@ -379,7 +405,8 @@
     0
    ],
    "type": "heiban",
-   "gloss": "cherry blossom"
+   "gloss": "cherry blossom",
+   "source": "unidic"
   },
   {
    "id": "w0027",
@@ -394,7 +421,8 @@
     3
    ],
    "type": "odaka",
-   "gloss": "mirror"
+   "gloss": "mirror",
+   "source": "unidic"
   },
   {
    "id": "w0028",
@@ -408,7 +436,8 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "morning"
+   "gloss": "morning",
+   "source": "unidic"
   },
   {
    "id": "w0029",
@@ -422,7 +451,8 @@
     2
    ],
    "type": "odaka",
-   "gloss": "hemp"
+   "gloss": "hemp",
+   "source": "unidic"
   },
   {
    "id": "w0030",
@@ -436,7 +466,8 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "autumn"
+   "gloss": "autumn",
+   "source": "unidic"
   },
   {
    "id": "w0031",
@@ -450,7 +481,8 @@
     0
    ],
    "type": "heiban",
-   "gloss": "vacancy"
+   "gloss": "vacancy",
+   "source": "unidic"
   },
   {
    "id": "w0032",
@@ -464,7 +496,8 @@
     2
    ],
    "type": "odaka",
-   "gloss": "mountain"
+   "gloss": "mountain",
+   "source": "unidic"
   },
   {
    "id": "w0033",
@@ -478,7 +511,8 @@
     2
    ],
    "type": "odaka",
-   "gloss": "river"
+   "gloss": "river",
+   "source": "unidic"
   },
   {
    "id": "w0034",
@@ -492,7 +526,8 @@
     2
    ],
    "type": "odaka",
-   "gloss": "skin"
+   "gloss": "skin",
+   "source": "unidic"
   },
   {
    "id": "w0035",
@@ -506,7 +541,8 @@
     2
    ],
    "type": "odaka",
-   "gloss": "dog"
+   "gloss": "dog",
+   "source": "unidic"
   },
   {
    "id": "w0036",
@@ -520,7 +556,8 @@
     2
    ],
    "type": "odaka",
-   "gloss": "foot"
+   "gloss": "foot",
+   "source": "unidic"
   },
   {
    "id": "w0037",
@@ -534,7 +571,8 @@
     2
    ],
    "type": "odaka",
-   "gloss": "sound"
+   "gloss": "sound",
+   "source": "unidic"
   },
   {
    "id": "w0038",
@@ -549,7 +587,8 @@
     3
    ],
    "type": "odaka",
-   "gloss": "holiday"
+   "gloss": "holiday",
+   "source": "unidic"
   },
   {
    "id": "w0039",
@@ -565,7 +604,8 @@
     3
    ],
    "type": "nakadaka",
-   "gloss": "lake"
+   "gloss": "lake",
+   "source": "unidic"
   },
   {
    "id": "w0040",
@@ -581,7 +621,8 @@
     2
    ],
    "type": "heiban",
-   "gloss": "egg"
+   "gloss": "egg",
+   "source": "unidic"
   },
   {
    "id": "w0041",
@@ -595,7 +636,8 @@
     2
    ],
    "type": "odaka",
-   "gloss": "snow"
+   "gloss": "snow",
+   "source": "unidic"
   },
   {
    "id": "w0042",
@@ -609,7 +651,8 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "octopus"
+   "gloss": "octopus",
+   "source": "unidic"
   },
   {
    "id": "w0043",
@@ -623,7 +666,8 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "kite"
+   "gloss": "kite",
+   "source": "unidic"
   },
   {
    "id": "w0044",
@@ -637,7 +681,8 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "cat"
+   "gloss": "cat",
+   "source": "unidic"
   },
   {
    "id": "w0045",
@@ -651,7 +696,8 @@
     0
    ],
    "type": "heiban",
-   "gloss": "water"
+   "gloss": "water",
+   "source": "unidic"
   },
   {
    "id": "w0046",
@@ -664,7 +710,8 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "fire"
+   "gloss": "fire",
+   "source": "unidic"
   },
   {
    "id": "w0047",
@@ -677,7 +724,8 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "tree"
+   "gloss": "tree",
+   "source": "unidic"
   },
   {
    "id": "w0048",
@@ -690,7 +738,8 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "eye"
+   "gloss": "eye",
+   "source": "unidic"
   },
   {
    "id": "w0049",
@@ -703,7 +752,8 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "hand"
+   "gloss": "hand",
+   "source": "unidic"
   },
   {
    "id": "w0050",
@@ -716,7 +766,8 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "tooth"
+   "gloss": "tooth",
+   "source": "unidic"
   },
   {
    "id": "w0051",
@@ -729,7 +780,8 @@
     0
    ],
    "type": "heiban",
-   "gloss": "leaf"
+   "gloss": "leaf",
+   "source": "unidic"
   },
   {
    "id": "w0052",
@@ -742,7 +794,8 @@
     0
    ],
    "type": "heiban",
-   "gloss": "blood"
+   "gloss": "blood",
+   "source": "unidic"
   },
   {
    "id": "w0053",
@@ -755,7 +808,8 @@
     0
    ],
    "type": "heiban",
-   "gloss": "mosquito"
+   "gloss": "mosquito",
+   "source": "unidic"
   },
   {
    "id": "w0054",
@@ -769,7 +823,8 @@
     0
    ],
    "type": "heiban",
-   "gloss": "mouth"
+   "gloss": "mouth",
+   "source": "unidic"
   },
   {
    "id": "w0055",
@@ -783,7 +838,8 @@
     2
    ],
    "type": "odaka",
-   "gloss": "ear"
+   "gloss": "ear",
+   "source": "unidic"
   },
   {
    "id": "w0056",
@@ -797,7 +853,8 @@
     0
    ],
    "type": "heiban",
-   "gloss": "neck"
+   "gloss": "neck",
+   "source": "unidic"
   },
   {
    "id": "w0057",
@@ -811,7 +868,8 @@
     0
    ],
    "type": "heiban",
-   "gloss": "face"
+   "gloss": "face",
+   "source": "unidic"
   },
   {
    "id": "w0058",
@@ -825,7 +883,8 @@
     2
    ],
    "type": "odaka",
-   "gloss": "arm"
+   "gloss": "arm",
+   "source": "unidic"
   },
   {
    "id": "w0059",
@@ -839,7 +898,8 @@
     2
    ],
    "type": "odaka",
-   "gloss": "finger"
+   "gloss": "finger",
+   "source": "unidic"
   },
   {
    "id": "w0060",
@@ -853,7 +913,8 @@
     2
    ],
    "type": "odaka",
-   "gloss": "chest"
+   "gloss": "chest",
+   "source": "unidic"
   },
   {
    "id": "w0061",
@@ -868,7 +929,8 @@
     0
    ],
    "type": "heiban",
-   "gloss": "back"
+   "gloss": "back",
+   "source": "unidic"
   },
   {
    "id": "w0062",
@@ -883,7 +945,8 @@
     0
    ],
    "type": "heiban",
-   "gloss": "belly"
+   "gloss": "belly",
+   "source": "unidic"
   },
   {
    "id": "w0063",
@@ -898,7 +961,8 @@
     0
    ],
    "type": "heiban",
-   "gloss": "body"
+   "gloss": "body",
+   "source": "unidic"
   },
   {
    "id": "w0064",
@@ -912,7 +976,8 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "voice"
+   "gloss": "voice",
+   "source": "unidic"
   },
   {
    "id": "w0065",
@@ -926,7 +991,8 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "shoulder"
+   "gloss": "shoulder",
+   "source": "unidic"
   },
   {
    "id": "w0066",
@@ -940,7 +1006,8 @@
     0
    ],
    "type": "heiban",
-   "gloss": "knee"
+   "gloss": "knee",
+   "source": "unidic"
   },
   {
    "id": "w0067",
@@ -954,7 +1021,8 @@
     0
    ],
    "type": "heiban",
-   "gloss": "lower back"
+   "gloss": "lower back",
+   "source": "unidic"
   },
   {
    "id": "w0068",
@@ -968,7 +1036,8 @@
     2
    ],
    "type": "odaka",
-   "gloss": "tongue"
+   "gloss": "tongue",
+   "source": "unidic"
   },
   {
    "id": "w0069",
@@ -982,7 +1051,8 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "throat"
+   "gloss": "throat",
+   "source": "unidic"
   },
   {
    "id": "w0070",
@@ -997,7 +1067,8 @@
     1
    ],
    "type": "odaka",
-   "gloss": "father"
+   "gloss": "father",
+   "source": "unidic"
   },
   {
    "id": "w0071",
@@ -1011,7 +1082,8 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "mother"
+   "gloss": "mother",
+   "source": "unidic"
   },
   {
    "id": "w0072",
@@ -1025,7 +1097,8 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "older brother"
+   "gloss": "older brother",
+   "source": "unidic"
   },
   {
    "id": "w0073",
@@ -1039,7 +1112,8 @@
     0
    ],
    "type": "heiban",
-   "gloss": "older sister"
+   "gloss": "older sister",
+   "source": "unidic"
   },
   {
    "id": "w0074",
@@ -1054,7 +1128,8 @@
     0
    ],
    "type": "heiban",
-   "gloss": "child"
+   "gloss": "child",
+   "source": "unidic"
   },
   {
    "id": "w0075",
@@ -1070,7 +1145,8 @@
     0
    ],
    "type": "heiban",
-   "gloss": "friend"
+   "gloss": "friend",
+   "source": "unidic"
   },
   {
    "id": "w0076",
@@ -1086,7 +1162,8 @@
     3
    ],
    "type": "nakadaka",
-   "gloss": "teacher"
+   "gloss": "teacher",
+   "source": "unidic"
   },
   {
    "id": "w0077",
@@ -1102,7 +1179,8 @@
     0
    ],
    "type": "heiban",
-   "gloss": "student"
+   "gloss": "student",
+   "source": "unidic"
   },
   {
    "id": "w0078",
@@ -1116,7 +1194,8 @@
     0
    ],
    "type": "heiban",
-   "gloss": "doctor"
+   "gloss": "doctor",
+   "source": "unidic"
   },
   {
    "id": "w0079",
@@ -1131,7 +1210,8 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "family"
+   "gloss": "family",
+   "source": "unidic"
   },
   {
    "id": "w0080",
@@ -1145,7 +1225,8 @@
     0
    ],
    "type": "heiban",
-   "gloss": "person"
+   "gloss": "person",
+   "source": "unidic"
   },
   {
    "id": "w0081",
@@ -1160,7 +1241,8 @@
     0
    ],
    "type": "heiban",
-   "gloss": "husband"
+   "gloss": "husband",
+   "source": "unidic"
   },
   {
    "id": "w0082",
@@ -1175,7 +1257,8 @@
     2
    ],
    "type": "atamadaka",
-   "gloss": "wife"
+   "gloss": "wife",
+   "source": "unidic"
   },
   {
    "id": "w0083",
@@ -1190,7 +1273,8 @@
     3
    ],
    "type": "odaka",
-   "gloss": "daughter"
+   "gloss": "daughter",
+   "source": "unidic"
   },
   {
    "id": "w0084",
@@ -1205,7 +1289,8 @@
     0
    ],
    "type": "heiban",
-   "gloss": "son"
+   "gloss": "son",
+   "source": "unidic"
   },
   {
    "id": "w0085",
@@ -1219,7 +1304,8 @@
     2
    ],
    "type": "odaka",
-   "gloss": "house"
+   "gloss": "house",
+   "source": "unidic"
   },
   {
    "id": "w0086",
@@ -1233,7 +1319,8 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "window"
+   "gloss": "window",
+   "source": "unidic"
   },
   {
    "id": "w0087",
@@ -1247,7 +1334,8 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "gate"
+   "gloss": "gate",
+   "source": "unidic"
   },
   {
    "id": "w0088",
@@ -1261,7 +1349,8 @@
     0
    ],
    "type": "heiban",
-   "gloss": "garden"
+   "gloss": "garden",
+   "source": "unidic"
   },
   {
    "id": "w0089",
@@ -1275,7 +1364,8 @@
     2
    ],
    "type": "odaka",
-   "gloss": "room"
+   "gloss": "room",
+   "source": "unidic"
   },
   {
    "id": "w0090",
@@ -1290,7 +1380,8 @@
     0
    ],
    "type": "heiban",
-   "gloss": "desk"
+   "gloss": "desk",
+   "source": "unidic"
   },
   {
    "id": "w0091",
@@ -1304,7 +1395,8 @@
     0
    ],
    "type": "heiban",
-   "gloss": "chair"
+   "gloss": "chair",
+   "source": "unidic"
   },
   {
    "id": "w0092",
@@ -1318,7 +1410,8 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "book"
+   "gloss": "book",
+   "source": "unidic"
   },
   {
    "id": "w0093",
@@ -1333,7 +1426,8 @@
     0
    ],
    "type": "heiban",
-   "gloss": "bag"
+   "gloss": "bag",
+   "source": "unidic"
   },
   {
    "id": "w0094",
@@ -1347,7 +1441,8 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "umbrella"
+   "gloss": "umbrella",
+   "source": "unidic"
   },
   {
    "id": "w0095",
@@ -1361,7 +1456,8 @@
     2
    ],
    "type": "odaka",
-   "gloss": "shoes"
+   "gloss": "shoes",
+   "source": "unidic"
   },
   {
    "id": "w0096",
@@ -1376,7 +1472,8 @@
     0
    ],
    "type": "heiban",
-   "gloss": "hat"
+   "gloss": "hat",
+   "source": "unidic"
   },
   {
    "id": "w0097",
@@ -1391,7 +1488,8 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "glasses"
+   "gloss": "glasses",
+   "source": "unidic"
   },
   {
    "id": "w0098",
@@ -1406,7 +1504,8 @@
     0
    ],
    "type": "heiban",
-   "gloss": "clock"
+   "gloss": "clock",
+   "source": "unidic"
   },
   {
    "id": "w0099",
@@ -1421,7 +1520,8 @@
     0
    ],
    "type": "heiban",
-   "gloss": "telephone"
+   "gloss": "telephone",
+   "source": "unidic"
   },
   {
    "id": "w0100",
@@ -1436,7 +1536,8 @@
     0
    ],
    "type": "heiban",
-   "gloss": "car"
+   "gloss": "car",
+   "source": "unidic"
   },
   {
    "id": "w0101",
@@ -1452,10 +1553,29 @@
     1
    ],
    "type": "heiban",
-   "gloss": "train"
+   "gloss": "train",
+   "source": "unidic"
   },
   {
    "id": "w0102",
+   "surface": "自転車",
+   "kana": "じてんしゃ",
+   "morae": [
+    "じ",
+    "て",
+    "ん",
+    "しゃ"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "nakadaka",
+   "gloss": "bicycle",
+   "source": "unidic-rule",
+   "rule": "自転(0) + 車[C3]"
+  },
+  {
+   "id": "w0103",
    "surface": "駅",
    "kana": "えき",
    "morae": [
@@ -1466,10 +1586,11 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "station"
+   "gloss": "station",
+   "source": "unidic"
   },
   {
-   "id": "w0103",
+   "id": "w0104",
    "surface": "道",
    "kana": "みち",
    "morae": [
@@ -1480,10 +1601,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "road"
+   "gloss": "road",
+   "source": "unidic"
   },
   {
-   "id": "w0104",
+   "id": "w0105",
    "surface": "町",
    "kana": "まち",
    "morae": [
@@ -1494,10 +1616,11 @@
     2
    ],
    "type": "odaka",
-   "gloss": "town"
+   "gloss": "town",
+   "source": "unidic"
   },
   {
-   "id": "w0105",
+   "id": "w0106",
    "surface": "村",
    "kana": "むら",
    "morae": [
@@ -1508,10 +1631,11 @@
     2
    ],
    "type": "odaka",
-   "gloss": "village"
+   "gloss": "village",
+   "source": "unidic"
   },
   {
-   "id": "w0106",
+   "id": "w0107",
    "surface": "国",
    "kana": "くに",
    "morae": [
@@ -1522,10 +1646,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "country"
+   "gloss": "country",
+   "source": "unidic"
   },
   {
-   "id": "w0107",
+   "id": "w0108",
    "surface": "海",
    "kana": "うみ",
    "morae": [
@@ -1536,10 +1661,11 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "sea"
+   "gloss": "sea",
+   "source": "unidic"
   },
   {
-   "id": "w0108",
+   "id": "w0109",
    "surface": "空",
    "kana": "そら",
    "morae": [
@@ -1550,10 +1676,11 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "sky"
+   "gloss": "sky",
+   "source": "unidic"
   },
   {
-   "id": "w0109",
+   "id": "w0110",
    "surface": "星",
    "kana": "ほし",
    "morae": [
@@ -1564,10 +1691,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "star"
+   "gloss": "star",
+   "source": "unidic"
   },
   {
-   "id": "w0110",
+   "id": "w0111",
    "surface": "月",
    "kana": "つき",
    "morae": [
@@ -1578,10 +1706,11 @@
     2
    ],
    "type": "odaka",
-   "gloss": "moon"
+   "gloss": "moon",
+   "source": "unidic"
   },
   {
-   "id": "w0111",
+   "id": "w0112",
    "surface": "島",
    "kana": "しま",
    "morae": [
@@ -1592,10 +1721,11 @@
     2
    ],
    "type": "odaka",
-   "gloss": "island"
+   "gloss": "island",
+   "source": "unidic"
   },
   {
-   "id": "w0112",
+   "id": "w0113",
    "surface": "池",
    "kana": "いけ",
    "morae": [
@@ -1606,10 +1736,11 @@
     2
    ],
    "type": "odaka",
-   "gloss": "pond"
+   "gloss": "pond",
+   "source": "unidic"
   },
   {
-   "id": "w0113",
+   "id": "w0114",
    "surface": "石",
    "kana": "いし",
    "morae": [
@@ -1620,10 +1751,11 @@
     2
    ],
    "type": "odaka",
-   "gloss": "stone"
+   "gloss": "stone",
+   "source": "unidic"
   },
   {
-   "id": "w0114",
+   "id": "w0115",
    "surface": "砂",
    "kana": "すな",
    "morae": [
@@ -1634,10 +1766,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "sand"
+   "gloss": "sand",
+   "source": "unidic"
   },
   {
-   "id": "w0115",
+   "id": "w0116",
    "surface": "森",
    "kana": "もり",
    "morae": [
@@ -1648,10 +1781,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "forest"
+   "gloss": "forest",
+   "source": "unidic"
   },
   {
-   "id": "w0116",
+   "id": "w0117",
    "surface": "林",
    "kana": "はやし",
    "morae": [
@@ -1664,10 +1798,11 @@
     3
    ],
    "type": "heiban",
-   "gloss": "grove"
+   "gloss": "grove",
+   "source": "unidic"
   },
   {
-   "id": "w0117",
+   "id": "w0118",
    "surface": "風",
    "kana": "かぜ",
    "morae": [
@@ -1678,10 +1813,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "wind"
+   "gloss": "wind",
+   "source": "unidic"
   },
   {
-   "id": "w0118",
+   "id": "w0119",
    "surface": "風邪",
    "kana": "かぜ",
    "morae": [
@@ -1692,10 +1828,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "a cold"
+   "gloss": "a cold",
+   "source": "unidic"
   },
   {
-   "id": "w0119",
+   "id": "w0120",
    "surface": "雷",
    "kana": "かみなり",
    "morae": [
@@ -1709,10 +1846,11 @@
     4
    ],
    "type": "nakadaka",
-   "gloss": "thunder"
+   "gloss": "thunder",
+   "source": "unidic"
   },
   {
-   "id": "w0120",
+   "id": "w0121",
    "surface": "虹",
    "kana": "にじ",
    "morae": [
@@ -1723,10 +1861,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "rainbow"
+   "gloss": "rainbow",
+   "source": "unidic"
   },
   {
-   "id": "w0121",
+   "id": "w0122",
    "surface": "春",
    "kana": "はる",
    "morae": [
@@ -1737,10 +1876,11 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "spring"
+   "gloss": "spring",
+   "source": "unidic"
   },
   {
-   "id": "w0122",
+   "id": "w0123",
    "surface": "夏",
    "kana": "なつ",
    "morae": [
@@ -1751,10 +1891,11 @@
     2
    ],
    "type": "odaka",
-   "gloss": "summer"
+   "gloss": "summer",
+   "source": "unidic"
   },
   {
-   "id": "w0123",
+   "id": "w0124",
    "surface": "冬",
    "kana": "ふゆ",
    "morae": [
@@ -1765,10 +1906,11 @@
     2
    ],
    "type": "odaka",
-   "gloss": "winter"
+   "gloss": "winter",
+   "source": "unidic"
   },
   {
-   "id": "w0124",
+   "id": "w0125",
    "surface": "夜",
    "kana": "よる",
    "morae": [
@@ -1779,10 +1921,11 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "night"
+   "gloss": "night",
+   "source": "unidic"
   },
   {
-   "id": "w0125",
+   "id": "w0126",
    "surface": "昼",
    "kana": "ひる",
    "morae": [
@@ -1793,10 +1936,11 @@
     2
    ],
    "type": "odaka",
-   "gloss": "noon"
+   "gloss": "noon",
+   "source": "unidic"
   },
   {
-   "id": "w0126",
+   "id": "w0127",
    "surface": "夕方",
    "kana": "ゆうがた",
    "morae": [
@@ -1809,10 +1953,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "evening"
+   "gloss": "evening",
+   "source": "unidic"
   },
   {
-   "id": "w0127",
+   "id": "w0128",
    "surface": "鳥",
    "kana": "とり",
    "morae": [
@@ -1823,10 +1968,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "bird"
+   "gloss": "bird",
+   "source": "unidic"
   },
   {
-   "id": "w0128",
+   "id": "w0129",
    "surface": "魚",
    "kana": "さかな",
    "morae": [
@@ -1838,10 +1984,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "fish"
+   "gloss": "fish",
+   "source": "unidic"
   },
   {
-   "id": "w0129",
+   "id": "w0130",
    "surface": "馬",
    "kana": "うま",
    "morae": [
@@ -1852,10 +1999,11 @@
     2
    ],
    "type": "odaka",
-   "gloss": "horse"
+   "gloss": "horse",
+   "source": "unidic"
   },
   {
-   "id": "w0130",
+   "id": "w0131",
    "surface": "牛",
    "kana": "うし",
    "morae": [
@@ -1866,10 +2014,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "cow"
+   "gloss": "cow",
+   "source": "unidic"
   },
   {
-   "id": "w0131",
+   "id": "w0132",
    "surface": "豚",
    "kana": "ぶた",
    "morae": [
@@ -1880,10 +2029,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "pig"
+   "gloss": "pig",
+   "source": "unidic"
   },
   {
-   "id": "w0132",
+   "id": "w0133",
    "surface": "羊",
    "kana": "ひつじ",
    "morae": [
@@ -1895,10 +2045,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "sheep"
+   "gloss": "sheep",
+   "source": "unidic"
   },
   {
-   "id": "w0133",
+   "id": "w0134",
    "surface": "猿",
    "kana": "さる",
    "morae": [
@@ -1909,10 +2060,11 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "monkey"
+   "gloss": "monkey",
+   "source": "unidic"
   },
   {
-   "id": "w0134",
+   "id": "w0135",
    "surface": "熊",
    "kana": "くま",
    "morae": [
@@ -1924,10 +2076,11 @@
     1
    ],
    "type": "odaka",
-   "gloss": "bear"
+   "gloss": "bear",
+   "source": "unidic"
   },
   {
-   "id": "w0135",
+   "id": "w0136",
    "surface": "鼠",
    "kana": "ねずみ",
    "morae": [
@@ -1939,10 +2092,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "mouse"
+   "gloss": "mouse",
+   "source": "unidic"
   },
   {
-   "id": "w0136",
+   "id": "w0137",
    "surface": "兎",
    "kana": "うさぎ",
    "morae": [
@@ -1954,10 +2108,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "rabbit"
+   "gloss": "rabbit",
+   "source": "unidic"
   },
   {
-   "id": "w0137",
+   "id": "w0138",
    "surface": "虫",
    "kana": "むし",
    "morae": [
@@ -1968,10 +2123,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "insect"
+   "gloss": "insect",
+   "source": "unidic"
   },
   {
-   "id": "w0138",
+   "id": "w0139",
    "surface": "蛇",
    "kana": "へび",
    "morae": [
@@ -1982,10 +2138,11 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "snake"
+   "gloss": "snake",
+   "source": "unidic"
   },
   {
-   "id": "w0139",
+   "id": "w0140",
    "surface": "米",
    "kana": "こめ",
    "morae": [
@@ -1996,10 +2153,11 @@
     2
    ],
    "type": "odaka",
-   "gloss": "rice"
+   "gloss": "rice",
+   "source": "unidic"
   },
   {
-   "id": "w0140",
+   "id": "w0141",
    "surface": "肉",
    "kana": "にく",
    "morae": [
@@ -2010,10 +2168,11 @@
     2
    ],
    "type": "odaka",
-   "gloss": "meat"
+   "gloss": "meat",
+   "source": "unidic"
   },
   {
-   "id": "w0141",
+   "id": "w0142",
    "surface": "野菜",
    "kana": "やさい",
    "morae": [
@@ -2025,10 +2184,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "vegetables"
+   "gloss": "vegetables",
+   "source": "unidic"
   },
   {
-   "id": "w0142",
+   "id": "w0143",
    "surface": "果物",
    "kana": "くだもの",
    "morae": [
@@ -2041,10 +2201,11 @@
     2
    ],
    "type": "nakadaka",
-   "gloss": "fruit"
+   "gloss": "fruit",
+   "source": "unidic"
   },
   {
-   "id": "w0143",
+   "id": "w0144",
    "surface": "林檎",
    "kana": "りんご",
    "morae": [
@@ -2056,10 +2217,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "apple"
+   "gloss": "apple",
+   "source": "unidic"
   },
   {
-   "id": "w0144",
+   "id": "w0145",
    "surface": "蜜柑",
    "kana": "みかん",
    "morae": [
@@ -2071,10 +2233,11 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "mandarin orange"
+   "gloss": "mandarin orange",
+   "source": "unidic"
   },
   {
-   "id": "w0145",
+   "id": "w0146",
    "surface": "苺",
    "kana": "いちご",
    "morae": [
@@ -2087,10 +2250,11 @@
     1
    ],
    "type": "heiban",
-   "gloss": "strawberry"
+   "gloss": "strawberry",
+   "source": "unidic"
   },
   {
-   "id": "w0146",
+   "id": "w0147",
    "surface": "桃",
    "kana": "もも",
    "morae": [
@@ -2101,10 +2265,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "peach"
+   "gloss": "peach",
+   "source": "unidic"
   },
   {
-   "id": "w0147",
+   "id": "w0148",
    "surface": "梨",
    "kana": "なし",
    "morae": [
@@ -2116,10 +2281,11 @@
     2
    ],
    "type": "heiban",
-   "gloss": "pear"
+   "gloss": "pear",
+   "source": "unidic"
   },
   {
-   "id": "w0148",
+   "id": "w0149",
    "surface": "葡萄",
    "kana": "ぶどう",
    "morae": [
@@ -2131,10 +2297,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "grapes"
+   "gloss": "grapes",
+   "source": "unidic"
   },
   {
-   "id": "w0149",
+   "id": "w0150",
    "surface": "ご飯",
    "kana": "ごはん",
    "morae": [
@@ -2146,10 +2313,11 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "cooked rice"
+   "gloss": "cooked rice",
+   "source": "unidic"
   },
   {
-   "id": "w0150",
+   "id": "w0151",
    "surface": "牛乳",
    "kana": "ぎゅうにゅう",
    "morae": [
@@ -2162,10 +2330,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "milk"
+   "gloss": "milk",
+   "source": "unidic"
   },
   {
-   "id": "w0151",
+   "id": "w0152",
    "surface": "塩",
    "kana": "しお",
    "morae": [
@@ -2176,10 +2345,11 @@
     2
    ],
    "type": "odaka",
-   "gloss": "salt"
+   "gloss": "salt",
+   "source": "unidic"
   },
   {
-   "id": "w0152",
+   "id": "w0153",
    "surface": "砂糖",
    "kana": "さとう",
    "morae": [
@@ -2191,10 +2361,11 @@
     2
    ],
    "type": "nakadaka",
-   "gloss": "sugar"
+   "gloss": "sugar",
+   "source": "unidic"
   },
   {
-   "id": "w0153",
+   "id": "w0154",
    "surface": "味噌",
    "kana": "みそ",
    "morae": [
@@ -2205,10 +2376,11 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "miso"
+   "gloss": "miso",
+   "source": "unidic"
   },
   {
-   "id": "w0154",
+   "id": "w0155",
    "surface": "豆腐",
    "kana": "とうふ",
    "morae": [
@@ -2221,10 +2393,11 @@
     3
    ],
    "type": "heiban",
-   "gloss": "tofu"
+   "gloss": "tofu",
+   "source": "unidic"
   },
   {
-   "id": "w0155",
+   "id": "w0156",
    "surface": "箱",
    "kana": "はこ",
    "morae": [
@@ -2235,10 +2408,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "box"
+   "gloss": "box",
+   "source": "unidic"
   },
   {
-   "id": "w0156",
+   "id": "w0157",
    "surface": "袋",
    "kana": "ふくろ",
    "morae": [
@@ -2250,10 +2424,11 @@
     3
    ],
    "type": "odaka",
-   "gloss": "sack"
+   "gloss": "sack",
+   "source": "unidic"
   },
   {
-   "id": "w0157",
+   "id": "w0158",
    "surface": "皿",
    "kana": "さら",
    "morae": [
@@ -2264,10 +2439,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "plate"
+   "gloss": "plate",
+   "source": "unidic"
   },
   {
-   "id": "w0158",
+   "id": "w0159",
    "surface": "茶碗",
    "kana": "ちゃわん",
    "morae": [
@@ -2279,10 +2455,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "rice bowl"
+   "gloss": "rice bowl",
+   "source": "unidic"
   },
   {
-   "id": "w0159",
+   "id": "w0160",
    "surface": "鍋",
    "kana": "なべ",
    "morae": [
@@ -2293,10 +2470,11 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "pot"
+   "gloss": "pot",
+   "source": "unidic"
   },
   {
-   "id": "w0160",
+   "id": "w0161",
    "surface": "刀",
    "kana": "かたな",
    "morae": [
@@ -2309,10 +2487,11 @@
     3
    ],
    "type": "nakadaka",
-   "gloss": "sword"
+   "gloss": "sword",
+   "source": "unidic"
   },
   {
-   "id": "w0161",
+   "id": "w0162",
    "surface": "糸",
    "kana": "いと",
    "morae": [
@@ -2323,10 +2502,11 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "thread"
+   "gloss": "thread",
+   "source": "unidic"
   },
   {
-   "id": "w0162",
+   "id": "w0163",
    "surface": "服",
    "kana": "ふく",
    "morae": [
@@ -2337,10 +2517,11 @@
     2
    ],
    "type": "odaka",
-   "gloss": "clothes"
+   "gloss": "clothes",
+   "source": "unidic"
   },
   {
-   "id": "w0163",
+   "id": "w0164",
    "surface": "色",
    "kana": "いろ",
    "morae": [
@@ -2351,10 +2532,11 @@
     2
    ],
    "type": "odaka",
-   "gloss": "color"
+   "gloss": "color",
+   "source": "unidic"
   },
   {
-   "id": "w0164",
+   "id": "w0165",
    "surface": "形",
    "kana": "かたち",
    "morae": [
@@ -2366,10 +2548,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "shape"
+   "gloss": "shape",
+   "source": "unidic"
   },
   {
-   "id": "w0165",
+   "id": "w0166",
    "surface": "言葉",
    "kana": "ことば",
    "morae": [
@@ -2381,10 +2564,11 @@
     3
    ],
    "type": "odaka",
-   "gloss": "word"
+   "gloss": "word",
+   "source": "unidic"
   },
   {
-   "id": "w0166",
+   "id": "w0167",
    "surface": "名前",
    "kana": "なまえ",
    "morae": [
@@ -2396,10 +2580,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "name"
+   "gloss": "name",
+   "source": "unidic"
   },
   {
-   "id": "w0167",
+   "id": "w0168",
    "surface": "話",
    "kana": "はなし",
    "morae": [
@@ -2411,10 +2596,11 @@
     3
    ],
    "type": "odaka",
-   "gloss": "story"
+   "gloss": "story",
+   "source": "unidic"
   },
   {
-   "id": "w0168",
+   "id": "w0169",
    "surface": "歌",
    "kana": "うた",
    "morae": [
@@ -2425,10 +2611,11 @@
     2
    ],
    "type": "odaka",
-   "gloss": "song"
+   "gloss": "song",
+   "source": "unidic"
   },
   {
-   "id": "w0169",
+   "id": "w0170",
    "surface": "絵",
    "kana": "え",
    "morae": [
@@ -2438,10 +2625,11 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "picture"
+   "gloss": "picture",
+   "source": "unidic"
   },
   {
-   "id": "w0170",
+   "id": "w0171",
    "surface": "夢",
    "kana": "ゆめ",
    "morae": [
@@ -2452,10 +2640,11 @@
     2
    ],
    "type": "odaka",
-   "gloss": "dream"
+   "gloss": "dream",
+   "source": "unidic"
   },
   {
-   "id": "w0171",
+   "id": "w0172",
    "surface": "命",
    "kana": "いのち",
    "morae": [
@@ -2467,10 +2656,11 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "life"
+   "gloss": "life",
+   "source": "unidic"
   },
   {
-   "id": "w0172",
+   "id": "w0173",
    "surface": "力",
    "kana": "ちから",
    "morae": [
@@ -2482,10 +2672,11 @@
     3
    ],
    "type": "odaka",
-   "gloss": "strength"
+   "gloss": "strength",
+   "source": "unidic"
   },
   {
-   "id": "w0173",
+   "id": "w0174",
    "surface": "涙",
    "kana": "なみだ",
    "morae": [
@@ -2497,10 +2688,11 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "tears"
+   "gloss": "tears",
+   "source": "unidic"
   },
   {
-   "id": "w0174",
+   "id": "w0175",
    "surface": "汗",
    "kana": "あせ",
    "morae": [
@@ -2511,10 +2703,11 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "sweat"
+   "gloss": "sweat",
+   "source": "unidic"
   },
   {
-   "id": "w0175",
+   "id": "w0176",
    "surface": "光",
    "kana": "ひかり",
    "morae": [
@@ -2526,10 +2719,11 @@
     3
    ],
    "type": "odaka",
-   "gloss": "light"
+   "gloss": "light",
+   "source": "unidic"
   },
   {
-   "id": "w0176",
+   "id": "w0177",
    "surface": "影",
    "kana": "かげ",
    "morae": [
@@ -2540,10 +2734,11 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "shadow"
+   "gloss": "shadow",
+   "source": "unidic"
   },
   {
-   "id": "w0177",
+   "id": "w0178",
    "surface": "煙",
    "kana": "けむり",
    "morae": [
@@ -2555,10 +2750,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "smoke"
+   "gloss": "smoke",
+   "source": "unidic"
   },
   {
-   "id": "w0178",
+   "id": "w0179",
    "surface": "氷",
    "kana": "こおり",
    "morae": [
@@ -2570,10 +2766,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "ice"
+   "gloss": "ice",
+   "source": "unidic"
   },
   {
-   "id": "w0179",
+   "id": "w0180",
    "surface": "波",
    "kana": "なみ",
    "morae": [
@@ -2584,10 +2781,11 @@
     2
    ],
    "type": "odaka",
-   "gloss": "wave"
+   "gloss": "wave",
+   "source": "unidic"
   },
   {
-   "id": "w0180",
+   "id": "w0181",
    "surface": "草",
    "kana": "くさ",
    "morae": [
@@ -2598,10 +2796,11 @@
     2
    ],
    "type": "odaka",
-   "gloss": "grass"
+   "gloss": "grass",
+   "source": "unidic"
   },
   {
-   "id": "w0181",
+   "id": "w0182",
    "surface": "種",
    "kana": "たね",
    "morae": [
@@ -2612,10 +2811,11 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "seed"
+   "gloss": "seed",
+   "source": "unidic"
   },
   {
-   "id": "w0182",
+   "id": "w0183",
    "surface": "枝",
    "kana": "えだ",
    "morae": [
@@ -2626,10 +2826,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "branch"
+   "gloss": "branch",
+   "source": "unidic"
   },
   {
-   "id": "w0183",
+   "id": "w0184",
    "surface": "竹",
    "kana": "たけ",
    "morae": [
@@ -2640,10 +2841,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "bamboo"
+   "gloss": "bamboo",
+   "source": "unidic"
   },
   {
-   "id": "w0184",
+   "id": "w0185",
    "surface": "松",
    "kana": "まつ",
    "morae": [
@@ -2654,10 +2856,11 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "pine"
+   "gloss": "pine",
+   "source": "unidic"
   },
   {
-   "id": "w0185",
+   "id": "w0186",
    "surface": "薬",
    "kana": "くすり",
    "morae": [
@@ -2669,10 +2872,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "medicine"
+   "gloss": "medicine",
+   "source": "unidic"
   },
   {
-   "id": "w0186",
+   "id": "w0187",
    "surface": "病気",
    "kana": "びょうき",
    "morae": [
@@ -2684,10 +2888,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "illness"
+   "gloss": "illness",
+   "source": "unidic"
   },
   {
-   "id": "w0187",
+   "id": "w0188",
    "surface": "仕事",
    "kana": "しごと",
    "morae": [
@@ -2699,10 +2904,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "work"
+   "gloss": "work",
+   "source": "unidic"
   },
   {
-   "id": "w0188",
+   "id": "w0189",
    "surface": "会社",
    "kana": "かいしゃ",
    "morae": [
@@ -2714,10 +2920,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "company"
+   "gloss": "company",
+   "source": "unidic"
   },
   {
-   "id": "w0189",
+   "id": "w0190",
    "surface": "学校",
    "kana": "がっこう",
    "morae": [
@@ -2730,10 +2937,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "school"
+   "gloss": "school",
+   "source": "unidic"
   },
   {
-   "id": "w0190",
+   "id": "w0191",
    "surface": "病院",
    "kana": "びょういん",
    "morae": [
@@ -2746,10 +2954,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "hospital"
+   "gloss": "hospital",
+   "source": "unidic"
   },
   {
-   "id": "w0191",
+   "id": "w0192",
    "surface": "銀行",
    "kana": "ぎんこう",
    "morae": [
@@ -2762,10 +2971,29 @@
     0
    ],
    "type": "heiban",
-   "gloss": "bank"
+   "gloss": "bank",
+   "source": "unidic"
   },
   {
-   "id": "w0192",
+   "id": "w0193",
+   "surface": "図書館",
+   "kana": "としょかん",
+   "morae": [
+    "と",
+    "しょ",
+    "か",
+    "ん"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "nakadaka",
+   "gloss": "library",
+   "source": "unidic-rule",
+   "rule": "図書(1) + 館[C3]"
+  },
+  {
+   "id": "w0194",
    "surface": "店",
    "kana": "みせ",
    "morae": [
@@ -2776,10 +3004,11 @@
     2
    ],
    "type": "odaka",
-   "gloss": "shop"
+   "gloss": "shop",
+   "source": "unidic"
   },
   {
-   "id": "w0193",
+   "id": "w0195",
    "surface": "切符",
    "kana": "きっぷ",
    "morae": [
@@ -2791,10 +3020,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "ticket"
+   "gloss": "ticket",
+   "source": "unidic"
   },
   {
-   "id": "w0194",
+   "id": "w0196",
    "surface": "手紙",
    "kana": "てがみ",
    "morae": [
@@ -2806,10 +3036,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "letter"
+   "gloss": "letter",
+   "source": "unidic"
   },
   {
-   "id": "w0195",
+   "id": "w0197",
    "surface": "写真",
    "kana": "しゃしん",
    "morae": [
@@ -2821,10 +3052,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "photo"
+   "gloss": "photo",
+   "source": "unidic"
   },
   {
-   "id": "w0196",
+   "id": "w0198",
    "surface": "映画",
    "kana": "えいが",
    "morae": [
@@ -2837,10 +3069,11 @@
     1
    ],
    "type": "heiban",
-   "gloss": "movie"
+   "gloss": "movie",
+   "source": "unidic"
   },
   {
-   "id": "w0197",
+   "id": "w0199",
    "surface": "音楽",
    "kana": "おんがく",
    "morae": [
@@ -2854,10 +3087,11 @@
     0
    ],
    "type": "atamadaka",
-   "gloss": "music"
+   "gloss": "music",
+   "source": "unidic"
   },
   {
-   "id": "w0198",
+   "id": "w0200",
    "surface": "天気",
    "kana": "てんき",
    "morae": [
@@ -2869,10 +3103,11 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "weather"
+   "gloss": "weather",
+   "source": "unidic"
   },
   {
-   "id": "w0199",
+   "id": "w0201",
    "surface": "旅行",
    "kana": "りょこう",
    "morae": [
@@ -2884,10 +3119,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "trip"
+   "gloss": "trip",
+   "source": "unidic"
   },
   {
-   "id": "w0200",
+   "id": "w0202",
    "surface": "宿題",
    "kana": "しゅくだい",
    "morae": [
@@ -2900,10 +3136,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "homework"
+   "gloss": "homework",
+   "source": "unidic"
   },
   {
-   "id": "w0201",
+   "id": "w0203",
    "surface": "試験",
    "kana": "しけん",
    "morae": [
@@ -2915,10 +3152,11 @@
     2
    ],
    "type": "nakadaka",
-   "gloss": "exam"
+   "gloss": "exam",
+   "source": "unidic"
   },
   {
-   "id": "w0202",
+   "id": "w0204",
    "surface": "問題",
    "kana": "もんだい",
    "morae": [
@@ -2931,10 +3169,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "problem"
+   "gloss": "problem",
+   "source": "unidic"
   },
   {
-   "id": "w0203",
+   "id": "w0205",
    "surface": "答え",
    "kana": "こたえ",
    "morae": [
@@ -2947,10 +3186,11 @@
     3
    ],
    "type": "nakadaka",
-   "gloss": "answer"
+   "gloss": "answer",
+   "source": "unidic"
   },
   {
-   "id": "w0204",
+   "id": "w0206",
    "surface": "意味",
    "kana": "いみ",
    "morae": [
@@ -2961,10 +3201,11 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "meaning"
+   "gloss": "meaning",
+   "source": "unidic"
   },
   {
-   "id": "w0205",
+   "id": "w0207",
    "surface": "時間",
    "kana": "じかん",
    "morae": [
@@ -2976,10 +3217,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "time"
+   "gloss": "time",
+   "source": "unidic"
   },
   {
-   "id": "w0206",
+   "id": "w0208",
    "surface": "台所",
    "kana": "だいどころ",
    "morae": [
@@ -2993,10 +3235,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "kitchen"
+   "gloss": "kitchen",
+   "source": "unidic"
   },
   {
-   "id": "w0207",
+   "id": "w0209",
    "surface": "階段",
    "kana": "かいだん",
    "morae": [
@@ -3009,10 +3252,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "stairs"
+   "gloss": "stairs",
+   "source": "unidic"
   },
   {
-   "id": "w0208",
+   "id": "w0210",
    "surface": "鍵",
    "kana": "かぎ",
    "morae": [
@@ -3023,10 +3267,11 @@
     2
    ],
    "type": "odaka",
-   "gloss": "key"
+   "gloss": "key",
+   "source": "unidic"
   },
   {
-   "id": "w0209",
+   "id": "w0211",
    "surface": "財布",
    "kana": "さいふ",
    "morae": [
@@ -3038,10 +3283,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "wallet"
+   "gloss": "wallet",
+   "source": "unidic"
   },
   {
-   "id": "w0210",
+   "id": "w0212",
    "surface": "新聞",
    "kana": "しんぶん",
    "morae": [
@@ -3054,10 +3300,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "newspaper"
+   "gloss": "newspaper",
+   "source": "unidic"
   },
   {
-   "id": "w0211",
+   "id": "w0213",
    "surface": "手袋",
    "kana": "てぶくろ",
    "morae": [
@@ -3070,10 +3317,11 @@
     2
    ],
    "type": "nakadaka",
-   "gloss": "gloves"
+   "gloss": "gloves",
+   "source": "unidic"
   },
   {
-   "id": "w0212",
+   "id": "w0214",
    "surface": "布団",
    "kana": "ふとん",
    "morae": [
@@ -3085,10 +3333,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "futon"
+   "gloss": "futon",
+   "source": "unidic"
   },
   {
-   "id": "w0213",
+   "id": "w0215",
    "surface": "枕",
    "kana": "まくら",
    "morae": [
@@ -3100,10 +3349,11 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "pillow"
+   "gloss": "pillow",
+   "source": "unidic"
   },
   {
-   "id": "w0214",
+   "id": "w0216",
    "surface": "動物",
    "kana": "どうぶつ",
    "morae": [
@@ -3116,10 +3366,29 @@
     0
    ],
    "type": "heiban",
-   "gloss": "animal"
+   "gloss": "animal",
+   "source": "unidic"
   },
   {
-   "id": "w0215",
+   "id": "w0217",
+   "surface": "飛行機",
+   "kana": "ひこうき",
+   "morae": [
+    "ひ",
+    "こ",
+    "う",
+    "き"
+   ],
+   "accent": [
+    2
+   ],
+   "type": "nakadaka",
+   "gloss": "airplane",
+   "source": "unidic-rule",
+   "rule": "飛行(0) + 機[C3]"
+  },
+  {
+   "id": "w0218",
    "surface": "船",
    "kana": "ふね",
    "morae": [
@@ -3130,10 +3399,11 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "ship"
+   "gloss": "ship",
+   "source": "unidic"
   },
   {
-   "id": "w0216",
+   "id": "w0219",
    "surface": "港",
    "kana": "みなと",
    "morae": [
@@ -3145,10 +3415,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "harbor"
+   "gloss": "harbor",
+   "source": "unidic"
   },
   {
-   "id": "w0217",
+   "id": "w0220",
    "surface": "公園",
    "kana": "こうえん",
    "morae": [
@@ -3161,10 +3432,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "park"
+   "gloss": "park",
+   "source": "unidic"
   },
   {
-   "id": "w0218",
+   "id": "w0221",
    "surface": "畑",
    "kana": "はたけ",
    "morae": [
@@ -3176,10 +3448,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "farm field"
+   "gloss": "farm field",
+   "source": "unidic"
   },
   {
-   "id": "w0219",
+   "id": "w0222",
    "surface": "坂",
    "kana": "さか",
    "morae": [
@@ -3191,10 +3464,11 @@
     1
    ],
    "type": "odaka",
-   "gloss": "slope"
+   "gloss": "slope",
+   "source": "unidic"
   },
   {
-   "id": "w0220",
+   "id": "w0223",
    "surface": "隣",
    "kana": "となり",
    "morae": [
@@ -3206,10 +3480,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "next door"
+   "gloss": "next door",
+   "source": "unidic"
   },
   {
-   "id": "w0221",
+   "id": "w0224",
    "surface": "後ろ",
    "kana": "うしろ",
    "morae": [
@@ -3221,10 +3496,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "back side"
+   "gloss": "back side",
+   "source": "unidic"
   },
   {
-   "id": "w0222",
+   "id": "w0225",
    "surface": "左",
    "kana": "ひだり",
    "morae": [
@@ -3236,10 +3512,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "left"
+   "gloss": "left",
+   "source": "unidic"
   },
   {
-   "id": "w0223",
+   "id": "w0226",
    "surface": "南",
    "kana": "みなみ",
    "morae": [
@@ -3251,10 +3528,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "south"
+   "gloss": "south",
+   "source": "unidic"
   },
   {
-   "id": "w0224",
+   "id": "w0227",
    "surface": "東",
    "kana": "ひがし",
    "morae": [
@@ -3267,10 +3545,11 @@
     3
    ],
    "type": "heiban",
-   "gloss": "east"
+   "gloss": "east",
+   "source": "unidic"
   },
   {
-   "id": "w0225",
+   "id": "w0228",
    "surface": "貝",
    "kana": "かい",
    "morae": [
@@ -3281,10 +3560,11 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "shellfish"
+   "gloss": "shellfish",
+   "source": "unidic"
   },
   {
-   "id": "w0226",
+   "id": "w0229",
    "surface": "蟹",
    "kana": "かに",
    "morae": [
@@ -3295,10 +3575,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "crab"
+   "gloss": "crab",
+   "source": "unidic"
   },
   {
-   "id": "w0227",
+   "id": "w0230",
    "surface": "鶏",
    "kana": "にわとり",
    "morae": [
@@ -3311,10 +3592,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "chicken"
+   "gloss": "chicken",
+   "source": "unidic"
   },
   {
-   "id": "w0228",
+   "id": "w0231",
    "surface": "狐",
    "kana": "きつね",
    "morae": [
@@ -3326,10 +3608,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "fox"
+   "gloss": "fox",
+   "source": "unidic"
   },
   {
-   "id": "w0229",
+   "id": "w0232",
    "surface": "扉",
    "kana": "とびら",
    "morae": [
@@ -3341,10 +3624,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "door"
+   "gloss": "door",
+   "source": "unidic"
   },
   {
-   "id": "w0230",
+   "id": "w0233",
    "surface": "宝",
    "kana": "たから",
    "morae": [
@@ -3356,10 +3640,11 @@
     3
    ],
    "type": "odaka",
-   "gloss": "treasure"
+   "gloss": "treasure",
+   "source": "unidic"
   },
   {
-   "id": "w0231",
+   "id": "w0234",
    "surface": "鬼",
    "kana": "おに",
    "morae": [
@@ -3370,10 +3655,11 @@
     2
    ],
    "type": "odaka",
-   "gloss": "ogre"
+   "gloss": "ogre",
+   "source": "unidic"
   },
   {
-   "id": "w0232",
+   "id": "w0235",
    "surface": "人形",
    "kana": "にんぎょう",
    "morae": [
@@ -3386,10 +3672,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "doll"
+   "gloss": "doll",
+   "source": "unidic"
   },
   {
-   "id": "w0233",
+   "id": "w0236",
    "surface": "花火",
    "kana": "はなび",
    "morae": [
@@ -3401,10 +3688,30 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "fireworks"
+   "gloss": "fireworks",
+   "source": "unidic"
   },
   {
-   "id": "w0234",
+   "id": "w0237",
+   "surface": "誕生日",
+   "kana": "たんじょうび",
+   "morae": [
+    "た",
+    "ん",
+    "じょ",
+    "う",
+    "び"
+   ],
+   "accent": [
+    3
+   ],
+   "type": "nakadaka",
+   "gloss": "birthday",
+   "source": "unidic-rule",
+   "rule": "誕生(0) + 日[C3]"
+  },
+  {
+   "id": "w0238",
    "surface": "昔",
    "kana": "むかし",
    "morae": [
@@ -3416,10 +3723,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "long ago"
+   "gloss": "long ago",
+   "source": "unidic"
   },
   {
-   "id": "w0235",
+   "id": "w0239",
    "surface": "世界",
    "kana": "せかい",
    "morae": [
@@ -3432,10 +3740,11 @@
     2
    ],
    "type": "atamadaka",
-   "gloss": "world"
+   "gloss": "world",
+   "source": "unidic"
   },
   {
-   "id": "w0236",
+   "id": "w0240",
    "surface": "袖",
    "kana": "そで",
    "morae": [
@@ -3446,10 +3755,11 @@
     0
    ],
    "type": "heiban",
-   "gloss": "sleeve"
+   "gloss": "sleeve",
+   "source": "unidic"
   },
   {
-   "id": "w0237",
+   "id": "w0241",
    "surface": "鶴",
    "kana": "つる",
    "morae": [
@@ -3460,10 +3770,11 @@
     1
    ],
    "type": "atamadaka",
-   "gloss": "crane"
+   "gloss": "crane",
+   "source": "unidic"
   },
   {
-   "id": "w0238",
+   "id": "w0242",
    "surface": "朝ご飯",
    "kana": "あさごはん",
    "morae": [
@@ -3477,10 +3788,11 @@
     3
    ],
    "type": "nakadaka",
-   "gloss": "breakfast"
+   "gloss": "breakfast",
+   "source": "unidic"
   },
   {
-   "id": "w0239",
+   "id": "w0243",
    "surface": "昼ご飯",
    "kana": "ひるごはん",
    "morae": [
@@ -3494,10 +3806,11 @@
     3
    ],
    "type": "nakadaka",
-   "gloss": "lunch"
+   "gloss": "lunch",
+   "source": "unidic"
   },
   {
-   "id": "w0240",
+   "id": "w0244",
    "surface": "晩ご飯",
    "kana": "ばんごはん",
    "morae": [
@@ -3511,10 +3824,11 @@
     3
    ],
    "type": "nakadaka",
-   "gloss": "dinner"
+   "gloss": "dinner",
+   "source": "unidic"
   },
   {
-   "id": "w0241",
+   "id": "w0245",
    "surface": "従兄弟",
    "kana": "いとこ",
    "morae": [
@@ -3526,10 +3840,11 @@
     2
    ],
    "type": "nakadaka",
-   "gloss": "cousin"
+   "gloss": "cousin",
+   "source": "unidic"
   },
   {
-   "id": "w0242",
+   "id": "w0246",
    "surface": "男の子",
    "kana": "おとこのこ",
    "morae": [
@@ -3543,10 +3858,11 @@
     3
    ],
    "type": "nakadaka",
-   "gloss": "boy"
+   "gloss": "boy",
+   "source": "unidic"
   },
   {
-   "id": "w0243",
+   "id": "w0247",
    "surface": "女の子",
    "kana": "おんなのこ",
    "morae": [
@@ -3560,10 +3876,11 @@
     3
    ],
    "type": "nakadaka",
-   "gloss": "girl"
+   "gloss": "girl",
+   "source": "unidic"
   },
   {
-   "id": "w0244",
+   "id": "w0248",
    "surface": "平仮名",
    "kana": "ひらがな",
    "morae": [
@@ -3576,10 +3893,11 @@
     3
    ],
    "type": "nakadaka",
-   "gloss": "hiragana"
+   "gloss": "hiragana",
+   "source": "unidic"
   },
   {
-   "id": "w0245",
+   "id": "w0249",
    "surface": "片仮名",
    "kana": "かたかな",
    "morae": [
@@ -3593,10 +3911,11 @@
     2
    ],
    "type": "nakadaka",
-   "gloss": "katakana"
+   "gloss": "katakana",
+   "source": "unidic"
   },
   {
-   "id": "w0246",
+   "id": "w0250",
    "surface": "建物",
    "kana": "たてもの",
    "morae": [
@@ -3610,10 +3929,11 @@
     3
    ],
    "type": "nakadaka",
-   "gloss": "building"
+   "gloss": "building",
+   "source": "unidic"
   },
   {
-   "id": "w0247",
+   "id": "w0251",
    "surface": "窓口",
    "kana": "まどぐち",
    "morae": [
@@ -3626,10 +3946,11 @@
     2
    ],
    "type": "nakadaka",
-   "gloss": "counter window"
+   "gloss": "counter window",
+   "source": "unidic"
   },
   {
-   "id": "w0248",
+   "id": "w0252",
    "surface": "紙袋",
    "kana": "かみぶくろ",
    "morae": [
@@ -3643,10 +3964,11 @@
     3
    ],
    "type": "nakadaka",
-   "gloss": "paper bag"
+   "gloss": "paper bag",
+   "source": "unidic"
   },
   {
-   "id": "w0249",
+   "id": "w0253",
    "surface": "番号",
    "kana": "ばんごう",
    "morae": [
@@ -3659,10 +3981,11 @@
     3
    ],
    "type": "nakadaka",
-   "gloss": "number"
+   "gloss": "number",
+   "source": "unidic"
   },
   {
-   "id": "w0250",
+   "id": "w0254",
    "surface": "肉屋",
    "kana": "にくや",
    "morae": [
@@ -3674,10 +3997,11 @@
     2
    ],
    "type": "nakadaka",
-   "gloss": "butcher"
+   "gloss": "butcher",
+   "source": "unidic"
   },
   {
-   "id": "w0251",
+   "id": "w0255",
    "surface": "花屋",
    "kana": "はなや",
    "morae": [
@@ -3689,10 +4013,11 @@
     2
    ],
    "type": "nakadaka",
-   "gloss": "florist"
+   "gloss": "florist",
+   "source": "unidic"
   },
   {
-   "id": "w0252",
+   "id": "w0256",
    "surface": "食べ物",
    "kana": "たべもの",
    "morae": [
@@ -3706,10 +4031,11 @@
     3
    ],
    "type": "nakadaka",
-   "gloss": "food"
+   "gloss": "food",
+   "source": "unidic"
   },
   {
-   "id": "w0253",
+   "id": "w0257",
    "surface": "飲み物",
    "kana": "のみもの",
    "morae": [
@@ -3723,10 +4049,11 @@
     3
    ],
    "type": "nakadaka",
-   "gloss": "drink"
+   "gloss": "drink",
+   "source": "unidic"
   },
   {
-   "id": "w0254",
+   "id": "w0258",
    "surface": "弁当",
    "kana": "べんとう",
    "morae": [
@@ -3739,10 +4066,11 @@
     3
    ],
    "type": "nakadaka",
-   "gloss": "boxed lunch"
+   "gloss": "boxed lunch",
+   "source": "unidic"
   },
   {
-   "id": "w0255",
+   "id": "w0259",
    "surface": "お握り",
    "kana": "おにぎり",
    "morae": [
@@ -3755,10 +4083,11 @@
     2
    ],
    "type": "nakadaka",
-   "gloss": "rice ball"
+   "gloss": "rice ball",
+   "source": "unidic"
   },
   {
-   "id": "w0256",
+   "id": "w0260",
    "surface": "納豆",
    "kana": "なっとう",
    "morae": [
@@ -3771,10 +4100,11 @@
     3
    ],
    "type": "nakadaka",
-   "gloss": "natto"
+   "gloss": "natto",
+   "source": "unidic"
   },
   {
-   "id": "w0257",
+   "id": "w0261",
    "surface": "胡椒",
    "kana": "こしょう",
    "morae": [
@@ -3786,10 +4116,11 @@
     2
    ],
    "type": "nakadaka",
-   "gloss": "pepper"
+   "gloss": "pepper",
+   "source": "unidic"
   },
   {
-   "id": "w0258",
+   "id": "w0262",
    "surface": "玉葱",
    "kana": "たまねぎ",
    "morae": [
@@ -3802,10 +4133,11 @@
     3
    ],
    "type": "nakadaka",
-   "gloss": "onion"
+   "gloss": "onion",
+   "source": "unidic"
   },
   {
-   "id": "w0259",
+   "id": "w0263",
    "surface": "白菜",
    "kana": "はくさい",
    "morae": [
@@ -3819,10 +4151,11 @@
     0
    ],
    "type": "nakadaka",
-   "gloss": "napa cabbage"
+   "gloss": "napa cabbage",
+   "source": "unidic"
   },
   {
-   "id": "w0260",
+   "id": "w0264",
    "surface": "氷水",
    "kana": "こおりみず",
    "morae": [
@@ -3836,10 +4169,11 @@
     3
    ],
    "type": "nakadaka",
-   "gloss": "ice water"
+   "gloss": "ice water",
+   "source": "unidic"
   },
   {
-   "id": "w0261",
+   "id": "w0265",
    "surface": "箸置き",
    "kana": "はしおき",
    "morae": [
@@ -3854,10 +4188,11 @@
     0
    ],
    "type": "nakadaka",
-   "gloss": "chopstick rest"
+   "gloss": "chopstick rest",
+   "source": "unidic"
   },
   {
-   "id": "w0262",
+   "id": "w0266",
    "surface": "紫",
    "kana": "むらさき",
    "morae": [
@@ -3870,7 +4205,8 @@
     2
    ],
    "type": "nakadaka",
-   "gloss": "purple"
+   "gloss": "purple",
+   "source": "unidic"
   }
  ]
 }
