@@ -84,6 +84,12 @@ export function escapeRegExp(s: string): string {
 
 const phraseCache = new Map<string, RegExp>();
 
+/** Drop memoized script text and glossary regexes (the server calls this after every request). */
+export function clearTextCaches(): void {
+  visibleCache.clear();
+  phraseCache.clear();
+}
+
 /**
  * English phrase matcher: whole words, any whitespace (incl. line breaks / NBSP) between words,
  * tolerant of plurals (-s/-es, -y→-ies, -f/-fe→-ves) and possessive 's. Terms match case-insensitively;
