@@ -314,7 +314,7 @@ function fromSession(s){
   const b=String(c.status_bucket||""),ss=String(c.session_status||"");
   let st="idle";if(/WORKING/i.test(b)||/RUNNING/i.test(ss))st="working";else if(/BLOCKED/i.test(b))st="blocked";else if(/FAILED/i.test(b))st="failed";
   const m=mins(c.updated_at);if(st==="idle"&&m!=null&&m>60)st="sleep";
-  return{state:st,src:"live",updatedAt:c.updated_at,recent:pts.recent_action||pts.status_detail||"",needs:pts.needs_action||"",cost:((c.external_metadata||{}).usage||{}).cost_usd};
+  return{state:st,src:"live",updatedAt:c.updated_at,recent:pts.recent_action||pts.status_detail||c.task_summary||(c.external_metadata||{}).task_summary||"",needs:pts.needs_action||"",cost:((c.external_metadata||{}).usage||{}).cost_usd};
 }
 function hash(str){let h=2166136261;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619);}return(h>>>0)/4294967295;}
 // time of day (Tokyo) and staged weather
