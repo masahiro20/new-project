@@ -2,35 +2,47 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { COATS, type CoatId } from "@/lib/cat";
-import { QUESTIONS, QUESTION_COUNT } from "@/lib/questions";
+import { BREEDS, getBreed, shortName } from "@/lib/breeds";
+import type { BreedId } from "@/lib/cat";
+import { QUESTION_COUNT } from "@/lib/questions";
+import { getQuestions } from "@/lib/scoring";
 import { CatArt } from "./CatArt";
 
-type Props = { vs?: string; vsn?: string; vsc?: string };
+type Props = { vs?: string; vsn?: string; vsb?: string };
 
-export function Interview({ vs, vsn, vsc }: Props) {
+const MOODS = [{ blush: true }, { wink: true }, { open: true }, { crown: true }];
+
+export function Interview({ vs, vsn, vsb }: Props) {
   const router = useRouter();
   const [phase, setPhase] = useState<"intro" | "ask" | "busy">("intro");
+  const [tab, setTab] = useState<"柄" | "猫種">("柄");
+  const [breed, setBreed] = useState<BreedId>("kijitora");
   const [cat, setCat] = useState("");
   const [owner, setOwner] = useState("");
-  const [coat, setCoat] = useState<CoatId>("kijitora");
   const [answers, setAnswers] = useState<number[]>([]);
   const [picked, setPicked] = useState<number | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const top = useRef<HTMLDivElement>(null);
 
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
 
   const step = answers.length;
   const catName = cat.trim() || "うちの子";
+  const b = getBreed(breed);
+  const qs = getQuestions(breed);
+
+  function scrollTop() {
+    top.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 
   function finish(all: number[]) {
     setPhase("busy");
-    const q = new URLSearchParams({ a: all.join(""), n: catName, c: coat });
+    const q = new URLSearchParams({ a: all.join(""), b: breed, n: catName });
     if (owner.trim()) q.set("o", owner.trim());
     if (vs) q.set("vs", vs);
     if (vsn) q.set("vsn", vsn);
-    if (vsc) q.set("vsc", vsc);
-    timer.current = setTimeout(() => router.push(`/chosho?${q.toString()}`), 1800);
+    if (vsb) q.set("vsb", vsb);
+    timer.current = setTimeout(() => router.push(`/chosho?${q.toString()}`), 2000);
   }
 
   function choose(i: number) {
@@ -41,7 +53,8 @@ export function Interview({ vs, vsn, vsc }: Props) {
       setPicked(null);
       setAnswers(next);
       if (next.length === QUESTION_COUNT) finish(next);
-    }, 280);
+      scrollTop();
+    }, 260);
   }
 
   function back() {
@@ -51,81 +64,92 @@ export function Interview({ vs, vsn, vsc }: Props) {
 
   if (phase === "intro") {
     return (
-      <form
-        className="panel"
-        onSubmit={(e) => {
-          e.preventDefault();
-          setPhase("ask");
-        }}
-      >
-        <h1>まずは、猫様のことを教えてください</h1>
-        <p style={{ marginTop: 8, color: "var(--muted)", fontSize: 14, fontWeight: 700 }}>
-          全{QUESTION_COUNT}問・約3分。選ぶだけです。全部あとから変えられます。
-        </p>
+      <div ref={top}>
+        <form
+          className="panel"
+          onSubmit={(e) => {
+            e.preventDefault();
+            setPhase("ask");
+            scrollTop();
+          }}
+        >
+          <h1 className="intro-title">うちの子を<br />えらんでください</h1>
 
-        <div className="field" role="radiogroup" aria-labelledby="coat-l">
-          <span className="lbl" id="coat-l">毛柄をえらぶ</span>
-          <div className="coats">
-            {COATS.map((c) => (
-              <button
-                key={c.id}
-                type="button"
-                role="radio"
-                aria-checked={coat === c.id}
-                className="coat"
-                onClick={() => setCoat(c.id)}
-              >
-                <CatArt coat={c.id} uid={`pick-${c.id}`} />
-                <span>{c.label}</span>
+          <div className="tabs" role="tablist" aria-label="えらび方">
+            {(["柄", "猫種"] as const).map((t) => (
+              <button key={t} type="button" role="tab" aria-selected={tab === t} className="tab" onClick={() => setTab(t)}>
+                {t === "柄" ? "柄でえらぶ（8）" : "猫種でえらぶ（12）"}
               </button>
             ))}
           </div>
-        </div>
 
-        <div className="field">
-          <label htmlFor="cat">猫様のお名前（任意）</label>
-          <input id="cat" value={cat} maxLength={12} onChange={(e) => setCat(e.target.value)} placeholder="例：もち" autoComplete="off" />
-        </div>
-        <div className="field">
-          <label htmlFor="owner">あなたの呼び名（任意）</label>
-          <input id="owner" value={owner} maxLength={10} onChange={(e) => setOwner(e.target.value)} placeholder="例：下僕その1" autoComplete="off" />
-          <small>名前はサーバーに保存されません。</small>
-        </div>
-        <div style={{ marginTop: 26 }}>
-          <button className="btn big block" type="submit">事情聴取をはじめる 🐾</button>
-        </div>
-      </form>
+          <div className="breeds" role="radiogroup" aria-label={tab === "柄" ? "柄" : "猫種"}>
+            {BREEDS.filter((x) => x.group === tab).map((x) => (
+              <button
+                key={x.id}
+                type="button"
+                role="radio"
+                aria-checked={breed === x.id}
+                className="breed"
+                onClick={() => setBreed(x.id)}
+              >
+                <CatArt breed={x.id} uid={`pick-${x.id}`} />
+                <span>{shortName(x)}</span>
+              </button>
+            ))}
+          </div>
+
+          <div className="trait" aria-live="polite">
+            <CatArt breed={breed} uid="pick-sel" traits={{ blush: true }} />
+            <p><b>{b.label}</b>{b.trait}</p>
+          </div>
+
+          <div className="field">
+            <label htmlFor="cat">猫様のお名前（任意）</label>
+            <input id="cat" value={cat} maxLength={12} onChange={(e) => setCat(e.target.value)} placeholder="例：もち" autoComplete="off" enterKeyHint="next" />
+          </div>
+          <div className="field">
+            <label htmlFor="owner">あなたの呼び名（任意）</label>
+            <input id="owner" value={owner} maxLength={10} onChange={(e) => setOwner(e.target.value)} placeholder="例：下僕その1" autoComplete="off" enterKeyHint="done" />
+            <small>名前はサーバーに保存されません。</small>
+          </div>
+          <button className="btn big block" type="submit" style={{ marginTop: 24 }}>
+            {QUESTION_COUNT}の質問にすすむ 🐾
+          </button>
+          <p className="hint">「もしも」の質問ばかり。正解はありません。直感でどうぞ。</p>
+        </form>
+      </div>
     );
   }
 
   if (phase === "busy") {
     return (
-      <div className="panel busy" role="status" aria-live="polite">
-        <CatArt coat={coat} uid="busy" traits={{ wink: true }} />
-        <p>{catName}の調書を作っています…</p>
-        <small>研究員が肉球スタンプを準備中です</small>
+      <div className="panel busy" role="status" aria-live="polite" ref={top}>
+        <CatArt breed={breed} uid="busy" traits={{ wink: true, blush: true }} />
+        <p>{catName}との関係を鑑定中…</p>
+        <small>研究員が、ふたりの絵を描いています</small>
+        <div className="dots-loader" aria-hidden="true"><i /><i /><i /></div>
       </div>
     );
   }
 
-  const q = QUESTIONS[step];
-  const mood = step % 4 === 0 ? { blush: true } : step % 4 === 1 ? { wink: true } : step % 4 === 2 ? { open: true } : { crown: true };
+  const q = qs[step];
   return (
-    <div className="panel">
+    <div className="panel ask" ref={top}>
       <div className="progress" aria-label={`${step + 1}問目 / 全${QUESTION_COUNT}問`}>
         <span>{step + 1}/{QUESTION_COUNT}</span>
         <div className="track"><i style={{ width: `${((step + 1) / QUESTION_COUNT) * 100}%` }} /></div>
-        <span aria-hidden="true">🐾</span>
       </div>
       <div className="q-head">
-        <span className="q-no">Q{step + 1}</span>
-        <CatArt coat={coat} uid="ask" traits={mood} />
+        <span className="q-icon" aria-hidden="true">{q.icon}</span>
+        {q.breed && <span className="q-badge">{shortName(b)}だけの質問</span>}
+        <CatArt breed={breed} uid="ask" traits={MOODS[step % 4]} />
       </div>
-      <h2 className="q-scene">{q.scene}</h2>
+      <h2 className="q-scene">{q.scene.replaceAll("{cat}", catName)}</h2>
       <div className="choices">
         {q.choices.map((c, i) => (
           <button key={`${step}-${i}`} type="button" className={`choice${picked === i ? " on" : ""}`} onClick={() => choose(i)}>
-            {c.label}
+            {c.label.replaceAll("{cat}", catName)}
           </button>
         ))}
       </div>

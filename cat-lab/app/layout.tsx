@@ -17,11 +17,11 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: { default: `${SITE_NAME} | うちの猫様、私のこと下僕だと思ってる？`, template: `%s | ${SITE_NAME}` },
-  description: `${SITE_TAGLINE}。16の質問に答えると、あなたと猫様の主従関係を「鑑定調書」にしてお届けします。`,
+  title: { default: `${SITE_NAME} | うちの猫様と、ほんとうはどんな関係？`, template: `%s | ${SITE_NAME}` },
+  description: `${SITE_TAGLINE}。うちの子をえらんで12の「もしも」に答えると、あなたと猫様の関係をオリジナルのイラストにしてお届けします。`,
   openGraph: {
-    title: `${SITE_NAME} | うちの猫様、私のこと下僕だと思ってる？`,
-    description: `${SITE_TAGLINE}。あなたは何等級の下僕ですか？`,
+    title: `${SITE_NAME} | うちの猫様と、ほんとうはどんな関係？`,
+    description: `${SITE_TAGLINE}。全20種の猫 × 12の関係。あなたの家はどれ？`,
     siteName: SITE_NAME,
     locale: "ja_JP",
     type: "website",
@@ -42,11 +42,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <header className="site-header">
           <div className="wrap">
             <Link href="/" className="brand">
-              <span className="logo"><CatArt coat="chatora" uid="logo" /></span>
+              <span className="logo"><CatArt breed="chatora" uid="logo" /></span>
               {SITE_NAME}
             </Link>
             <nav className="nav" aria-label="メイン">
-              <Link href="/types">タイプ図鑑</Link>
+              <Link href="/types">関係図鑑</Link>
               <Link href="/yougo">用語集</Link>
             </nav>
           </div>

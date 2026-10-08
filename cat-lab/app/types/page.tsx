@@ -1,43 +1,48 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CatArt } from "@/components/CatArt";
-import { COAT_IDS } from "@/lib/cat";
-import { CAT_TYPES } from "@/lib/types";
+import { SceneArt } from "@/components/SceneArt";
+import { BREED_IDS } from "@/lib/cat";
+import { RELATIONS } from "@/lib/relations";
 
 export const metadata: Metadata = {
-  title: "タイプ図鑑",
-  description: "猫様と下僕の主従関係、全16タイプの図鑑です。",
+  title: "関係図鑑",
+  description: "猫様と飼い主の関係、全12タイプの図鑑です。",
 };
 
-const LABELS = ["君臨", "甘え", "気まぐれ", "要求"];
+const SHIRTS = ["#7ec8e3", "#ff9ec4", "#ffd34d", "#62d2a2", "#b48cff", "#ff8c42"];
+const HAIRS = ["short", "bob", "bun", "spiky"] as const;
 
 export default function Page() {
   return (
     <>
       <div className="page-title">
-        <h1>タイプ図鑑 📖</h1>
-        <p>4つの指標（君臨・甘え・気まぐれ・要求）の高低で、猫様は全16タイプに分けられます。</p>
+        <h1>関係図鑑 📖</h1>
+        <p>猫様と飼い主の関係は、全部で12タイプ。あなたの家は、どれでしょう？</p>
       </div>
-      <div className="type-list">
-        {CAT_TYPES.map((t, i) => (
-          <section key={t.code} id={t.code} className="type-item">
-            <CatArt
-              coat={COAT_IDS[i % COAT_IDS.length]}
-              uid={`t-${t.code}`}
-              traits={{ crown: t.code[0] === "H", blush: t.code[1] === "H", wink: t.code[2] === "H", open: t.code[3] === "H" }}
+      <div className="rel-list">
+        {RELATIONS.map((r, i) => (
+          <section key={r.id} id={r.id} className="rel-item" style={{ ["--rel" as string]: r.color }}>
+            <SceneArt
+              rel={r.id}
+              variant={i % 3}
+              breed={BREED_IDS[(i * 7 + 3) % BREED_IDS.length]}
+              traits={{}}
+              human={{ hair: HAIRS[i % 4], shirt: SHIRTS[i % 6] }}
+              uid={`z${i}`}
+              catLine={r.catLines[0]}
+              humanLine={r.humanLines[0]}
             />
-            <div>
-              <p className="code">{[...t.code].map((c, k) => `${LABELS[k]}${c === "H" ? "高" : "低"}`).join("・")}</p>
-              <h3>{t.name}</h3>
-              <p className="catch">「{t.catch}」</p>
-              <p>{t.description}</p>
-              <p className="adv">💡 {t.advice}</p>
+            <div className="rel-body">
+              <p className="no">No.{String(i + 1).padStart(2, "0")}</p>
+              <h2>{r.name}</h2>
+              <p className="roles-mini">猫様＝{r.catRole}　あなた＝{r.humanRole}</p>
+              <p>{r.desc.replaceAll("{cat}", "猫様")}</p>
             </div>
           </section>
         ))}
       </div>
       <p style={{ marginTop: 36, textAlign: "center" }}>
-        <Link href="/chosa" className="btn big">うちの子のタイプを調べる 🐾</Link>
+        <Link href="/chosa" className="btn big">うちの子との関係を調べる 🐾</Link>
       </p>
     </>
   );

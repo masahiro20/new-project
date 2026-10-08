@@ -1,5 +1,5 @@
 import { AXES, AXIS_ORDER } from "@/lib/questions";
-import { AXIS_COMMENTS, levelOf } from "@/lib/types";
+import { AXIS_COMMENTS, levelOf } from "@/lib/grades";
 import type { AxisScores } from "@/lib/scoring";
 
 export function AxisBars({ axes }: { axes: AxisScores }) {
