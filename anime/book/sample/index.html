@@ -1,0 +1,135 @@
+<title>帳簿の書 Vol.0 見本</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=IBM+Plex+Mono:wght@400;600&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap">
+<style>
+/* Layout: a proof sheet. Pages sit on a ruled ledger table like printer's proofs, each with its folio number; red ink marks the selected edition. */
+:root {
+  --bg: #E7E9DF;
+  --surface: #F3F1E7;
+  --ink: #1A1C26;
+  --muted: #555A55;
+  --rule: #C1CAB5;
+  --red: #C8102E;
+  --on-red: #FFF7EE;
+  --display: "Dela Gothic One", "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+  --body: "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0F1117; --surface: #1A1D26; --ink: #ECE6D6; --muted: #A39E92; --rule: #2D3341; --red: #F0283F; --on-red: #FFF7EE;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0F1117; --surface: #1A1D26; --ink: #ECE6D6; --muted: #A39E92; --rule: #2D3341; --red: #F0283F; --on-red: #FFF7EE;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.7; padding-inline: 16px; padding-block: 28px 56px; }
+.wrap { max-width: 1120px; margin-inline: auto; display: grid; gap: 24px; }
+header { display: grid; gap: 10px; border-bottom: 2px solid var(--ink); padding-bottom: 16px; }
+.eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--display); font-weight: 400; font-size: clamp(30px, 5vw, 48px); line-height: 1.15; margin: 0; text-wrap: balance; }
+h1 span { color: var(--red); }
+p { margin: 0; max-width: 64ch; }
+.specs { display: flex; flex-wrap: wrap; gap: 6px 18px; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.specs b { color: var(--ink); font-weight: 600; }
+.tabs { display: flex; gap: 0; border: 1px solid var(--ink); width: max-content; max-width: 100%; }
+.tabs button { font: inherit; font-size: 14px; padding: 8px 16px; background: var(--surface); color: var(--ink); border: 0; border-right: 1px solid var(--ink); cursor: pointer; }
+.tabs button:last-child { border-right: 0; }
+.tabs button[aria-selected="true"] { background: var(--red); color: var(--on-red); }
+button:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+.grid { display: grid; gap: 22px 18px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); }
+figure { margin: 0; display: grid; gap: 6px; }
+figure button { padding: 0; border: 1px solid var(--rule); background: var(--surface); cursor: zoom-in; display: block; width: 100%; }
+figure img { display: block; width: 100%; height: auto; aspect-ratio: 148 / 210; max-width: 100%; }
+figcaption { display: grid; grid-template-columns: auto 1fr; gap: 10px; font-size: 13px; line-height: 1.5; }
+figcaption .no { font-family: var(--mono); color: var(--red); font-variant-numeric: tabular-nums; }
+.note { font-size: 13px; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 14px; display: grid; gap: 6px; }
+dialog { border: 0; padding: 0; background: transparent; max-width: min(96vw, 720px); width: 100%; }
+dialog::backdrop { background: rgba(10, 10, 14, .82); }
+dialog img { display: block; width: 100%; height: auto; max-height: 88vh; object-fit: contain; }
+dialog .bar { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 0; color: #ECE6D6; font-family: var(--mono); font-size: 12px; }
+dialog .bar button { font: inherit; background: #ECE6D6; color: #1A1C26; border: 0; padding: 6px 12px; cursor: pointer; }
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">P7 Anime · 社外秘 · 見本ページ</span>
+    <h1>RED LEDGER <span>帳簿の書 Vol.0</span></h1>
+    <p>オリジナルアニメ企画『RED LEDGER（赤い帳簿）』の設定資料集。世界のルール、主要8人、能力の図解、第1話冒頭の脚本抜粋を収録しています。下の見本は実際のPDFから書き出したページです。</p>
+    <div class="specs"><span><b>判型</b> A5</span><span><b>ページ</b> 30</span><span><b>形式</b> PDF</span><span><b>価格案</b> BOOTH 500円 / Ko-fi $4</span><span><b>版</b> 日本語・英語</span></div>
+  </header>
+
+  <div class="tabs" role="tablist" aria-label="版">
+    <button role="tab" id="tab-ja" aria-selected="true" aria-controls="grid">日本語版</button>
+    <button role="tab" id="tab-en" aria-selected="false" aria-controls="grid">English</button>
+  </div>
+
+  <div class="grid" id="grid" role="tabpanel"></div>
+
+  <div class="note">
+    <p>販売用の見本は表紙・都市の断面図・能力の図解・ジンのページの4枚を予定しています。脚本の抜粋は購入者向けに残します。</p>
+    <p>本書の文章と図版はAIを用いて制作し、オーナーが編集・監修します。PDF本体はリポジトリの anime/book/ にあります。</p>
+  </div>
+</div>
+
+<dialog id="zoom" aria-label="ページ拡大">
+  <div class="bar"><span id="zoom-cap"></span><button type="button" id="zoom-close">閉じる</button></div>
+  <img id="zoom-img" alt="">
+</dialog>
+
+<script>
+const PAGES = {
+  ja: [
+    [1, "表紙"], [5, "第1章 都市カネグラ（断面図）"], [7, "七柱の貸主"], [10, "決済戦の規則と契約書"],
+    [13, "〈デフォルト〉図解"], [15, "相関図"], [16, "赤羽ジン"], [17, "葛葉ミオ"],
+    [20, "ニル"], [25, "第1話 冒頭の脚本"], [28, "用語集"], [30, "奥付"]
+  ],
+  en: [
+    [1, "Cover"], [5, "Ch.1 The City of Kanegura"], [7, "The Seven Lenders"], [10, "Settlement rules and contract"],
+    [13, "Default, diagrammed"], [15, "Relationships"], [16, "Jin Akaba"], [17, "Mio Kuzuha"],
+    [20, "Nil"], [25, "Episode 1 cold open"], [28, "Glossary"], [30, "Colophon"]
+  ]
+};
+const grid = document.getElementById('grid');
+const dlg = document.getElementById('zoom');
+function src(lang, n) { return `pages/${lang}-${String(n).padStart(2, '0')}.png`; }
+function render(lang) {
+  grid.innerHTML = '';
+  for (const [n, cap] of PAGES[lang]) {
+    const f = document.createElement('figure');
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.setAttribute('aria-label', `${cap}（p.${n}）を拡大`);
+    const img = document.createElement('img');
+    img.src = src(lang, n); img.alt = `${cap}（p.${n}）`; img.loading = 'lazy'; img.width = 592; img.height = 840;
+    b.append(img);
+    b.addEventListener('click', () => {
+      document.getElementById('zoom-img').src = src(lang, n);
+      document.getElementById('zoom-img').alt = img.alt;
+      document.getElementById('zoom-cap').textContent = `p.${String(n).padStart(2, '0')} · ${cap}`;
+      if (dlg.showModal) dlg.showModal();
+    });
+    const c = document.createElement('figcaption');
+    c.innerHTML = `<span class="no">p.${String(n).padStart(2, '0')}</span><span></span>`;
+    c.lastChild.textContent = cap;
+    f.append(b, c); grid.append(f);
+  }
+  document.documentElement.lang = lang === 'ja' ? 'ja' : 'en';
+}
+for (const lang of ['ja', 'en']) {
+  document.getElementById('tab-' + lang).addEventListener('click', () => {
+    for (const l of ['ja', 'en']) document.getElementById('tab-' + l).setAttribute('aria-selected', String(l === lang));
+    render(lang);
+    try { localStorage.setItem('vol0-lang', lang); } catch (e) {}
+  });
+}
+document.getElementById('zoom-close').addEventListener('click', () => dlg.close());
+dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
+let start = 'ja';
+try { if (localStorage.getItem('vol0-lang') === 'en') start = 'en'; } catch (e) {}
+document.getElementById('tab-' + start).click();
+</script>
