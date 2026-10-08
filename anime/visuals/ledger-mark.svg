@@ -38,12 +38,12 @@
   <!-- seven lender notches on the band (Iron, Flame, Eye, Speed, Voice, Abundance, Zero) -->
   <g stroke="#0E0B10" stroke-width="3">
     <circle cx="300" cy="68" r="11" fill="#E5172F"/>
-    <circle cx="481.4" cy="155.4" r="9" fill="#9FB4C8"/>
-    <circle cx="526.2" cy="351.6" r="9" fill="#FF7A1A"/>
-    <circle cx="400.7" cy="509" r="9" fill="#A77BFF"/>
-    <circle cx="199.3" cy="509" r="9" fill="#B8F03C"/>
-    <circle cx="73.8" cy="351.6" r="9" fill="#3FA9F5"/>
-    <circle cx="118.6" cy="155.4" r="9" fill="#FFD23F"/>
+    <circle cx="481.4" cy="155.4" r="9" fill="#9AA3AD"/>
+    <circle cx="526.2" cy="351.6" r="9" fill="#FF5A1F"/>
+    <circle cx="400.7" cy="509" r="9" fill="#F0921E"/>
+    <circle cx="199.3" cy="509" r="9" fill="#2FC48D"/>
+    <circle cx="73.8" cy="351.6" r="9" fill="#4F63E8"/>
+    <circle cx="118.6" cy="155.4" r="9" fill="#FFDC5A"/>
   </g>
 
   <!-- the zero: hollow ring with ink weight, slightly calligraphic -->

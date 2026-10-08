@@ -33,8 +33,8 @@
       <stop offset="1" stop-color="#0E0B10" stop-opacity="0.95"/>
     </linearGradient>
     <radialGradient id="goldGlow" cx="50%" cy="50%" r="50%">
-      <stop offset="0" stop-color="#FFD23F" stop-opacity="0.55"/>
-      <stop offset="1" stop-color="#FFD23F" stop-opacity="0"/>
+      <stop offset="0" stop-color="#FFDC5A" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#FFDC5A" stop-opacity="0"/>
     </radialGradient>
     <radialGradient id="armGlow" cx="50%" cy="50%" r="50%">
       <stop offset="0" stop-color="#E5172F" stop-opacity="0.7"/>
@@ -83,6 +83,21 @@
   </g>
   <path d="M1004 90 L1030 160 L1012 210 L1046 262" stroke="#7A0614" stroke-width="3" fill="none" opacity="0.6"/>
 
+  <!-- circular PUBLIC RANKING BOARD projected into the sky -->
+  <g fill="none" stroke="#FFDC5A" opacity="0.55">
+    <circle cx="1090" cy="250" r="236" stroke-width="2"/>
+    <circle cx="1090" cy="250" r="254" stroke-width="1" stroke-dasharray="2 10"/>
+    <circle cx="1090" cy="250" r="272" stroke-width="3" stroke-dasharray="40 8 6 8"/>
+  </g>
+  <g font-family="'Courier New',monospace" font-size="12" fill="#FFDC5A" opacity="0.6">
+    <text x="838" y="120">AAA  KUJO R.</text>
+    <text x="1290" y="130">AA  SAKAKI D.</text>
+    <text x="1340" y="300">A  ———</text>
+    <text x="800" y="330">B  ———</text>
+  </g>
+  <g font-family="'Courier New',monospace" font-size="13" fill="#E5172F" opacity="0.9" font-weight="700">
+    <text x="1300" y="400">ZERO  AKABA J.  −∞</text>
+  </g>
   <!-- distant city silhouettes on far ribs (atmospheric) -->
   <g fill="#2A1E2C" opacity="0.7">
     <path d="M660 640 L660 600 L680 600 L680 580 L700 580 L700 560 L716 560 L716 590 L740 590 L740 570 L760 570 L760 610 L790 610 L790 640 Z"/>
@@ -1153,22 +1168,32 @@
 
   <!-- THE BOURSE (summit exchange) -->
   <ellipse cx="1090" cy="190" rx="150" ry="90" fill="url(#goldGlow)"/>
-  <g fill="#C9A24A">
+  <g fill="#E9E1CF">
     <rect x="1018" y="226" width="144" height="16"/>
-    <rect x="1026" y="196" width="128" height="8"/>
     <rect x="1032" y="204" width="8" height="22"/><rect x="1052" y="204" width="8" height="22"/><rect x="1072" y="204" width="8" height="22"/>
     <rect x="1100" y="204" width="8" height="22"/><rect x="1120" y="204" width="8" height="22"/><rect x="1140" y="204" width="8" height="22"/>
     <path d="M1030 196 L1090 166 L1150 196 Z"/>
-    <path d="M1056 166 Q1056 124 1090 118 Q1124 124 1124 166 Z"/>
-    <rect x="1087" y="78" width="6" height="42"/>
-    <circle cx="1090" cy="76" r="6"/>
+    <path d="M1062 166 L1066 100 L1114 100 L1118 166 Z"/>
+  </g>
+  <g fill="#C9A24A">
+    <rect x="1026" y="196" width="128" height="8"/>
+    <rect x="1018" y="240" width="144" height="4"/>
+    <rect x="1062" y="160" width="56" height="6"/>
+    <rect x="1066" y="124" width="48" height="4"/>
+    <path d="M1066 100 Q1066 70 1090 64 Q1114 70 1114 100 Z"/>
+    <rect x="1088" y="30" width="4" height="36"/>
+    <circle cx="1090" cy="28" r="5"/>
+  </g>
+  <g fill="#1B1F2E" opacity="0.6">
+    <rect x="1072" y="108" width="6" height="12"/><rect x="1087" y="108" width="6" height="12"/><rect x="1102" y="108" width="6" height="12"/>
+    <rect x="1072" y="136" width="6" height="18"/><rect x="1087" y="136" width="6" height="18"/><rect x="1102" y="136" width="6" height="18"/>
   </g>
   <!-- glowing rating boards -->
   <g filter="url(#glow)">
-    <rect x="958" y="150" width="52" height="30" fill="#1C1A22" stroke="#FFD23F" stroke-width="2"/>
-    <rect x="1170" y="150" width="52" height="30" fill="#1C1A22" stroke="#FFD23F" stroke-width="2"/>
+    <rect x="958" y="150" width="52" height="30" fill="#1C1A22" stroke="#FFDC5A" stroke-width="2"/>
+    <rect x="1170" y="150" width="52" height="30" fill="#1C1A22" stroke="#FFDC5A" stroke-width="2"/>
   </g>
-  <g font-family="'Helvetica Neue',Arial,sans-serif" font-weight="800" font-size="15" fill="#FFD23F" text-anchor="middle">
+  <g font-family="'Helvetica Neue',Arial,sans-serif" font-weight="800" font-size="15" fill="#FFDC5A" text-anchor="middle">
     <text x="984" y="171">AAA</text><text x="1196" y="171">AA+</text>
   </g>
   <path d="M1010 165 L1030 196 M1170 165 L1150 196" stroke="#C9A24A" stroke-width="2"/>
@@ -1195,9 +1220,9 @@
     <path d="M410 478 C 480 450, 560 500, 640 470 C 720 440, 770 380, 860 392 C 900 398, 930 380, 950 364 L 940 384 L 962 382 L 942 400 L 958 408 C 900 420, 860 412, 800 430 C 740 450, 700 510, 620 520 C 540 530, 480 510, 420 512 Z" fill="#C8102E"/>
     <path d="M404 496 C 470 500, 520 540, 590 548 C 650 556, 690 530, 730 540 L 716 552 L 736 560 L 712 566 C 660 580, 600 590, 540 576 C 480 562, 440 540, 400 530 Z" fill="#9E0C24"/>
     <!-- torso / jacket, broad from low angle -->
-    <path d="M292 512 Q262 540 258 620 L240 900 L520 900 L506 620 Q500 540 470 506 Q380 480 292 512 Z" fill="#0E0B10"/>
+    <path d="M292 512 Q262 540 258 620 L240 900 L520 900 L506 620 Q500 540 470 506 Q380 480 292 512 Z" fill="#121A2C"/>
     <!-- right arm hanging (viewer right) -->
-    <path d="M468 520 Q506 600 512 720" stroke="#0E0B10" stroke-width="46" stroke-linecap="round" fill="none"/>
+    <path d="M468 520 Q506 600 512 720" stroke="#121A2C" stroke-width="46" stroke-linecap="round" fill="none"/>
     <!-- raised LEFT arm (viewer left in back view): upper arm (jacket) -->
     <path d="M308 526 Q276 440 272 340" stroke="#0E0B10" stroke-width="50" stroke-linecap="round" fill="none"/>
     <!-- forearm (bare, sleeve pushed to elbow) -->
@@ -1213,14 +1238,21 @@
     <path d="M350 478 Q388 500 428 474 L432 500 Q390 526 346 502 Z" fill="#C8102E"/>
     <!-- Hazama peeking over the right shoulder -->
     <g>
-      <path d="M478 470 Q486 436 512 432 Q540 434 544 464 Q546 484 532 496 L520 520 L512 500 L500 518 L494 496 Q478 490 478 470 Z" fill="#E5172F"/>
+      <circle cx="514" cy="452" r="22" fill="#E5172F"/>
+      <path d="M494 470 Q490 490 496 506 L502 500 L508 512 L516 498 L524 510 L530 496 Q536 484 534 468 Z" fill="#E5172F"/>
+      <path d="M496 478 Q482 474 476 462 Q484 460 494 468 Z" fill="#E5172F"/>
     </g>
   </g>
-  <!-- Hazama face -->
-  <ellipse cx="503" cy="462" rx="5" ry="7" fill="#0E0B10"/>
-  <ellipse cx="524" cy="462" rx="5" ry="7" fill="#0E0B10"/>
-  <path d="M502 480 Q513 488 526 479" stroke="#0E0B10" stroke-width="3" fill="none" stroke-linecap="round"/>
-  <path d="M490 446 Q500 438 512 437" stroke="#FF6B7A" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- Hazama: face hidden behind a ledger page -->
+  <g transform="rotate(8 516 452)">
+    <rect x="498" y="430" width="34" height="42" fill="#E9E1CF" stroke="#7A0614" stroke-width="1"/>
+    <path d="M498 438 H532 M498 445 H532 M498 452 H532 M498 459 H532 M498 466 H532" stroke="#0E0B10" stroke-opacity="0.35" stroke-width="0.8"/>
+    <path d="M505 430 V472" stroke="#E5172F" stroke-width="1"/>
+    <path d="M508 462 Q516 468 524 462" stroke="#E5172F" stroke-width="1.6" fill="none"/>
+  </g>
+  <g font-family="'Noto Sans JP','Hiragino Sans',sans-serif" font-size="14" fill="#E5172F" filter="url(#glow)">
+    <text x="548" y="438">つ</text><text x="560" y="420">け</text><text x="574" y="404">と</text><text x="590" y="392">く</text><text x="606" y="384">ね</text>
+  </g>
 
   <!-- the LEDGER MARK: wrist to elbow, spiraling red ruled lines -->
   <g filter="url(#glow)">
@@ -1228,6 +1260,9 @@
     <path d="M256 326 L290 312 M257 300 L291 288 M260 274 L294 262 M264 248 L297 238 M268 222 L300 214 M272 198 L304 190" stroke="#FF6B7A" stroke-width="3" stroke-linecap="round"/>
     <circle cx="290" cy="150" r="13" fill="none" stroke="#E5172F" stroke-width="5"/>
   </g>
+  <!-- the single red forelock, flicking out past the right side of his face -->
+  <path d="M410 350 L446 322 L436 360 Z" fill="#E5172F"/>
+  <path d="M432 404 Q462 404 484 392 Q470 412 446 420 Q438 416 432 404 Z" fill="#E5172F"/>
   <!-- scarf ledger lines -->
   <path d="M600 486 C 680 470, 740 420, 820 410 M604 498 C 684 482, 744 432, 824 422" stroke="#0E0B10" stroke-opacity="0.35" stroke-width="1.5" fill="none"/>
 
