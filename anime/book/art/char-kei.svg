@@ -107,6 +107,7 @@
     <path d="M282,268 L282,316 L318,316 L318,268 Z" fill="#C99A76"/>
     <path d="M282,272 L318,272 L318,294 C306,288 294,288 282,294 Z" fill="#A97C5C" stroke="none"/>
 
+    <g transform="translate(300,300) scale(1.14) translate(-300,-300)">
     <!-- hair back + knot -->
     <path d="M232,160 C214,140 220,108 246,104 C268,102 280,120 274,142 C266,156 248,164 232,160 Z" fill="#1A1718"/>
     <path d="M238,120 C248,114 260,118 266,126" fill="none" stroke="#3A3436" stroke-width="2.5"/>
@@ -139,5 +140,14 @@
     <path d="M302,216 L298,232 L305,232" fill="none" stroke-width="2"/>
     <path d="M286,252 Q300,248 314,252" fill="none" stroke-width="2.6"/>
     <path d="M280,240 Q278,248 282,254 M320,240 Q322,248 318,254" fill="none" stroke="#A97C5C" stroke-width="1.6"/>
+    </g>
+    <!-- collar: kappogi V + black collector vest -->
+    <path d="M262,314 L300,410 L338,314 Z" fill="#1E1E24"/>
+    <path d="M300,410 L338,314 L326,314 L300,380 Z" fill="#2C2C34" stroke="none"/>
+    <circle cx="300" cy="372" r="4" fill="#8A7A5A" stroke-width="1.5"/>
+    <circle cx="300" cy="396" r="4" fill="#8A7A5A" stroke-width="1.5"/>
+    <path d="M286,314 L300,346 L314,314 Z" fill="#C99A76"/>
+    <path d="M248,312 L300,424 L352,312 L340,308 L300,396 L260,308 Z" fill="#F0E8D6"/>
+
   </g>
 </svg>
