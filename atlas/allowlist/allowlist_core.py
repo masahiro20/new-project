@@ -865,6 +865,7 @@ def _eval_server(name, cfg, display, key, raw, index, fetch, osv_on=False, polic
             findings.append(g)
         status = "index"
         detail.update({"matched": matched, "repo": entry.get("repo"), "commit": entry.get("commit"), "subdir": sub,
+                       "registry_name": entry.get("registry_name"),
                        "files": entry.get("files"), "index_generated": index.get("generated")})
     elif is_remote:
         status = "remote-only"
@@ -1083,7 +1084,9 @@ def _decisions_json(report, items, approved, by, when, approve_recommended, over
                    "decision": "approved" if i["name"] in approved else "not_approved",
                    "override": i["name"] in ov, "reason": ov[i["name"]]["reason"] if i["name"] in ov else None,
                    # for atlas_watch.py (UP-002): sanitized launch config + derived packages
-                   "config": i.get("config"), "packages": i.get("packages") or [], "source": i.get("source")}
+                   "config": i.get("config"), "packages": i.get("packages") or [], "source": i.get("source"),
+                   # official MCP Registry name, so atlas_watch can follow remote-only servers too
+                   "registry_name": i.get("registry_name") or (i.get("scan_detail") or {}).get("registry_name")}
                   for i in items],
         "overrides": overrides,
     }

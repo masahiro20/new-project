@@ -1,0 +1,35 @@
+{
+ "server": {
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.acme/weather-remote",
+  "description": "Hosted weather MCP server.",
+  "repository": {
+   "url": "https://github.com/acme/weather-remote",
+   "source": "github"
+  },
+  "version": "2.0.0",
+  "remotes": [
+   {
+    "type": "streamable-http",
+    "url": "https://mcp.acme-weather.example/mcp",
+    "headers": [
+     {
+      "name": "Authorization",
+      "isSecret": true,
+      "isRequired": true,
+      "description": "Bearer token"
+     }
+    ]
+   }
+  ]
+ },
+ "_meta": {
+  "io.modelcontextprotocol.registry/official": {
+   "status": "active",
+   "statusChangedAt": "2026-03-01T00:00:00Z",
+   "publishedAt": "2026-03-01T00:00:00Z",
+   "updatedAt": "2026-03-01T00:00:00Z",
+   "isLatest": false
+  }
+ }
+}

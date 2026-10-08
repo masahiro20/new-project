@@ -4,14 +4,23 @@
     python3 -I atlas_watch.py diff npm:<pkg> <old> <new> [--json out.json] [--md out.md]
     python3 -I atlas_watch.py diff pypi:<pkg> <old> <new> [--json out.json]
     python3 -I atlas_watch.py diff-dirs <old_dir> <new_dir> [--json out.json]        # offline
+    python3 -I atlas_watch.py registry-diff <server-name> [old] [new] [--deep] [--json out.json] [--md out.md]
     python3 -I atlas_watch.py check <decisions.json | report.json> [--out-dir .] [--json report.json]
                                     [--state atlas-watch-state.json] [--only a,b]
+                                    [--registry-map name=io.github.owner/server ...]
 
 `check` finds, for each approved MCP server with an npm/PyPI package, the approved
 version (pinned in its config; else the version in the state file; else the
 registry's latest on the first run, which is then recorded as the baseline) and
 the registry's current latest. If a newer version exists it downloads both
 published archives (as data only), diffs them and records a notification.
+
+Items that carry an official MCP Registry name (`registry_name` / `x-registry-name` on
+the item or in its config, a `"//"`/`_comment` string "registry-name: <name>" in the
+config, or `--registry-map name=<registryName>`) are also watched through the registry's
+version history (registry_diff.py) -- this is how **remote-only servers** (no package)
+are covered. The approved registry version is `registry_version` on the item, else the
+state file (`registry` section), else the latest on the first run (baseline).
 
 "Notification" = local files only: atlas-watch-report.json + atlas-watch-report.md,
 plus the exit code:  0 no new version | 10 new version(s), no UP-002 | 20 UP-002 triggered
@@ -35,6 +44,7 @@ for _p in (SCANNER_DIR, HERE):
         sys.path.insert(0, _p)
 
 import pkgfetch  # noqa: E402
+import registry_diff  # noqa: E402
 import updiff  # noqa: E402
 
 EXIT_OK, EXIT_NEW, EXIT_UP002, EXIT_ERR = 0, 10, 20, 2
@@ -161,8 +171,31 @@ def _has_decision_field(it):
     return any(k in it for k in ("approved", "decision", "status", "approval"))
 
 
-def load_approved(path, only=None):
-    """Return (servers, source_note). servers: [{name, packages:[{eco,name,version,pinned}], config}]."""
+RE_REG_COMMENT = re.compile(r"registry[-_ ]?name\s*[:=]\s*([\w.-]+/[\w./-]+)", re.I)
+
+
+def _registry_name(it, cfg, registry_map=None):
+    """Official MCP Registry name for an item, if it declares one."""
+    if registry_map and registry_map.get(str(it.get("name"))):
+        return registry_map[str(it.get("name"))]
+    for src in (it, cfg if isinstance(cfg, dict) else {}):
+        for k in ("registry_name", "registryName", "x-registry-name", "x_registry_name"):
+            v = src.get(k)
+            if isinstance(v, str) and "/" in v:
+                return v.strip()
+        for k in ("//", "_comment", "comment", "x-comment"):
+            v = src.get(k)
+            m = RE_REG_COMMENT.search(v) if isinstance(v, str) else None
+            if m:
+                return m.group(1)
+    return None
+
+
+def load_approved(path, only=None, registry_map=None):
+    """Return (servers, source_note).
+
+    servers: [{name, packages:[{eco,name,version,pinned}], config, registry_name, registry_version}]
+    """
     with open(path, encoding="utf-8") as fh:
         data = json.load(fh)
     note = ""
@@ -203,8 +236,11 @@ def load_approved(path, only=None):
         pk = it.get("packages")
         pkgs = [x for x in (_norm_pkg(p) for p in pk) if x] if isinstance(pk, list) and pk else \
             [x for x in (_norm_pkg(p) for p in _packages_from_config(cfg)) if x]
-        if pkgs:
-            out.append({"name": name, "packages": pkgs, "config": cfg})
+        rname = _registry_name(it, cfg, registry_map)
+        if pkgs or rname:
+            rver = it.get("registry_version") or (cfg.get("x-registry-version") if isinstance(cfg, dict) else None)
+            out.append({"name": name, "packages": pkgs, "config": cfg, "registry_name": rname,
+                        "registry_version": str(rver) if rver else None})
     return out, note
 
 
@@ -215,10 +251,11 @@ def load_state(path):
             st = json.load(fh)
         if isinstance(st, dict):
             st.setdefault("packages", {})
+            st.setdefault("registry", {})
             return st
     except (OSError, ValueError):
         pass
-    return {"tool": "atlas-watch", "packages": {}}
+    return {"tool": "atlas-watch", "packages": {}, "registry": {}}
 
 
 def _trim_diff(res):
@@ -230,12 +267,57 @@ def _trim_diff(res):
     return keep
 
 
-def check(path, state_path, only=None, now=None, use_ast=True):
-    servers, note = load_approved(path, only)
+def _check_registry(srv, state, now):
+    """One record for a server watched through the official registry's version history."""
+    rname = srv["registry_name"]
+    rec = {"server": srv["name"], "package": f"registry:{rname}", "checked": now, "source": "mcp-registry"}
+    st = state["registry"].setdefault(rname, {})
+    try:
+        vs = registry_diff.versions(rname)
+        latest = registry_diff.latest_version(vs)
+    except Exception as e:  # registry unreachable / unknown name
+        rec.update(status="error", error=f"{type(e).__name__}: {e}"[:300])
+        return rec
+    st["last_seen_latest"] = latest
+    st["last_checked"] = now
+    if srv.get("registry_version"):
+        approved, src = srv["registry_version"], "pinned in config"
+    elif st.get("approved"):
+        approved, src = st["approved"], "state file"
+    else:
+        st["approved"] = latest
+        st["approved_recorded"] = now
+        rec.update(status="baseline-recorded", approved=latest, approved_source="first run (latest recorded)",
+                   latest=latest, up002=False)
+        return rec
+    rec.update(approved=approved, approved_source=src, latest=latest)
+    if latest == approved:
+        rec.update(status="up-to-date", up002=False)
+        return rec
+    pub = {v["version"]: v.get("publishedAt") or "" for v in vs}
+    if approved in pub and pub[latest] <= pub[approved]:
+        rec.update(status="no-newer-version", up002=False)
+        return rec
+    try:
+        res = registry_diff.diff_server_json(registry_diff.get(rname, approved), registry_diff.get(rname, latest))
+    except Exception as e:
+        rec.update(status="error", error=f"registry diff failed: {type(e).__name__}: {e}"[:300], up002=False)
+        return rec
+    rec.update(status="up002" if res["up002"] else "new-version", up002=res["up002"],
+               trust_cap=res["trust_cap"], banner=res["banner"], triggers=res["triggers"],
+               summary=registry_diff.summary_line(res), diff=res, remote_only=res.get("remote_only"))
+    st["notified"] = {"version": latest, "up002": res["up002"], "at": now}
+    return rec
+
+
+def check(path, state_path, only=None, now=None, use_ast=True, registry_map=None):
+    servers, note = load_approved(path, only, registry_map)
     state = load_state(state_path)
     now = now or _now()
     records = []
     for srv in servers:
+        if srv.get("registry_name"):
+            records.append(_check_registry(srv, state, now))
         for p in srv["packages"]:
             key = f'{p["eco"]}:{p["name"]}'
             rec = {"server": srv["name"], "package": key, "checked": now}
@@ -303,7 +385,8 @@ def report_markdown(report):
                  f'| {r.get("latest", "-")} | {r["status"]}{" — " + r["error"] if r.get("error") else ""} |')
     for r in report["records"]:
         if r.get("diff"):
-            L += ["", updiff.to_markdown(r["diff"], level=2)]
+            md = registry_diff.to_markdown if r.get("source") == "mcp-registry" else updiff.to_markdown
+            L += ["", md(r["diff"], level=2)]
     return "\n".join(L) + "\n"
 
 
@@ -334,6 +417,14 @@ def main(argv=None):
         p.add_argument("--json", dest="json_out")
         p.add_argument("--md", dest="md_out")
         p.add_argument("--no-ast", action="store_true")
+    rd = sub.add_parser("registry-diff", help="diff two versions of a server in the official MCP Registry")
+    rd.add_argument("server", help="registry name, e.g. io.github.owner/server")
+    rd.add_argument("old", nargs="?", help="default: the version published before `new`")
+    rd.add_argument("new", nargs="?", help="default: the latest version")
+    rd.add_argument("--deep", action="store_true", help="also diff npm/PyPI package archives (as data)")
+    rd.add_argument("--json", dest="json_out")
+    rd.add_argument("--md", dest="md_out")
+    rd.add_argument("--no-ast", action="store_true")
     c = sub.add_parser("check", help="check approved servers for new versions")
     c.add_argument("input", help="decisions.json or evaluate report.json")
     c.add_argument("--out-dir", default=".")
@@ -341,6 +432,8 @@ def main(argv=None):
     c.add_argument("--state", help="default: <out-dir>/atlas-watch-state.json")
     c.add_argument("--only", help="comma-separated server names")
     c.add_argument("--no-ast", action="store_true")
+    c.add_argument("--registry-map", action="append", default=[], metavar="NAME=REGISTRY_NAME",
+                   help="watch server NAME via the official MCP Registry (repeatable, or comma-separated)")
     a = ap.parse_args(argv)
 
     if a.cmd == "diff":
@@ -352,12 +445,33 @@ def main(argv=None):
     if a.cmd == "diff-dirs":
         res = updiff.diff_trees(a.old, a.new, package_mode=a.package, use_ast=not a.no_ast)
         return _emit_diff(res, a)
+    if a.cmd == "registry-diff":
+        try:
+            res = registry_diff.diff_registry_versions(a.server, a.old, a.new, deep=a.deep, use_ast=not a.no_ast)
+        except Exception as e:  # registry unreachable / unknown name or version
+            print(f"error: {type(e).__name__}: {e}", file=sys.stderr)
+            return EXIT_ERR
+        if a.json_out:
+            _write_json(a.json_out, res)
+        md = registry_diff.to_markdown(res)
+        if a.md_out:
+            _write_text(a.md_out, md)
+        print(md)
+        print(registry_diff.summary_line(res))
+        return EXIT_UP002 if res["up002"] else EXIT_OK
 
     json_out = a.json_out or os.path.join(a.out_dir, "atlas-watch-report.json")
     md_out = os.path.splitext(json_out)[0] + ".md"
     state_path = a.state or os.path.join(a.out_dir, "atlas-watch-state.json")
     only = {s.strip() for s in a.only.split(",")} if a.only else None
-    report, state, code = check(a.input, state_path, only=only, use_ast=not a.no_ast)
+    rmap = {}
+    for spec in a.registry_map:
+        for kv in spec.split(","):
+            if "=" not in kv:
+                ap.error(f"--registry-map expects NAME=REGISTRY_NAME, got {kv!r}")
+            k, v = kv.split("=", 1)
+            rmap[k.strip()] = v.strip()
+    report, state, code = check(a.input, state_path, only=only, use_ast=not a.no_ast, registry_map=rmap)
     _write_json(json_out, report)
     _write_text(md_out, report_markdown(report))
     _write_json(state_path, state)
