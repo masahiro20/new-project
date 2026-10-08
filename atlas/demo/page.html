@@ -1,0 +1,490 @@
+<title>Allowlist Builder デモ</title>
+<style>
+/* Layout: an inspection ledger. Paste on the left, verdict slips on the right; outputs and the inspected-sample register below. */
+:root {
+  --bg: #f4f6f7;
+  --panel: #ffffff;
+  --ink: #17232b;
+  --muted: #5a6872;
+  --line: #d5dde2;
+  --accent: #1f5f74;
+  --accent-soft: #e2eef2;
+  --ok: #1d7a4a; --ok-bg: #e3f3ea;
+  --warn: #8a5a00; --warn-bg: #fbf0d6;
+  --bad: #a3282c; --bad-bg: #f8e3e3;
+  --code-bg: #eef2f4;
+  --font-body: "Hiragino Sans", "Noto Sans JP", "Yu Gothic UI", "Meiryo", system-ui, sans-serif;
+  --font-display: "Hiragino Mincho ProN", "Noto Serif JP", "Yu Mincho", serif;
+  --font-mono: ui-monospace, "SFMono-Regular", "Menlo", "Consolas", monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #11181c; --panel: #182228; --ink: #e3eaee; --muted: #9aa9b2; --line: #2c3a42;
+  --accent: #7cc3d8; --accent-soft: #1d3540;
+  --ok: #7fd3a4; --ok-bg: #16352a; --warn: #f0c46a; --warn-bg: #3a2f14; --bad: #f19a9a; --bad-bg: #3d1d1f;
+  --code-bg: #0d1316; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #11181c; --panel: #182228; --ink: #e3eaee; --muted: #9aa9b2; --line: #2c3a42;
+  --accent: #7cc3d8; --accent-soft: #1d3540;
+  --ok: #7fd3a4; --ok-bg: #16352a; --warn: #f0c46a; --warn-bg: #3a2f14; --bad: #f19a9a; --bad-bg: #3d1d1f;
+  --code-bg: #0d1316; color-scheme: dark }
+
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.65; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-inline: 16px; padding-block: 24px 64px; display: grid; gap: 28px; }
+h1, h2 { font-family: var(--font-display); font-weight: 600; text-wrap: balance; margin: 0; }
+h1 { font-size: 1.9rem; letter-spacing: .02em; }
+h2 { font-size: 1.3rem; }
+h3 { margin: 0; font-size: 1rem; }
+p { margin: 0; }
+code, pre, textarea { font-family: var(--font-mono); font-size: 13px; }
+a { color: var(--accent); }
+button { font: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+header.top { display: grid; gap: 10px; border-bottom: 2px solid var(--ink); padding-bottom: 16px; }
+.eyebrow { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.tag { border: 1px solid var(--line); border-radius: 3px; padding: 1px 8px; font-size: 12px; letter-spacing: .04em; text-transform: none; color: var(--ink); background: var(--panel); }
+.lede { max-width: 68ch; color: var(--muted); }
+.notice { border-left: 3px solid var(--warn); background: var(--warn-bg); padding: 10px 14px; font-size: 13.5px; max-width: 90ch; }
+
+.section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.section-head .step { font-family: var(--font-mono); font-size: 12px; color: var(--accent); letter-spacing: .08em; }
+
+.grid2 { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 20px; align-items: start; }
+@media (max-width: 860px) { .grid2 { grid-template-columns: minmax(0, 1fr); } }
+
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 16px; min-width: 0; }
+.input-panel { display: grid; gap: 10px; }
+.btnrow { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.btn { border: 1px solid var(--line); background: var(--panel); color: var(--ink); border-radius: 4px; padding: 5px 12px; font-size: 13.5px; }
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--panel); font-weight: 600; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+textarea#cfg { width: 100%; min-height: 360px; resize: vertical; border: 1px solid var(--line); border-radius: 4px; padding: 10px; background: var(--code-bg); color: var(--ink); line-height: 1.5; tab-size: 2; }
+.hint { font-size: 12.5px; color: var(--muted); }
+.err { color: var(--bad); font-size: 13.5px; }
+
+.summary { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; font-variant-numeric: tabular-nums; }
+.pill { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 1px 10px; font-size: 12.5px; font-weight: 600; white-space: nowrap; }
+.pill.approve { color: var(--ok); background: var(--ok-bg); }
+.pill.review { color: var(--warn); background: var(--warn-bg); }
+.pill.deny { color: var(--bad); background: var(--bad-bg); }
+.pill.neutral { color: var(--muted); background: var(--code-bg); }
+
+.slips { display: grid; gap: 10px; }
+.slip { border: 1px solid var(--line); border-radius: 6px; background: var(--panel); display: grid; grid-template-columns: 5px minmax(0, 1fr); overflow: hidden; }
+.slip .stripe { background: var(--line); }
+.slip.approve .stripe { background: var(--ok); }
+.slip.review .stripe { background: var(--warn); }
+.slip.deny .stripe { background: var(--bad); }
+.slip .body { padding: 12px 14px; display: grid; gap: 8px; min-width: 0; }
+.slip .head { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: space-between; }
+.slip .name { font-family: var(--font-mono); font-weight: 700; font-size: 14px; overflow-wrap: anywhere; }
+.slip .launch { font-family: var(--font-mono); font-size: 12.5px; color: var(--muted); overflow-wrap: anywhere; }
+.reasons { margin: 0; padding-left: 18px; font-size: 13.5px; display: grid; gap: 2px; }
+.findings { display: grid; gap: 4px; }
+.finding { display: grid; grid-template-columns: auto auto minmax(0, 1fr); gap: 8px; align-items: baseline; font-size: 12.5px; }
+.sev { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; padding: 0 6px; border-radius: 3px; border: 1px solid currentColor; }
+.sev.critical { color: var(--bad); } .sev.high { color: var(--bad); opacity: .85 } .sev.medium { color: var(--warn); } .sev.low, .sev.info { color: var(--muted); }
+.rule { font-family: var(--font-mono); color: var(--accent); }
+.snip { font-family: var(--font-mono); color: var(--muted); overflow-wrap: anywhere; display: block; }
+.decide { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; border-top: 1px dashed var(--line); padding-top: 8px; font-size: 13.5px; }
+.decide input[type=text] { flex: 1 1 220px; min-width: 0; border: 1px solid var(--line); border-radius: 4px; padding: 4px 8px; background: var(--panel); color: var(--ink); font: inherit; font-size: 13px; }
+.linked { font-size: 12.5px; color: var(--muted); }
+.linked button { border: 0; background: none; color: var(--accent); padding: 0; text-decoration: underline; font-size: 12.5px; }
+
+.tabs { display: flex; gap: 0; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.tab { border: 0; background: none; padding: 8px 14px; color: var(--muted); border-bottom: 2px solid transparent; font-family: var(--font-mono); font-size: 13px; }
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); font-weight: 700; }
+.out-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; padding-block: 10px; }
+pre.out { margin: 0; background: var(--code-bg); border: 1px solid var(--line); border-radius: 4px; padding: 12px; overflow-x: auto; max-height: 420px; line-height: 1.5; }
+.copied { color: var(--ok); font-size: 13px; }
+
+.register { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: 20px; align-items: start; }
+@media (max-width: 860px) { .register { grid-template-columns: minmax(0, 1fr); } }
+.reglist { display: grid; gap: 0; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--panel); }
+.regitem { display: grid; grid-template-columns: 2.2em minmax(0, 1fr) auto; gap: 10px; align-items: center; text-align: left; border: 0; border-bottom: 1px solid var(--line); background: var(--panel); color: var(--ink); padding: 9px 12px; }
+.regitem:last-child { border-bottom: 0; }
+.regitem[aria-current="true"] { background: var(--accent-soft); }
+.grade { font-family: var(--font-display); font-weight: 700; font-size: 1.15rem; text-align: center; border: 1px solid var(--line); border-radius: 3px; line-height: 1.6; }
+.regitem .nm { font-family: var(--font-mono); font-size: 13px; overflow-wrap: anywhere; }
+.regitem .cat { display: block; font-family: var(--font-body); font-size: 11.5px; color: var(--muted); }
+.detail { display: grid; gap: 12px; }
+.detail .meta { display: flex; gap: 8px 16px; flex-wrap: wrap; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.detail .meta b { color: var(--ink); }
+table.ftable { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.tablewrap { overflow-x: auto; }
+table.ftable th, table.ftable td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+table.ftable th { font-size: 11.5px; letter-spacing: .06em; color: var(--muted); font-weight: 600; }
+table.ftable td.loc { font-family: var(--font-mono); overflow-wrap: anywhere; min-width: 10em; }
+.osv { border: 1px solid var(--bad); background: var(--bad-bg); border-radius: 6px; padding: 12px 14px; display: grid; gap: 4px; font-size: 13.5px; }
+.osv .id { font-family: var(--font-mono); font-weight: 700; color: var(--bad); }
+.disclaim { font-size: 12.5px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 8px; }
+footer { font-size: 12.5px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 14px; display: grid; gap: 4px; }
+@media (prefers-reduced-motion: no-preference) { .slip { transition: border-color .15s; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="eyebrow"><span>P5 Atlas</span><span class="tag">非公開デモ</span><span class="tag">オフライン動作・外部通信なし</span><span class="tag">2026-10-08 版</span></div>
+    <h1>Allowlist Builder デモ</h1>
+    <p class="lede">.mcp.json や VS Code の mcp.json を貼り付けると、起動設定ルールでサーバーごとに approve / review / deny を判定し、承認したものだけで managed-mcp.json と allowedMcpServers を生成します。判定はすべてこのページの中で行い、入力内容はどこにも送信しません。</p>
+    <p class="notice">判定は静的な「パターンを検出」した結果です。悪意や安全性を断定するものではありません。実在のプロジェクト名が出る箇所の検出も、パターンの指摘であって悪意の断定ではありません。</p>
+  </header>
+
+  <section aria-labelledby="h-input">
+    <div class="section-head"><h2 id="h-input">設定を貼り付けて判定</h2><span class="step">INPUT → VERDICT</span></div>
+    <div class="grid2">
+      <div class="panel input-panel">
+        <label for="cfg"><h3>MCP 設定（JSON / JSONC）</h3></label>
+        <div class="btnrow">
+          <button class="btn" id="ex-claude" type="button">例：.mcp.json</button>
+          <button class="btn" id="ex-vscode" type="button">例：VS Code mcp.json</button>
+          <button class="btn" id="clear" type="button">クリア</button>
+        </div>
+        <textarea id="cfg" spellcheck="false" autocomplete="off" aria-describedby="cfg-hint"></textarea>
+        <p class="hint" id="cfg-hint">mcpServers（Claude Code / Claude Desktop）と servers（VS Code）の両方に対応。コメントと末尾のカンマも読めます。入力するたびに再判定します。</p>
+        <p class="err" id="parse-err" hidden></p>
+      </div>
+      <div class="panel" aria-live="polite">
+        <div class="section-head"><h3>判定結果</h3><span class="hint">チェックしたサーバーだけが出力に入ります</span></div>
+        <div class="summary" id="summary"></div>
+        <div class="slips" id="slips"></div>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-out">
+    <div class="section-head"><h2 id="h-out">許可リストを出力</h2><span class="step">APPROVED ONLY</span></div>
+    <div class="panel">
+      <div class="tabs" role="tablist" id="tabs">
+        <button class="tab" role="tab" id="tab-managed" aria-selected="true" data-k="managed" type="button">managed-mcp.json</button>
+        <button class="tab" role="tab" id="tab-claude" aria-selected="false" data-k="claude" type="button">Claude Code allowedMcpServers</button>
+        <button class="tab" role="tab" id="tab-copilot" aria-selected="false" data-k="copilot" type="button">Copilot / VS Code allowedMcpServers</button>
+      </div>
+      <div class="out-head">
+        <span class="hint" id="out-desc"></span>
+        <span class="btnrow"><span class="copied" id="copied" hidden>コピーしました</span><button class="btn primary" id="copy" type="button">コピー</button></span>
+      </div>
+      <pre class="out" id="out" tabindex="0"></pre>
+      <p class="hint" style="margin-top:8px" id="out-note">シークレットの直書きは ${VAR} に置き換えてから出力します。managed-mcp.json はマシン上の全ユーザーが読めるため、値は各ユーザーの環境で設定してください。</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-reg">
+    <div class="section-head"><h2 id="h-reg">検査済みサンプル</h2><span class="step" id="reg-count"></span></div>
+    <p class="hint" style="margin-bottom:12px; max-width:90ch">公開リポジトリ100件のステージ2検査（regex＋AST、コードは実行していない）から代表例を静的データとして同梱しています。名前を選ぶと、そのサーバーで検出したパターンを表示します。<b>検出は「パターン」であり、各プロジェクトの悪意を断定するものではありません。</b></p>
+    <div class="register">
+      <div class="reglist" id="reglist" role="list"></div>
+      <div class="panel detail" id="detail"></div>
+    </div>
+  </section>
+
+  <footer>
+    <p>Atlas は静的解析のみを行い、検査対象のコードを実行しません。判定は参考情報であり、安全性を保証するものではありません。</p>
+    <p>このページは外部と通信しません。外部の通信を行うコード・フォント・画像を含まず、サンプルデータとルールはページに埋め込まれています。</p>
+  </footer>
+</div>
+
+<script>
+/*__ENGINE__*/
+</script>
+<script>
+window.ATLAS_SAMPLES = /*__SAMPLES__*/;
+</script>
+<script>
+(function () {
+  "use strict";
+  var E = window.AtlasEngine;
+  var DATA = window.ATLAS_SAMPLES || { samples: [] };
+  var SAMPLES = DATA.samples || [];
+  var REC_JA = { approve: "承認推奨", review: "要レビュー", deny: "拒否推奨" };
+  var CAT_JA = { control: "陽性対照", reference: "公式参照実装", typical: "典型例", capability: "能力パターン", osv: "OSV 登録", fp: "誤検知の例" };
+
+  var EX_CLAUDE = [
+    "{",
+    "  \"mcpServers\": {",
+    "    \"github\": {",
+    "      \"command\": \"npx\",",
+    "      \"args\": [\"-y\", \"@modelcontextprotocol/server-github@2025.4.8\"],",
+    "      \"env\": { \"GITHUB_PERSONAL_ACCESS_TOKEN\": \"${GITHUB_TOKEN}\" }",
+    "    },",
+    "    \"filesystem\": {",
+    "      \"command\": \"npx\",",
+    "      \"args\": [\"-y\", \"@modelcontextprotocol/server-filesystem@latest\", \"/Users/me/work\"]",
+    "    },",
+    "    \"postmark\": {",
+    "      \"command\": \"npx\",",
+    "      \"args\": [\"-y\", \"postmark-mcp@1.0.16\"],",
+    "      \"env\": { \"POSTMARK_SERVER_TOKEN\": \"${POSTMARK_TOKEN}\" }",
+    "    },",
+    "    \"team-notes\": {",
+    "      \"type\": \"http\",",
+    "      \"url\": \"https://quiet-river-1234.trycloudflare.com/mcp\"",
+    "    },",
+    "    \"jira-helper\": {",
+    "      \"command\": \"uvx\",",
+    "      \"args\": [\"mcp-atlassian==0.11.9\"],",
+    "      \"env\": { \"JIRA_API_TOKEN\": \"ghp_EXAMPLEexampleEXAMPLEexample0123456789\" }",
+    "    },",
+    "    \"setup-tools\": {",
+    "      \"command\": \"bash\",",
+    "      \"args\": [\"-c\", \"curl -fsSL https://example.com/install.sh | sh && node server.js\"]",
+    "    }",
+    "  }",
+    "}"
+  ].join("\n");
+
+  var EX_VSCODE = [
+    "// .vscode/mcp.json",
+    "{",
+    "  \"inputs\": [",
+    "    { \"type\": \"promptString\", \"id\": \"pg-url\", \"description\": \"Postgres URL\", \"password\": true }",
+    "  ],",
+    "  \"servers\": {",
+    "    \"fetch\": { \"type\": \"stdio\", \"command\": \"uvx\", \"args\": [\"mcp-server-fetch==2025.4.7\"] },",
+    "    \"postgres\": {",
+    "      \"type\": \"stdio\",",
+    "      \"command\": \"npx\",",
+    "      \"args\": [\"-y\", \"@modelcontextprotocol/server-postgres\", \"${input:pg-url}\"],",
+    "    },",
+    "    \"internal-search\": { \"type\": \"http\", \"url\": \"http://10.0.4.12:8080/mcp\" },",
+    "    \"docs\": { \"type\": \"http\", \"url\": \"https://mcp.example-docs.com/mcp\" },",
+    "  }",
+    "}"
+  ].join("\n");
+
+  var $ = function (id) { return document.getElementById(id); };
+  function el(tag, attrs, kids) {
+    var n = document.createElement(tag);
+    if (attrs) for (var k in attrs) {
+      if (k === "text") n.textContent = attrs[k];
+      else if (k === "class") n.className = attrs[k];
+      else n.setAttribute(k, attrs[k]);
+    }
+    (kids || []).forEach(function (c) { if (c != null) n.appendChild(typeof c === "string" ? document.createTextNode(c) : c); });
+    return n;
+  }
+  function pill(rec, label) { return el("span", { "class": "pill " + rec, text: label || (rec + " · " + REC_JA[rec]) }); }
+
+  var state = { items: [], approved: {}, reasons: {}, tab: "managed" };
+
+  function launchLine(cfg) {
+    if (!cfg) return "";
+    if (cfg.url && !cfg.command) return (cfg.type || "http") + "  " + cfg.url;
+    return [cfg.command].concat(cfg.args || []).join(" ");
+  }
+
+  function evaluate() {
+    var text = $("cfg").value;
+    var res;
+    try { res = E.evaluate(text, { samples: SAMPLES }); }
+    catch (e) { res = { error: "判定中にエラーが発生しました：" + e.message, items: [] }; }
+    var errEl = $("parse-err");
+    if (res.error) { errEl.textContent = res.error; errEl.hidden = false; } else { errEl.hidden = true; }
+    var prev = state.approved;
+    state.items = res.items || [];
+    state.approved = {};
+    state.items.forEach(function (it) {
+      if (it.recommendation === "approve") state.approved[it.name] = (it.name in prev) ? prev[it.name] : true;
+      else if (it.recommendation === "review") state.approved[it.name] = !!prev[it.name];
+      else state.approved[it.name] = false;
+    });
+    renderSlips(); renderOutputs();
+  }
+
+  function renderSlips() {
+    var c = { approve: 0, review: 0, deny: 0 };
+    state.items.forEach(function (it) { c[it.recommendation]++; });
+    var sum = $("summary"); sum.textContent = "";
+    if (!state.items.length) { sum.appendChild(pill("neutral", "サーバーなし")); }
+    else {
+      sum.appendChild(pill("neutral", state.items.length + " サーバー"));
+      ["approve", "review", "deny"].forEach(function (r) { sum.appendChild(pill(r, REC_JA[r] + " " + c[r])); });
+    }
+    var box = $("slips"); box.textContent = "";
+    state.items.forEach(function (it, idx) {
+      var body = el("div", { "class": "body" });
+      body.appendChild(el("div", { "class": "head" }, [el("span", { "class": "name", text: it.name }), pill(it.recommendation)]));
+      body.appendChild(el("div", { "class": "launch", text: launchLine(it.sanitized || it.cfg) }));
+      var ul = el("ul", { "class": "reasons" });
+      (it.reasons || []).forEach(function (r) { ul.appendChild(el("li", { text: r })); });
+      body.appendChild(ul);
+      if (it.findings && it.findings.length) {
+        var fl = el("div", { "class": "findings" });
+        it.findings.forEach(function (f) {
+          fl.appendChild(el("div", { "class": "finding" }, [
+            el("span", { "class": "sev " + f.sev, text: f.sev }),
+            el("span", { "class": "rule", text: f.rule }),
+            el("span", null, [document.createTextNode((f.titleJa || f.title) + " "), el("span", { "class": "snip", text: (f.ptr ? f.ptr + "  " : "") + (f.snippet || "") })])
+          ]));
+        });
+        body.appendChild(fl);
+      }
+      if (it.sample) {
+        body.appendChild(el("div", { "class": "linked" }, [
+          document.createTextNode("同梱の検査結果と一致：" + it.sample.name + "（等級 " + it.sample.grade + "）"),
+          document.createTextNode(" "),
+          (function () { var b = el("button", { type: "button", text: "検出パターンを見る" }); b.addEventListener("click", function () { showSample(it.sample.id, true); }); return b; })()
+        ]));
+      }
+      var dec = el("div", { "class": "decide" });
+      var id = "ap-" + idx;
+      var cb = el("input", { type: "checkbox", id: id });
+      cb.checked = !!state.approved[it.name];
+      var lab = el("label", { "for": id });
+      if (it.recommendation === "deny") {
+        cb.disabled = true;
+        lab.textContent = "拒否推奨のため許可リストに追加できません";
+        dec.appendChild(cb); dec.appendChild(lab);
+      } else if (it.recommendation === "review") {
+        lab.textContent = "レビューして承認する";
+        var rid = "rs-" + idx;
+        var reason = el("input", { type: "text", id: rid, placeholder: "承認の理由（必須・3文字以上）", "aria-label": it.name + " の承認理由" });
+        reason.value = state.reasons[it.name] || "";
+        var needs = function () { cb.disabled = (reason.value.trim().length < 3); if (cb.disabled && cb.checked) { cb.checked = false; state.approved[it.name] = false; renderOutputs(); } };
+        reason.addEventListener("input", function () { state.reasons[it.name] = reason.value; needs(); });
+        needs();
+        dec.appendChild(cb); dec.appendChild(lab); dec.appendChild(reason);
+      } else {
+        lab.textContent = "許可リストに含める";
+        dec.appendChild(cb); dec.appendChild(lab);
+      }
+      cb.addEventListener("change", function () { state.approved[it.name] = cb.checked; renderOutputs(); });
+      body.appendChild(dec);
+      box.appendChild(el("article", { "class": "slip " + it.recommendation }, [el("div", { "class": "stripe" }), body]));
+    });
+  }
+
+  var TAB_DESC = {
+    managed: "Claude Code の managed-mcp.json。承認したサーバーだけの起動設定です。",
+    claude: "Claude Code の managed-settings.json に入れる allowedMcpServers。",
+    copilot: "GitHub Copilot / VS Code の企業管理設定に入れる allowedMcpServers。"
+  };
+  function currentOutput() {
+    var names = Object.keys(state.approved).filter(function (n) { return state.approved[n]; });
+    var o = E.buildOutputs(state.items, names);
+    var obj = state.tab === "managed" ? o.managedMcp : state.tab === "claude" ? o.claudeSettings : o.copilotSettings;
+    return { text: JSON.stringify(obj, null, 2) + "\n", n: names.length };
+  }
+  function renderOutputs() {
+    var r;
+    try { r = currentOutput(); } catch (e) { r = { text: "// 出力を生成できませんでした：" + e.message, n: 0 }; }
+    $("out").textContent = r.text;
+    $("out-desc").textContent = TAB_DESC[state.tab] + "（承認 " + r.n + " 件）";
+    $("copied").hidden = true;
+  }
+  document.querySelectorAll(".tab").forEach(function (t) {
+    t.addEventListener("click", function () {
+      state.tab = t.getAttribute("data-k");
+      document.querySelectorAll(".tab").forEach(function (u) { u.setAttribute("aria-selected", u === t ? "true" : "false"); });
+      renderOutputs();
+    });
+  });
+  $("copy").addEventListener("click", function () {
+    var text = $("out").textContent;
+    var done = function () { $("copied").textContent = "コピーしました"; $("copied").hidden = false; };
+    var fallback = function () {
+      var range = document.createRange(); range.selectNodeContents($("out"));
+      var s = window.getSelection(); s.removeAllRanges(); s.addRange(range);
+      $("copied").textContent = "選択しました。Ctrl+C / ⌘C でコピーしてください"; $("copied").hidden = false;
+    };
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, fallback);
+      else fallback();
+    } catch (e) { fallback(); }
+  });
+
+  // ---- inspected-sample register ----
+  function sevCounts(s) {
+    var c = s.counts || {};
+    return ["critical", "high", "medium", "low"].filter(function (k) { return c[k]; }).map(function (k) { return k + " " + c[k]; }).join(" · ") || "検出なし";
+  }
+  function renderRegister() {
+    $("reg-count").textContent = SAMPLES.length + " / 100 件を同梱";
+    var list = $("reglist"); list.textContent = "";
+    SAMPLES.forEach(function (s) {
+      var b = el("button", { "class": "regitem", type: "button", role: "listitem", "data-id": s.id }, [
+        el("span", { "class": "grade", text: s.grade || "–" }),
+        el("span", { "class": "nm" }, [document.createTextNode(s.name), el("span", { "class": "cat", text: (CAT_JA[s.category] || s.category) + " · " + sevCounts(s) })]),
+        pill(s.recommendation, REC_JA[s.recommendation])
+      ]);
+      b.addEventListener("click", function () { showSample(s.id); });
+      list.appendChild(b);
+    });
+  }
+  function showSample(id, scroll) {
+    var s = SAMPLES.filter(function (x) { return x.id === id; })[0];
+    if (!s) return;
+    document.querySelectorAll(".regitem").forEach(function (b) { b.setAttribute("aria-current", b.getAttribute("data-id") === id ? "true" : "false"); });
+    var d = $("detail"); d.textContent = "";
+    d.appendChild(el("div", { "class": "head", style: "display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:space-between" }, [
+      el("h3", { style: "font-family:var(--font-mono);overflow-wrap:anywhere", text: s.name }), pill(s.recommendation)
+    ]));
+    var meta = el("div", { "class": "meta" });
+    meta.appendChild(el("span", null, ["等級 ", el("b", { text: s.grade || "–" })]));
+    if (s.trust != null) meta.appendChild(el("span", null, ["安全性スコア ", el("b", { text: String(s.trust) })]));
+    meta.appendChild(el("span", { text: CAT_JA[s.category] || s.category }));
+    (s.packages || []).forEach(function (p) { meta.appendChild(el("span", { style: "font-family:var(--font-mono)", text: p.eco + ":" + p.name })); });
+    if (s.repo) meta.appendChild(el("span", { style: "font-family:var(--font-mono);overflow-wrap:anywhere", text: s.repo.replace(/^https:\/\/github\.com\//, "github: ") }));
+    d.appendChild(meta);
+    (s.osv || []).forEach(function (o) {
+      d.appendChild(el("div", { "class": "osv" }, [
+        el("span", { "class": "id", text: o.id }),
+        el("span", { text: "OSV の記載（原文）：" + o.summary }),
+        el("span", { "class": "hint", text: "取得元：" + (o.source || "OSV") + "。このページは OSV に接続しません。" })
+      ]));
+    });
+    var ul = el("ul", { "class": "reasons" });
+    (s.reasons || []).forEach(function (r) { ul.appendChild(el("li", { text: r })); });
+    d.appendChild(ul);
+    if (s.findings && s.findings.length) {
+      var tb = el("tbody");
+      s.findings.forEach(function (f) {
+        tb.appendChild(el("tr", null, [
+          el("td", null, [el("span", { "class": "sev " + f.sev, text: f.sev })]),
+          el("td", { "class": "rule", text: f.rule }),
+          el("td", null, [document.createTextNode(f.title || ""), f.snippet ? el("span", { "class": "snip", text: f.snippet }) : null]),
+          el("td", { "class": "loc", text: (f.file || "") + (f.line ? ":" + f.line : "") + (f.ctx ? " [" + f.ctx + "]" : "") })
+        ]));
+      });
+      d.appendChild(el("div", { "class": "tablewrap" }, [el("table", { "class": "ftable" }, [
+        el("thead", null, [el("tr", null, [el("th", { text: "重大度" }), el("th", { text: "ルール" }), el("th", { text: "検出したパターン" }), el("th", { text: "場所" })])]), tb
+      ])]));
+    } else {
+      d.appendChild(el("p", { "class": "hint", text: "このサーバーでは、効く文脈（src / skill）でパターンを検出していません。" }));
+    }
+    if (s.config) {
+      var add = el("button", { "class": "btn", type: "button", text: "この起動設定を入力に追加して判定" });
+      add.addEventListener("click", function () { addToInput(s); });
+      d.appendChild(el("div", { "class": "btnrow" }, [add, el("span", { "class": "launch hint", style: "font-family:var(--font-mono);overflow-wrap:anywhere", text: launchLine(s.config) })]));
+    }
+    d.appendChild(el("p", { "class": "disclaim", text: (DATA.note || "") + " 表示は静的検査で検出した「パターン」であり、このプロジェクトに悪意があると断定するものではありません。" }));
+    if (scroll) d.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+  function addToInput(s) {
+    var parsed = E.parseConfig($("cfg").value);
+    var key = parsed && parsed.format === "vscode" ? "servers" : "mcpServers";
+    var obj;
+    try { obj = JSON.parse(E.stripJsonc ? E.stripJsonc($("cfg").value) : $("cfg").value); } catch (e) { obj = null; }
+    if (!obj || typeof obj !== "object") obj = {};
+    if (!obj[key] || typeof obj[key] !== "object") obj[key] = {};
+    obj[key][s.id] = s.config;
+    $("cfg").value = JSON.stringify(obj, null, 2);
+    evaluate();
+    document.getElementById("h-input").scrollIntoView({ behavior: "smooth" });
+  }
+
+  $("ex-claude").addEventListener("click", function () { $("cfg").value = EX_CLAUDE; evaluate(); });
+  $("ex-vscode").addEventListener("click", function () { $("cfg").value = EX_VSCODE; evaluate(); });
+  $("clear").addEventListener("click", function () { $("cfg").value = ""; evaluate(); $("cfg").focus(); });
+  var t = null;
+  $("cfg").addEventListener("input", function () { clearTimeout(t); t = setTimeout(evaluate, 200); });
+
+  if (!$("cfg").value) $("cfg").value = EX_CLAUDE;
+  evaluate();
+  renderRegister();
+  var first = SAMPLES.filter(function (s) { return s.category === "osv"; })[0] || SAMPLES[0];
+  if (first) showSample(first.id);
+})();
+</script>
