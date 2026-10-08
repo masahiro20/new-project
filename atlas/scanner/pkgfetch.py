@@ -108,7 +108,9 @@ def resolve(eco, name, version=None, meta=None):
                 break
         return {"eco": "pypi", "name": name, "version": ver, "tarball": pick and pick.get("url"),
                 "kind": pick and pick.get("packagetype"), "sha256": pick and (pick.get("digests") or {}).get("sha256"),
-                "repo": _norm_repo(repo), "subdir": None, "license": info.get("license"),
+                "repo": _norm_repo(repo), "subdir": None,
+                "license": info.get("license_expression") or info.get("license"),
+                "classifiers": info.get("classifiers") or [], "requires_dist": info.get("requires_dist") or [],
                 "attestations": False, "time": pick and pick.get("upload_time_iso_8601"),
                 "maintainers": sorted({x for x in (info.get("author"), info.get("maintainer")) if x}), "publisher": None}
     raise FetchError(f"unsupported ecosystem: {eco}")

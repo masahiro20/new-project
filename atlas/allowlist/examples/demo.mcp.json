@@ -1,7 +1,7 @@
 {
   "mcpServers": {
     "filesystem": { "command": "npx", "args": ["-y", "@modelcontextprotocol/server-filesystem@2026.1.14", "/srv/shared"] },
-    "fetch": { "command": "uvx", "args": ["mcp-server-fetch==2026.1.26"] },
+    "fetch": { "command": "uvx", "args": ["mcp-server-fetch==2026.8.18"] },
     "desktop-commander": { "command": "npx", "args": ["-y", "@wonderwhy-er/desktop-commander@latest"] },
     "playwright": { "command": "npx", "args": ["@playwright/mcp@0.0.70"] },
     "github": { "type": "http", "url": "https://api.githubcopilot.com/mcp/" },

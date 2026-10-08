@@ -8,27 +8,71 @@ MCP 設定またはスキル一覧を読み込み、scan-rules-v0 の信頼ス�
 
 ```sh
 cd atlas/allowlist
-# 評価（ネットワークなし。atlas/data/index.json があれば参照する）
+# 評価（既定はネットワークなし。atlas/data/index.json があれば参照する）
 python3 -I atlas_allowlist.py evaluate path/to/.mcp.json --json report.json
 python3 -I atlas_allowlist.py evaluate path/to/skills-dir          # SKILL.md を含むディレクトリ
 python3 -I atlas_allowlist.py evaluate skills.json                 # [{"name","source"}]
-python3 -I atlas_allowlist.py evaluate cfg.json --fetch            # npm/PyPI のメタデータ取得と浅いクローン
+python3 -I atlas_allowlist.py evaluate cfg.json --osv              # OSV だけ照会（api.osv.dev）
+python3 -I atlas_allowlist.py evaluate cfg.json --fetch            # 公開パッケージ取得＋リポジトリ照合（DP-004）＋OSV
+python3 -I atlas_allowlist.py evaluate cfg.json --policy policy.json
 
 # 生成（承認した項目だけを出力）
-python3 -I atlas_allowlist.py build report.json --approve filesystem,github --out-dir out --by "山田"
-python3 -I atlas_allowlist.py build report.json --approve-recommended --out-dir out
-#   拒否推奨（deny）の項目を承認するには --allow-deny が必要。上書きとして decisions.md に記録する。
+python3 -I atlas_allowlist.py build report.json --approve-recommended --out-dir out --by "山田"
+python3 -I atlas_allowlist.py build report.json --approve filesystem,github --out-dir out --by "山田" \
+    --reason github="シークレットは Vault に移した（SEC-123）"
+#   approve 以外の項目を承認する（上書き承認）には項目ごとに --reason が必須。
+#   deny の項目はさらに --allow-deny が必要。
 
-# Web UI（127.0.0.1 のみで待ち受け。--fetch は既定でオフ）
+# Web UI（127.0.0.1 のみ。--osv / --fetch は既定でオフ）
 python3 -I web.py --port 8765        # http://127.0.0.1:8765/
 
-# テスト
-python3 -I -m unittest discover -s tests -v
+# テスト（ネットワーク不要。取得・clone・OSV はモック）
+python3 -I -B -m unittest discover -s tests -v
+(cd ../.. && python3 -I -B -m unittest discover -s atlas/scanner/tests -v)
 ```
 
 - **入力：** `mcpServers` 形式（`.mcp.json`、`managed-mcp.json`、Claude Desktop）と `servers` 形式（VS Code `mcp.json`）。
-- **推奨：** A/B は承認推奨（approve）、C は要レビュー（review）、D/F または隔離は拒否推奨（deny）。
 - **index.json：** `{"generated", "entries":[{"repo","packages":["npm:…","pypi:…","oci:…"],"commit","findings","files"}]}`。任意で `license`、`osv_ids`、`provenance`、`maintenance` も読む。
+
+## 推奨の決め方（ポリシー）
+
+1. OSV の `MAL-*`（隔離・Trust 0）、または src/skill/起動設定に critical がある → **deny**。
+2. 等級で決める：A/B → approve、C → review、D/F → deny。
+3. 起動設定またはスキルに high がある → 少なくとも **review**（自動承認しない）。ポリシーで deny にもできる。
+4. approve には検証済みの出所が必要：DP-004 が clean（`repo_matches_package`）か npm attestation。なければ review。出所情報がないと点数上も最大 C（約64点）。
+
+`policy.json`（Web UI ではセレクトで同じ設定）：
+
+```json
+{"high_in_skill_or_launch": "review", "require_provenance_for_approve": true}
+```
+
+`high_in_skill_or_launch` は `"review"` か `"deny"`。使ったポリシーは report.json と decisions に記録する。
+
+## 上書き承認（Overrides）
+
+- approve 以外の項目を承認するには理由が必須。CLI は `--reason 名前="理由"`、Web UI はチェックすると理由欄が出る。理由がなければエラー。
+- `decisions.md` の「Overrides / 上書き承認」に、承認者・日時・理由・等級・点数・主な検出を記録する。
+- `decisions.json`（機械可読）にも同じ内容を記録する。項目ごとに `decision`、`override`、`reason`、`config`、`packages` を持つ。`atlas_watch.py check decisions.json` がこれを読む。
+
+## `--osv` / `--fetch`（ネットワークは読み取りだけ）
+
+- **OSV（`atlas/scanner/osv.py`、ATL-DP-002）：**
+  - `querybatch` で照会する。`next_page_token` をたどり、結果はメモリにキャッシュする。通信に失敗したら `unavailable` と表示し、処理は止めない。
+  - 固定版は名前＋版で、固定していなければ名前だけで照会する（`MAL-*` はどの版でも適用）。
+  - `MAL-*` → critical。表題は「Listed as malicious in OSV (MAL-…)」で、この語を使うのはここだけ。Trust 0・隔離・deny になる。
+  - 固定版に影響する既知の脆弱性 → high。
+  - 直接依存（`--fetch` 時。package.json の `dependencies`、PyPI の Requires-Dist / pyproject）：`MAL-*` → critical（隔離）。脆弱性は info（版は範囲の下限で推定）。
+  - **実データで確認（2026-10-08）：** npm `postmark-mcp` → `MAL-2025-47604`（「Malicious code in postmark-mcp (npm)」、1.0.16 から）。
+- **`--fetch`（`--osv` を含む）：**
+  - `pkgfetch` で公開アーカイブをデータとして展開する。宣言されたリポジトリは版のタグ（`v1.2.3`、`pkg@1.2.3` など。`git ls-remote` で探す）で浅くクローンし、なければ既定ブランチを使う。
+  - **DP-004（`atlas/scanner/dp004.py`）：**
+    - パッケージの preinstall/install/postinstall がリポジトリにない、または違う → **high**。
+    - ソース系ファイル（.js/.mjs/.cjs/.ts/.py/.sh。dist/、build/、リポジトリにない lib/、*.map、*.d.ts、*.min.js、egg-info などは除く）がパッケージにしかない、または内容が違う → **medium**。件数と最大10件の例を出す。
+    - ビルド出力しかない → info「not comparable」。
+  - リポジトリがない、または到達できない → **ATL-DP-005 low**。100件の試験では、レジストリのリポジトリ URL の約15%に到達できなかった。
+  - 公開パッケージそのもの（利用者が実際に入れるもの。dist/ も含む）も `scan_repo` で検査し、`source: "package"` を付ける。リポジトリと同一のファイルや、同じ検出は除く。
+  - 出所の根拠行：`repo_matches_package`（DP-004 が clean のときだけ true）、`provenance_attested`（npm `dist.attestations`）、`osi_license`、`pinned_launch`。
 
 ## 追加した設定レベルのルール
 
@@ -69,12 +113,12 @@ python3 -I -m unittest discover -s tests -v
 
 ## 制限
 
-- **信頼スコアの上限：** 出所情報（インデックスの一致、npm attestation、OSI ライセンス）がないと最大でも C（約64点）になる。インデックスに載っていない項目は、ほぼ「要レビュー」になる。
 - **リモート専用サーバー：** URL しか見ないので「静的検査なし」と表示する。OCI イメージの中身とローカルのコマンドも検査しない。
 - **`--fetch`：**
-  - 公開されているリポジトリ URL を信じてクローンする（パッケージ内容との照合 DP-004 は v1）。
-  - バージョンのタグが見つからなければ既定ブランチを検査する。
   - インストール、ビルド、実行、npm/pip/uvx/docker の起動はしない。
   - git は hooks を無効にし、LFS の smudge をオフにし、https 以外を拒否する。
-- **未実装：** OSV の照会、UP-002（版間の差分）。
+  - TypeScript など、ビルド出力しか公開しないパッケージは DP-004 で照合できない（not comparable）。この場合は attestation がないと approve にならない。
+  - PyPI の attestation はまだ読まない。
+- **OSV：** 依存の版はロックファイルがないため推定（範囲の下限）。推移的な依存は見ない。
+- **UP-002（版間の差分）：** `atlas_watch.py` で実装済み（`check decisions.json`）。
 - **Web UI：** 認証はない。127.0.0.1 だけで待ち受け、Host ヘッダーを検査し、JSON 以外の POST は拒否する。

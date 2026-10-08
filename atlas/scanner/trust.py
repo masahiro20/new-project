@@ -102,7 +102,7 @@ def trust(findings, provenance=None, maintenance=None, osv_ids=None, up002=False
     mal = [i for i in (osv_ids or []) if str(i).upper().startswith("MAL-")]
     if mal:
         score = 0
-        caps.append({"cap": 0, "reason": "OSV lists this package as malicious (" + ", ".join(mal) + ")"})
+        caps.append({"cap": 0, "reason": "OSV lists this package or a direct dependency as malicious (" + ", ".join(mal) + "); see the DP-002 finding for which"})
     crit = [f for f in findings if f["sev"] == "critical" and f.get("ctx") in ("src", "skill") and not f.get("suppressed")]
     if crit and score > 30:
         score = 30

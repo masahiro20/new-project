@@ -319,7 +319,8 @@ def check(eco, name, version=None, pinned=False, deps=None, resolved_version=Non
     pkg_ids = sorted(set(name_only["ids"]) | set((ver_res or {}).get("ids") or []))
     return {"status": "ok", "mal_ids": mal_all, "osv_ids": sorted(set(mal_all) | set((ver_res or {}).get("vulns") or [])),
             "package": {"name": name, "version": version if pinned else resolved_version, "pinned": bool(pinned),
-                        "ids": pkg_ids, "mal": pkg_mal},
+                        "ids": pkg_ids, "mal": pkg_mal,
+                        "affecting": sorted(set((ver_res or {}).get("ids") or [])) if ver_res else None},
             "deps": dep_out, "findings": findings}
 
 
@@ -332,9 +333,11 @@ def summary_line(res):
     p = res.get("package") or {}
     deps = res.get("deps") or []
     dv = sum(1 for d in deps if d["vulns"])
+    aff = p.get("affecting")
     s = (f"OSV: {p.get('name')}{'@' + p['version'] if p.get('version') else ' (name only)'}: "
-         f"{len(p.get('ids') or [])} advisory id(s); {len(deps)} direct dep(s) checked, "
-         f"{dv} with advisories")
+         + (f"{len(aff)} advisory id(s) affect this version ({len(p.get('ids') or [])} for any version); "
+            if aff is not None else f"{len(p.get('ids') or [])} advisory id(s) for any version (not version-checked); ")
+         + f"{len(deps)} direct dep(s) checked, {dv} with advisories (estimated versions)")
     if res.get("mal_ids"):
         s += "; MAL ids: " + ", ".join(res["mal_ids"])
     return s

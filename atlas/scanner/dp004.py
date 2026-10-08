@@ -300,22 +300,10 @@ def _snip_key(f):
 
 
 def scan_package(pkg_root, identical=(), repo_findings=()):
-    """scan.scan_repo() over the extracted package, including dist/ and build/ (scan.py skips
-    those by name below the root, so each is scanned as its own root). Findings in files that are
-    byte-identical to the repo, or with the same rule+snippet as a repo finding, are dropped."""
-    found = []
-    f, n, _ = _scan.scan_repo(pkg_root)
-    found += f
-    for d in sorted(_scan.SKIP_DIRS & {"dist", "build"}):
-        sub = os.path.join(pkg_root, d)
-        if os.path.isdir(sub) and not os.path.islink(sub):
-            g, m, _ = _scan.scan_repo(sub)
-            n += m
-            for x in g:
-                x = dict(x)
-                x["file"] = f"{d}/{x['file']}"
-                x["ctx"] = _scan.ctx_of(x["file"])
-                found.append(x)
+    """scan.scan_repo() over the extracted package with PACKAGE_SKIP_DIRS (published packages keep
+    their code in dist/ or build/). Findings in files byte-identical to the repo, or with the same
+    rule+snippet as a repo finding, are dropped; the rest are marked source "package"."""
+    found, n, _ = _scan.scan_repo(pkg_root, skip_dirs=_scan.PACKAGE_SKIP_DIRS)
     same = set(identical)
     seen = {_snip_key(x) for x in repo_findings if not x.get("suppressed")}
     out = []

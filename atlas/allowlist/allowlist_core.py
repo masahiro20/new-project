@@ -1072,7 +1072,9 @@ def _decisions_json(report, items, approved, by, when, approve_recommended, over
         "items": [{"name": i["name"], "kind": i["kind"], "grade": i["grade"], "score": i["score"],
                    "recommendation": i["recommendation"],
                    "decision": "approved" if i["name"] in approved else "not_approved",
-                   "override": i["name"] in ov, "reason": ov[i["name"]]["reason"] if i["name"] in ov else None}
+                   "override": i["name"] in ov, "reason": ov[i["name"]]["reason"] if i["name"] in ov else None,
+                   # for atlas_watch.py (UP-002): sanitized launch config + derived packages
+                   "config": i.get("config"), "packages": i.get("packages") or [], "source": i.get("source")}
                   for i in items],
         "overrides": overrides,
     }
