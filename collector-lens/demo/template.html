@@ -1,0 +1,398 @@
+<title>Collector Lens Demo</title>
+<style>
+  /* Layout: one outer wrapper with a 16px+ gutter; two columns (listing text | English notes), stacking under 760px. */
+  :root {
+    --paper: #f5f4ef;        /* page ground: slightly warm, film-box paper */
+    --surface: #fdfcf9;      /* input + panel surfaces */
+    --sunken: #ecebe4;       /* item fill, chips */
+    --ink: #1f2124;          /* body text */
+    --ink-soft: #555a60;     /* secondary text */
+    --ink-faint: #7a7f84;    /* captions, empty states */
+    --rule: #d9d7cf;         /* borders */
+    --accent: #1f5f8b;       /* one accent: cyanotype blue */
+    --accent-ink: #ffffff;
+    --accent-soft: #dfe9f1;
+    --focus: #1f5f8b;
+    --high: #b3261e;  --high-bg: #fbeceb;
+    --medium: #a35f00; --medium-bg: #fbf1e1;
+    --low: #8a7a1c;   --low-bg: #f6f3e2;
+    --positive: #1d7a5c; --positive-bg: #e7f3ee;
+    --info: #9a9a92;
+
+    --font-ui: system-ui, -apple-system, "Segoe UI", Roboto, "Hiragino Sans", "Noto Sans JP", "Yu Gothic", sans-serif;
+    --font-ja: "Hiragino Sans", "Noto Sans JP", "Yu Gothic", system-ui, sans-serif;
+    --font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Hiragino Sans", "Noto Sans JP", monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #17181a; --surface: #1f2023; --sunken: #2a2b2f;
+      --ink: #ebeae4; --ink-soft: #b9b8b1; --ink-faint: #8f8e88; --rule: #36373b;
+      --accent: #7fb3da; --accent-ink: #0e1a24; --accent-soft: #1d3142; --focus: #9cc6e6;
+      --high: #f2948d; --high-bg: #3a1f1d;
+      --medium: #f0b866; --medium-bg: #3a2c16;
+      --low: #d6c870; --low-bg: #322f1b;
+      --positive: #74cfae; --positive-bg: #17322a;
+      --info: #6c6c68;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #17181a; --surface: #1f2023; --sunken: #2a2b2f;
+    --ink: #ebeae4; --ink-soft: #b9b8b1; --ink-faint: #8f8e88; --rule: #36373b;
+    --accent: #7fb3da; --accent-ink: #0e1a24; --accent-soft: #1d3142; --focus: #9cc6e6;
+    --high: #f2948d; --high-bg: #3a1f1d;
+    --medium: #f0b866; --medium-bg: #3a2c16;
+    --low: #d6c870; --low-bg: #322f1b;
+    --positive: #74cfae; --positive-bg: #17322a;
+    --info: #6c6c68;
+    color-scheme: dark;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.55 var(--font-ui); }
+  [lang="ja"] { font-family: var(--font-ja); }
+  .wrap { max-width: 1120px; margin: 0 auto; padding-inline: 16px; padding-block: 24px 40px; display: grid; gap: 20px; }
+  @media (min-width: 900px) { .wrap { padding-inline: 32px; } }
+
+  /* Header */
+  .eyebrow { font: 600 11px/1.2 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--accent); margin: 0 0 6px; }
+  h1 { font-size: 1.6rem; line-height: 1.2; margin: 0; text-wrap: balance; font-weight: 700; letter-spacing: -.01em; }
+  h1 .wt { font-weight: 500; color: var(--ink-soft); font-size: .8em; }
+  .note { margin: 10px 0 0; max-width: 68ch; color: var(--ink-soft); font-size: .92rem; }
+  .note strong { color: var(--ink); font-weight: 600; }
+
+  /* Two columns */
+  .grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 20px; align-items: start; }
+  .grid > * { min-width: 0; }
+  @media (max-width: 760px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+
+  .card { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 16px; display: grid; gap: 14px; min-width: 0; }
+  .card-title { font: 600 11px/1.2 var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint); margin: 0; }
+
+  /* Input column */
+  .samples { display: flex; flex-wrap: wrap; gap: 8px; }
+  .sample-btn { font: inherit; font-size: .85rem; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--rule); background: var(--sunken); color: var(--ink); cursor: pointer; text-align: left; }
+  .sample-btn:hover { border-color: var(--accent); }
+  .sample-btn[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--ink); }
+  .field-label { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: .9rem; font-weight: 600; }
+  .field-label span { font-weight: 400; color: var(--ink-faint); font-size: .8rem; }
+  textarea { width: 100%; min-height: 260px; resize: vertical; font: 14px/1.7 var(--font-ja); color: var(--ink); background: var(--paper); border: 1px solid var(--rule); border-radius: 8px; padding: 12px; }
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .primary { font: 600 .92rem var(--font-ui); padding: 8px 18px; border-radius: 6px; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink); cursor: pointer; }
+  .primary:hover { filter: brightness(1.08); }
+  .status { font-size: .82rem; color: var(--ink-faint); }
+
+  .read { display: grid; gap: 6px; margin: 0; padding: 12px; border-radius: 8px; background: var(--sunken); font-size: .85rem; }
+  .read div { display: grid; grid-template-columns: 7.5em minmax(0, 1fr); gap: 8px; }
+  .read dt { color: var(--ink-faint); margin: 0; }
+  .read dd { margin: 0; overflow-wrap: anywhere; }
+  .read dd.none { color: var(--ink-faint); font-style: italic; }
+
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  textarea:focus-visible { outline-offset: 0; }
+
+  /* Panel */
+  .panel { padding: 0; gap: 0; overflow: hidden; }
+  .panel-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 14px 16px; border-bottom: 1px solid var(--rule); }
+  .panel-head h2 { margin: 0; font-size: 1.05rem; flex: 1 1 auto; }
+  .genre { font: 500 11px/1.2 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-faint); }
+  .badge { font-size: .8rem; font-weight: 600; padding: 3px 10px; border-radius: 999px; border: 1px solid currentColor; }
+  .lvl-high { color: var(--high); background: var(--high-bg); }
+  .lvl-medium { color: var(--medium); background: var(--medium-bg); }
+  .lvl-low { color: var(--positive); background: var(--positive-bg); }
+  .panel-body { padding: 4px 16px 16px; }
+  .panel-body h3 { font: 600 11px/1.2 var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); margin: 18px 0 8px; display: flex; gap: 8px; align-items: baseline; }
+  .panel-body h3 .count { color: var(--ink-faint); font-weight: 400; }
+  ul.items { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+  .item { padding: 8px 10px; border-radius: 6px; background: var(--sunken); border-left: 4px solid var(--info); display: grid; gap: 2px; min-width: 0; overflow-wrap: anywhere; }
+  .item.r-high { border-left-color: var(--high); background: var(--high-bg); }
+  .item.r-medium { border-left-color: var(--medium); background: var(--medium-bg); }
+  .item.r-low { border-left-color: var(--low); background: var(--low-bg); }
+  .item.r-positive { border-left-color: var(--positive); background: var(--positive-bg); }
+  .item .ja { font-weight: 600; font-family: var(--font-ja); }
+  .item .sep { color: var(--ink-faint); }
+  .item .en { font-weight: 600; }
+  .item .ex { color: var(--ink-soft); font-size: .9rem; }
+  .item .snip { color: var(--ink-faint); font-size: .82rem; font-family: var(--font-ja); }
+  .item .risk { font: 500 10px/1 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-faint); margin-left: 6px; }
+  .empty { color: var(--ink-faint); font-style: italic; font-size: .9rem; padding: 2px 0; }
+
+  .scale { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+  .scale span { font: 600 11px/1 var(--font-mono); padding: 4px 6px; border-radius: 4px; border: 1px solid var(--rule); color: var(--ink-faint); }
+  .scale span.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+
+  details.extra { margin-top: 14px; border-top: 1px solid var(--rule); padding-top: 4px; }
+  details.extra summary { cursor: pointer; font: 600 11px/1.2 var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); padding: 10px 0 8px; }
+  details.extra .item { font-size: .9rem; }
+
+  .panel-foot { padding: 10px 16px; border-top: 1px solid var(--rule); color: var(--ink-faint); font-size: .8rem; }
+
+  footer { color: var(--ink-faint); font-size: .82rem; max-width: 80ch; display: grid; gap: 4px; }
+  footer p { margin: 0; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .sample-btn, .primary { transition: border-color .15s, background-color .15s, filter .15s; }
+    .panel-body.fresh { animation: settle .25s ease-out; }
+    @keyframes settle { from { opacity: .55; } to { opacity: 1; } }
+  }
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Listing Decoder · Private demo</p>
+    <h1>Collector Lens <span class="wt">(working title)</span></h1>
+    <p class="note"><strong lang="ja">仮称</strong> / Working title — name pending trademark search. Private demo. Runs entirely in your browser; nothing is sent anywhere.</p>
+  </header>
+
+  <main class="grid">
+    <section class="card" aria-labelledby="input-title">
+      <h2 class="card-title" id="input-title">Japanese listing text</h2>
+      <div>
+        <div class="field-label" style="margin-bottom:6px">Try a sample <span>Fictional listings written for this demo</span></div>
+        <div class="samples" id="samples" role="group" aria-label="Sample listings"></div>
+      </div>
+      <div>
+        <label class="field-label" for="listing-input" style="margin-bottom:6px">Paste a description <span lang="ja">商品説明を貼り付け</span></label>
+        <textarea id="listing-input" lang="ja" spellcheck="false" placeholder="例）商品の状態：目立った傷や汚れなし&#10;返品：返品不可"></textarea>
+      </div>
+      <div class="actions">
+        <button type="button" class="primary" id="decode-btn">Decode</button>
+        <span class="status" id="status" aria-live="polite">Decodes as you type.</span>
+      </div>
+      <div>
+        <div class="field-label" style="margin-bottom:6px">Lines picked up <span>from labelled lines</span></div>
+        <dl class="read" id="read-fields"></dl>
+      </div>
+    </section>
+
+    <section class="card panel" aria-labelledby="panel-title">
+      <div class="panel-head">
+        <h2 id="panel-title">Listing notes</h2>
+        <span class="genre" id="genre"></span>
+        <span class="badge lvl-low" id="score">—</span>
+      </div>
+      <div class="panel-body" id="panel-body"></div>
+      <div class="panel-foot">Rule-based notes from the pasted text only. Not an appraisal or authenticity check.</div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Collector Lens (working title) is a private prototype. The notes come from a fixed dictionary and simple rules. They are not an appraisal, a price opinion or an authenticity check, and they can miss things or misread a seller's wording.</p>
+    <p>All sample listings are fictional and were written for this demo. No real listing, seller or site is shown.</p>
+  </footer>
+</div>
+
+<script>/*__GLOSSARY__*/</script>
+<script>/*__ANALYZER__*/</script>
+<script>/*__SAMPLES__*/</script>
+<script>
+(function () {
+  "use strict";
+  var CL = globalThis.CollectorLens;
+
+  // ---------- Field extraction (pure) ----------
+  var CONDITION_LABELS = ["商品の状態", "商品状態", "コンディション", "状態"];
+  var RANK_LABELS = ["状態ランク", "ランク"];
+  var RETURN_LABELS = ["返品の可否", "返品について", "返品可否", "返品"];
+  var LEAD = /^[\s・■□●○◆◇★☆※\-*]*/;
+  var BRACKETS = { "【": "】", "[": "]", "［": "］", "〔": "〕", "（": "）", "(": ")", "<": ">", "＜": "＞" };
+
+  // Returns the value after a label at the start of the line, or null.
+  function matchLabel(line, label) {
+    var s = line.replace(LEAD, "");
+    var open = s.charAt(0), close = BRACKETS[open];
+    if (close && s.indexOf(label, 1) === 1 && s.charAt(1 + label.length) === close) {
+      return s.slice(2 + label.length).replace(/^[\s:：]*/, "").trim();
+    }
+    if (s.indexOf(label) !== 0) return null;
+    var rest = s.slice(label.length);
+    if (!/^[\s　:：]/.test(rest)) return null;
+    return rest.replace(/^[\s　:：]+/, "").trim();
+  }
+
+  function firstMatch(line, labels) {
+    for (var i = 0; i < labels.length; i++) {
+      var v = matchLabel(line, labels[i]);
+      if (v !== null) return v;
+    }
+    return null;
+  }
+
+  function extractListing(text) {
+    var out = { title: "", description: String(text || ""), condition: "", returns: "", rank: "" };
+    var lines = out.description.split(/\r?\n/);
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i];
+      var v;
+      // Rank labels first: "状態ランク" must not be read as "状態".
+      if (!out.rank && (v = firstMatch(line, RANK_LABELS)) !== null && v) { out.rank = v; continue; }
+      if (!out.condition && (v = firstMatch(line, CONDITION_LABELS)) !== null && v) { out.condition = v; continue; }
+      if (!out.returns && (v = firstMatch(line, RETURN_LABELS)) !== null && v) { out.returns = v; continue; }
+    }
+    return out;
+  }
+  globalThis.extractListing = extractListing;
+
+  // ---------- Rendering (textContent only) ----------
+  var GRADE_SCALE = ["S", "SA", "A", "AB", "B", "BC", "C", "D", "J"];
+  var BARE_GRADE = /^(SA|AB|BC|S|A|B|C|D|J)[+\-]?$/i;
+
+  function el(tag, cls, text, attrs) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    if (attrs) for (var k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+
+  function item(risk, ja, en, explain, snippet) {
+    var li = el("li", "item r-" + (risk || "info"));
+    var line = el("div");
+    if (ja) {
+      line.appendChild(el("span", "ja", ja, { lang: "ja" }));
+      line.appendChild(el("span", "sep", " — "));
+    }
+    line.appendChild(el("span", "en", en));
+    if (risk && risk !== "info") line.appendChild(el("span", "risk", risk));
+    li.appendChild(line);
+    if (explain) li.appendChild(el("div", "ex", explain));
+    if (snippet) li.appendChild(el("div", "snip", "“" + snippet + "”", { lang: "ja" }));
+    return li;
+  }
+
+  function section(parent, title, children, emptyText) {
+    var h = el("h3", null, title);
+    if (children.length) h.appendChild(el("span", "count", String(children.length)));
+    parent.appendChild(h);
+    if (children.length) {
+      var ul = el("ul", "items");
+      children.forEach(function (c) { ul.appendChild(c); });
+      parent.appendChild(ul);
+    } else {
+      parent.appendChild(el("p", "empty", emptyText));
+    }
+  }
+
+  function extra(parent, title, children, open) {
+    if (!children.length) return;
+    var d = el("details", "extra");
+    if (open) d.open = true;
+    d.appendChild(el("summary", null, title + " (" + children.length + ")"));
+    var ul = el("ul", "items");
+    children.forEach(function (c) { ul.appendChild(c); });
+    d.appendChild(ul);
+    parent.appendChild(d);
+  }
+
+  function renderPanel(result) {
+    var body = document.getElementById("panel-body");
+    body.textContent = "";
+    body.classList.remove("fresh"); void body.offsetWidth; body.classList.add("fresh");
+
+    var score = document.getElementById("score");
+    score.className = "badge lvl-" + result.score.level;
+    score.textContent = result.score.label;
+    document.getElementById("genre").textContent = result.genre === "general" ? "Genre: general" : "Genre: " + result.genre;
+
+    // Condition
+    var cond = [];
+    if (result.condition) {
+      cond = result.condition.terms.map(function (t) { return item(t.risk, t.ja, t.en, t.explain); });
+      if (!cond.length) {
+        var bare = BARE_GRADE.test(result.condition.raw.trim());
+        cond = [item("info", result.condition.raw, bare ? "Shop grade (see Grade)" : "(no dictionary entry yet)", null)];
+      }
+    }
+    section(body, "Condition", cond, "No condition line found. Add a line like 商品の状態：目立った傷や汚れなし");
+
+    // Grade
+    var grades = result.ranks.map(function (r) {
+      var li = item("info", null, r.label, r.explain, r.snippet);
+      if (r.kind === "shop") {
+        var base = r.label.replace(/[+\-]$/, "").toUpperCase();
+        var scale = el("div", "scale", null, { "aria-label": "Shop grade scale, best to worst" });
+        GRADE_SCALE.forEach(function (g) { scale.appendChild(el("span", g === base ? "on" : null, g)); });
+        li.appendChild(scale);
+      }
+      return li;
+    });
+    section(body, "Grade", grades, "No grade found");
+
+    // Returns
+    var ret = [];
+    if (result.returns) {
+      ret = result.returns.terms.map(function (t) { return item(t.risk, t.ja, t.en, t.explain); });
+      if (!ret.length) ret = [item("info", result.returns.raw, "(no dictionary entry yet)", null)];
+    }
+    section(body, "Returns", ret, "No return terms found");
+
+    // Terms read from the condition/returns fields already appear above.
+    var shown = result.flags.filter(function (f) {
+      return !(f.field === "condition" && result.condition) && !(f.field === "returns" && result.returns);
+    });
+    var toItem = function (f) { return item(f.risk, f.ja, f.en, f.explain, f.snippet); };
+    section(body, "Warnings", shown.filter(function (f) { return f.risk === "high" || f.risk === "medium"; }).map(toItem),
+      "No rule-based warnings found. That is not a guarantee.");
+    section(body, "Worth noting", shown.filter(function (f) { return f.risk === "low"; }).map(toItem), "Nothing else flagged");
+
+    extra(body, "Seller states", result.reassurances.map(function (f) { return item("positive", f.ja, f.en, f.explain, f.snippet); }), true);
+    extra(body, "Terms", result.terms.map(function (t) { return item("info", t.ja, t.en, t.explain); }), false);
+  }
+
+  function renderRead(listing) {
+    var dl = document.getElementById("read-fields");
+    dl.textContent = "";
+    [["Condition", listing.condition, "none"], ["Rank", listing.rank, "none"], ["Returns", listing.returns, "none"]].forEach(function (r) {
+      var row = el("div");
+      row.appendChild(el("dt", null, r[0]));
+      row.appendChild(r[1] ? el("dd", null, r[1], { lang: "ja" }) : el("dd", "none", r[2]));
+      dl.appendChild(row);
+    });
+  }
+
+  // ---------- Wiring ----------
+  var index = CL.buildIndex(CL.GLOSSARY);
+  var input = document.getElementById("listing-input");
+  var status = document.getElementById("status");
+  var samples = Array.isArray(globalThis.DEMO_SAMPLES) ? globalThis.DEMO_SAMPLES : [];
+  var timer = null;
+
+  function decode() {
+    clearTimeout(timer);
+    var listing = extractListing(input.value);
+    var result = CL.analyze(listing, CL.GLOSSARY, index);
+    renderRead(listing);
+    renderPanel(result);
+    status.textContent = input.value.trim() ? "Decoded " + listing.description.length + " characters locally." : "Paste a description to decode it.";
+    globalThis.__lastResult = result;
+    return result;
+  }
+  globalThis.decodeListing = decode;
+
+  function markSample(id) {
+    var btns = document.querySelectorAll(".sample-btn");
+    for (var i = 0; i < btns.length; i++) btns[i].setAttribute("aria-pressed", String(btns[i].getAttribute("data-id") === id));
+  }
+
+  var box = document.getElementById("samples");
+  var PREFIX = { camera: "Camera", watch: "Watch" };
+  samples.forEach(function (s) {
+    var pre = PREFIX[s.genre] || "Sample";
+    var label = /\s·\s/.test(s.label) ? s.label : pre + " · " + s.label;
+    var b = el("button", "sample-btn", label, { type: "button", "data-id": s.id, id: "sample-" + s.id, "aria-pressed": "false" });
+    b.addEventListener("click", function () { input.value = s.text; markSample(s.id); decode(); });
+    box.appendChild(b);
+  });
+  if (!samples.length) box.appendChild(el("p", "empty", "No samples loaded."));
+
+  document.getElementById("decode-btn").addEventListener("click", decode);
+  input.addEventListener("input", function () {
+    markSample(null);
+    clearTimeout(timer);
+    timer = setTimeout(decode, 200);
+  });
+
+  if (samples.length) { input.value = samples[0].text; markSample(samples[0].id); }
+  decode();
+})();
+</script>
