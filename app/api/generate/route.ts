@@ -3,6 +3,7 @@ import { streamDocuments } from "@/lib/claude";
 import { facilitySchema } from "@/lib/form";
 import { hashInput } from "@/lib/hash";
 import { PARTS } from "@/lib/parts";
+import { REGENERATE_PER_DAY } from "@/lib/purchase";
 import { allow } from "@/lib/ratelimit";
 import { isPaidFor, paymentDisabled } from "@/lib/stripe";
 
@@ -21,11 +22,6 @@ export async function POST(request: Request) {
   }
   const { sessionId, part, input } = parsed.data;
 
-  // A paid session may regenerate for 7 days; cap it so one payment can't run up unbounded API cost.
-  if (!allow(`generate:${sessionId}:${part}`, 5, 24 * 60 * 60 * 1000)) {
-    return Response.json({ error: "再作成の上限に達しました。時間をおいて再度お試しください。" }, { status: 429 });
-  }
-
   if (!paymentDisabled()) {
     const paid = await isPaidFor(sessionId, hashInput(input)).catch((error) => {
       console.error("payment check failed", error);
@@ -37,6 +33,11 @@ export async function POST(request: Request) {
         { status: 402 },
       );
     }
+  }
+
+  // A paid session may regenerate for 7 days; cap it so one payment can't run up unbounded API cost.
+  if (!(await allow(`generate:${sessionId}:${part}`, REGENERATE_PER_DAY, 24 * 60 * 60 * 1000))) {
+    return Response.json({ error: "再作成の上限に達しました。時間をおいて再度お試しください。" }, { status: 429 });
   }
 
   return new Response(streamDocuments(part, input), {

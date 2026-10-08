@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { FacilityInput } from "./form";
 import type { Part } from "./parts";
+import { NOTICES } from "./notices";
 import { SYSTEM_PROMPT, buildUserPrompt } from "./prompts";
 
 let client: Anthropic | null = null;
@@ -33,16 +34,16 @@ export function streamDocuments(part: Part | "preview", input: FacilityInput): R
         const final = await stream.finalMessage();
 
         if (final.stop_reason === "refusal") {
-          controller.enqueue(encoder.encode("\n\n> 生成できませんでした。入力内容を見直して、もう一度お試しください。"));
+          controller.enqueue(encoder.encode(`\n\n> ${NOTICES.refusal}`));
         } else if (final.stop_reason === "max_tokens") {
-          controller.enqueue(encoder.encode("\n\n> 文字数の上限に達したため、途中で終了しました。"));
+          controller.enqueue(encoder.encode(`\n\n> ${NOTICES.maxTokens}`));
         }
       } catch (error) {
         console.error("generation failed", error);
         const message =
           error instanceof Anthropic.RateLimitError
-            ? "現在混み合っています。少し時間をおいて再度お試しください。"
-            : "生成中にエラーが発生しました。時間をおいて再度お試しください。";
+            ? NOTICES.rateLimited
+            : NOTICES.error;
         controller.enqueue(encoder.encode(`\n\n> ${message}`));
       } finally {
         controller.close();

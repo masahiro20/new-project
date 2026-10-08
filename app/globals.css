@@ -107,3 +107,10 @@ textarea { min-height: 110px; resize: vertical; }
   body { background: #fff; }
   .doc { border: 0; padding: 0; }
 }
+
+.purchase-summary { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 20px; margin-top: 20px; }
+.purchase-summary table { border-collapse: collapse; width: 100%; font-size: .9rem; margin-bottom: 8px; }
+.purchase-summary th, .purchase-summary td { border-top: 1px solid var(--line); padding: 6px 8px; text-align: left; vertical-align: top; }
+.purchase-summary th { white-space: nowrap; width: 7.5em; color: var(--muted); font-weight: 700; }
+.purchase-summary .hint { margin: 0; }
+.turnstile { margin: 8px 0 16px; min-height: 65px; }

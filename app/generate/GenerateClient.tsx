@@ -1,12 +1,16 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import MarkdownView from "@/app/MarkdownView";
 import { SERVICE_TYPES, type FacilityInput } from "@/lib/form";
+import { endsWithNotice } from "@/lib/notices";
 import { PART_LABELS, PARTS, type Part } from "@/lib/parts";
+import PurchaseSummary from "./PurchaseSummary";
+import Turnstile from "./Turnstile";
 
 const STORAGE_KEY = "gensan-zero:input";
+const outputKey = (sessionId: string) => `gensan-zero:output:${sessionId}`;
 
 const EMPTY: FacilityInput = {
   serviceType: "放課後等デイサービス",
@@ -39,6 +43,25 @@ function save(input: FacilityInput) {
   }
 }
 
+type SavedOutputs = Partial<Record<Part, string>>;
+
+/** Finished paid sets, kept so a reload shows them again instead of regenerating (and re-billing the API). */
+function loadOutputs(sessionId: string): SavedOutputs {
+  try {
+    return JSON.parse(localStorage.getItem(outputKey(sessionId)) ?? "{}") as SavedOutputs;
+  } catch {
+    return {};
+  }
+}
+
+function saveOutput(sessionId: string, part: Part, text: string) {
+  try {
+    localStorage.setItem(outputKey(sessionId), JSON.stringify({ ...loadOutputs(sessionId), [part]: text }));
+  } catch {
+    // Storage blocked or full: the set is still on screen, only reload-restore is lost.
+  }
+}
+
 async function streamInto(url: string, body: unknown, onText: (text: string) => void): Promise<string | undefined> {
   const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
   if (!res.ok || !res.body) {
@@ -57,7 +80,7 @@ async function streamInto(url: string, body: unknown, onText: (text: string) => 
   return undefined;
 }
 
-export default function GenerateClient({ price }: { price: number }) {
+export default function GenerateClient({ price, turnstileSiteKey }: { price: number; turnstileSiteKey?: string }) {
   const params = useSearchParams();
   const sessionId = params.get("session_id");
   const canceled = params.get("canceled") === "1";
@@ -67,21 +90,42 @@ export default function GenerateClient({ price }: { price: number }) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const started = useRef(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileReset, setTurnstileReset] = useState(0);
+  const onTurnstileToken = useCallback((token: string | null) => setTurnstileToken(token), []);
 
   const set = <K extends keyof FacilityInput>(key: K, value: FacilityInput[K]) => setInput((prev) => ({ ...prev, [key]: value }));
 
   const update = (part: Part | "preview", patch: Partial<Output>) =>
     setOutputs((prev) => ({ ...prev, [part]: { text: "", done: false, ...prev[part], ...patch } }));
 
-  async function run(part: Part | "preview", url: string, body: unknown) {
+  /** Streams one part; resolves to the finished text, or null when it failed or stopped early. */
+  async function run(part: Part | "preview", url: string, body: unknown): Promise<string | null> {
     update(part, { text: "", done: false, error: undefined });
-    const error = await streamInto(url, body, (text) => update(part, { text }));
+    let latest = "";
+    const error = await streamInto(url, body, (text) => {
+      latest = text;
+      update(part, { text });
+    });
     update(part, { done: true, error });
+    return error || endsWithNotice(latest) ? null : latest;
   }
 
-  async function generatePaid(id: string, data: FacilityInput) {
+  async function generatePart(id: string, part: Part, data: FacilityInput) {
+    const text = await run(part, "/api/generate", { sessionId: id, part, input: data });
+    if (text) saveOutput(id, part, text);
+  }
+
+  async function generatePaid(id: string, data: FacilityInput, parts: readonly Part[]) {
     setBusy(true);
-    await Promise.all(PARTS.map((part) => run(part, "/api/generate", { sessionId: id, part, input: data })));
+    await Promise.all(parts.map((part) => generatePart(id, part, data)));
+    setBusy(false);
+  }
+
+  async function retry(part: Part) {
+    if (!sessionId) return;
+    setBusy(true);
+    await generatePart(sessionId, part, input);
     setBusy(false);
   }
 
@@ -97,7 +141,10 @@ export default function GenerateClient({ price }: { price: number }) {
         setMessage("入力内容が見つかりませんでした。購入時と同じブラウザで開いてください。");
         return;
       }
-      generatePaid(sessionId, saved);
+      const cached = loadOutputs(sessionId);
+      setOutputs(Object.fromEntries(Object.entries(cached).map(([part, text]) => [part, { text, done: true }])));
+      const missing = PARTS.filter((part) => !cached[part]);
+      if (missing.length) generatePaid(sessionId, saved, missing);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId]);
@@ -107,7 +154,8 @@ export default function GenerateClient({ price }: { price: number }) {
     setMessage(null);
     save(input);
     setBusy(true);
-    await run("preview", "/api/preview", input);
+    await run("preview", "/api/preview", { input, turnstileToken });
+    if (turnstileSiteKey) setTurnstileReset((n) => n + 1);
     setBusy(false);
   }
 
@@ -188,12 +236,16 @@ export default function GenerateClient({ price }: { price: number }) {
             </div>
           </div>
 
+          {turnstileSiteKey && <Turnstile siteKey={turnstileSiteKey} onToken={onTurnstileToken} resetKey={turnstileReset} />}
+
           <p className="notice">
             議事録は、実際に開催した委員会のメモをもとに清書します。開催していない会議や研修の記録を作ることはできません。
           </p>
 
+          <PurchaseSummary price={price} />
+
           <div className="actions">
-            <button type="button" className="btn secondary" onClick={preview} disabled={busy}>
+            <button type="button" className="btn secondary" onClick={preview} disabled={busy || (!!turnstileSiteKey && !turnstileToken)}>
               無料で年間実施計画を作る
             </button>
             <button type="button" className="btn" onClick={checkout} disabled={busy}>
@@ -203,16 +255,29 @@ export default function GenerateClient({ price }: { price: number }) {
         </form>
       )}
 
-      {sessionId && <p className="ok no-print">お支払いありがとうございます。3つの書類セットを同時に作成しています（数分かかります）。</p>}
+      {sessionId && (
+        <p className="ok no-print">
+          {busy
+            ? "お支払いありがとうございます。3つの書類セットを同時に作成しています（数分かかります）。"
+            : "お支払いありがとうございます。作成した書類は、このブラウザに保存されています。忘れずにWordで保存してください。"}
+        </p>
+      )}
 
       {shown.map((part) => (
-        <ResultPart key={part} part={part} output={outputs[part]!} facilityName={input.facilityName} />
+        <ResultPart
+          key={part}
+          part={part}
+          output={outputs[part]!}
+          facilityName={input.facilityName}
+          onRetry={sessionId && part !== "preview" && !busy ? () => retry(part) : undefined}
+        />
       ))}
 
       {!sessionId && outputs.preview?.done && !outputs.preview.error && (
         <div className="card no-print" style={{ marginTop: 24 }}>
           <h3>続きの書類もまとめて作成できます</h3>
           <p>委員会の議事次第・議事録、研修資料と理解度テスト、身体拘束等適正化の指針と記録様式まで、{price.toLocaleString()}円で一式そろいます。</p>
+          <PurchaseSummary price={price} />
           <div className="actions">
             <button type="button" className="btn" onClick={checkout} disabled={busy}>全書類セットを作る</button>
           </div>
@@ -222,7 +287,17 @@ export default function GenerateClient({ price }: { price: number }) {
   );
 }
 
-function ResultPart({ part, output, facilityName }: { part: Part | "preview"; output: Output; facilityName: string }) {
+function ResultPart({
+  part,
+  output,
+  facilityName,
+  onRetry,
+}: {
+  part: Part | "preview";
+  output: Output;
+  facilityName: string;
+  onRetry?: () => void;
+}) {
   const [copied, setCopied] = useState(false);
   const label = PART_LABELS[part];
 
@@ -250,6 +325,11 @@ function ResultPart({ part, output, facilityName }: { part: Part | "preview"; ou
         )}
       </div>
       {output.error && <p className="notice">{output.error}</p>}
+      {onRetry && output.done && (output.error || endsWithNotice(output.text)) && (
+        <div className="actions no-print" style={{ marginTop: 0, marginBottom: 12 }}>
+          <button type="button" className="btn secondary" onClick={onRetry}>この書類を作り直す</button>
+        </div>
+      )}
       {!output.done && <p className="spinner no-print">作成中…</p>}
       {output.text && <MarkdownView markdown={output.text} />}
     </div>

@@ -32,6 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <footer className="site-footer">
           <div className="wrap">
             <nav>
+              <Link href="/terms">利用規約</Link>
               <Link href="/legal">特定商取引法に基づく表記</Link>
               <Link href="/privacy">プライバシーポリシー</Link>
               <a href="/llms.txt">llms.txt</a>

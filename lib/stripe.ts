@@ -1,7 +1,6 @@
 import Stripe from "stripe";
+import { PRODUCT_NAME } from "./purchase";
 import { siteUrl } from "./site";
-
-export const PRODUCT_NAME = "減算ゼロ 年間書類セット（虐待防止・身体拘束等適正化）";
 
 // A paid session may regenerate its set (e.g. after a network drop) for this long.
 const SESSION_VALID_SECONDS = 7 * 24 * 60 * 60;

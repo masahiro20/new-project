@@ -39,7 +39,8 @@ npm run dev                  # http://localhost:3000
 3. **ホスティング**：Vercel などに GitHub リポジトリを接続する
    - 商用利用になるため、Vercel の場合は Pro プランが必要です
    - 環境変数 `ANTHROPIC_API_KEY`、`STRIPE_SECRET_KEY`、`NEXT_PUBLIC_SITE_URL`、`PRICE_JPY` を設定する
-4. `app/legal/page.tsx` と `app/privacy/page.tsx` の【要記入】を埋める（特定商取引法の表記は販売前に必須）
+   - 費用の悪用対策として `UPSTASH_REDIS_REST_URL`／`UPSTASH_REDIS_REST_TOKEN`（共通レート制限）と `NEXT_PUBLIC_TURNSTILE_SITE_KEY`／`TURNSTILE_SECRET_KEY`（ロボット対策）も設定する。未設定でも動くが、無料お試しを悪用されやすくなる
+4. `app/legal/page.tsx`、`app/privacy/page.tsx`、`app/terms/page.tsx` の【要記入】を埋め、内容を最終確認する（特定商取引法の表記は販売前に必須）
 5. Google Search Console にサイトマップ（`/sitemap.xml`）を登録する
 
 ## チェック

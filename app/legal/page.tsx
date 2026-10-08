@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { REGENERATE_PER_DAY } from "@/lib/purchase";
 import { priceJpy } from "@/lib/stripe";
 
 export const metadata: Metadata = { title: "特定商取引法に基づく表記", robots: { index: false } };
@@ -14,7 +15,7 @@ const ROWS: [string, string][] = [
   ["支払方法", "クレジットカード（Stripe）"],
   ["支払時期", "ご注文時にお支払いが確定します"],
   ["提供時期", "お支払い完了後、直ちに画面上で書類を作成します"],
-  ["返品・キャンセル", "デジタルコンテンツの性質上、提供開始後の返金はお受けしておりません。生成に失敗した場合は、同じ入力内容で7日間再生成できます。"],
+  ["返品・キャンセル", `デジタルコンテンツの性質上、提供開始後の返金はお受けしておりません。生成に失敗した場合は、同じ入力内容で7日間、各セット1日${REGENERATE_PER_DAY}回まで再作成できます。`],
 ];
 
 export default function LegalPage() {
