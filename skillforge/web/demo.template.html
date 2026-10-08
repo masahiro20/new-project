@@ -600,16 +600,29 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
     run();
   }
 
+  // When the owner starts on their own script, drop the sample's files (and its glossary, if untouched)
+  // so the sample is never checked alongside their text.
+  function leaveSample() {
+    if (!state.sampleKey) return;
+    const s = SAMPLES && SAMPLES[state.sampleKey];
+    const sampleNames = s ? [s.script, s.script2].filter(Boolean).map((f) => f.name) : [];
+    state.files = state.files.filter((f) => f.pasted || !sampleNames.includes(f.name));
+    if (s && s.glossary && $("gloss-text").value === s.glossary.text) $("gloss-text").value = "";
+    state.sampleKey = null;
+    renderFileList();
+  }
+
   // ---------- events ----------
   $("btn-sample-jaen").addEventListener("click", () => loadSample("ja-en"));
   $("btn-sample-enja").addEventListener("click", () => loadSample("en-ja"));
   $("btn-run").addEventListener("click", run);
-  $("script-files").addEventListener("change", async (e) => { await addFiles(e.target.files); e.target.value = ""; });
+  $("script-files").addEventListener("change", async (e) => { leaveSample(); await addFiles(e.target.files); e.target.value = ""; });
   $("gloss-file").addEventListener("change", async (e) => {
     const f = e.target.files[0];
     if (f) { $("gloss-text").value = await readFileText(f); markDirty(); }
     e.target.value = "";
   });
+  $("script-text").addEventListener("input", leaveSample);
   for (const id of ["script-text", "script-name", "script-format", "gloss-text"]) $(id).addEventListener("input", markDirty);
   for (const id of ["opt-rules", "opt-wide"]) $(id).addEventListener("change", () => { if (state.result) { const keep = state.dirty; run(); state.dirty = keep; } });
 
@@ -645,7 +658,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
   panel.addEventListener("dragleave", (e) => { if (!panel.contains(e.relatedTarget)) panel.classList.remove("drag"); });
   panel.addEventListener("drop", async (e) => {
     e.preventDefault(); panel.classList.remove("drag");
-    if (e.dataTransfer && e.dataTransfer.files.length) await addFiles(e.dataTransfer.files);
+    if (e.dataTransfer && e.dataTransfer.files.length) { leaveSample(); await addFiles(e.dataTransfer.files); }
   });
 
   $("results").addEventListener("click", (e) => {
