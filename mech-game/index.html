@@ -1621,7 +1621,7 @@ function resetPlayer(){
 }
 resetPlayer();
 
-const input = {fwd:0, turn:0, dash:false, fire:false, boost:false, stickX:0, stickY:0, dashBtn:false, fireBtn:false};
+const input = {fwd:0, turn:0, dash:false, fire:false, boost:false, stickX:0, stickY:0, dashBtn:false, fireBtn:false, fireTap:false};
 const keys = new Set();
 
 /* ================= radio ================= */
@@ -1729,11 +1729,11 @@ function clearMission(){
 function resetMission(){
   clearMission();
   resetPlayer();
-  Object.assign(G, {t:0, timeLeft:180, kills:0, spawned:0, lordSpawned:false, lordDead:false, lordTimer:-1, spawnT:2.5, ending:0, win:false});
+  Object.assign(G, {t:0, timeLeft:180, kills:0, spawned:0, lordSpawned:false, lordDead:false, lordTimer:-1, spawnT:2.5, ending:0, win:false, debugUsed:false});
   hull.visible = false;
   rig.position.copy(P.pos); rig.rotation.set(0,0,0);
   for (let i = 0; i < 4; i++){ legs[i].local.copy(FOOT_REST[i]); poseLeg(i); }
-  input.fire = false; input.boost = false;
+  input.fire = false; input.boost = false; input.fireTap = false;
 }
 const launchSeq = {t:0, bootIdx:0, said:false, called:false, clunk:false};
 const BOOT_LINES = [
@@ -1820,9 +1820,9 @@ function showResult(){
   $('rScore').textContent = String(score).padStart(6, '0');
   const rk = $('rank'); rk.textContent = rank; rk.className = rank;
   const prev = hiscore();
-  if (score > prev){ store.set('grandstride_hiscore', score); store.set('grandstride_hirank', rank); $('newHi').textContent = '最高スコア更新 NEW RECORD'; }
+  if (score > prev && !G.debugUsed){ store.set('grandstride_hiscore', score); store.set('grandstride_hirank', rank); $('newHi').textContent = '最高スコア更新 NEW RECORD'; }
   else $('newHi').textContent = '';
-  G.lastResult = {win, score, rank, kills:G.kills + (G.lordDead ? 1 : 0), accuracy:acc, maxResonance:P.maxRes, damageTaken:P.dmgTaken, time:used};
+  G.lastResult = {win, score, rank, debug:!!G.debugUsed, kills:G.kills + (G.lordDead ? 1 : 0), accuracy:acc, maxResonance:P.maxRes, damageTaken:P.dmgTaken, time:used};
   showOnly(['result']);
 }
 function fmtTime(s){ s = Math.max(0, Math.ceil(s)); return Math.floor(s/60) + ':' + String(s % 60).padStart(2, '0'); }
@@ -1856,7 +1856,7 @@ window.addEventListener('keydown', (e) => {
   if (KEYMAP[e.code]) { keys.add(KEYMAP[e.code]); e.preventDefault(); }
   if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') keys.add('dash');
   if (e.code === 'Space'){ if (!e.repeat) input.boost = true; e.preventDefault(); }
-  if (e.code === 'KeyJ' || e.code === 'Enter') keys.add('fire');
+  if (e.code === 'KeyJ' || e.code === 'Enter'){ keys.add('fire'); if (!e.repeat) input.fireTap = true; }
 });
 window.addEventListener('keyup', (e) => {
   if (KEYMAP[e.code]) keys.delete(KEYMAP[e.code]);
@@ -1871,7 +1871,7 @@ let mouseDown = false;
 glEl.addEventListener('pointerdown', (e) => {
   if (e.pointerType !== 'mouse'){ if (!isTouch){ setTouchMode(true); if (G.state === 'play') $('touch').classList.remove('hidden'); } return; }
   if (G.state !== 'play') return;
-  if (e.button === 0){ mouseDown = true; }
+  if (e.button === 0){ mouseDown = true; input.fireTap = true; }
   if (!document.pointerLockElement) tryLock();
 });
 window.addEventListener('pointerup', (e) => { if (e.pointerType === 'mouse' && e.button === 0) mouseDown = false; });
@@ -1925,7 +1925,7 @@ function holdBtn(el, on, off){
   const end = (e) => { ids.delete(e.pointerId); if (!ids.size){ el.classList.remove('on'); off && off(); } };
   el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
 }
-holdBtn($('tFire'), () => { input.fireBtn = true; }, () => { input.fireBtn = false; });
+holdBtn($('tFire'), () => { input.fireBtn = true; input.fireTap = true; }, () => { input.fireBtn = false; });
 holdBtn($('tBoost'), () => { input.boost = true; }, null);
 holdBtn($('tDash'), () => { input.dashBtn = true; }, () => { input.dashBtn = false; });
 $('tPause').addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); snd('uiClick'); pauseGame(); });
@@ -2051,8 +2051,11 @@ function killEnemy(e){
     else if (left === 1) say('残り1体。…待って、地下から大きな反応が。', {});
   }
 }
+// Incoming damage multiplier. QA: at 1.0 an idle mech died in ~30s of a 3:00 mission.
+const DAMAGE_SCALE = 0.5;
 function hurt(amount, src){
   if (G.state !== 'play' || G.ending > 0) return;
+  amount *= DAMAGE_SCALE;
   P.armor = Math.max(0, P.armor - amount);
   P.dmgTaken += amount;
   P.trauma = Math.min(1, P.trauma + 0.3 + amount / 30);
@@ -2228,7 +2231,8 @@ function updPlayer(dt){
   if (Math.abs(input.stickY) < 0.15 && !kbF) input.fwd = 0;
   input.turn = clamp(kbT - (Math.abs(input.stickX) > 0.12 ? input.stickX * 1.1 : 0), -1, 1);
   input.dash = keys.has('dash') || input.dashBtn;
-  input.fire = (mouseDown && G.state === 'play') || keys.has('fire') || input.fireBtn;
+  // fireTap latches a press that started and ended between two frames (quick tap / click), so it still fires once
+  input.fire = (mouseDown && G.state === 'play') || keys.has('fire') || input.fireBtn || input.fireTap;
   if (G.ending > 0){ input.fwd = 0; input.turn = 0; input.dash = false; input.fire = false; input.boost = false; }
 
   const res01 = P.res / 100;
@@ -2331,6 +2335,7 @@ function updPlayer(dt){
   // fire
   P.fireCD -= dt;
   if (input.fire && P.fireCD <= 0 && !P.overheated) fireShot();
+  input.fireTap = false;
 
   // gait
   updGait(dt);
@@ -2669,10 +2674,17 @@ window.__GAME = {
   },
   debugKillAll(){
     if (G.state !== 'play') return false;
+    G.debugUsed = true; // QA shortcut: never record this run as a high score
     for (const e of enemies.slice()) if (e.alive && e.type !== 'lord') killEnemy(e);
     G.kills = 12; G.spawned = 12;
     if (!G.lordSpawned){ G.lordSpawned = true; spawnEnemy('lord', P.pos.x, P.pos.z - 150); }
     for (const e of enemies.slice()) if (e.alive) killEnemy(e);
+    return true;
+  },
+  debugSetTimeLeft(sec){
+    // QA helper: jump the mission clock (e.g. to test time-out). Marks the run as debug so no high score is saved.
+    if (G.state !== 'play' && G.state !== 'paused') return false;
+    G.debugUsed = true; G.timeLeft = Math.max(0, +sec || 0);
     return true;
   },
   debugFaceNearest(){
