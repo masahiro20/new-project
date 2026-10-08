@@ -69,10 +69,13 @@ def _norm_repo(u):
     return u if u.startswith("https://") else None
 
 
-def resolve(eco, name, version=None):
-    """Resolve a version (default: latest) to its archive URL and declared repo."""
+def resolve(eco, name, version=None, meta=None):
+    """Resolve a version (default: latest) to its archive URL and declared repo.
+
+    meta: an already-fetched npm packument, to avoid re-downloading it per version.
+    """
     if eco == "npm":
-        meta = npm_meta(name)
+        meta = meta or npm_meta(name)
         ver = version or (meta.get("dist-tags") or {}).get("latest")
         v = (meta.get("versions") or {}).get(ver)
         if not v:
@@ -85,7 +88,10 @@ def resolve(eco, name, version=None):
                 "integrity": dist.get("integrity"), "attestations": bool(dist.get("attestations")),
                 "repo": _norm_repo(repo.get("url")), "subdir": repo.get("directory"),
                 "scripts": v.get("scripts") or {}, "license": v.get("license"),
-                "time": (meta.get("time") or {}).get(ver), "versions": list((meta.get("versions") or {}).keys())}
+                "time": (meta.get("time") or {}).get(ver), "versions": list((meta.get("versions") or {}).keys()),
+                "maintainers": sorted({(m.get("name") or m.get("email") or "?") for m in (v.get("maintainers") or [])
+                                       if isinstance(m, dict)}),
+                "publisher": (v.get("_npmUser") or {}).get("name") if isinstance(v.get("_npmUser"), dict) else None}
     if eco == "pypi":
         meta = pypi_meta(name, version)
         info = meta.get("info") or {}
@@ -103,7 +109,8 @@ def resolve(eco, name, version=None):
         return {"eco": "pypi", "name": name, "version": ver, "tarball": pick and pick.get("url"),
                 "kind": pick and pick.get("packagetype"), "sha256": pick and (pick.get("digests") or {}).get("sha256"),
                 "repo": _norm_repo(repo), "subdir": None, "license": info.get("license"),
-                "attestations": False, "time": pick and pick.get("upload_time_iso_8601")}
+                "attestations": False, "time": pick and pick.get("upload_time_iso_8601"),
+                "maintainers": sorted({x for x in (info.get("author"), info.get("maintainer")) if x}), "publisher": None}
     raise FetchError(f"unsupported ecosystem: {eco}")
 
 

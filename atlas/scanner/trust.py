@@ -93,7 +93,7 @@ def maintenance_score(m):
     return min(100, round(s))
 
 
-def trust(findings, provenance=None, maintenance=None, osv_ids=None):
+def trust(findings, provenance=None, maintenance=None, osv_ids=None, up002=False):
     sec, breakdown = security_score(findings)
     prov = provenance_score(provenance)
     maint = maintenance_score(maintenance)
@@ -108,6 +108,10 @@ def trust(findings, provenance=None, maintenance=None, osv_ids=None):
         score = 30
         caps.append({"cap": 30, "reason": "critical pattern detected in src/skill; manual review needed"})
     live = [f for f in findings if not f.get("suppressed")]
+    if up002 and score > 50:
+        score = 50
+        caps.append({"cap": 50, "reason": "behaviour changed between versions (UP-002); re-review needed"})
+    live = [f for f in findings if not f.get("suppressed")]
     badges = sorted({BADGE_RULES[f["rule"]] for f in live if f["rule"] in BADGE_RULES}
                     | {f["badge"] for f in live if f.get("badge")})
     return {
@@ -120,4 +124,5 @@ def trust(findings, provenance=None, maintenance=None, osv_ids=None):
         "caps": caps,
         "badges": badges,
         "quarantined": bool(mal),
+        "changed_behaviour": bool(up002),
     }

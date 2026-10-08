@@ -28,3 +28,22 @@ python3 -I scan.py <dir> [...] [--json summary.json] [--findings findings.jsonl]
 ```
 - `scan.scan_repo(root)` は v0 と互換で、`(findings, n_files, n_skill_dirs)` を返す（Allowlist Builder が使う）。
 - JS/TS の補助プログラムには `js/node_modules/typescript` が必要。`npm install --ignore-scripts` で入れる。入っていなければ、JS/TS は v0 相当の判定になる。
+
+## UP-002：版間の差分（`updiff.py`、`../allowlist/atlas_watch.py`）
+承認した版と新しい版を比べ、「挙動の変化：新しいパターンを検出（behaviour changed: new pattern(s) detected）」を出す。どちらの版もインストール・実行しない（アーカイブはデータとして展開し、`scan_repo` で検査するだけ）。
+
+- **比較：** 抑制されていない検出を (rule, file, 空白を詰めた snippet) で突き合わせ、追加・削除・変化なしを数える。同じ rule と snippet が別ファイルに移っただけなら「移動」とし、新規に数えない。ファイル単位の追加・削除・変更と、ツール説明文の差分（Python は `@*.tool` の docstring と `Tool(name=, description=)`、JS/TS は `.tool(name, desc)`・`registerTool(name, {description})`・`{name, description}`）も出す。
+- **UP-002 の条件：** src/skill に high/critical の検出が増えた。TP-* が増えた（src/skill かツール説明文の中なら重大度を問わない）。NW-002・CR-001・RF-001・OB-* が src/skill に増えた。IN-001 が増えた、または preinstall/install/postinstall が追加・変更された。レジストリのリポジトリ URL が変わった、または attestation が無くなった。保守者・ライセンス・公開者の変更は根拠として表示するだけ。
+- **該当したとき：** `up002: true`、`trust_cap: 50`、英日のバナー、`ATL-UP-002`（high）の finding を返す。
+- **パッケージ版の比較では `dist/`・`build/` も検査する**（公開物の本体がそこにあるため。ソースリポジトリの検査では従来どおり除外）。
+
+```sh
+python3 -I atlas/allowlist/atlas_watch.py diff npm:@modelcontextprotocol/server-filesystem 2025.7.1 2025.7.29 --json d.json --md d.md
+python3 -I atlas/allowlist/atlas_watch.py diff pypi:mcp-server-time 2026.7.10 2026.8.18
+python3 -I atlas/allowlist/atlas_watch.py diff-dirs old/ new/          # オフライン
+python3 -I atlas/allowlist/atlas_watch.py check decisions.json --out-dir watch   # report.json も可
+#   → watch/atlas-watch-report.json と .md、watch/atlas-watch-state.json
+#   終了コード：0 新しい版なし／10 新しい版あり（UP-002 なし）／20 UP-002 該当／2 エラーのみ
+```
+- **承認した版：** 設定で固定した版。固定していなければ state ファイルに記録した版。初回は最新版を基準として記録する（再承認するまで基準は変えない）。
+- **通知：** ローカルのレポートファイルと終了コードだけ。外部には送らない。

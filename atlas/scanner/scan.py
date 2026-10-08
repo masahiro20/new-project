@@ -36,6 +36,7 @@ import trust as trust_mod  # noqa: E402
 
 SKIP_DIRS = {".git", "node_modules", "dist", "build", ".venv", "venv", "__pycache__",
              ".next", "vendor", "target", "coverage", ".tox", ".mypy_cache"}
+PACKAGE_SKIP_DIRS = SKIP_DIRS - {"dist", "build"}  # published archives ship built code there
 MAX_BYTES = 1_000_000
 CODE_EXT = {".py", ".js", ".mjs", ".cjs", ".ts", ".mts", ".cts", ".tsx", ".jsx", ".go", ".rs", ".rb",
             ".php", ".sh", ".bash", ".zsh", ".ps1", ".java", ".kt", ".cs"}
@@ -358,13 +359,18 @@ def decide(f, text, ext, ctx, span, fenced):
             return sup("embedded media (magic bytes)")
 
 
-def scan_repo_ex(root, use_ast=True):
-    """Scan one tree. Returns (findings, n_files, n_skill_dirs, stats)."""
+def scan_repo_ex(root, use_ast=True, skip_dirs=None):
+    """Scan one tree. Returns (findings, n_files, n_skill_dirs, stats).
+
+    skip_dirs: directory names to skip (default SKIP_DIRS). Published packages keep their
+    code in dist/ or build/, so package scans pass PACKAGE_SKIP_DIRS instead.
+    """
+    skip = SKIP_DIRS if skip_dirs is None else set(skip_dirs)
     findings = []
     skill_dirs = set()
     files = []
     for dp, dns, fns in os.walk(root):
-        dns[:] = [d for d in dns if d not in SKIP_DIRS]
+        dns[:] = [d for d in dns if d not in skip]
         for fn in fns:
             full = os.path.join(dp, fn)
             if os.path.islink(full):
@@ -530,7 +536,7 @@ def scan_repo_ex(root, use_ast=True):
 
     for sd in skill_dirs:
         for dp, dns, fns in os.walk(sd):
-            dns[:] = [d for d in dns if d not in SKIP_DIRS]
+            dns[:] = [d for d in dns if d not in skip]
             for fn in fns:
                 if os.path.splitext(fn)[1].lower() in SCRIPT_EXT:
                     rel = os.path.relpath(os.path.join(dp, fn), root)
@@ -549,9 +555,9 @@ def scan_repo_ex(root, use_ast=True):
     return findings, len(files), len(skill_dirs), dict(stats)
 
 
-def scan_repo(root, use_ast=True):
+def scan_repo(root, use_ast=True, skip_dirs=None):
     """Stable interface (v0-compatible): (findings, n_files, n_skill_dirs)."""
-    f, n, s, _ = scan_repo_ex(root, use_ast=use_ast)
+    f, n, s, _ = scan_repo_ex(root, use_ast=use_ast, skip_dirs=skip_dirs)
     return f, n, s
 
 
