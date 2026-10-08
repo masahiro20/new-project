@@ -593,7 +593,7 @@
   // ---------- Field extraction (pure) ----------
   var CONDITION_LABELS = ["商品の状態", "商品状態", "コンディション", "状態"];
   var RANK_LABELS = ["状態ランク", "ランク"];
-  var RETURN_LABELS = ["返品の可否", "返品について", "返品可否", "返品"];
+  var RETURN_LABELS = ["返品・交換について", "返品・交換", "返品の可否", "返品について", "返品可否", "返品"];
   var LEAD = /^[\s・■□●○◆◇★☆※\-*]*/;
   var BRACKETS = { "【": "】", "[": "]", "［": "］", "〔": "〕", "（": "）", "(": ")", "<": ">", "＜": "＞" };
 
@@ -703,15 +703,17 @@
         cond = [item("info", result.condition.raw, bare ? "Shop grade (see Grade)" : "(no dictionary entry yet)", null)];
       }
     }
-    section(body, "Condition", cond, "No condition line found. Add a line like 商品の状態：目立った傷や汚れなし");
+    section(body, "Condition", cond, result.ranks.length
+      ? "No separate condition line. The shop grade below is the seller's condition rating."
+      : "No condition line found. Add a line like 商品の状態：目立った傷や汚れなし");
 
     // Grade
     var grades = result.ranks.map(function (r) {
       var li = item("info", null, r.label, r.explain, r.snippet);
       if (r.kind === "shop") {
         var base = r.label.replace(/[+\-]$/, "").toUpperCase();
-        var scale = el("div", "scale", null, { "aria-label": "Shop grade scale, best to worst" });
-        GRADE_SCALE.forEach(function (g) { scale.appendChild(el("span", g === base ? "on" : null, g)); });
+        var scale = el("div", "scale", null, { role: "group", "aria-label": "Shop grade scale, best to worst" });
+        GRADE_SCALE.forEach(function (g) { scale.appendChild(el("span", g === base ? "on" : null, g, g === base ? { "aria-current": "true" } : null)); });
         li.appendChild(scale);
       }
       return li;
@@ -726,17 +728,22 @@
     }
     section(body, "Returns", ret, "No return terms found");
 
-    // Terms read from the condition/returns fields already appear above.
-    var shown = result.flags.filter(function (f) {
-      return !(f.field === "condition" && result.condition) && !(f.field === "returns" && result.returns);
-    });
+    // Terms read from the condition/returns fields already appear above, so they
+    // are left out below (flags as in the overlay; also seller states and plain
+    // terms, which the overlay repeats). Negated defects stay: the sections
+    // above do not show that the seller said "none".
+    var shownAbove = function (f) {
+      return !f.negated && ((f.field === "condition" && result.condition) || (f.field === "returns" && result.returns));
+    };
+    var notAbove = function (f) { return !shownAbove(f); };
+    var shown = result.flags.filter(notAbove);
     var toItem = function (f) { return item(f.risk, f.ja, f.en, f.explain, f.snippet); };
     section(body, "Warnings", shown.filter(function (f) { return f.risk === "high" || f.risk === "medium"; }).map(toItem),
       "No rule-based warnings found. That is not a guarantee.");
     section(body, "Worth noting", shown.filter(function (f) { return f.risk === "low"; }).map(toItem), "Nothing else flagged");
 
-    extra(body, "Seller states", result.reassurances.map(function (f) { return item("positive", f.ja, f.en, f.explain, f.snippet); }), true);
-    extra(body, "Terms", result.terms.map(function (t) { return item("info", t.ja, t.en, t.explain); }), false);
+    extra(body, "Seller states", result.reassurances.filter(notAbove).map(function (f) { return item("positive", f.ja, f.en, f.explain, f.snippet); }), true);
+    extra(body, "Terms", result.terms.filter(notAbove).map(function (t) { return item("info", t.ja, t.en, t.explain); }), false);
   }
 
   function renderRead(listing) {

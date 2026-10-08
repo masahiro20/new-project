@@ -17,8 +17,9 @@ const ids = (arr) => arr.map((x) => x.id);
 const CONDITION_LABELS = ["商品の状態", "状態", "コンディション", "商品状態", "状態ランク", "ランク"];
 const RETURN_LABELS = ["返品", "返品の可否", "返品について", "返品可否"];
 
-// Same rule as the demo: first line that begins with one of the labels followed
-// by ":" or "：" — the value is the rest of the line. Longest label tried first.
+// Simplified line reader for the analyzer-level sample tests below (like the
+// overlay, it reads ランク as a condition label). The demo page's own
+// extractListing keeps the rank separate; it is tested against the built page further down.
 function extractLine(text, labels) {
   const sorted = [...labels].sort((a, b) => b.length - a.length);
   for (const raw of String(text).split(/\r?\n/)) {
@@ -171,4 +172,90 @@ test("demo HTML is a self-contained fragment with no network access", (t) => {
     assert.ok(!html.includes(bad), `no ${bad}`);
   }
   assert.ok(!/https?:\/\//i.test(html), "no external URLs");
+});
+
+// ---------- Built page (jsdom) ----------
+const ROOT = path.join(__dirname, "..");
+const readSrc = (p) => fs.readFileSync(path.join(ROOT, p), "utf8");
+
+function expectedBuild() {
+  let html = readSrc("demo/template.html");
+  for (const [mark, file] of [["/*__GLOSSARY__*/", "src/glossary-data.js"], ["/*__ANALYZER__*/", "src/analyzer.js"], ["/*__SAMPLES__*/", "demo/samples.js"]]) {
+    html = html.replace(mark, () => "\n" + readSrc(file).replace(/<\/script/gi, "<\\/script") + "\n");
+  }
+  return html;
+}
+
+function loadPage(t) {
+  if (!fs.existsSync(DEMO_HTML)) { t.skip("demo/collector-lens-demo.html not built yet"); return null; }
+  const { JSDOM } = require("jsdom");
+  const dom = new JSDOM(fs.readFileSync(DEMO_HTML, "utf8"), { runScripts: "dangerously" });
+  return dom.window;
+}
+
+test("built page is up to date and inlines glossary, analyzer and samples verbatim", (t) => {
+  if (!fs.existsSync(DEMO_HTML)) { t.skip("not built"); return; }
+  const html = fs.readFileSync(DEMO_HTML, "utf8");
+  assert.ok(html === expectedBuild(), "demo/collector-lens-demo.html is stale: run npm run build:demo");
+  for (const f of ["src/glossary-data.js", "src/analyzer.js", "demo/samples.js"]) assert.ok(html.includes(readSrc(f)), f);
+  assert.ok(html.startsWith("<title>"), "<title> comes first");
+  assert.ok(/仮称/.test(html) && /fictional/i.test(html), "working title + fictional samples stated");
+});
+
+test("page script renders with textContent only", () => {
+  const tpl = readSrc("demo/template.html");
+  for (const bad of ["innerHTML", "outerHTML", "insertAdjacentHTML", "document.write", "eval(", "new Function"]) {
+    assert.ok(!tpl.includes(bad), `template must not use ${bad}`);
+  }
+});
+
+test("page extractListing reads labelled lines", (t) => {
+  const w = loadPage(t);
+  if (!w) return;
+  const x = (s) => { const r = w.extractListing(s); return [r.condition, r.rank, r.returns]; };
+  assert.deepEqual(x("商品の状態：ジャンク品\n返品：不可"), ["ジャンク品", "", "不可"]);
+  assert.deepEqual(x("【商品の状態】目立った傷や汚れなし\n【返品】不可"), ["目立った傷や汚れなし", "", "不可"]);
+  assert.deepEqual(x("■状態ランク：B\n・返品について 返品不可"), ["", "B", "返品不可"]);
+  assert.deepEqual(x("　状態　良好\n返品不可です"), ["良好", "", ""]);
+  assert.deepEqual(x("返品・交換：不可"), ["", "", "不可"]);
+  assert.deepEqual(x("状態は良好です\n返品不可"), ["", "", ""]);
+  assert.equal(w.extractListing("").description, "");
+});
+
+test("page panel: every sample decodes with fixed sections and no repeated items", (t) => {
+  const w = loadPage(t);
+  if (!w) return;
+  const d = w.document;
+  const buttons = [...d.querySelectorAll(".sample-btn")];
+  assert.equal(buttons.length, SAMPLES.length);
+  for (const b of buttons) {
+    b.click();
+    const id = b.getAttribute("data-id");
+    assert.equal(b.getAttribute("aria-pressed"), "true", id);
+    const body = d.getElementById("panel-body");
+    const heads = [...body.querySelectorAll("h3")].map((h) => h.firstChild.textContent);
+    assert.deepEqual(heads, ["Condition", "Grade", "Returns", "Warnings", "Worth noting"], id);
+    // A Japanese term may appear only once across the whole panel.
+    const ja = [...body.querySelectorAll(".item .ja")].map((n) => n.textContent);
+    assert.deepEqual(ja.filter((v, i) => ja.indexOf(v) !== i), [], `${id}: repeated ${ja}`);
+    const r = w.__lastResult;
+    assert.equal(d.getElementById("score").textContent, r.score.label, id);
+    assert.equal(d.getElementById("score").className, "badge lvl-" + r.score.level, id);
+    // Every sample shows something under Condition (a term or a grade) and Returns.
+    const listing = w.extractListing(d.getElementById("listing-input").value);
+    assert.ok(listing.condition || listing.rank, `${id} condition or rank`);
+    assert.ok(listing.returns, `${id} returns`);
+  }
+});
+
+test("page renders pasted markup as text", (t) => {
+  const w = loadPage(t);
+  if (!w) return;
+  const d = w.document;
+  const input = d.getElementById("listing-input");
+  input.value = '商品の状態：<img src=x onerror="globalThis.pwned=1">ジャンク\n返品：<b>不可</b>';
+  w.decodeListing();
+  assert.equal(w.pwned, undefined);
+  assert.equal(d.querySelectorAll("#panel-body img, #panel-body b, #read-fields img, #read-fields b").length, 0);
+  assert.ok(d.getElementById("read-fields").textContent.includes("<img src=x"));
 });
