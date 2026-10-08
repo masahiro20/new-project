@@ -1,0 +1,32 @@
+{
+  "name": "yuragi",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Whole-script consistency QA for JA<->EN game localization (remote MCP server + CLI). Working name, trademark check pending.",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "yuragi": "dist/cli/index.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --import tsx --test test/*.test.ts",
+    "check:sample": "tsx src/cli/index.ts check samples/ja-en/script.csv --glossary samples/ja-en/glossary.json",
+    "serve": "tsx src/server/index.ts",
+    "start": "node dist/server/index.js"
+  },
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.132.1",
+    "@modelcontextprotocol/sdk": "^1.32.1",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.4",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  }
+}

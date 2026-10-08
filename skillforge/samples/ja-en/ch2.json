@@ -1,0 +1,22 @@
+{
+  "strings": [
+    {
+      "id": "ch2_001",
+      "speaker": "ミナ",
+      "ja": "リゼット様、魔導石が光っています！",
+      "en": "Lady Lisette, the Mana Stone is glowing!"
+    },
+    {
+      "id": "ch2_002",
+      "speaker": "リゼット",
+      "ja": "落ち着いて、ミナ。",
+      "en": "Stay calm, Mina."
+    },
+    {
+      "id": "ch2_003",
+      "speaker": "Tobias",
+      "ja": "俺に任せろ。",
+      "en": "Leave it to me."
+    }
+  ]
+}

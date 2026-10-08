@@ -1,0 +1,33 @@
+id,speaker,ja,en,max_length,context
+ch1_001,,灰の書庫の扉が、ゆっくりと開いた。,"The doors of the Ashen Archive slowly swung open.",,narration
+ch1_002,リゼット,ようこそ、灰の書庫へ。わたくしが案内いたします。,"Welcome to the Ashen Archive. I shall be your guide.",,
+ch1_003,ミナ,リゼット様、この魔導石は本物ですか？,"Lady Lisette, is this Mana Stone genuine?",,
+ch1_004,リゼット,ええ。魔導石は星詠みの力を宿しています。,"It is. A Mana Stone holds the power of a Stargazer.",,
+ch1_005,トビアス,俺は魔導石なんて信じねえぞ。,"I don't believe in Magic Stones.",,
+ch1_006,ミナ,トビアスさん、失礼ですよ！,"Tobias, that's rude!",,
+ch1_007,トビアス,リゼットに聞いてみろよ。俺は傭兵だ。,"Ask Lisette. I'm just a sellsword.",,
+ch1_008,リゼット,魔導石の扱いには、封印術の知識が必要です。,"Handling a Mana Stone requires knowledge of the sealing arts.",,
+ch1_009,ミナ,僕も封印術を学びたいです、リゼット様！,"I want to learn the sealing arts too, Lady Lisette!",,
+ch1_010,リゼット,"では、まず{0}ページを開きなさい。
+焦らずに、ゆっくりと。","Then open to page {0} first.
+Take it slowly.",,multi-line
+ch1_011,トビアス,ルーンゲートの向こうに、暁の騎士団がいるらしい。,"Word is the Order of Dawn waits beyond the Rune Gate.",,
+ch1_012,ミナ,リゼット様、暁の騎士団って何ですか？,"Lisette, what is the Order of Dawn?",,
+ch1_013,リゼット,星詠みの末裔を守る者たちです。,"They protect the descendants of the astrologers.",,
+ch1_014,トビアス,"魔導石を一個もらえれば、俺が運んでやる。","Give me one Magic Stone and I'll carry the lot.",,
+ch1_015,ミナ,リゼット様は優しいですね。,"Lisette-sama is so kind.",,
+ch1_016,リゼット,わたくしは、務めを果たしているだけです。,"I'm only doing my duty.",,
+ch1_017,トビアス,僕が先に行く。後ろは任せた。,"I'll go first. Watch my back.",,
+ch1_018,リゼット,ルーン・ゲートを開く前に、封印術を確認します。,"Before opening the Rune Gate, I will check the binding spell.",,
+ch1_019,ミナ,UIボタン：<color=gold>{星詠み|ほしよみ}の記録</color>,"<color=gold>Stargazer Records",24,ui
+ch1_020,リゼット,リゼットの名にかけて、約束します。,"On the name of Lizette, I promise.",,
+ch1_021,トビアス,おい、リゼット様よ、本当に大丈夫か？,"Hey, Your Ladyship Lisete, you sure about this?",,sarcastic
+ch1_022,リゼット,心配いらないよ、トビアス。,"No need to worry, Tobias. We're gonna be fine.",,
+ch1_023,MINA,了解です！[PLAYER]さんも来てください！,"Roger! Come along too!",,
+ch1_024,ミナ,{星詠み|ほしよみ}の塔が見えてきました！,"I can see the {星詠み|ほしよみ} Tower!",,
+ch1_025,トビアス,リゼット、魔導石は全部で三つだ。,"Lisette, there are three Mana Stones in total.",,
+ch1_026,リゼット,星詠みの塔で、全てが明らかになるでしょう。,"All will be revealed at the Stargazer Tower.",,
+ch1_027,ミナ,トビアスさん、待ってください！,"Tobias, please wait!",,
+ch1_028,,一行はルーンゲートをくぐった。,"The party passed through the Rune Gate.",,narration
+ch1_029,システム,魔導石を手に入れた！,"Obtained a Mana Stone! Check your inventory to equip it right now.",30,ui
+ch1_030,リゼット,この封印術は、わたくしにも解けません。,"Even I cannot undo this seal magic.",,

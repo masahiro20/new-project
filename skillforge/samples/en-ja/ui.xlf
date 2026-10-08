@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+  <file source-language="en-US" target-language="ja-JP" datatype="plaintext" original="ui.csv">
+    <body>
+      <trans-unit id="menu_server" maxwidth="12">
+        <source>Server Settings</source>
+        <target>サーバー設定</target>
+      </trans-unit>
+      <trans-unit id="menu_server_err">
+        <source>Could not reach the server.</source>
+        <target>サーバに接続できません。</target>
+      </trans-unit>
+      <trans-unit id="menu_server_retry">
+        <source>Retry connecting to the server?</source>
+        <target>サーバーに再接続しますか？</target>
+      </trans-unit>
+      <trans-unit id="item_mana">
+        <source>Obtained a Mana Stone x{0}.</source>
+        <target>魔導石を{0}個手に入れた。</target>
+      </trans-unit>
+      <trans-unit id="item_mana_shop">
+        <source>Mana Stones are sold out.</source>
+        <target>マナストーンは売り切れです。</target>
+      </trans-unit>
+      <trans-unit id="tip_bold">
+        <source>Press <g id="1">Start</g> to begin.</source>
+        <target>スタートを押して開始。</target>
+      </trans-unit>
+      <trans-unit id="dlg_tobias">
+        <source>Lisette, keep up.</source>
+        <target>リゼット、遅れるな。</target>
+        <note from="speaker">Tobias</note>
+      </trans-unit>
+      <trans-unit id="dlg_tobias2">
+        <source>I'll hold the gate.</source>
+        <target>僕が門を守る。</target>
+        <note from="speaker">Tobias</note>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

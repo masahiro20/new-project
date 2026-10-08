@@ -1,0 +1,125 @@
+export type Lang = "ja" | "en";
+export type Side = "source" | "target";
+export type Severity = "error" | "warning" | "info";
+export type Category =
+  | "term"
+  | "name"
+  | "honorific"
+  | "voice"
+  | "notation"
+  | "placeholder"
+  | "tag"
+  | "ruby"
+  | "length";
+
+/** One translatable string. `line` is the 1-based line in the original file where the record starts. */
+export interface Row {
+  file: string;
+  line: number;
+  id: string;
+  source: string;
+  target: string;
+  speaker?: string;
+  addressee?: string;
+  context?: string;
+  maxLength?: number;
+}
+
+export interface Table {
+  file: string;
+  format: "csv" | "json" | "xliff";
+  sourceLang: Lang;
+  targetLang: Lang;
+  rows: Row[];
+}
+
+export interface GlossaryTerm {
+  source: string;
+  target: string;
+  /** Other renderings that are also acceptable. */
+  allowed?: string[];
+  /** Known-wrong renderings that should be flagged wherever they appear. */
+  forbidden?: string[];
+  note?: string;
+}
+
+export interface VoiceProfile {
+  ja?: {
+    /** Expected first-person pronouns, e.g. ["俺"]. */
+    firstPerson?: string[];
+    politeness?: "polite" | "plain";
+  };
+  en?: {
+    contractions?: "never" | "any";
+    /** Words or phrases this character never says. */
+    avoid?: string[];
+    /** Free-text description handed to the reviewer model. */
+    description?: string;
+  };
+}
+
+export interface GlossaryCharacter {
+  id: string;
+  ja: string;
+  en: string;
+  aliases?: { ja?: string[]; en?: string[] };
+  forbidden?: { ja?: string[]; en?: string[] };
+  voice?: VoiceProfile;
+}
+
+export interface Glossary {
+  /** How Japanese honorifics should appear in English. "keep" = Lisette-sama, "drop"/"localize" = no romanized suffixes. */
+  honorificPolicy?: "keep" | "drop" | "localize";
+  terms: GlossaryTerm[];
+  characters: GlossaryCharacter[];
+  /** Capitalized words that should never be reported as name misspellings. */
+  ignoreWords?: string[];
+}
+
+export interface Finding {
+  category: Category;
+  severity: Severity;
+  rule: string;
+  file: string;
+  line: number;
+  id: string;
+  side: Side;
+  message: string;
+  /** Groups related findings in the report, e.g. "魔導石 → Mana Stone". */
+  group?: string;
+  found?: string;
+  expected?: string;
+}
+
+/** Usage tally for one group (e.g. how a glossary term was rendered across the script). */
+export interface UsageSummary {
+  category: Category;
+  group: string;
+  counts: Record<string, number>;
+}
+
+/** Lines the deterministic engine cannot judge alone; the user's own assistant reviews them. */
+export interface ReviewPacket {
+  kind: "voice" | "unglossaried-term";
+  subject: string;
+  instructions: string;
+  profile?: VoiceProfile;
+  lines: { ref: string; id: string; speaker?: string; source: string; target: string; flagged?: string }[];
+}
+
+export interface CheckOptions {
+  /** Run the bonus rule checks (placeholders, tags, ruby, length). Default true. */
+  rules?: boolean;
+  /** Count East Asian wide characters as 2 for length limits. Default false. */
+  wideAsTwo?: boolean;
+  /** Minimum lines per speaker before a voice packet is built. Default 3. */
+  minLinesForVoice?: number;
+}
+
+export interface CheckResult {
+  tables: { file: string; format: string; rows: number; sourceLang: Lang; targetLang: Lang }[];
+  glossary: { terms: number; characters: number };
+  findings: Finding[];
+  usage: UsageSummary[];
+  reviewPackets: ReviewPacket[];
+}

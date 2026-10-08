@@ -1,0 +1,42 @@
+{
+  "honorificPolicy": "localize",
+  "ignoreWords": ["Order", "Dawn"],
+  "terms": [
+    { "source": "魔導石", "target": "Mana Stone", "forbidden": ["Magic Stone"] },
+    { "source": "星詠み", "target": "Stargazer", "forbidden": ["Star Reader"] },
+    { "source": "灰の書庫", "target": "Ashen Archive" },
+    { "source": "暁の騎士団", "target": "Order of Dawn", "forbidden": ["Dawn Knights"] },
+    { "source": "ルーンゲート", "target": "Rune Gate", "allowed": ["Runegate"] }
+  ],
+  "characters": [
+    {
+      "id": "lisette",
+      "ja": "リゼット",
+      "en": "Lisette",
+      "forbidden": { "en": ["Lizette"] },
+      "voice": {
+        "ja": { "firstPerson": ["わたくし"], "politeness": "polite" },
+        "en": { "contractions": "never", "avoid": ["gonna", "yeah", "wanna"], "description": "Archive keeper of noble birth. Formal, calm, never slangy." }
+      }
+    },
+    {
+      "id": "mina",
+      "ja": "ミナ",
+      "en": "Mina",
+      "voice": {
+        "ja": { "firstPerson": ["僕"] },
+        "en": { "description": "Eager apprentice. Polite to Lisette, cheerful, uses exclamations." }
+      }
+    },
+    {
+      "id": "tobias",
+      "ja": "トビアス",
+      "en": "Tobias",
+      "aliases": { "en": ["Toby"] },
+      "voice": {
+        "ja": { "firstPerson": ["俺"], "politeness": "plain" },
+        "en": { "contractions": "any", "description": "Gruff mercenary. Blunt, short sentences." }
+      }
+    }
+  ]
+}

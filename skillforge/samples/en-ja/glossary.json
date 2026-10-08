@@ -1,0 +1,9 @@
+{
+  "terms": [
+    { "source": "Mana Stone", "target": "魔導石", "forbidden": ["マナストーン"] }
+  ],
+  "characters": [
+    { "id": "tobias", "ja": "トビアス", "en": "Tobias", "voice": { "ja": { "firstPerson": ["俺"], "politeness": "plain" } } },
+    { "id": "lisette", "ja": "リゼット", "en": "Lisette" }
+  ]
+}
