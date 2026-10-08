@@ -26,17 +26,28 @@ pitchy engine still works; only the optional SwiftF0 engine needs it.
    octave jumps folded back, median-filtered, converted to semitones.
 2. The utterance span is the voiced region, extended by at most one mora where the
    signal energy shows a devoiced mora (し in した).
-3. The span is split into n + 1 equal slots (n word morae + が) — Japanese is mora-timed.
-   Each slot gets the median pitch of its frames.
+3. The span is split into n + 1 mora slots (n word morae + が). Since we know the morae,
+   we know which boundaries should show a consonant cue — a voicing break (voiceless
+   consonant, っ) or an energy fall (nasal, voiced stop, flap). A small dynamic programme
+   places the boundaries on those cues while keeping mora lengths near equal (Japanese
+   is mora-timed); vowel-initial morae rely on the length prior. `segmentation: 'equal'`
+   gives the old equal split. Each slot gets the median pitch of its frames.
 4. Every H/L template k = 0…n (0 = flat) is fitted as `a + b·template + c·mora`
    with a bounded downdrift slope c. The best fit with a real H/L contrast
    (b ≥ 1.2 semitones) is the detected downstep; if none has one, the speech was flat.
 5. Pass = detected k is one of the dictionary's accepted k's. Otherwise the verdict says
    whether the drop came too early, too late, was missing, or should not be there.
 
-Known limits: equal-length mora slots (no forced alignment yet), so very uneven timing
-(a long drawn-out mora) can shift a boundary; creaky voice and heavy devoicing reduce
-the usable frames.
+Known limits: boundaries before vowel-initial morae (お|う in おとうと, ー) have no cue;
+creaky voice and heavy devoicing reduce the usable frames.
+
+## Evaluation
+
+- `node scripts/eval-segmentation.mjs [--swiftf0]` — synthetic audio with consonants and
+  uneven timing, equal vs. cue-based segmentation. Results: `docs/eval-results.md`.
+- `node scripts/eval-real.mjs manifest.json [--swiftf0] [--csv out.csv]` — real recordings.
+- Human evaluation protocol (on hold until we have speakers): `docs/eval-plan.md`,
+  word list `docs/eval-words.tsv`. Waitlist LP copy: `docs/lp.md`.
 
 ## Data
 

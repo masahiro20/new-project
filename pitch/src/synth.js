@@ -2,6 +2,9 @@
 // while we have no licence-cleared native recordings, and (2) by the tests.
 
 import { pitchPattern } from './accent.js';
+import { consonantClass } from './mora.js';
+
+export { consonantClass };
 
 /** Small deterministic PRNG (mulberry32) so tests are reproducible. */
 export function rng(seed = 1) {
@@ -93,4 +96,91 @@ export function renderVoice(track, sampleRate = 16000, { seed = 1, noiseInGaps =
     if (!on && noiseInGaps && gap) out[i] += (rand() * 2 - 1) * 0.08;
   }
   return out;
+}
+
+// ---------------------------------------------------------------------------
+// Word-level synthesis with consonants, for segmentation tests/evaluation.
+// Each mora = optional consonant + vowel. Consonants are crude but have the
+// acoustic cues that matter here: silence (stop closure), noise (fricative,
+// burst), lower-energy voicing (nasal, voiced stop) and a voicing break.
+
+// [duration s, voiced?, level dB (voicing), noise dB] for the consonant part.
+const CONS = {
+  vowel: null,
+  stop: [[0.05, false, -80, -80], [0.02, false, -80, -22]], // closure + burst
+  affricate: [[0.04, false, -80, -80], [0.05, false, -80, -20]],
+  fricative: [[0.07, false, -80, -18]],
+  'voiced-stop': [[0.035, true, -24, -80], [0.01, false, -80, -24]],
+  'voiced-fricative': [[0.05, true, -18, -26]],
+  nasal: [[0.05, true, -12, -80]],
+  flap: [[0.02, true, -10, -80]],
+  glide: [[0.03, true, -5, -80]],
+};
+
+/**
+ * Synthesize "<word>が" with consonants and uneven mora durations.
+ * @returns {{audio:Float32Array, sampleRate:number, boundaries:number[], track:object}}
+ *   boundaries: true mora start times (n+1 slots → n+2 values incl. end)
+ */
+export function synthesizeWord(morae, k, opts = {}) {
+  const {
+    sampleRate = 16000, baseHz = 120, stepSt = 3.5, declSt = 0.4, moraDur = 0.15,
+    durJitter = 0.25, finalStretch = 1.3, jitterSt = 0.15, seed = 1, lead = 0.25,
+    devoiced = [],
+  } = opts;
+  const rand = rng(seed);
+  const all = [...morae, 'が'];
+  const pat = pitchPattern(k, morae.length);
+  const hop = 0.005;
+  // Build frame-level plan: voiced?, voice dB, noise dB, pitch target.
+  const plan = [];
+  const boundaries = [];
+  for (let i = 0; i < Math.round(lead / hop); i++) plan.push(null);
+  let t = plan.length * hop;
+  const push = (dur, voiced, vdb, ndb, st) => {
+    const nf = Math.max(1, Math.round(dur / hop));
+    for (let i = 0; i < nf; i++) plan.push({ voiced, vdb, ndb, st });
+    t += nf * hop;
+  };
+  for (let m = 0; m < all.length; m++) {
+    boundaries.push(t);
+    let dur = moraDur * (1 + (rand() * 2 - 1) * durJitter);
+    if (m === all.length - 1) dur *= finalStretch;
+    const st = pat[m] * stepSt - declSt * m;
+    const cls = consonantClass(all[m]);
+    if (cls === 'geminate') { push(dur, false, -80, -80, st); continue; }
+    if (cls === 'moraic-nasal') { push(dur, true, -12, -80, st); continue; }
+    let used = 0;
+    for (const [d, v, vdb, ndb] of CONS[cls] ?? []) { push(d, v, vdb, ndb, st); used += d; }
+    const dv = devoiced.includes(m);
+    push(Math.max(0.04, dur - used), !dv, dv ? -80 : 0, dv ? -22 : -80, st);
+  }
+  boundaries.push(t);
+  const total = t + lead;
+  while (plan.length * hop < total) plan.push(null);
+  // Smooth pitch targets across voiced frames (≈ 60 ms window), add jitter.
+  const w = Math.round(0.03 / hop);
+  const f0 = plan.map((p, i) => {
+    if (!p || !p.voiced) return 0;
+    let s = 0, c = 0;
+    for (let j = i - w; j <= i + w; j++) if (plan[j]) { s += plan[j].st; c++; }
+    return baseHz * 2 ** ((s / c + (rand() * 2 - 1) * jitterSt) / 12);
+  });
+  const len = Math.round(total * sampleRate);
+  const audio = new Float32Array(len);
+  let phase = 0, va = 0, na = 0, hz = baseHz;
+  for (let i = 0; i < len; i++) {
+    const fi = Math.min(plan.length - 1, Math.floor(i / sampleRate / hop));
+    const p = plan[fi];
+    const vt = p && p.voiced ? 10 ** (p.vdb / 20) * 0.5 : 0;
+    const nt = p ? 10 ** (p.ndb / 20) * 0.5 : 0;
+    va += (vt - va) * 0.01;
+    na += (nt - na) * 0.02;
+    if (f0[fi] > 0) hz = f0[fi];
+    phase += (2 * Math.PI * hz) / sampleRate;
+    let s = 0;
+    if (va > 1e-5) for (let h = 1; h <= 10; h++) s += Math.sin(h * phase) / h;
+    audio[i] = va * s * 0.5 + na * (rand() * 2 - 1);
+  }
+  return { audio, sampleRate, boundaries };
 }

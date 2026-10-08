@@ -17,3 +17,20 @@ export function splitMorae(kana) {
   }
   return out;
 }
+
+/** Consonant class of a mora from its first kana. */
+export function consonantClass(mora) {
+  const c = mora[0];
+  if ('あいうえおー'.includes(c)) return 'vowel';
+  if (c === 'っ') return 'geminate';
+  if (c === 'ん') return 'moraic-nasal';
+  if ('かきくけこぱぴぷぺぽたてと'.includes(c)) return 'stop';
+  if ('ちつ'.includes(c)) return 'affricate';
+  if ('さしすせそはひふへほ'.includes(c)) return 'fricative';
+  if ('がぎぐげごだでどばびぶべぼ'.includes(c)) return 'voiced-stop';
+  if ('ざじずぜぞぢづ'.includes(c)) return 'voiced-fricative';
+  if ('なにぬねのまみむめも'.includes(c)) return 'nasal';
+  if ('らりるれろ'.includes(c)) return 'flap';
+  if ('やゆよわを'.includes(c)) return 'glide';
+  return 'vowel';
+}
