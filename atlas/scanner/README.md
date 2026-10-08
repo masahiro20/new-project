@@ -47,3 +47,33 @@ python3 -I atlas/allowlist/atlas_watch.py check decisions.json --out-dir watch  
 ```
 - **承認した版：** 設定で固定した版。固定していなければ state ファイルに記録した版。初回は最新版を基準として記録する（再承認するまで基準は変えない）。
 - **通知：** ローカルのレポートファイルと終了コードだけ。外部には送らない。
+
+## UP-002：公式 MCP Registry の版間差分（`registry_diff.py`）
+公式レジストリの版履歴（`/v0/servers/{name}/versions`、名前の `/` は URL エンコード）から2つの版の server.json を取り出して比べる。読むのはレジストリの JSON だけで、何もインストール・実行しない。パッケージを持たない**リモート専用サーバー**は、この版履歴で監視する。
+
+- **UP-002 の条件：** リポジトリ URL が変わった（または消えた）。パッケージの identifier・registryType が追加・変更された。パッケージの版が浮動指定（`latest`、`^1`、`*`、タグなし OCI など）になった。リモート URL のホストが変わった、または新しいホストのリモートが増えた（一時トンネル（trycloudflare.com、ngrok など）・IP 直書き・平文 http は理由に明記）。パッケージの transport が変わった（stdio → http など）。必須かつ secret の環境変数が増えた。説明文・タイトルに TP-001〜005（と OB-001/002）のパターンが増えた。
+- **情報のみ：** status が deprecated／deleted に変わった。**根拠として表示するだけ：** 版の更新、説明文の変更（difflib の差分）、同じホスト内の URL 変更、リモート種別（sse ↔ streamable-http）、ヘッダー・引数の変更。
+- **`--deep`：** npm／PyPI のパッケージ版が変わっていれば `updiff.diff_package_versions` も実行し、どちらかで該当すれば UP-002。
+- **`check` での監視：** 項目の `registry_name`／`x-registry-name`（設定内でも可）、設定の `"//"` コメント（`registry-name: <名前>`）、または `--registry-map 名前=レジストリ名` でレジストリ名を指定する。承認した版は `registry_version`（設定では `x-registry-version`）、なければ state ファイルの `registry` 欄、初回は最新版を基準として記録する。終了コードは従来どおり（0／10／20）。
+
+```sh
+python3 -I atlas/allowlist/atlas_watch.py registry-diff io.github.github/github-mcp-server            # 直前の版 → 最新版
+python3 -I atlas/allowlist/atlas_watch.py registry-diff <name> 1.0.0 1.1.0 --deep --json d.json --md d.md
+python3 -I atlas/allowlist/atlas_watch.py check decisions.json --out-dir watch --registry-map wx=io.github.acme/weather
+```
+
+## OCI イメージの検査（`oci.py`）
+コンテナイメージを OCI Distribution API（https の読み取りだけ）で取得し、**データとして**検査する。docker・podman などのランタイムは使わず、イメージの中身は一切実行しない。
+
+- **参照の解釈：** `mcp/foo`、`docker.io/mcp/foo:tag`、`ghcr.io/org/img@sha256:...` に対応する。タグが無ければ `latest` とみなし、UP-001（medium、浮動タグ）を出す。digest で固定していないタグは low。
+- **認証と通信先：** WWW-Authenticate の Bearer チャレンジに従い、匿名トークンを取る（Docker Hub は `auth.docker.io`、GHCR は `ghcr.io/token`）。通信先は許可リストのホストだけで、リダイレクトも1回ずつ確認する。別ホストへのリダイレクトには認証ヘッダーを付けない。マニフェストリスト／OCI インデックスからは `linux/amd64` を選ぶ（`platform=` で変更可）。
+- **config の検査：** Entrypoint・Cmd・WORKDIR・ExposedPorts・Labels を表示する。Env の秘密らしい値は伏せ字にし、CR-003 を出す（既知のトークン形式は high、名前だけ秘密らしいものは medium）。User が空・`root`・`0` なら IN-003（medium、root で動く）。`org.opencontainers.image.source` は `source_repo` として返す（DP-004 に使える）。`history` の `created_by` は IN-003（`curl | sh`、`ADD https://`、`chmod 777`、`--privileged`）と RF-001 で検査する。
+- **レイヤー：** 1レイヤー 200 MB 超は取得しない。合計 500 MB で打ち切る（どちらも引数で変更可）。sha256 を照合し、不一致はエラーにする。展開は通常ファイルだけで、シンボリックリンク・デバイス・絶対パス・`..` は書き出さない。whiteout（`.wh.*`、`.wh..wh..opq`）を反映する。
+- **検査範囲：** OS ベース全体は検査しない。`/app`・`/srv`・`/opt`・`/usr/src/app`・`/home/*`・WORKDIR・Entrypoint のディレクトリと、MCP パッケージ本体（`node_modules/<pkg>`、`site-packages/<pkg>`。`.venv` の中も含む）だけを `scan_repo(..., skip_dirs=PACKAGE_SKIP_DIRS)` にかける。ファイル一覧はイメージ全体について集計する。
+- **OB-006：** アプリのパスにあるネイティブバイナリ（ELF・PE・Mach-O、`.node`、`.so`）を数える。依存パッケージ内のものと Entrypoint 本体は info、アプリ自身のものは medium。
+
+```sh
+python3 -I atlas/scanner/oci.py ghcr.io/github/github-mcp-server --json r.json
+python3 -I atlas/scanner/oci.py mcp/time --no-layers        # config だけ
+```
+- 結果の finding は scan.py と同じ形で、`source: "oci"` が付く。zstd 圧縮のレイヤーは Python 3.14 未満では読めないため、`skipped-format` として注記する。

@@ -122,3 +122,14 @@ python3 -I -B -m unittest discover -s tests -v
 - **OSV：** 依存の版はロックファイルがないため推定（範囲の下限）。推移的な依存は見ない。
 - **UP-002（版間の差分）：** `atlas_watch.py` で実装済み（`check decisions.json`）。
 - **Web UI：** 認証はない。127.0.0.1 だけで待ち受け、Host ヘッダーを検査し、JSON 以外の POST は拒否する。
+
+## OCI イメージ（`--fetch`）
+- `docker run ... <image>` の起動設定では、`--fetch` を付けると `atlas/scanner/oci.py` でイメージを**データとして**読む。コンテナは起動しない。
+- 読む内容：
+  - イメージ設定（Entrypoint、User、Env、ラベル、ビルド手順の履歴）
+  - アプリ層（`/app`、WORKDIR、パッケージのフォルダなど）
+- 判定の表示は `oci-scanned` になる。
+- 出所の扱い：
+  - Docker Hub の `mcp/*` は、名前空間を確認済みとして扱う。
+  - ダイジェスト（`@sha256:`）で固定していれば、起動設定は固定済み（pinned）とみなす。
+

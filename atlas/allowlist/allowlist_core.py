@@ -45,6 +45,7 @@ sys.dont_write_bytecode = True  # do not drop __pycache__ into atlas/scanner (ow
 import scan as _scan  # noqa: E402  (atlas/scanner/scan.py, read-only regex scanner)
 import dp004 as _dp004  # noqa: E402  (package <-> repo comparison, safe clone)
 import osv as _osv  # noqa: E402  (OSV querybatch, DP-002)
+import oci as _oci  # noqa: E402  (OCI image config + layers as data; never runs the image)
 import pkgfetch as _pkgfetch  # noqa: E402  (registry metadata + guarded archive extraction)
 from trust import trust as _trust  # noqa: E402
 
@@ -713,6 +714,7 @@ def build_item(name, kind, findings, provenance, maintenance, osv_ids, scan_stat
         "index": "source scanned (Atlas index) / ソース検査済み（Atlas インデックス）",
         "fetched": "source + published package scanned (--fetch) / ソースと公開パッケージを検査済み",
         "local-scan": "source scanned (local files) / ソース検査済み（ローカル）",
+        "oci-scanned": "OCI image config + app layers scanned as data (--fetch) / OCI イメージの設定とアプリ層を検査済み（実行なし）",
         "not-scanned": "not statically scanned / 静的検査なし",
     }[scan_status]
     reasons = []
@@ -823,6 +825,7 @@ def _eval_server(name, cfg, display, key, raw, index, fetch, osv_on=False, polic
     reg = pkgs[0] if pkgs and pkgs[0]["kind"] == "registry" and pkgs[0]["eco"] in ("npm", "pypi") else None
     detail = {}
     fetched = None
+    oci_res = None
     if fetch and reg and not is_remote:
         res = fetch_package(reg)
         if "error" in res:
@@ -852,7 +855,7 @@ def _eval_server(name, cfg, display, key, raw, index, fetch, osv_on=False, polic
         if fetched.get("note"):
             notes.append(fetched["note"])
         extra.append(_dp004.summary_line(fetched))
-    elif entry:
+    elif entry and not (fetch and pkgs and pkgs[0]["eco"] == "oci"):  # --fetch inspects images directly
         # monorepos: keep only findings under the matched package's own directory
         sub = (entry.get("package_paths") or {}).get(matched) if matched else None
         for f in entry.get("findings") or []:
@@ -870,10 +873,21 @@ def _eval_server(name, cfg, display, key, raw, index, fetch, osv_on=False, polic
     elif is_remote:
         status = "remote-only"
         detail = {"note": "Remote-only server: only the URL was checked; no source is available to scan."}
+    elif fetch and pkgs and pkgs[0]["eco"] == "oci":
+        try:
+            oci_res = _oci.inspect_image(pkgs[0]["raw"], scan_layers=True)
+            findings += oci_res["findings"]
+            detail["oci"] = _oci.detail_for(oci_res)
+            notes += list(oci_res.get("notes") or [])
+            extra.append(_oci.summary_line(oci_res))
+            status = "oci-scanned"
+        except _oci.OCIError as e:
+            status = "config-only"
+            detail["note"] = f"OCI image not inspected: {e}"
     else:
         status = "config-only"
         if pkgs and pkgs[0]["eco"] == "oci":
-            detail.setdefault("note", "OCI image: image contents are not scanned in this prototype.")
+            detail.setdefault("note", "OCI image: contents not scanned; run with --fetch to inspect config and layers.")
         elif not pkgs:
             detail.setdefault("note", "Local command: no package to resolve; source not scanned.")
         else:
@@ -881,6 +895,13 @@ def _eval_server(name, cfg, display, key, raw, index, fetch, osv_on=False, polic
     prov, maint, osv_ids = _prov_maint(entry, pkgs, fetched)
     if is_remote:
         prov["pinned_launch"] = False
+    if oci_res:
+        h = _oci.provenance_hints(oci_res)
+        prov["pinned_launch"] = bool(h.get("pinned_launch"))
+        if h.get("verified_namespace"):
+            prov["verified_namespace"] = True
+        if h.get("source_repo"):
+            detail["oci"]["source_repo"] = h["source_repo"]
     if osv_on and reg:
         ver = (reg.get("version") or "").lstrip("=@") or None
         o = _osv.check(reg["eco"], reg["name"], ver, reg["pinned"], (fetched or {}).get("deps"),
