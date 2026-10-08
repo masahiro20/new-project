@@ -1,342 +1,505 @@
 <title>Peter HQ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
-/* Layout: a live pixel-art office floor on top; status strip, staff roster and activity log under it. */
+/* Layout: a night-time isometric command floor rendered on canvas, then a plain-language status line, then the evidence table read live from Claude Code. Single dark world by design. */
 :root{
-  --bg:#e9ecef; --panel:#f7f8fa; --ink:#1e2430; --muted:#5f6878; --line:#cfd5de;
-  --accent:#3d5afe; --ok:#1b8a4b; --ok-soft:#d7f0e1; --warn:#a86a00; --warn-soft:#f6e7c8; --bad:#c62828; --bad-soft:#f8d9d9;
-  --pixel:"DotGothic16","Zen Kaku Gothic New",system-ui,sans-serif;
+  --bg:#0b0f1a; --panel:#121828; --panel2:#182036; --ink:#e8ecf6; --muted:#8e98b3; --line:#26304a;
+  --live:#3ee08f; --wait:#ffb547; --bad:#ff6b6b; --idle:#7c8aa8; --accent:#7aa2ff;
+  --display:"Dela Gothic One","Zen Kaku Gothic New",system-ui,sans-serif;
   --sans:"Zen Kaku Gothic New",system-ui,"Hiragino Sans","Noto Sans JP",sans-serif;
   --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  color-scheme:dark;
 }
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#12151b; --panel:#1a1e26; --ink:#e6e9ef; --muted:#9aa3b2; --line:#2b313c;
-  --accent:#8c9eff; --ok:#5fd394; --ok-soft:#173526; --warn:#f0b84a; --warn-soft:#3a2d12; --bad:#ff7a7a; --bad-soft:#3d1a1a; color-scheme:dark}}
-:root[data-theme="dark"]{
-  --bg:#12151b; --panel:#1a1e26; --ink:#e6e9ef; --muted:#9aa3b2; --line:#2b313c;
-  --accent:#8c9eff; --ok:#5fd394; --ok-soft:#173526; --warn:#f0b84a; --warn-soft:#3a2d12; --bad:#ff7a7a; --bad-soft:#3d1a1a; color-scheme:dark}
 body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.55}
-.wrap{max-width:1100px;margin:0 auto;padding-inline:16px;padding-block:20px 48px;display:grid;gap:16px}
-header{display:flex;flex-wrap:wrap;gap:8px 20px;align-items:baseline;justify-content:space-between}
-h1{font-family:var(--pixel);font-weight:400;font-size:2rem;margin:0;letter-spacing:.04em}
-.tag{color:var(--muted);font-size:.9rem;margin:0}
-.pulse{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;padding:10px 14px;border:1px solid var(--line);background:var(--panel);font-size:.9rem}
-.pulse .dot{width:12px;height:12px;border-radius:50%;background:var(--muted);flex:none}
-.pulse[data-state="ok"]{border-color:var(--ok);background:var(--ok-soft)} .pulse[data-state="ok"] .dot{background:var(--ok);animation:beat 1.6s infinite}
-.pulse[data-state="warn"]{border-color:var(--warn);background:var(--warn-soft)} .pulse[data-state="warn"] .dot{background:var(--warn)}
-.pulse[data-state="bad"]{border-color:var(--bad);background:var(--bad-soft)} .pulse[data-state="bad"] .dot{background:var(--bad)}
-.pulse b{font-weight:700}
-.pulse .sep{color:var(--muted)}
-.pulse .mono{font-family:var(--mono);font-size:.8rem;font-variant-numeric:tabular-nums}
-@keyframes beat{0%,100%{transform:scale(1)}15%{transform:scale(1.35)}30%{transform:scale(1)}}
-@media (prefers-reduced-motion:reduce){.pulse .dot{animation:none!important}}
-.stage{position:relative;width:100%;max-width:100%;aspect-ratio:512/356;background:#20242c;border:3px solid #20242c;overflow:hidden}
-.stage canvas{width:100%;height:100%;display:block;image-rendering:pixelated;cursor:pointer}
-.labels{position:absolute;inset:0;pointer-events:none}
-.rl{position:absolute;font-family:var(--pixel);font-size:clamp(8px,1.5vw,13px);color:#2a2f3a;background:rgba(255,255,255,.78);padding:0 5px;white-space:nowrap}
-.nt{position:absolute;transform:translate(-50%,-100%);font-family:var(--pixel);font-size:clamp(7px,1.25vw,11px);color:#fff;padding:0 4px;white-space:nowrap;border-radius:2px}
-.nt.sel{outline:2px solid #fff}
-.grid{display:grid;gap:16px;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)}
-@media (max-width:760px){.grid{grid-template-columns:minmax(0,1fr)}}
-h2{font-family:var(--pixel);font-weight:400;font-size:1.15rem;margin:0 0 8px;letter-spacing:.03em}
-.roster{display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr))}
-.card{border:1px solid var(--line);background:var(--panel);padding:10px 12px;display:grid;gap:4px;text-align:left;font:inherit;color:inherit;cursor:pointer;min-width:0}
-.card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.card.sel{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
-.card .top{display:flex;align-items:center;gap:8px}
-.sw{width:12px;height:12px;flex:none}
-.card .nm{font-weight:700}
-.card .rl2{color:var(--muted);font-size:.8rem;margin-left:auto;white-space:nowrap}
-.card .task{font-size:.85rem;overflow-wrap:anywhere}
-.card .meta{display:flex;justify-content:space-between;gap:8px;font-size:.75rem;color:var(--muted);font-family:var(--mono)}
-.pill{font-family:var(--sans);font-size:.72rem;padding:0 8px;border-radius:999px;border:1px solid currentColor;white-space:nowrap}
-.s-working,.s-research,.s-meeting{color:var(--accent)} .s-done{color:var(--ok)} .s-waiting{color:var(--warn)} .s-blocked{color:var(--bad)} .s-offline,.s-unknown{color:var(--muted)}
-.log{border:1px solid var(--line);background:var(--panel);padding:4px 12px;max-height:420px;overflow:auto}
-.log ol{list-style:none;margin:0;padding:0}
-.log li{padding:7px 0;border-bottom:1px solid var(--line);font-size:.85rem;display:grid;gap:2px}
-.log li:last-child{border-bottom:0}
-.log time{font-family:var(--mono);font-size:.72rem;color:var(--muted)}
-.empty{color:var(--muted);font-size:.85rem;padding:10px 0}
-.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.78rem;color:var(--muted)}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:16px;padding-block:18px 56px;display:grid;gap:16px}
+header{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:baseline;justify-content:space-between}
+h1{font-family:var(--display);font-weight:400;font-size:clamp(1.6rem,4vw,2.4rem);margin:0;letter-spacing:.04em}
+h1 span{color:var(--accent)}
+.src{font-family:var(--mono);font-size:.75rem;color:var(--muted)}
+.src b{color:var(--live);font-weight:600}
+.src b.rep{color:var(--wait)}
+.verdict{background:var(--panel);border:1px solid var(--line);padding:14px 16px;display:grid;gap:8px}
+.verdict .big{font-size:clamp(1.05rem,2.6vw,1.35rem);font-weight:700;text-wrap:balance}
+.verdict .big em{font-style:normal;color:var(--live)}
+.verdict .big em.w{color:var(--wait)}
+.verdict .sub{color:var(--muted);font-size:.9rem}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;padding:3px 10px;border:1px solid var(--line);background:var(--panel2);border-radius:999px;font-family:var(--mono)}
+.chip i{width:8px;height:8px;border-radius:50%;display:inline-block}
+.stage{position:relative;width:100%;aspect-ratio:1000/600;border:1px solid var(--line);overflow:hidden;background:#05070d}
+.stage canvas{width:100%;height:100%;display:block;cursor:pointer}
+.grid{display:grid;gap:16px;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr)}
+@media (max-width:820px){.grid{grid-template-columns:minmax(0,1fr)}}
+h2{font-family:var(--display);font-weight:400;font-size:1.05rem;margin:0 0 8px;letter-spacing:.04em}
+.tbl{overflow-x:auto;border:1px solid var(--line);background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:.85rem;min-width:640px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:500;font-size:.75rem;letter-spacing:.06em}
+tr.sel td{background:var(--panel2)}
+td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+td .who{display:flex;align-items:center;gap:8px;font-weight:700;white-space:nowrap}
+td .who i{width:10px;height:10px;border-radius:2px;display:inline-block}
+td .role{color:var(--muted);font-size:.75rem;font-weight:400}
+.st{display:inline-block;font-size:.72rem;padding:1px 8px;border-radius:999px;border:1px solid currentColor;white-space:nowrap}
+.st.working{color:var(--live)} .st.blocked{color:var(--wait)} .st.failed{color:var(--bad)} .st.idle,.st.sleep,.st.none{color:var(--idle)}
+td a{color:var(--accent)}
+.side{display:grid;gap:12px;align-content:start}
+.box{border:1px solid var(--line);background:var(--panel);padding:12px 14px;display:grid;gap:6px;font-size:.88rem}
+.box .k{color:var(--muted);font-size:.75rem}
+.box .v{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.box ul{margin:0;padding-left:1.1em;display:grid;gap:4px}
+.note{color:var(--muted);font-size:.8rem}
+.err{color:var(--wait);font-size:.82rem}
+.ihead{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 12px}
+.inbox{display:grid;gap:8px}
+.cards{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(min(100%,330px),1fr))}
+.ap{border:1px solid var(--line);border-left:4px solid var(--wait);background:var(--panel);padding:12px 14px;display:grid;gap:8px;min-width:0}
+.ap.done{border-left-color:var(--live);opacity:.85}
+.ap.no{border-left-color:var(--idle)}
+.ap .top{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.ap .pj{font-family:var(--mono);font-size:.72rem;color:var(--muted)}
+.ap .tt{font-weight:700}
+.ap .dt{font-size:.85rem;color:#c9d1e6;overflow-wrap:anywhere}
+.ap .rec{font-size:.8rem;color:var(--accent)}
+.ap textarea{width:100%;min-height:2.4em;resize:vertical;background:var(--panel2);color:var(--ink);border:1px solid var(--line);padding:6px 8px;font:inherit;font-size:.85rem;box-sizing:border-box}
+.ap .btns{display:flex;flex-wrap:wrap;gap:8px}
+.ap button{font:inherit;font-size:.85rem;padding:6px 14px;border-radius:6px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);cursor:pointer}
+.ap button.yes{background:#1d4d36;border-color:#2f8a5c}
+.ap button.no{background:#3a2430;border-color:#7a3b52}
+.ap button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.ap button:disabled{opacity:.5;cursor:default}
+.ap .res{font-size:.8rem;color:var(--live)}
+details.decided summary{cursor:pointer;color:var(--muted);font-size:.85rem;padding:4px 0}
+details.decided .cards{margin-top:8px}
+.pgrid{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr))}
+.pj-card{border:1px solid var(--line);background:var(--panel);padding:12px 14px;display:grid;gap:6px;min-width:0}
+.pj-card .h{display:flex;gap:8px;align-items:center}
+.pj-card .h i{width:10px;height:10px;border-radius:2px}
+.pj-card .h b{font-size:1rem}
+.pj-card .code{font-family:var(--mono);font-size:.72rem;color:var(--muted);margin-left:auto}
+.pj-card .one{font-size:.85rem;color:#c9d1e6}
+.pj-card .stage2{font-size:.78rem;font-family:var(--mono);color:var(--accent)}
+.pj-card ul{margin:0;padding-left:1.1em;font-size:.84rem;display:grid;gap:3px}
+.pj-card a{color:var(--accent)}
+.pj-card .nx{font-size:.8rem;color:var(--muted)}
 </style>
 
 <div class="wrap">
   <header>
-    <div>
-      <h1>Peter HQ</h1>
-      <p class="tag">ニッチで最先端なプロダクトを同時に作る、AIチームのオフィス</p>
-    </div>
-    <div class="legend" aria-label="凡例">
-      <span>机で作業＝作業中</span><span>本棚・ボード往復＝調査中</span><span>ラウンジ＝承認待ち・完了</span><span>赤い！＝詰まり</span>
-    </div>
+    <h1>Peter <span>HQ</span></h1>
+    <div class="src" id="src">データ：接続中…</div>
   </header>
 
-  <div class="pulse" id="pulse" data-state="unknown" role="status" aria-live="polite">
-    <span class="dot" aria-hidden="true"></span>
-    <b id="pulseTitle">オフィスに接続しています</b>
-    <span class="sep">|</span><span>最終心拍 <span class="mono" id="pulseLast">—</span></span>
-    <span class="sep">|</span><span>次の心拍 <span class="mono" id="pulseNext">—</span></span>
-    <span class="sep">|</span><span id="pulseNote" class="mono"></span>
-  </div>
+  <section class="verdict" aria-live="polite">
+    <div class="big" id="verdict">稼働状況を確認しています</div>
+    <div class="sub" id="verdictSub">AI は仕事を渡されたときだけ動きます。表示は Claude Code の作業記録をそのまま読んだものです。</div>
+    <div class="chips" id="chips"></div>
+  </section>
 
-  <div class="stage" id="stage">
-    <canvas id="cv" width="512" height="356" aria-label="オフィスの様子。各部屋でリーダーとチームが働いている"></canvas>
-    <div class="labels" id="labels"></div>
-  </div>
+  <section id="inbox" class="inbox">
+    <div class="ihead"><h2>オーナーの承認ボックス</h2><span class="src" id="inboxCount">読み込み中…</span></div>
+    <p class="note">お金・アカウント・法務・公開が絡むものだけをここに集めています。それ以外はピーターが決めて進めます。押した結果は、次の巡回（1時間ごと）でピーターが受け取って実行します。</p>
+    <div id="approvals" class="cards"></div>
+    <details class="decided"><summary>ピーターが決めたこと・処理済み</summary><div id="approvalsDone" class="cards"></div></details>
+  </section>
+
+  <section>
+    <div class="ihead"><h2>動いているプロジェクトと成果物</h2></div>
+    <div id="projects" class="pgrid"></div>
+  </section>
+
+  <div class="stage"><canvas id="cv" aria-label="仮想オフィス。各リーダーの実際の稼働状態をアニメーションで表示"></canvas></div>
 
   <div class="grid">
     <section>
-      <h2>スタッフ</h2>
-      <div class="roster" id="roster"></div>
+      <h2>本当に動いているかの証拠</h2>
+      <div class="tbl"><table>
+        <thead><tr><th>メンバー</th><th>実際の状態</th><th>最後に動いた</th><th>直近にやったこと</th><th>使用量</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table></div>
+      <p class="note">「使用量」は API 定価に換算した参考値です（Max プランの範囲内で動いています）。「記録を開く」から、各 AI の実際の作業ログを確認できます。</p>
     </section>
-    <section>
-      <h2>業務日誌</h2>
-      <div class="log"><ol id="log"><li class="empty">ピーターが心拍のたびにここへ記録します。</li></ol></div>
-    </section>
+    <aside class="side">
+      <div class="box">
+        <h2>ピーターの定期巡回</h2>
+        <div><span class="k">前回の巡回（1時間ごと）</span><div class="v" id="hbLast">—</div></div>
+        <div><span class="k">次の巡回</span><div class="v" id="hbNext">—</div></div>
+        <div><span class="k">前回の夜の報告</span><div class="v" id="nbLast">—</div></div>
+        <div class="err" id="trigErr" hidden></div>
+      </div>
+      <div class="box">
+        <h2>アニメーションの見方</h2>
+        <ul>
+          <li><b style="color:var(--live)">緑・タイピング・光の粒</b>：今まさに作業中</li>
+          <li><b style="color:var(--wait)">黄色・手を挙げている</b>：返事待ち（オーナーかピーター）</li>
+          <li><b style="color:var(--idle)">座って休憩・Zzz</b>：任務完了で待機中（費用ゼロ）</li>
+          <li><b style="color:var(--bad)">赤い煙</b>：エラーで止まっている</li>
+          <li>中央の光の輪：次の巡回までの残り時間</li>
+        </ul>
+      </div>
+    </aside>
   </div>
 </div>
 
 <script>
 (function(){
 "use strict";
-// ---------- Office structure (rooms and staff are the floor plan, not records) ----------
-const W=512,H=356,RW=152,RH=100,G=14;
-const COLX=[G,G*2+RW,G*3+RW*2], ROWY=[G,G*2+RH,G*3+RH*2];
-const ROOMS={
-  hq:{c:0,r:0,name:"本部・INTEL",floor:"#d8cbb0"},
-  p1:{c:1,r:0,name:"P1 SkillForge",floor:"#e3c9b4"},
-  p2:{c:2,r:0,name:"P2 Signal Lab",floor:"#bfdbe2"},
-  p3:{c:0,r:1,name:"P3 Pitch",floor:"#e8c6d6"},
-  lounge:{c:1,r:1,name:"ラウンジ",floor:"#c9b79c"},
-  p4:{c:2,r:1,name:"P4 Collector Lens",floor:"#c8dfc5"},
-  p5:{c:0,r:2,name:"P5 Atlas",floor:"#c4cde8"},
-  p6:{c:1,r:2,name:"P6 Fleet→HQ Ops",floor:"#d2d4d8"},
-  p0:{c:2,r:2,name:"P0 減算ゼロ",floor:"#efd2c3"},
-};
-for(const k in ROOMS){const R=ROOMS[k];R.x=COLX[R.c];R.y=ROWY[R.r];R.door={x:R.x+RW/2,y:R.y+RH-8};R.out={x:R.x+RW/2,y:R.y+RH+7};}
-const STAFF=[
-  {id:"peter",name:"Peter",role:"統括PM",room:"hq",desk:0,color:"#e0a020",hair:"#3b2a1a"},
-  {id:"iris",name:"Iris",role:"INTEL",room:"hq",desk:1,color:"#7a5cf0",hair:"#1d1d1d"},
-  {id:"forge",name:"Forge",role:"P1 リーダー",room:"p1",desk:0,color:"#d9622b",hair:"#5a3418"},
-  {id:"vega",name:"Vega",role:"P2 リーダー",room:"p2",desk:0,color:"#1f9ec4",hair:"#e8d27a"},
-  {id:"kana",name:"Kana",role:"P3 リーダー",room:"p3",desk:0,color:"#d0437f",hair:"#141414"},
-  {id:"ren",name:"Ren",role:"P4 リーダー",room:"p4",desk:0,color:"#3a9b4a",hair:"#2a2a2a"},
-  {id:"atlas",name:"Atlas",role:"P5 リーダー",room:"p5",desk:0,color:"#3460d0",hair:"#8a5a2b"},
-  {id:"otto",name:"Otto",role:"HQ Ops",room:"p6",desk:0,color:"#6d7480",hair:"#c9c9c9"},
-  {id:"mina",name:"Mina",role:"P0 リーダー",room:"p0",desk:0,color:"#e0603f",hair:"#3a2014"},
+const SERVER="Claude Code Remote";
+const AG=[
+  {id:"peter",name:"Peter",role:"統括PM・本部（INTEL Iris 兼任）",sid:"session_01N753Qt9Y7VusZ5kafYqeZ8",color:"#f5b942",pos:[4.55,4.55],center:true},
+  {id:"forge",name:"Forge",role:"P1 Yuragi（台本QA）",sid:"session_01UxC1ZasACaQ4epeoSQvkGr",color:"#ff7a45",pos:[1.6,1.6]},
+  {id:"vega",name:"Vega",role:"P2 Budget Guard",sid:"session_015XigFVCQSSHY1yMdRTDpZK",color:"#39c6f0",pos:[4.5,1.0]},
+  {id:"kana",name:"Kana",role:"P3 Pitch（発音）",sid:"session_019Z6KhuwmBpJjCfHnF3YVMF",color:"#ff5fa2",pos:[7.4,1.6]},
+  {id:"mina",name:"Mina",role:"P0 減算ゼロ",sid:"session_019QzkHuvo1SuxAPiKCHkDhu",color:"#ffd166",pos:[1.0,4.5]},
+  {id:"ren",name:"Ren",role:"P4 Collector Lens",sid:"session_01C7QqXQZ6ibhgnM1DXANYZi",color:"#5ee08a",pos:[8.0,4.5]},
+  {id:"atlas",name:"Atlas",role:"P5 Atlas（安全検査）",sid:"session_01HsRA6TcDdEV3mNchxr2yLP",color:"#8c7bff",pos:[1.6,7.4]},
+  {id:"otto",name:"Otto",role:"P6 Fleet（撤退済み）",sid:null,color:"#6b7790",pos:[7.4,7.4],retired:true},
 ];
-const STATUS_JA={working:"作業中",research:"調査中",meeting:"会議中",waiting:"承認待ち",blocked:"詰まり",done:"完了",offline:"休止",unknown:"未報告"};
-const SKIN=["#f2c9a0","#e0ac7e","#c68a5a","#f5d3b5"];
+const TRIG={hb:"trig_01JLW6FjHHn6NHxdEqFKGhkV",nb:"trig_017EWz43ykgxRDhvbpRWoY9T"};
+const ST_JA={working:"作業中",blocked:"返事待ち",failed:"エラー",idle:"待機中",sleep:"待機中（休憩）",none:"未接続",retired:"撤退済み"};
+const S={}; AG.forEach(a=>S[a.id]={state:a.retired?"retired":"none",src:"none"});
+const T={hb:null,nb:null};
+let mode="connecting", selected=null;
 
-// ---------- Live data ----------
-let agents={}, heartbeat=null, logEntries=[], selected=null, dbState="connecting";
-
-// ---------- Geometry helpers ----------
-const VX=[7,G*2+RW-7,G*3+RW*2-7,W-7];
-function deskSpot(room,i){const R=ROOMS[room];return{x:R.x+22+i*44+15,y:R.y+46};}
-function spotFor(a,kind){
-  const R=ROOMS[a.room];
-  if(kind==="desk") return deskSpot(a.room,a.desk);
-  if(kind==="shelf") return{x:R.x+20,y:R.y+80};
-  if(kind==="board") return{x:R.x+RW-22,y:R.y+70};
-  if(kind==="hq") return{x:ROOMS.hq.x+90+Math.random()*40,y:ROOMS.hq.y+70+Math.random()*12};
-  const L=ROOMS.lounge; return{x:L.x+30+Math.random()*(RW-60),y:L.y+52+Math.random()*30};
+// ---------- helpers ----------
+function parse(p){
+  if(p==null) return null;
+  if(typeof p==="string"){const i=p.indexOf("{"),j=p.lastIndexOf("}");if(i<0||j<i)return null;try{p=JSON.parse(p.slice(i,j+1));}catch(e){return null;}}
+  return p;
 }
-function roomOf(p){for(const k in ROOMS){const R=ROOMS[k];if(p.x>=R.x&&p.x<=R.x+RW&&p.y>=R.y&&p.y<=R.y+RH)return k;}return null;}
-function route(from,to){
-  const a=roomOf(from), b=roomOf(to);
-  if(!a||!b||a===b) return [to];
-  const A=ROOMS[a],B=ROOMS[b],pts=[A.door,A.out];
-  if(A.r===B.r){pts.push({x:B.out.x,y:A.out.y});}
-  else{
-    let vx=VX[0];for(const x of VX){if(Math.abs(x-A.out.x)<Math.abs(vx-A.out.x))vx=x;}
-    pts.push({x:vx,y:A.out.y},{x:vx,y:B.out.y},{x:B.out.x,y:B.out.y});
-  }
-  pts.push(B.door,to);return pts;
-}
-
-// ---------- Sprites ----------
-function mkSprite(def,i,isCrew){
-  const home=isCrew?deskSpot(def.room,1+((i)%2)):deskSpot(def.room,def.desk);
-  return{def,isCrew,crewIdx:i,x:home.x+(isCrew?0:0),y:home.y,path:[],sit:true,skin:SKIN[(i+def.id.length)%SKIN.length],t:Math.random()*1000,nextThink:0,sub:"desk"};
-}
-const sprites=[];
-for(const d of STAFF) sprites.push(mkSprite(d,0,false));
-const crew={}; // id -> array of crew sprites
-function syncCrew(){
-  for(const d of STAFF){
-    const want=Math.max(0,Math.min(4,Number((agents[d.id]||{}).crew)||0));
-    crew[d.id]=crew[d.id]||[];
-    while(crew[d.id].length<want){const s=mkSprite(d,crew[d.id].length,true);crew[d.id].push(s);sprites.push(s);}
-    while(crew[d.id].length>want){const s=crew[d.id].pop();sprites.splice(sprites.indexOf(s),1);}
-  }
-}
-function statusOf(id){const a=agents[id];if(!a)return dbState==="live"?"unknown":"unknown";return STATUS_JA[a.status]?a.status:"unknown";}
-function goTo(s,p){s.path=route({x:s.x,y:s.y},p);s.sit=false;}
-function think(s,now){
-  if(now<s.nextThink||s.path.length) return;
-  const st=statusOf(s.def.id);
-  let plan;
-  if(s.isCrew){
-    if(st==="working"||st==="research"){plan=Math.random()<.6?"crewdesk":"board";}
-    else plan="crewlounge";
-  }else if(st==="working"||st==="blocked"||st==="offline"||st==="unknown") plan="desk";
-  else if(st==="research") plan=["desk","shelf","board","desk"][Math.floor(Math.random()*4)];
-  else if(st==="meeting") plan="hq";
-  else plan="lounge";
-  let target;
-  if(plan==="crewdesk"){target=deskSpot(s.def.room,1+(s.crewIdx%2));target={x:target.x+(s.crewIdx>1?10:0),y:target.y};}
-  else if(plan==="crewlounge"){target=spotFor(s.def,"lounge");}
-  else target=spotFor(s.def,plan);
-  if(plan!==s.sub||plan==="lounge"||plan==="crewlounge"){ if(Math.hypot(target.x-s.x,target.y-s.y)>3) goTo(s,target); }
-  s.sub=plan; s.nextThink=now+4000+Math.random()*6000;
-}
-function step(s,dt){
-  if(!s.path.length){s.sit=(s.sub==="desk"||s.sub==="crewdesk");return;}
-  const p=s.path[0],dx=p.x-s.x,dy=p.y-s.y,d=Math.hypot(dx,dy),v=0.035*dt;
-  if(d<=v){s.x=p.x;s.y=p.y;s.path.shift();}else{s.x+=dx/d*v;s.y+=dy/d*v;s.dir=dx<0?-1:1;}
-}
-
-// ---------- Drawing ----------
-const cv=document.getElementById("cv"),ctx=cv.getContext("2d");ctx.imageSmoothingEnabled=false;
-function R_(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),w,h);}
+function mins(iso){const t=Date.parse(iso);return isNaN(t)?null:(Date.now()-t)/6e4;}
+function rel(iso){const m=mins(iso);if(m==null)return"—";if(m<1)return"たった今";if(m<60)return Math.round(m)+"分前";const h=m/60;if(h<48)return h.toFixed(h<10?1:0)+"時間前";return Math.round(h/24)+"日前";}
+function hhmm(iso){const t=Date.parse(iso);if(isNaN(t))return"—";return new Date(t).toLocaleString("ja-JP",{timeZone:"Asia/Tokyo",month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"});}
 function jstHour(){try{return Number(new Date().toLocaleString("en-US",{timeZone:"Asia/Tokyo",hour:"numeric",hour12:false}))%24;}catch(e){return new Date().getHours();}}
-function sky(h){if(h>=6&&h<16)return["#8fd3ff","#c9ecff"];if(h>=16&&h<19)return["#ff9e6b","#ffd29a"];return["#141a3a","#26305e"];}
-function drawRoom(k){
-  const R=ROOMS[k];
-  R_(R.x-3,R.y-3,RW+6,RH+6,"#3a3f4b");           // walls
-  R_(R.x,R.y,RW,RH,R.floor);
-  for(let yy=R.y;yy<R.y+RH;yy+=10) R_(R.x,yy,RW,1,"rgba(0,0,0,.05)"); // floor boards
-  R_(R.door.x-9,R.y+RH,18,3,R.floor);           // door gap
+function fromSession(s){
+  const ccr=s&&(s.ccr||s); if(!ccr||!ccr.id) return null;
+  const pts=ccr.post_turn_summary||(ccr.external_metadata||{}).post_turn_summary||{};
+  const b=String(ccr.status_bucket||""), ss=String(ccr.session_status||"");
+  let st="idle";
+  if(/WORKING/.test(b)||/RUNNING/.test(ss)) st="working";
+  else if(/BLOCKED/.test(b)) st="blocked";
+  else if(/FAILED/.test(b)) st="failed";
+  const m=mins(ccr.updated_at);
+  if(st==="idle"&&m!=null&&m>60) st="sleep";
+  return {state:st,src:"live",updatedAt:ccr.updated_at,recent:pts.recent_action||pts.status_detail||"",needs:pts.needs_action||"",
+    cost:((ccr.external_metadata||{}).usage||{}).cost_usd,title:ccr.title||""};
+}
+
+// ---------- canvas ----------
+const cv=document.getElementById("cv"),ctx=cv.getContext("2d");
+const W=1000,H=600; let dpr=1;
+function resize(){dpr=Math.min(2,window.devicePixelRatio||1);cv.width=W*dpr;cv.height=H*dpr;}
+resize(); window.addEventListener("resize",resize);
+const OX=500,OY=150,TW=46,TH=23;
+function iso(x,y,z){return [OX+(x-y)*TW,OY+(x+y)*TH-(z||0)];}
+const reduce=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+// city skyline (generated once)
+const city=[];{let x=0;let seed=7;const rnd=()=>(seed=(seed*9301+49297)%233280)/233280;while(x<W){const w=30+rnd()*60,h=40+rnd()*150;const win=[];for(let yy=8;yy<h-6;yy+=10)for(let xx=6;xx<w-6;xx+=9)if(rnd()<.35)win.push([xx,yy,rnd()]);city.push({x,w,h,win});x+=w+2;}}
+const stars=Array.from({length:120},(_,i)=>[(i*97.13)%W,(i*53.7)%220,(i%7)/7]);
+
+function sky(h){
+  if(h>=6&&h<16) return ["#1d3b6e","#3a6ea8"];
+  if(h>=16&&h<19) return ["#2a1f4a","#b5536b"];
+  return ["#050813","#121a36"];
+}
+function rr(x,y,w,h,r){ctx.beginPath();ctx.roundRect(x,y,w,h,r);}
+function poly(pts,fill,stroke){ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.closePath();if(fill){ctx.fillStyle=fill;ctx.fill();}if(stroke){ctx.strokeStyle=stroke;ctx.stroke();}}
+function box(x,y,w,d,h,top,left,right){ // iso box from (x,y) size w x d, height h px
+  const a=iso(x,y,h),b=iso(x+w,y,h),c=iso(x+w,y+d,h),e=iso(x,y+d,h);
+  const b0=iso(x+w,y,0),c0=iso(x+w,y+d,0),e0=iso(x,y+d,0);
+  poly([e,c,c0,e0],left);poly([b,c,c0,b0],right);poly([a,b,c,e],top);
+}
+function shade(hex,k){const n=parseInt(hex.slice(1),16);let r=n>>16,g=(n>>8)&255,b=n&255;const f=v=>Math.max(0,Math.min(255,Math.round(k>0?v+(255-v)*k:v*(1+k))));return`rgb(${f(r)},${f(g)},${f(b)})`;}
+function stColor(st){return st==="working"?"#3ee08f":st==="blocked"?"#ffb547":st==="failed"?"#ff6b6b":"#7c8aa8";}
+
+// particles
+const P=[];
+function emit(x,y,kind,color){if(P.length>420)return;P.push({x,y,vx:(Math.random()-.5)*.25,vy:kind==="z"?-.25:-.5-Math.random()*.4,life:0,max:kind==="z"?160:90+Math.random()*60,kind,color,ch:"{}<>/;=$#01"[Math.floor(Math.random()*11)]});}
+
+function drawBackground(t){
   const [s1,s2]=sky(jstHour());
-  if(R.r===0){ for(let i=0;i<3;i++){R_(R.x+12+i*48,R.y-3,26,3,s1);} }
-  if(k==="lounge"){
-    R_(R.x+14,R.y+14,60,14,"#7d5a3c");R_(R.x+14,R.y+12,60,4,"#93704f"); // sofa
-    R_(R.x+RW-30,R.y+10,14,18,"#555b66");R_(R.x+RW-27,R.y+13,8,5,"#a0e0ff"); // coffee machine
-    R_(R.x+60,R.y+60,34,18,"#8a6a48");                                        // table
-    R_(R.x+8,R.y+RH-20,8,8,"#3c8d3c");R_(R.x+10,R.y+RH-12,4,6,"#6b4a2f");   // plant
-    R_(R.x+RW-18,R.y+RH-22,8,8,"#3c8d3c");R_(R.x+RW-16,R.y+RH-14,4,6,"#6b4a2f");
-    return;
-  }
-  for(let i=0;i<3;i++){                                                    // desks + monitors
-    const dx=R.x+22+i*44,dy=R.y+22;
-    R_(dx,dy,30,12,"#8a6a48");R_(dx,dy+12,30,2,"#6b4f35");
-    const owner=sprites.find(s=>s.def.room===k&&!s.isCrew&&s.def.desk===i);
-    const on=owner?["working","research","blocked"].includes(statusOf(owner.def.id)):(crew[(STAFF.find(d=>d.room===k)||{}).id]||[]).length>i-1&&i>0;
-    R_(dx+9,dy-6,12,8,"#2b2f38");R_(dx+10,dy-5,10,6,on?((performance.now()/400+i)%2<1?"#9fe8ff":"#7fd4f0"):"#3d4452");
-    R_(dx+8,dy+18,14,10,"#4a4f5a");                                          // chair
-  }
-  R_(R.x+6,R.y+60,22,30,"#6b4a2f");for(let j=0;j<3;j++)R_(R.x+8,R.y+64+j*9,18,5,["#c94f4f","#4f7ac9","#d9b84a"][j]); // bookshelf
-  R_(R.x+RW-12,R.y+44,6,36,"#f4f4f4");R_(R.x+RW-11,R.y+50,4,2,"#e05050");R_(R.x+RW-11,R.y+56,4,2,"#4060e0"); // whiteboard
+  const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,s1);g.addColorStop(.55,s2);g.addColorStop(1,"#05070d");
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  const night=jstHour()>=19||jstHour()<6;
+  if(night){for(const s of stars){ctx.globalAlpha=.3+.5*Math.abs(Math.sin(t/1400+s[2]*9));ctx.fillStyle="#cfe0ff";ctx.fillRect(s[0],s[1],1.4,1.4);}ctx.globalAlpha=1;
+    ctx.fillStyle="#f4f1d0";ctx.beginPath();ctx.arc(880,70,18,0,7);ctx.fill();ctx.fillStyle=s2;ctx.beginPath();ctx.arc(888,64,16,0,7);ctx.fill();}
+  for(const b of city){const y0=330-b.h;ctx.fillStyle="#0a0f1e";ctx.fillRect(b.x,y0,b.w,b.h+40);
+    for(const w of b.win){const on=Math.sin(t/3000+w[2]*40)>-.6;if(!on)continue;ctx.fillStyle=w[2]>.7?"#ffd98a":"#6f8fd6";ctx.globalAlpha=night?.85:.35;ctx.fillRect(b.x+w[0],y0+w[1],4,5);}ctx.globalAlpha=1;}
+  const fog=ctx.createLinearGradient(0,260,0,360);fog.addColorStop(0,"rgba(5,7,13,0)");fog.addColorStop(1,"rgba(5,7,13,1)");ctx.fillStyle=fog;ctx.fillRect(0,260,W,120);
 }
-function drawSprite(s,now){
-  const d=s.def,x=Math.round(s.x),y=Math.round(s.y),walking=s.path.length>0;
-  const sc=s.isCrew?0.8:1, bodyC=s.isCrew?shade(d.color,.25):d.color;
-  R_(x-4,y+1,8,2,"rgba(0,0,0,.25)");
-  if(!s.sit){const ph=walking?Math.floor(now/150)%2:0;R_(x-3,y-3-ph,2,3+ph,"#2b2f38");R_(x+1,y-3-(1-ph),2,3+(1-ph),"#2b2f38");}
-  const by=s.sit?y-6:y-8;
-  R_(x-3*sc,by,Math.round(6*sc),5,bodyC);
-  if(s.sit&&["working","research"].includes(statusOf(d.id))&&Math.floor(now/120)%2) R_(x-4,by+1,1,2,s.skin);
-  R_(x-2,by-4,4,4,s.skin);R_(x-2,by-5,4,2,d.hair);
-  if(!s.isCrew){
-    const st=statusOf(d.id);
-    if(st==="blocked"){R_(x-2,by-14,5,8,"#e53935");R_(x,by-13,1,4,"#fff");R_(x,by-8,1,1,"#fff");}
-    else if(st==="done"){R_(x-3,by-13,7,7,"#2e9d57");R_(x-1,by-10,1,1,"#fff");R_(x,by-9,1,1,"#fff");R_(x+1,by-10,1,1,"#fff");R_(x+2,by-11,1,1,"#fff");}
-    else if(st==="waiting"){R_(x-4,by-12,9,5,"#fff");for(let i=0;i<3;i++)if(Math.floor(now/300)%4>i)R_(x-3+i*3,by-10,1,1,"#555");}
-    else if(st==="offline"||st==="unknown"){if(Math.floor(now/600)%2)R_(x+3,by-10,3,1,"#9aa");R_(x+4,by-12,2,1,"#9aa");}
-    if(selected===d.id){ctx.strokeStyle="#fff";ctx.lineWidth=1;ctx.strokeRect(x-6.5,by-7.5,13,17);}
+function drawFloor(t){
+  const n=9.6;
+  poly([iso(0,0),iso(n,0),iso(n,n),iso(0,n)],"#0f1628");
+  ctx.lineWidth=1;
+  for(let i=0;i<=n;i+=.8){
+    const a=.10+.06*Math.sin(t/900+i);
+    ctx.strokeStyle=`rgba(122,162,255,${a})`;
+    ctx.beginPath();let p=iso(i,0),q=iso(i,n);ctx.moveTo(p[0],p[1]);ctx.lineTo(q[0],q[1]);ctx.stroke();
+    ctx.beginPath();p=iso(0,i);q=iso(n,i);ctx.moveTo(p[0],p[1]);ctx.lineTo(q[0],q[1]);ctx.stroke();
+  }
+  // platform edge glow
+  ctx.strokeStyle="rgba(122,162,255,.45)";ctx.lineWidth=2;poly([iso(0,0),iso(n,0),iso(n,n),iso(0,n)],null,"rgba(122,162,255,.45)");ctx.lineWidth=1;
+  poly([iso(0,n),iso(n,n),iso(n,n,-14),iso(0,n,-14)],"#0a1020");poly([iso(n,0),iso(n,n),iso(n,n,-14),iso(n,0,-14)],"#0d1426");
+}
+function drawLinks(t){
+  const c=iso(AG[0].pos[0]+.5,AG[0].pos[1]+.5,6);
+  const hbRecent=T.hb&&T.hb.last&&mins(T.hb.last)<15;
+  for(const a of AG){if(a.center||a.retired)continue;const st=S[a.id].state;const active=st==="working"||st==="blocked"||hbRecent;
+    const p=iso(a.pos[0]+.6,a.pos[1]+.4,6);
+    ctx.strokeStyle=active?shade(a.color,-.1):"rgba(124,138,168,.18)";ctx.globalAlpha=active?.55:1;ctx.setLineDash([4,6]);ctx.lineDashOffset=-t/40;
+    ctx.beginPath();ctx.moveTo(p[0],p[1]);ctx.lineTo(c[0],c[1]);ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=1;
+    if(active){const k=((t/1600)+a.pos[0]*.13)%1;const x=p[0]+(c[0]-p[0])*k,y=p[1]+(c[1]-p[1])*k;ctx.fillStyle=a.color;ctx.shadowColor=a.color;ctx.shadowBlur=10;ctx.beginPath();ctx.arc(x,y,2.6,0,7);ctx.fill();ctx.shadowBlur=0;}
   }
 }
-function shade(hex,amt){const n=parseInt(hex.slice(1),16);let r=n>>16,g=(n>>8)&255,b=n&255;r=Math.round(r+(255-r)*amt);g=Math.round(g+(255-g)*amt);b=Math.round(b+(255-b)*amt);return"#"+((1<<24)|(r<<16)|(g<<8)|b).toString(16).slice(1);}
-function pulseState(){
-  if(!heartbeat||!heartbeat.at) return dbState==="live"?"bad":"unknown";
-  const age=(Date.now()-Date.parse(heartbeat.at))/36e5;
-  return age<3?"ok":age<8?"warn":"bad";
+function drawPerson(x,y,a,st,t){
+  const skin="#f1c8a5",hair=shade(a.color,-.55);
+  const bob=st==="working"?Math.sin(t/180)*1:st==="sleep"?Math.sin(t/900)*1.2:0;
+  const stand=st==="blocked"?-8:0;
+  // body
+  ctx.fillStyle=st==="retired"?"#3b4458":a.color;rr(x-9,y-22+stand+bob,18,20,6);ctx.fill();
+  // arms
+  ctx.strokeStyle=st==="retired"?"#3b4458":shade(a.color,-.15);ctx.lineWidth=4;ctx.lineCap="round";
+  if(st==="blocked"){const w=Math.sin(t/160)*5;ctx.beginPath();ctx.moveTo(x+7,y-18+stand);ctx.lineTo(x+13+w*.3,y-36+stand+Math.abs(w)*.3);ctx.stroke();ctx.beginPath();ctx.moveTo(x-7,y-18+stand);ctx.lineTo(x-10,y-6+stand);ctx.stroke();}
+  else if(st==="working"){const k=Math.floor(t/110)%2;ctx.beginPath();ctx.moveTo(x-7,y-16+bob);ctx.lineTo(x-10,y-4+(k?1:-1));ctx.stroke();ctx.beginPath();ctx.moveTo(x+7,y-16+bob);ctx.lineTo(x+10,y-4+(k?-1:1));ctx.stroke();}
+  else {ctx.beginPath();ctx.moveTo(x-7,y-16+bob);ctx.lineTo(x-9,y-6);ctx.stroke();ctx.beginPath();ctx.moveTo(x+7,y-16+bob);ctx.lineTo(x+9,y-6);ctx.stroke();}
+  ctx.lineWidth=1;
+  // head
+  const tilt=st==="sleep"?.35:0,hx=x+(st==="sleep"?3:0),hy=y-31+stand+bob;
+  ctx.save();ctx.translate(hx,hy);ctx.rotate(tilt);
+  ctx.fillStyle=st==="retired"?"#59627a":skin;ctx.beginPath();ctx.arc(0,0,8.5,0,7);ctx.fill();
+  ctx.fillStyle=hair;ctx.beginPath();ctx.arc(0,-2,8.8,Math.PI*1.05,Math.PI*1.95);ctx.fill();
+  ctx.fillStyle="#1b2030";
+  if(st==="sleep"||st==="retired"){ctx.fillRect(-4,1,3,1);ctx.fillRect(1.5,1,3,1);}
+  else{const blink=(Math.floor(t/90)%40)===0;ctx.fillRect(-4,0,2,blink?.6:2.4);ctx.fillRect(2,0,2,blink?.6:2.4);}
+  ctx.restore();
 }
-let last=performance.now();
-function frame(now){
-  const dt=Math.min(64,now-last);last=now;
-  R_(0,0,W,H,"#59606e");
-  for(let yy=0;yy<H;yy+=8)R_(0,yy,W,1,"rgba(255,255,255,.04)");
-  for(const k in ROOMS) drawRoom(k);
-  for(const s of sprites){think(s,now);step(s,dt);}
-  const order=sprites.slice().sort((a,b)=>a.y-b.y);
-  for(const s of order) drawSprite(s,now);
-  const ps=pulseState();
-  if(ps==="bad"){ctx.fillStyle="rgba(10,14,30,.45)";ctx.fillRect(0,0,W,H);}
-  else if(jstHour()>=19||jstHour()<6){ctx.fillStyle="rgba(20,30,80,.12)";ctx.fillRect(0,0,W,H);}
-  placeTags();
+function drawStation(a,t){
+  const st=S[a.id].state,[gx,gy]=a.pos;
+  const col=stColor(st);
+  // floor glow
+  const c=iso(gx+.6,gy+.4,0);
+  const glow=st==="working"?.35+.15*Math.sin(t/300):st==="blocked"?.25+.2*Math.sin(t/220):.08;
+  const rg=ctx.createRadialGradient(c[0],c[1],2,c[0],c[1],70);rg.addColorStop(0,col);rg.addColorStop(1,"rgba(0,0,0,0)");
+  ctx.globalAlpha=glow;ctx.fillStyle=rg;ctx.beginPath();ctx.ellipse(c[0],c[1],70,35,0,0,7);ctx.fill();ctx.globalAlpha=1;
+  if(st==="blocked"){const k=(t/1200)%1;ctx.strokeStyle=`rgba(255,181,71,${1-k})`;ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(c[0],c[1],20+k*50,10+k*25,0,0,7);ctx.stroke();ctx.lineWidth=1;}
+  // person behind desk
+  const pp=iso(gx+.55,gy-.15,0);drawPerson(pp[0],pp[1],a,st,t);
+  // desk
+  box(gx,gy,1.2,.8,18,"#26314f","#18213a","#1d2844");
+  // holo screen
+  const s=iso(gx+.6,gy+.4,40);const sw=56,sh=34;
+  const on=st==="working"||st==="blocked";
+  ctx.save();ctx.globalAlpha=st==="retired"?.15:on?.92:.35;
+  ctx.fillStyle=on?"rgba(20,40,70,.85)":"rgba(20,26,40,.8)";rr(s[0]-sw/2,s[1]-sh,sw,sh,4);ctx.fill();
+  ctx.strokeStyle=on?a.color:"#3a4560";ctx.lineWidth=1.2;rr(s[0]-sw/2,s[1]-sh,sw,sh,4);ctx.stroke();
+  ctx.beginPath();ctx.rect(s[0]-sw/2+3,s[1]-sh+3,sw-6,sh-6);ctx.clip();
+  if(st==="working"){for(let i=0;i<7;i++){const yy=s[1]-sh+5+((i*6+t/60)%(sh-4));const ww=8+((i*37+Math.floor(t/400))%30);ctx.fillStyle=i%3?a.color:"#e8ecf6";ctx.globalAlpha=.75;ctx.fillRect(s[0]-sw/2+5+(i%2)*6,yy,ww,2);}}
+  else if(st==="blocked"){ctx.fillStyle="#ffb547";ctx.font="700 18px "+getComputedStyle(document.body).fontFamily;ctx.textAlign="center";ctx.globalAlpha=.6+.4*Math.sin(t/200);ctx.fillText("?",s[0],s[1]-9);}
+  else{ctx.strokeStyle="#45506e";ctx.globalAlpha=.6;ctx.beginPath();const k=(t/2500)%1;ctx.arc(s[0],s[1]-sh/2,5+k*8,0,7);ctx.stroke();}
+  ctx.restore();ctx.globalAlpha=1;
+  // particles
+  if(!reduce){if(st==="working"&&Math.random()<.25)emit(s[0]+(Math.random()-.5)*40,s[1]-sh,"g",a.color);
+    if(st==="sleep"&&Math.random()<.012)emit(pp[0]+10,pp[1]-44,"z","#9fb0d6");
+    if(st==="failed"&&Math.random()<.2)emit(pp[0],pp[1]-20,"smoke","#ff6b6b");}
+  // label
+  const lb=iso(gx+.6,gy+.4,-2);
+  ctx.font="700 12px "+getComputedStyle(document.body).fontFamily;ctx.textAlign="center";
+  const txt=a.name+"  "+ST_JA[st];const tw=ctx.measureText(txt).width+22;
+  ctx.fillStyle="rgba(10,14,26,.85)";rr(lb[0]-tw/2,lb[1]+14,tw,20,10);ctx.fill();
+  ctx.strokeStyle=selected===a.id?"#fff":shade(col,-.2);rr(lb[0]-tw/2,lb[1]+14,tw,20,10);ctx.stroke();
+  ctx.fillStyle=col;ctx.beginPath();ctx.arc(lb[0]-tw/2+10,lb[1]+24,3.5,0,7);ctx.fill();
+  ctx.fillStyle="#e8ecf6";ctx.fillText(txt,lb[0]+5,lb[1]+28);
+  a._hit=[lb[0],lb[1]-20];
+}
+function drawCore(t){
+  const a=AG[0],[gx,gy]=a.pos,c=iso(gx+.5,gy+.5,0);
+  // dais
+  ctx.fillStyle="#141d33";ctx.beginPath();ctx.ellipse(c[0],c[1]+6,78,39,0,0,7);ctx.fill();
+  ctx.fillStyle="#1b2643";ctx.beginPath();ctx.ellipse(c[0],c[1],78,39,0,0,7);ctx.fill();
+  ctx.strokeStyle="rgba(245,185,66,.55)";ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(c[0],c[1],70,35,0,0,7);ctx.stroke();ctx.lineWidth=1;
+  // globe
+  const g=[c[0],c[1]-92],R=30;
+  const gl=ctx.createRadialGradient(g[0],g[1],4,g[0],g[1],R*2.2);gl.addColorStop(0,"rgba(122,162,255,.35)");gl.addColorStop(1,"rgba(122,162,255,0)");ctx.fillStyle=gl;ctx.beginPath();ctx.arc(g[0],g[1],R*2.2,0,7);ctx.fill();
+  ctx.strokeStyle="rgba(150,185,255,.8)";
+  for(let i=0;i<6;i++){const ph=(t/2400+i/6)*Math.PI;const rx=Math.abs(Math.cos(ph))*R;ctx.globalAlpha=.35+.4*Math.abs(Math.sin(ph));ctx.beginPath();ctx.ellipse(g[0],g[1],rx,R,0,0,7);ctx.stroke();}
+  ctx.globalAlpha=.5;for(let j=-2;j<=2;j++){const y=g[1]+j*R/3;const rx=Math.sqrt(R*R-(j*R/3)**2);ctx.beginPath();ctx.ellipse(g[0],y,rx,rx*.25,0,0,7);ctx.stroke();}ctx.globalAlpha=1;
+  // countdown ring to next heartbeat
+  if(T.hb&&T.hb.next&&T.hb.last){const tot=Date.parse(T.hb.next)-Date.parse(T.hb.last),left=Date.parse(T.hb.next)-Date.now();const k=Math.max(0,Math.min(1,1-left/tot));
+    ctx.strokeStyle="rgba(245,185,66,.18)";ctx.lineWidth=4;ctx.beginPath();ctx.arc(g[0],g[1],R+12,0,7);ctx.stroke();
+    ctx.strokeStyle="#f5b942";ctx.shadowColor="#f5b942";ctx.shadowBlur=12;ctx.beginPath();ctx.arc(g[0],g[1],R+12,-Math.PI/2,-Math.PI/2+k*Math.PI*2);ctx.stroke();ctx.shadowBlur=0;ctx.lineWidth=1;
+    ctx.font="600 11px JetBrains Mono, monospace";ctx.textAlign="center";ctx.fillStyle="#f5d48a";
+    const m=Math.max(0,Math.round(left/6e4));ctx.fillText("次の巡回まで "+(m>=60?Math.floor(m/60)+"時間"+(m%60)+"分":m+"分"),g[0],g[1]-R-20);}
+  // beam
+  const st=S.peter.state;const bg=ctx.createLinearGradient(0,g[1],0,c[1]);bg.addColorStop(0,"rgba(122,162,255,.0)");bg.addColorStop(1,st==="working"?"rgba(245,185,66,.35)":"rgba(122,162,255,.12)");ctx.fillStyle=bg;ctx.beginPath();ctx.moveTo(g[0]-14,g[1]+R);ctx.lineTo(g[0]+14,g[1]+R);ctx.lineTo(c[0]+40,c[1]);ctx.lineTo(c[0]-40,c[1]);ctx.closePath();ctx.fill();
+  drawPerson(c[0],c[1]+4,a,st,t);
+  if(!reduce&&st==="working"&&Math.random()<.3)emit(g[0]+(Math.random()-.5)*50,g[1]+10,"g","#f5b942");
+  const col=stColor(st);ctx.font="700 12px "+getComputedStyle(document.body).fontFamily;ctx.textAlign="center";const txt="Peter  "+ST_JA[st];const tw=ctx.measureText(txt).width+22;
+  ctx.fillStyle="rgba(10,14,26,.85)";rr(c[0]-tw/2,c[1]+22,tw,20,10);ctx.fill();ctx.strokeStyle=selected==="peter"?"#fff":col;rr(c[0]-tw/2,c[1]+22,tw,20,10);ctx.stroke();
+  ctx.fillStyle=col;ctx.beginPath();ctx.arc(c[0]-tw/2+10,c[1]+32,3.5,0,7);ctx.fill();ctx.fillStyle="#e8ecf6";ctx.fillText(txt,c[0]+5,c[1]+36);
+  a._hit=[c[0],c[1]-10];
+}
+function drawParticles(){
+  for(let i=P.length-1;i>=0;i--){const p=P[i];p.life++;p.x+=p.vx;p.y+=p.vy;const k=1-p.life/p.max;if(k<=0){P.splice(i,1);continue;}
+    ctx.globalAlpha=k*.9;ctx.fillStyle=p.color;
+    if(p.kind==="z"){ctx.font="700 "+(10+(1-k)*6)+"px "+getComputedStyle(document.body).fontFamily;ctx.fillText("z",p.x,p.y);}
+    else if(p.kind==="smoke"){ctx.beginPath();ctx.arc(p.x,p.y,4+(1-k)*8,0,7);ctx.fill();}
+    else{ctx.font="600 9px JetBrains Mono, monospace";ctx.fillText(p.ch,p.x,p.y);}
+  }ctx.globalAlpha=1;
+}
+function frame(t){
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  drawBackground(t);drawFloor(t);drawLinks(t);
+  const order=AG.slice().sort((a,b)=>(a.pos[0]+a.pos[1])-(b.pos[0]+b.pos[1]));
+  for(const a of order){if(a.center)drawCore(t);else drawStation(a,t);}
+  drawParticles();
+  if(mode==="connecting"){ctx.fillStyle="rgba(5,7,13,.45)";ctx.fillRect(0,0,W,H);ctx.fillStyle="#e8ecf6";ctx.font="700 16px "+getComputedStyle(document.body).fontFamily;ctx.textAlign="center";ctx.fillText("実際の稼働データを読み込んでいます…",W/2,H-30);}
   requestAnimationFrame(frame);
 }
+cv.addEventListener("click",ev=>{const r=cv.getBoundingClientRect(),x=(ev.clientX-r.left)/r.width*W,y=(ev.clientY-r.top)/r.height*H;
+  let best=null,bd=60;for(const a of AG){if(!a._hit)continue;const d=Math.hypot(a._hit[0]-x,a._hit[1]-y);if(d<bd){bd=d;best=a.id;}}
+  selected=best;render();if(best){const row=document.getElementById("row-"+best);if(row)row.scrollIntoView({block:"nearest",behavior:"smooth"});}});
 
-// ---------- HTML overlay labels ----------
-const labels=document.getElementById("labels"),tags={};
-for(const k in ROOMS){const R=ROOMS[k],el=document.createElement("div");el.className="rl";el.textContent=R.name;el.style.left=(R.x+2)/W*100+"%";el.style.top=(R.y+RH-1)/H*100+"%";el.style.transform="translateY(-100%)";if(k!=="lounge"){el.style.top=(R.y+1)/H*100+"%";el.style.transform="none";el.style.left=(R.x+RW-2)/W*100+"%";el.style.transform="translateX(-100%)";}labels.appendChild(el);}
-for(const d of STAFF){const el=document.createElement("div");el.className="nt";el.style.background=d.color;el.textContent=d.name;labels.appendChild(el);tags[d.id]=el;}
-function placeTags(){for(const s of sprites){if(s.isCrew)continue;const el=tags[s.def.id];el.style.left=s.x/W*100+"%";el.style.top=(s.y-(s.sit?14:17))/H*100+"%";el.classList.toggle("sel",selected===s.def.id);}}
-
-// ---------- Panels ----------
-function rel(iso){if(!iso)return"—";const t=Date.parse(iso);if(isNaN(t))return"—";const m=Math.round((Date.now()-t)/6e4);if(m<1)return"たった今";if(m<60)return m+"分前";const h=Math.floor(m/60);if(h<48)return h+"時間前";return Math.floor(h/24)+"日前";}
-function until(iso){if(!iso)return"—";const t=Date.parse(iso);if(isNaN(t))return"—";const m=Math.round((t-Date.now())/6e4);const hhmm=new Date(t).toLocaleTimeString("ja-JP",{timeZone:"Asia/Tokyo",hour:"2-digit",minute:"2-digit"});if(m<=0)return hhmm+"（予定時刻を過ぎています）";return hhmm+"（あと"+(m<60?m+"分":Math.round(m/60)+"時間")+"）";}
-function renderPulse(){
-  const el=document.getElementById("pulse"),ps=pulseState();el.dataset.state=ps;
-  const title={ok:"稼働中：ピーターは定期的に起きて指示を出しています",warn:"心拍が遅れています：次の定期起動を待っています",bad:dbState==="live"?(heartbeat?"停止の可能性：長時間、心拍がありません":"まだ心拍の記録がありません"):"",unknown:dbState==="none"?"オフィスのデータに接続できません":"オフィスに接続しています"}[ps];
-  document.getElementById("pulseTitle").textContent=title||"停止の可能性：長時間、心拍がありません";
-  document.getElementById("pulseLast").textContent=heartbeat?rel(heartbeat.at):"—";
-  document.getElementById("pulseNext").textContent=heartbeat?until(heartbeat.nextAt):"—";
-  document.getElementById("pulseNote").textContent=heartbeat&&heartbeat.cycle?("サイクル #"+heartbeat.cycle):"";
-}
-function renderRoster(){
-  const root=document.getElementById("roster");root.textContent="";
-  for(const d of STAFF){
-    const a=agents[d.id]||{},st=statusOf(d.id);
-    const b=document.createElement("button");b.type="button";b.className="card"+(selected===d.id?" sel":"");b.id="card-"+d.id;
-    const top=document.createElement("div");top.className="top";
-    const sw=document.createElement("span");sw.className="sw";sw.style.background=d.color;
-    const nm=document.createElement("span");nm.className="nm";nm.textContent=d.name;
-    const rl=document.createElement("span");rl.className="rl2";rl.textContent=a.role||d.role;
-    top.append(sw,nm,rl);
-    const task=document.createElement("div");task.className="task";task.textContent=a.task||(dbState==="live"?"まだ報告がありません":"読み込み中");
-    const meta=document.createElement("div");meta.className="meta";
-    const pill=document.createElement("span");pill.className="pill s-"+st;pill.textContent=STATUS_JA[st];
-    const when=document.createElement("span");when.textContent=(a.crew?("部下 "+a.crew+"人 · "):"")+rel(a.updatedAt);
-    meta.append(pill,when);
-    b.append(top,task,meta);
-    b.addEventListener("click",()=>{selected=selected===d.id?null:d.id;renderRoster();});
-    root.appendChild(b);
+// ---------- panels ----------
+function render(){
+  const tb=document.getElementById("rows");tb.textContent="";
+  let work=0,wait=0,idle=0,lastAny=null,total=0;
+  for(const a of AG){
+    const s=S[a.id];const st=s.state;
+    if(!a.retired&&!a.center){if(st==="working")work++;else if(st==="blocked")wait++;else if(st!=="none")idle++;}
+    if(s.updatedAt&&(!lastAny||Date.parse(s.updatedAt)>Date.parse(lastAny)))lastAny=s.updatedAt;
+    if(typeof s.cost==="number")total+=s.cost;
+    const tr=document.createElement("tr");tr.id="row-"+a.id;if(selected===a.id)tr.className="sel";
+    const td1=document.createElement("td");const who=document.createElement("div");who.className="who";const sw=document.createElement("i");sw.style.background=a.color;who.append(sw,document.createTextNode(a.name));const role=document.createElement("div");role.className="role";role.textContent=a.role;td1.append(who,role);
+    const td2=document.createElement("td");const pill=document.createElement("span");pill.className="st "+st;pill.textContent=ST_JA[st]||st;td2.append(pill);
+    if(s.src==="report"){const n=document.createElement("div");n.className="role";n.textContent="（ピーターの報告値）";td2.append(n);}
+    const td3=document.createElement("td");td3.className="num";td3.textContent=a.retired?"—":rel(s.updatedAt);
+    const td4=document.createElement("td");td4.textContent=a.retired?"公式機能と重なるため撤退。AIは常駐していません":(s.recent||"—");
+    if(s.needs){const n=document.createElement("div");n.className="role";n.style.color="var(--wait)";n.textContent="必要なこと："+s.needs;td4.append(n);}
+    if(a.sid){const l=document.createElement("a");l.href="https://claude.ai/code/"+a.sid;l.target="_blank";l.rel="noopener";l.textContent="記録を開く";const d=document.createElement("div");d.append(l);td4.append(d);}
+    const td5=document.createElement("td");td5.className="num";td5.textContent=typeof s.cost==="number"?"$"+s.cost.toFixed(2):"—";
+    tr.append(td1,td2,td3,td4,td5);tr.addEventListener("click",()=>{selected=a.id;render();});tb.append(tr);
   }
-}
-function renderLog(){
-  const ol=document.getElementById("log");ol.textContent="";
-  if(!logEntries.length){const li=document.createElement("li");li.className="empty";li.textContent=dbState==="live"?"まだ記録がありません。ピーターが心拍のたびにここへ書きます。":"読み込み中";ol.appendChild(li);return;}
-  for(const e of logEntries.slice().sort((a,b)=>Date.parse(b.at)-Date.parse(a.at)).slice(0,40)){
-    const li=document.createElement("li");const t=document.createElement("time");
-    t.textContent=new Date(e.at).toLocaleString("ja-JP",{timeZone:"Asia/Tokyo",month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"})+" · "+(e.who||"");
-    const p=document.createElement("span");p.textContent=e.text||"";li.append(t,p);ol.appendChild(li);
+  const v=document.getElementById("verdict");
+  if(mode==="live"||mode==="report"){
+    v.textContent="";
+    const mk=(t,cls)=>{const e=document.createElement("em");if(cls)e.className=cls;e.textContent=t;return e;};
+    if(work>0){v.append("いま ",mk(work+"人","")," が作業中です。");}
+    else{v.append("いま作業中のAIは ",mk("0人","w"),"。全員が任務を終え、次の指示を待っています。");}
+    document.getElementById("verdictSub").textContent=(lastAny?"最後に誰かが働いたのは "+rel(lastAny)+"（"+hhmm(lastAny)+"）。":"")+"AIは24時間ずっと動き続けるのではなく、仕事を渡されたときだけ動きます。待機中は費用がかかりません。";
   }
+  const chips=document.getElementById("chips");chips.textContent="";
+  const add=(c,t)=>{const s=document.createElement("span");s.className="chip";const i=document.createElement("i");i.style.background=c;s.append(i,document.createTextNode(t));chips.append(s);};
+  add("#3ee08f","作業中 "+work);add("#ffb547","返事待ち "+wait);add("#7c8aa8","待機 "+idle);add("#7aa2ff","累計使用量 $"+total.toFixed(2));
+  // triggers
+  if(T.hb){document.getElementById("hbLast").textContent=(T.hb.last?hhmm(T.hb.last)+"（"+rel(T.hb.last)+"）":"—")+(T.hb.ok===false?" ⚠ 失敗":T.hb.ok?" ✓ 成功":"");document.getElementById("hbNext").textContent=hhmm(T.hb.next);}
+  if(T.nb){document.getElementById("nbLast").textContent=(T.nb.last?hhmm(T.nb.last):"—")+(T.nb.ok?" ✓ 成功":"")+" ／ 次回 "+hhmm(T.nb.next);}
+  const src=document.getElementById("src");src.textContent="";
+  const b=document.createElement("b");
+  if(mode==="live"){b.textContent="実測";src.append("データ：",b," Claude Code の作業記録から1分ごとに取得");}
+  else if(mode==="report"){b.className="rep";b.textContent="報告値";src.append("データ：",b," ピーターが巡回時に書いた値（実測に接続できないため）");}
+  else src.textContent="データ：接続中…";
 }
-cv.addEventListener("click",ev=>{
-  const r=cv.getBoundingClientRect(),x=(ev.clientX-r.left)/r.width*W,y=(ev.clientY-r.top)/r.height*H;
-  let best=null,bd=14;for(const s of sprites){if(s.isCrew)continue;const d=Math.hypot(s.x-x,s.y-6-y);if(d<bd){bd=d;best=s.def.id;}}
-  selected=best;renderRoster();
-  if(best){const c=document.getElementById("card-"+best);if(c)c.scrollIntoView({block:"nearest",behavior:"smooth"});}
-});
+setInterval(render,30000);
 
-renderPulse();renderRoster();renderLog();
-requestAnimationFrame(frame);
-setInterval(()=>{renderPulse();renderRoster();},30000);
-
-// ---------- Connect to the shared store ----------
+// ---------- live data: Claude Code Remote ----------
 (async()=>{
-  let db=null;
-  try{db=window.claude&&window.claude.use?await window.claude.use("db"):null;}catch(e){db=null;}
-  if(!db){dbState="none";renderPulse();renderRoster();renderLog();return;}
-  dbState="live";
-  db.collection("agents").onSnapshot(snap=>{const m={};for(const d of snap.docs){const v=d.data();if(v)m[d.id]=v;}agents=m;syncCrew();renderRoster();},()=>{});
-  db.doc("hq/heartbeat").onSnapshot(s=>{heartbeat=s.exists?s.data():null;renderPulse();},()=>{});
-  db.doc("hq/log").onSnapshot(s=>{const v=s.exists?s.data():null;logEntries=v&&Array.isArray(v.entries)?v.entries:[];renderLog();},()=>{});
-  renderPulse();renderRoster();renderLog();
+  let mcp=null;try{mcp=window.claude&&window.claude.use?await window.claude.use("mcp"):null;}catch(e){mcp=null;}
+  let gotLive=false;
+  if(mcp){
+    for(const a of AG){if(!a.sid)continue;
+      mcp.watchTool(SERVER,"get_session",{session_id:a.sid},ev=>{
+        if(ev.type==="data"){const s=fromSession(parse(ev.result.payload!==undefined?ev.result.payload:(ev.result.content&&ev.result.content[0]&&ev.result.content[0].text)));if(s){S[a.id]=s;gotLive=true;mode="live";render();}}
+        else if(ev.error&&["needs_reauth","server_not_connected","not_in_manifest","blocked_by_policy","approval_required"].includes(ev.error.code)){if(S[a.id].src==="live"){S[a.id]={state:"none",src:"none"};}render();}
+      },{refetchInterval:60000});
+    }
+    for(const k of ["hb","nb"]){
+      mcp.watchTool(SERVER,"get_trigger",{trigger_id:TRIG[k]},ev=>{
+        if(ev.type==="data"){const p=parse(ev.result.payload!==undefined?ev.result.payload:(ev.result.content&&ev.result.content[0]&&ev.result.content[0].text));const tr=p&&(p.trigger||p);if(tr){const lr=tr.last_run||{};T[k]={last:lr.fired_at||tr.last_fired_at,next:tr.next_run_at,ok:lr.status?/SUCCEEDED/.test(lr.status):null};render();}}
+        else{const e=document.getElementById("trigErr");e.hidden=false;e.textContent="巡回の記録を読めませんでした（"+(ev.error&&ev.error.code||"不明")+"）。claude.ai の設定 → コネクタで Claude Code Remote を確認してください。";}
+      },{refetchInterval:120000});
+    }
+  }
+  // fallback: Peter's self-reported values in the page database
+  setTimeout(async()=>{
+    if(gotLive)return;
+    let db=null;try{db=window.claude&&window.claude.use?await window.claude.use("db"):null;}catch(e){db=null;}
+    if(!db){if(mode==="connecting"){mode="report";render();}return;}
+    const map={working:"working",research:"working",meeting:"working",waiting:"blocked",blocked:"blocked",done:"idle",offline:"sleep"};
+    db.collection("agents").onSnapshot(snap=>{if(gotLive)return;for(const d of snap.docs){const v=d.data();if(!v||!S[d.id]||AG.find(a=>a.id===d.id).retired)continue;S[d.id]={state:map[v.status]||"idle",src:"report",updatedAt:v.updatedAt,recent:v.task||""};}mode="report";render();},()=>{});
+    db.doc("hq/heartbeat").onSnapshot(s=>{if(gotLive||!s.exists)return;const v=s.data();T.hb={last:v.at,next:v.nextAt,ok:null};render();},()=>{});
+  },9000);
 })();
+
+// ---------- approvals inbox + projects (page database) ----------
+let APPROVALS=[],PROJECTS=[],dbRef=null,canWrite=true;
+const COLOR={P0:"#ffd166",P1:"#ff7a45",P2:"#39c6f0",P3:"#ff5fa2",P4:"#5ee08a",P5:"#8c7bff",HQ:"#f5b942"};
+const STATUS_LABEL={approved:"承認済み",declined:"却下",done:"対応済み",later:"あとで",decided:"ピーターが決定"};
+function el(tag,cls,text){const e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e;}
+function renderInbox(){
+  const open=document.getElementById("approvals"),done=document.getElementById("approvalsDone");open.textContent="";done.textContent="";
+  const pend=APPROVALS.filter(a=>a.status==="pending"||a.status==="later").sort((a,b)=>(a.order||99)-(b.order||99));
+  const rest=APPROVALS.filter(a=>!(a.status==="pending"||a.status==="later")).sort((a,b)=>String(b.decidedAt||"").localeCompare(String(a.decidedAt||"")));
+  document.getElementById("inboxCount").textContent=dbRef?("確認待ち "+pend.length+"件"):"データに接続できません";
+  if(!pend.length){open.append(el("p","note",dbRef?"今は確認待ちはありません。":"読み込み中…"));}
+  for(const a of pend){
+    const c=el("article","ap");
+    const top=el("div","top");top.append(el("span","tt",a.title),el("span","pj",(a.project||"")+(a.status==="later"?" · あとで":"")));
+    c.append(top);
+    if(a.detail)c.append(el("div","dt",a.detail));
+    if(a.recommend)c.append(el("div","rec","ピーターの推奨："+a.recommend));
+    const ta=document.createElement("textarea");ta.id="note-"+a._id;ta.placeholder="ひとこと（任意）：例「ドメインは ○○ で」";ta.value=a.note||"";ta.setAttribute("aria-label",a.title+" へのメモ");
+    c.append(ta);
+    const btns=el("div","btns");
+    const opts=a.kind==="task"?[["done","やった","yes"],["later","あとで",""]]:[["approved","承認","yes"],["declined","却下","no"],["later","あとで",""]];
+    for(const [val,label,cls] of opts){const b=el("button",cls,label);b.type="button";b.disabled=!canWrite;b.addEventListener("click",()=>decide(a,val,ta.value,b));btns.append(b);}
+    c.append(btns);
+    const res=el("div","res");res.id="res-"+a._id;c.append(res);
+    open.append(c);
+  }
+  for(const a of rest){
+    const c=el("article","ap "+(a.status==="declined"?"no":"done"));
+    const top=el("div","top");top.append(el("span","tt",a.title),el("span","pj",(a.project||"")+" · "+(STATUS_LABEL[a.status]||a.status)));
+    c.append(top);
+    if(a.detail)c.append(el("div","dt",a.detail));
+    if(a.note)c.append(el("div","rec","メモ："+a.note));
+    if(a.result)c.append(el("div","res","結果："+a.result));
+    done.append(c);
+  }
+}
+async function decide(a,val,note,btn){
+  if(!dbRef)return;
+  const res=document.getElementById("res-"+a._id);
+  btn.disabled=true;
+  try{await dbRef.doc("approvals/"+a._id).update({status:val,note:note||"",decidedAt:new Date().toISOString(),seenByPeter:false});
+    if(res)res.textContent="送信しました。次の巡回でピーターが対応します。";}
+  catch(e){btn.disabled=false;if(res){res.style.color="var(--wait)";res.textContent=e&&e.code==="invalid_argument"?"この画面からは書き込めない権限です。":"送信できませんでした。もう一度押してください。";}}
+}
+function renderProjects(){
+  const g=document.getElementById("projects");g.textContent="";
+  if(!PROJECTS.length){g.append(el("p","note",dbRef?"プロジェクト情報はまだありません。":"読み込み中…"));return;}
+  for(const p of PROJECTS.slice().sort((a,b)=>(a.order||99)-(b.order||99))){
+    const c=el("article","pj-card");
+    const h=el("div","h");const i=el("i");i.style.background=COLOR[p.code]||"#888";h.append(i,el("b",null,p.name),el("span","code",p.code));c.append(h);
+    if(p.oneLine)c.append(el("div","one",p.oneLine));
+    if(p.stage)c.append(el("div","stage2",p.stage));
+    const ul=el("ul");
+    for(const d of (p.deliverables||[])){const li=el("li");if(d.url){const a=el("a",null,d.label);a.href=d.url;a.target="_blank";a.rel="noopener";li.append(a);}else li.textContent=d.label;ul.append(li);}
+    if(ul.children.length)c.append(ul);
+    if(p.next)c.append(el("div","nx","次："+p.next));
+    g.append(c);
+  }
+}
+(async()=>{
+  try{dbRef=window.claude&&window.claude.use?await window.claude.use("db"):null;}catch(e){dbRef=null;}
+  if(!dbRef){renderInbox();renderProjects();return;}
+  try{const u=window.claude.use?await window.claude.use("user"):null;if(u&&u.can){const c=await u.can("data.write");if(c===false)canWrite=false;}}catch(e){}
+  dbRef.collection("approvals").onSnapshot(snap=>{APPROVALS=snap.docs.map(d=>Object.assign({_id:d.id},d.data()));renderInbox();},()=>{});
+  dbRef.collection("projects").onSnapshot(snap=>{PROJECTS=snap.docs.map(d=>Object.assign({_id:d.id},d.data()));renderProjects();},()=>{});
+})();
+renderInbox();renderProjects();
+
+render();requestAnimationFrame(frame);
 })();
 </script>

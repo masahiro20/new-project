@@ -1,5 +1,18 @@
 # リーダーセッション台帳
 
+## デモ・スプリント（2026-10-08 22:48 JST〜）
+各チームはサブエージェントで並列チームを組み、オーナーが触れる非公開デモを作る。
+| プロジェクト | リーダー | セッションID | 作業ブランチ | 任務 |
+|---|---|---|---|---|
+| P0 減算ゼロ | Mina | session_019QzkHuvo1SuxAPiKCHkDhu | peter/p0-genzan-zero | 解説ページ11本＋書類サンプル |
+| P1 Yuragi | Forge | session_01UxC1ZasACaQ4epeoSQvkGr | peter/p1-skillforge | ブラウザで試せるデモ |
+| P2 Signal Lab | Vega | session_015XigFVCQSSHY1yMdRTDpZK | peter/p2-signal-lab | Budget Guard 体験デモ＋Model Switch Calculator |
+| P3 Pitch | Kana | session_019Z6KhuwmBpJjCfHnF3YVMF | peter/p3-pitch | 録音ファイルで試せるデモ |
+| P4 Collector Lens | Ren | session_01C7QqXQZ6ibhgnM1DXANYZi | peter/p4-collector-lens | 出品文を貼って試せるデモ |
+| P5 Atlas | Atlas | session_01HsRA6TcDdEV3mNchxr2yLP | peter/p5-atlas | Allowlist Builder デモ |
+
+心拍は1時間ごと（毎時49分）に変更。承認ボックスは仮想オフィスの db（approvals）。
+
 ## ステージ2（2026-10-08 心拍 #2 から）
 | プロジェクト | リーダー | セッションID | 作業ブランチ | 任務 |
 |---|---|---|---|---|
