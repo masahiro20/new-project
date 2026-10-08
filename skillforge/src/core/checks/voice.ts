@@ -4,12 +4,15 @@ import type { Finding, Glossary, ReviewPacket, Row, Side, Table, UsageSummary, V
 
 // ---------- honorifics ----------
 
-const JA_HONORIFICS = ["様", "さま", "さん", "くん", "君", "ちゃん", "先輩", "せんぱい", "殿", "先生", "氏", "たん"];
+// Longer forms first so 殿下 (a title, not a suffix to romanize) wins over 殿.
+const JA_HONORIFICS = ["殿下", "陛下", "様", "さま", "さん", "くん", "君", "ちゃん", "先輩", "せんぱい", "殿", "先生", "氏", "たん"];
 const SUFFIX_FOR: Record<string, string> = {
   様: "-sama", さま: "-sama", さん: "-san", くん: "-kun", 君: "-kun", ちゃん: "-chan",
   先輩: "-senpai", せんぱい: "-senpai", 殿: "-dono", 先生: "-sensei", たん: "-tan",
 };
-const EN_TITLES = "Lady|Lord|Sir|Dame|Miss|Mr\\.?|Mrs\\.?|Ms\\.?|Master|Mistress|Princess|Prince|Captain|Professor|Doctor|Dr\\.?|Sister|Brother|Father|Mother|Senpai";
+const EN_TITLE_WORDS = ["Lady", "Lord", "Sir", "Dame", "Miss", "Mr\\.?", "Mrs\\.?", "Ms\\.?", "Master", "Mistress", "Princess", "Prince", "Captain", "Professor", "Doctor", "Dr\\.?", "Sister", "Brother", "Father", "Mother", "Senpai"];
+// Titles match in either case ("my lady Lisette"); the name itself is case-sensitive.
+const EN_TITLES = EN_TITLE_WORDS.map((w) => `[${w[0]}${w[0]!.toLowerCase()}]${w.slice(1)}`).join("|");
 const EN_SUFFIX = "-(?:sama|san|kun|chan|senpai|sempai|sensei|dono|tan)";
 
 const speakerKey = (g: Glossary, r: Row) => findCharacter(g, r.speaker)?.id ?? r.speaker ?? "(no speaker)";
@@ -17,8 +20,11 @@ const speakerKey = (g: Glossary, r: Row) => findCharacter(g, r.speaker)?.id ?? r
 /** How a character's name is dressed in English, e.g. "Lady {name}", "{name}-sama", "{name}". */
 function enRendering(en: string, names: string[]): string | undefined {
   for (const n of names) {
-    const m = new RegExp(`(?:\\b(${EN_TITLES})\\s+)?\\b${escapeRegExp(n)}(${EN_SUFFIX})?(?![A-Za-z])`, "i").exec(en);
-    if (m) return `${m[1] ? `${m[1]} ` : ""}{name}${m[2] ? m[2].toLowerCase() : ""}`;
+    const m = new RegExp(`(?:\\b(${EN_TITLES})\\s+)?\\b${escapeRegExp(n)}(${EN_SUFFIX})?(?![A-Za-z])`).exec(en);
+    if (m) {
+      const title = m[1] ? m[1][0]!.toUpperCase() + m[1].slice(1) : "";
+      return `${title ? `${title} ` : ""}{name}${m[2] ? m[2].toLowerCase() : ""}`;
+    }
   }
   return undefined;
 }
@@ -30,6 +36,10 @@ export function checkHonorifics(tables: Table[], g: Glossary): { findings: Findi
   const hits: Hit[] = [];
   const policy = g.honorificPolicy;
 
+  const nameRes = g.characters.map((c) => {
+    const jaNames = [c.ja, ...(c.aliases?.ja ?? [])].sort((a, b) => b.length - a.length);
+    return { c, re: new RegExp(`(${jaNames.map(escapeRegExp).join("|")})(${JA_HONORIFICS.map(escapeRegExp).join("|")})?`) };
+  });
   for (const t of tables) {
     if (t.sourceLang === t.targetLang) continue;
     const jaSide: Side = t.sourceLang === "ja" ? "source" : "target";
@@ -38,9 +48,7 @@ export function checkHonorifics(tables: Table[], g: Glossary): { findings: Findi
       if (!row.target.trim()) continue;
       const ja = visibleText(row[jaSide]);
       const en = visibleText(row[enSide]);
-      for (const c of g.characters) {
-        const jaNames = [c.ja, ...(c.aliases?.ja ?? [])].sort((a, b) => b.length - a.length);
-        const re = new RegExp(`(${jaNames.map(escapeRegExp).join("|")})(${JA_HONORIFICS.map(escapeRegExp).join("|")})?`);
+      for (const { c, re } of nameRes) {
         const m = re.exec(ja);
         if (!m) continue;
         const jaHon = m[2] ?? "(呼び捨て)";
@@ -110,13 +118,18 @@ export function checkHonorifics(tables: Table[], g: Glossary): { findings: Findi
 
 // ---------- voice (first-person pronoun, politeness, contractions) ----------
 
-const KANJI_PRONOUN = /(?<![一-鿿])(私|僕|俺|儂|拙者|我輩|吾輩)(?=[はがのをにもとだっ、。！？…!?\s」』]|たち|ら|$)/g;
-const KANA_PRONOUN = /(?<![ぁ-ゖ])(わたくし|わたし|あたし|あたい|ぼく|おれ|わし|オレ|ボク|ワタシ)(?=[はがのをにもとだっ、。！？…!?\s」』]|たち|ら|$)/g;
-const POLITE = /(です|ます|でした|ました|ません|ましょう|ください|でしょう|ございま)/;
+const AFTER = "(?=[はがのをにもとだっ、。！？…!?\\s」』]|たち|達|ら|$)";
+const KANJI_PRONOUN = new RegExp(`(?<![\\u4e00-\\u9fff])(私|僕|俺|儂|拙者|我輩|吾輩|妾|某)${AFTER}`, "g");
+// Multi-mora kana pronouns may follow a particle (だからぼくは); short/ambiguous ones (わし, うち) must not follow kana (こわし, まわし).
+const KANA_PRONOUN = new RegExp(
+  `(?:(?<![ぁ-ゖ])|(?<=[をはがにもとらてでどねよさ]))(わたくし|わたし|あたし|あたい|ぼく|おれ|わらわ|それがし|オレ|ボク|ワタシ|ウチ)${AFTER}|(?<![ぁ-ゖ])(わし|うち)(?=[はがもの、]|ら)`,
+  "g",
+);
+const POLITE = /(です|(?<!ます)ます(?!ます)|でした|ました|ません|ましょう|ください|でしょう|ございま)/;
 const PLAIN_END = /(だ|だろ|だろう|じゃねえ|じゃない|ぞ|ぜ|んだ|かよ|ねえか|よな|よ|ね|わ|な|か|かい|だい|さ|ろ|しろ|てやる|てろ)[。、！？!?…」』\s]*$/;
 
 export function firstPersonPronouns(ja: string): string[] {
-  return [...new Set([...ja.matchAll(KANJI_PRONOUN), ...ja.matchAll(KANA_PRONOUN)].map((m) => m[1]!))];
+  return [...new Set([...ja.matchAll(KANJI_PRONOUN), ...ja.matchAll(KANA_PRONOUN)].map((m) => (m[1] ?? m[2])!))];
 }
 
 export function politeness(ja: string): "polite" | "plain" | undefined {
@@ -194,7 +207,7 @@ export function checkVoice(tables: Table[], g: Glossary, minLines = 3): { findin
           if (p === want) continue;
           flag(
             {
-              category: "voice", severity: expected === "polite" ? "warning" : "info", rule: "voice.politeness", group: name,
+              category: "voice", severity: expected ? "warning" : "info", rule: "voice.politeness", group: name,
               file: l.row.file, line: l.row.line, id: l.row.id, side: l.jaSide!,
               message: expected
                 ? `${name} is written ${expected} but this line is ${p}.`

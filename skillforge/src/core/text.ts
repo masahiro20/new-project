@@ -22,14 +22,28 @@ export function ref(row: Row): string {
   return `${row.file}:${row.line}`;
 }
 
-/** Remove markup (tags, ruby, placeholders) so text checks and length counts see only visible text. */
+/** Placeholder syntaxes: {0} {name}, printf (%s %5d %.2f %1$s), ${var}, [PLAYER], Ren'Py [player_name]. */
+export const PLACEHOLDER = /\{[A-Za-z0-9_.$:]*\}|%(?:\d+\$)?[-+ 0#]*\d*(?:\.\d+)?[sdifxXu@]|\$\{[^}]+\}|\[[A-Z][A-Z0-9_]+\]|\[[a-z_][a-z0-9_.]*\]/g;
+
+const visibleCache = new Map<string, string>();
+
+/** Remove markup (tags, ruby, placeholders) so text checks and length counts see only visible text. Memoized. */
 export function visibleText(s: string): string {
+  const hit = visibleCache.get(s);
+  if (hit !== undefined) return hit;
+  const v = stripMarkup(s);
+  if (visibleCache.size > 200_000) visibleCache.clear();
+  visibleCache.set(s, v);
+  return v;
+}
+
+function stripMarkup(s: string): string {
   return s
     .replace(/<rt>.*?<\/rt>/g, "")
     .replace(/<\/?[A-Za-z][^<>]*>/g, "")
     .replace(/\{([^{}|]+)\|[^{}]+\}/g, "$1")
     .replace(/[|｜]([^《|｜]+)《[^》]+》/g, "$1")
-    .replace(/\{[A-Za-z0-9_.$]*\}|%(\d+\$)?[sdif]|\$\{[^}]+\}/g, "");
+    .replace(PLACEHOLDER, "");
 }
 
 /**
@@ -68,14 +82,33 @@ export function escapeRegExp(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-/** English phrase matcher: case-insensitive, whole words, tolerant of plural -s/-es and possessive 's. */
-export function enPhraseRegex(phrase: string): RegExp {
-  return new RegExp(`(?<![A-Za-z])${escapeRegExp(phrase)}(?:e?s)?(?:['’]s)?(?![A-Za-z])`, "i");
+const phraseCache = new Map<string, RegExp>();
+
+/**
+ * English phrase matcher: whole words, any whitespace (incl. line breaks / NBSP) between words,
+ * tolerant of plurals (-s/-es, -y→-ies, -f/-fe→-ves) and possessive 's. Terms match case-insensitively;
+ * character names are case-sensitive so "Will" does not match "will". Compiled regexes are cached.
+ */
+export function enPhraseRegex(phrase: string, caseSensitive = false): RegExp {
+  const key = `${caseSensitive ? 1 : 0}\u0000${phrase}`;
+  let re = phraseCache.get(key);
+  if (!re) {
+    const words = phrase.trim().split(/\s+/).map(escapeRegExp);
+    const last = words.pop()!;
+    const tail = /y$/i.test(last) && !/[aeiou]y$/i.test(last)
+      ? `${last.slice(0, -1)}(?:y|ies)`
+      : /fe?$/i.test(last)
+        ? `${last.replace(/fe?$/i, "")}(?:fe?s?|ves)`
+        : `${last}(?:e?s)?`;
+    re = new RegExp(`(?<![A-Za-z])${[...words, tail].join("[\\s\\u00a0]+")}(?:['’]s)?(?![A-Za-z])`, caseSensitive ? "" : "i");
+    phraseCache.set(key, re);
+  }
+  return re;
 }
 
-export function containsPhrase(text: string, phrase: string, lang: Lang): boolean {
+export function containsPhrase(text: string, phrase: string, lang: Lang, caseSensitive = false): boolean {
   if (!phrase) return false;
-  return lang === "ja" ? text.includes(phrase) : enPhraseRegex(phrase).test(text);
+  return lang === "ja" ? text.includes(phrase) : enPhraseRegex(phrase, caseSensitive).test(text);
 }
 
 export function countBy<T>(items: T[], key: (t: T) => string): Map<string, T[]> {

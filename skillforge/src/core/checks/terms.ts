@@ -1,4 +1,4 @@
-import { containsPhrase, countBy, KATAKANA_RUN, katakanaKey, ref, textOf, visibleText } from "../text.js";
+import { containsPhrase, countBy, KATAKANA_RUN, katakanaKey, looksJapanese, ref, textOf, visibleText } from "../text.js";
 import type { Finding, Glossary, ReviewPacket, Side, Table, UsageSummary } from "../types.js";
 
 /**
@@ -13,6 +13,8 @@ export function checkTerms(tables: Table[], g: Glossary): { findings: Finding[];
     const counts: Record<string, number> = {};
     const approved = [term.target, ...(term.allowed ?? [])];
     for (const t of tables) {
+      // A JA→EN glossary says nothing about an EN→JA table (and vice versa); see glossaryDirection().
+      if (looksJapanese(term.source) !== (t.sourceLang === "ja")) continue;
       for (const row of t.rows) {
         if (!row.target.trim()) continue;
         const src = visibleText(row.source);
@@ -52,6 +54,19 @@ export function checkTerms(tables: Table[], g: Glossary): { findings: Finding[];
     if (Object.keys(counts).length) usage.push({ category: "term", group, counts });
   }
   return { findings, usage };
+}
+
+/** Warn once per table whose direction does not match the glossary terms, so silence is never mistaken for a pass. */
+export function glossaryDirection(tables: Table[], g: Glossary): Finding[] {
+  if (!g.terms.length) return [];
+  const glossaryJa = g.terms.filter((t) => looksJapanese(t.source)).length >= g.terms.length / 2;
+  return tables
+    .filter((t) => glossaryJa !== (t.sourceLang === "ja"))
+    .map((t) => ({
+      category: "term" as const, severity: "warning" as const, rule: "term.direction",
+      file: t.file, line: 1, id: "-", side: "source" as const, group: "glossary direction",
+      message: `This table is ${t.sourceLang}→${t.targetLang} but the glossary terms are ${glossaryJa ? "ja→en" : "en→ja"}; term checks were skipped for it. Check the column order or use a matching glossary.`,
+    }));
 }
 
 /**

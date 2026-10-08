@@ -24,7 +24,7 @@ export function parseCsvRecords(text: string, delimiter = ","): { line: number; 
           }
           inQuotes = false;
         } else {
-          if (ch === "\n") line++;
+          if (ch === "\n" || (ch === "\r" && text[i + 1] !== "\n")) line++;
           cell += ch;
         }
         i++;
@@ -45,6 +45,7 @@ export function parseCsvRecords(text: string, delimiter = ","): { line: number; 
         i++;
       }
     }
+    if (inQuotes) throw new Error(`Unterminated quoted field starting on line ${startLine}`);
     cells.push(cell);
     if (cells.length > 1 || cells[0] !== "") out.push({ line: startLine, cells });
   }

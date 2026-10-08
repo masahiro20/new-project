@@ -47,7 +47,7 @@ docs/lp.md        landing-page copy draft (NOT published)
 ```bash
 cd skillforge
 npm install
-npm test                       # 22 tests: parsers, checks, MCP end-to-end
+npm test                       # 38 tests: parsers, checks, review regressions, MCP end-to-end
 npm run check:sample           # CLI report for samples/ja-en
 npx tsx src/cli/index.ts check samples/en-ja/ui.xlf --glossary samples/en-ja/glossary.json
 

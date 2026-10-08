@@ -32,7 +32,7 @@ export function checkNames(tables: Table[], g: Glossary): { findings: Finding[];
         if (!row.target.trim()) continue;
         const ja = visibleText(row[jaSide]);
         const en = visibleText(row[enSide]);
-        const forbidden = (c.forbidden?.en ?? []).find((f) => containsPhrase(en, f, "en"));
+        const forbidden = (c.forbidden?.en ?? []).find((f) => containsPhrase(en, f, "en", true));
         const forbiddenJa = (c.forbidden?.ja ?? []).find((f) => ja.includes(f));
         if (forbidden) {
           counts[forbidden] = (counts[forbidden] ?? 0) + 1;
@@ -52,7 +52,7 @@ export function checkNames(tables: Table[], g: Glossary): { findings: Finding[];
           });
         }
         if (jaNames(c).some((n) => ja.includes(n))) {
-          const hit = enNames(c).find((n) => containsPhrase(en, n, "en"));
+          const hit = enNames(c).find((n) => containsPhrase(en, n, "en", true));
           if (hit) counts[hit] = (counts[hit] ?? 0) + 1;
           else if (!forbidden) {
             counts["(not rendered)"] = (counts["(not rendered)"] ?? 0) + 1;
@@ -71,6 +71,12 @@ export function checkNames(tables: Table[], g: Glossary): { findings: Finding[];
 
   // Near-miss spellings of English names (Lizette for Lisette) that are not in any list.
   const forbiddenAll = new Set(g.characters.flatMap((c) => (c.forbidden?.en ?? []).map((f) => f.toLowerCase())));
+  // Words seen in lowercase anywhere in the English text are ordinary words ("Rain", "Main"), not names.
+  const lowercaseWords = new Set<string>();
+  for (const t of tables) {
+    const enSide = t.targetLang === "en" ? "target" : t.sourceLang === "en" ? "source" : undefined;
+    if (enSide) for (const row of t.rows) for (const m of visibleText(row[enSide]).matchAll(/\b[a-z]+\b/g)) lowercaseWords.add(m[0]);
+  }
   for (const t of tables) {
     const enSide = t.targetLang === "en" ? "target" : t.sourceLang === "en" ? "source" : undefined;
     if (!enSide) continue;
@@ -79,13 +85,13 @@ export function checkNames(tables: Table[], g: Glossary): { findings: Finding[];
       for (const m of visibleText(row[enSide]).matchAll(/\b[A-Z][a-z]+(?:-[a-z]+)?\b/g)) {
         const token = m[0].replace(HONORIFIC_SUFFIX, "");
         const lower = token.toLowerCase();
-        if (seen.has(lower) || known.has(lower) || forbiddenAll.has(lower)) continue;
+        if (seen.has(lower) || known.has(lower) || forbiddenAll.has(lower) || lowercaseWords.has(lower)) continue;
         seen.add(lower);
         for (const c of g.characters) {
           const close = enNames(c).find((n) => {
             if (n.length < 4 || /\s/.test(n)) return false;
             const d = damerauLevenshtein(lower, n.toLowerCase());
-            return d === 1 || (d === 2 && n.length >= 7 && lower[0] === n[0]!.toLowerCase());
+            return lower[0] === n[0]!.toLowerCase() && (d === 1 || (d === 2 && n.length >= 7));
           });
           if (close) {
             findings.push({

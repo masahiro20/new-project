@@ -1,7 +1,7 @@
 import { checkHonorifics, checkVoice } from "./checks/voice.js";
 import { checkNames } from "./checks/names.js";
 import { checkRules } from "./checks/rules.js";
-import { checkNotation, checkTerms, unglossariedTermPackets } from "./checks/terms.js";
+import { checkNotation, checkTerms, glossaryDirection, unglossariedTermPackets } from "./checks/terms.js";
 import { EMPTY_GLOSSARY } from "./glossary.js";
 import type { Category, CheckOptions, CheckResult, Finding, Glossary, Severity, Table } from "./types.js";
 
@@ -16,7 +16,7 @@ export function runChecks(tables: Table[], glossary: Glossary = EMPTY_GLOSSARY, 
   const voice = checkVoice(tables, glossary, opts.minLinesForVoice ?? 3);
   const rules = opts.rules === false ? [] : checkRules(tables, { wideAsTwo: opts.wideAsTwo });
 
-  const findings: Finding[] = [...terms.findings, ...notation.findings, ...names.findings, ...honorifics.findings, ...voice.findings, ...rules];
+  const findings: Finding[] = [...glossaryDirection(tables, glossary), ...terms.findings, ...notation.findings, ...names.findings, ...honorifics.findings, ...voice.findings, ...rules];
   findings.sort(
     (a, b) =>
       CATEGORY_ORDER.indexOf(a.category) - CATEGORY_ORDER.indexOf(b.category) ||

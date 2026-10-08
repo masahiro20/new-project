@@ -25,8 +25,11 @@ const unescapeXml = (s: string) =>
 
 /** Inner XML of the first <name>…</name>; inline XLIFF tags (<x/>, <g>, <ph>, <pc>) are kept as-is for tag checks. */
 const inner = (block: string, name: string): string | undefined => {
-  const m = new RegExp(`<${name}(?:\\s[^>]*)?>([\\s\\S]*?)</${name}>`).exec(block);
-  return m ? unescapeXml(m[1]!) : undefined;
+  const ms = [...block.matchAll(new RegExp(`<${name}(?:\\s[^>]*)?>([\\s\\S]*?)</${name}>`, "g"))];
+  if (!ms.length) return undefined;
+  // Native-code containers (<bpt>&lt;b&gt;</bpt>) become empty inline markers so escaped app tags don't look like real tags.
+  // XLIFF 2.0 units can hold several <segment>s; their texts are joined.
+  return ms.map((m) => unescapeXml(m[1]!.replace(/<(bpt|ept|ph|it)(\s[^>]*)?>[\s\S]*?<\/\1>/g, "<$1$2/>"))).join("");
 };
 
 const toLang = (code?: string): Lang | undefined => {

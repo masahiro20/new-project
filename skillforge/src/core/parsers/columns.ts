@@ -12,10 +12,10 @@ export interface ColumnMap {
 }
 
 const ALIASES: Record<keyof ColumnMap, string[]> = {
-  id: ["id", "key", "string_id", "stringid", "label", "名前", "キー"],
+  id: ["id", "key", "string_id", "stringid", "label", "キー"],
   source: ["source", "src", "original", "ja", "jp", "japanese", "ja-jp", "原文", "日本語"],
   target: ["target", "tgt", "translation", "en", "english", "en-us", "訳文", "翻訳", "英語"],
-  speaker: ["speaker", "character", "char", "name", "話者", "キャラ", "キャラクター"],
+  speaker: ["speaker", "character", "char", "name", "名前", "話者", "キャラ", "キャラクター"],
   addressee: ["addressee", "listener", "to", "相手"],
   context: ["context", "note", "notes", "comment", "comments", "備考"],
   maxLength: ["max_length", "maxlength", "max_len", "maxlen", "limit", "char_limit", "文字数", "文字数制限"],
@@ -33,6 +33,10 @@ export function resolveColumns(headers: string[], override: ColumnMap = {}): Req
   for (const key of Object.keys(ALIASES) as (keyof ColumnMap)[]) {
     const hit = override[key] ?? headers.find((h) => ALIASES[key].includes(norm(h)));
     if (hit) found[key] = hit;
+  }
+  // Language-named columns ("en","ja") say nothing about direction: the left one is the source.
+  if (found.source && found.target && !override.source && !override.target && LANG_HINT[norm(found.source)] && LANG_HINT[norm(found.target)] && headers.indexOf(found.target) < headers.indexOf(found.source)) {
+    [found.source, found.target] = [found.target, found.source];
   }
   if (!found.source || !found.target) {
     throw new Error(

@@ -1,11 +1,12 @@
-import { displayLength, visibleText } from "../text.js";
+import { displayLength, PLACEHOLDER, visibleText } from "../text.js";
 import type { Finding, Row, Side, Table } from "../types.js";
 
 // Bonus rule checks. Xbench/Verifika already cover this ground, so they are kept simple.
 
-const PLACEHOLDER = /\{[A-Za-z0-9_.$:]*\}|%(?:\d+\$)?[sdif@]|\$\{[^}]+\}|\[[A-Z][A-Z0-9_]{1,}\]/g;
 const TAG = /<(\/?)([A-Za-z][\w:-]*)[^<>]*?(\/?)>/g;
 const RUBY_TAGS = new Set(["ruby", "rt", "rp", "rb"]);
+/** Tags that never take a closing tag (HTML, Unity TextMeshPro). */
+const VOID_TAGS = new Set(["br", "sprite", "img", "hr", "space", "page", "pos", "voffset", "x", "ph", "bpt", "ept", "it"]);
 const RUBY_BRACE = /\{([^{}|]+)\|([^{}]+)\}/g;
 const RUBY_AOZORA = /[|｜]([^《|｜]+)《([^》]+)》/g;
 const KANA_ONLY = /^[ぁ-ゖァ-ヺー・\s]+$/;
@@ -34,7 +35,7 @@ function tags(s: string): { list: string[]; unbalanced: string[] } {
     const [, close, name, self] = m;
     if (RUBY_TAGS.has(name!.toLowerCase())) continue;
     list.push(close ? `</${name}>` : self ? `<${name}/>` : `<${name}>`);
-    if (self) continue;
+    if (self || VOID_TAGS.has(name!.toLowerCase())) continue;
     if (!close) stack.push(name!);
     else if (stack[stack.length - 1] === name) stack.pop();
     else unbalanced.push(`</${name}>`);
@@ -66,20 +67,22 @@ export function checkRules(tables: Table[], opts: { wideAsTwo?: boolean } = {}):
           message: [td.missing.length && `missing ${td.missing.join(" ")}`, td.extra.length && `unexpected ${td.extra.join(" ")}`].filter(Boolean).join("; "),
         });
       }
-      if (tt.unbalanced.length) {
-        out.push({ category: "tag", severity: "error", rule: "tag.unbalanced", ...base(row, "target"), message: `Unbalanced tags: ${tt.unbalanced.join(" ")}` });
+      // Only report imbalance the translation introduced (the source may intentionally span strings).
+      const newlyUnbalanced = diff(st.unbalanced, tt.unbalanced).extra;
+      if (newlyUnbalanced.length) {
+        out.push({ category: "tag", severity: "error", rule: "tag.unbalanced", ...base(row, "target"), message: `Unbalanced tags: ${newlyUnbalanced.join(" ")}` });
       }
 
       if (jaSide) {
         const ja = jaSide === "source" ? row.source : row.target;
-        for (const m of [...ja.matchAll(RUBY_BRACE), ...ja.matchAll(RUBY_AOZORA), ...ja.matchAll(/<ruby>(.*?)<rt>(.*?)<\/rt>\s*<\/ruby>/g)]) {
+        for (const m of [...ja.matchAll(RUBY_BRACE), ...ja.matchAll(RUBY_AOZORA), ...ja.matchAll(/<ruby(?:\s[^>]*)?>(.*?)(?:<rp>[^<]*<\/rp>)?<rt>(.*?)<\/rt>(?:<rp>[^<]*<\/rp>)?\s*<\/ruby>/g)]) {
           const reading = m[2]!.replace(/<[^>]+>/g, "");
           if (!KANA_ONLY.test(reading)) {
             out.push({ category: "ruby", severity: "warning", rule: "ruby.reading", ...base(row, jaSide), message: `Ruby reading "${reading}" for "${m[1]}" is not kana.` });
           }
         }
-        const opens = (ja.match(/<ruby>/g) ?? []).length;
-        if (opens !== (ja.match(/<\/ruby>/g) ?? []).length || opens !== (ja.match(/<rt>/g) ?? []).length) {
+        const opens = (ja.match(/<ruby(?:\s[^>]*)?>/g) ?? []).length;
+        if (opens !== (ja.match(/<\/ruby>/g) ?? []).length || opens !== (ja.match(/<rt(?:\s[^>]*)?>/g) ?? []).length) {
           out.push({ category: "ruby", severity: "error", rule: "ruby.malformed", ...base(row, jaSide), message: "Malformed <ruby>/<rt> markup." });
         }
         const enSide: Side = jaSide === "source" ? "target" : "source";
