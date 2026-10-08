@@ -1,0 +1,101 @@
+repo,kind,files,live_findings,suppressed,src_skill_high_critical,security_score,badges
+https://github.com/invariantlabs-ai/mcp-injection-experiments,control-positive,4,14,1,10,0,reads-credential-paths shell-exec
+https://github.com/modelcontextprotocol/servers,reference,159,5,1,1,80,
+https://github.com/anthropics/skills,skills,441,80,4,0,96,contains-code shell-exec
+https://github.com/anthropics/claude-plugins-official,plugins,553,40,31,0,82,contains-code hooks
+https://github.com/obra/superpowers,skills,229,12,5,0,100,contains-code dynamic-code hooks shell-exec
+https://github.com/wshobson/agents,plugins,1150,12,4,0,99,binds-all-interfaces contains-code hooks
+https://github.com/ComposioHQ/awesome-claude-skills,skills,1142,66,1,0,100,contains-code shell-exec
+https://github.com/wonderwhy-er/DesktopCommanderMCP,mcp,332,55,37,2,53,shell-exec
+https://github.com/github/github-mcp-server,mcp,659,4,1,0,94,binds-all-interfaces
+https://github.com/microsoft/playwright-mcp,mcp,39,6,3,0,100,shell-exec
+https://github.com/upstash/context7,mcp,509,2,0,0,100,shell-exec
+https://github.com/cisco-ai-defense/mcp-scanner,scanner-expected-fp,462,195,145,3,0,binds-all-interfaces dynamic-code reads-credential-paths shell-exec
+https://github.com/snyk/agent-scan,scanner-expected-fp,433,100,22,2,61,contains-code reads-credential-paths shell-exec
+https://github.com/DataDog/guarddog,scanner-expected-fp,322,133,93,0,57,dynamic-code external-messaging reads-credential-paths shell-exec
+https://github.com/punkpeye/awesome-mcp-servers,awesome-list,12,0,0,0,100,
+https://github.com/geelen/mcp-remote,mcp,60,1,0,0,100,
+https://github.com/modelcontextprotocol/inspector,mcp,1649,20,24,1,75,binds-all-interfaces shell-exec
+https://github.com/anthropics/claude-code,plugins,1527,25,37,0,69,contains-code hooks reads-credential-paths
+https://github.com/frod27/overwing-mcp,registry-sample,18,0,0,0,100,
+https://github.com/CommonNinja/sendraven-mcp-server,registry-sample,27,0,0,0,100,
+https://github.com/papyruslabs-ai/seshat-mcp,registry-sample,9,2,1,0,100,shell-exec
+https://github.com/agenttrust/mcp-server,registry-sample,10,0,0,0,100,
+https://github.com/flowdot-llc/mcp-server,registry-sample,243,11,9,0,100,shell-exec
+https://github.com/Luvi-io/luw-mcp,registry-sample,44,1,0,0,100,reads-credential-paths
+https://github.com/clawfetch/clawfetch-mcp,registry-sample,28,0,0,0,100,
+https://github.com/hivemindunit/llmintel-mcp,registry-sample,20,0,0,0,100,
+https://github.com/cooldk/clize-cli,registry-sample,13,0,0,0,100,
+https://github.com/RoscoNL/intodns-mcp-server,registry-sample,24,1,0,0,100,
+https://github.com/fortisil/gateco-sdk-python,registry-sample,89,0,0,0,100,
+https://github.com/makeaivideo-ai/mcp,registry-sample,16,0,0,0,100,
+https://github.com/dealfluence/adeu,registry-sample,664,12,7,0,93,shell-exec
+https://github.com/Auctalis/nocturnusai,registry-sample,386,34,1,0,94,binds-all-interfaces
+https://github.com/bobberrisford/affiliatemcp,registry-sample,1745,0,6,0,100,
+https://github.com/arsentev-ai/contextburn,registry-sample,36,0,0,0,100,
+https://github.com/Primate-Intelligence/primate-intelligence-mcp,registry-sample,18,0,0,0,100,
+https://github.com/RoboFinSystems/xbrlkit,registry-sample,147,0,0,0,100,
+https://github.com/Trac-Systems/openmayhem-mcp,registry-sample,11,0,0,0,100,
+https://github.com/cueapi/cueapi-mcp,registry-sample,23,0,1,0,100,
+https://github.com/Chronary/chronary-mcp,registry-sample,20,0,0,0,100,
+https://github.com/firelock-ai/kin,registry-sample,1752,59,55,3,11,binds-all-interfaces dynamic-code reads-credential-paths shell-exec
+https://github.com/mirastacklabs-ai/mirastack-redfish-mcp,registry-sample,75,0,0,0,100,
+https://github.com/aabhisrv/Spiderbrain.ai-Coremind,registry-sample,42,0,0,0,100,
+https://github.com/jmagar/apprise-rmcp,registry-sample,110,5,0,1,80,binds-all-interfaces
+https://github.com/risk-ai/lawai-mcp-server,registry-sample,24,0,0,0,100,
+https://github.com/dinglebear-ai/cortex,registry-sample,1610,47,11,1,58,binds-all-interfaces dynamic-code reads-credential-paths
+https://github.com/mixelpixx/Nimrod,registry-sample,1,0,0,0,100,
+https://github.com/proxyllm-ai/proxyllm-mcp,registry-sample,11,0,0,0,100,
+https://github.com/AIStoryHub/etincel,registry-sample,87,2,0,1,79,
+https://github.com/metavolve-labs/lbrain-coding-agents,registry-sample,32,0,0,0,100,
+https://github.com/anomalyarmor/agents,registry-sample,76,2,2,0,100,binds-all-interfaces
+https://github.com/marchward/marchward,registry-sample,67,2,0,0,90,
+https://github.com/digital-science/dimensions-analytics-mcp,registry-sample,243,16,1,0,94,shell-exec
+https://github.com/aliengiraffe/spotdb,registry-sample,108,0,0,0,100,
+https://github.com/elicitly/elicitly,registry-sample,64,0,0,0,100,
+https://github.com/hanshs474/kavel-mcp,registry-sample,20,1,0,1,80,
+https://github.com/matih-labs/matih-mcp,registry-sample,38,0,0,0,100,
+https://github.com/aimentiontracker/mcp,registry-sample,12,0,0,0,100,
+https://github.com/Holetron-lab/fleet-memory,registry-sample,1720,73,19,3,20,binds-all-interfaces hooks shell-exec
+https://github.com/ankimcp/anki-mcp-server,registry-sample,271,31,19,0,82,binds-all-interfaces reads-credential-paths shell-exec
+https://github.com/CallMCP/callmcp,registry-sample,76,0,0,0,100,
+https://github.com/GregoireCasoetto/monnet-mcp,registry-sample,24,0,0,0,100,
+https://github.com/jupiterspins/starsinger-mcp,registry-sample,10,0,0,0,100,
+https://github.com/oscarsterling/clelp-skills,registry-sample,193,34,7,0,94,contains-code external-messaging shell-exec
+https://github.com/Nauro-AI/nauro,registry-sample,693,21,2,0,99,reads-credential-paths
+https://github.com/Kaduno-systems/pullpush-mcp,registry-sample,20,1,0,0,100,reads-credential-paths
+https://github.com/keenableai/keenable-mcp,registry-sample,20,1,0,0,100,contains-code
+https://github.com/0000F8/salt-mcp,registry-sample,61,0,0,0,100,
+https://github.com/posteverywhere/mcp,registry-sample,22,0,0,0,100,
+https://github.com/Ekwo-ai/ekwo-os,registry-sample,2380,1,118,0,97,
+https://github.com/magnemo-ai/magnemo,registry-sample,78,1,9,0,99,
+https://github.com/signaltech-org/bolthub-sdk,registry-sample,227,3,0,0,98,
+https://github.com/rolliinc/rolli-mcp,registry-sample,37,0,0,0,100,
+https://github.com/menaker/adtest-mcp,registry-sample,8,0,0,0,100,
+https://github.com/elfa-ai/mcp,registry-sample,51,0,0,0,100,
+https://github.com/human-beyond/mainbook-mcp,registry-sample,54,1,0,0,99,
+https://github.com/shumi-ai/shumi-mcp,registry-sample,50,0,0,0,100,
+https://github.com/Drumworks/ssid-mcp,registry-sample,10,0,0,0,100,
+https://github.com/BuyWhere/buywhere-mcp,registry-sample,178,0,0,0,100,
+https://github.com/eonik-ai/eonik-mcp,registry-sample,21,0,0,0,100,
+https://github.com/InstantStudioAI/instantclips-mcp,registry-sample,15,0,0,0,100,
+https://github.com/Managed-Digital-LLC/justdrop-mcp,registry-sample,32,3,1,0,100,shell-exec
+https://github.com/Johnny-Z13/proofslip,registry-sample,169,3,2,0,100,contains-code hooks shell-exec
+https://github.com/OrangeproAI/orangepro-mcp,registry-sample,809,8,6,0,98,dynamic-code reads-credential-paths
+https://github.com/memcell-ai/cli,registry-sample,158,0,0,0,100,
+https://github.com/auten-ai/auten-mcp,registry-sample,11,5,0,0,95,shell-exec
+https://github.com/Autonomad1/computeback-mcp,registry-sample,16,0,0,0,100,
+https://github.com/ergoveritas1-alt/certscore.ai,registry-sample,4190,21,7,0,96,binds-all-interfaces dynamic-code reads-credential-paths shell-exec
+https://github.com/amado2k5/cookwala,registry-sample,3653,12,4,0,51,
+https://github.com/i18n-agent/mcp-client,registry-sample,28,16,5,1,80,reads-credential-paths shell-exec
+https://github.com/popdot-ai/popdot-mcp,registry-sample,5,0,0,0,100,
+https://github.com/OOBE-PROTOCOL/sap-mcp,registry-sample,898,11,9,1,66,binds-all-interfaces reads-credential-paths shell-exec
+https://github.com/mcpcap/mcpcap,registry-sample,71,3,3,0,100,binds-all-interfaces
+https://github.com/Thestral12/postfleet-mcp,registry-sample,28,0,0,0,100,
+https://github.com/smartmemory/stratum,registry-sample,1620,23,5,0,80,hooks shell-exec
+https://github.com/bobuilds/nexustoken-sdk,registry-sample,22,0,1,0,100,
+https://github.com/JaxonAI/dsail,registry-sample,62,1,1,1,80,
+https://github.com/Software-As-Content/software-as-content-sdk,registry-sample,70,1,0,0,100,binds-all-interfaces
+https://github.com/inite-ai/inite-visibility,registry-sample,15,2,0,0,100,shell-exec
+https://github.com/imboard-ai/ai-dossier,registry-sample,1080,138,61,0,0,binds-all-interfaces external-messaging reads-credential-paths shell-exec
+https://github.com/signal8ai/signal8-mcp,registry-sample,72,0,0,0,100,

@@ -143,14 +143,14 @@ def ctx_of(rel):
     base = p.rsplit("/", 1)[-1]
     if base == "skill.md":
         return "skill"
-    if re.search(r"(^|/)(tests?|__tests__|__mocks__|spec|specs|e2e|fixtures?|testdata|test_data|evals?|benchmarks?|testing)(/|$)"
+    if re.search(r"(^|/)(tests?|__tests__|__mocks__|spec|specs|e2e|fixtures?|testdata|test_data|evals?|benchmarks?|testing|test-[\w-]+|test_[\w-]+)(/|$)"
                  r"|\.(test|spec)\.|(^|/)test_[^/]+\.py$|_tests?\.(py|go|rs|rb|ts|js)$|(^|/)tests?\.rs$|conftest\.py$", p):
         return "test"
     if re.search(r"(^|/)(examples?|samples?|demos?|playground)(/|$)", p):
         return "example"
     if re.search(r"(^|/)(\.github|\.circleci|\.gitlab|\.buildkite|ci)/|(^|/)(dockerfile|makefile|justfile)$|\.gitlab-ci\.yml$", p):
         return "ci"
-    if p.endswith((".md", ".mdx", ".txt", ".rst", ".svg", ".html")) or re.search(r"(^|/)(docs?|documentation)/", p):
+    if p.endswith((".md", ".mdx", ".txt", ".rst", ".svg", ".html", ".htm", ".astro")) or re.search(r"(^|/)(docs?|documentation)/", p):
         return "docs"
     return "src"
 
@@ -209,12 +209,25 @@ def quoted_on_line(line, a, b):
     return False
 
 
-def negated(text, start):
+STRONG_NEG = re.compile(r"\b(never|don'?t|do\s+not|must\s+not|should\s+not|shouldn'?t|avoid|refuse\s+to)\b[^.\n]{0,25}$", re.I)
+
+
+def negated(text, start, strict=False):
+    """strict=True (tool descriptions): only a strong negation directly before the match counts."""
+    if strict:
+        ls = text.rfind("\n", 0, start) + 1
+        return bool(STRONG_NEG.search(text[max(ls, start - 40):start]))
     ls = text.rfind("\n", 0, start) + 1
     window = text[max(ls, start - 90):start]
     # stop at the previous sentence boundary
-    window = re.split(r"[.!?;:]\s", window)[-1]
-    return bool(NEG_CUE.search(window))
+    window = re.split(r"[.!?;]\s", window)[-1]
+    cues = list(NEG_CUE.finditer(window))
+    if not cues:
+        return False
+    after = window[cues[-1].end():]
+    if re.search(r"\b(use|run|execute|install|then|type|paste|enter|please|read|send|pass|include|copy|upload|attach)\b", after, re.I):
+        return False
+    return True
 
 
 # ---------------------------------------------------------------------------
@@ -247,48 +260,95 @@ def js_ast_batch(paths):
     return out
 
 
+EXEC_CONTEXT = re.compile(r"\b(exec|execSync|spawn|system|popen|Popen|subprocess|Command::new|Invoke-Expression|run\(|\$\(|`)", re.I)
+
+
+def _line_of(text, a, b):
+    ls = text.rfind("\n", 0, a) + 1
+    le = text.find("\n", b)
+    return ls, text[ls:le if le != -1 else len(text)]
+
+
+def utf16_spans_to_py(text, spans):
+    """The TS helper reports UTF-16 offsets; Python indexes code points. Shift by astral chars."""
+    astral = [i for i, ch in enumerate(text) if ord(ch) > 0xFFFF]
+    if not astral:
+        return spans
+    # utf16 offset of each astral char = py index + number of astral chars before it
+    u16 = [i + k for k, i in enumerate(astral)]
+    import bisect
+
+    def conv(o):
+        return o - bisect.bisect_left(u16, o)
+    return [(conv(a), conv(b), k, r) for a, b, k, r in spans]
+
+
 def decide(f, text, ext, ctx, span, fenced):
     """Apply the context layer to one text-rule candidate. Mutates f."""
     rid = f["rule"]
     a, b = f["_a"], f["_b"]
+    ls, line = _line_of(text, a, b)
+    col_a, col_b = a - ls, b - ls
     loc = "code"
     if span:
         kind, role = span[2], span[3]
         loc = kind if kind != "string" else ("string:" + role)
     elif ext in DOC_EXT or ctx == "skill":
         loc = "fenced" if any(s <= a < e for s, e in fenced) else "prose"
+    elif ext in CODE_EXT or ext in HASH_COMMENT_EXT or not ext:
+        # unparsed languages (Go, Rust, shell, PowerShell, ...): light heuristics
+        stripped = line.lstrip()
+        cpos = -1
+        if ext in SLASH_COMMENT_EXT and "//" in line[:col_a]:
+            cpos = line.find("//")
+        if cpos == -1 and (ext in HASH_COMMENT_EXT or not ext) and stripped.startswith("#") and not stripped.startswith("#!"):
+            cpos = line.find("#")
+        if 0 <= cpos < col_a:
+            loc = "comment~"
+        elif quoted_on_line(line, col_a, col_b) or (line.lstrip().startswith(("\"", "r\"", "r#\"")) and line.rstrip().endswith("\\")):
+            loc = "string~"
     f["loc"] = loc
 
     def sup(why):
         f["suppressed"] = True
         f["why"] = why
 
-    if loc == "comment" and ctx != "skill" and rid in TEXT_RULES:
-        return sup("inside a code comment (AST)")
+    def low(why):
+        f["sev"] = "low"
+        f["why"] = why
+
+    m_text = text[a:b]
+    if loc in ("comment", "comment~") and ctx != "skill" and rid in TEXT_RULES:
+        if rid == "ATL-RF-001":
+            return low("usage text in a comment (not executed)")
+        return sup("inside a code comment" + (" (AST)" if loc == "comment" else " (heuristic)"))
     if loc in ("regex", "string:pattern", "string:patternlist"):
         return sup("inside a detection pattern / pattern list (AST)")
     if loc == "string:test":
         return sup("assertion literal (AST)")
-    if rid in NEGATABLE and negated(text, a):
+    if rid == "ATL-RF-001" and re.search(r"(curl|wget|irm|iwr)\s+(-\S+\s+)*(\.\.\.|\u2026|<[^>]+>|\$URL\b)", m_text):
+        return sup("placeholder, not a concrete command")
+    if rid in NEGATABLE and negated(text, a, strict=(loc == "string:desc")):
         return sup("negated or cited as an example")
-    if loc == "prose" and ctx != "skill" and rid.startswith(("ATL-TP-", "ATL-SK-")):
-        ls = text.rfind("\n", 0, a) + 1
-        le = text.find("\n", b)
-        line = text[ls:le if le != -1 else len(text)]
-        if quoted_on_line(line, a - ls, b - ls):
+    if rid.startswith(("ATL-TP-", "ATL-SK-")) and quoted_on_line(line, col_a, col_b):
+        if loc == "prose" and ctx != "skill":
             return sup("quoted in documentation")
+        if loc in ("prose", "string:plain", "string~") and rid != "ATL-TP-001":
+            return low("phrase quoted/cited inside text")
     if rid == "ATL-RF-001":
-        m_text = text[a:b]
         if INSTALLER_HOSTS.search(m_text):
             f["sev"] = "medium" if ctx == "skill" else "low"
             f["why"] = "known installer domain"
         elif ctx in ("docs", "ci", "example"):
-            f["sev"] = "low"
-            f["why"] = "installer one-liner in docs/CI"
-    if rid == "ATL-NW-002" and MESSAGING.search(text[a:b]):
-        ls = text.rfind("\n", 0, a) + 1
-        le = text.find("\n", b)
-        if not HARDCODED_TOKEN.search(text[ls:le if le != -1 else len(text)]):
+            low("installer one-liner in docs/CI")
+        elif loc in ("string:plain", "string:desc", "string~") and not EXEC_CONTEXT.search(line[:col_a]):
+            low("install hint text in a string (not executed here)")
+    if rid == "ATL-OB-001":
+        if not re.search(r"[\u202a-\u202e\u2066-\u2069]", m_text):
+            if loc in ("comment", "comment~", "prose") or ext in (".json", ".ndjson", ".xml", ".csv") or "\ufeff" in m_text:
+                low("zero-width/BOM character in comment or data (no bidi control)")
+    if rid == "ATL-NW-002" and MESSAGING.search(m_text):
+        if not HARDCODED_TOKEN.search(line):
             f["sev"] = "low"
             f["why"] = "messaging API without a hard-coded token (capability)"
             f["badge"] = "external-messaging"
@@ -360,10 +420,12 @@ def scan_repo_ex(root, use_ast=True):
             ast_res = ast_py.analyse(text)
         elif use_ast and ext in JS_EXT:
             ast_res = js_res.get(full)
+            if ast_res and ast_res.get("ok"):
+                ast_res["spans"] = utf16_spans_to_py(text, ast_res["spans"])
         parsed = bool(ast_res and ast_res.get("ok"))
         if use_ast and (ext == ".py" or ext in JS_EXT):
             stats["ast_parsed" if parsed else "ast_failed"] += 1
-        if not cands and not parsed:
+        if not cands and not parsed and base not in ("package.json", "setup.py"):
             continue
         li = LineIndex(text)
         lines = text.split("\n")

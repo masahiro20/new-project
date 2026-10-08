@@ -25,7 +25,15 @@
   {
    "repo": "https://github.com/modelcontextprotocol/servers",
    "kind": "reference",
-   "packages": []
+   "packages": [
+    "npm:@modelcontextprotocol/server-everything",
+    "npm:@modelcontextprotocol/server-filesystem",
+    "npm:@modelcontextprotocol/server-memory",
+    "npm:@modelcontextprotocol/server-sequential-thinking",
+    "pypi:mcp-server-fetch",
+    "pypi:mcp-server-git",
+    "pypi:mcp-server-time"
+   ]
   },
   {
    "repo": "https://github.com/anthropics/skills",
@@ -55,22 +63,30 @@
   {
    "repo": "https://github.com/wonderwhy-er/DesktopCommanderMCP",
    "kind": "mcp",
-   "packages": []
+   "packages": [
+    "npm:@wonderwhy-er/desktop-commander"
+   ]
   },
   {
    "repo": "https://github.com/github/github-mcp-server",
    "kind": "mcp",
-   "packages": []
+   "packages": [
+    "oci:ghcr.io/github/github-mcp-server"
+   ]
   },
   {
    "repo": "https://github.com/microsoft/playwright-mcp",
    "kind": "mcp",
-   "packages": []
+   "packages": [
+    "npm:@playwright/mcp"
+   ]
   },
   {
    "repo": "https://github.com/upstash/context7",
    "kind": "mcp",
-   "packages": []
+   "packages": [
+    "npm:@upstash/context7-mcp"
+   ]
   },
   {
    "repo": "https://github.com/cisco-ai-defense/mcp-scanner",
@@ -95,12 +111,16 @@
   {
    "repo": "https://github.com/geelen/mcp-remote",
    "kind": "mcp",
-   "packages": []
+   "packages": [
+    "npm:mcp-remote"
+   ]
   },
   {
    "repo": "https://github.com/modelcontextprotocol/inspector",
    "kind": "mcp",
-   "packages": []
+   "packages": [
+    "npm:@modelcontextprotocol/inspector"
+   ]
   },
   {
    "repo": "https://github.com/anthropics/claude-code",

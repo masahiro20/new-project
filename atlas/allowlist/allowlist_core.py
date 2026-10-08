@@ -827,14 +827,18 @@ def _eval_server(name, cfg, display, key, raw, index, fetch):
     detail = {}
     meta = None
     if entry:
+        # monorepos: keep only findings under the matched package's own directory
+        sub = (entry.get("package_paths") or {}).get(matched) if matched else None
         for f in entry.get("findings") or []:
+            if sub and not str(f.get("file", "")).replace(os.sep, "/").startswith(sub.rstrip("/") + "/"):
+                continue
             g = dict(f)
             g["file"] = f"{entry.get('repo', '')}@{str(entry.get('commit', ''))[:12]}:{f.get('file', '')}"
             g.setdefault("ctx", "src")
             g["source"] = "index"
             findings.append(g)
         status = "index"
-        detail = {"matched": matched, "repo": entry.get("repo"), "commit": entry.get("commit"),
+        detail = {"matched": matched, "repo": entry.get("repo"), "commit": entry.get("commit"), "subdir": sub,
                   "files": entry.get("files"), "index_generated": index.get("generated")}
     elif is_remote:
         status = "remote-only"

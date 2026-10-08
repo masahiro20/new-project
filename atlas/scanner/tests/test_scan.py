@@ -27,6 +27,10 @@ class PositiveControls(unittest.TestCase):
                     "ATL-CR-001", "ATL-NW-001"):
             self.assertIn(rid, got)
 
+    def test_like_is_not_a_negation_in_descriptions(self):
+        f = [x for x in self.f if x["rule"] == "ATL-TP-004" and "id_rsa" in x["snippet"] and x["file"] == "poison_tool.py"]
+        self.assertTrue(f and not any(x.get("suppressed") for x in f), f)
+
     def test_multiline_shell_true_found_by_ast(self):
         hits = [f for f in self.f if f["rule"] == "ATL-CE-001" and f["file"] == "poison_tool.py" and f.get("method") == "ast"]
         self.assertTrue(hits)
@@ -72,6 +76,19 @@ class NegativeControls(unittest.TestCase):
     def test_regex_mode_still_reports_them(self):
         f, _, _ = scan.scan_repo(os.path.join(FX, "neg"), use_ast=False)
         self.assertGreater(len([x for x in f if x["sev"] in ("high", "critical")]), 5)
+
+
+class Regressions(unittest.TestCase):
+    def test_imperative_after_negation_cue_is_kept(self):
+        f, _, _ = scan.scan_repo(os.path.join(FX, "pos2"))
+        self.assertIn(("SKILL.md", "ATL-RF-001"), live(f))
+
+    def test_jsx_text_after_astral_char_is_display_text(self):
+        if not scan._node_ok:
+            self.skipTest("node/typescript helper not installed")
+        f, _, _ = scan.scan_repo(os.path.join(FX, "neg2"))
+        rf = [x for x in f if x["rule"] == "ATL-RF-001" and not x.get("suppressed")]
+        self.assertTrue(rf and all(x["sev"] == "low" for x in rf), rf)
 
 
 class Wording(unittest.TestCase):
