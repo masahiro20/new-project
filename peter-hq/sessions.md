@@ -1,5 +1,13 @@
 # リーダーセッション台帳
 
+## 追加（2026-10-08 23:39 JST〜）
+| チーム | リーダー | セッションID | 作業ブランチ | 任務 |
+|---|---|---|---|---|
+| P7 Anime | Hikaru | session_01D1Y6NZQsbsgg7YkQhtL5rQ | peter/p7-anime | オリジナルアニメIP（企画・バイブル・第1話・ピッチ） |
+| P8 Mech Game | Rook | session_01ETmk7FEb5Vaiay9XiHdHTM | peter/p8-mech-game | 四足ロボット操縦ゲームの遊べる試作 |
+| HQ Midas | Midas | session_01TLo2RFuUc2jN6aZ3JRyc7o | peter/hq-revenue | 収益戦略（収益地図・30日計画） |
+| HQ Otto | Otto | session_01K8Eqy9VDKh83hbaufG3GpE | peter/hq-office | 仮想オフィス v6 |
+
 ## デモ・スプリント（2026-10-08 22:48 JST〜）
 各チームはサブエージェントで並列チームを組み、オーナーが触れる非公開デモを作る。
 | プロジェクト | リーダー | セッションID | 作業ブランチ | 任務 |
