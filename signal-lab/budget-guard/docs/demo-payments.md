@@ -11,7 +11,7 @@ Stripe のキーを環境変数に入れるだけで、コードを変えずに�
 | 未設定 | 設定あり | **stripe** |
 | `demo` | どちらでも | **demo**（`NODE_ENV=production` でも動く） |
 | `stripe` | 設定あり | **stripe** |
-| `stripe` | 未設定 | **エラー**。サーバー起動時（`instrumentation.ts`）に停止し、`/api/checkout` は 503 を返す |
+| `stripe` | 未設定 | **エラー**。起動時（`instrumentation.ts`）にエラーを記録し、以後すべてのリクエストが 500 になる（フェイルクローズ。プロセス自体は終了しない） |
 | その他の値 | — | **エラー** |
 
 - 判定は `lib/payments/mode.ts` の `getPaymentsMode(env)` だけで行う。env を引数で受け取る純粋関数なので、単体テストできる。
@@ -43,7 +43,7 @@ interface PaymentProvider {
 | `lib/payments/card.ts` | カード検証（Luhn・未来の有効期限・3〜4桁の CVC・名義）。ブラウザとサーバーの両方で使う |
 | `lib/payments/stripe.ts` | stripe 実装（従来のコードをそのまま移動）。当面はテストモードのキーを想定 |
 | `lib/payments/stripe-webhook.ts` | Stripe webhook の処理（変更なし。`stripeProvider` を明示して渡す） |
-| `instrumentation.ts` | 起動時に `getPaymentsMode` を実行し、設定ミスなら起動を止める |
+| `instrumentation.ts` | 起動時に `getPaymentsMode` を実行し、設定ミスならエラーにする（全リクエストが 500） |
 
 ## 3. demo の購入フロー
 

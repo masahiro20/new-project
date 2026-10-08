@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { getEntitlement, isActive } from "@/lib/entitlements";
+import { findByEmail, getEntitlement, isActive, upsertEntitlement } from "@/lib/entitlements";
+import { checkAll } from "@/lib/guard/service";
+import { addConnection } from "@/lib/guard/store";
 import { entitlementUsable, fulfillCheckout, getPaymentProvider, providerForCheckout, resolveEntitlement } from "@/lib/payments";
 import { expiryInFuture, luhnValid, validateCard } from "@/lib/payments/card";
 import { createDemoCheckout, createDemoProvider, getDemoCheckout, isDemoCheckoutId, payDemoCheckout, setDemoPlanStatus } from "@/lib/payments/demo";
@@ -173,5 +175,23 @@ describe("demo ids in stripe mode", () => {
     expect(entitlementUsable(entitlement)).toBe(false);
     expect(await resolveEntitlement(kv, record.id)).toBeNull();
     expect(entitlementUsable({ ...entitlement, source: "stripe" })).toBe(true);
+  });
+
+  it("a stale demo entitlement is no longer monitored by the cron once billing is live", async () => {
+    const kv = createMemoryKV();
+    vi.stubEnv("PAYMENTS_MODE", "demo");
+    await upsertEntitlement(kv, { id: demoId, email: "a@example.com", plan: "monthly", source: "demo" });
+    await addConnection(kv, demoId, { label: "A", target: { provider: "vercel", teamId: "team_1", projectIds: ["prj_1"] }, budgetUsd: 10, token: "demo" });
+    expect((await checkAll(kv)).accounts).toBe(1); // demo mode: monitored
+    vi.stubEnv("PAYMENTS_MODE", "stripe");
+    vi.stubEnv("STRIPE_SECRET_KEY", KEY);
+    expect((await checkAll(kv)).accounts).toBe(0);
+  });
+
+  it("a demo purchase never takes over the magic-link email of a real entitlement", async () => {
+    const kv = createMemoryKV();
+    await upsertEntitlement(kv, { id: "cs_test_real", email: "Buyer@example.com", plan: "lifetime", source: "stripe" });
+    await upsertEntitlement(kv, { id: demoId, email: "buyer@example.com", plan: "monthly", source: "demo" });
+    expect((await findByEmail(kv, "buyer@example.com"))?.id).toBe("cs_test_real");
   });
 });

@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { accessSecret } from "../access";
-import { getEntitlement, isActive } from "../entitlements";
+import { getEntitlement, isActive, type Entitlement } from "../entitlements";
 import { sendMail } from "../mail";
 import type { KV } from "../redis";
 import { isProduction, siteUrl } from "../site";
@@ -10,6 +10,10 @@ import { periodKey } from "./evaluate";
 import { DEMO_SLACK_URL, postSlack, spendPayloadSchema, verifyVercelSignature } from "./notify-channels";
 import { demoFetch, isDemoToken } from "./demo";
 import { adapterFor } from "./providers";
+import { isDemoMode } from "../payments/mode";
+
+/** Active, and (for demo entitlements) only while demo mode is on — mirrors entitlementUsable. */
+const monitored = (e: Entitlement | null): e is Entitlement => isActive(e) && (e.source !== "demo" || isDemoMode());
 import type { FetchLike, StopPlan } from "./stop";
 import {
   appendLog,
@@ -185,7 +189,7 @@ export async function handleVercelWebhook(
   if (payload.teamId !== conn.target.teamId) return { outcome: { status: 400, result: "team_mismatch" } };
 
   const ent = await getEntitlement(kv, acct);
-  if (!isActive(ent)) return { outcome: { status: 200, result: "inactive" } };
+  if (!monitored(ent)) return { outcome: { status: 200, result: "inactive" } };
   if (!(await claimHookEvent(kv, conn.id, `${periodKey(now)}:${payload.thresholdPercent}`))) {
     return { outcome: { status: 200, result: "duplicate" } };
   }
@@ -214,7 +218,7 @@ export async function checkAll(kv: KV, now = new Date()): Promise<{ accounts: nu
   let notices = 0;
   for (const acct of await listAccounts(kv)) {
     const ent = await getEntitlement(kv, acct);
-    if (!isActive(ent)) continue; // lapsed subscriptions stop being monitored
+    if (!monitored(ent)) continue; // lapsed subscriptions stop being monitored
     accounts++;
     notices += (await checkAccount(kv, acct, ent.email, now)).length;
   }

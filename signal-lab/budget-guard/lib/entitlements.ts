@@ -72,7 +72,10 @@ export async function upsertEntitlement(
     return { entitlement: existing, created: false };
   }
   await kv.set(k.license(entitlement.licenseKey), entitlement.id);
-  await kv.set(k.email(entitlement.email), entitlement.id); // latest purchase wins for magic links
+  // Latest purchase wins for magic links — except a demo purchase (buyer-chosen email,
+  // no payment) never takes over an email that already points at a real (stripe) entitlement.
+  const prevByEmail = entitlement.source === "demo" ? await findByEmail(kv, entitlement.email) : null;
+  if (!prevByEmail || prevByEmail.source === "demo") await kv.set(k.email(entitlement.email), entitlement.id);
   if (entitlement.subscriptionId) await kv.set(k.sub(entitlement.subscriptionId), entitlement.id);
   if (entitlement.paymentIntentId) await kv.set(k.pi(entitlement.paymentIntentId), entitlement.id);
   if (entitlement.customerId) await kv.set(k.customer(entitlement.customerId), entitlement.id);
