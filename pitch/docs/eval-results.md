@@ -29,3 +29,19 @@ Boundary error is measured on interior mora boundaries against the synthesis gro
 and puts ~96 % of boundaries within 40 ms (vs ~48 %). Accent detection improves most for
 SwiftF0 (16 ms frames, 90.9 % → 98.5 %). Wrong readings almost never pass (≤ 0.1 %).
 Caveat: synthetic speech is far cleaner than real speech; these are upper bounds.
+
+## 2. Public real-speech data (Lingua Libre, Wikimedia Commons)
+
+- **Source:** native-speaker isolated-word recordings, licence-filtered to CC0 / CC BY / CC BY-SA.
+  650 candidates from 13 speaker accounts (~12 people), all licence-checked:
+  CC0 447, CC BY-SA 4.0 104, CC BY 4.0 99 (`data/eval-lingualibre-candidates.json`, metadata only).
+- **Status: blocked.** `upload.wikimedia.org` rate-limited the sandbox's shared IP
+  (HTTP 429, retry-after 600 s) after the first file. We did not work around the limit.
+  Only 1 file was downloaded (卵 たまご, CC0): both engines and both segmentations judged it
+  correctly — this only shows the pipeline runs end-to-end, it is **not** an accuracy figure.
+- **Limits of this data even when downloaded:** isolated words have no が, so flat vs.
+  tail-high cannot be tested (`particle: false` mode merges them); some speakers may not be
+  native and need checking first.
+- **To resume:** `WIKIMEDIA_CONTACT=… python3 scripts/fetch_lingualibre.py OUT_DIR`, then
+  `scripts/annotate_manifest.py` and `scripts/eval-real.mjs` (see the script header).
+  Audio stays outside the repo.
