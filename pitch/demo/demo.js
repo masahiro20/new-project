@@ -4,7 +4,7 @@
 
 import { PitchDetector } from '../vendor/pitchy.js';
 import { extractF0, normalize } from '../src/f0.js';
-import { judge } from '../src/judge.js';
+import { judge, DEFAULTS as JUDGE_DEFAULTS } from '../src/judge.js';
 import { pitchPattern, accentType, TYPE_NAMES } from '../src/accent.js';
 import { synthesizeWord } from '../src/synth.js';
 import { decodeAudioFile, pickUtterance } from './decode.js';
@@ -90,6 +90,7 @@ function renderSelect() {
 
 function selectWord(w) {
   current = w;
+  runId++; // a file still decoding for the previous word must not overwrite this view
   $('word-select').value = w.id;
   $('word-surface').textContent = w.surface;
   $('word-kana').textContent = `「${w.kana}が」`;
@@ -151,6 +152,28 @@ function homophoneLine(r, w) {
   return `あなたの発音は${hit.map((h) => `『${h.surface}（${h.kana}・${h.gloss}）』`).join('・')}の型に近いです。`;
 }
 
+/**
+ * How clearly the detected template beats the next *plausible* one, as 高/中/低.
+ * judge()'s own `confidence` compares against every template, including ones whose
+ * H/L step is below minStep (or even inverted); those can fit with lower error and
+ * pin the number at 0% even for a clear, correct result. Here only templates that
+ * would themselves be valid detections count as alternatives. Thresholds are a rough
+ * guide (synthetic samples: margin ≥ 0.12 for every word); real recordings are noisier.
+ */
+function certaintyJa(r) {
+  if (r.flat) return '低（高低差が小さい）';
+  const det = r.candidates.find((c) => c.k === r.detectedK);
+  const alts = r.candidates.filter((c) => c.k !== r.detectedK && c.b >= JUDGE_DEFAULTS.minStep);
+  if (!det || alts.length === 0) return '高';
+  const vals = r.segments.map((g) => g.value).filter((v) => !Number.isNaN(v));
+  const spread = Math.max(...vals) - Math.min(...vals);
+  const best = Math.min(...alts.map((c) => c.sse));
+  const margin = (best - det.sse) / Math.max(1e-6, spread * spread);
+  if (margin >= 0.12) return '高';
+  if (margin >= 0.04) return '中（ほかの型とも少し似ています）';
+  return '低（ほかの型と紛らわしい）';
+}
+
 function showResult(r, w, tr, offset) {
   if (r.error) { showError(ERROR_TEXT[r.error] ?? r.error, w); return; }
   setState('done');
@@ -167,13 +190,14 @@ function showResult(r, w, tr, offset) {
   $('fact-detected').textContent = typeWithDrop(r.detectedK, w);
   $('fact-expected').textContent = r.expectedK.map((k) => `${typeJa(k, w)}［${k}］`).join('／');
   $('fact-range').textContent = `${r.stepSt.toFixed(1)} 半音`;
-  $('fact-confidence').textContent = `${Math.round(r.confidence * 100)}%`;
+  $('fact-confidence').textContent = certaintyJa(r);
   drawPlot(w, r, tr, offset);
 }
 
 // ---------- plot ----------
 const W = 440, H = 290, PAD = { l: 30, r: 10, t: 30, b: 56 };
 const f1 = (x) => x.toFixed(1);
+const esc = (t) => String(t).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 
 function niceStep(range, target) {
   const raw = range / target;
@@ -196,7 +220,19 @@ function drawPlot(w, r, tr, offset = 0) {
   const vals = segs.map((s) => s.value).filter((v) => !Number.isNaN(v));
   const ref = vals.length ? Math.min(...vals) : 0;
   const fit = r ? r.candidates.find((c) => c.k === r.expectedK[0]) : null;
-  const model = segs.map((s, i) => (fit ? fit.a + fit.b * pat[i] + fit.c * i - ref : pat[i] * 3));
+  // The dictionary line keeps the dictionary's shape: if the fitted step is tiny or
+  // inverted (the user said a different pattern), draw it with a minimum 2-semitone
+  // step around the same mean level instead of showing H below L.
+  let model;
+  if (fit) {
+    const b = Math.max(fit.b, 2);
+    const pv = segs.map((g, i) => pat[i]).filter((_, i) => !Number.isNaN(segs[i].value));
+    const pm = pv.length ? pv.reduce((x, y) => x + y, 0) / pv.length : 0.5;
+    const a = fit.a + (fit.b - b) * pm;
+    model = segs.map((g, i) => a + b * pat[i] + fit.c * i - ref);
+  } else {
+    model = segs.map((g, i) => pat[i] * 3);
+  }
   const curve = [];
   if (r && tr) {
     tr.times.forEach((t, i) => {
@@ -215,7 +251,7 @@ function drawPlot(w, r, tr, offset = 0) {
   segs.forEach((g, i) => {
     if (pat[i]) s += `<rect x="${f1(X(g.start))}" y="${top}" width="${f1(X(g.end) - X(g.start))}" height="${bot - top}" fill="var(--hi-band)"/>`;
     s += `<text x="${f1((X(g.start) + X(g.end)) / 2)}" y="${top - 10}" text-anchor="middle" font-size="15" font-weight="700" fill="${pat[i] ? 'var(--accent)' : 'var(--muted)'}">${pat[i] ? 'H' : 'L'}</text>`;
-    s += `<text x="${f1((X(g.start) + X(g.end)) / 2)}" y="${bot + 44}" text-anchor="middle" font-size="22" fill="currentColor">${g.label}</text>`;
+    s += `<text x="${f1((X(g.start) + X(g.end)) / 2)}" y="${bot + 44}" text-anchor="middle" font-size="22" fill="currentColor">${esc(g.label)}</text>`;
   });
   // Axes: semitone grid.
   const ys0 = niceStep(hi - lo, 5);

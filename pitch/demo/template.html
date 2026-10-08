@@ -173,7 +173,7 @@ footer { font-size: .8rem; color: var(--muted); display: flex; flex-direction: c
     <label class="drop" id="drop" for="file">
       <span class="big">録音ファイルを選ぶ</span>
       <span class="muted small">m4a・wav・webm・mp3 など ／ PCではここにドラッグ＆ドロップ</span>
-      <input class="visually-hidden" type="file" id="file" accept="audio/*,.m4a,.wav,.webm,.mp3,.aac">
+      <input class="visually-hidden" type="file" id="file" accept="audio/*,.m4a,audio/mp4,audio/x-m4a,audio/m4a,.mp4,.wav,.webm,.mp3,.aac,.caf">
     </label>
     <div class="samples">
       <span class="muted small">録音がなくても、合成音声で動きを試せます</span>
@@ -195,7 +195,7 @@ footer { font-size: .8rem; color: var(--muted); display: flex; flex-direction: c
       <div><dt>あなたの型</dt><dd id="fact-detected"></dd></div>
       <div><dt>辞書の型</dt><dd id="fact-expected"></dd></div>
       <div><dt>高低の幅</dt><dd id="fact-range"></dd></div>
-      <div><dt>判定の確からしさ</dt><dd id="fact-confidence"></dd></div>
+      <div><dt>判定の確かさ（目安）</dt><dd id="fact-confidence"></dd></div>
     </dl>
     <div class="plot-wrap">
       <svg id="plot" viewBox="0 0 440 290" role="img" aria-label="声の高さのグラフ"></svg>

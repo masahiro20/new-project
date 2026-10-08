@@ -119,15 +119,30 @@ export function pickUtterance(samples, rate, { maxSec = 4, pad = 0.15, mergeGap 
 const DECODE_ERROR = 'この形式は読み込めませんでした。m4a / wav / webm を試してください';
 
 /**
+ * A context used only for decodeAudioData. This runs after `await file.arrayBuffer()`,
+ * i.e. outside the user gesture: a suspended AudioContext still decodes (Safari
+ * included), and it is closed right after. If no AudioContext can be constructed
+ * (missing, or the browser's per-page limit is hit), fall back to an
+ * OfflineAudioContext, which never touches the audio output at all.
+ */
+function makeDecodeContext() {
+  if (typeof window === 'undefined') return null;
+  const Ctx = window.AudioContext || window.webkitAudioContext;
+  if (Ctx) { try { return new Ctx(); } catch { /* fall through */ } }
+  const Off = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+  if (Off) { try { return new Off(1, 1, 44100); } catch { /* unsupported */ } }
+  return null;
+}
+
+/**
  * Decode an audio file (browser only) to mono samples.
  * @param {ArrayBuffer} arrayBuffer file contents
  * @returns {Promise<{ samples: Float32Array, rate: number, duration: number }>}
  */
 export async function decodeAudioFile(arrayBuffer) {
-  const Ctx = typeof window !== 'undefined' && (window.AudioContext || window.webkitAudioContext);
-  if (!Ctx) throw new Error('このブラウザは音声ファイルの読み込みに対応していません');
   if (!arrayBuffer || arrayBuffer.byteLength === 0) throw new Error('ファイルが空です');
-  const ctx = new Ctx();
+  const ctx = makeDecodeContext();
+  if (!ctx) throw new Error('このブラウザは音声ファイルの読み込みに対応していません');
   try {
     // decodeAudioData detaches the buffer; pass a copy so callers keep theirs.
     const copy = arrayBuffer.slice(0);
