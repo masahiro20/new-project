@@ -146,6 +146,23 @@ function ears(a: Art, ol: string): string {
   return s;
 }
 
+/** 色を明るく(+)・暗く(-)する */
+function shade(hex: string, amt: number): string {
+  const n = parseInt(hex.slice(1), 16);
+  const f = (c: number) => Math.round(amt >= 0 ? c + (255 - c) * amt : c * (1 + amt));
+  const r = f((n >> 16) & 255), g = f((n >> 8) & 255), b = f(n & 255);
+  return `#${((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1)}`;
+}
+
+/** 先細りの縞（根元 bx,by から先端 tx,ty へ） */
+function wedge(bx: number, by: number, tx: number, ty: number, w: number, fill: string): string {
+  const dx = tx - bx, dy = ty - by;
+  const len = Math.hypot(dx, dy) || 1;
+  const nx = (-dy / len) * w, ny = (dx / len) * w;
+  const mx = bx + dx * 0.55, my = by + dy * 0.55;
+  return `<path d="M${bx + nx} ${by + ny}Q${mx + nx * 0.7} ${my + ny * 0.7} ${tx} ${ty}Q${mx - nx * 0.7} ${my - ny * 0.7} ${bx - nx} ${by - ny}Z" fill="${fill}"/>`;
+}
+
 function catInner(o: CatOpts): string {
   const id = (isBreedId(o.breed) ? o.breed : "kijitora") as BreedId;
   const a = ART[id];
@@ -154,108 +171,155 @@ function catInner(o: CatOpts): string {
   const acc: Accessory = o.acc ?? (o.traits?.crown ? "crown" : "none");
   const u = o.uid.replace(/[^a-zA-Z0-9_-]/g, "");
   const ol = a.dark ? "#2a201e" : "#6b5045";
-  const sw = (w = 3.6) => `stroke="${ol}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"`;
-  const tailCol = a.pattern === "points" ? a.accent! : a.pattern === "mike" ? a.accent2! : a.pattern === "cow" ? a.accent2! : a.base;
-  const paw = a.socks || a.bicolor ? W : a.pattern === "points" ? a.accent! : a.base;
-  const bodyCol = a.sweater ?? a.base;
+  const sw = (w = 3.2) => `stroke="${ol}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"`;
+  const base = a.base;
+  const hi = shade(base, a.dark ? 0.16 : 0.32);
+  const lo = shade(base, a.dark ? -0.25 : -0.12);
+  const point = a.pattern === "points" ? a.accent! : null;
+  const tailCol = point ?? (a.pattern === "mike" || a.pattern === "cow" ? a.accent2! : base);
+  const legCol = a.sweater ? a.sweater : base;
+  const pawCol = a.socks || a.bicolor ? W : point ?? base;
   const fy = a.flat ? -3 : 0;
+  const stripe = a.stripe;
 
-  // しっぽ（前に巻きつける）
-  const tw = a.fluffy ? 22 : 15;
-  let s = `<path d="M144 176C178 178 176 200 146 200H112" fill="none" stroke="${ol}" stroke-width="${tw + 7}" stroke-linecap="round"/>
-    <path d="M144 176C178 178 176 200 146 200H112" fill="none" stroke="${tailCol}" stroke-width="${tw}" stroke-linecap="round"/>`;
-  if (a.stripe && (a.pattern === "tabby" || a.pattern === "classic")) s += `<path d="M164 182v12M150 190v10" stroke="${a.stripe}" stroke-width="4" stroke-linecap="round"/>`;
+  let s = `<defs>
+    <radialGradient id="hg${u}" cx=".38" cy=".3" r=".8"><stop offset="0" stop-color="${hi}"/><stop offset=".6" stop-color="${base}"/><stop offset="1" stop-color="${lo}"/></radialGradient>
+    <linearGradient id="bg${u}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${a.sweater ?? hi}"/><stop offset="1" stop-color="${a.sweater ? shade(a.sweater, -0.1) : lo}"/></linearGradient>
+    <radialGradient id="bl${u}"><stop offset="0" stop-color="#ff8fa3" stop-opacity="${blush ? 0.75 : 0.45}"/><stop offset="1" stop-color="#ff8fa3" stop-opacity="0"/></radialGradient>
+    ${point ? `<filter id="pt${u}" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="4.5"/></filter>` : ""}
+  </defs>`;
 
-  // からだ
-  const top = a.short ? 150 : 142;
-  const body = `M60 200C56 ${top + 26} 72 ${top} 100 ${top}C128 ${top} 144 ${top + 26} 140 200Z`;
-  s += `<clipPath id="b${u}"><path d="${body}"/></clipPath><path d="${body}" fill="${bodyCol}" ${sw()}/><g clip-path="url(#b${u})">`;
+  // 影
+  s += `<ellipse cx="100" cy="199" rx="60" ry="6" fill="#3b2a24" opacity=".09"/>`;
+
+  // しっぽ（右から立ち上がってくるん）
+  const tw = a.fluffy ? 20 : 13;
+  const tail = "M138 190C170 194 184 172 176 150C172 138 160 138 162 150";
+  s += `<path d="${tail}" fill="none" stroke="${ol}" stroke-width="${tw + 6.4}" stroke-linecap="round"/><path d="${tail}" fill="none" stroke="${tailCol}" stroke-width="${tw}" stroke-linecap="round"/>`;
+  if (stripe && (a.pattern === "tabby" || a.pattern === "classic")) s += `<path d="M172 180l10 3M178 164l10-1M176 150l9-5" stroke="${stripe}" stroke-width="4" stroke-linecap="round"/>`;
+  if (a.fluffy) s += `<path d="M180 168l7 2M182 156l7-2M178 176l6 4" stroke="${ol}" stroke-width="2.4" stroke-linecap="round" opacity=".55"/>`;
+
+  // 後ろ足（腰）
+  const hy = a.short ? 186 : 182;
+  for (const x of [64, 136]) s += `<ellipse cx="${x}" cy="${hy}" rx="24" ry="${a.short ? 15 : 18}" fill="url(#bg${u})" ${sw()}/>`;
+  if (a.pattern === "mike") s += `<ellipse cx="64" cy="${hy}" rx="18" ry="12" fill="${a.accent}"/>`;
+
+  // 胴体
+  const top = a.short ? 148 : 140;
+  const torso = `M68 197C60 172 72 ${top + 2} 100 ${top}C128 ${top + 2} 140 172 132 197Z`;
+  s += `<clipPath id="tc${u}"><path d="${torso}"/></clipPath><path d="${torso}" fill="url(#bg${u})" ${sw()}/><g clip-path="url(#tc${u})">`;
   if (a.sweater) {
-    s += `<path d="M50 176h100M50 188h100" stroke="#fff" stroke-width="4" opacity=".85"/><rect x="50" y="${top - 2}" width="100" height="12" fill="#86c3dd"/>`;
+    s += `<path d="M60 172h80M60 184h80" stroke="#fff" stroke-width="4" opacity=".85"/><rect x="60" y="${top - 2}" width="80" height="11" fill="${shade(a.sweater, -0.15)}"/>`;
   } else {
-    if (a.pattern === "mike") s += `<ellipse cx="70" cy="180" rx="20" ry="17" fill="${a.accent}"/><ellipse cx="132" cy="188" rx="18" ry="15" fill="${a.accent2}"/>`;
-    if (a.pattern === "cow") s += `<ellipse cx="74" cy="176" rx="16" ry="13" fill="${a.accent2}"/><ellipse cx="128" cy="190" rx="14" ry="11" fill="${a.accent2}"/>`;
-    if (a.pattern === "sabi") s += `<ellipse cx="74" cy="174" rx="15" ry="12" fill="${a.accent}" opacity=".9"/><ellipse cx="126" cy="188" rx="13" ry="10" fill="${a.accent}" opacity=".9"/>`;
-    if (a.pattern === "spots") s += `<g fill="${a.stripe}"><circle cx="74" cy="176" r="4.5"/><circle cx="126" cy="174" r="4.5"/><circle cx="84" cy="194" r="3.5"/></g>`;
-    if (a.stripe && (a.pattern === "tabby" || a.pattern === "classic")) s += `<path d="M62 172q8 3 14 1M138 172q-8 3-14 1M60 186q8 2 14 0M140 186q-8 2-14 0" stroke="${a.stripe}" stroke-width="4" stroke-linecap="round" fill="none"/>`;
-    if (a.curly) s += `<g fill="none" stroke="${a.stripe}" stroke-width="3" stroke-linecap="round"><path d="M70 172q4-6 8 0q4 6 8 0"/><path d="M112 176q4-6 8 0q4 6 8 0"/><path d="M88 190q4-6 8 0q4 6 8 0"/></g>`;
-    if (a.bib || a.bicolor) s += `<ellipse cx="100" cy="${top + 32}" rx="${a.bicolor ? 30 : 22}" ry="${a.bicolor ? 34 : 26}" fill="${W}"/>`;
-    if (a.fluffy) s += `<path d="M78 ${top + 2}l6 10 6-9 5 11 5-11 5 11 5-11 6 9 6-10" fill="${a.bib ? W : a.base}"/>`;
+    if (a.pattern === "mike") s += `<ellipse cx="128" cy="176" rx="16" ry="14" fill="${a.accent2}"/>`;
+    if (a.pattern === "cow") s += `<ellipse cx="78" cy="170" rx="14" ry="12" fill="${a.accent2}"/>`;
+    if (a.pattern === "sabi") s += `<ellipse cx="80" cy="168" rx="13" ry="10" fill="${a.accent}" opacity=".9"/><ellipse cx="122" cy="182" rx="11" ry="9" fill="${a.accent}" opacity=".9"/>`;
+    if (a.pattern === "spots") s += `<g><circle cx="76" cy="168" r="5" fill="${stripe}"/><circle cx="76" cy="168" r="2.2" fill="${hi}"/><circle cx="124" cy="166" r="5" fill="${stripe}"/><circle cx="124" cy="166" r="2.2" fill="${hi}"/></g>`;
+    if (stripe && (a.pattern === "tabby" || a.pattern === "classic")) s += wedge(68, 160, 82, 164, 3.2, stripe) + wedge(132, 160, 118, 164, 3.2, stripe) + wedge(66, 176, 80, 178, 3.2, stripe) + wedge(134, 176, 120, 178, 3.2, stripe);
+    if (a.curly) s += `<g fill="none" stroke="${shade(base, -0.18)}" stroke-width="2.6" stroke-linecap="round"><path d="M74 168q4-6 8 0q4 6 8 0"/><path d="M110 172q4-6 8 0q4 6 8 0"/></g>`;
+    if (a.bib || a.bicolor) s += `<ellipse cx="100" cy="${top + 26}" rx="${a.bicolor ? 26 : 19}" ry="${a.bicolor ? 32 : 26}" fill="${W}"/>`;
+    if (point) s += `<rect x="60" y="182" width="80" height="20" fill="${point}" opacity=".35"/>`;
   }
-  s += `</g>`;
-  // 前足
-  const py = a.short ? 196 : 194;
-  const pr = a.short ? 10 : 12;
-  s += `<ellipse cx="86" cy="${py}" rx="${pr}" ry="${pr * 0.72}" fill="${paw}" ${sw(3.2)}/><ellipse cx="114" cy="${py}" rx="${pr}" ry="${pr * 0.72}" fill="${paw}" ${sw(3.2)}/>`;
+  // あごの下の影
+  s += `<ellipse cx="100" cy="${top + 4}" rx="34" ry="9" fill="#3b2a24" opacity=".10"/></g>`;
+  // 胸のもふ毛
+  if (a.fluffy || a.bib) {
+    const fc = a.bib ? W : hi;
+    s += `<path d="M80 ${top + 6}l5 11 5-8 5 12 5-12 5 12 5-8 5 11" fill="${fc}" stroke="none"/>`;
+  }
 
+  // 前足（体と一体の丸い足先＋足のあいだの線）
+  s += `<path d="M100 ${top + 30}Q101 180 100 191" fill="none" stroke="${ol}" stroke-width="2.4" stroke-linecap="round" opacity=".55"/>`;
+  if (a.socks || a.bicolor || point) {
+    for (const x of [88, 112]) s += `<path d="M${x - 11} 194Q${x - 11} 181 ${x} 180Q${x + 11} 181 ${x + 11} 194Z" fill="${pawCol}" opacity="${point ? 0.85 : 1}"/>`;
+  }
+  for (const x of [88, 112]) {
+    s += `<path d="M${x - 12.5} 195Q${x - 12.5} 186 ${x} 186Q${x + 12.5} 186 ${x + 12.5} 195Q${x} 200 ${x - 12.5} 195Z" fill="${pawCol}" ${sw(3)}/><path d="M${x - 4} 190.5v4M${x + 4} 190.5v4" stroke="${ol}" stroke-width="1.7" stroke-linecap="round" opacity=".55"/>`;
+  }
+
+  // 耳
   s += ears(a, ol);
+  if (a.ear !== "fold") s += `<g stroke="${a.dark ? "#d9c8c0" : "#fff"}" stroke-width="1.6" stroke-linecap="round" opacity=".8"><path d="M62 64l6 -10M68 66l4-9M138 64l-6-10M132 66l-4-9"/></g>`;
 
-  // 頬のもふもふ
+  // 頬のもふもふ（長毛種）
   if (a.fluffy) {
-    s += `<path d="M42 98 28 106 40 112 30 124 46 122 40 134 60 128Z" fill="${a.base}" ${sw(3.2)}/><path d="M158 98 172 106 160 112 170 124 154 122 160 134 140 128Z" fill="${a.base}" ${sw(3.2)}/>`;
+    s += `<path d="M42 96 26 104 40 110 28 122 46 121 38 134 60 128Z" fill="${base}" ${sw(3)}/><path d="M158 96 174 104 160 110 172 122 154 121 162 134 140 128Z" fill="${base}" ${sw(3)}/>`;
   }
 
-  // 頭（もち形）
-  const head = `M100 42C140 42 166 66 166 98C166 128 138 146 100 146C62 146 34 128 34 98C34 66 60 42 100 42Z`;
-  s += `<clipPath id="h${u}"><path d="${head}"/></clipPath><path d="${head}" fill="${a.base}"/><g clip-path="url(#h${u})">`;
-  if (a.pattern === "mike") s += `<ellipse cx="62" cy="66" rx="34" ry="26" fill="${a.accent}" transform="rotate(-14 62 66)"/><ellipse cx="146" cy="70" rx="28" ry="22" fill="${a.accent2}" transform="rotate(14 146 70)"/>`;
-  if (a.pattern === "cow") s += `<ellipse cx="140" cy="76" rx="30" ry="26" fill="${a.accent2}" transform="rotate(10 140 76)"/><circle cx="72" cy="52" r="10" fill="${a.accent2}"/>`;
-  if (a.pattern === "sabi") s += `<path d="M30 60Q60 42 76 70Q70 94 40 90Z" fill="${a.accent}" opacity=".95"/><path d="M128 52Q160 50 170 84Q150 90 136 76Z" fill="${a.accent}" opacity=".95"/><circle cx="104" cy="56" r="7" fill="${a.accent}"/>`;
-  if (a.pattern === "hachiware") s += `<path d="M100 54Q86 98 64 150H136Q114 98 100 54Z" fill="${W}"/>`;
-  if (a.pattern === "points") s += `<ellipse cx="100" cy="120" rx="36" ry="30" fill="${a.accent}" opacity=".85"/>`;
-  if (a.stripe && a.pattern === "tabby") {
-    s += `<g stroke="${a.stripe}" stroke-width="4.2" stroke-linecap="round" fill="none"><path d="M100 46v13"/><path d="M87 48q2 8 4 12"/><path d="M113 48q-2 8-4 12"/><path d="M38 96q10 2 16-1"/><path d="M38 108q10 1 15-3"/><path d="M162 96q-10 2-16-1"/><path d="M162 108q-10 1-15-3"/></g>`;
+  // 頭（ほっぺに小さなもふ毛）
+  const head = "M100 42C140 42 166 66 166 96C166 108 162 118 156 125L163 131L151 133C141 142 122 146 100 146C78 146 59 142 49 133L37 131L44 125C38 118 34 108 34 96C34 66 60 42 100 42Z";
+  s += `<clipPath id="h${u}"><path d="${head}"/></clipPath><path d="${head}" fill="url(#hg${u})"/><g clip-path="url(#h${u})">`;
+  if (a.pattern === "mike") s += `<path d="M30 40Q70 30 86 62Q84 86 54 96Q30 90 30 40Z" fill="${a.accent}"/><path d="M118 52Q152 40 172 66Q172 92 146 96Q124 84 118 52Z" fill="${a.accent2}"/>`;
+  if (a.pattern === "cow") s += `<path d="M112 50Q154 44 172 76Q170 102 140 102Q116 86 112 50Z" fill="${a.accent2}"/><ellipse cx="70" cy="52" rx="12" ry="9" fill="${a.accent2}"/>`;
+  if (a.pattern === "sabi") s += `<path d="M28 58Q60 40 78 70Q72 96 40 92Z" fill="${a.accent}" opacity=".95"/><path d="M126 50Q160 48 172 84Q150 92 134 76Z" fill="${a.accent}" opacity=".95"/><circle cx="104" cy="54" r="7" fill="${a.accent}"/>`;
+  if (a.pattern === "hachiware") s += `<path d="M100 52Q90 82 70 104Q58 124 66 150H134Q142 124 130 104Q110 82 100 52Z" fill="${W}"/>`;
+  if (point) s += `<path d="M100 96C120 96 134 112 132 128C130 142 116 148 100 148C84 148 70 142 68 128C66 112 80 96 100 96Z" fill="${point}" filter="url(#pt${u})"/>`;
+  if (stripe && a.pattern === "tabby") {
+    s += wedge(100, 44, 100, 62, 3.6, stripe) + wedge(88, 46, 92, 62, 3, stripe) + wedge(112, 46, 108, 62, 3, stripe);
+    s += wedge(34, 92, 56, 96, 3.2, stripe) + wedge(35, 106, 55, 104, 3, stripe) + wedge(166, 92, 144, 96, 3.2, stripe) + wedge(165, 106, 145, 104, 3, stripe);
   }
-  if (a.stripe && a.pattern === "classic") {
-    s += `<g stroke="${a.stripe}" stroke-width="4.6" stroke-linecap="round" fill="none"><path d="M100 44v15M88 46q2 9 4 14M112 46q-2 9-4 14"/><path d="M36 90q12-4 16 5q-2 9-14 9"/><path d="M164 90q-12-4-16 5q2 9 14 9"/></g>`;
+  if (stripe && a.pattern === "classic") {
+    s += wedge(100, 42, 100, 62, 4, stripe) + wedge(86, 44, 90, 62, 3.4, stripe) + wedge(114, 44, 110, 62, 3.4, stripe);
+    s += `<g fill="none" stroke="${stripe}" stroke-width="4.6" stroke-linecap="round"><path d="M36 88q14-5 18 5q-2 10-15 10"/><path d="M164 88q-14-5-18 5q2 10 15 10"/></g>`;
   }
-  if (a.pattern === "ticked") s += `<g stroke="${a.stripe}" stroke-width="3.6" stroke-linecap="round" fill="none" opacity=".75"><path d="M100 48v10M90 50q1 6 3 9M110 50q-1 6-3 9"/></g>`;
+  if (a.pattern === "ticked") s += `<g opacity=".7">${wedge(100, 46, 100, 60, 3, stripe!)}${wedge(90, 48, 93, 60, 2.4, stripe!)}${wedge(110, 48, 107, 60, 2.4, stripe!)}</g><path d="M60 112q8 2 14-1M140 112q-8 2-14-1" stroke="${W}" stroke-width="3" stroke-linecap="round" opacity=".7"/>`;
   if (a.pattern === "spots") {
-    s += `<g fill="none" stroke="${a.stripe}" stroke-width="3"><circle cx="72" cy="62" r="5"/><circle cx="128" cy="62" r="5"/><circle cx="100" cy="52" r="4"/><circle cx="46" cy="96" r="4"/><circle cx="154" cy="96" r="4"/></g>`;
+    for (const [x, y, r] of [[72, 62, 5.5], [128, 62, 5.5], [100, 52, 4.5], [46, 94, 4.5], [154, 94, 4.5], [86, 72, 3], [114, 72, 3]]) {
+      s += `<circle cx="${x}" cy="${y}" r="${r}" fill="${stripe}"/>${r > 4 ? `<circle cx="${x}" cy="${y}" r="${r * 0.45}" fill="${hi}"/>` : ""}`;
+    }
   }
-  if (a.pattern === "sphynx") s += `<g stroke="${a.stripe}" stroke-width="3" stroke-linecap="round" fill="none"><path d="M84 54q16-7 32 0"/><path d="M88 63q12-5 24 0"/></g>`;
-  if (a.curly) s += `<g fill="none" stroke="${a.stripe}" stroke-width="3" stroke-linecap="round"><path d="M70 58q4-6 8 0q4 6 8 0"/><path d="M114 58q4-6 8 0q4 6 8 0"/><path d="M40 92q3-5 6 0q3 5 6 0"/><path d="M148 92q3-5 6 0q3 5 6 0"/></g>`;
-  if (a.muzzle || a.bicolor) s += `<ellipse cx="100" cy="${124 + fy}" rx="${a.bicolor ? 32 : 22}" ry="${a.bicolor ? 22 : 15}" fill="${W}"/>`;
-  s += `<ellipse cx="60" cy="120" rx="11" ry="6.5" fill="#ff9aa8" opacity="${blush ? 0.6 : 0.32}"/><ellipse cx="140" cy="120" rx="11" ry="6.5" fill="#ff9aa8" opacity="${blush ? 0.6 : 0.32}"/>`;
-  if (blush) s += `<path d="M55 117l-2 5M60 117l-2 5M65 117l-2 5M145 117l-2 5M140 117l-2 5M135 117l-2 5" stroke="#f27a8c" stroke-width="1.6" stroke-linecap="round"/>`;
+  if (a.pattern === "sphynx") s += `<g stroke="${stripe}" stroke-width="2.6" stroke-linecap="round" fill="none"><path d="M82 54q18-8 36 0"/><path d="M86 63q14-6 28 0"/><path d="M90 71q10-4 20 0"/></g>`;
+  if (a.curly) s += `<g fill="none" stroke="${shade(base, -0.18)}" stroke-width="2.6" stroke-linecap="round"><path d="M70 56q4-6 8 0q4 6 8 0"/><path d="M114 56q4-6 8 0q4 6 8 0"/><path d="M40 92q3-5 6 0q3 5 6 0"/><path d="M148 92q3-5 6 0q3 5 6 0"/></g>`;
+  if (a.muzzle || a.bicolor) s += `<ellipse cx="100" cy="${125 + fy}" rx="${a.bicolor ? 34 : 24}" ry="${a.bicolor ? 24 : 17}" fill="${W}"/>`;
+  // ほっぺ
+  s += `<ellipse cx="58" cy="121" rx="15" ry="10" fill="url(#bl${u})"/><ellipse cx="142" cy="121" rx="15" ry="10" fill="url(#bl${u})"/>`;
+  if (blush) s += `<path d="M53 118l-2 5M58 118l-2 5M63 118l-2 5M147 118l-2 5M142 118l-2 5M137 118l-2 5" stroke="#f27a8c" stroke-width="1.5" stroke-linecap="round"/>`;
+  // おでこのツヤ
+  s += `<ellipse cx="80" cy="60" rx="18" ry="7" fill="#fff" opacity="${a.dark ? 0.1 : 0.22}" transform="rotate(-18 80 60)"/>`;
   s += `</g><path d="${head}" fill="none" ${sw()}/>`;
 
   // 目
   const ec = a.dark ? "#f6efe6" : ol;
   const eye = (cx: number, col: string, right: boolean): string => {
     const cy = 104;
-    const arc = (up: boolean) => `<path d="M${cx - 8} ${cy + (up ? 2 : -1)}Q${cx} ${cy + (up ? -8 : 6)} ${cx + 8} ${cy + (up ? 2 : -1)}" fill="none" stroke="${a.dark ? col : ol}" stroke-width="3.6" stroke-linecap="round"/>`;
-    if (face === "happy" || (face === "wink" && right) || (face === "grin" && false)) return arc(true);
-    if (face === "sleepy") return arc(false);
-    if (face === "heart") return `<path d="M${cx} ${cy + 7}l-8-7.5a4.6 4.6 0 0 1 8-5a4.6 4.6 0 0 1 8 5Z" fill="#ff6b8a"/>`;
-    if (face === "pout" && right) return `<path d="M${cx - 8} ${cy - 1}h16" stroke="${ec}" stroke-width="3.4" stroke-linecap="round"/>`;
+    const arc = (up: boolean) => `<path d="M${cx - 8.5} ${cy + (up ? 2 : -1)}Q${cx} ${cy + (up ? -8 : 6)} ${cx + 8.5} ${cy + (up ? 2 : -1)}" fill="none" stroke="${a.dark ? col : ol}" stroke-width="3.4" stroke-linecap="round"/>`;
+    if (face === "happy" || (face === "wink" && right)) return arc(true);
+    if (face === "sleepy") return arc(false) + `<path d="M${cx - 9} ${cy + 1}l-3 2M${cx + 9} ${cy + 1}l3 2" stroke="${ol}" stroke-width="1.6" stroke-linecap="round" opacity=".6"/>`;
+    if (face === "heart") return `<path d="M${cx} ${cy + 7.5}l-8.4-8a4.8 4.8 0 0 1 8.4-5a4.8 4.8 0 0 1 8.4 5Z" fill="#ff6b8a" stroke="#d94c6c" stroke-width="1.4"/><circle cx="${cx - 3.6}" cy="${cy - 3}" r="1.6" fill="#fff"/>`;
+    if (face === "pout" && right) return `<path d="M${cx - 8} ${cy - 1}h16" stroke="${ec}" stroke-width="3.2" stroke-linecap="round"/>`;
     const big = face === "sparkle";
-    const rx = big ? 10.5 : 9;
-    const ry = big ? 12 : 10.5;
+    const rx = big ? 10.5 : 9.4;
+    const ry = big ? 12 : 10.8;
+    const iris = `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="${col}"/><ellipse cx="${cx}" cy="${cy + ry * 0.45}" rx="${rx * 0.8}" ry="${ry * 0.45}" fill="#fff" opacity=".22"/>`;
+    const pupil = `<ellipse cx="${cx}" cy="${cy + 0.6}" rx="${rx - 3.4}" ry="${ry - 2.4}" fill="#24191a"/>`;
+    const out = right ? 1 : -1;
+    const lid = `<path d="M${cx - rx} ${cy - 1}A${rx} ${ry} 0 0 1 ${cx + rx} ${cy - 1}" fill="none" stroke="${ec}" stroke-width="2.3" stroke-linecap="round"/><path d="M${cx + out * rx * 0.92} ${cy - ry * 0.42}q${out * 3.4} -1.2 ${out * 5} -4" fill="none" stroke="${ec}" stroke-width="2" stroke-linecap="round"/>`;
     if (face === "smug") {
-      return `<path d="M${cx - rx} ${cy}A${rx} ${ry} 0 0 0 ${cx + rx} ${cy}Z" fill="${col}"/><path d="M${cx - 5.5} ${cy}A5.5 7 0 0 0 ${cx + 5.5} ${cy}Z" fill="#2b1f1a"/>
-        <path d="M${cx - rx - 2} ${cy}H${cx + rx + 2}" stroke="${ec}" stroke-width="3.4" stroke-linecap="round"/>`;
+      return `<clipPath id="e${u}${right ? 1 : 0}"><rect x="${cx - 14}" y="${cy}" width="28" height="16"/></clipPath><g clip-path="url(#e${u}${right ? 1 : 0})">${iris}${pupil}</g>
+        <path d="M${cx - rx - 2} ${cy}H${cx + rx + 2}" stroke="${ec}" stroke-width="3.2" stroke-linecap="round"/><circle cx="${cx - 3}" cy="${cy + 4}" r="1.8" fill="#fff"/>`;
     }
-    let e = `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="${col}"/><ellipse cx="${cx}" cy="${cy + 0.8}" rx="${rx - 2.4}" ry="${ry - 2}" fill="#2b1f1a"/>
-      <circle cx="${cx - 2.6}" cy="${cy - 3.6}" r="${big ? 3.6 : 3}" fill="#fff"/><circle cx="${cx + 2.8}" cy="${cy + 3.2}" r="1.4" fill="#fff"/>`;
-    if (big) e += `<path d="M${cx + 4} ${cy - 7}l1.2 2.6 2.6 1.2-2.6 1.2-1.2 2.6-1.2-2.6-2.6-1.2 2.6-1.2Z" fill="#fff"/>`;
+    let e = iris + pupil + lid + `<circle cx="${cx - 3.2}" cy="${cy - 4}" r="${big ? 3.8 : 3.2}" fill="#fff"/><circle cx="${cx + 3}" cy="${cy + 3.6}" r="1.5" fill="#fff"/>`;
+    if (big) e += `<path d="M${cx + 4.4} ${cy - 7.4}l1.2 2.6 2.6 1.2-2.6 1.2-1.2 2.6-1.2-2.6-2.6-1.2 2.6-1.2Z" fill="#fff"/>`;
     return e;
   };
   s += eye(76, a.eye, false) + eye(124, a.eye2 ?? a.eye, true);
 
-  // 鼻・口
-  const ny = 116 + fy;
-  s += `<path d="M96.5 ${ny}h7l-3.5 4Z" fill="#f59aa6" ${sw(2)}/>`;
+  // ひげ袋・鼻・口
+  const ny = 115 + fy;
+  const pad = point ? shade(point, 0.18) : a.muzzle || a.bicolor || a.pattern === "hachiware" ? W : hi;
+  s += `<ellipse cx="93" cy="${ny + 9}" rx="7.5" ry="5.6" fill="${pad}"/><ellipse cx="107" cy="${ny + 9}" rx="7.5" ry="5.6" fill="${pad}"/>`;
+  s += `<g fill="${ol}" opacity=".35"><circle cx="90" cy="${ny + 8}" r=".9"/><circle cx="93" cy="${ny + 11}" r=".9"/><circle cx="110" cy="${ny + 8}" r=".9"/><circle cx="107" cy="${ny + 11}" r=".9"/></g>`;
+  s += `<path d="M95.2 ${ny}Q100 ${ny - 2} 104.8 ${ny}Q103 ${ny + 5} 100 ${ny + 6}Q97 ${ny + 5} 95.2 ${ny}Z" fill="#f59aa6" ${sw(1.8)}/><ellipse cx="98.4" cy="${ny + 1.2}" rx="1.6" ry="1" fill="#fff" opacity=".8"/>`;
   if (face === "grin" || face === "sparkle") {
-    s += `<path d="M93 ${ny + 6}q7 10 14 0Z" fill="#e8707f" ${sw(2.4)}/>`;
+    s += `<path d="M93 ${ny + 8}q7 11 14 0Z" fill="#e8707f" ${sw(2.2)}/><path d="M96.5 ${ny + 13}q3.5-3 7 0q-3.5 2.5-7 0Z" fill="#ffb0bc"/>`;
   } else if (face === "pout") {
-    s += `<path d="M95 ${ny + 9}q5-4 10 0" fill="none" ${sw(2.6)}/>`;
+    s += `<path d="M100 ${ny + 6}v3M95 ${ny + 12}q5-4 10 0" fill="none" ${sw(2.4)}/>`;
   } else {
-    s += `<path d="M93 ${ny + 5}q3.5 4.5 7 0q3.5 4.5 7 0" fill="none" ${sw(2.6)}/>`;
+    s += `<path d="M100 ${ny + 6}v3M100 ${ny + 9}q-3.8 4.4-7.6 1M100 ${ny + 9}q3.8 4.4 7.6 1" fill="none" ${sw(2.4)}/>`;
   }
   if (!a.noWhisker) {
     const wc = a.dark ? "#efe6dc" : ol;
-    s += `<g stroke="${wc}" stroke-width="1.8" stroke-linecap="round" opacity=".55"><path d="M48 112 32 109M48 118 32 120M152 112 168 109M152 118 168 120"/></g>`;
+    s += `<g fill="none" stroke="${wc}" stroke-width="1.5" stroke-linecap="round" opacity=".55"><path d="M84 ${ny + 8}Q62 ${ny + 2} 40 ${ny - 2}"/><path d="M84 ${ny + 11}Q62 ${ny + 10} 38 ${ny + 12}"/><path d="M116 ${ny + 8}Q138 ${ny + 2} 160 ${ny - 2}"/><path d="M116 ${ny + 11}Q138 ${ny + 10} 162 ${ny + 12}"/></g>`;
   }
 
   s += accessory(acc, ol);

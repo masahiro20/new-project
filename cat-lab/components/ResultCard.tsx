@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { drawCard, drawStory, type CardData, type CardPhoto } from "@/lib/card";
+import { PackOpener } from "./PackOpener";
 
 type Props = {
   data: CardData;
@@ -48,6 +49,7 @@ export function ResultCard({ data, docNo, query }: Props) {
   const [busy, setBusy] = useState<string | null>(null);
   const [msg, setMsg] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
+  const onOpen = useCallback(() => setRevealed(true), []);
 
   const flash = (t: string) => {
     setMsg(t);
@@ -124,22 +126,14 @@ export function ResultCard({ data, docNo, query }: Props) {
 
   return (
     <section className="rc" aria-label="猫様カード">
-      <div className={`flip${revealed ? " open" : ""}`}>
-        <button type="button" className="flip-back" onClick={() => setRevealed(true)} aria-label="カードを開封する" disabled={revealed}>
-          <svg className="fb-paw" viewBox="-12 -13 24 24" aria-hidden="true"><g fill="#fff"><ellipse cx="0" cy="4" rx="7" ry="5.6" /><ellipse cx="-7.6" cy="-3.6" rx="2.8" ry="3.6" /><ellipse cx="-2.6" cy="-7.6" rx="2.8" ry="3.6" /><ellipse cx="2.6" cy="-7.6" rx="2.8" ry="3.6" /><ellipse cx="7.6" cy="-3.6" rx="2.8" ry="3.6" /></g></svg>
-          <span className="fb-title">{data.name}との関係カード</span>
-          <span className="fb-tap">タップして開封</span>
-        </button>
-        <div className="flip-front">
-          {img ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={img} alt={`${data.name}とあなたは「${data.rel.name}」。${data.name}＝${data.rel.catRole}、あなた＝${data.rel.humanRole}`} />
-          ) : (
-            <div className="rc-loading">カードをつくっています…</div>
-          )}
-          {revealed && <span className={`rarity-pop r-${data.rarity.rank}`} aria-hidden="true">{data.rarity.rank}</span>}
-        </div>
-      </div>
+      <PackOpener
+        img={img}
+        alt={`${data.name}とあなたは「${data.rel.name}」。${data.name}＝${data.rel.catRole}、あなた＝${data.rel.humanRole}`}
+        rank={data.rarity.rank}
+        name={data.name}
+        opened={revealed}
+        onOpen={onOpen}
+      />
 
       {revealed && (
         <>
