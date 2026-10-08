@@ -174,6 +174,7 @@ button,input,select{font:inherit;color:inherit}
 .chart .blabel{fill:var(--crit);font-size:11px;font-family:var(--mono)}
 .chart .wlabel{fill:var(--warn);font-size:11px;font-family:var(--mono)}
 .chart .endlabel{fill:var(--fg);font-size:12px;font-family:var(--mono);font-weight:500}
+@media (max-width:560px){.chart .axis,.chart .blabel,.chart .wlabel{font-size:18px}.chart .endlabel{font-size:20px}}
 .chart .today{stroke:var(--muted);stroke-width:1;opacity:.5}
 .s-vercel{stroke:var(--p-vercel);fill:var(--p-vercel)}
 .s-openai{stroke:var(--p-openai);fill:var(--p-openai)}
@@ -665,7 +666,7 @@ select{border:1px solid var(--line);border-radius:4px;background:var(--surface);
   }
 
   function renderChart() {
-    var W = 640, H = 250, L = 52, R = 70, T = 14, B = 28;
+    var W = 640, H = 250, L = (window.innerWidth < 560 ? 84 : 52), R = (window.innerWidth < 560 ? 96 : 70), T = 14, B = 28;
     var pw = W - L - R, ph = H - T - B, upto = S.day;
     var sel = S.series, series = [], budget;
     if (sel === 'total') {
