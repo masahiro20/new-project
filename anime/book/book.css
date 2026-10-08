@@ -1,0 +1,111 @@
+/* RED LEDGER — 帳簿の書 Vol.0 / Book of the Ledger Vol.0
+   Print layout: A5 (148×210mm), one .page = one printed page.
+   Concept: a bound accounting ledger. Ruled paper, ink-navy text, red ink only for debt/Jin/Hazama. */
+@page { size: 148mm 210mm; margin: 0; }
+:root {
+  --paper: #F3F1E7;      /* ledger paper */
+  --paper-2: #E6E8DA;    /* tinted block */
+  --ink: #1A1C26;        /* ink navy-black */
+  --muted: #5A5F59;
+  --rule: #BFC9B3;       /* green ledger rule */
+  --red: #C8102E;        /* ledger red ink */
+  --gold: #8C6D22;
+  --night: #12141B;      /* full-bleed dark pages */
+  --bone: #ECE6D6;
+  --display: "Dela Gothic One", "Hiragino Sans", "Yu Gothic", sans-serif;
+  --body: "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: #888; }
+body { font-family: var(--body); color: var(--ink); font-size: 9.2pt; line-height: 1.7;
+  -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+@media screen { .page { margin: 10mm auto; box-shadow: 0 2px 12px rgba(0,0,0,.3); } }
+
+.page { width: 148mm; height: 210mm; position: relative; overflow: hidden;
+  background: var(--paper); padding: 13mm 12mm 17mm 12mm;
+  break-after: page; page-break-after: always; display: flex; flex-direction: column; gap: 4mm; }
+.page:last-child { break-after: auto; page-break-after: auto; }
+/* ledger rules in the margin: a red double rule on the left, like an account book */
+.page.ruled::before { content: ""; position: absolute; top: 0; bottom: 0; left: 8mm; width: 1.4mm;
+  border-left: .3mm solid var(--red); border-right: .3mm solid var(--red); opacity: .55; }
+.page.dark { background: var(--night); color: var(--bone); }
+.page.dark .folio, .page.dark .muted { color: #A49F93; }
+.page.bleed { padding: 0; }
+
+/* running header/footer — 'folio' = page number, true to a ledger */
+.runhead { position: absolute; top: 6mm; left: 12mm; right: 12mm; display: flex; justify-content: space-between;
+  font-family: var(--mono); font-size: 6.5pt; letter-spacing: .12em; text-transform: uppercase; color: var(--muted);
+  border-bottom: .2mm solid var(--rule); padding-bottom: 1mm; }
+.folio { position: absolute; bottom: 7mm; left: 12mm; right: 12mm; display: flex; justify-content: space-between;
+  font-family: var(--mono); font-size: 7pt; color: var(--muted); border-top: .2mm solid var(--rule); padding-top: 1.2mm; }
+.folio .no { color: var(--red); font-weight: 600; }
+
+/* type */
+h1, h2, h3, h4 { margin: 0; text-wrap: balance; font-weight: 400; }
+.chapter-no { font-family: var(--mono); font-size: 7.5pt; letter-spacing: .2em; color: var(--red); text-transform: uppercase; }
+h1 { font-family: var(--display); font-size: 22pt; line-height: 1.15; }
+h2 { font-family: var(--display); font-size: 14pt; line-height: 1.3; }
+h3 { font-family: var(--body); font-weight: 700; font-size: 10pt; line-height: 1.4; }
+h4 { font-family: var(--mono); font-size: 7pt; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+p { margin: 0; }
+.lede { font-size: 10.5pt; line-height: 1.75; }
+.small { font-size: 7.8pt; line-height: 1.6; }
+.muted { color: var(--muted); }
+.red { color: var(--red); }
+.mono { font-family: var(--mono); }
+.stack { display: flex; flex-direction: column; gap: 2.5mm; }
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; }
+.cols-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4mm; }
+.grow { flex: 1; min-height: 0; }
+
+/* blocks */
+.box { border: .4mm solid var(--red); padding: 3mm 3.5mm; display: flex; flex-direction: column; gap: 1.5mm; }
+.note { background: var(--paper-2); padding: 3mm 3.5mm; display: flex; flex-direction: column; gap: 1.2mm; }
+.stamp { display: inline-block; border: .8mm double var(--red); color: var(--red); padding: 1mm 3mm;
+  transform: rotate(-6deg); font-family: var(--display); font-size: 12pt; line-height: 1.1; text-align: center; }
+.stamp small { display: block; font-family: var(--mono); font-size: 5.5pt; letter-spacing: .25em; }
+figure { margin: 0; display: flex; flex-direction: column; gap: 1.5mm; }
+figure img, figure svg { width: 100%; height: auto; display: block; }
+figcaption { font-size: 7pt; color: var(--muted); }
+
+/* ledger table */
+table.ledger { width: 100%; border-collapse: collapse; font-size: 8pt; line-height: 1.5; }
+table.ledger th { font-family: var(--mono); font-size: 6.5pt; letter-spacing: .1em; text-transform: uppercase; color: var(--muted);
+  text-align: left; font-weight: 600; border-bottom: .4mm solid var(--ink); padding: 1mm 1.5mm; }
+table.ledger td { border-bottom: .2mm solid var(--rule); padding: 1.3mm 1.5mm; vertical-align: top; }
+table.ledger td.num { font-family: var(--mono); text-align: right; white-space: nowrap; }
+.sw { display: inline-block; width: 2.6mm; height: 2.6mm; border-radius: 50%; vertical-align: -.3mm; margin-right: 1.2mm; border: .15mm solid var(--muted); }
+
+/* character page */
+.char-head { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: .5mm solid var(--ink); padding-bottom: 1.5mm; }
+.char-name { font-family: var(--display); font-size: 20pt; line-height: 1.1; }
+.char-kana { font-family: var(--mono); font-size: 7pt; letter-spacing: .14em; color: var(--muted); }
+.char-body { display: grid; grid-template-columns: 52mm 1fr; gap: 5mm; flex: 1; min-height: 0; }
+.char-art { background: var(--night); display: flex; align-items: flex-end; justify-content: center; overflow: hidden; }
+.char-art img, .char-art svg { width: 100%; height: 100%; object-fit: contain; display: block; }
+.data { display: grid; grid-template-columns: auto 1fr; gap: .6mm 3mm; font-size: 7.8pt; }
+.data dt { font-family: var(--mono); font-size: 6.5pt; letter-spacing: .1em; color: var(--muted); text-transform: uppercase; padding-top: .4mm; }
+.data dd { margin: 0; }
+.quote { border-left: .8mm solid var(--red); padding-left: 3mm; font-family: var(--display); font-size: 11pt; line-height: 1.4; }
+.quote .en { display: block; font-family: var(--mono); font-size: 7pt; color: var(--muted); margin-top: 1mm; }
+
+/* screenplay excerpt */
+.script { display: flex; flex-direction: column; gap: 1.6mm; font-size: 8.3pt; line-height: 1.6; }
+.script .sh { font-family: var(--mono); font-size: 7.5pt; font-weight: 600; border-bottom: .2mm solid var(--rule); padding-top: 1mm; }
+.script .sh .tc { color: var(--red); margin-left: 2mm; }
+.script .act { padding-left: 4mm; }
+.script .dl { display: grid; grid-template-columns: 15mm 1fr; gap: 2mm; }
+.script .who { font-weight: 700; text-align: right; }
+.script .cue { font-family: var(--mono); font-size: 6.8pt; color: var(--red); letter-spacing: .06em; }
+
+/* glossary */
+dl.gloss { display: grid; grid-template-columns: 26mm 1fr; gap: 1.2mm 3mm; margin: 0; font-size: 7.8pt; line-height: 1.55; }
+dl.gloss dt { font-weight: 700; }
+dl.gloss dd { margin: 0; border-bottom: .2mm solid var(--rule); padding-bottom: 1mm; }
+
+/* toc */
+ol.toc { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+ol.toc li { display: grid; grid-template-columns: 1fr auto; gap: 3mm; border-bottom: .2mm solid var(--rule); padding: 1.6mm 0; }
+ol.toc .pg { font-family: var(--mono); color: var(--red); }
