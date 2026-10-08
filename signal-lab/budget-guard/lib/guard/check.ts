@@ -13,7 +13,7 @@ export interface Connection {
 }
 
 export interface Notice {
-  kind: "warn" | "limit" | "stopped" | "stop-test" | "stop-failed" | "error";
+  kind: "warn" | "limit" | "stopped" | "stop-test" | "stop-failed" | "error" | "vercel-alert" | "info";
   connectionId: string;
   message: string;
 }
@@ -30,6 +30,8 @@ export interface CheckDeps {
   token: string;
   fetchImpl: FetchLike;
   now: Date;
+  /** The provider itself reported the limit (Vercel Spend Management at 100%). */
+  forceLimit?: boolean;
 }
 
 const usd = (n: number) => `$${n.toFixed(2)}`;
@@ -49,9 +51,13 @@ export async function checkConnection(conn: Connection, prev: GuardState | undef
     return { state, notices };
   }
 
-  const evaluation = evaluate(spendUsd, conn.budgetUsd, state, { stopEnabled: conn.stopMode !== "off" });
+  const evaluation = evaluate(deps.forceLimit ? Math.max(spendUsd, conn.budgetUsd) : spendUsd, conn.budgetUsd, state, {
+    stopEnabled: conn.stopMode !== "off",
+  });
   const pct = Math.round(evaluation.ratio * 100);
-  const line = `${conn.label}: ${usd(spendUsd)} of ${usd(conn.budgetUsd)} (${pct}%)`;
+  const line = deps.forceLimit
+    ? `${conn.label}: Vercel Spend Management reported 100% of its budget (our fetch: ${usd(spendUsd)} of ${usd(conn.budgetUsd)})`
+    : `${conn.label}: ${usd(spendUsd)} of ${usd(conn.budgetUsd)} (${pct}%)`;
 
   if (evaluation.notifyWarn) {
     state.warnedAt = stamp;

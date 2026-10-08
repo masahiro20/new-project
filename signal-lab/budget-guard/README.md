@@ -22,6 +22,8 @@ npm run typecheck && npm test && npm run build
 | `lib/guard/store.ts` / `service.ts` | KV への保存、メール、cron 全体の処理 |
 | `app/(product)/app/` | ダッシュボード、停止設定ページ（`c/[id]`）、Server Actions |
 | `app/api/cron/check` + `vercel.json` | 毎時 cron（`CRON_SECRET` で認証） |
+| `lib/guard/notify-channels.ts` | Vercel webhook の署名検証、Slack incoming webhook への送信 |
+| `app/api/webhooks/vercel/[id]` | Vercel Spend Management webhook の受信口（接続ごとに1つ） |
 
 ## 停止アクション
 | 連携 | 停止 | 元に戻す |
@@ -41,6 +43,23 @@ npm run typecheck && npm test && npm run build
 - テストモードへ戻す（disarm）・停止を off にする操作は、確認なしでできる。
 - 停止に失敗したら記録して通知し、次の毎時処理で再試行する。
 
+## 通知
+- **メール**：常に送る。80%、100%、停止の結果（実行・テスト・失敗）、Vercel のアラート。
+- **Slack**（任意）：incoming webhook の URL を登録すると、メールと同じ内容を送る。
+  - URL 自体が秘密なので、暗号化して保存する。受け付けるのは `https://hooks.slack.com/services/…` の形式だけ（SSRF 対策）。
+  - Slack への送信に失敗しても、メールや停止は止めない。失敗はアクティビティに記録する。
+  - 開発時は `demo` と入れると、送らずにコンソールへ出力する。
+
+## Vercel Spend Management webhook（任意・早期検知）
+- **受信口：** 接続ごとに URL `/api/webhooks/vercel/{connId}` を発行する。Vercel が表示するシークレットを登録すると有効になる。
+- **シークレット：** 接続IDに束縛して暗号化する。未登録の間、この URL はすべてのリクエストを 401 で拒否する。
+- **署名の検証：** `x-vercel-signature` を、生のボディの HMAC-SHA1（hex）と定数時間で比較する（https://vercel.com/docs/webhooks/webhooks-api#securing-webhooks）。
+- **受信後の確認：** ペイロードを zod で検証し、teamId が接続先と一致するか確かめる。同じ月・同じ閾値の通知は1回だけ処理する（Vercel の最大24時間の再送対策）。
+- **50% / 75% の通知：** 記録して通知したあと、cron を待たずにその場で利用額を取り直す。
+- **100% の通知：** Vercel 側の予算到達を上限到達として扱い、停止を実行する。ただし通常と同じ関門を通るので、テストモードでは記録だけ、live でも月1回だけ。
+- **応答時間：** 応答は先に返し、メールや再チェックは `after()` で行う（Vercel のタイムアウトは30秒）。
+- **注意：** Vercel の予算は Pro の月次クレジットを超えた分しか数えないので、Budget Guard の割合とずれることがある。`currentSpend` と `budgetAmount` は int（USD）としか書かれておらず、端数の扱いは未確認。
+
 ## トークンと権限
 - トークンは検証（読み取り専用の利用額取得）に成功したときだけ保存する。暗号文と伏せ字（先頭4文字＋末尾4文字）だけを持ち、画面には二度と出さない。接続を削除するとトークンも消える。
 - **3社とも、コスト取得専用の読み取りキーはない**（2026-10-08 時点の公式ドキュメント）。利用額の読み取りと停止は同じキーで行うことになる。対策は次のとおり：
@@ -55,6 +74,5 @@ npm run typecheck && npm test && npm run build
 
 ## まだやっていないこと
 - 実アカウントでの疎通確認（本番キーは未使用。デモ用のフェッチとユニットテストのみ）
-- Vercel Spend Management の webhook 受信（より早く検知するための補助）
-- 通知先の追加（Slack・Webhook）、使用量のグラフ
+- 汎用 webhook への通知、使用量のグラフ
 - 価格（$9/月・$79/年）はオーナーの承認待ち。ステージ1案の「$79 年間買い切り」は、テンプレートの買い切りが無期限になるため、年額サブスクに置き換えた。

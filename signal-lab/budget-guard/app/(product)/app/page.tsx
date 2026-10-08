@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { AddConnectionForm } from "@/components/guard/AddConnectionForm";
+import { SlackForm } from "@/components/guard/SlackForm";
 import { getKV } from "@/lib/redis";
 import { requireAccess } from "@/lib/session";
 import { isProduction } from "@/lib/site";
 import { PROVIDER_INFO } from "@/lib/guard/info";
-import { getLog, getSnapshot, listConnections, MAX_CONNECTIONS } from "@/lib/guard/store";
-import { checkNowAction } from "./actions";
+import { getLog, getSettings, getSnapshot, listConnections, MAX_CONNECTIONS } from "@/lib/guard/store";
+import { checkNowAction, removeSlackAction, testSlackAction } from "./actions";
 import { Flash } from "./messages";
 
 const usd = (n: number) => `$${n.toFixed(2)}`;
@@ -20,6 +21,7 @@ export default async function Dashboard(props: PageProps<"/app">) {
   const conns = await listConnections(kv, acct);
   const snaps = await Promise.all(conns.map((c) => getSnapshot(kv, acct, c.id)));
   const log = await getLog(kv, acct);
+  const settings = await getSettings(kv, acct);
   const labels = new Map(conns.map((c) => [c.id, c.label]));
 
   return (
@@ -63,6 +65,23 @@ export default async function Dashboard(props: PageProps<"/app">) {
       ) : (
         <p className="msg">You are using all {MAX_CONNECTIONS} connections on this plan.</p>
       )}
+
+      <h2 style={{ marginTop: 40 }}>Notifications</h2>
+      <div className="card stack">
+        <p>Email: {access.entitlement.email} (always on)</p>
+        {settings.slackHint ? (
+          <>
+            <p>Slack: {settings.slackHint}</p>
+            <div className="actions">
+              <form action={testSlackAction}><button className="btn secondary">Send test message</button></form>
+              <form action={removeSlackAction}><button className="btn secondary">Remove Slack</button></form>
+            </div>
+          </>
+        ) : (
+          <SlackForm allowDemo={!isProduction()} />
+        )}
+        <p className="hint">The webhook URL is stored encrypted and only used to post Budget Guard alerts.</p>
+      </div>
 
       <h2 style={{ marginTop: 40 }}>Activity</h2>
       {log.length === 0 ? (

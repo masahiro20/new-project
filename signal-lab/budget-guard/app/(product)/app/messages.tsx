@@ -16,6 +16,12 @@ export const MESSAGES: Record<string, { text: string; error?: boolean }> = {
   "confirm-malformed": { text: "Invalid confirmation. Reload the page.", error: true },
   "not-found": { text: "Connection not found.", error: true },
   "bad-request": { text: "Bad request.", error: true },
+  "slack-removed": { text: "Slack webhook removed." },
+  "slack-sent": { text: "Test message sent to Slack." },
+  "slack-failed": { text: "Slack did not accept the test message. Check the webhook URL.", error: true },
+  "hook-saved": { text: "Webhook secret saved. Vercel alerts for this team will now trigger an immediate check." },
+  "hook-removed": { text: "Webhook secret removed. The webhook URL now rejects every request." },
+  "hook-invalid": { text: "The secret looks wrong (8–200 characters).", error: true },
 };
 
 export function Flash({ msg }: { msg?: string | string[] }) {

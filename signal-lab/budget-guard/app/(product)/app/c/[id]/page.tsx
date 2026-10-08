@@ -6,7 +6,8 @@ import { PROVIDER_INFO } from "@/lib/guard/info";
 import { challengeSecret, planFor } from "@/lib/guard/service";
 import { issueChallenge, type StopPlan } from "@/lib/guard/stop";
 import { getConnection } from "@/lib/guard/store";
-import { confirmAction, removeConnectionAction, setSafeModeAction, testStopAction } from "../../actions";
+import { siteUrl } from "@/lib/site";
+import { confirmAction, removeConnectionAction, saveWebhookSecretAction, setSafeModeAction, testStopAction } from "../../actions";
 import { Flash } from "../../messages";
 
 function Confirm({ id, label, action, challenge, cta, danger }: { id: string; label: string; action: string; challenge: string; cta: string; danger?: boolean }) {
@@ -87,6 +88,35 @@ export default async function StopSettings(props: PageProps<"/app/c/[id]">) {
           <div className="card" style={{ marginTop: 16 }}>
             <p>Run the stop right now, regardless of spend.</p>
             <Confirm id={conn.id} label={conn.label} action="stop-now" challenge={issueChallenge(conn.id, "stop-now", plan, secret)} cta="Stop now" danger />
+          </div>
+        </>
+      )}
+
+      {conn.target.provider === "vercel" && (
+        <>
+          <h2>Faster detection: Vercel Spend Management webhook (optional)</h2>
+          <div className="card stack">
+            <p>
+              In Vercel → Settings → Billing → Spend Management, set the webhook URL below and paste the secret Vercel shows. Vercel posts at
+              50/75/100% of its on-demand budget; Budget Guard then checks immediately, and at 100% runs this stop if it is armed.
+            </p>
+            <pre className="plan">{`${siteUrl()}/api/webhooks/vercel/${conn.id}`}</pre>
+            <p>Status: {conn.sealedWebhookSecret ? "secret saved (signature checked on every request)" : "not set (the URL rejects all requests)"}</p>
+            <form action={saveWebhookSecretAction} className="stack">
+              <input type="hidden" name="id" value={conn.id} />
+              <label>
+                Webhook secret <input type="password" name="secret" autoComplete="off" required minLength={8} maxLength={200} />
+              </label>
+              <button className="btn secondary">Save secret</button>
+            </form>
+            {conn.sealedWebhookSecret && (
+              <form action={saveWebhookSecretAction}>
+                <input type="hidden" name="id" value={conn.id} />
+                <input type="hidden" name="remove" value="1" />
+                <button className="btn secondary">Remove secret</button>
+              </form>
+            )}
+            <p className="hint">Vercel&apos;s budget counts only usage beyond the Pro monthly credit, so its percentage can differ from ours.</p>
           </div>
         </>
       )}

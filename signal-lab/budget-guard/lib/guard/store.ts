@@ -15,6 +15,14 @@ const LOG_SIZE = 50;
 export interface StoredConnection extends Connection {
   tokenHint: string;
   createdAt: string;
+  /** Vercel only: Spend Management webhook secret, sealed with AAD `${id}:webhook`. */
+  sealedWebhookSecret?: string;
+}
+
+export interface AccountSettings {
+  /** Slack incoming webhook URL (it is a secret), sealed with AAD `${acct}:slack`. */
+  sealedSlackUrl?: string;
+  slackHint?: string;
 }
 
 export interface Snapshot {
@@ -35,6 +43,9 @@ const k = {
   state: (acct: string, id: string) => key("bg", acct, "state", id),
   snap: (acct: string, id: string) => key("bg", acct, "snap", id),
   log: (acct: string) => key("bg", acct, "log"),
+  owner: (id: string) => key("bg", "owner", id),
+  settings: (acct: string) => key("bg", acct, "settings"),
+  hook: (id: string, event: string) => key("bg", "hook", id, event),
 };
 
 export async function listConnections(kv: KV, acct: string): Promise<StoredConnection[]> {
@@ -62,6 +73,7 @@ export async function addConnection(
     createdAt: new Date().toISOString(),
   };
   await setJSON(kv, k.conns(acct), [...conns, conn]);
+  await kv.set(k.owner(id), acct);
   await kv.sadd(k.accounts(), acct);
   return conn;
 }
@@ -70,7 +82,12 @@ export async function getConnection(kv: KV, acct: string, id: string): Promise<S
   return (await listConnections(kv, acct)).find((c) => c.id === id);
 }
 
-export async function updateConnection(kv: KV, acct: string, id: string, patch: { stopMode?: StopMode; budgetUsd?: number }): Promise<void> {
+export async function updateConnection(
+  kv: KV,
+  acct: string,
+  id: string,
+  patch: { stopMode?: StopMode; budgetUsd?: number; sealedWebhookSecret?: string | undefined },
+): Promise<void> {
   const conns = await listConnections(kv, acct);
   const i = conns.findIndex((c) => c.id === id);
   if (i < 0) throw new Error("Connection not found");
@@ -81,8 +98,19 @@ export async function updateConnection(kv: KV, acct: string, id: string, patch: 
 export async function removeConnection(kv: KV, acct: string, id: string): Promise<void> {
   const conns = await listConnections(kv, acct);
   await setJSON(kv, k.conns(acct), conns.filter((c) => c.id !== id));
-  await kv.del(k.state(acct, id), k.snap(acct, id));
+  await kv.del(k.state(acct, id), k.snap(acct, id), k.owner(id));
 }
+
+/** Which account owns a connection (for inbound webhooks, which carry no session). */
+export const ownerOf = (kv: KV, id: string) => kv.get(k.owner(id));
+
+export async function getSettings(kv: KV, acct: string): Promise<AccountSettings> {
+  return (await getJSON<AccountSettings>(kv, k.settings(acct))) ?? {};
+}
+export const saveSettings = (kv: KV, acct: string, s: AccountSettings) => setJSON(kv, k.settings(acct), s);
+
+/** True the first time a given webhook event is seen (Vercel retries for up to 24h). */
+export const claimHookEvent = (kv: KV, id: string, event: string) => kv.set(k.hook(id, event), "1", { nx: true, ex: 40 * 24 * 3600 });
 
 export const listAccounts = (kv: KV) => kv.smembers(k.accounts());
 export const getState = (kv: KV, acct: string, id: string) => getJSON<GuardState>(kv, k.state(acct, id));

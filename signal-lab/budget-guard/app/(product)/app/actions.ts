@@ -7,7 +7,8 @@ import { getKV } from "@/lib/redis";
 import { requireAccess } from "@/lib/session";
 import { isDemoToken } from "@/lib/guard/demo";
 import { isProduction } from "@/lib/site";
-import { checkAccount, challengeSecret, fetchFor, openToken, planFor } from "@/lib/guard/service";
+import { checkAccount, challengeSecret, fetchFor, openToken, planFor, sendSlackTest, setSlackUrl, setVercelWebhookSecret } from "@/lib/guard/service";
+import { DEMO_SLACK_URL, isSlackWebhookUrl } from "@/lib/guard/notify-channels";
 import { adapterFor, type Target } from "@/lib/guard/providers";
 import { runStop, verifyChallenge, type ConfirmAction } from "@/lib/guard/stop";
 import { addConnection, appendLog, getConnection, removeConnection, updateConnection } from "@/lib/guard/store";
@@ -142,4 +143,45 @@ export async function confirmAction(formData: FormData): Promise<void> {
       : { kind: "stop-failed", connectionId: cid, message: `Manual stop failed: ${result.requests.map((r) => r.error ?? r.status).join("; ")}`, at },
   ]);
   redirect(`/app/c/${cid}?msg=${result.ok ? "stopped" : "stop-failed"}`);
+}
+
+// --- Notification channels ----------------------------------------------------
+
+export async function saveSlackAction(_prev: FormState, formData: FormData): Promise<FormState> {
+  const acct = await account();
+  const url = String(formData.get("slackUrl") ?? "").trim();
+  const demoOk = url === DEMO_SLACK_URL && !isProduction();
+  if (!demoOk && !isSlackWebhookUrl(url)) return { status: "error", message: "Paste a Slack incoming webhook URL (https://hooks.slack.com/services/…)." };
+  await setSlackUrl(getKV(), acct.id, url);
+  revalidatePath("/app");
+  return { status: "ok", message: "Slack webhook saved. Use “Send test message” to check it." };
+}
+
+export async function removeSlackAction(): Promise<void> {
+  const acct = await account();
+  await setSlackUrl(getKV(), acct.id, null);
+  redirect("/app?msg=slack-removed");
+}
+
+export async function testSlackAction(): Promise<void> {
+  const acct = await account();
+  let ok = true;
+  try {
+    await sendSlackTest(getKV(), acct.id);
+  } catch {
+    ok = false;
+  }
+  redirect(`/app?msg=${ok ? "slack-sent" : "slack-failed"}`);
+}
+
+export async function saveWebhookSecretAction(formData: FormData): Promise<void> {
+  const acct = await account();
+  const cid = parseId(formData);
+  const conn = await getConnection(getKV(), acct.id, cid);
+  if (!conn || conn.target.provider !== "vercel") redirect("/app?msg=not-found");
+  const secret = String(formData.get("secret") ?? "").trim();
+  const remove = formData.get("remove") === "1";
+  if (!remove && (secret.length < 8 || secret.length > 200)) redirect(`/app/c/${cid}?msg=hook-invalid`);
+  await setVercelWebhookSecret(getKV(), acct.id, cid, remove ? null : secret);
+  redirect(`/app/c/${cid}?msg=${remove ? "hook-removed" : "hook-saved"}`);
 }
