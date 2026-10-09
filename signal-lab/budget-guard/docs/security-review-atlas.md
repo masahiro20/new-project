@@ -205,3 +205,5 @@
 - Vercel・`next start`・Cloudflare（キャッシュから返すページと静的アセットを含む）のどの経路でも付く。
 - nonce ではなく hash にした理由と、確かめた結果は docs/deploy-cloudflare.md §8.2.2 に書いた。
 - テストは `tests/security-headers.test.ts`。特商法の解約方法のボタン名も「Manage billing」に合わせた（`tests/tokushoho-label.test.ts`）。
+
+- **Atlas の最終確認（68e9d0a）：** 新しい問題なし。注意として「デプロイ前に、実機のブラウザで CSP 違反が出ないかを一度見ること」があり、docs/deploy-cloudflare.md の §10（デプロイ手順）と §10.1（公開前のチェックリスト）に、見る手順とあわせて入れた。

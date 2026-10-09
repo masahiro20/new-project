@@ -572,7 +572,31 @@ npx wrangler tail budget-guard     # ログを見る
   - ダッシュボードの Metrics で、CPU time の p99 と `Exceeded CPU` のエラーを確認する
   - ダッシュボードの Triggers に `* * * * *` が表示され、Cron Events に毎分の結果（`[cron] {…"checked":…}`）が出る
   - 1 時間のうちに、各接続のダッシュボードの「checked」時刻が更新される
+  - **実機のブラウザで CSP 違反が出ない**（§10.1 の手順。Atlas の最終確認での注意）
 - 独自ドメインは、ダッシュボードの Worker → Settings → Domains & Routes で設定する。その後 `NEXT_PUBLIC_SITE_URL` を変えて、もう一度デプロイする。
+
+### 10.1 公開前のチェックリスト（デプロイのたびに）
+- [ ] `/`・`/pricing`・`/legal/*` の応答ヘッダーに、次の 4 つが付いている：
+  - `Content-Security-Policy`（`script-src 'self' 'sha256-…'` の形。`'unsafe-inline'` が無い）
+  - `X-Content-Type-Options: nosniff`
+  - `Referrer-Policy: same-origin`
+  - `Permissions-Policy`
+- [ ] 静的ページの応答に `x-nextjs-cache: MISS` が付いていない（キャッシュから返っている）。MISS だと、ページの hash と CSP が合わずに壊れることがある（§8.2.2）。`npx wrangler tail` に `[csp] …` が出ていないことも見る。
+- [ ] **実機のブラウザで CSP 違反が出ない。** 手順は次のとおり（Chrome。ほかのブラウザでも同様）：
+  1. 新しいシークレットウィンドウで、公開した URL を開く（拡張機能のスクリプトが混ざらないようにする）。
+  2. DevTools（F12）を開き、**Console** と **Network** を表示する。Network では「Preserve log」と「Disable cache」をオンにする。Console のフィルタで `Content-Security-Policy` / `Refused to` を検索できるようにしておく。
+  3. 主要な流れを 1 回通す：
+     - `/` → `/pricing`（料金カードの表示。Yearly は「Annual billing coming soon」）
+     - 同意して購入 → デモの決済（テストカード `4242 4242 4242 4242`）→ `/success`（ライセンスキー）→「Open the app」
+     - ダッシュボード → 接続の追加（demo 構成ならトークン `demo`）→ 接続の画面
+     - 停止の画面：テスト実行、live への切り替え（ラベルを入力）、Vercel の接続なら「Stop on Vercel's 100% alert」のオンとオフ
+     - 「Manage billing」→ 請求管理（demo はデモの画面、stripe は Stripe の請求ポータルに移ること）
+     - サインアウト → `/access` でライセンスキーでログイン
+     - 存在しない URL（404 のページ）
+  4. **Console** に `Refused to execute inline script` / `Refused to load` / `violates the following Content Security Policy directive` が 1 件も出ていないこと。
+  5. **Network** で、各ページ（Type が document）を選び、Response Headers に上の 4 つが付いていること。赤い行（blocked:csp など）が無いこと。
+  6. 違反が出たら、その行の `directive` と `blocked URI`（または hash）を控える。公開を止めて、`lib/security-headers.mjs` の方針に照らして直す。ありがちな原因は、キャッシュが入っていない（`npm run deploy` で入れ直す）か、外部の読み込みを足した（CSP に足すかを決める）こと。
+- [ ] 自動の確認（参考）：同じ流れは Playwright でも通してある（2026-10-09、`next start` と workerd）。実機の確認の代わりにはならない。ブラウザの拡張機能、実際のドメイン、https、CDN の挙動は、手元では再現できないため。
 
 ## 11. ロールバック
 - `npx wrangler deployments list` で履歴を見て、`npx wrangler rollback [<version-id>]` で以前のバージョンに戻す。secret は戻らないので、変えていたら入れ直す。

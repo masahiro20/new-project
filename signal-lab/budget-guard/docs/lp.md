@@ -17,12 +17,12 @@
 
 | セクション | 要旨 |
 |---|---|
-| Hero | 「通知は知らせるだけ。Budget Guard は止める。」Vercel・OpenAI・Anthropic の利用額に予算をひとつ。毎時チェックし、80% でメール、100% で事前に設定・テストした停止を実行する。停止は元に戻せる。接続はすべてテストモードから始まる。 |
+| Hero | 「通知は知らせるだけ。Budget Guard は止める。」Vercel・OpenAI・Anthropic の利用額に予算をひとつ。定期的に（ふだんは毎時、負荷が高いと間隔が延びる。料金表を参照）チェックし、80% でメール、100% で事前に設定・テストした停止を実行する。停止は元に戻せる。接続はすべてテストモードから始まる。 |
 | The problem | 暴走ループや AI クローラーで一晩に高額請求になりうる。多くのサービスは通知するだけ。プロバイダごとに仕組みが違い、見る場所が増える。Hacker News の公開報告を 2 件引用（他人の報告で、自社データではないと明記）。 |
 | How it works | 3 ステップ：① 専用トークンで接続（保存前に支出の読み取りで検証、暗号化して保存）② 月の予算と停止対象を選ぶ（まずテストモード）③ 準備ができたらライブにする。通知と停止は月 1 回で、月が変わると再武装。 |
 | Three integrations | 3 社それぞれの「読むもの／100% での停止／戻し方」の表。Vercel はプロジェクトを一時停止、OpenAI はプロジェクトに予算額のハード上限、Anthropic はワークスペースの API キーを inactive。取り消せない操作はしない。各社の注意点（Vercel は本番のみ、OpenAI の上限は即時でない、Anthropic の Priority Tier は対象外）。 |
 | Safety | テストモードが既定。ライブ化には 3 つの確認（リクエスト一覧・5 分で切れる署名付き確認・ラベル入力）。戻すのはワンクリック。失敗は記録・通知・再試行。トークンは AES-256-GCM で暗号化。最小権限の発行手順を案内。正直な注意：どの社にも読み取り専用のコストキーはない。 |
-| How it compares | 各社の標準機能との比較表。1 社だけなら標準の上限から始めるべきと明記。Budget Guard の違いは、複数社の一元表示、事前にテストできる停止、細かい対象指定。標準機能の方が優れる点（プロバイダ側で強制、毎時より速い、第三者に管理キーを渡さない）も書いている。 |
+| How it compares | 各社の標準機能との比較表。1 社だけなら標準の上限から始めるべきと明記。Budget Guard の違いは、複数社の一元表示、事前にテストできる停止、細かい対象指定。標準機能の方が優れる点（プロバイダ側で強制、こちらの確認（最短で毎時）より速い、第三者に管理キーを渡さない）も書いている。 |
 | Alerts | 80% でメール（接続ごとに月 1 回）、Slack の incoming webhook、Vercel Spend Management の webhook で即時チェック。Vercel の通知だけでは止めず、その場で利用額を取り直して Budget Guard の予算で判定する。Vercel の 100% 通知だけで止めたい人は、接続ごとのオプトイン「Vercel の 100% 通知でも止める」をオンにする（初期値はオフ。オンにするには live への切り替えと同じ確認が要る）。 |
 | Pricing | **案・承認待ち。** Monthly $9／月（監視接続 3 つまで、全利用者の接続数の合計に応じて 1〜12 時間ごとに確認（合計 50 接続までは毎時）、80% 通知と 100% 停止、テストモード）。Yearly は「年払いは準備中」で購入できない。いつでも解約でき、支払済み期間の終わりまで使える。 |
 | FAQ | 必要なキー、管理者キーが要る理由、データの鮮度（日単位・途中集計）、100% で即止まるわけではないこと、通知だけの使い方、テストモードの中身、停止の戻し方（ユーザー自身が操作、ワンクリック復旧は未実装）、月替わりの動作、保存するデータと削除、標準機能の代わりではないこと。 |
@@ -36,7 +36,7 @@
 
 **Alerts tell you. Budget Guard stops it.**
 
-One budget for your Vercel, OpenAI and Anthropic spend. Budget Guard checks every hour and emails you at 80%. At 100% it runs the stop you set up and tested ahead of time: it pauses a Vercel project, caps an OpenAI project, or deactivates Anthropic keys. You can undo each stop.
+One budget for your Vercel, OpenAI and Anthropic spend. Budget Guard checks your spend hourly (less often at high load — see pricing) and emails you at 80%. At 100% it runs the stop you set up and tested ahead of time: it pauses a Vercel project, caps an OpenAI project, or deactivates Anthropic keys. You can undo each stop.
 
 **[Join the waitlist]** · *Every connection starts in test mode. Nothing gets stopped until you switch it to live.*
 
@@ -56,7 +56,7 @@ One budget for your Vercel, OpenAI and Anthropic spend. Budget Guard checks ever
 
 1. **Connect a provider.** Paste a dedicated token for Vercel, OpenAI or Anthropic. Before saving it, Budget Guard checks it by reading your current spend. The token is stored encrypted and never shown again.
 2. **Set a monthly budget and pick what to stop.** Choose the Vercel project, the OpenAI project or the Anthropic workspace. The stop starts in **test mode**: when you hit 100%, Budget Guard records the exact requests it *would* send and doesn't send them.
-3. **Go live when you're ready.** Review the request list, type the connection's label to confirm, and arm the stop. From then on, the hourly check emails you at 80% and runs the stop at 100%. Alerts and stops fire once per month and re-arm when a new month starts.
+3. **Go live when you're ready.** Review the request list, type the connection's label to confirm, and arm the stop. From then on, the scheduled check emails you at 80% and runs the stop at 100%. Alerts and stops fire once per month and re-arm when a new month starts.
 
 ---
 
@@ -89,7 +89,7 @@ You're giving a tool the power to stop production, so here's how we keep it from
   - A signed confirmation that expires after 5 minutes. It stops working if the plan changes in the meantime.
   - You type the connection's label exactly.
 - **Backing out is always one click.** Switching back to test mode or turning the stop off needs no confirmation.
-- **Failures are reported.** If a stop fails, we log it, notify you, and retry on the next hourly check.
+- **Failures are reported.** If a stop fails, we log it, notify you, and retry on the next scheduled check.
 - **Encrypted tokens.** Tokens are encrypted with AES-256-GCM and bound to their connection. We keep only the encrypted value and a masked hint (the provider's public key prefix, such as sk-admin-, and the last 4 characters). The token is never displayed again. Deleting a connection deletes its token.
 - **Least privilege, as far as each provider allows.** The setup screen tells you how to issue the narrowest token each provider allows:
   - **Vercel:** a token scoped to one team, ideally from a Member-role user, with an expiry date.
@@ -106,11 +106,11 @@ The providers' own controls are good, and they're free. If you only use one prov
 
 | | Built-in tool | What it does well | Where Budget Guard differs |
 |---|---|---|---|
-| **Vercel** | [Spend Management](https://vercel.com/docs/spend-management) (Pro, and Enterprise on Flex Commitment) | On-demand budget with notifications at 50/75/100%, webhooks, and an option to pause production. Vercel checks spend every few minutes, which is faster than our hourly poll. | Vercel's pause option pauses production for **every project on the team**. Budget Guard pauses only the projects you pick, and you can rehearse it in test mode. Budget Guard can also listen to Vercel's own Spend Management webhook, so it reacts as soon as Vercel reports 50/75/100% (see below). |
+| **Vercel** | [Spend Management](https://vercel.com/docs/spend-management) (Pro, and Enterprise on Flex Commitment) | On-demand budget with notifications at 50/75/100%, webhooks, and an option to pause production. Vercel checks spend every few minutes, which is faster than our checks (hourly at best). | Vercel's pause option pauses production for **every project on the team**. Budget Guard pauses only the projects you pick, and you can rehearse it in test mode. Budget Guard can also listen to Vercel's own Spend Management webhook, so it reacts as soon as Vercel reports 50/75/100% (see below). |
 | **OpenAI** | [Project and organization spend limits](https://developers.openai.com/api/docs/guides/spend-limits) | Real hard limits, set in the dashboard or via API, plus separate spend alerts. | Budget Guard's OpenAI stop **uses this same native limit**: at 100% it sets the project's hard limit for you. What it adds is the 80% email, test mode, one view alongside Vercel and Anthropic, and written undo steps. If you're fine setting the limit yourself, you don't need us for OpenAI. |
 | **Anthropic** | [Console spend limits](https://platform.claude.com/docs/api/rate-limits) (organization and workspace) | Monthly spend limits per organization and per workspace in the Console. Setting them through the API is in early access. | Budget Guard deactivates the keys in one workspace when your **own** budget is hit, lets you exclude keys, and lists the key IDs so you can set them back to active. It also shows the result next to your Vercel and OpenAI spend. |
 
-**Where the native tools are better:** they enforce limits on the provider's side, often faster than an hourly poll, and they don't need a third party holding an admin token. We'd rather you know that before you sign up.
+**Where the native tools are better:** they enforce limits on the provider's side, often faster than our checks (hourly at best), and they don't need a third party holding an admin token. We'd rather you know that before you sign up.
 
 ---
 
@@ -144,10 +144,10 @@ A Vercel access token scoped to your team, an OpenAI Admin key, and an Anthropic
 None of the three providers offers a read-only cost key. The same key reads spend and runs the stop. We limit what Budget Guard touches to the projects and workspace you name, and every stop starts in test mode.
 
 **How fresh is the data?**
-All three providers report cost per day. Budget Guard checks every hour, so what you see for today is a partial total, and it can lag the provider by a few hours. On Vercel, connecting the Spend Management webhook triggers an extra check as soon as Vercel reports 50/75/100%.
+All three providers report cost per day. Checked every 1–12 hours depending on total load (hourly up to 50 connections across all users), so what you see for today is a partial total, and it can lag the provider by a few hours. On Vercel, connecting the Spend Management webhook triggers an extra check as soon as Vercel reports 50/75/100%.
 
 **Will a stop fire the instant I cross 100%?**
-No. A stop runs on the first check that sees you at or over 100%: the hourly check, or a Vercel webhook. Providers also report cost with a delay, and OpenAI notes that its own limit can be exceeded slightly. Treat Budget Guard as a backstop that limits the damage. It can't guarantee you'll never go over.
+No. A stop runs on the first check that sees you at or over 100%: the scheduled check, or a Vercel webhook. Providers also report cost with a delay, and OpenAI notes that its own limit can be exceeded slightly. Treat Budget Guard as a backstop that limits the damage. It can't guarantee you'll never go over.
 
 **Can I just get alerts?**
 Yes. Leave the stop off, or keep it in test mode, and you'll only get alerts.
@@ -209,8 +209,8 @@ Budget Guard is an early product. Join the waitlist and we'll invite you when it
 
 ## Meta description (≤155 chars)
 
-> Hourly spend checks for Vercel, OpenAI and Anthropic. Email at 80%, a reversible stop at 100%, tested first in test mode.
+> Regular spend checks for Vercel, OpenAI and Anthropic. Email at 80%, a reversible stop at 100%, tested first in test mode.
 
-(122 characters)
+(123 characters)
 
-和訳：Vercel・OpenAI・Anthropic の支出を毎時チェック。80% でメール、100% で元に戻せる停止。まずテストモードで試してから。
+和訳：Vercel・OpenAI・Anthropic の支出を定期的にチェック。80% でメール、100% で元に戻せる停止。まずテストモードで試してから。

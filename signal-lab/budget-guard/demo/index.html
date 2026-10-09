@@ -383,7 +383,7 @@ select{border:1px solid var(--line);border-radius:4px;background:var(--surface);
       <section class="panel" id="panel-2" aria-labelledby="h-2" hidden>
         <div class="panel-head">
           <h2 id="h-2">2. 接続ごとの月間予算</h2>
-          <p>80%でメールとSlackに通知し、100%で停止を実行します(このデモでは全接続がテストモードです)。新しい予算は次の毎時チェックから使われます。</p>
+          <p>80%でメールとSlackに通知し、100%で停止を実行します(このデモでは全接続がテストモードです)。新しい予算は次の定期チェックから使われます。</p>
         </div>
         <div class="form-rows" id="budget-form"></div>
         <div class="panel-foot">
@@ -396,12 +396,12 @@ select{border:1px solid var(--line);border-radius:4px;background:var(--surface);
       <section class="panel" id="panel-3" aria-labelledby="h-3" hidden>
         <div class="panel-head">
           <h2 id="h-3">3. 時間と支出を進める</h2>
-          <p>Budget Guardは1時間ごとに支出を確認します。80%で通知(月1回)、100%でテストモードの停止記録が作られます。</p>
+          <p>Budget Guardは定期的に支出を確認します(ふだんは毎時、負荷が高いと間隔が延びます)。80%で通知(月1回)、100%でテストモードの停止記録が作られます。</p>
         </div>
         <div class="sim-grid">
           <div class="sim-box">
             <h3>通常の利用</h3>
-            <p class="note">ふだんのペースで支出が増え、毎時チェックが走ります。</p>
+            <p class="note">ふだんのペースで支出が増え、定期チェックが走ります。</p>
             <div class="acts">
               <button class="btn" type="button" id="sim-hour">1時間進める</button>
               <button class="btn" type="button" id="sim-day">1日進める</button>
@@ -409,7 +409,7 @@ select{border:1px solid var(--line);border-radius:4px;background:var(--surface);
           </div>
           <div class="sim-box">
             <h3>スパイク</h3>
-            <p class="note">暴走ループやクローラーを想定し、予算の25%分を一度に加えてから次の毎時チェックを走らせます。</p>
+            <p class="note">暴走ループやクローラーを想定し、予算の25%分を一度に加えてから次の定期チェックを走らせます。</p>
             <label for="spike-target" class="note">対象の接続</label>
             <select id="spike-target">
               <option value="vercel">vercel-acme-web (Vercel)</option>
@@ -468,7 +468,7 @@ select{border:1px solid var(--line);border-radius:4px;background:var(--surface);
           <button class="btn danger" type="button" id="execute-stop" disabled>テストモードで実行(送信しません)</button>
           <button class="btn" type="button" id="go-live" disabled aria-describedby="go-live-note">ライブに切り替え</button>
         </div>
-        <p class="note" id="go-live-note">ライブへの切り替えはこのデモでは使えません。製品では同じ3つの確認がそろうとライブに切り替わり、以後は100%に達した毎時チェックで停止を実行します。テストモードへ戻すのは確認なしでいつでもできます。</p>
+        <p class="note" id="go-live-note">ライブへの切り替えはこのデモでは使えません。製品では同じ3つの確認がそろうとライブに切り替わり、以後は100%に達した定期チェックで停止を実行します。テストモードへ戻すのは確認なしでいつでもできます。</p>
         <div id="stop-result" aria-live="polite"></div>
 
         <div class="panel-foot">
@@ -626,7 +626,7 @@ select{border:1px solid var(--line);border-radius:4px;background:var(--surface);
     addLog('2026-10-01 00:00', 'check', '新しい月になりました。3接続のアラートと停止を再び有効にしました。');
     addLog('2026-10-06 09:12', 'setting', 'vercel-acme-web: 停止対象にプロジェクト acme-web (prj_demoA1b2C3d4) を選択。モード: テスト');
     addLog('2026-10-06 09:15', 'setting', 'anthropic-main: Slack通知の送信先を #alerts に設定(incoming webhook)');
-    addLog('2026-10-18 14:00', 'check', '毎時チェック完了: 3接続とも80%未満。');
+    addLog('2026-10-18 14:00', 'check', '定期チェック完了: 3接続とも80%未満。');
   }
 
   function pad(n) { return (n < 10 ? '0' : '') + n; }
@@ -930,9 +930,9 @@ select{border:1px solid var(--line);border-radius:4px;background:var(--surface);
     if (r.v === c.budget) { err.className = 'okmsg'; err.textContent = '変更はありません。'; return; }
     var old = c.budget;
     c.budget = r.v; bump();
-    addLog(nowTs(), 'setting', c.label + ': 月間予算を ' + money(old) + ' から ' + money(r.v) + ' に変更しました。次の毎時チェックから適用します。');
+    addLog(nowTs(), 'setting', c.label + ': 月間予算を ' + money(old) + ' から ' + money(r.v) + ' に変更しました。次の定期チェックから適用します。');
     inp.value = r.v.toFixed(2);
-    err.className = 'okmsg'; err.textContent = '保存しました。次の毎時チェックから新しい予算で判定します。';
+    err.className = 'okmsg'; err.textContent = '保存しました。次の定期チェックから新しい予算で判定します。';
     renderAll(false);
   }
 
@@ -1337,7 +1337,7 @@ select{border:1px solid var(--line);border-radius:4px;background:var(--surface);
       if (atEnd()) return;
       var id = $('spike-target').value, c = S.conns[id], amt = Math.round(c.budget * 0.25 * 100) / 100;
       c.daily[S.day - 1] += amt; bump();
-      addLog(nowTs(), 'sim', 'スパイク(デモ): ' + c.label + ' に ' + money(amt) + ' の利用を追加。次の毎時チェックで検知します。');
+      addLog(nowTs(), 'sim', 'スパイク(デモ): ' + c.label + ' に ' + money(amt) + ' の利用を追加。次の定期チェックで検知します。');
       advanceHour();
       renderAll(false);
     });

@@ -7,7 +7,7 @@ const product = {
   name: "Budget Guard",
   tagline: "Hard spend caps for Vercel, OpenAI and Anthropic.",
   description:
-    "Budget Guard checks your Vercel, OpenAI and Anthropic spend every hour, emails you at 80% of your budget, and at 100% runs the stop action you armed: pause the Vercel project, cap the OpenAI project, or deactivate Anthropic keys.",
+    "Budget Guard regularly checks your Vercel, OpenAI and Anthropic spend, emails you at 80% of your budget, and at 100% runs the stop action you armed: pause the Vercel project, cap the OpenAI project, or deactivate Anthropic keys.",
   locale: "en",
   brand: { color: "#b4232c" },
   links: { supportEmail: "support@example.com" },
@@ -58,7 +58,7 @@ const product = {
       ],
     },
     features: [
-      { title: "Three providers, one budget view", body: "Vercel billing charges, OpenAI organization costs and Anthropic cost reports, checked every hour." },
+      { title: "Three providers, one budget view", body: "Vercel billing charges, OpenAI organization costs and Anthropic cost reports, checked hourly (less often at high load — see pricing)." },
       { title: "Stop actions you can undo", body: "Pause a Vercel project, set an OpenAI project hard limit, or set Anthropic keys to inactive. Each one is reversible." },
       { title: "Test mode first", body: "Every stop starts in test mode: you see the exact requests it would send. Going live takes a typed confirmation." },
       { title: "Encrypted tokens", body: "Admin tokens are stored with AES-256-GCM and never shown again. We tell you the narrowest token each provider allows." },
@@ -70,7 +70,8 @@ const product = {
       },
       {
         q: "How fresh is the data?",
-        a: "All three providers report cost per day. Budget Guard polls hourly, so today's figure is partial and may lag the provider by a few hours.",
+        // The check frequency is the tier table's own sentence (lib/guard/schedule.ts), like the pricing card.
+        a: `All three providers report cost per day. ${checkCadence()}. Today's figure is partial and may lag the provider by a few hours.`,
       },
       { q: "Can I just get alerts?", a: "Yes. Leave the stop action off or in test mode and you only get emails." },
     ],
