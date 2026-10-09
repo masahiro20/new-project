@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- 外部への通信はしない。CSP は calc/index.html と同じ方針（connect-src なし＝fetch/XHR/beacon は不可）。 -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data:; form-action 'self'; base-uri 'none'">
+<meta name="referrer" content="no-referrer">
+<title>Budget Guard</title>
+<!-- 説明文は docs/lp.md の「Meta description」そのまま -->
+<meta name="description" content="Hourly spend checks for Vercel, OpenAI and Anthropic. Email at 80%, a reversible stop at 100%, tested first in test mode.">
+<!-- 絶対 URL はこの 5 か所だけ（canonical, og:url, og:image, twitter:image）。公開先が変わったら直す。 -->
+<link rel="canonical" href="https://masahiro20.github.io/new-project/bg/">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#f3f4f1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#131615" media="(prefers-color-scheme: dark)">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Budget Guard">
+<meta property="og:title" content="Budget Guard — alerts tell you, Budget Guard stops it">
+<meta property="og:description" content="Hourly spend checks for Vercel, OpenAI and Anthropic. Email at 80%, a reversible stop at 100%, tested first in test mode.">
+<meta property="og:url" content="https://masahiro20.github.io/new-project/bg/">
+<meta property="og:image" content="https://masahiro20.github.io/new-project/bg/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Budget Guard: a spend meter with an email alert at 80% and a reversible stop at 100%.">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Budget Guard — alerts tell you, Budget Guard stops it">
+<meta name="twitter:description" content="Hourly spend checks for Vercel, OpenAI and Anthropic. Email at 80%, a reversible stop at 100%, tested first in test mode.">
+<meta name="twitter:image" content="https://masahiro20.github.io/new-project/bg/og.png">
+<meta name="twitter:image:alt" content="Budget Guard: a spend meter with an email alert at 80% and a reversible stop at 100%.">
+<style>
+/* トークンは calc/index.html と同じ値・同じ構造（ライト既定、OS ダーク、data-theme 上書き） */
+:root{
+  --bg:#f3f4f1; --surface:#ffffff; --fg:#191c1a; --muted:#5a625d; --line:#d6dbd5; --line-soft:#e8ebe6;
+  --accent:#1c5ca3; --accent-soft:#e2ebf6; --bar:#8fb0d6; --on-accent:#ffffff;
+  --ok:#1d7446; --ok-soft:#e0f1e6; --warn:#8f5b00; --warn-soft:#faefd6; --crit:#b0291f; --crit-soft:#f8e2df;
+  --font-sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#131615; --surface:#1b1f1d; --fg:#e6e9e6; --muted:#9aa29c; --line:#323935; --line-soft:#262b28;
+    --accent:#86b4ea; --accent-soft:#1c2a3b; --bar:#3e5a7d; --on-accent:#0f1726;
+    --ok:#6fcb97; --ok-soft:#17281e; --warn:#e2b45c; --warn-soft:#2d2615; --crit:#f08b81; --crit-soft:#33201d;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#131615; --surface:#1b1f1d; --fg:#e6e9e6; --muted:#9aa29c; --line:#323935; --line-soft:#262b28;
+  --accent:#86b4ea; --accent-soft:#1c2a3b; --bar:#3e5a7d; --on-accent:#0f1726;
+  --ok:#6fcb97; --ok-soft:#17281e; --warn:#e2b45c; --warn-soft:#2d2615; --crit:#f08b81; --crit-soft:#33201d;
+  color-scheme: dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font-sans);font-size:15px;line-height:1.6;
+  padding-inline:16px;padding-block:0 48px;overflow-wrap:break-word}
+.wrap{max-width:1120px;margin-inline:auto}
+.skip{position:absolute;left:-9999px;top:8px;background:var(--surface);color:var(--fg);padding:6px 10px;border:1px solid var(--accent);border-radius:4px;z-index:10}
+.skip:focus{left:16px}
+h1{font-size:clamp(1.75rem,1.1rem + 2.8vw,2.8rem);line-height:1.12;margin:0 0 14px;letter-spacing:-.015em;max-width:18ch}
+h2{font-size:1.4rem;line-height:1.25;margin:0 0 10px}
+h3{font-size:1rem;margin:0 0 6px}
+p{margin:0 0 10px}
+a{color:var(--accent)}
+code{font-family:var(--font-mono);font-size:.86em;background:var(--line-soft);padding:0 4px;border-radius:3px;overflow-wrap:anywhere}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.lede{color:var(--muted);max-width:72ch}
+.eyebrow{font-family:var(--font-mono);font-size:.78rem;color:var(--accent);letter-spacing:.04em;text-transform:uppercase;margin-bottom:6px}
+/* top bar */
+.topbar{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center;justify-content:space-between;padding-block:14px;border-bottom:1px solid var(--line);margin-bottom:28px}
+.brand{display:flex;gap:8px;align-items:center;font-weight:600;color:var(--fg);text-decoration:none}
+.brand svg{flex:none}
+.topbar nav ul{display:flex;flex-wrap:wrap;gap:4px 14px;list-style:none;margin:0;padding:0;font-size:.9rem}
+.topbar nav a{color:var(--muted);text-decoration:none}
+.topbar nav a:hover{color:var(--accent);text-decoration:underline}
+/* hero */
+.hero{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:28px;align-items:start;padding-block:4px 12px}
+@media (max-width:860px){.hero{grid-template-columns:minmax(0,1fr)}}
+.hero>*{min-width:0}
+.hero .sub{font-size:1.08rem;color:var(--muted);max-width:60ch;margin-bottom:18px}
+.cta{display:inline-block;font:inherit;font-weight:600;padding:10px 18px;border-radius:5px;background:var(--accent);color:var(--on-accent);
+  border:1px solid var(--accent);text-decoration:none;cursor:pointer}
+.cta:hover{filter:brightness(1.08)}
+.cta.ghost{background:transparent;color:var(--accent)}
+.ctas{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px}
+.note{display:flex;gap:8px;align-items:flex-start;border-left:3px solid var(--ok);background:var(--ok-soft);
+  padding:8px 12px;margin:0;font-size:.92rem;max-width:64ch}
+.note b{color:var(--ok);flex:none}
+/* cards / sections */
+section.card,figure.card{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:20px;margin:0;min-width:0}
+.block{margin-top:40px;scroll-margin-top:12px}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:16px}
+.cols>*{min-width:0}
+ul.plain{padding-left:1.2em;margin:0}
+ul.plain li{margin-bottom:8px}
+ul.plain ul{margin-top:6px}
+.steps{list-style:none;padding:0;margin:14px 0 0;counter-reset:s;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:16px}
+.steps li{counter-increment:s;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:18px;min-width:0}
+.steps li::before{content:"0" counter(s);display:block;font-family:var(--font-mono);font-size:.8rem;color:var(--muted);margin-bottom:4px}
+.steps h3{font-size:1.02rem}
+.steps p{margin:0;color:var(--muted)}
+.steps p b{color:var(--fg)}
+.callout{border-left:3px solid var(--accent);background:var(--accent-soft);padding:10px 14px;border-radius:0 4px 4px 0;margin:14px 0 0}
+.callout.warn{border-color:var(--warn);background:var(--warn-soft)}
+.callout p:last-child,.callout ul:last-child{margin-bottom:0}
+.source{font-size:.85rem;color:var(--muted)}
+/* tables: 広い画面は表、狭い画面はカード状に積む（横スクロールを出さない） */
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line-soft);vertical-align:top}
+thead th{font-size:.8rem;color:var(--muted);font-weight:500;background:var(--bg)}
+tbody th{font-weight:600;white-space:nowrap}
+td b{font-weight:600}
+.tbl{border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--surface);margin-top:14px}
+@media (max-width:760px){
+  .tbl{border:0;background:transparent;overflow:visible}
+  .tbl table,.tbl tbody,.tbl tr,.tbl th,.tbl td{display:block;width:auto}
+  .tbl thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .tbl tr{background:var(--surface);border:1px solid var(--line);border-radius:6px;margin-bottom:12px;padding:4px 0}
+  .tbl tbody th{font-size:1.02rem;border-bottom:1px solid var(--line-soft);white-space:normal}
+  .tbl td{border-bottom:0;padding-top:6px;padding-bottom:6px}
+  .tbl td::before{content:attr(data-label);display:block;font-size:.76rem;color:var(--muted);font-weight:500}
+}
+/* 図（80% と 100% の流れ）。色はトークンから取るのでダークでも読める */
+figure.card{padding:16px 16px 12px}
+.flow{display:block;width:100%;max-width:420px;height:auto;margin-inline:auto}
+.flow text{font-family:var(--font-sans);font-size:13px;fill:var(--fg)}
+.flow .t{font-weight:600}
+.flow .m{fill:var(--muted)}
+.flow .k{font-family:var(--font-mono);font-size:12px;fill:var(--muted)}
+.flow .track{fill:var(--line-soft);stroke:var(--line)}
+.flow .fill{fill:var(--bar)}
+.flow .fill80{fill:var(--warn)}
+.flow .tick{stroke:var(--line);stroke-dasharray:3 3}
+.flow .wire{stroke:var(--muted);fill:none;stroke-width:1.5}
+.flow .dot80{fill:var(--warn)}
+.flow .dot100{fill:var(--crit)}
+.flow .dot0{fill:var(--accent)}
+.flow .box{fill:var(--bg);stroke:var(--line)}
+.flow .box.test{fill:var(--ok-soft);stroke:var(--ok)}
+.flow .box.live{fill:var(--crit-soft);stroke:var(--crit)}
+.flow .box.undo{fill:var(--accent-soft);stroke:var(--accent)}
+.flow .ring{fill:var(--surface)}
+figcaption{font-size:.85rem;color:var(--muted);margin-top:8px;text-align:center}
+/* FAQ */
+.faq details{border-top:1px solid var(--line-soft);padding:12px 0}
+.faq details:first-of-type{border-top:0}
+.faq summary{cursor:pointer;font-weight:600}
+.faq details>p,.faq details>ul{margin:8px 0 0;color:var(--muted)}
+.faq details ul{padding-left:1.2em}
+.faq details ul b{color:var(--fg)}
+/* waitlist（ダミー） */
+.final{border-color:var(--accent)}
+.wl{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;margin-top:6px}
+.wl .field{display:flex;flex-direction:column;gap:4px;flex:1 1 240px;min-width:0;max-width:420px}
+.wl label{font-size:.9rem}
+.wl input[type=email]{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--fg);width:100%}
+.wl input[aria-invalid=true]{border-color:var(--crit)}
+.wl button{font:inherit;font-weight:600;padding:9px 16px;border-radius:4px;border:1px solid var(--accent);background:var(--accent);color:var(--on-accent);cursor:pointer}
+.wl button:hover{filter:brightness(1.08)}
+.wl-msg{margin-top:10px;font-size:.92rem;min-height:1.4em}
+.wl-msg.bad{color:var(--crit)}
+.wl-msg.good{color:var(--ok)}
+.hint{color:var(--muted);font-size:.85rem}
+.xlink{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:baseline;justify-content:space-between}
+footer{color:var(--muted);font-size:.82rem;margin-top:40px;border-top:1px solid var(--line);padding-top:16px}
+footer p{margin:0 0 4px}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+@media (max-width:480px){
+  section.card{padding:14px}
+  .steps li{padding:14px}
+  figure.card{padding:12px 8px 10px}
+  .cta{width:100%;text-align:center}
+  .wl button{width:100%}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="wrap">
+  <header class="topbar">
+    <a class="brand" href="./" aria-label="Budget Guard, home">
+      <svg width="22" height="22" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#1c5ca3"/><rect x="6" y="13" width="20" height="6" rx="3" fill="#ffffff" opacity=".35"/><rect x="6" y="13" width="15" height="6" rx="3" fill="#ffffff"/><rect x="22" y="8" width="3.5" height="16" rx="1.75" fill="#f08b81"/></svg>
+      <span>Budget Guard</span>
+    </a>
+    <nav aria-label="Sections">
+      <ul>
+        <li><a href="#how">How it works</a></li>
+        <li><a href="#stops">What “stop” means</a></li>
+        <li><a href="#safety">Safety</a></li>
+        <li><a href="#compare">Compare</a></li>
+        <li><a href="#faq">FAQ</a></li>
+        <li><a href="../calc/">Model Switch Calculator</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main id="main" tabindex="-1">
+  <!-- Hero：lp.md「Hero」 -->
+  <section class="hero" aria-labelledby="hero-title">
+    <div>
+      <p class="eyebrow">Early product · waitlist</p>
+      <h1 id="hero-title">Alerts tell you. Budget Guard stops it.</h1>
+      <p class="sub">One budget for your Vercel, OpenAI and Anthropic spend. Budget Guard checks every hour and emails you at 80%. At 100% it runs the stop you set up and tested ahead of time: it pauses a Vercel project, caps an OpenAI project, or deactivates Anthropic keys. You can undo each stop.</p>
+      <div class="ctas">
+        <a class="cta" href="#waitlist">Join the waitlist</a>
+        <a class="cta ghost" href="#how">How it works</a>
+      </div>
+      <p class="note"><b>Test mode</b><span>Every connection starts in test mode. Nothing gets stopped until you switch it to live.</span></p>
+    </div>
+
+    <!-- 手描きの静的 SVG。80% と 100% の流れ。主張はすべて lp.md の Hero / How it works / Safety / FAQ にあるもの -->
+    <figure class="card" aria-labelledby="flow-cap">
+      <svg class="flow" viewBox="0 0 340 520" role="img" aria-labelledby="flow-title flow-desc">
+        <title id="flow-title">What happens at 80% and 100% of your monthly budget</title>
+        <desc id="flow-desc">Budget Guard checks your spend every hour. At 80% of the monthly budget it emails you. At 100% it runs your stop: in test mode it only logs the requests it would send and changes nothing; once live, it pauses a Vercel project, caps an OpenAI project, or deactivates Anthropic keys. You undo a stop yourself by unpausing, deleting or raising the limit, or setting the keys back to active. Alerts and stops re-arm when a new month starts.</desc>
+        <!-- メーター：0% は y=20、80% は y=164、100% は y=200 -->
+        <rect class="track" x="14" y="14" width="16" height="192" rx="8"/>
+        <rect class="fill" x="14" y="14" width="16" height="150" rx="8"/>
+        <rect class="fill80" x="14" y="160" width="16" height="40"/>
+        <line class="tick" x1="30" y1="164" x2="300" y2="164"/>
+        <line class="tick" x1="30" y1="200" x2="300" y2="200"/>
+        <circle class="ring" cx="22" cy="20" r="7"/><circle class="dot0" cx="22" cy="20" r="5"/>
+        <circle class="ring" cx="22" cy="164" r="8"/><circle class="dot80" cx="22" cy="164" r="6"/>
+        <circle class="ring" cx="22" cy="200" r="8"/><circle class="dot100" cx="22" cy="200" r="6"/>
+        <text class="k" x="306" y="168">80%</text>
+        <text class="k" x="300" y="216">100%</text>
+
+        <text class="t" x="44" y="24">Every hour: check spend</text>
+        <text class="m" x="44" y="42">Vercel, OpenAI and Anthropic.</text>
+        <text class="m" x="44" y="60">Or right away on a Vercel webhook.</text>
+
+        <text class="t" x="44" y="156">Email alert</text>
+        <text class="m" x="44" y="184">Once per month per connection.</text>
+        <text class="t" x="44" y="222">Your stop runs</text>
+        <text class="m" x="44" y="240">On the first check at or over 100%.</text>
+
+        <!-- 分岐：テストモード（既定）／ライブ -->
+        <path class="wire" d="M22 208 V286 H40"/>
+        <path class="wire" d="M22 286 V378 H40"/>
+        <rect class="box test" x="40" y="256" width="290" height="62" rx="6"/>
+        <text class="t" x="52" y="277">Test mode (default)</text>
+        <text class="m" x="52" y="295">Logs the exact requests it would send.</text>
+        <text class="m" x="52" y="311">Changes nothing.</text>
+
+        <text class="k" x="44" y="338">or, once you go live</text>
+
+        <rect class="box live" x="40" y="346" width="290" height="70" rx="6"/>
+        <text class="t" x="52" y="367">Live</text>
+        <text class="m" x="52" y="385">Pauses a Vercel project, caps an OpenAI</text>
+        <text class="m" x="52" y="402">project, or deactivates Anthropic keys.</text>
+
+        <path class="wire" d="M70 416 V436"/>
+        <rect class="box undo" x="40" y="436" width="290" height="62" rx="6"/>
+        <text class="t" x="52" y="457">You undo it yourself</text>
+        <text class="m" x="52" y="475">Unpause · delete or raise the limit ·</text>
+        <text class="m" x="52" y="491">set the keys back to active.</text>
+
+        <text class="k" x="14" y="516">New month: alerts and stops re-arm.</text>
+      </svg>
+      <figcaption id="flow-cap">Static illustration of one month. Not a live demo.</figcaption>
+    </figure>
+  </section>
+
+  <!-- 問題：lp.md「The problem」。外部リンクは引用元の HN と各社ドキュメントだけ（遷移のみ、読み込みはしない） -->
+  <section class="block" id="problem" aria-labelledby="h-problem">
+    <h2 id="h-problem">A runaway loop or an AI crawler can run up a large bill overnight.</h2>
+    <div class="cols">
+      <section class="card" aria-labelledby="p1"><h3 id="p1">Most usage-billed platforms only alert you.</h3><p class="lede">You set a threshold, get an email, and the meter keeps running while you sleep.</p></section>
+      <section class="card" aria-labelledby="p2"><h3 id="p2">Each provider works differently.</h3><p class="lede">Every one has its own dashboard, its own units and its own idea of a “limit”. If you use three of them, you’re watching three places.</p></section>
+      <section class="card" aria-labelledby="p3"><h3 id="p3">The alert often arrives after the damage.</h3><p class="lede">On Hacker News, one developer described <a href="https://news.ycombinator.com/item?id=49950441" target="_blank" rel="noopener noreferrer">a $4,000 bill from AI crawlers</a>. Another discussion asks for <a href="https://news.ycombinator.com/item?id=49949235" target="_blank" rel="noopener noreferrer">default hard budget caps</a> across cloud platforms.</p><p class="source">Both are public reports from other people. They are not our data.</p></section>
+    </div>
+  </section>
+
+  <!-- 使い方 3 ステップ：lp.md「How it works」 -->
+  <section class="block" id="how" aria-labelledby="h-how">
+    <h2 id="h-how">How it works</h2>
+    <ol class="steps">
+      <li><h3>Connect a provider</h3><p>Paste a dedicated token for Vercel, OpenAI or Anthropic. Before saving it, Budget Guard checks it by reading your current spend. The token is stored encrypted and never shown again.</p></li>
+      <li><h3>Set a monthly budget and pick what to stop</h3><p>Choose the Vercel project, the OpenAI project or the Anthropic workspace. The stop starts in <b>test mode</b>: when you hit 100%, Budget Guard records the exact requests it <i>would</i> send and doesn’t send them.</p></li>
+      <li><h3>Go live when you’re ready</h3><p>Review the request list, type the connection’s label to confirm, and arm the stop. From then on, the hourly check emails you at 80% and runs the stop at 100%. Alerts and stops fire once per month and re-arm when a new month starts.</p></li>
+    </ol>
+  </section>
+
+  <!-- 3 社の「止める」と戻し方：lp.md「Three integrations」 -->
+  <section class="block" id="stops" aria-labelledby="h-stops">
+    <h2 id="h-stops">Three integrations, and what “stop” means for each</h2>
+    <div class="tbl">
+      <table>
+        <thead><tr><th scope="col">Provider</th><th scope="col">What Budget Guard reads</th><th scope="col">What “stop” does at 100%</th><th scope="col">How to undo it</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Vercel</th>
+            <td data-label="What Budget Guard reads">Billing charges for your team (daily)</td>
+            <td data-label="What “stop” does at 100%"><b>Pauses the projects you selected.</b> Production deployments return <code>503 DEPLOYMENT_PAUSED</code> to visitors.</td>
+            <td data-label="How to undo it"><b>Unpause.</b> Vercel says production comes back within minutes, with no redeploy needed.</td></tr>
+          <tr><th scope="row">OpenAI</th>
+            <td data-label="What Budget Guard reads">Organization costs (daily)</td>
+            <td data-label="What “stop” does at 100%"><b>Sets a hard monthly spend limit on the project, equal to your budget.</b> Once the limit is enforced, new requests fail with <code>429</code>.</td>
+            <td data-label="How to undo it"><b>Delete the limit</b>, or raise it.</td></tr>
+          <tr><th scope="row">Anthropic</th>
+            <td data-label="What Budget Guard reads">Cost report (daily)</td>
+            <td data-label="What “stop” does at 100%"><b>Sets the active API keys in the workspace you name to <code>inactive</code>.</b> You can exclude specific keys.</td>
+            <td data-label="How to undo it"><b>Set them back to <code>active</code>.</b> Budget Guard lists the IDs of the keys it changed.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout">
+      <p><b>Budget Guard never takes an action you can’t undo.</b> After every stop, it shows the exact undo steps on the stop page and in the activity log.</p>
+      <p>It doesn’t archive OpenAI projects, delete OpenAI keys, or archive Anthropic keys or workspaces.</p>
+    </div>
+    <div class="callout warn">
+      <p><b>Worth knowing</b></p>
+      <ul class="plain">
+        <li><b>Vercel:</b> pausing affects production deployments only. AI Gateway and v0 usage are not paused (<a href="https://vercel.com/docs/spend-management" target="_blank" rel="noopener noreferrer">Vercel docs</a>).</li>
+        <li><b>OpenAI:</b> OpenAI says the limit is “not instantaneous”. Recorded spend can go slightly over the amount you set (<a href="https://developers.openai.com/api/docs/guides/spend-limits" target="_blank" rel="noopener noreferrer">OpenAI docs</a>).</li>
+        <li><b>Anthropic:</b> Priority Tier costs are not included in Anthropic’s cost report, so Budget Guard can’t count them.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 安全策：lp.md「Safety」 -->
+  <section class="block" id="safety" aria-labelledby="h-safety">
+    <h2 id="h-safety">Safety</h2>
+    <p class="lede">You’re giving a tool the power to stop production, so here’s how we keep it from surprising you.</p>
+    <div class="cols">
+      <section class="card" aria-labelledby="s1"><h3 id="s1">Test mode by default</h3><p class="lede">Every new connection starts in test mode. At 100% it logs the exact requests it would send and changes nothing.</p></section>
+      <section class="card" aria-labelledby="s2"><h3 id="s2">Typed confirmation to go live</h3><p class="lede">Switching a stop to live, or pressing “stop now”, needs all three of these:</p>
+        <ul class="plain lede"><li>You see the full list of requests it will send.</li><li>A signed confirmation that expires after 5 minutes. It stops working if the plan changes in the meantime.</li><li>You type the connection’s label exactly.</li></ul></section>
+      <section class="card" aria-labelledby="s3"><h3 id="s3">Backing out is always one click</h3><p class="lede">Switching back to test mode or turning the stop off needs no confirmation.</p></section>
+      <section class="card" aria-labelledby="s4"><h3 id="s4">Failures are reported</h3><p class="lede">If a stop fails, we log it, notify you, and retry on the next hourly check.</p></section>
+      <section class="card" aria-labelledby="s5"><h3 id="s5">Encrypted tokens</h3><p class="lede">Tokens are encrypted with AES-256-GCM and bound to their connection. We keep only the encrypted value and a masked hint (first 4 and last 4 characters). The token is never displayed again. Deleting a connection deletes its token.</p></section>
+      <section class="card" aria-labelledby="s6"><h3 id="s6">Least privilege, as far as each provider allows</h3><p class="lede">The setup screen tells you how to issue the narrowest token each provider allows:</p>
+        <ul class="plain lede"><li><b>Vercel:</b> a token scoped to one team, ideally from a Member-role user, with an expiry date.</li><li><b>OpenAI and Anthropic:</b> a dedicated Admin key just for Budget Guard, which you can revoke at any time.</li></ul>
+        <p class="lede">Budget Guard only touches the projects and workspace you name.</p></section>
+    </div>
+    <div class="callout warn">
+      <p><b>The honest caveat: none of the three providers offers a read-only key for cost data</b> (per their official docs as of 2026-10-08). The key that reads your spend is the same key that can pause, cap or deactivate. That’s why we recommend a dedicated, revocable key and test mode first. It’s also why you should only connect Budget Guard if you’re comfortable with that trade-off.</p>
+    </div>
+  </section>
+
+  <!-- 組み込みの仕組みとの比較：lp.md「How it compares with the built-in tools」 -->
+  <section class="block" id="compare" aria-labelledby="h-compare">
+    <h2 id="h-compare">How it compares with the built-in tools</h2>
+    <p class="lede">The providers’ own controls are good, and they’re free. <b>If you only use one provider, start with its native limit.</b> Budget Guard is for people who use several providers and want one budget view, a stop they can test first, and finer targeting where the native tool is coarse.</p>
+    <div class="tbl">
+      <table>
+        <thead><tr><th scope="col"></th><th scope="col">Built-in tool</th><th scope="col">What it does well</th><th scope="col">Where Budget Guard differs</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Vercel</th>
+            <td data-label="Built-in tool"><a href="https://vercel.com/docs/spend-management" target="_blank" rel="noopener noreferrer">Spend Management</a> (Pro, and Enterprise on Flex Commitment)</td>
+            <td data-label="What it does well">On-demand budget with notifications at 50/75/100%, webhooks, and an option to pause production. Vercel checks spend every few minutes, which is faster than our hourly poll.</td>
+            <td data-label="Where Budget Guard differs">Vercel’s pause option pauses production for <b>every project on the team</b>. Budget Guard pauses only the projects you pick, and you can rehearse it in test mode. Budget Guard can also listen to Vercel’s own Spend Management webhook, so it reacts as soon as Vercel reports 50/75/100% (see <a href="#alerts">Alerts</a>).</td></tr>
+          <tr><th scope="row">OpenAI</th>
+            <td data-label="Built-in tool"><a href="https://developers.openai.com/api/docs/guides/spend-limits" target="_blank" rel="noopener noreferrer">Project and organization spend limits</a></td>
+            <td data-label="What it does well">Real hard limits, set in the dashboard or via API, plus separate spend alerts.</td>
+            <td data-label="Where Budget Guard differs">Budget Guard’s OpenAI stop <b>uses this same native limit</b>: at 100% it sets the project’s hard limit for you. What it adds is the 80% email, test mode, one view alongside Vercel and Anthropic, and written undo steps. If you’re fine setting the limit yourself, you don’t need us for OpenAI.</td></tr>
+          <tr><th scope="row">Anthropic</th>
+            <td data-label="Built-in tool"><a href="https://platform.claude.com/docs/api/rate-limits" target="_blank" rel="noopener noreferrer">Console spend limits</a> (organization and workspace)</td>
+            <td data-label="What it does well">Monthly spend limits per organization and per workspace in the Console. Setting them through the API is in early access.</td>
+            <td data-label="Where Budget Guard differs">Budget Guard deactivates the keys in one workspace when your <b>own</b> budget is hit, lets you exclude keys, and lists the key IDs so you can set them back to active. It also shows the result next to your Vercel and OpenAI spend.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout">
+      <p><b>Where the native tools are better:</b> they enforce limits on the provider’s side, often faster than an hourly poll, and they don’t need a third party holding an admin token. We’d rather you know that before you sign up.</p>
+    </div>
+  </section>
+
+  <!-- 通知：lp.md「Alerts」 -->
+  <section class="block" id="alerts" aria-labelledby="h-alerts">
+    <h2 id="h-alerts">Alerts</h2>
+    <div class="cols">
+      <section class="card" aria-labelledby="a1"><h3 id="a1">Email</h3><p class="lede">At 80% of your monthly budget, once per month per connection.</p></section>
+      <section class="card" aria-labelledby="a2"><h3 id="a2">Slack</h3><p class="lede">Alerts through a Slack incoming webhook you paste in.</p></section>
+      <section class="card" aria-labelledby="a3"><h3 id="a3">Vercel Spend Management webhook</h3><p class="lede">Add Budget Guard’s webhook URL to your Vercel budget. When Vercel reports 50%, 75% or 100%, Budget Guard runs a check right away instead of waiting for the next hour. At 100%, if your stop is armed (live), it runs. Each webhook is verified with a per-connection signing secret.</p></section>
+    </div>
+  </section>
+
+  <!-- FAQ：lp.md「FAQ」。料金の項はリーダー判断で載せない -->
+  <section class="block card faq" id="faq" aria-labelledby="h-faq">
+    <h2 id="h-faq">FAQ</h2>
+    <details><summary>Which keys do you need?</summary>
+      <p>A Vercel access token scoped to your team, an OpenAI Admin key, and an Anthropic Admin key (<code>sk-ant-admin…</code>). A normal OpenAI project key can’t read costs. Create dedicated keys for Budget Guard so you can revoke them at any time.</p></details>
+    <details><summary>Why do you need admin-level keys just to read spend?</summary>
+      <p>None of the three providers offers a read-only cost key. The same key reads spend and runs the stop. We limit what Budget Guard touches to the projects and workspace you name, and every stop starts in test mode.</p></details>
+    <details><summary>How fresh is the data?</summary>
+      <p>All three providers report cost per day. Budget Guard checks every hour, so what you see for today is a partial total, and it can lag the provider by a few hours. On Vercel, connecting the Spend Management webhook triggers an extra check as soon as Vercel reports 50/75/100%.</p></details>
+    <details><summary>Will a stop fire the instant I cross 100%?</summary>
+      <p>No. A stop runs on the first check that sees you at or over 100%: the hourly check, or a Vercel webhook. Providers also report cost with a delay, and OpenAI notes that its own limit can be exceeded slightly. Treat Budget Guard as a backstop that limits the damage. It can’t guarantee you’ll never go over.</p></details>
+    <details><summary>Can I just get alerts?</summary>
+      <p>Yes. Leave the stop off, or keep it in test mode, and you’ll only get alerts.</p></details>
+    <details><summary>What exactly happens in test mode?</summary>
+      <p>When you reach 100%, Budget Guard records the requests it would have sent: which project it would pause, which limit it would set, which keys it would deactivate. It doesn’t send them. Use it to check that the right things would be stopped.</p></details>
+    <details><summary>How do I undo a stop?</summary>
+      <ul><li><b>Vercel:</b> unpause the project.</li><li><b>OpenAI:</b> delete the spend limit or raise it.</li><li><b>Anthropic:</b> set the keys back to active.</li></ul>
+      <p>After a stop, Budget Guard shows these steps with the exact project or key IDs. You run the undo yourself, in the provider’s dashboard or API. A one-click undo inside Budget Guard is not built yet.</p></details>
+    <details><summary>What happens at the start of a new month?</summary>
+      <p>Alerts and stops fire at most once per month per connection. They re-arm automatically when the month changes. Undoing a stop is your call. It doesn’t happen automatically.</p></details>
+    <details><summary>What do you store, and how do I delete it?</summary>
+      <p>For each connection we store the encrypted token, a masked hint, your budget and stop settings, and spend readings. Delete the connection and its token is deleted with it. You should also revoke the key at the provider.</p></details>
+    <details><summary>Is this a replacement for the providers’ own limits?</summary>
+      <p>No. Where a native hard limit exists, it’s a good first line of defence. Budget Guard adds one view across providers, an 80% warning, and a stop you’ve rehearsed.</p></details>
+  </section>
+
+  <!-- Coming later：lp.md「Coming later」（未実装はここにだけ書く） -->
+  <section class="block" id="later" aria-labelledby="h-later">
+    <h2 id="h-later">Coming later</h2>
+    <p class="lede">These are not built yet:</p>
+    <ul class="plain">
+      <li>One-click undo inside Budget Guard</li>
+      <li>Usage graphs</li>
+      <li>Generic outbound webhooks (beyond Slack)</li>
+      <li>More providers (for example Cloudflare or GCP), not yet scoped</li>
+    </ul>
+  </section>
+
+  <!-- 最終 CTA：lp.md「Final CTA」。料金は載せない（リーダー判断：「Pricing will be announced」） -->
+  <section class="block card final" id="waitlist" aria-labelledby="h-final">
+    <p class="eyebrow">Early product</p>
+    <h2 id="h-final">Put a hard stop on usage-billed services before the next surprise bill.</h2>
+    <p class="lede">Budget Guard is an early product. Join the waitlist and we’ll invite you when it’s ready to try. You can start in test mode with a throwaway project.</p>
+    <p class="lede">Pricing will be announced.</p>
+    <!-- TODO(dummy): 待機リストはまだ受付前。下の送信処理はローカルで形式を確かめて文言を出すだけ。
+         何も送らず、何も保存しない。メール欄にはわざと name を付けていないので、JS なしで送信しても値は載らない。
+         本物の受付につなぐのは本部の承認後（そのときはこのページのプライバシーの文言も直す）。 -->
+    <form class="wl" id="waitlist-form" action="#waitlist" novalidate>
+      <div class="field">
+        <label for="wl-email">Email</label>
+        <input type="email" id="wl-email" autocomplete="email" inputmode="email" placeholder="you@example.com" aria-describedby="wl-msg wl-hint" required>
+      </div>
+      <button type="submit">Join the waitlist</button>
+    </form>
+    <p class="wl-msg" id="wl-msg" role="status" aria-live="polite"></p>
+    <p class="hint" id="wl-hint">Preview only: the waitlist isn’t open yet, so this form doesn’t send or save anything.</p>
+  </section>
+
+  <!-- 計算機への相互リンク -->
+  <section class="block card" aria-labelledby="h-calc">
+    <div class="xlink">
+      <div>
+        <p class="eyebrow">From the same team</p>
+        <h2 id="h-calc" style="font-size:1.1rem">Model Switch Calculator</h2>
+        <p class="lede">What would your LLM bill be on another model? Paste your usage export and compare. Free, runs in your browser.</p>
+      </div>
+      <a class="cta ghost" href="../calc/">Open the calculator</a>
+    </div>
+  </section>
+  </main>
+
+  <footer>
+    <p>Budget Guard · P2 Signal Lab. Not affiliated with Vercel, OpenAI or Anthropic. Product names are trademarks of their owners.</p>
+  </footer>
+</div>
+
+<script>
+"use strict";
+/* TODO(dummy): Budget Guard の待機リストのダミー。まだ受付前。
+   - メールの形式をローカルで確かめて、文言を出すだけ。
+   - 何も送らない（fetch/XHR/beacon なし。CSP でもネットワーク要求は止まる）。
+   - 何も保存しない（Cookie・localStorage・sessionStorage・IndexedDB を使わない）。
+   本物の受付は本部の承認後に、同意を取る形で作り直す。 */
+(() => {
+  const form = document.getElementById("waitlist-form");
+  if (!form) return;
+  const email = document.getElementById("wl-email");
+  const msg = document.getElementById("wl-msg");
+  const EMAIL_RE = /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)+$/;
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const v = email.value.trim();
+    if (!EMAIL_RE.test(v)) {
+      email.setAttribute("aria-invalid", "true");
+      msg.className = "wl-msg bad";
+      msg.textContent = "Please enter a valid email address.";
+      email.focus();
+      return;
+    }
+    email.removeAttribute("aria-invalid");
+    msg.className = "wl-msg good";
+    msg.textContent = "Thanks. The waitlist isn't open yet, so nothing was sent or saved.";
+    email.value = "";
+  });
+  email.addEventListener("input", () => {
+    if (email.getAttribute("aria-invalid")) { email.removeAttribute("aria-invalid"); msg.textContent = ""; }
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+<!doctype html>
+<!-- og.png（1200x630）の元ファイル。サイトからはリンクしていない。Playwright（Chromium）で描き直す：
+     page.setViewportSize({width:1200,height:630}); page.goto('file://.../bg/og-template.html'); page.screenshot({path:'bg/og.png'})
+     文言は docs/lp.md の Hero と Meta description から。実績の数字・ロゴ・料金は載せない。
+     色は calc と同じライトのトークン（--accent #1c5ca3, --warn #8f5b00, --crit #b0291f, --ok #1d7446）。 -->
+<html lang="en"><head><meta charset="utf-8"><title>og.png template</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;width:1200px;height:630px;overflow:hidden}
+body{background:#f3f4f1;color:#191c1a;font-family:Inter,"IBM Plex Sans",system-ui,sans-serif;display:flex}
+.l{width:600px;padding:64px 0 56px 72px;display:flex;flex-direction:column}
+.brand{display:flex;align-items:center;gap:14px;font-size:30px;font-weight:600;letter-spacing:-.01em}
+h1{font-size:62px;line-height:1.06;margin:44px 0 0;letter-spacing:-.025em;font-weight:700}
+.sub{margin-top:auto;font-size:22px;color:#5a625d;line-height:1.45}
+.sub b{color:#1d7446;font-weight:600}
+.r{flex:1;margin:56px 64px 56px 32px;background:#fff;border:1px solid #d6dbd5;border-radius:14px;padding:30px 34px;display:flex;flex-direction:column;gap:22px}
+.cap{font-size:17px;color:#5a625d}
+.track{position:relative;height:30px;border-radius:15px;background:#e8ebe6;border:1px solid #d6dbd5}
+.f{position:absolute;left:0;top:0;bottom:0;border-radius:15px 0 0 15px;background:#8fb0d6;width:80%}
+.f2{position:absolute;left:80%;top:0;bottom:0;width:20%;background:#8f5b00;border-radius:0 15px 15px 0}
+.mk{position:absolute;top:-10px;bottom:-10px;width:3px;background:#191c1a}
+.labels{position:relative;height:22px;font:500 17px "IBM Plex Mono",ui-monospace,monospace;color:#5a625d;margin-top:-12px}
+.labels span{position:absolute;transform:translateX(-50%)}
+.item{display:flex;gap:16px;align-items:flex-start}
+.dot{flex:none;width:18px;height:18px;border-radius:50%;margin-top:6px}
+.item b{display:block;font-size:22px}
+.item span{font-size:18px;color:#5a625d}
+</style></head><body>
+<div class="l">
+  <div class="brand"><svg width="44" height="44" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="#1c5ca3"/><rect x="6" y="13" width="20" height="6" rx="3" fill="#ffffff" opacity=".35"/><rect x="6" y="13" width="15" height="6" rx="3" fill="#ffffff"/><rect x="22" y="8" width="3.5" height="16" rx="1.75" fill="#f08b81"/></svg>Budget Guard</div>
+  <h1>Alerts tell you. Budget Guard stops it.</h1>
+  <p class="sub">Hourly spend checks for Vercel, OpenAI and Anthropic.<br><b>Every connection starts in test mode.</b></p>
+</div>
+<div class="r">
+  <div class="cap">Your monthly budget</div>
+  <div class="track"><div class="f"></div><div class="f2"></div><div class="mk" style="left:calc(80% - 1.5px)"></div></div>
+  <div class="labels"><span style="left:80%">80%</span><span style="left:calc(100% - 22px)">100%</span></div>
+  <div class="item"><div class="dot" style="background:#8f5b00"></div><div><b>80%: email alert</b><span>Once per month per connection.</span></div></div>
+  <div class="item"><div class="dot" style="background:#b0291f"></div><div><b>100%: the stop you tested runs</b><span>Pause a Vercel project, cap an OpenAI project, or deactivate Anthropic keys.</span></div></div>
+  <div class="item"><div class="dot" style="background:#1c5ca3"></div><div><b>You can undo each stop</b><span>Unpause, delete or raise the limit, or set keys back to active.</span></div></div>
+</div>
+</body></html>
