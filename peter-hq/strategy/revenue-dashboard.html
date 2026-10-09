@@ -150,13 +150,13 @@ details.later ul { margin: 8px 0 0; padding-left: 1.2em; }
     <div class="eyebrow">ピーター本部 ・ 収益戦略</div>
     <h1>Midas 収益ダッシュボード</h1>
     <p class="lede">どのプロジェクトが、誰から、いくら、いつ稼げるか。お金をかけずに、オーナーの手間を最小にして、最初の売上までの道筋をまとめました。</p>
-    <div class="meta"><span>作成 2026-10-08 ・ 更新 2026-10-09 夕（公開状況とオーナーへのお願いの一覧を更新）</span><span>対象期間 2026年10月〜2027年9月</span><span>1ドル＝150円で換算（仮置き）</span></div>
+    <div class="meta"><span>作成 2026-10-08 ・ 更新 2026-10-09（決定 d29・d30 を反映）</span><span>対象期間 2026年10月〜2027年9月</span><span>1ドル＝150円で換算（仮置き）</span></div>
   </header>
 
   <section aria-label="要点">
     <div class="kpis">
       <div class="kpi"><span class="label">30日の目標（標準）</span><span class="value">2.5<small>万円</small></span><span class="sub">悲観 0円 ／ 楽観 約9万円</span></div>
-      <div class="kpi"><span class="label">12か月・上位5本（標準）</span><span class="value">100<small>万円</small></span><span class="sub">悲観 8万円 ／ 楽観 約590万円</span></div>
+      <div class="kpi"><span class="label">12か月・上位5本（標準）</span><span class="value">約90<small>万円</small></span><span class="sub">悲観 8万円 ／ 楽観 約570万円</span></div>
       <div class="kpi"><span class="label">最初の1円が最も早い</span><span class="value">10/13<small>〜</small></span><span class="sub">P8 の投げ銭（10/13 公開予定）</span></div>
       <div class="kpi"><span class="label">今週のオーナーへのお願い</span><span class="value">3<small>件</small></span><span class="sub">合計 約1時間35分。残りは「あとで」</span></div>
     </div>
@@ -235,7 +235,7 @@ details.later ul { margin: 8px 0 0; padding-left: 1.2em; }
           <li>公開の準備が済んでいて、最初の1円が最も早い</li>
           <li>払うのは事業所（法人の経費）。毎年必要な書類</li>
           <li>令和9年度の報酬改定（2027年春）が追い風</li>
-          <li>1件の粗利 約2,770円、AI 費用は1件 約50〜100円</li>
+          <li>購入1回あたりの生成は上限15回（d30）。AI 費用は上限まで使われても売上の2割未満の見込み（実測で確認）</li>
         </ul>
       </div>
       <div class="pcard top">
@@ -260,7 +260,7 @@ details.later ul { margin: 8px 0 0; padding-left: 1.2em; }
       </div>
     </div>
     <div class="holdlist">
-      <div class="hrow"><b>P1 Yuragi</b><span><span class="chip light">小さく続行</span> 4位</span><span>単価は高い（$29〜99/月）が、払う意思は未確認。試用5人と、1タイトル $49 の単発で確かめるだけ。</span></div>
+      <div class="hrow"><b>P1 Kotomark</b><span><span class="chip light">小さく続行</span> 4位</span><span>価格が決定（d29）：Studio 月$49。個人・OSS・3名以下は無料なので、払うのは4名以上の会社だけ。見込みを標準7万円に下げた。まず試用5人で確かめる。</span></div>
       <div class="hrow"><b>P7 RED LEDGER</b><span><span class="chip light">小さく続行</span> 5位</span><span>設定資料集 PDF が完成済みなので、販売だけ始める。漫画・Webtoon など手間の大きい次の段階は、90日で30件売れてから。10/8 の「撤退候補」から変更。</span></div>
       <div class="hrow"><b>P3 Pitch</b><span><span class="chip hold">保留</span> 30日後に再判断</span><span>人の声での精度が未確認。オーナーやご家族が録音すれば無料で確かめられるので、2か月目の候補。</span></div>
       <div class="hrow"><b>P5 Atlas</b><span><span class="chip hold">保留</span> 作業を止める</span><span>上振れは大きいが、企業への売り込みに時間と手間がかかる。デモは残し、Budget Guard で開発者とのつながりができてから再開。</span></div>
@@ -352,7 +352,7 @@ const P = [
   { id: "P2", name: "P2 Budget Guard", st: "focus", stl: "集中", who: "クラウド・AI API を自腹で払う開発者（海外中心）", price: "$9/月 または $79/年", steps: "待機リスト → 外部5人に無料で試用 → 同じ Stripe で課金", days: "25〜35日", owner: "告知の承認（Stripe は P0 と共用）", lo: 1, mid: 20, hi: 120 },
   { id: "P2c", name: "P2 Calculator", st: "focus", stl: "集中（入口）", who: "直接は払われない。Budget Guard への送客", price: "無料（寄付は任意）", steps: "無料公開して Budget Guard の入口にする", days: "7日（公開）", owner: "告知の承認だけ", lo: 0, mid: 0.5, hi: 3 },
   { id: "P8", name: "P8 GRANDSTRIDE", st: "light", stl: "小さく続行", who: "ブラウザ・PC でメカアクションを遊ぶ人（海外中心）", price: "itch は無料＋投げ銭（推奨$3）、支援者版$4.99。CrazyGames は広告分配。Steam は$9.99前後（2027年夏）", steps: "itch.io に無料公開（投げ銭）→ CrazyGames → 数字が出たら Steam", days: "14〜28日", owner: "itch.io の登録と税の書類（約20分）。Steam は後で$100", lo: 1, mid: 35, hi: 250 },
-  { id: "P1", name: "P1 Yuragi", st: "light", stl: "小さく続行", who: "日英ゲームの翻訳者・LQA担当・小さなパブリッシャー", price: "$49/タイトル、$29/月、$99/月（5席）", steps: "試用5人で実台本テスト → 単発 $49 で初売上", days: "45〜60日", owner: "試用者の紹介か募集の承認（約2時間）", lo: 0, mid: 15, hi: 80 },
+  { id: "P1", name: "P1 Kotomark", st: "light", stl: "小さく続行", who: "従業員4名以上のローカライズ会社・パブリッシャー（個人・OSS・3名以下は無料）", price: "Studio 月$49（5席まで、6席目から1席月$9、年払いは2か月分引き）。販売開始まではプレビューとして全員無料（d29）", steps: "試用者5人で検証 → 署名付きライセンスキーの実装 → Studio の販売開始", days: "60〜90日", owner: "公開リポジトリの作成、試用者への声かけの承認", lo: 0, mid: 7, hi: 60 },
   { id: "P7", name: "P7 RED LEDGER", st: "light", stl: "小さく続行", who: "オリジナル作品の設定資料を読みたいファン（日英）", price: "設定資料集PDF：BOOTH 500円（応援版1,000円）、Ko-fi $4", steps: "BOOTH・Ko-fi で販売開始 → X で告知（投稿案あり）", days: "14〜28日", owner: "BOOTH・Ko-fi の登録と振込先（約30分）", lo: 0.3, mid: 5, hi: 40 },
   { id: "P3", name: "P3 Pitch", st: "hold", stl: "保留", who: "上級の日本語学習者（海外の個人）", price: "$9/月、$69/年、$149 買い切り", steps: "人の声で精度確認 → 無料公開 → 課金", days: "60〜90日", owner: "録音者4人以上とアクセント確認役", lo: 0, mid: 15, hi: 120 },
   { id: "P4", name: "P4 Collector Lens", st: "exit", stl: "保留・撤退候補", who: "ヤフオクで買う海外のカメラ・時計コレクター", price: "$3.99/月、$29/年、$59 買い切り", steps: "弁護士確認 → Chrome ストア登録 → 課金", days: "60〜90日", owner: "弁護士確認（有料の可能性）、$5 の登録", lo: 0, mid: 8, hi: 50 },
