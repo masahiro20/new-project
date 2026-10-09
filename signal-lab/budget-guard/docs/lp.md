@@ -4,6 +4,32 @@
 > Source of truth for claims: `README.md`, `product.config.ts`, `lib/guard/info.ts`, `docs/provider-apis.md`.
 > Rules followed: no traction numbers, no user counts, no testimonials, no logos. Features that are not built are listed only under "Coming later".
 
+## オーナー向け要約（日本語）
+
+この節はオーナー向けの説明で、LP には載せない。LP の本文（英語）は海外の顧客向けなので英語のまま。
+
+- **ステータス：** オーナー／本部レビュー用の下書き。未公開。
+- **価格は案：** 下の Pricing の金額（Monthly $9／月、Yearly $79／年）は **案で、承認待ち**。確定ではない。
+- **出典：** 主張の根拠は `README.md`、`product.config.ts`、`lib/guard/info.ts`、`docs/provider-apis.md`。
+- **守ったルール：** 実績の数字・ユーザー数・推薦文・ロゴは出さない。未実装の機能は「Coming later」にだけ書く。
+
+各セクションの要旨：
+
+| セクション | 要旨 |
+|---|---|
+| Hero | 「通知は知らせるだけ。Budget Guard は止める。」Vercel・OpenAI・Anthropic の利用額に予算をひとつ。毎時チェックし、80% でメール、100% で事前に設定・テストした停止を実行する。停止は元に戻せる。接続はすべてテストモードから始まる。 |
+| The problem | 暴走ループや AI クローラーで一晩に高額請求になりうる。多くのサービスは通知するだけ。プロバイダごとに仕組みが違い、見る場所が増える。Hacker News の公開報告を 2 件引用（他人の報告で、自社データではないと明記）。 |
+| How it works | 3 ステップ：① 専用トークンで接続（保存前に支出の読み取りで検証、暗号化して保存）② 月の予算と停止対象を選ぶ（まずテストモード）③ 準備ができたらライブにする。通知と停止は月 1 回で、月が変わると再武装。 |
+| Three integrations | 3 社それぞれの「読むもの／100% での停止／戻し方」の表。Vercel はプロジェクトを一時停止、OpenAI はプロジェクトに予算額のハード上限、Anthropic はワークスペースの API キーを inactive。取り消せない操作はしない。各社の注意点（Vercel は本番のみ、OpenAI の上限は即時でない、Anthropic の Priority Tier は対象外）。 |
+| Safety | テストモードが既定。ライブ化には 3 つの確認（リクエスト一覧・5 分で切れる署名付き確認・ラベル入力）。戻すのはワンクリック。失敗は記録・通知・再試行。トークンは AES-256-GCM で暗号化。最小権限の発行手順を案内。正直な注意：どの社にも読み取り専用のコストキーはない。 |
+| How it compares | 各社の標準機能との比較表。1 社だけなら標準の上限から始めるべきと明記。Budget Guard の違いは、複数社の一元表示、事前にテストできる停止、細かい対象指定。標準機能の方が優れる点（プロバイダ側で強制、毎時より速い、第三者に管理キーを渡さない）も書いている。 |
+| Alerts | 80% でメール（接続ごとに月 1 回）、Slack の incoming webhook、Vercel Spend Management の webhook で即時チェック。 |
+| Pricing | **案・承認待ち。** Monthly $9／月（監視接続 3 つまで、毎時チェック、80% 通知と 100% 停止、テストモード）、Yearly $79／年（2 か月分お得）。いつでも解約でき、支払済み期間の終わりまで使える。 |
+| FAQ | 必要なキー、管理者キーが要る理由、データの鮮度（日単位・途中集計）、100% で即止まるわけではないこと、通知だけの使い方、テストモードの中身、停止の戻し方（ユーザー自身が操作、ワンクリック復旧は未実装）、月替わりの動作、保存するデータと削除、標準機能の代わりではないこと。 |
+| Coming later | 未実装：ワンクリック復旧、利用状況グラフ、Slack 以外の汎用 webhook、対応プロバイダの追加（例：Cloudflare、GCP。範囲は未定）。 |
+| Final CTA | 次の想定外の請求の前に、ハードな停止を。初期段階の製品なので、ウェイトリストに登録してもらい、準備ができたら招待する。使い捨てのプロジェクトでテストモードから試せる。 |
+| Alt headlines / Meta description | 見出しの別案 5 つと、検索結果用の説明文。それぞれ和訳を添えた。 |
+
 ---
 
 ## Hero
@@ -169,13 +195,20 @@ Budget Guard is an early product. Join the waitlist and we'll invite you when it
 ## Alt headlines (5)
 
 1. Hard spend caps for Vercel, OpenAI and Anthropic.
+   - 和訳：Vercel・OpenAI・Anthropic の支出に、ハードな上限を。
 2. Your alert email won't stop the bill. This will.
+   - 和訳：通知メールでは請求は止まらない。これなら止まる。
 3. One budget, three providers, a stop you tested first.
+   - 和訳：予算はひとつ、プロバイダは 3 社、停止は事前にテスト済み。
 4. Set a monthly budget. Rehearse the stop. Sleep.
+   - 和訳：月の予算を決める。停止をリハーサルする。あとは眠る。
 5. Pause the project before the invoice, not after.
+   - 和訳：請求書が来る前に、プロジェクトを止める。来てからではなく。
 
 ## Meta description (≤155 chars)
 
 > Hourly spend checks for Vercel, OpenAI and Anthropic. Email at 80%, a reversible stop at 100%, tested first in test mode.
 
 (122 characters)
+
+和訳：Vercel・OpenAI・Anthropic の支出を毎時チェック。80% でメール、100% で元に戻せる停止。まずテストモードで試してから。
