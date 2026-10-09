@@ -25,7 +25,8 @@
     "serve": "tsx src/server/index.ts",
     "start": "node dist/server/index.js",
     "build:demo": "node web/build-demo.mjs",
-    "kotomark": "tsx src/cli/index.ts"
+    "kotomark": "tsx src/cli/index.ts",
+    "build:site": "npm run build:demo && node web/build-site.mjs"
   },
   "license": "UNLICENSED",
   "dependencies": {
