@@ -1,6 +1,7 @@
 // End-to-end QA for the PWA build (site/app/) with Playwright/Chromium.
 //
-// Usage: node scripts/qa-pwa.mjs [--fixtures <dir with manifest.json>] [--out <dir>] [--port 5199]
+// Usage: node scripts/qa-pwa.mjs [--fixtures <dir with manifest.json>] [--out <dir>] [--port 5199] [--prefix /new-project/pitch]
+// --prefix serves site/ under that sub-path (as on GitHub Pages) and also checks the LP's links.
 // Run `npm run build:pwa` first. Fixtures come from scripts/qa-make-fixtures.mjs (only the
 // .wav files are used). Serves site/ with scripts/serve.mjs and opens http://localhost:PORT/app/.
 //
@@ -12,7 +13,7 @@
 import { mkdirSync, readFileSync } from 'node:fs';
 import { execSync, spawn } from 'node:child_process';
 import { createRequire } from 'node:module';
-import { join, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 
 const args = process.argv.slice(2);
 const arg = (name, def) => (args.includes(name) ? args[args.indexOf(name) + 1] : def);
@@ -20,6 +21,7 @@ const root = new URL('..', import.meta.url).pathname;
 const fixDir = arg('--fixtures', null) && resolve(arg('--fixtures'));
 const outDir = resolve(arg('--out', join(root, '.qa-out/pwa')));
 const port = Number(arg('--port', 5199));
+const prefix = (arg('--prefix', '') || '').replace(/\/+$/, '');
 mkdirSync(outDir, { recursive: true });
 
 function loadPlaywright() {
@@ -37,8 +39,18 @@ const record = (id, check, ok, detail = '') => { results.push({ id, check, ok })
 // Started and stopped around the offline phase: Chromium's context.setOffline() does not
 // cover requests a service worker makes, so "offline" here also means "server gone".
 let server;
+// With --prefix, stage a root where site/ appears at <prefix>/ (symlink, nothing copied).
+let serveRoot = 'site';
+if (prefix) {
+  const { mkdirSync, rmSync, symlinkSync } = await import('node:fs');
+  const stage = join(root, '.qa-out/pages');
+  rmSync(stage, { recursive: true, force: true });
+  mkdirSync(join(stage, dirname(prefix)), { recursive: true });
+  symlinkSync(join(root, 'site'), join(stage, prefix));
+  serveRoot = '.qa-out/pages';
+}
 async function startServer() {
-  server = spawn(process.execPath, [join(root, 'scripts/serve.mjs'), String(port), '--root', 'site'], { stdio: ['ignore', 'pipe', 'inherit'] });
+  server = spawn(process.execPath, [join(root, 'scripts/serve.mjs'), String(port), '--root', serveRoot], { stdio: ['ignore', 'pipe', 'inherit'] });
   await new Promise((ok, ko) => { server.stdout.once('data', ok); server.once('exit', ko); });
 }
 async function stopServer() {
@@ -47,7 +59,7 @@ async function stopServer() {
   await done;
 }
 await startServer();
-const base = `http://localhost:${port}/app/`;
+const base = `http://localhost:${port}${prefix}/app/`;
 
 let browser;
 try { browser = await chromium.launch(); } catch { browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' }); }
@@ -132,7 +144,7 @@ const cached = await page.evaluate(async () => {
 });
 const cacheNames = Object.keys(cached);
 record('precache', 'one versioned cache with index, manifest and 5 icons', cacheNames.length === 1
-  && ['/app/index.html', '/app/manifest.webmanifest', '/app/icons/icon-512.png', '/app/icons/apple-touch-icon.png'].every((p) => cached[cacheNames[0]].includes(p))
+  && ['/app/index.html', '/app/manifest.webmanifest', '/app/icons/icon-512.png', '/app/icons/apple-touch-icon.png'].every((p) => cached[cacheNames[0]].includes(prefix + p))
   && cached[cacheNames[0]].length === 7, JSON.stringify(cached));
 // Chromium headless may or may not fire beforeinstallprompt; when it does, the button must show.
 const hint = await page.evaluate(() => ({ hint: !document.getElementById('install-hint').hidden, btn: !document.getElementById('install-btn').hidden, ios: !document.getElementById('install-ios').hidden }));
@@ -207,6 +219,27 @@ await startServer();
     return analyse(p, () => p.setInputFiles('#file', join(fixDir, f.file)));
   })() : null;
   if (r) record('standalone-upload', 'standalone: wav upload via input[type=file] → pass', r.pass === true, fmt(r));
+  await ctx.close();
+}
+
+// The landing page (site/index.html) under the same server: every same-origin
+// resource it references, and the CTA into ./app/, must resolve under the prefix.
+{
+  const ctx = await browser.newContext();
+  const p = await ctx.newPage();
+  const bad = [];
+  p.on('response', (r) => { if (r.status() >= 400) bad.push(`${r.status()} ${r.url()}`); });
+  const lp = `http://localhost:${port}${prefix}/`;
+  await p.goto(lp);
+  const links = await p.evaluate(() => [...document.querySelectorAll('a[href], link[href], img[src], script[src]')]
+    .map((e) => e.href || e.src).filter((u) => u.startsWith(location.origin)));
+  for (const u of new Set(links.map((u) => u.split('#')[0]))) {
+    const r = await ctx.request.get(u);
+    if (r.status() >= 400) bad.push(`${r.status()} ${u}`);
+  }
+  const cta = await p.evaluate(() => [...document.querySelectorAll('a')].find((a) => /free beta/i.test(a.textContent))?.href);
+  record('lp-links', `LP at ${lp}: all same-origin links/resources resolve`, bad.length === 0, bad.join('; ') || `${links.length} checked`);
+  record('lp-cta', 'LP CTA points at the app under the prefix', cta === base, String(cta));
   await ctx.close();
 }
 
