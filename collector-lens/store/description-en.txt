@@ -1,0 +1,30 @@
+Read the Japanese fine print before you bid.
+
+Tanuki Scout helps overseas collectors of vintage cameras, lenses, film cameras and watches understand Japanese marketplace listings. Open an item page and a small panel appears in the corner. It explains the seller's condition notes, shop grades and return terms in plain English, and flags wording that usually means trouble.
+
+WHAT THE PANEL SHOWS
+- Condition: platform grades such as "no noticeable marks" (目立った傷や汚れなし) and what they leave out.
+- Grade: shop ranks (S / A / AB / B ...) and exporter grades (Mint, Exc+++), with what each step usually means.
+- Returns: "no returns" (返品不可), "no claims, no returns" (ノークレームノーリターン) and similar terms.
+- Warnings: junk, untested, authenticity unknown, redial, parts watch, fungus, haze, balsam separation, shutter-curtain holes, light leaks and more, plus risky combinations such as "untested + no returns". The badge count matches the Warnings list.
+- Worth noting: smaller issues such as light scratches or aftermarket straps.
+- Seller states: reassurances such as "no fungus or haze" are listed separately and never raised as warnings.
+
+LENSES AND FILM CAMERAS
+Cleaning marks, coating wear, sticky aperture blades, stiff or loose focus rings, mount play, light-seal and meter problems, rangefinder alignment, and service notes such as "haze cleaned" or "seals replaced". The panel tells you whether a listing reads as a lens, a film body or a digital body.
+
+WHERE IT WORKS
+Item pages on Yahoo! Auctions Japan, Mercari, Rakuma and Mandarake. Open the original Japanese listing, then bid or buy through your usual proxy service. Proxy service pages (Buyee, ZenMarket and others) are not supported yet.
+
+PRIVACY
+- Reads only the listing in the tab you have open.
+- Everything runs in your browser. No server, no network requests, no account, no tracking, no stored data.
+- Requests no Chrome API permissions. It only asks to read the four supported marketplace sites.
+- Adds its own panel and leaves the listing unchanged.
+
+LIMITATIONS
+- It is not an appraisal or an authenticity check. It explains what the seller wrote.
+- It is rule-based. Wording it does not know will not be flagged, so a clean panel does not mean the item is safe.
+- Cameras, lenses, film cameras and watches come first; other categories are thinner.
+
+Tanuki Scout is independent and is not affiliated with or endorsed by any marketplace or proxy service. Marketplace names are trademarks of their owners and are used only to describe compatibility.

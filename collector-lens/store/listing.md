@@ -17,6 +17,8 @@
 
 ## Detailed description
 
+Paste-ready plain text for the store form: `store/description-en.txt` (the canonical version; the text below is an earlier draft kept for review).
+
 Read the Japanese fine print before you bid.
 
 Tanuki Scout is for overseas collectors of vintage cameras, lenses, film cameras and watches who buy from Japanese marketplaces. Open a listing and a small panel appears in the corner. It explains the seller's condition notes, shop grades and return terms in plain English, and flags wording that usually means trouble.
