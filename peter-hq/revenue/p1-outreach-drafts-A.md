@@ -1,4 +1,8 @@
-# P1 Kotomark（仮称）　優先度 A の12件の個別文面（下書き）
+# P1 Kotomark（仮称）　優先度 A の12件の個別文面（下書き・廃止）
+
+> **廃止（2026-10-09 本部判断）：Forge 版（`peter/p1-skillforge` の `skillforge/docs/outreach-drafts.md`）を正とする。** この文書は参考として残す。Forge 版にない候補（PLAYISM、Phoenixx、MangaGamer、Ysbryd など）は、統合の提案として Forge に送った。
+> 本部の指示で、日本語の「だいほん」（台本の語）を「翻訳ファイル」に、英語の "script" を "translation files" などに置き換えた。精度を書くときは、Forge 版の決まった文言だけを使う（このファイルには精度の数字を入れていない）。
+
 
 作成：Midas（2026-10-09）　**送信しない。** オーナーが1通ずつ承認してから送る。
 元にしたもの：
@@ -38,13 +42,13 @@
 - **窓口：** info@8-4.jp（会社サイトの About）［確認］
 - **使うテンプレート：** テンプレート1・英語版（メール）
 
-**Subject:** Request: try an early JA↔EN script consistency checker (30 min, free)
+**Subject:** Request: try an early JA↔EN translation consistency checker (30 min, free)
 
 Hello 8-4, Ltd. team,
 
 I'm writing from the Kotomark development team. I came across 8-4's Japanese–English localization work on titles such as Monster Hunter and NieR, and I'd value the view of a team that does LQA at that level.
 
-I'm building an early prototype called Kotomark (working name). It reads a JA↔EN game script as a whole and reports what drifts between lines, with `file:line` references:
+I'm building an early prototype called Kotomark (working name). It reads a set of JA↔EN game translation files as a whole and reports what drifts between lines, with `file:line` references:
 
 - glossary term drift (one term rendered two ways)
 - katakana notation drift (サーバー / サーバ)
@@ -63,9 +67,9 @@ More about the tool: https://masahiro20.github.io/new-project/kotomark/
 The pilot is free. There is nothing to buy and no payment involved either way.
 
 **How your data is handled**
-- The browser demo runs entirely in your browser; scripts and glossaries are not uploaded anywhere.
+- The browser demo runs entirely in your browser; files and glossaries are not uploaded anywhere.
 - A local CLI version that makes no network calls is also available.
-- If you use the hosted version, scripts are not stored and their text is never written to logs. I will not ask you to send me a script.
+- If you use the hosted version, files are not stored and their text is never written to logs. I will not ask you to send me any files.
 - When you send results back, you're welcome to delete the source and target text columns first.
 
 If you're interested, just reply to this email. Thanks for reading.
@@ -81,13 +85,13 @@ Kotomark development team
 - **窓口：** https://www.shloc.com/en/contact または mail@shloc.com［確認］
 - **使うテンプレート：** テンプレート1・英語版（メール）
 
-**Subject:** Request: try an early JA↔EN script consistency checker (30 min, free)
+**Subject:** Request: try an early JA↔EN translation consistency checker (30 min, free)
 
 Hello Shloc team,
 
 I'm writing from the Kotomark development team. I came across Shloc's Japanese-to-English work, including the European localization of Dragon Quest VII, and I'd value your team's view on consistency checks.
 
-I'm building an early prototype called Kotomark (working name). It reads a JA↔EN game script as a whole and reports what drifts between lines, with `file:line` references:
+I'm building an early prototype called Kotomark (working name). It reads a set of JA↔EN game translation files as a whole and reports what drifts between lines, with `file:line` references:
 
 - glossary term drift (one term rendered two ways)
 - katakana notation drift (サーバー / サーバ)
@@ -106,9 +110,9 @@ More about the tool: https://masahiro20.github.io/new-project/kotomark/
 The pilot is free. There is nothing to buy and no payment involved either way.
 
 **How your data is handled**
-- The browser demo runs entirely in your browser; scripts and glossaries are not uploaded anywhere.
+- The browser demo runs entirely in your browser; files and glossaries are not uploaded anywhere.
 - A local CLI version that makes no network calls is also available.
-- If you use the hosted version, scripts are not stored and their text is never written to logs. I will not ask you to send me a script.
+- If you use the hosted version, files are not stored and their text is never written to logs. I will not ask you to send me any files.
 - When you send results back, you're welcome to delete the source and target text columns first.
 
 If you're interested, just reply to this email. Thanks for reading.
@@ -129,11 +133,11 @@ PLAYISM
 
 突然のご連絡失礼します。Kotomark 開発チームです。日本のインディー作品を英語圏に届けていらっしゃる PLAYISM さんの英語版を拝見し、ご連絡しました。
 
-日英ゲーム台本の一貫性チェックツール「Kotomark（仮称）」を試作しています。台本全体を見て、用語の訳揺れ、カタカナ表記の揺れ、キャラ名・敬称・口調の揺れを、ファイル名と行番号付きで指摘します。
+日英ゲームの翻訳ファイルの一貫性チェックツール「Kotomark（仮称）」を試作しています。翻訳ファイル全体を見て、用語の訳揺れ、カタカナ表記の揺れ、キャラ名・敬称・口調の揺れを、ファイル名と行番号付きで指摘します。
 
 まだ初期の試作品で、誤検出があります。もしよければ30分ほど、ブラウザ版デモで付属のサンプルか、NDAに触れない抜粋を試して、「この指摘は外れ」というものを教えていただけないでしょうか。記録の仕方は短い説明書でお伝えします。試用は無料で、お支払いは一切ありません。
 
-デモはブラウザ内だけで動き、台本はどこにもアップロードされません。こちらから台本をお送りいただくこともありません。
+デモはブラウザ内だけで動き、翻訳ファイルはどこにもアップロードされません。こちらから翻訳ファイルをお送りいただくこともありません。
 
 デモ：https://masahiro20.github.io/new-project/kotomark/demo/
 説明：https://masahiro20.github.io/new-project/kotomark/
@@ -148,7 +152,7 @@ PLAYISM
 - **使うテンプレート：** テンプレート1・日本語版（メール）
 - **メモ：** 社名の表記は、送る前に公式サイトで確認する。
 
-**件名：** 日英ゲーム台本の一貫性チェック（試作品）の試用のお願い
+**件名：** 日英ゲームの翻訳ファイルの一貫性チェック（試作品）の試用のお願い
 
 株式会社アクティブゲーミングメディア
 ご担当者様
@@ -156,7 +160,7 @@ PLAYISM
 突然のご連絡失礼いたします。Kotomark 開発チームと申します。
 ゲームのローカライズと LQA を手がけていらっしゃる御社に、現場のご意見をいただきたくご連絡しました。
 
-現在、日英（英日）のゲーム台本を**台本全体で**見て、行と行の間の揺れを `ファイル名:行番号` 付きで指摘するツール「Kotomark（仮称）」を試作しています。対象は次のような揺れです。
+現在、日英（英日）のゲームの翻訳ファイルを**ファイル全体で**見て、行と行の間の揺れを `ファイル名:行番号` 付きで指摘するツール「Kotomark（仮称）」を試作しています。対象は次のような揺れです。
 
 - 用語集の訳語の揺れ（同じ用語が2通りに訳されている など）
 - カタカナ表記の揺れ（「サーバー／サーバ」など）
@@ -175,9 +179,9 @@ PLAYISM
 試用は無料で、費用は一切かかりません。謝礼などのお支払いもない、純粋なお願いです。
 
 **データの扱い**
-- ブラウザ版デモは、すべての処理がお使いのブラウザ内で完結し、台本や用語集はどこにもアップロードされません。
+- ブラウザ版デモは、すべての処理がお使いのブラウザ内で完結し、翻訳ファイルや用語集はどこにもアップロードされません。
 - 通信をしないローカル版（コマンドライン）もご用意できます。
-- サーバー版を使う場合も、台本は保存せず、ログにも本文は残しません。こちらから台本の送付をお願いすることはありません。
+- サーバー版を使う場合も、翻訳ファイルは保存せず、ログにも本文は残しません。こちらから翻訳ファイルの送付をお願いすることはありません。
 - 結果をお送りいただく際は、原文・訳文の列を消していただいて構いません。
 
 ご興味があれば、このメールにご返信いただくだけで結構です。お忙しいところ、最後までお読みいただきありがとうございました。
@@ -196,7 +200,7 @@ Kotomark 開発チーム
 
 Hello DANGEN Entertainment team, this is the Kotomark development team. I've followed DANGEN's multilingual indie releases out of Osaka and wanted to ask a small JA/EN team for a reality check on a consistency tool.
 
-I'm prototyping Kotomark (working name): it checks a whole JA↔EN game script for term, katakana, name, honorific and voice drift, with file:line refs.
+I'm prototyping Kotomark (working name): it checks whole JA↔EN game translation files for term, katakana, name, honorific and voice drift, with file:line refs.
 
 It's early and has false positives. Could you spend ~30 min running the browser demo on its sample or an NDA-safe excerpt and tell me which flags are wrong? Free, no payment involved.
 
@@ -217,13 +221,13 @@ No worries if it's not a fit. Say the word and I won't message again.
 株式会社Phoenixx
 ご担当者様
 
-突然のご連絡失礼します。Kotomark 開発チームです。インディー作品の多言語展開を手がけていらっしゃる御社に、日英台本のチェックについてご意見をいただきたくご連絡しました。
+突然のご連絡失礼します。Kotomark 開発チームです。インディー作品の多言語展開を手がけていらっしゃる御社に、日英の翻訳ファイルのチェックについてご意見をいただきたくご連絡しました。
 
-日英ゲーム台本の一貫性チェックツール「Kotomark（仮称）」を試作しています。台本全体を見て、用語の訳揺れ、カタカナ表記の揺れ、キャラ名・敬称・口調の揺れを、ファイル名と行番号付きで指摘します。
+日英ゲームの翻訳ファイルの一貫性チェックツール「Kotomark（仮称）」を試作しています。翻訳ファイル全体を見て、用語の訳揺れ、カタカナ表記の揺れ、キャラ名・敬称・口調の揺れを、ファイル名と行番号付きで指摘します。
 
 まだ初期の試作品で、誤検出があります。もしよければ30分ほど、ブラウザ版デモで付属のサンプルか、NDAに触れない抜粋を試して、「この指摘は外れ」というものを教えていただけないでしょうか。記録の仕方は短い説明書でお伝えします。試用は無料で、お支払いは一切ありません。
 
-デモはブラウザ内だけで動き、台本はどこにもアップロードされません。こちらから台本をお送りいただくこともありません。
+デモはブラウザ内だけで動き、翻訳ファイルはどこにもアップロードされません。こちらから翻訳ファイルをお送りいただくこともありません。
 
 デモ：https://masahiro20.github.io/new-project/kotomark/demo/
 説明：https://masahiro20.github.io/new-project/kotomark/
@@ -240,13 +244,13 @@ No worries if it's not a fit. Say the word and I won't message again.
 Chorus Worldwide
 ご担当者様
 
-突然のご連絡失礼します。Kotomark 開発チームです。日本の作品の海外展開を手がけていらっしゃる御社に、日英台本の一貫性チェックについてご意見をいただきたくご連絡しました。
+突然のご連絡失礼します。Kotomark 開発チームです。日本の作品の海外展開を手がけていらっしゃる御社に、日英の翻訳ファイルの一貫性チェックについてご意見をいただきたくご連絡しました。
 
-日英ゲーム台本の一貫性チェックツール「Kotomark（仮称）」を試作しています。台本全体を見て、用語の訳揺れ、カタカナ表記の揺れ、キャラ名・敬称・口調の揺れを、ファイル名と行番号付きで指摘します。
+日英ゲームの翻訳ファイルの一貫性チェックツール「Kotomark（仮称）」を試作しています。翻訳ファイル全体を見て、用語の訳揺れ、カタカナ表記の揺れ、キャラ名・敬称・口調の揺れを、ファイル名と行番号付きで指摘します。
 
 まだ初期の試作品で、誤検出があります。もしよければ30分ほど、ブラウザ版デモで付属のサンプルか、NDAに触れない抜粋を試して、「この指摘は外れ」というものを教えていただけないでしょうか。記録の仕方は短い説明書でお伝えします。試用は無料で、お支払いは一切ありません。
 
-デモはブラウザ内だけで動き、台本はどこにもアップロードされません。こちらから台本をお送りいただくこともありません。
+デモはブラウザ内だけで動き、翻訳ファイルはどこにもアップロードされません。こちらから翻訳ファイルをお送りいただくこともありません。
 
 デモ：https://masahiro20.github.io/new-project/kotomark/demo/
 説明：https://masahiro20.github.io/new-project/kotomark/
@@ -264,13 +268,13 @@ Chorus Worldwide
 Kakehashi Games
 ご担当者様
 
-突然のご連絡失礼します。Kotomark 開発チームです。海外のインディー作品を日本向けに届けていらっしゃる御社に、英→日の台本で起きやすい敬称・口調の揺れのチェックについてご意見をいただきたくご連絡しました。
+突然のご連絡失礼します。Kotomark 開発チームです。海外のインディー作品を日本向けに届けていらっしゃる御社に、英→日の翻訳で起きやすい敬称・口調の揺れのチェックについてご意見をいただきたくご連絡しました。
 
-日英ゲーム台本の一貫性チェックツール「Kotomark（仮称）」を試作しています。台本全体を見て、用語の訳揺れ、カタカナ表記の揺れ、キャラ名・敬称・口調の揺れを、ファイル名と行番号付きで指摘します。
+日英ゲームの翻訳ファイルの一貫性チェックツール「Kotomark（仮称）」を試作しています。翻訳ファイル全体を見て、用語の訳揺れ、カタカナ表記の揺れ、キャラ名・敬称・口調の揺れを、ファイル名と行番号付きで指摘します。
 
 まだ初期の試作品で、誤検出があります。もしよければ30分ほど、ブラウザ版デモで付属のサンプルか、NDAに触れない抜粋を試して、「この指摘は外れ」というものを教えていただけないでしょうか。記録の仕方は短い説明書でお伝えします。試用は無料で、お支払いは一切ありません。
 
-デモはブラウザ内だけで動き、台本はどこにもアップロードされません。こちらから台本をお送りいただくこともありません。
+デモはブラウザ内だけで動き、翻訳ファイルはどこにもアップロードされません。こちらから翻訳ファイルをお送りいただくこともありません。
 
 デモ：https://masahiro20.github.io/new-project/kotomark/demo/
 説明：https://masahiro20.github.io/new-project/kotomark/
@@ -284,9 +288,9 @@ Kakehashi Games
 - **窓口：** https://blog.mangagamer.org/contact-us/［確認］
 - **使うテンプレート：** テンプレート2・英語版（短い文面）
 
-Hello MangaGamer team, this is the Kotomark development team. MangaGamer has been bringing Japanese visual novels to English readers for years, and VN scripts are exactly where name and voice drift hurts most.
+Hello MangaGamer team, this is the Kotomark development team. MangaGamer has been bringing Japanese visual novels to English readers for years, and long VN translations are exactly where name and voice drift hurts most.
 
-I'm prototyping Kotomark (working name): it checks a whole JA↔EN game script for term, katakana, name, honorific and voice drift, with file:line refs.
+I'm prototyping Kotomark (working name): it checks whole JA↔EN game translation files for term, katakana, name, honorific and voice drift, with file:line refs.
 
 It's early and has false positives. Could you spend ~30 min running the browser demo on its sample or an NDA-safe excerpt and tell me which flags are wrong? Free, no payment involved.
 
@@ -304,9 +308,9 @@ No worries if it's not a fit. Say the word and I won't message again.
 - **窓口：** **要確認**：https://jastusa.com/contact（応答あり、中身は未読）
 - **使うテンプレート：** テンプレート2・英語版（短い文面）
 
-Hello JAST team, this is the Kotomark development team. JAST's long-running English releases of Japanese visual novels made me think your editors would have strong opinions on script-wide consistency checks.
+Hello JAST team, this is the Kotomark development team. JAST's long-running English releases of Japanese visual novels made me think your editors would have strong opinions on file-wide consistency checks.
 
-I'm prototyping Kotomark (working name): it checks a whole JA↔EN game script for term, katakana, name, honorific and voice drift, with file:line refs.
+I'm prototyping Kotomark (working name): it checks whole JA↔EN game translation files for term, katakana, name, honorific and voice drift, with file:line refs.
 
 It's early and has false positives. Could you spend ~30 min running the browser demo on its sample or an NDA-safe excerpt and tell me which flags are wrong? Free, no payment involved.
 
@@ -327,7 +331,7 @@ No worries if it's not a fit. Say the word and I won't message again.
 
 Hello Fruitbat Factory team, this is the Kotomark development team. Fruitbat Factory's English releases of Japanese indie titles are the kind of small-team JA→EN work this tool is meant to help with.
 
-I'm prototyping Kotomark (working name): it checks a whole JA↔EN game script for term, katakana, name, honorific and voice drift, with file:line refs.
+I'm prototyping Kotomark (working name): it checks whole JA↔EN game translation files for term, katakana, name, honorific and voice drift, with file:line refs.
 
 It's early and has false positives. Could you spend ~30 min running the browser demo on its sample or an NDA-safe excerpt and tell me which flags are wrong? Free, no payment involved.
 
@@ -345,9 +349,9 @@ No worries if it's not a fit. Say the word and I won't message again.
 - **窓口：** hello@ysbryd.net（公式サイトの Contact）［確認］
 - **使うテンプレート：** テンプレート2・英語版（短い文面）
 
-Hello Ysbryd Games team, this is the Kotomark development team. I'm reaching out because Ysbryd publishes indie titles across languages, and I'd like a small publisher's view on script consistency checks.
+Hello Ysbryd Games team, this is the Kotomark development team. I'm reaching out because Ysbryd publishes indie titles across languages, and I'd like a small publisher's view on translation consistency checks.
 
-I'm prototyping Kotomark (working name): it checks a whole JA↔EN game script for term, katakana, name, honorific and voice drift, with file:line refs.
+I'm prototyping Kotomark (working name): it checks whole JA↔EN game translation files for term, katakana, name, honorific and voice drift, with file:line refs.
 
 It's early and has false positives. Could you spend ~30 min running the browser demo on its sample or an NDA-safe excerpt and tell me which flags are wrong? Free, no payment involved.
 
