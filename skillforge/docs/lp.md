@@ -1,223 +1,139 @@
-# Yuragi: Landing Page Copy (DRAFT)
+# Kotomark（仮称）: Landing Page Copy (DRAFT)
 
-> **DRAFT — NOT FOR PUBLICATION.** Internal copy draft for P1 SkillForge (Growth).
-> **"Yuragi" (揺らぎ, "drift / wobble") is a working name (仮称).** The trademark check is still pending, so the name may change before launch.
-> All script lines, character names and terms below are invented for illustration. They are not taken from any real game.
-> Nothing on this page has been published, posted, or linked anywhere.
+> **DRAFT — NOT FOR PUBLICATION.** Internal copy source for P1 SkillForge (Growth).
+> **"Kotomark" is a working name (仮称).** The trademark registry check (J-PlatPat / USPTO etc.) is still pending; see `docs/name-check.md`. The name may change before launch.
+> **This file is the copy source for `lp/index.html`.** Change copy here first, then mirror it in the HTML (both languages). The page is not published, posted, or linked anywhere.
+> All script lines, character names and terms are invented sample data (`samples/ja-en`). Every example below is real output of:
+> `npx tsx src/cli/index.ts check samples/ja-en/script.csv samples/ja-en/ch2.json --glossary samples/ja-en/glossary.json`
 
----
-
-## Hero
-
-### Headline
-**Catch the drift before your players do.**
-
-### Subhead
-Yuragi checks your whole Japanese↔English script for consistency. It finds glossary terms, character names, honorifics and character voices that drift between line 14 and line 4,000, and it reports every case with file and line numbers.
-
-**[ Join the waitlist ]**  ·  *Works with your own AI assistant via MCP (e.g. Claude Code, Claude Desktop).*
+Audience: game localization vendors (LSP / LQA teams) and indie developers / publishers shipping JA↔EN.
+Tone: factual, no testimonials, no customer logos, no invented metrics, no prices.
 
 ---
 
-## The problem
+## 0. Header
 
-Your translation was done by three people over six months. Someone renamed a character halfway through. The glossary was updated after chapter 2.
+- Brand: **Kotomark**（仮称）/ Kotomark (working name)
+- Nav: 検出できること / What it catches · 使い方 / How it works · データの扱い / Data · 試用協力 / Pilot
+- Language toggle: **日本語 / English** (default from `navigator.language`: `ja*` → 日本語, else English; choice saved in localStorage, ignored if storage is unavailable)
 
-Now the same item is called the **Mana Stone** in 40 lines and the **Magic Stone** in 2. Lisette is spelled **Lizette** in one scene. The proud knight who never uses contractions says **"I'm gonna"** in the final battle. In the Japanese build, **サーバー** and **サーバ** appear side by side.
+## 1. Hero
 
-None of these is a typo that a spell-checker would catch. They are **drift**: small inconsistencies spread across tens of thousands of lines, which no one can hold in their head at once. Players do notice, though, and they post screenshots.
+- Eyebrow: `JA ⇄ EN · game localization QA · prototype`
+- **JA:** 訳の「揺れ」を、プレイヤーより先に。
+- **EN:** Catch the drift before your players do.
+- **JA lede:** Kotomark は日英ゲームローカライズ向けの**台本全体の一貫性チェック**です。用語、カタカナ表記、キャラ名、敬称、口調が台本のどこで揺れているかを、ファイル名と行番号付きで指摘します。
+- **EN lede:** Kotomark checks a **whole Japanese↔English game script** for consistency. It finds where terms, katakana spellings, character names, honorifics and character voices drift, and points to each case by file and line.
+- Primary CTA: **デモを試す / Try the demo** → `https://claude.ai/artifact/SYxoeqmhYquutDJGCoa7kr` (**currently private to the owner — must be shared publicly before going live**)
+- Secondary CTA: **試用協力者を募集中 / Looking for pilot partners** → `#pilot`
+- Note: デモはブラウザ内だけで動きます。台本ファイルはどこにも送信されません。サンプル台本入り。 / The demo runs entirely in your browser. Your script files are not uploaded anywhere. Sample script included.
+- Visual (real output): `script.csv:6` 「俺は魔導石なんて信じねえぞ。」→ "I don't believe in **Magic Stones**." · `script.csv:17` 「魔導石を一個もらえれば、俺が運んでやる。」→ "Give me one **Magic Stone** and I'll carry the lot." · tally **Mana Stone ×6 / Magic Stone ×2** · `error script.csv:6, :17 — forbidden variant "Magic Stone"; glossary says "Mana Stone".`
 
-Traditional QA tools check one segment at a time: tags, numbers, double spaces. Yuragi reads **the whole script** and asks whether it stays consistent with itself.
+## 2. 検出できること / What it catches
 
----
+Intro — JA: 1行ずつではなく、台本全体を見比べて「どこで揺れたか」を探します。下の例はすべて同梱の架空サンプル台本（`samples/ja-en`）を実際に検査した結果です。
+EN: Instead of checking one segment at a time, it compares the whole script with itself and finds where things drift. Every example below is real output from the bundled sample script (`samples/ja-en`, invented text).
 
-## How it works
-
-**1. Bring your script and your glossary.**
-Upload your string tables (CSV, JSON, or XLIFF 1.2 / 2.0). Add a glossary with your terms and a simple character sheet (names, approved nicknames, honorific rules, voice notes).
-
-**2. Run the check from your AI assistant.**
-Connect Yuragi as an MCP server in the assistant you already use (for example, Claude Code or Claude Desktop) and ask it to check your script. Yuragi's deterministic engine finds clear-cut drift. Ambiguous voice cases are packed into small review packets, which **your own assistant** judges on your own subscription.
-
-**3. Get a report with line numbers.**
-Every finding points to a file and a line. Fix it in your tool of choice, then run the check again.
-
----
-
-## Sample report (illustrative)
-
-```text
-Yuragi consistency report — project: "Starfall Lantern" (sample data)
-Files: script_ch1-5.csv (4,212 lines), glossary.csv (138 terms), characters.yml (9 characters)
-
-[TERM DRIFT] 魔導石 → expected "Mana Stone" (glossary)
-  "Mana Stone"   40 lines
-  "Magic Stone"   2 lines   script.csv:1187, script.csv:2904
-
-[KATAKANA DRIFT] (JA source)
-  マナ・ストーン ×12 / マナストーン ×3   script.csv:88, script.csv:412, script.csv:3301
-
-[NAME DRIFT] Lisette (characters.yml)
-  "Lizette" (near-miss)          script.csv:14
-  "Lise" (nickname not approved) script.csv:2230
-  speaker label "LISSETTE"       script.csv:3018
-
-[HONORIFIC DRIFT] Mio → Lisette (リゼット様)
-  policy: "Lady Lisette"
-  "Lady Lisette" 27 lines
-  "Lisette"       3 lines   script.csv:640, script.csv:1502, script.csv:1503
-  "Lisette-sama"  1 line    script.csv:2877   (violates honorific policy: no -sama)
-
-[VOICE — REVIEW PACKET] Sir Garrick (voice note: formal, never uses contractions)
-  script.csv:3912  "I'm gonna hold the gate."
-  first-person in JA source: 私 (expected) → 俺 at script.csv:3910
-  → sent to your assistant for judgment (3 lines of context)
-
-[BONUS] placeholder mismatch   script.csv:771   JA {player_name} / EN {playername}
-[BONUS] length limit 40 (full-width counted)   script.csv:1290   46 chars
-
-Summary: 11 findings (8 deterministic, 1 review packet, 2 bonus)
-```
-
----
-
-## What Yuragi checks
-
-### 1. Glossary term drift
-- Finds every rendering of each glossary term across the whole script, not only the first mismatch.
-- Shows the split: "Mana Stone" ×40 vs "Magic Stone" ×2, with the line numbers of the outliers.
-- Checks Japanese notation drift as well: katakana variants (サーバー / サーバ), middle dots (マナ・ストーン / マナストーン), and similar spellings.
-
-### 2. Character-name drift
-- Near-miss spellings (Lizette vs Lisette) and stray transliterations.
-- Nicknames that are not on your character sheet.
-- Speaker-label drift (LISETTE / Lisette / LISSETTE) in the speaker column.
-
-### 3. Honorific and voice drift
-- Tracks how each **speaker → addressee** pair is rendered. Does 様 become "Lady Lisette", plain "Lisette", or "Lisette-sama"? Is that consistent, and does it follow your honorific policy?
-- Flags when a character's first-person pronoun (俺 / 僕 / 私) or politeness level changes without warning.
-- Catches breaks in a defined voice, such as the knight who "never uses contractions" suddenly saying "gonna".
-- Ambiguous cases become **review packets**: just the lines needed, judged by your own AI assistant. A person makes the final decision.
-
-### Also included (the basics)
-Placeholder and tag mismatches, ruby markup checks, and length limits with full-width character counting. These are standard checks that tools like Xbench and Verifika already do well. We include them so you don't have to run two passes.
-
----
-
-## Who it's for
-
-- **Japanese indie developers shipping an English version.** You can't read every English line yourself, but you can read a report that says "line 1187 calls it something else".
-- **JP↔EN freelance translators and LQA testers.** Hand in a cleaner deliverable, and spend your review time on the hard judgment calls instead of searching for variants.
-- **Visual novel developers (Ren'Py and similar).** Long, dialogue-heavy scripts with many characters are exactly where names, honorifics and voice drift the most.
-- **Small JP→EN publishers.** Share one glossary and one character sheet across your team and every title you publish.
-
----
-
-## Trust and privacy
-
-- **We don't store your script.** The service is stateless: a file is processed for the check and then discarded. Glossaries are saved only if you choose to save them (for example, a shared Studio glossary).
-- **Reasoning runs on your own AI subscription.** Our engine does the deterministic checks. Judgment calls happen in your assistant, under the terms you already accepted, and we only send it the lines it needs.
-- **NDA-friendly by design.** Minimal data in, report out.
-- **Enterprise option:** no-retention mode, a dedicated instance, and paperwork for your legal team.
-- **An assistant, not a replacement.** Research on LLM-based game LQA (AMTA 2026, peer-reviewed) found that even the best model reached an F1 score of about 0.77, and Japanese was the hardest language tested. That is why Yuragi reports findings and leaves the decisions to people.
-
----
-
-## Pricing (planned, subject to change)
-
-| Plan | Price | For | Includes |
+| Check (JA / EN) | Copy (EN; JA mirrored on page) | Real example | Needs glossary |
 |---|---|---|---|
-| **Per title** | **$49 one-off** | One game, one release | Unlimited checks for a single title for a limited period (TBD), all core checks |
-| **Solo** | **$29 / month** | Freelance translators, LQA testers, solo devs | All core checks, personal glossaries and character sheets |
-| **Studio** | **$99 / month** | Small teams and publishers | 5 seats, shared glossary and character sheets |
-| **Enterprise** | **Contact us** | Larger publishers, NDA-heavy work | No-retention mode, dedicated instance, custom terms |
+| 用語の訳揺れ / Glossary term drift | Counts every rendering of each glossary term across the script, and points to the outliers and forbidden variants. | 魔導石 → Mana Stone ×6 / Magic Stone ×2 — `script.csv:6, :17` | yes |
+| カタカナの表記揺れ / Katakana notation drift | Flags Japanese spelling variants, such as middle dots and long vowels, against the majority form. | ルーンゲート ×2 / ルーン・ゲート ×1 — `script.csv:21` | no |
+| キャラ名の揺れ / Character names | Finds forbidden spellings, near-miss spellings and inconsistent speaker labels. | Lizette `:23`, Lisete `:24`, speaker MINA / ミナ `:26` | partly |
+| 敬称の揺れ / Honorific drift | Tracks each speaker → addressee pair: is 様 rendered the same way every time, and does it follow your honorific policy (e.g. localize)? | ミナ → リゼット様: Lady Lisette ×3 / Lisette ×1 `:15` / Lisette-sama ×1 `:18` | partly |
+| 口調の揺れ / Voice drift | Flags lines that break a character profile: first-person pronoun, politeness, "never uses contractions" and so on. | Tobias (俺) says 僕 `:20`; Lisette: "We're gonna be fine." `:25` | profiles help |
 
-*AI assistant subscription not included. Yuragi works with the assistant you already use.*
-*Waitlist members will be the first to hear about launch pricing.*
+**基本のチェックも同時に / The basics, in the same pass:** placeholders `{0}` `%s` `[PLAYER]`; missing or unbalanced tags `<color>`; ruby markup `{漢字|かんじ}` `｜漢字《かんじ》` `<ruby>`; length limits (optionally counting full-width as 2).
 
----
+**Review packets** — JA: ルールで決めきれない行は「レビュー用パケット」に。「この行はまだ彼女らしいか」「用語集にない頻出語」など、判断が要る箇所は必要な行だけをまとめて返し、あなたのAIアシスタントと担当者が判断します。最終判断は人が行います。
+EN: Lines the rules can't judge become review packets. "Does this still sound like her?" or a recurring term that isn't in the glossary: Kotomark bundles just the lines needed, and your own AI assistant and your reviewers make the call. A person makes the final decision.
 
-## FAQ
+**Limits note (keep on page)** — JA: 日本語の解析は正規表現ベースのヒューリスティックです（形態素解析は使っていません）。見逃しや誤検出があり得るため、口調の指摘は「警告」「情報」にとどめています。
+EN: Japanese analysis is heuristic and regex-based (no morphological analyzer). It will miss or misread some lines, which is why voice findings stay at warning or info level.
 
-**Do you store my script?**
-No. Scripts are processed for the check and then discarded; we don't keep copies. Glossaries and character sheets are stored only if you save them to your account. Enterprise customers can turn on a no-retention mode for everything.
+## 3. 使い方は3通り / Three ways to run it
 
-**Does it replace LQA testers?**
-No. Yuragi is a QA assistant. It finds drift across a whole script faster than a person can. Deciding whether a line is *right* (tone, context, intent) still needs a human reviewer. Current research shows AI is not yet reliable enough to do game LQA alone, especially for Japanese.
+All three use the same engine; every finding comes back with `file:line`.
 
-**Which file formats are supported?**
-At launch: CSV, JSON and XLIFF (1.2 and 2.0) string tables. Tell us what you use when you join the waitlist (Ren'Py `.rpy`, PO, Excel and others). That input decides what we add next.
+- **A. ブラウザのデモ / Browser demo** — Nothing to install. Drop in your files and the check runs inside your browser.
+- **B. コマンドライン / Command line** — Runs on your own machine with no network calls. Exit codes (0 clean / 1 errors / 2 bad input) make it CI-friendly. `kotomark check script.csv ch2.json --glossary glossary.json`
+- **C. MCP ＋ Claude Code プラグイン / MCP + Claude Code plugin** — Run `/lqa-check` from the assistant you already use. The server does the rule-based checks; your assistant works through the lines that need judgment.
+- Diagram: **Your AI assistant** (reads files, judges review packets, writes the final report; reasoning runs on your own subscription) ⇄ MCP ⇄ **Kotomark engine** (deterministic, rule-based; stateless; scripts not stored; never receives your AI credentials).
 
-**Do I need a glossary?**
-It helps, but you can start without one. Without a glossary, Yuragi groups source terms with inconsistent renderings so you can choose the correct one. That choice becomes your first glossary. A character sheet makes the name, honorific and voice checks much more precise.
+## 4. 台本は保存しません / Your script is not stored
 
-**Which AI assistant do I need?**
-Any assistant that supports remote MCP servers. We are testing with Claude Code and Claude Desktop first. Yuragi is an independent product and is not affiliated with or endorsed by any AI provider.
+Designed on the assumption that your script is under NDA.
 
-**Does it work in both directions?**
-Yes: Japanese→English and English→Japanese. Katakana notation checks apply to Japanese text. Honorific and voice checks are built around Japanese source text being rendered in English.
+- **The demo stays in your browser.** The demo's engine runs inside the page. Files you load are not sent to any server.
+- **Memory only on the server.** Scripts sent over MCP are checked in memory and discarded once the result is returned. Nothing is written to disk or a database.
+- **No content in logs.** Logs hold only method, path, status, user ID and timing. No text, file names or terms (covered by automated tests).
+- **Glossaries saved only if you choose.** Each saved glossary is encrypted with AES-256-GCM. Delete any time.
+- Fine print: Server-side AI judging (for batch use) is off by default.
 
-**How is this different from Xbench or Verifika?**
-Those tools are great at segment-level checks: tags, numbers, terminology matches. Yuragi focuses on **whole-script consistency**: how a character is addressed across hundreds of scenes, and whether a voice holds up from chapter 1 to the ending. Yuragi does run the basic checks too, so you can use it alone or alongside those tools.
+Source of truth: `docs/data-policy.md`. If code, policy and LP disagree, the LP is wrong.
 
-**When does it launch?**
-We're building it now. Waitlist members get early access and a chance to shape the first version.
+## 5. 誰のためのツールか / Who it's for
 
----
+**ローカライズ会社・LQAチーム / Localization vendors & LQA teams** — you check scripts that several translators worked on over months, before delivery.
+- Spend review time on judgment, not searching: work from a list of line references.
+- Fits into CI: the CLI returns exit codes.
+- Use what you already have: CSV / TSV / JSON / XLIFF string tables and CSV glossaries.
 
-## Waitlist CTA
+**インディー開発者・パブリッシャー / Indie developers & publishers** — you ship a JA↔EN version but can't read every line on the other side.
+- Check what you can't read: "line 17 calls it something else" is a concrete question for your translator.
+- Try it without installing anything (browser demo).
+- No glossary yet? Notation, speaker labels and tags are checked without one, and it can draft a glossary from your script for you to review.
 
-### Ship a script that sounds like one writer wrote it.
-Join the waitlist for early access. Tell us your file format and language direction, and we'll prioritize those.
+## 6. 試用協力者を募集中 / Looking for pilot partners
 
-```
-[ email address                ]  [ Join the waitlist ]
-(optional) Your role: ( ) Developer  ( ) Translator / LQA  ( ) Publisher  ( ) Other
-(optional) File format: ____________
-```
-*Placeholder form, not connected. We'll only email you about Yuragi. Unsubscribe any time.*
+JA: 実際の日英台本で試し、指摘が当たりか外れかを教えてくださる方を探しています。結果は誤検出と見逃しを減らすために使います。
+EN: We're looking for teams who will run it on a real JA↔EN script and tell us which findings were right and which were wrong. We use the results to cut false positives and misses.
 
----
+1. Expect about 60–90 minutes. (source: `docs/pilot-guide.md`)
+2. You can use the local version, which makes no network calls. Please stay within your NDA.
+3. All you send back is a sheet marking each finding right or wrong. You can delete the source and target columns first.
 
-## 日本語版の要約（日本のインディー開発者向け）
+Contact: **`pilot@example.com` — PLACEHOLDER.** Shown as plain text only; no form, no mailto, nothing is submitted. The owner must supply a real address or form (and a privacy policy) before launch.
+Ask for: file format, language direction, rough line count.
 
-**英語版の「揺らぎ」を、プレイヤーより先に見つける。**
+## 7. FAQ
 
-Yuragi（仮称）は、日英ゲームローカライズ用の「台本全体の一貫性チェック」ツールです。
+- **Formats?** Scripts: CSV / TSV (header row required), JSON, XLIFF 1.2 / 2.0. Glossaries: JSON or CSV. Several files can be checked together.
+- **Do I need a glossary?** Katakana notation, speaker labels, placeholders, tags, ruby and length work without one. Term, honorific and voice checks need a glossary with character profiles. A heuristic glossary draft can be generated from the script — always review it.
+- **Both directions?** Direction is detected per table; Japanese-side checks run on whichever side is Japanese. Honorific and voice checks are built mainly around Japanese source rendered in English.
+- **Does it replace LQA testers?** No. It speeds up finding drift; deciding whether a line is right is a person's job.
+- **Which AI assistant?** Currently tested with a Claude Code plugin. The browser demo and the CLI need no AI assistant. Independent product, not affiliated with any AI provider.
+- **False positives?** Yes, e.g. a real English word one letter away from a character name (can be added to an ignore list). Measuring this is what the pilot is for.
+- **Price?** 未定 / TBD. (Do not show prices until the owner approves them.)
 
-- **用語の揺れ:** 「魔導石」が40行では "Mana Stone"、2行では "Magic Stone" になっている箇所を、行番号付きで指摘します。サーバー／サーバ、マナ・ストーン／マナストーンなど、日本語側の表記揺れも検出します。
-- **キャラ名の揺れ:** Lisette と Lizette のようなつづり違い、未承認の愛称、話者ラベルの不統一を見つけます。
-- **敬称・口調の揺れ:** 「リゼット様」が "Lady Lisette" / "Lisette" / "Lisette-sama" のどれで訳されているかを話者ごとに追跡します。一人称（俺／僕／私）や丁寧さの急な変化も検出します。
-- **使い方:** CSV / JSON / XLIFF の文字列テーブルと用語集を渡すと、`script.csv:14` のように行番号付きのレポートが返ります。
-- **判断はあなたのAIで:** 判断が難しい箇所は、お使いのAIアシスタント（Claude Code など、MCP対応のもの）が確認します。当社に送るデータは最小限です。
-- **台本は保存しません。** NDA案件でも使いやすい設計です。
-- **テスターの代わりではなく、QAの補助です。** 最終判断は人が行います。
-- **価格（予定）:** 1タイトル $49 ／ Solo 月$29 ／ Studio 月$99（5席）／ 法人は個別見積もり。
+## 8. Footer
 
-英語が読めなくても、「1187行目だけ呼び方が違う」というレポートなら確認できます。
-**待機リストに登録して、先行アクセスをお待ちください。**
+- 「Kotomark」は仮称です。商標の確認が済んでいないため、名称は変わる可能性があります。 / "Kotomark" is a working name (仮称). The trademark check is not finished, so the name may change.
+- All script lines, character names and terms on this page are invented for illustration. Kotomark is an independent product, not affiliated with or endorsed by Anthropic or any other AI provider. Claude Code is named only as a compatible client.
 
 ---
 
 ## Notes for HQ (not part of the page)
 
-### Claims that must be verified before publishing
-1. **"We don't store your script" / stateless.** This must match the actual implementation, including logs, error traces, crash reports, and any hosting or CDN request logging. Otherwise reword it to "not retained beyond X".
-2. **The AMTA 2026 figure (best LLM F1 ≈ 0.77, Japanese hardest).** Re-check the exact number and wording against the paper (aclanthology.org/2026.amta-research.12). Decide whether to cite it with a link. The LP does not name the model on purpose.
-3. **Supported formats (CSV / JSON / XLIFF 1.2 & 2.0)** and **both directions (JA→EN and EN→JA).** Only claim what the MVP actually parses and tests. EN→JA honorific/voice checks may be weaker; consider "JA→EN first".
-4. **"Works without a glossary" (auto-grouping of inconsistent renderings).** Confirm this feature will exist at launch, or remove it from the FAQ.
-5. **Ruby markup checks and full-width length counting.** Confirm which ruby syntaxes (e.g. Ren'Py `{rb}`, custom tags) and counting rules are supported.
-6. **"Any assistant that supports remote MCP servers."** Only claim compatibility with clients we have tested. Keep the non-affiliation disclaimer. Never use "Claude" in the product name or logo, and never imply endorsement by Anthropic.
-7. **Competitor descriptions and price anchors** (Xbench €99/yr, Verifika $72–299/yr, Gridly €50/mo+). These are not on the page as numbers, but re-check them before any comparison table is added. Keep the competitor wording factual and fair.
-8. **Pricing.** All four plans are tests. The per-title "limited period" and the Solo usage limits are still TBD. The prices are not final and are labeled as such.
-9. **The sample report** uses invented data ("Starfall Lantern", Lisette, Sir Garrick, Mio). Before publishing, confirm that none of these collide with a real game or character name.
-10. **ToS check.** Confirm the "reasoning runs on your own AI subscription" model complies with the AI provider's usage terms (no reselling of, or routing through, a user's consumer plan). If our server ever calls an LLM, it must use our own API key and the cost must be included in our price.
-11. **Privacy policy and terms.** A privacy policy is required before collecting any waitlist email (and before mentioning GDPR or APPI).
+### 未確認の主張 / Claims to verify before publishing
 
-### Items needing owner approval
-- **Product name / trademark:** "Yuragi" is provisional until the trademark search (JP + US at minimum) is done.
-- **Domain:** purchase and choice of domain (owner only).
-- **Publishing the LP** and connecting a real waitlist form provider. Also the choice of analytics, if any.
-- **X account / build-in-public posts** and any outreach to the communities named in the stage 1 report (ProZ, Lemma Soft, r/visualnovels, etc.).
-- **Enterprise promises** (dedicated instance, no-retention mode, legal paperwork): only offer what we can actually deliver.
-- **Final pricing** to show publicly, including whether to show the per-title $49 plan alongside the subscriptions (A/B test design).
+1. **「台本は保存しません」/ stateless, no content in logs.** True for `src/server` today (data-policy.md, tests). Must also hold for the real hosting: platform/CDN request logs, error trackers, crash reports. Otherwise reword to "not retained beyond X".
+2. **「デモはブラウザ内だけ」.** True for `web/demo.template.html` (no fetch/XHR; engine bundled). Re-check the built file before linking, and note the page itself is served by claude.ai (Google Fonts are also loaded).
+3. **Formats and directions** (CSV/TSV/JSON/XLIFF 1.2/2.0; JA→EN and EN→JA). Parsed and tested in the prototype; EN→JA honorific/voice coverage is weaker — keep the FAQ wording.
+4. **Glossary draft** ("can draft a glossary from your script"). Heuristic CLI/MCP feature; confirm it is in the pilot build and that the demo exposes it if we imply it.
+5. **"Currently tested with Claude Code."** Only claim clients we have actually tested. Keep the non-affiliation line; never use "Claude" in the product name or logo.
+6. **AES-256-GCM glossary encryption / delete any time.** True in `FileGlossaryStore`; KMS, key rotation and backup deletion are still open (data-policy.md §6).
+7. **Pilot effort "60–90 minutes"** comes from `docs/pilot-guide.md`; keep them in sync.
+8. **Sample example counts.** `Mana Stone ×6 / Magic Stone ×2` verified 2026-10-09 against the CLI. The README table still said ×5 at that time — fix the README (or re-verify) whenever samples change.
+9. **Invented names** (Lisette, Mina, Tobias, 魔導石, ルーンゲート): confirm no collision with a real game before publishing.
+10. **ToS:** the "reasoning runs on your own subscription" model must comply with the AI provider's terms; server-side judging must use our own API key only.
+11. Removed from the earlier draft until re-approved: prices ($49 / $29 / $99), the AMTA 2026 F1 ≈ 0.77 citation, competitor comparisons, enterprise promises (dedicated instance, no-retention mode), "works with any MCP client", Claude Desktop.
+
+### 公開前チェックリスト / Pre-launch checklist
+
+- [ ] **Demo shared publicly** — `https://claude.ai/artifact/SYxoeqmhYquutDJGCoa7kr` is private to the owner; set it to public-link before the LP goes live (and check it still says Kotomark).
+- [ ] **Real contact address** — replace `pilot@example.com` (HTML + this file) with a real address or form.
+- [ ] **Privacy policy for the waitlist / pilot contact** — required before collecting any email (APPI; GDPR if EU visitors). No form until it exists.
+- [ ] **Trademark check** — registry search for "Kotomark" (JP + US at minimum), then drop or keep 仮称.
+- [ ] **Owner approval** — of the final copy, the domain/hosting, and publishing itself (no posting, accounts or outreach without it).
+- [ ] Claims list above reviewed and each item either confirmed or reworded.
+- [ ] Remove `<meta name="robots" content="noindex">` only when approved to go public.

@@ -7,7 +7,7 @@ It checks **the whole script at once** and reports what drifts between lines, wi
 
 | Check | Example | Needs glossary? |
 |---|---|---|
-| **Glossary term drift** 用語の訳揺れ | 魔導石 → "Mana Stone" ×5, "Magic Stone" ×2 (`script.csv:6`, `:17`) | yes |
+| **Glossary term drift** 用語の訳揺れ | 魔導石 → "Mana Stone" ×6, "Magic Stone" ×2 (`script.csv:6`, `:17`) | yes |
 | **Katakana notation drift** 表記揺れ | ルーンゲート ×2 / ルーン・ゲート ×1, サーバー / サーバ | no |
 | **Character-name drift** キャラ名の揺れ | "Lizette" (forbidden), "Lisete" (near-miss), speaker label `MINA` vs `ミナ` | partly |
 | **Honorific drift** 敬称の揺れ | ミナ's リゼット様 → "Lady Lisette" ×2, "Lisette" ×1, "Lisette-sama" ×1 (policy: localize) | partly |

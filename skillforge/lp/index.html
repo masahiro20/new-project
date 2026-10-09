@@ -1,0 +1,688 @@
+<!doctype html>
+<html lang="ja" class="l-ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!--
+  Kotomark（仮称）landing page — DRAFT, NOT PUBLISHED.
+  Copy source: docs/lp.md (keep both in sync).
+  Before going live, see "公開前チェックリスト" in docs/lp.md:
+  demo shared publicly, real contact address, privacy policy, trademark check, owner approval.
+  No trackers, no external scripts, no forms. Only Google Fonts (with system fallbacks).
+-->
+<title>Kotomark（仮称）— 日英ゲーム台本の一貫性チェック</title>
+<meta name="description" content="Kotomark（仮称）は日英ゲームローカライズ向けの台本全体の一貫性チェックです。用語・カタカナ表記・キャラ名・敬称・口調の揺れを、ファイル名と行番号付きで指摘します。">
+<meta name="robots" content="noindex, nofollow">
+<meta name="color-scheme" content="light dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+JP:wght@400;500;700&display=swap">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%231c4a86'/%3E%3Cpath d='M9 8v16M9 16l9-8M12.5 13l6 11' stroke='%23fff' stroke-width='3' fill='none' stroke-linecap='square'/%3E%3Ccircle cx='24' cy='23' r='2.6' fill='%23e0533d'/%3E%3C/svg%3E">
+<style>
+/* Tokens: cool paper + ink, 藍 (indigo) for interaction, 朱 (vermilion) only as the proofreader's mark on drift. */
+:root {
+  --bg: #f2f3f1;
+  --bg-band: #e8eae7;
+  --surface: #ffffff;
+  --ink: #14171c;
+  --ink-2: #3f444d;
+  --ink-3: #5d636d;
+  --rule: #d2d5d1;
+  --rule-strong: #14171c;
+  --accent: #1c4a86;
+  --accent-hover: #143a6c;
+  --accent-ink: #ffffff;
+  --accent-soft: #e1e8f3;
+  --mark: #b8321f;
+  --mark-soft: #f8e3df;
+  --ok: #2c6a4a;
+  --ok-soft: #dfeee5;
+  --focus: #1c4a86;
+  --shadow: 0 1px 0 rgba(20,23,28,.04), 0 8px 24px -12px rgba(20,23,28,.18);
+  --font-ui: "IBM Plex Sans JP", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Meiryo", "Noto Sans JP", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --radius: 4px;
+  --wrap: 1120px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1217;
+    --bg-band: #141820;
+    --surface: #191e27;
+    --ink: #e7e9ed;
+    --ink-2: #bcc2cc;
+    --ink-3: #9aa1ad;
+    --rule: #2c323d;
+    --rule-strong: #e7e9ed;
+    --accent: #8db3ec;
+    --accent-hover: #b0cbf3;
+    --accent-ink: #0f1217;
+    --accent-soft: #1d2a3f;
+    --mark: #ff8f7a;
+    --mark-soft: #3a1f1b;
+    --ok: #82cfa3;
+    --ok-soft: #17301f;
+    --focus: #8db3ec;
+    --shadow: 0 1px 0 rgba(0,0,0,.3), 0 10px 28px -14px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1217; --bg-band: #141820; --surface: #191e27; --ink: #e7e9ed; --ink-2: #bcc2cc; --ink-3: #9aa1ad;
+  --rule: #2c323d; --rule-strong: #e7e9ed; --accent: #8db3ec; --accent-hover: #b0cbf3; --accent-ink: #0f1217;
+  --accent-soft: #1d2a3f; --mark: #ff8f7a; --mark-soft: #3a1f1b; --ok: #82cfa3; --ok-soft: #17301f; --focus: #8db3ec;
+  --shadow: 0 1px 0 rgba(0,0,0,.3), 0 10px 28px -14px rgba(0,0,0,.7);
+}
+
+/* Language toggle: paired elements carry class .t and a lang attribute; the <html> class decides which shows. */
+.l-ja .t[lang="en"], .l-en .t[lang="ja"] { display: none !important; }
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 16px;
+  line-height: 1.75;
+  font-feature-settings: "palt" 0;
+  overflow-wrap: anywhere;
+}
+:lang(en) { line-height: 1.6; }
+h1, h2, h3 { line-height: 1.3; margin: 0; font-weight: 700; letter-spacing: 0; }
+p { margin: 0; }
+a { color: var(--accent); text-underline-offset: 3px; }
+a:hover { color: var(--accent-hover); }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; border-radius: 2px; }
+code, .mono { font-family: var(--font-mono); font-size: .9em; }
+.skip { position: absolute; left: -9999px; top: 8px; z-index: 10; background: var(--surface); color: var(--ink); padding: 8px 12px; border: 2px solid var(--focus); }
+.skip:focus { left: 16px; }
+.wrap { max-width: var(--wrap); margin: 0 auto; padding-inline: 24px; }
+@media (max-width: 600px) { .wrap { padding-inline: 16px; } }
+
+/* Header */
+.site-head { border-bottom: 1px solid var(--rule); background: var(--bg); position: sticky; top: 0; z-index: 5; }
+.site-head .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 60px; }
+.brand { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; font-weight: 700; font-size: 18px; }
+.brand svg { flex: none; }
+.brand small { font-weight: 400; font-size: 12px; color: var(--ink-3); }
+.head-nav { display: flex; align-items: center; gap: 20px; }
+.head-nav a.navlink { color: var(--ink-2); text-decoration: none; font-size: 14px; }
+.head-nav a.navlink:hover { color: var(--ink); text-decoration: underline; }
+@media (max-width: 860px) { .head-nav a.navlink { display: none; } }
+.lang { display: inline-flex; border: 1px solid var(--rule-strong); border-radius: var(--radius); overflow: hidden; }
+.lang button {
+  font: inherit; font-size: 13px; line-height: 1; padding: 8px 10px; min-height: 36px; border: 0; cursor: pointer;
+  background: transparent; color: var(--ink);
+}
+.lang button + button { border-left: 1px solid var(--rule-strong); }
+.lang button[aria-pressed="true"] { background: var(--ink); color: var(--bg); font-weight: 700; }
+.lang button:focus-visible { outline-offset: -3px; }
+
+/* Buttons */
+.btn {
+  display: inline-flex; align-items: center; gap: 8px; justify-content: center;
+  font: inherit; font-weight: 700; font-size: 16px; text-decoration: none;
+  padding: 12px 20px; min-height: 48px; border-radius: var(--radius);
+  background: var(--accent); color: var(--accent-ink); border: 1px solid var(--accent);
+}
+.btn:hover { background: var(--accent-hover); border-color: var(--accent-hover); color: var(--accent-ink); }
+.btn.ghost { background: transparent; color: var(--ink); border-color: var(--rule-strong); }
+.btn.ghost:hover { background: var(--surface); color: var(--ink); }
+.btn svg { flex: none; }
+
+/* Hero */
+.hero { padding: 56px 0 64px; }
+.hero .wrap { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 48px; align-items: center; }
+@media (max-width: 900px) { .hero { padding: 36px 0 48px; } .hero .wrap { grid-template-columns: minmax(0, 1fr); gap: 36px; } }
+.eyebrow { font-family: var(--font-mono); font-size: 13px; color: var(--ink-3); letter-spacing: .02em; margin-bottom: 16px; }
+.eyebrow b { color: var(--mark); font-weight: 500; }
+.hero h1 { font-size: clamp(30px, 4.6vw, 48px); line-height: 1.25; }
+.hero h1 .t[lang="en"] { letter-spacing: -.01em; }
+.hero .lede { margin-top: 20px; font-size: 18px; color: var(--ink-2); max-width: 36em; }
+.cta-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+.cta-note { margin-top: 14px; font-size: 13px; color: var(--ink-3); }
+
+/* Proof sheet (hero visual): real output from samples/ja-en */
+.sheet { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+.sheet-head { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; padding: 10px 14px; border-bottom: 1px solid var(--rule); font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); }
+.sheet-rows { margin: 0; padding: 6px 0; list-style: none; font-size: 14px; }
+.sheet-rows li { display: grid; grid-template-columns: 3.2em minmax(0, 1fr); gap: 0 12px; padding: 7px 14px 7px 0; border-left: 3px solid transparent; }
+.sheet-rows li.hit { border-left-color: var(--mark); background: var(--mark-soft); }
+.ln { font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); text-align: right; padding-top: 2px; }
+.src { color: var(--ink-2); }
+.tgt { font-family: var(--font-mono); font-size: 13px; }
+.hit .tgt mark { background: transparent; color: var(--mark); font-weight: 500; text-decoration: underline wavy var(--mark); text-decoration-thickness: 1px; text-underline-offset: 4px; }
+.tgt mark.ok { color: var(--ok); text-decoration: none; background: transparent; }
+.sheet-foot { border-top: 1px solid var(--rule); padding: 14px; }
+.tally-label { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; color: var(--ink-2); flex-wrap: wrap; }
+.tally { display: flex; height: 10px; margin-top: 8px; border-radius: 2px; overflow: hidden; gap: 2px; }
+.tally span { display: block; }
+.tally .a { flex: 6; background: var(--ok); }
+.tally .b { flex: 2; background: var(--mark); }
+.tally-key { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 8px; font-family: var(--font-mono); font-size: 12px; color: var(--ink-2); }
+.tally-key i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; vertical-align: -1px; margin-right: 6px; }
+.finding { margin-top: 12px; font-family: var(--font-mono); font-size: 12px; color: var(--ink-2); line-height: 1.6; }
+.finding strong { color: var(--mark); font-weight: 500; }
+
+/* Sections */
+section { scroll-margin-top: 72px; }
+.band { padding: 72px 0; border-top: 1px solid var(--rule); }
+.band.alt { background: var(--bg-band); }
+@media (max-width: 600px) { .band { padding: 52px 0; } }
+.sec-head { max-width: 46em; margin-bottom: 36px; }
+.sec-num { font-family: var(--font-mono); font-size: 13px; color: var(--ink-3); display: block; margin-bottom: 10px; }
+.sec-head h2 { font-size: clamp(24px, 3vw, 32px); }
+.sec-head p { margin-top: 14px; color: var(--ink-2); font-size: 17px; }
+
+/* Checks grid */
+.checks { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 16px; }
+.check { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); padding: 22px 22px 20px; display: flex; flex-direction: column; gap: 10px; }
+.check h3 { font-size: 18px; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.check h3 .tag { font-family: var(--font-mono); font-size: 11px; font-weight: 400; color: var(--ink-3); border: 1px solid var(--rule); border-radius: 2px; padding: 1px 6px; }
+.check p { color: var(--ink-2); font-size: 15px; }
+.ex { margin-top: auto; border-top: 1px dashed var(--rule); padding-top: 12px; font-size: 13px; }
+.ex-line { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; align-items: baseline; }
+.ex-line + .ex-line { margin-top: 4px; }
+.ex .loc { font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); white-space: nowrap; }
+.ex .bad { color: var(--mark); }
+.ex-line > span:first-child .bad { white-space: nowrap; }
+.bonus { margin-top: 20px; background: transparent; border: 1px solid var(--rule); border-radius: var(--radius); padding: 18px 22px; display: grid; grid-template-columns: minmax(0, 14em) minmax(0, 1fr); gap: 8px 24px; }
+.bonus h3 { font-size: 16px; }
+.bonus ul { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 6px 24px; font-size: 14px; color: var(--ink-2); }
+.bonus li { padding-left: 14px; position: relative; }
+.bonus li::before { content: ""; position: absolute; left: 0; top: .72em; width: 6px; height: 1px; background: var(--ink-3); }
+@media (max-width: 700px) { .bonus { grid-template-columns: minmax(0, 1fr); } }
+.fineprint { margin-top: 16px; font-size: 13px; color: var(--ink-3); }
+.packets { margin-top: 20px; padding: 18px 22px; border-left: 3px solid var(--accent); background: var(--accent-soft); border-radius: 0 var(--radius) var(--radius) 0; font-size: 15px; color: var(--ink); }
+
+/* How it works */
+.ways { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; counter-reset: way; }
+@media (max-width: 900px) { .ways { grid-template-columns: minmax(0, 1fr); } }
+.way { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); padding: 22px; display: flex; flex-direction: column; gap: 10px; }
+.way .k { font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); }
+.way h3 { font-size: 18px; }
+.way p { font-size: 15px; color: var(--ink-2); }
+.way pre { margin: 6px 0 0; padding: 10px 12px; background: var(--bg); border: 1px solid var(--rule); border-radius: 3px; font-family: var(--font-mono); font-size: 12px; line-height: 1.55; overflow-x: auto; white-space: pre; color: var(--ink); }
+.flow { margin-top: 28px; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 12px; align-items: stretch; }
+.flow .node { border: 1px solid var(--rule-strong); border-radius: var(--radius); padding: 14px 16px; background: var(--surface); font-size: 14px; }
+.flow .node b { display: block; font-size: 15px; margin-bottom: 4px; }
+.flow .node span { color: var(--ink-2); }
+.flow .arrow { align-self: center; font-family: var(--font-mono); font-size: 13px; color: var(--ink-3); text-align: center; }
+@media (max-width: 700px) { .flow { grid-template-columns: minmax(0, 1fr); } .flow .arrow { transform: none; } }
+
+/* Data handling */
+.data-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--rule-strong); }
+@media (max-width: 760px) { .data-grid { grid-template-columns: minmax(0, 1fr); } }
+.data-item { padding: 20px 24px 22px 0; border-bottom: 1px solid var(--rule); }
+.data-item:nth-child(2n) { padding-left: 24px; border-left: 1px solid var(--rule); }
+@media (max-width: 760px) { .data-item:nth-child(2n) { padding-left: 0; border-left: 0; } .data-item { padding-right: 0; } }
+.data-item h3 { font-size: 17px; }
+.data-item p { margin-top: 6px; font-size: 15px; color: var(--ink-2); }
+
+/* Audience */
+.aud { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 800px) { .aud { grid-template-columns: minmax(0, 1fr); } }
+.aud-card { background: var(--surface); border: 1px solid var(--rule); border-top: 3px solid var(--ink); border-radius: var(--radius); padding: 24px; }
+.aud-card h3 { font-size: 20px; }
+.aud-card .who { margin-top: 4px; font-size: 14px; color: var(--ink-3); }
+.aud-card ul { margin: 16px 0 0; padding: 0; list-style: none; display: grid; gap: 12px; }
+.aud-card li { padding-left: 20px; position: relative; font-size: 15px; color: var(--ink-2); }
+.aud-card li::before { content: ""; position: absolute; left: 0; top: .62em; width: 8px; height: 8px; border: 2px solid var(--accent); border-radius: 50%; }
+.aud-card li b { color: var(--ink); }
+
+/* Pilot */
+.pilot { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 40px; align-items: start; }
+@media (max-width: 860px) { .pilot { grid-template-columns: minmax(0, 1fr); gap: 28px; } }
+.pilot h2 { font-size: clamp(26px, 3.4vw, 36px); }
+.pilot .lede { margin-top: 14px; font-size: 17px; color: var(--ink-2); }
+.pilot ol { margin: 20px 0 0; padding: 0; list-style: none; counter-reset: s; display: grid; gap: 12px; }
+.pilot ol li { counter-increment: s; display: grid; grid-template-columns: 2em minmax(0, 1fr); gap: 8px; font-size: 15px; color: var(--ink-2); }
+.pilot ol li::before { content: counter(s, decimal-leading-zero); font-family: var(--font-mono); font-size: 13px; color: var(--ink-3); padding-top: 2px; }
+.contact { background: var(--surface); border: 1px solid var(--rule-strong); border-radius: var(--radius); padding: 24px; }
+.contact h3 { font-size: 17px; }
+.contact .addr { display: block; margin-top: 12px; font-family: var(--font-mono); font-size: 18px; padding: 12px 14px; background: var(--bg); border: 1px dashed var(--rule-strong); border-radius: 3px; user-select: all; overflow-wrap: anywhere; }
+.contact p { margin-top: 12px; font-size: 14px; color: var(--ink-2); }
+.contact .placeholder-note { color: var(--mark); font-size: 13px; }
+
+/* FAQ */
+.faq { border-top: 1px solid var(--rule-strong); }
+.faq details { border-bottom: 1px solid var(--rule); }
+.faq summary { cursor: pointer; list-style: none; padding: 18px 40px 18px 0; position: relative; font-weight: 700; font-size: 17px; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: "+"; position: absolute; right: 6px; top: 14px; font-family: var(--font-mono); font-weight: 400; font-size: 22px; color: var(--ink-3); }
+.faq details[open] summary::after { content: "−"; }
+.faq .ans { padding: 0 0 20px; color: var(--ink-2); font-size: 15px; max-width: 48em; }
+.faq .ans p + p { margin-top: 10px; }
+
+/* Footer */
+.site-foot { border-top: 1px solid var(--rule); padding: 36px 0 48px; font-size: 13px; color: var(--ink-3); }
+.site-foot .wrap { display: grid; gap: 10px; }
+.site-foot p { max-width: 60em; }
+.site-foot .brand { font-size: 15px; }
+</style>
+<script>
+/* Runs before first paint: pick language from saved choice, else navigator.language (ja* → 日本語, anything else → English). */
+(function () {
+  var KEY = "kotomark-lp-lang";
+  var saved = null;
+  try { saved = localStorage.getItem(KEY); } catch (e) { saved = null; }
+  var nav = "";
+  try { nav = (navigator.languages && navigator.languages[0]) || navigator.language || ""; } catch (e) { nav = ""; }
+  var lang = (saved === "ja" || saved === "en") ? saved : (/^ja\b/i.test(nav) ? "ja" : "en");
+  var root = document.documentElement;
+  root.classList.remove("l-ja", "l-en");
+  root.classList.add("l-" + lang);
+  root.lang = lang;
+})();
+</script>
+</head>
+<body>
+<a class="skip" href="#main"><span class="t" lang="ja">本文へ移動</span><span class="t" lang="en">Skip to content</span></a>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="Kotomark">
+      <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><rect width="32" height="32" rx="4" fill="currentColor"/><path d="M9 8v16M9 16l9-8M12.5 13l6 11" stroke="var(--bg)" stroke-width="3" fill="none" stroke-linecap="square"/><circle cx="24" cy="23" r="2.6" fill="var(--mark)"/></svg>
+      <span>Kotomark <small><span class="t" lang="ja">（仮称）</span><span class="t" lang="en">(working name)</span></small></span>
+    </a>
+    <nav class="head-nav" aria-label="Page">
+      <a class="navlink" href="#catch"><span class="t" lang="ja">検出できること</span><span class="t" lang="en">What it catches</span></a>
+      <a class="navlink" href="#how"><span class="t" lang="ja">使い方</span><span class="t" lang="en">How it works</span></a>
+      <a class="navlink" href="#data"><span class="t" lang="ja">データの扱い</span><span class="t" lang="en">Data</span></a>
+      <a class="navlink" href="#pilot"><span class="t" lang="ja">試用協力</span><span class="t" lang="en">Pilot</span></a>
+      <div class="lang" role="group" aria-label="Language / 言語">
+        <button type="button" data-set-lang="ja" lang="ja" aria-pressed="true">日本語</button>
+        <button type="button" data-set-lang="en" lang="en" aria-pressed="false">English</button>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+<span id="top"></span>
+
+<!-- ===== Hero ===== -->
+<section class="hero" aria-labelledby="hero-title">
+  <div class="wrap">
+    <div>
+      <p class="eyebrow">JA ⇄ EN · game localization QA · <b>prototype</b></p>
+      <h1 id="hero-title">
+        <span class="t" lang="ja">訳の「揺れ」を、<br>プレイヤーより先に。</span>
+        <span class="t" lang="en">Catch the drift before your players do.</span>
+      </h1>
+      <p class="lede t" lang="ja">Kotomark は日英ゲームローカライズ向けの<strong>台本全体の一貫性チェック</strong>です。用語、カタカナ表記、キャラ名、敬称、口調が台本のどこで揺れているかを、ファイル名と行番号付きで指摘します。</p>
+      <p class="lede t" lang="en">Kotomark checks a <strong>whole Japanese↔English game script</strong> for consistency. It finds where terms, katakana spellings, character names, honorifics and character voices drift, and points to each case by file and line.</p>
+      <div class="cta-row">
+        <!-- TODO before going live: the demo artifact below is currently PRIVATE to the owner.
+             It must be shared publicly (anyone with the link can view) before this LP is published,
+             otherwise visitors will hit an access error. -->
+        <a class="btn" href="https://claude.ai/artifact/SYxoeqmhYquutDJGCoa7kr">
+          <span class="t" lang="ja">デモを試す</span><span class="t" lang="en">Try the demo</span>
+          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" stroke="currentColor" stroke-width="1.8" fill="none"/></svg>
+        </a>
+        <a class="btn ghost" href="#pilot"><span class="t" lang="ja">試用協力者を募集中</span><span class="t" lang="en">Looking for pilot partners</span></a>
+      </div>
+      <p class="cta-note t" lang="ja">デモはブラウザ内だけで動きます。台本ファイルはどこにも送信されません。サンプル台本入り。</p>
+      <p class="cta-note t" lang="en">The demo runs entirely in your browser. Your script files are not uploaded anywhere. Sample script included.</p>
+    </div>
+
+    <figure class="sheet" style="margin:0" aria-labelledby="sheet-cap">
+      <div class="sheet-head"><span>samples/ja-en/script.csv</span><span>魔導石 → “Mana Stone”</span></div>
+      <ol class="sheet-rows">
+        <li class="hit"><span class="ln">:6</span><div><div class="src" lang="ja">俺は魔導石なんて信じねえぞ。</div><div class="tgt" lang="en">I don't believe in <mark>Magic Stones</mark>.</div></div></li>
+        <li class="hit"><span class="ln">:17</span><div><div class="src" lang="ja">魔導石を一個もらえれば、俺が運んでやる。</div><div class="tgt" lang="en">Give me one <mark>Magic Stone</mark> and I'll carry the lot.</div></div></li>
+      </ol>
+      <div class="sheet-foot">
+        <div class="tally-label"><span class="t" lang="ja">この台本での訳し方の内訳</span><span class="t" lang="en">How this script renders it</span><span class="mono">8</span></div>
+        <div class="tally" aria-hidden="true"><span class="a"></span><span class="b"></span></div>
+        <div class="tally-key"><span><i style="background:var(--ok)"></i>Mana Stone ×6</span><span><i style="background:var(--mark)"></i>Magic Stone ×2</span></div>
+        <p class="finding"><strong>error</strong> script.csv:6, :17 — <span class="t" lang="ja">用語集の禁止訳 “Magic Stone” が使われています。</span><span class="t" lang="en">forbidden variant “Magic Stone”; glossary says “Mana Stone”.</span></p>
+      </div>
+      <figcaption id="sheet-cap" class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">
+        <span class="t" lang="ja">サンプル台本 script.csv の6行目と17行目で、魔導石が “Magic Stone” と訳されている例。全8箇所のうち6箇所は “Mana Stone”。</span>
+        <span class="t" lang="en">Example from the sample script: lines 6 and 17 render 魔導石 as “Magic Stone”; the other 6 of 8 occurrences use “Mana Stone”.</span>
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ===== What it catches ===== -->
+<section id="catch" class="band" aria-labelledby="catch-title">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">01</span>
+      <h2 id="catch-title"><span class="t" lang="ja">検出できること</span><span class="t" lang="en">What it catches</span></h2>
+      <p class="t" lang="ja">1行ずつではなく、台本全体を見比べて「どこで揺れたか」を探します。下の例はすべて同梱の架空サンプル台本（<code>samples/ja-en</code>）を実際に検査した結果です。</p>
+      <p class="t" lang="en">Instead of checking one segment at a time, it compares the whole script with itself and finds where things drift. Every example below is real output from the bundled sample script (<code>samples/ja-en</code>, invented text).</p>
+    </div>
+
+    <div class="checks">
+      <article class="check">
+        <h3><span class="t" lang="ja">用語の訳揺れ</span><span class="t" lang="en">Glossary term drift</span><span class="tag">glossary</span></h3>
+        <p class="t" lang="ja">用語集の各語が台本全体でどう訳されているかを数え、少数派と禁止訳を行番号付きで示します。</p>
+        <p class="t" lang="en">Counts every rendering of each glossary term across the script, and points to the outliers and forbidden variants.</p>
+        <div class="ex">
+          <div class="ex-line"><span><span lang="ja">魔導石</span> → Mana Stone ×6 / <span class="bad">Magic Stone ×2</span></span><span class="loc">script.csv:6, :17</span></div>
+        </div>
+      </article>
+
+      <article class="check">
+        <h3><span class="t" lang="ja">カタカナの表記揺れ</span><span class="t" lang="en">Katakana notation drift</span><span class="tag">no glossary</span></h3>
+        <p class="t" lang="ja">中黒や長音の有無など、日本語側の表記の揺れを多数派と比べて指摘します。</p>
+        <p class="t" lang="en">Flags Japanese spelling variants, such as middle dots and long vowels, against the majority form.</p>
+        <div class="ex">
+          <div class="ex-line"><span lang="ja">ルーンゲート ×2 / <span class="bad">ルーン・ゲート ×1</span></span><span class="loc">script.csv:21</span></div>
+        </div>
+      </article>
+
+      <article class="check">
+        <h3><span class="t" lang="ja">キャラ名の揺れ</span><span class="t" lang="en">Character names</span><span class="tag">partly glossary</span></h3>
+        <p class="t" lang="ja">禁止つづり、1文字違いのつづり、話者ラベルの不統一を見つけます。</p>
+        <p class="t" lang="en">Finds forbidden spellings, near-miss spellings and inconsistent speaker labels.</p>
+        <div class="ex">
+          <div class="ex-line"><span><span class="bad">Lizette</span> / Lisette</span><span class="loc">script.csv:23</span></div>
+          <div class="ex-line"><span><span class="bad">Lisete</span> / Lisette</span><span class="loc">script.csv:24</span></div>
+          <div class="ex-line"><span><span class="t" lang="ja">話者</span><span class="t" lang="en">speaker</span> <span class="bad">MINA</span> / <span lang="ja">ミナ</span></span><span class="loc">script.csv:26</span></div>
+        </div>
+      </article>
+
+      <article class="check">
+        <h3><span class="t" lang="ja">敬称の揺れ</span><span class="t" lang="en">Honorific drift</span><span class="tag">partly glossary</span></h3>
+        <p class="t" lang="ja">「誰が誰を呼ぶか」の組ごとに、様・さん等の訳し方が揃っているか、敬称の方針（例：英語らしく訳す）に沿っているかを見ます。</p>
+        <p class="t" lang="en">Tracks each speaker → addressee pair: is 様 rendered the same way every time, and does it follow your honorific policy (e.g. localize)?</p>
+        <div class="ex">
+          <div class="ex-line"><span><span lang="ja">ミナ → リゼット様</span>: Lady Lisette ×3</span><span class="loc"></span></div>
+          <div class="ex-line"><span class="bad">Lisette ×1</span><span class="loc">script.csv:15</span></div>
+          <div class="ex-line"><span class="bad">Lisette-sama ×1</span><span class="loc">script.csv:18</span></div>
+        </div>
+      </article>
+
+      <article class="check">
+        <h3><span class="t" lang="ja">口調の揺れ</span><span class="t" lang="en">Voice drift</span><span class="tag">profiles help</span></h3>
+        <p class="t" lang="ja">キャラ設定（一人称、丁寧さ、短縮形を使わない等）から外れた行を指摘します。</p>
+        <p class="t" lang="en">Flags lines that break a character profile: first-person pronoun, politeness, “never uses contractions” and so on.</p>
+        <div class="ex">
+          <div class="ex-line"><span><span class="t" lang="ja">トビアス（俺）が</span><span class="t" lang="en">Tobias (俺) says</span> <span class="bad" lang="ja">僕</span></span><span class="loc">script.csv:20</span></div>
+          <div class="ex-line"><span><span class="t" lang="ja">リゼット：</span><span class="t" lang="en">Lisette:</span> “<span class="bad">We're gonna</span> be fine.”</span><span class="loc">script.csv:25</span></div>
+        </div>
+      </article>
+    </div>
+
+    <div class="bonus">
+      <h3><span class="t" lang="ja">基本のチェックも同時に</span><span class="t" lang="en">The basics, in the same pass</span></h3>
+      <ul>
+        <li><span class="t" lang="ja">プレースホルダー</span><span class="t" lang="en">Placeholders</span> <code>{0}</code> <code>%s</code> <code>[PLAYER]</code></li>
+        <li><span class="t" lang="ja">タグの欠落・不整合</span><span class="t" lang="en">Missing or unbalanced tags</span> <code>&lt;color&gt;</code></li>
+        <li><span class="t" lang="ja">ルビ記法</span><span class="t" lang="en">Ruby markup</span> <code>{漢字|かんじ}</code> <code>｜漢字《かんじ》</code> <code>&lt;ruby&gt;</code></li>
+        <li><span class="t" lang="ja">文字数制限（全角を2と数える設定可）</span><span class="t" lang="en">Length limits (optionally counting full-width as 2)</span></li>
+      </ul>
+    </div>
+
+    <div class="packets">
+      <p class="t" lang="ja"><strong>ルールで決めきれない行は「レビュー用パケット」に。</strong>「この行はまだ彼女らしいか」「用語集にない頻出語」など、判断が要る箇所は必要な行だけをまとめて返し、あなたのAIアシスタントと担当者が判断します。最終判断は人が行います。</p>
+      <p class="t" lang="en"><strong>Lines the rules can't judge become review packets.</strong> “Does this still sound like her?” or a recurring term that isn't in the glossary: Kotomark bundles just the lines needed, and your own AI assistant and your reviewers make the call. A person makes the final decision.</p>
+    </div>
+    <p class="fineprint t" lang="ja">日本語の解析は正規表現ベースのヒューリスティックです（形態素解析は使っていません）。見逃しや誤検出があり得るため、口調の指摘は「警告」「情報」にとどめています。</p>
+    <p class="fineprint t" lang="en">Japanese analysis is heuristic and regex-based (no morphological analyzer). It will miss or misread some lines, which is why voice findings stay at warning or info level.</p>
+  </div>
+</section>
+
+<!-- ===== How it works ===== -->
+<section id="how" class="band alt" aria-labelledby="how-title">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">02</span>
+      <h2 id="how-title"><span class="t" lang="ja">使い方は3通り</span><span class="t" lang="en">Three ways to run it</span></h2>
+      <p class="t" lang="ja">どれも同じ検査エンジンです。結果はすべて <code>ファイル名:行番号</code> 付きで返ります。</p>
+      <p class="t" lang="en">All three use the same engine, and every finding comes back with <code>file:line</code>.</p>
+    </div>
+    <div class="ways">
+      <article class="way">
+        <span class="k">A · browser</span>
+        <h3><span class="t" lang="ja">ブラウザのデモ</span><span class="t" lang="en">Browser demo</span></h3>
+        <p class="t" lang="ja">インストール不要。ファイルをドラッグ＆ドロップすると、ブラウザの中だけで検査します。まず感触を確かめたい方に。</p>
+        <p class="t" lang="en">Nothing to install. Drop in your files and the check runs inside your browser. The quickest way to get a feel for it.</p>
+      </article>
+      <article class="way">
+        <span class="k">B · CLI</span>
+        <h3><span class="t" lang="ja">コマンドライン</span><span class="t" lang="en">Command line</span></h3>
+        <p class="t" lang="ja">手元のパソコンだけで動き、通信しません。終了コード（0 問題なし／1 エラーあり／2 入力不正）でCIにも組み込めます。</p>
+        <p class="t" lang="en">Runs on your own machine with no network calls. Exit codes (0 clean / 1 errors / 2 bad input) make it CI-friendly.</p>
+<pre><code>kotomark check script.csv ch2.json \
+  --glossary glossary.json</code></pre>
+      </article>
+      <article class="way">
+        <span class="k">C · MCP</span>
+        <h3><span class="t" lang="ja">MCP ＋ Claude Code プラグイン</span><span class="t" lang="en">MCP + Claude Code plugin</span></h3>
+        <p class="t" lang="ja">いつものアシスタントから <code>/lqa-check</code> で実行。決まった検査はサーバーが行い、判断が要る行の検討はあなたのアシスタントが行います。</p>
+        <p class="t" lang="en">Run <code>/lqa-check</code> from the assistant you already use. The server does the rule-based checks; your assistant works through the lines that need judgment.</p>
+      </article>
+    </div>
+
+    <div class="flow" role="group" aria-label="MCP">
+      <div class="node">
+        <b><span class="t" lang="ja">あなたのAIアシスタント</span><span class="t" lang="en">Your AI assistant</span></b>
+        <span class="t" lang="ja">ファイルを読み、レビュー用パケットを判断し、最終レポートを書く。推論はあなた自身の契約の範囲で動きます。</span>
+        <span class="t" lang="en">Reads your files, judges the review packets, writes the final report. Reasoning runs on your own subscription.</span>
+      </div>
+      <div class="arrow" aria-hidden="true">⇄ MCP</div>
+      <div class="node">
+        <b><span class="t" lang="ja">Kotomark の検査エンジン</span><span class="t" lang="en">Kotomark engine</span></b>
+        <span class="t" lang="ja">ルールに基づく決定的な検査。状態を持たず、台本は保存しません。あなたのAIの認証情報は受け取りません。</span>
+        <span class="t" lang="en">Deterministic, rule-based checks. Stateless; scripts are not stored. It never receives your AI credentials.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Data handling ===== -->
+<section id="data" class="band" aria-labelledby="data-title">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">03</span>
+      <h2 id="data-title"><span class="t" lang="ja">台本は保存しません</span><span class="t" lang="en">Your script is not stored</span></h2>
+      <p class="t" lang="ja">NDA のかかった台本を扱う前提で設計しています。</p>
+      <p class="t" lang="en">Designed on the assumption that your script is under NDA.</p>
+    </div>
+    <div class="data-grid">
+      <div class="data-item">
+        <h3><span class="t" lang="ja">デモはブラウザの中だけ</span><span class="t" lang="en">The demo stays in your browser</span></h3>
+        <p class="t" lang="ja">デモの検査エンジンはページの中で動きます。読み込んだファイルはサーバーに送られません。</p>
+        <p class="t" lang="en">The demo's engine runs inside the page. Files you load are not sent to any server.</p>
+      </div>
+      <div class="data-item">
+        <h3><span class="t" lang="ja">サーバーでもメモリ上だけ</span><span class="t" lang="en">Memory only on the server</span></h3>
+        <p class="t" lang="ja">MCP 経由の台本はメモリ上で検査し、結果を返したら破棄します。ディスク・データベースには書きません。</p>
+        <p class="t" lang="en">Scripts sent over MCP are checked in memory and discarded once the result is returned. Nothing is written to disk or a database.</p>
+      </div>
+      <div class="data-item">
+        <h3><span class="t" lang="ja">ログに本文は残さない</span><span class="t" lang="en">No content in logs</span></h3>
+        <p class="t" lang="ja">記録するのは方法・パス・状態・ユーザーID・処理時間だけ。本文、ファイル名、用語は書きません（自動テストで確認）。</p>
+        <p class="t" lang="en">Logs hold only method, path, status, user ID and timing. No text, file names or terms (covered by automated tests).</p>
+      </div>
+      <div class="data-item">
+        <h3><span class="t" lang="ja">用語集は選んだときだけ保存</span><span class="t" lang="en">Glossaries saved only if you choose</span></h3>
+        <p class="t" lang="ja">チームで共有したい用語集だけ、1件ずつ AES-256-GCM で暗号化して保存します。いつでも削除できます。</p>
+        <p class="t" lang="en">Only glossaries you choose to share with your team are saved, each encrypted with AES-256-GCM. Delete them any time.</p>
+      </div>
+    </div>
+    <p class="fineprint t" lang="ja">当社サーバーがAIモデルを呼ぶ機能（一括処理向け）は初期状態でオフです。</p>
+    <p class="fineprint t" lang="en">Server-side AI judging (for batch use) is off by default.</p>
+  </div>
+</section>
+
+<!-- ===== Audience ===== -->
+<section id="who" class="band alt" aria-labelledby="who-title">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">04</span>
+      <h2 id="who-title"><span class="t" lang="ja">誰のためのツールか</span><span class="t" lang="en">Who it's for</span></h2>
+    </div>
+    <div class="aud">
+      <article class="aud-card">
+        <h3><span class="t" lang="ja">ローカライズ会社・LQAチーム</span><span class="t" lang="en">Localization vendors &amp; LQA teams</span></h3>
+        <p class="who t" lang="ja">複数の翻訳者が長期間かけて訳した台本を納品前に確認する方</p>
+        <p class="who t" lang="en">You check scripts that several translators worked on over months, before delivery</p>
+        <ul>
+          <li class="t" lang="ja"><b>探す時間を判断の時間に。</b>表記の揺れを目で探す代わりに、行番号の一覧から確認できます。</li>
+          <li class="t" lang="en"><b>Spend review time on judgment, not searching.</b> Work from a list of line references instead of hunting for variants by eye.</li>
+          <li class="t" lang="ja"><b>CI に組み込める。</b>CLI は終了コードを返すので、納品パイプラインの関門にできます。</li>
+          <li class="t" lang="en"><b>Fits into CI.</b> The CLI returns exit codes, so it can gate a delivery pipeline.</li>
+          <li class="t" lang="ja"><b>既存の資産をそのまま。</b>CSV / TSV / JSON / XLIFF の文字列テーブルと、CSV の用語集を読めます。</li>
+          <li class="t" lang="en"><b>Use what you already have.</b> Reads CSV / TSV / JSON / XLIFF string tables and CSV glossaries.</li>
+        </ul>
+      </article>
+      <article class="aud-card">
+        <h3><span class="t" lang="ja">インディー開発者・パブリッシャー</span><span class="t" lang="en">Indie developers &amp; publishers</span></h3>
+        <p class="who t" lang="ja">日英の片方しか読めないまま、もう一方の言語版を出す方</p>
+        <p class="who t" lang="en">You ship a JA↔EN version but can't read every line on the other side</p>
+        <ul>
+          <li class="t" lang="ja"><b>英語が読めなくても確認できる。</b>「17行目だけ呼び方が違う」というレポートなら、翻訳者に具体的に聞けます。</li>
+          <li class="t" lang="en"><b>Check what you can't read.</b> A report that says “line 17 calls it something else” gives you a concrete question for your translator.</li>
+          <li class="t" lang="ja"><b>インストールなしで試せる。</b>ブラウザのデモにファイルを入れるだけです。</li>
+          <li class="t" lang="en"><b>Try it without installing anything.</b> Drop your files into the browser demo.</li>
+          <li class="t" lang="ja"><b>用語集が無くても始められる。</b>表記揺れ・話者名・タグは用語集なしで検出。用語集の下書きを台本から作る機能もあります（要確認・手直し）。</li>
+          <li class="t" lang="en"><b>No glossary yet? Start anyway.</b> Notation, speaker labels and tags are checked without one, and it can draft a glossary from your script for you to review.</li>
+        </ul>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Pilot ===== -->
+<section id="pilot" class="band" aria-labelledby="pilot-title">
+  <div class="wrap pilot">
+    <div>
+      <span class="sec-num">05</span>
+      <h2 id="pilot-title"><span class="t" lang="ja">試用協力者を募集中</span><span class="t" lang="en">Looking for pilot partners</span></h2>
+      <p class="lede t" lang="ja">実際の日英台本で試し、指摘が当たりか外れかを教えてくださる方を探しています。結果は誤検出と見逃しを減らすために使います。</p>
+      <p class="lede t" lang="en">We're looking for teams who will run it on a real JA↔EN script and tell us which findings were right and which were wrong. We use the results to cut false positives and misses.</p>
+      <ol>
+        <li><span class="t" lang="ja">所要時間の目安は60〜90分です。</span><span class="t" lang="en">Expect about 60–90 minutes.</span></li>
+        <li><span class="t" lang="ja">通信しないローカル版で試せます。NDA の範囲内でお使いください。</span><span class="t" lang="en">You can use the local version, which makes no network calls. Please stay within your NDA.</span></li>
+        <li><span class="t" lang="ja">お送りいただくのは、指摘ごとに当たり／外れの印を付けた表だけです。原文・訳文の列は消して構いません。</span><span class="t" lang="en">All you send back is a sheet marking each finding right or wrong. You can delete the source and target columns first.</span></li>
+      </ol>
+    </div>
+    <div class="contact">
+      <h3><span class="t" lang="ja">連絡先</span><span class="t" lang="en">Contact</span></h3>
+      <!-- TODO(owner): replace the placeholder address below with a real contact address or form.
+           Do NOT connect a form or collect emails until a privacy policy is published (see docs/lp.md). -->
+      <span class="addr">pilot@example.com</span>
+      <p class="t" lang="ja">台本の形式（CSV / XLIFF など）、言語の向き、おおよその行数をお知らせください。</p>
+      <p class="t" lang="en">Tell us your file format (CSV, XLIFF, …), language direction and rough line count.</p>
+      <p class="placeholder-note t" lang="ja">※ 仮のアドレスです。公開前に正式な連絡先に差し替えます。</p>
+      <p class="placeholder-note t" lang="en">Placeholder address. It will be replaced with a real contact before launch.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FAQ ===== -->
+<section id="faq" class="band alt" aria-labelledby="faq-title">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">06</span>
+      <h2 id="faq-title"><span class="t" lang="ja">よくある質問</span><span class="t" lang="en">FAQ</span></h2>
+    </div>
+    <div class="faq">
+      <details>
+        <summary><span class="t" lang="ja">どのファイル形式に対応していますか？</span><span class="t" lang="en">Which file formats are supported?</span></summary>
+        <div class="ans">
+          <p class="t" lang="ja">台本は CSV / TSV（1行目に列名が必要）、JSON、XLIFF 1.2 / 2.0 です。用語集は JSON か CSV です。複数のファイルをまとめて検査できます。</p>
+          <p class="t" lang="en">Scripts: CSV / TSV (header row required), JSON, and XLIFF 1.2 / 2.0. Glossaries: JSON or CSV. You can check several files together.</p>
+        </div>
+      </details>
+      <details>
+        <summary><span class="t" lang="ja">用語集が無くても使えますか？</span><span class="t" lang="en">Do I need a glossary?</span></summary>
+        <div class="ans">
+          <p class="t" lang="ja">カタカナの表記揺れ、話者ラベル、プレースホルダー、タグ、ルビ、文字数は用語集なしで検出します。用語の訳揺れ・敬称・口調の検査には用語集（キャラ設定）が必要です。台本から用語集の下書きを作る機能がありますが、推定なので必ず見直してください。</p>
+          <p class="t" lang="en">Katakana notation, speaker labels, placeholders, tags, ruby and length are checked without one. Term, honorific and voice checks need a glossary with character profiles. Kotomark can draft a glossary from your script, but the draft is heuristic, so always review it.</p>
+        </div>
+      </details>
+      <details>
+        <summary><span class="t" lang="ja">日→英と英→日の両方に使えますか？</span><span class="t" lang="en">Does it work in both directions?</span></summary>
+        <div class="ans">
+          <p class="t" lang="ja">言語の向きはテーブルごとに自動で判定し、日本語側の検査は日本語の側に対して行います。ただし敬称と口調の検査は、日本語の原文を英語に訳すケースを中心に作っています。</p>
+          <p class="t" lang="en">Direction is detected per table, and the Japanese-side checks run on whichever side is Japanese. The honorific and voice checks are built mainly around Japanese source rendered in English.</p>
+        </div>
+      </details>
+      <details>
+        <summary><span class="t" lang="ja">LQAテスターの代わりになりますか？</span><span class="t" lang="en">Does it replace LQA testers?</span></summary>
+        <div class="ans">
+          <p class="t" lang="ja">なりません。台本全体から揺れを探す作業を速くするための補助です。その行が正しいか（文脈、意図、口調）を決めるのは人です。</p>
+          <p class="t" lang="en">No. It speeds up finding drift across a whole script. Deciding whether a line is right (context, intent, tone) is still a person's job.</p>
+        </div>
+      </details>
+      <details>
+        <summary><span class="t" lang="ja">どのAIアシスタントで使えますか？</span><span class="t" lang="en">Which AI assistant do I need?</span></summary>
+        <div class="ans">
+          <p class="t" lang="ja">現在、Claude Code 用のプラグインで試しています。ブラウザのデモとCLIはAIアシスタントなしで使えます。Kotomark は独立した製品で、AI提供元とは提携していません。</p>
+          <p class="t" lang="en">We're currently testing with a Claude Code plugin. The browser demo and the CLI work without any AI assistant. Kotomark is an independent product and is not affiliated with any AI provider.</p>
+        </div>
+      </details>
+      <details>
+        <summary><span class="t" lang="ja">誤検出はありますか？</span><span class="t" lang="en">Will it flag things that aren't problems?</span></summary>
+        <div class="ans">
+          <p class="t" lang="ja">あります。たとえば名前と1文字違いの実在の英単語を指摘することがあります（除外リストに追加できます）。どのくらい出るかを、試用協力者の方と一緒に測っているところです。</p>
+          <p class="t" lang="en">Yes. For example, a real English word one letter away from a character name can be flagged (you can add it to an ignore list). Measuring how often this happens is exactly what the pilot is for.</p>
+        </div>
+      </details>
+      <details>
+        <summary><span class="t" lang="ja">価格は？</span><span class="t" lang="en">How much does it cost?</span></summary>
+        <div class="ans">
+          <p class="t" lang="ja">未定です。</p>
+          <p class="t" lang="en">TBD.</p>
+        </div>
+      </details>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <span class="brand">Kotomark</span>
+    <p class="t" lang="ja">「Kotomark」は仮称です。商標の確認が済んでいないため、名称は変わる可能性があります。</p>
+    <p class="t" lang="en">“Kotomark” is a working name (仮称). The trademark check is not finished, so the name may change.</p>
+    <p class="t" lang="ja">このページの台本・キャラ名・用語はすべて説明用の架空のものです。Kotomark は独立した製品で、Anthropic を含むAI提供元とは提携していません。Claude Code は対応クライアントの一例として記載しています。</p>
+    <p class="t" lang="en">All script lines, character names and terms on this page are invented for illustration. Kotomark is an independent product, not affiliated with or endorsed by Anthropic or any other AI provider. Claude Code is named only as a compatible client.</p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var KEY = "kotomark-lp-lang";
+  var root = document.documentElement;
+  var TITLES = {
+    ja: "Kotomark（仮称）— 日英ゲーム台本の一貫性チェック",
+    en: "Kotomark (working name) — consistency QA for JA↔EN game scripts"
+  };
+  var DESCS = {
+    ja: "Kotomark（仮称）は日英ゲームローカライズ向けの台本全体の一貫性チェックです。用語・カタカナ表記・キャラ名・敬称・口調の揺れを、ファイル名と行番号付きで指摘します。",
+    en: "Kotomark (working name) checks whole Japanese↔English game scripts for consistency: term, katakana, character-name, honorific and voice drift, reported by file and line."
+  };
+  var buttons = document.querySelectorAll("[data-set-lang]");
+  var desc = document.querySelector('meta[name="description"]');
+  function apply(lang) {
+    root.classList.remove("l-ja", "l-en");
+    root.classList.add("l-" + lang);
+    root.lang = lang;
+    document.title = TITLES[lang];
+    if (desc) desc.setAttribute("content", DESCS[lang]);
+    for (var i = 0; i < buttons.length; i++) {
+      buttons[i].setAttribute("aria-pressed", buttons[i].getAttribute("data-set-lang") === lang ? "true" : "false");
+    }
+  }
+  apply(root.classList.contains("l-en") ? "en" : "ja");
+  for (var i = 0; i < buttons.length; i++) {
+    buttons[i].addEventListener("click", function () {
+      var lang = this.getAttribute("data-set-lang");
+      apply(lang);
+      try { localStorage.setItem(KEY, lang); } catch (e) { /* storage unavailable: choice lasts this visit only */ }
+    });
+  }
+})();
+</script>
+</body>
+</html>
