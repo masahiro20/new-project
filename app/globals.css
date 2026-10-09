@@ -139,3 +139,6 @@ h1, h2 { word-break: auto-phrase; text-wrap: balance; }
 .check-group { border: 0; padding: 0; margin: 24px 0 0; min-width: 0; }
 .check-group legend { font-size: clamp(1.3rem, 3vw, 1.7rem); font-weight: 700; line-height: 1.4; margin-bottom: 8px; padding: 0; }
 .next-steps { margin: 8px 0 0; font-size: .92rem; color: var(--text); }
+.tabs-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 24px 0 8px; }
+.template-grid { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+.compare th { white-space: nowrap; }

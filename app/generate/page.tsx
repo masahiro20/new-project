@@ -22,6 +22,10 @@ export default function GeneratePage() {
           <p>それまでのあいだ、次の機能を無料でお使いいただけます。</p>
           <div className="grid" style={{ marginTop: 16 }}>
             <div className="card">
+              <h3><Link href="/templates">書類テンプレート（無料）</Link></h3>
+              <p>事業所名や委員会の日付を入れると、議事録様式・研修資料・指針の雛形を Word で保存できます（AI は使いません）。</p>
+            </div>
+            <div className="card">
               <h2 className="h3"><Link href="/check">減算リスク診断</Link></h2>
               <p>虐待防止・身体拘束・BCPの体制を、チェックリストで1分で確認できます。</p>
             </div>

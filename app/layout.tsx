@@ -37,13 +37,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div className="wrap header-inner">
             <Link href="/" className="logo">減算ゼロ</Link>
             <nav aria-label="メインメニュー">
-              {ai && <Link href="/check">無料診断</Link>}
+              <Link href="/check">診断</Link>
               <Link href="/guide">解説</Link>
-              <Link href="/samples">サンプル</Link>
+              <Link href="/templates">テンプレート</Link>
               {ai ? (
                 <Link href="/generate" className="nav-cta">書類を作る</Link>
               ) : (
-                <Link href="/check" className="nav-cta">無料診断</Link>
+                <Link href="/templates" className="nav-cta">無料で作る</Link>
               )}
             </nav>
           </div>
@@ -53,6 +53,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div className="wrap">
             <nav aria-label="フッターメニュー">
               <Link href="/terms">利用規約</Link>
+              <Link href="/samples">書類サンプル</Link>
               {liveBilling() && <Link href="/legal">特定商取引法に基づく表記</Link>}
               <Link href="/privacy">プライバシーポリシー</Link>
               {/* A plain file, not a page: next/link would try to route it as one. */}

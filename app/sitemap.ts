@@ -16,6 +16,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     // Only list the form when it works; on the static site it is a "準備中" page.
     ...(aiEnabled() ? [{ url: pageUrl("/generate"), changeFrequency: "monthly" as const, priority: 0.8 }] : []),
     { url: pageUrl("/guide"), lastModified: guidesUpdated, changeFrequency: "weekly", priority: 0.7 },
+    { url: pageUrl("/templates"), changeFrequency: "monthly", priority: 0.9 },
     { url: pageUrl("/samples"), lastModified: SAMPLE_UPDATED, changeFrequency: "monthly", priority: 0.8 },
     { url: pageUrl("/terms"), changeFrequency: "yearly", priority: 0.2 },
     { url: pageUrl("/privacy"), changeFrequency: "yearly", priority: 0.2 },

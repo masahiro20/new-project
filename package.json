@@ -16,7 +16,7 @@
     "og:generate": "node scripts/og/extract-guides.mjs . > scripts/og/guides.json && node scripts/og/generate-og.mjs --in scripts/og/guides.json --out public/og --png && rm -f public/og/*.svg",
     "api:dev": "wrangler dev -c worker/wrangler.jsonc",
     "api:deploy": "wrangler deploy -c worker/wrangler.jsonc",
-    "api:check": "wrangler deploy -c worker/wrangler.jsonc --dry-run --outdir worker/.wrangler/dry-run"
+    "api:check": "wrangler deploy -c worker/wrangler.jsonc --dry-run --outdir .wrangler/dry-run"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.131.0",

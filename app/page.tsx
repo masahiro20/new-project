@@ -87,8 +87,8 @@ export default function Home() {
                 </>
               ) : (
                 <>
-                  <Link href="/check" className="btn">減算リスクを1分で診断</Link>
-                  <Link href="/samples" className="btn secondary">書類サンプルを見る（無料）</Link>
+                  <Link href="/templates" className="btn">無料で書類テンプレートを作る</Link>
+                  <Link href="/check" className="btn secondary">減算リスクを1分で診断</Link>
                 </>
               )}
             </div>

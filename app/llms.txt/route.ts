@@ -20,6 +20,7 @@ export function GET() {
 
 ## サービス
 ${generate}- [減算リスク無料診断](${pageUrl("/check")}): 虐待防止・身体拘束・BCPの減算リスクを1分でチェック
+- [書類テンプレート（無料・Word）](${pageUrl("/templates")}): 事業所名・サービス種別・委員会の日付を入れると、議事録様式・研修資料・指針の雛形をブラウザ内で作成（AI・サーバーなし）
 - [書類サンプル（無料）](${pageUrl("/samples")}): 架空の放課後等デイサービスで作成した出力見本。${PARTS.map((p) => PART_LABELS[p]).join("、")}
 
 ${GUIDE_CATEGORIES.map(

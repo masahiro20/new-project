@@ -133,11 +133,12 @@ export default function CheckClient({ ai }: { ai: boolean }) {
               <p>
                 {ai
                   ? "虐待防止と身体拘束等適正化の書類は、このサイトでまとめて作成できます。年間実施計画は無料です。"
-                  : "必要な書類の形は、無料の書類サンプルで確認できます（Wordで保存して編集できます）。AIによる作成機能は準備中です。"}
+                  : "必要な書類の雛形は、無料の書類テンプレートで事業所名などを入れて作成できます（Wordで保存して編集できます）。AIが事業所に合わせて書き分ける有料版は準備中です。"}
               </p>
               <div className="actions">
                 {ai && <Link href="/generate" className="btn">書類を作る</Link>}
-                <Link href="/samples" className={ai ? "btn secondary" : "btn"}>書類サンプルを見る</Link>
+                <Link href="/templates" className={ai ? "btn secondary" : "btn"}>無料テンプレートで作る</Link>
+                <Link href="/samples" className="btn secondary">書類サンプルを見る</Link>
                 <Link href={service.guide ? `/guide/${service.guide}` : "/guide"} className="btn secondary">
                   {service.guide ? `${service.label.replace(/（.*$/, "")}の解説` : "サービス種別ごとの解説"}
                 </Link>

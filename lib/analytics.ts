@@ -10,7 +10,10 @@ export type AnalyticsEvent =
   | "sample-download-restraint"
   | "demo-purchase-complete"
   | "checklist-download-pdf"
-  | "checklist-download-docx";
+  | "checklist-download-docx"
+  | "template-download-committee"
+  | "template-download-training"
+  | "template-download-restraint";
 
 type GoatCounter = { count: (vars: { path: string; title?: string; event?: boolean }) => void };
 const gc = () => (window as unknown as { goatcounter?: Partial<GoatCounter> }).goatcounter;
