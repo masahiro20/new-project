@@ -18,8 +18,14 @@ export const GUIDE_CATEGORIES: { id: string; name: string; slugs: string[] }[] =
       "houkago-day-shintai-kousoku-rei",
       "gyakutai-kenshu-shiryou",
       "kenshu-rikaido-test",
+      "gyakutai-boushi-self-check",
       "unei-kitei-gyakutai",
     ],
+  },
+  {
+    id: "unei",
+    name: "支援と安全の運営（計画・記録・委員会）",
+    slugs: ["kansen-taisaku-iinkai"],
   },
   {
     id: "shidou",
