@@ -16,6 +16,13 @@ import "./.open-next/server-functions/default/handler.mjs";
 import { cronBatchSize, runCronSlice } from "./lib/guard/cron";
 import { getKV } from "./lib/redis";
 
+// R1-11: a deployed Worker is production. Nothing sets NODE_ENV at runtime (OpenNext only replaces
+// the literal `process.env.NODE_ENV` at build time), and checks such as demoTokensAllowed() or the
+// fail-closed key / secret fallbacks read it through a variable. Read via a variable here too, so
+// no bundler define rewrites this line.
+const runtimeEnv: Record<string, string | undefined> = process.env;
+runtimeEnv.NODE_ENV ||= "production";
+
 type Env = Record<string, unknown>;
 type Ctx = { waitUntil(p: Promise<unknown>): void; passThroughOnException(): void };
 type OpenNextHandler = { fetch(request: Request, env: Env, ctx: Ctx): Promise<Response> };
@@ -33,7 +40,8 @@ async function runCron(controller: ScheduledController, env: Env): Promise<void>
   for (const [k, v] of Object.entries(env)) if (typeof v === "string") process.env[k] = v;
   const result = await runCronSlice(getKV(), { now: new Date(controller.scheduledTime), batch: cronBatchSize() });
   const line = `[cron] ${controller.cron} ${JSON.stringify(result)}`;
-  if (result.errors) throw new Error(line);
+  // Undecryptable tokens (R1-01) also fail the invocation, so they show in the Cron Events log.
+  if (result.errors || result.tokenErrors) throw new Error(line);
   console.log(line);
 }
 

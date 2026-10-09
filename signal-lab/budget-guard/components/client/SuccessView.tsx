@@ -27,7 +27,7 @@ export function SuccessView({ labels, banner }: { labels: Labels; banner: React.
       {result.demo && banner}
       <h1>{labels.title}</h1>
       {result.demo && <p className="hint">Plan: {result.planLabel}（デモ購入 / demo purchase）</p>}
-      {result.active ? (
+      {result.active && result.licenseKey ? (
         <>
           <p>{labels.key}</p>
           <p><span className="license" data-testid="license-key">{result.licenseKey}</span></p>
@@ -37,6 +37,11 @@ export function SuccessView({ labels, banner }: { labels: Labels; banner: React.
             <button className="btn">{labels.open}</button>
           </form>
         </>
+      ) : result.active ? (
+        // More than 24h after purchase the checkout id no longer reveals the key (/api/checkout/complete).
+        <p className="hint" data-testid="license-expired">
+          ライセンスキーは購入時のメールをご確認ください / Your license key was sent by email. <a href="/access">Sign in</a>
+        </p>
       ) : (
         <p className="notice">{labels.notPaid}</p>
       )}

@@ -1,5 +1,7 @@
 # Local values for `npm run preview` (workerd). Copy to .dev.vars (git-ignored).
 # DUMMY values only — never put real keys here. Production: `npx wrangler secret put NAME`.
+# The ACCESS_SECRET / TOKEN_ENCRYPTION_KEY below are refused unless PAYMENTS_MODE=demo (R1-13);
+# generate real ones (openssl rand -base64 32) before anyone else can reach the deployment.
 
 # Demo payments: no money moves, every page shows 「デモ：実際の請求はありません」.
 PAYMENTS_MODE=demo

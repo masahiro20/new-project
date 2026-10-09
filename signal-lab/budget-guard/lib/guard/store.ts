@@ -3,6 +3,7 @@ import type { ConsentRecord } from "../consent";
 import { getJSON, key, setJSON, type KV } from "../redis";
 import type { Connection, Notice } from "./check";
 import { encryptSecret, maskSecret } from "./crypto";
+import { isDemoToken } from "./demo";
 import type { GuardState } from "./evaluate";
 import type { Target } from "./providers";
 import type { StopMode } from "./stop";
@@ -20,6 +21,8 @@ export interface StoredConnection extends Connection {
   sealedWebhookSecret?: string;
   /** Consent given when this connection was added (stored with the connection: no extra write). */
   consent?: ConsentRecord;
+  /** Added with the offline "demo" token: indexed in `bg:democonns`, not in the real work list (R3-02). */
+  demo?: true;
 }
 
 export interface AccountSettings {
@@ -55,6 +58,11 @@ const k = {
   hook: (id: string, event: string) => key("bg", "hook", id, event),
   /** Every connection as `${acct}|${connId}`: the hourly cron's work list (one SMEMBERS). */
   allConns: () => key("bg", "allconns"),
+  /**
+   * Connections that use the offline "demo" token (R3-02). Kept out of allconns so visitors of a
+   * demo deployment can't stretch everyone's check interval; the cron checks a few per hour.
+   */
+  demoConns: () => key("bg", "democonns"),
   connLock: (id: string) => key("bg", "lock", id),
 };
 
@@ -88,14 +96,35 @@ export function parseConnRef(ref: string): { acct: string; id: string } | null {
   const i = ref.lastIndexOf("|");
   return i > 0 ? { acct: ref.slice(0, i), id: ref.slice(i + 1) } : null;
 }
+/** Real connections (the cron's work list; their count sets the check interval). */
 export const listConnRefs = (kv: KV) => kv.smembers(k.allConns());
+/** Connections with the offline demo token (R3-02). */
+export const listDemoConnRefs = (kv: KV) => kv.smembers(k.demoConns());
+const indexOf = (demo: boolean | undefined) => (demo ? k.demoConns() : k.allConns());
+
+/** Cron: a connection found to use the demo token in the real index (data from before R3-02) moves to the demo index. */
+export async function moveToDemoIndex(kv: KV, ref: string): Promise<void> {
+  await kv.srem(k.allConns(), ref);
+  await kv.sadd(k.demoConns(), ref);
+}
+/** Cron: drop a ref whose connection is gone or whose account is no longer monitored (re-added by reindexAccount). */
+export const dropFromIndex = (kv: KV, ref: string, demo: boolean) => kv.srem(indexOf(demo), ref);
+
+/** Put an account's connections back into the cron's index (its subscription became active again). */
+export async function reindexAccount(kv: KV, acct: string): Promise<number> {
+  const conns = await listConnections(kv, acct);
+  const real = conns.filter((c) => !c.demo).map((c) => connRef(acct, c.id));
+  const demo = conns.filter((c) => c.demo).map((c) => connRef(acct, c.id));
+  if (real.length) await kv.sadd(k.allConns(), ...real);
+  if (demo.length) await kv.sadd(k.demoConns(), ...demo);
+  return conns.length;
+}
 
 /** Rebuild the connection index from accounts (one-off for data written before the index existed). */
 export async function rebuildConnIndex(kv: KV): Promise<number> {
-  const refs: string[] = [];
-  for (const acct of await listAccounts(kv)) for (const c of await listConnections(kv, acct)) refs.push(connRef(acct, c.id));
-  if (refs.length) await kv.sadd(k.allConns(), ...refs);
-  return refs.length;
+  let n = 0;
+  for (const acct of await listAccounts(kv)) n += await reindexAccount(kv, acct);
+  return n;
 }
 
 /**
@@ -128,6 +157,7 @@ export async function addConnection(
   if (conns.length >= MAX_CONNECTIONS) throw new Error(`Your plan allows ${MAX_CONNECTIONS} connections`);
   if (conns.some((c) => c.label === input.label)) throw new Error("Label already in use");
   const id = `conn_${randomBytes(8).toString("hex")}`;
+  const demo = isDemoToken(input.token);
   const conn: StoredConnection = {
     id,
     label: input.label,
@@ -138,11 +168,12 @@ export async function addConnection(
     tokenHint: maskSecret(input.token),
     createdAt: new Date().toISOString(),
     ...(input.consent && { consent: input.consent }),
+    ...(demo && { demo: true as const }),
   };
   await setJSON(kv, k.conns(acct), [...conns, conn]);
   await kv.set(k.owner(id), acct);
   await kv.sadd(k.accounts(), acct);
-  await kv.sadd(k.allConns(), connRef(acct, id));
+  await kv.sadd(indexOf(demo), connRef(acct, id));
   return conn;
 }
 
@@ -167,12 +198,17 @@ export async function removeConnection(kv: KV, acct: string, id: string): Promis
   const conns = await listConnections(kv, acct);
   await setJSON(kv, k.conns(acct), conns.filter((c) => c.id !== id));
   await kv.del(k.state(acct, id), k.owner(id));
+  // The snapshot and this connection's log entries go with it (R1-09). Webhook dedupe keys
+  // (bg:hook:{id}:…) hold no personal data and expire on their own (40 days).
   const activity = await getActivity(kv, acct);
-  if (activity.snaps[id]) {
+  const log = activity.log.filter((e) => e.connectionId !== id);
+  if (activity.snaps[id] || log.length !== activity.log.length) {
     delete activity.snaps[id];
-    await saveActivity(kv, acct, activity);
+    await saveActivity(kv, acct, { ...activity, log });
   }
+  // Both indexes: a connection the cron moved to the demo index carries no `demo` flag.
   await kv.srem(k.allConns(), connRef(acct, id));
+  await kv.srem(k.demoConns(), connRef(acct, id));
 }
 
 /** Which account owns a connection (for inbound webhooks, which carry no session). */
@@ -184,11 +220,12 @@ export async function getSettings(kv: KV, acct: string): Promise<AccountSettings
 export const saveSettings = (kv: KV, acct: string, s: AccountSettings) => setJSON(kv, k.settings(acct), s);
 
 /** True the first time a given webhook event is seen (Vercel retries for up to 24h). */
-export const claimHookEvent = (kv: KV, id: string, event: string) => kv.set(k.hook(id, event), "1", { nx: true, ex: 40 * 24 * 3600 });
+export const claimHookEvent = (kv: KV, id: string, event: string, ttlSeconds = 40 * 24 * 3600) => kv.set(k.hook(id, event), "1", { nx: true, ex: ttlSeconds });
 
 export const listAccounts = (kv: KV) => kv.smembers(k.accounts());
 export const getState = (kv: KV, acct: string, id: string) => getJSON<GuardState>(kv, k.state(acct, id));
 export const saveState = (kv: KV, acct: string, id: string, s: GuardState) => setJSON(kv, k.state(acct, id), s);
+
 export const getSnapshot = async (kv: KV, acct: string, id: string): Promise<Snapshot | null> => (await getActivity(kv, acct)).snaps[id] ?? null;
 export async function saveSnapshot(kv: KV, acct: string, id: string, s: Snapshot): Promise<void> {
   const activity = await getActivity(kv, acct);

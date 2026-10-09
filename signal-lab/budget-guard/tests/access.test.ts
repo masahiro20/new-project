@@ -11,7 +11,8 @@ afterEach(() => vi.useRealTimers());
 describe("access token", () => {
   it("round-trips claims", async () => {
     const token = await signAccessToken({ sub: "cs_test_1", plan: "lifetime" }, secret, 30);
-    expect(await verifyAccessToken(token, secret)).toEqual({ sub: "cs_test_1", plan: "lifetime" });
+    // iat is returned too (server-side sign-out compares it with sessionsValidAfter).
+    expect(await verifyAccessToken(token, secret)).toEqual({ sub: "cs_test_1", plan: "lifetime", iat: expect.any(Number) });
   });
 
   it("rejects wrong secret, tampering, missing token and other algorithms", async () => {

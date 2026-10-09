@@ -82,7 +82,11 @@ export async function deleteAccount(kv: KV, e: Entitlement, now = new Date()): P
     ...locks,
   ];
   const deletedKeys = await kv.del(...keys);
-  if (conns.length) await kv.srem(key("bg", "allconns"), ...conns.map((c) => connRef(e.id, c.id)));
+  if (conns.length) {
+    const refs = conns.map((c) => connRef(e.id, c.id));
+    await kv.srem(key("bg", "allconns"), ...refs);
+    await kv.srem(key("bg", "democonns"), ...refs);
+  }
   await kv.srem(key("bg", "accounts"), e.id);
   await kv.srem(ek.retention(), e.id);
   // Tombstone: what is left of the entitlement. Kept: the id + status (so the same Stripe

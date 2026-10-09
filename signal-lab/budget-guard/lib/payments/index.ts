@@ -74,7 +74,7 @@ export async function fulfillCheckout(kv: KV, checkout: CompletedCheckout, sourc
     subscriptionId: checkout.subscriptionId,
     paymentIntentId: checkout.paymentIntentId,
     ...(checkout.consent && { consent: checkout.consent }),
-  }, { licenseKey: checkout.licenseKey });
+  }, { licenseKey: checkout.licenseKey, createdAt: checkout.createdAt });
 }
 
 /** Side effects for a brand-new entitlement. Run inside after(). */

@@ -1,4 +1,5 @@
 import type { ConsentRecord } from "./consent";
+import { reindexAccount } from "./guard/store";
 import { generateLicenseKey } from "./license";
 import { getJSON, key, setJSON, type KV } from "./redis";
 
@@ -48,12 +49,33 @@ const k = {
   sub: (id: string) => key("ent-by-sub", id),
   pi: (id: string) => key("ent-by-pi", id),
   customer: (id: string) => key("ent-by-customer", id),
+  /**
+   * Server-side sign-out (R2-02): access cookies issued before this epoch second are rejected.
+   * A key of its own, not a field of the entitlement, so sign-out never races the Stripe
+   * webhook's setStatus (a read-modify-write of the entitlement could turn a cancel back to active).
+   */
+  sessAfter: (id: string) => key("sess-after", id),
   /** Entitlements that may need deleting later (ended ones + every demo/trial): the retention sweep's list. */
   retention: () => key("retention"),
 };
 
 /** Raw keys (for deletion and batched reads). */
 export const entitlementKeys = k;
+
+/**
+ * Sign out everywhere: cookies issued before now stop working. Expires with the longest
+ * cookie lifetime (+1 day), after which every older cookie has expired on its own anyway.
+ */
+export async function revokeSessions(kv: KV, id: string, sessionDays: number, nowSeconds = Math.floor(Date.now() / 1000)): Promise<void> {
+  await kv.set(k.sessAfter(id), String(nowSeconds), { ex: (sessionDays + 1) * 86_400 });
+}
+
+/** True when a cookie issued at `iat` was revoked by a later sign-out (`raw` = the sess-after value). */
+export function sessionRevoked(iat: number | undefined, raw: string | null | undefined): boolean {
+  if (!raw) return false;
+  const after = Number(raw);
+  return Number.isFinite(after) && (iat ?? 0) < after;
+}
 
 export const getEntitlement = (kv: KV, id: string) => getJSON<Entitlement>(kv, k.ent(id));
 /** KV key of an entitlement (for batched reads: MGET). */
@@ -77,15 +99,16 @@ export const findByCustomer = (kv: KV, id: string) => byIndex(kv, k.customer(id)
 export async function upsertEntitlement(
   kv: KV,
   input: NewEntitlement,
-  opts: { licenseKey?: string } = {},
+  opts: { licenseKey?: string; /** Purchase time from the provider (default: now). */ createdAt?: string } = {},
 ): Promise<{ entitlement: Entitlement; created: boolean }> {
   const now = new Date().toISOString();
+  const createdAt = opts.createdAt && Number.isFinite(Date.parse(opts.createdAt)) && Date.parse(opts.createdAt) <= Date.now() ? opts.createdAt : now;
   const entitlement: Entitlement = {
     status: "active",
     ...input,
     email: input.email.toLowerCase(),
     licenseKey: opts.licenseKey ?? generateLicenseKey(),
-    createdAt: now,
+    createdAt,
     updatedAt: now,
   };
   const created = await setJSON(kv, k.ent(entitlement.id), entitlement, { nx: true });
@@ -95,10 +118,13 @@ export async function upsertEntitlement(
     return { entitlement: existing, created: false };
   }
   await kv.set(k.license(entitlement.licenseKey), entitlement.id);
-  // Latest purchase wins for magic links — except a demo purchase (buyer-chosen email,
-  // no payment) never takes over an email that already points at a real (stripe) entitlement.
+  // Latest purchase wins for magic links — except a demo purchase (buyer-chosen, unverified
+  // email, no payment) never takes over an email that points at a real (stripe) entitlement
+  // or at someone's still-active demo entitlement (otherwise anyone could redirect that
+  // person's magic link into an account the attacker also holds the license key for).
   const prevByEmail = entitlement.source === "demo" ? await findByEmail(kv, entitlement.email) : null;
-  if (!prevByEmail || prevByEmail.source === "demo") await kv.set(k.email(entitlement.email), entitlement.id);
+  const prevLapsed = !!prevByEmail && prevByEmail.source === "demo" && (!isActive(prevByEmail) || trialEnded(prevByEmail) || !!prevByEmail.deletedAt);
+  if (!prevByEmail || prevLapsed) await kv.set(k.email(entitlement.email), entitlement.id);
   if (entitlement.subscriptionId) await kv.set(k.sub(entitlement.subscriptionId), entitlement.id);
   if (entitlement.paymentIntentId) await kv.set(k.pi(entitlement.paymentIntentId), entitlement.id);
   if (entitlement.customerId) await kv.set(k.customer(entitlement.customerId), entitlement.id);
@@ -113,6 +139,9 @@ export async function setStatus(kv: KV, e: Entitlement, status: EntitlementStatu
   else delete next.endedAt; // reactivated: the 30-day deletion clock stops
   await setJSON(kv, k.ent(e.id), next);
   if (ended && !ENDED.includes(e.status)) await kv.sadd(k.retention(), e.id); // only on the transition (rare)
+  // Active again: the cron dropped this account's connections from its index when it found the
+  // account lapsed (R3-02), so put them back. Only on the transition (rare).
+  if (isActive(next) && !isActive(e)) await reindexAccount(kv, next.id);
   return next;
 }
 

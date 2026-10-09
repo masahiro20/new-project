@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { redactSecrets } from "./redact";
 
 // Stop actions are destructive, so they go through three gates:
 //  1. mode "test" (the default) never sends the request; it records what would be sent.
@@ -45,7 +46,7 @@ export async function runStop(
         headers: { ...headers, ...(req.body !== undefined ? { "content-type": "application/json" } : {}) },
         body: req.body !== undefined ? JSON.stringify(req.body) : undefined,
       });
-      results.push({ ...req, status: res.status, ...(res.ok ? {} : { error: (await res.text()).slice(0, 300) }) });
+      results.push({ ...req, status: res.status, ...(res.ok ? {} : { error: redactSecrets((await res.text()).slice(0, 300)) }) });
     } catch (err) {
       results.push({ ...req, error: err instanceof Error ? err.message : String(err) });
     }

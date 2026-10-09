@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Count Upstash commands for the cron and the dashboard, two ways:
 //   "command": one per call (how Upstash documents billing: per command)
@@ -11,10 +11,11 @@ import { GET as state } from "@/app/api/app/state/route";
 import { POST as track } from "@/app/api/track/route";
 import { ACCESS_COOKIE, signAccessToken } from "@/lib/access";
 import { upsertEntitlement } from "@/lib/entitlements";
-import { resetCronMemory, runCronSlice } from "@/lib/guard/cron";
+import { DEMO_CHECKS_PER_HOUR, resetCronMemory, runCronSlice } from "@/lib/guard/cron";
 import { CHECK_INTERVAL_TIERS, intervalFor } from "@/lib/guard/schedule";
 import { addConnection } from "@/lib/guard/store";
 import { createMemoryKV, type KV } from "@/lib/redis";
+import { FAKE_TOKEN, stubProviders } from "./helpers/providers";
 
 const HOUR = Date.parse("2026-10-09T03:00:00Z");
 const FREE = 500_000;
@@ -32,7 +33,7 @@ function counted(kv: KV, mode: Mode) {
 async function oneConnection(budgetUsd: number) {
   const raw = createMemoryKV(() => HOUR);
   const { entitlement } = await upsertEntitlement(raw, { id: "cs_test_a", email: "a@example.com", plan: "monthly", source: "stripe" });
-  await addConnection(raw, entitlement.id, { label: "A", target: { provider: "openai", projectId: "p" }, budgetUsd, token: "demo" }); // demo spend $85
+  await addConnection(raw, entitlement.id, { label: "A", target: { provider: "openai", projectId: "p" }, budgetUsd, token: FAKE_TOKEN }); // offline spend $85 (stubbed fetch)
   return { raw, entitlement };
 }
 
@@ -68,7 +69,7 @@ async function measure(mode: Mode): Promise<Costs> {
   const idleCold = s.n;
 
   // Dashboard (3 connections) and one pageview beacon.
-  for (const label of ["B", "C"]) await addConnection(raw, entitlement.id, { label, target: { provider: "openai", projectId: "p" }, budgetUsd: 100, token: "demo" });
+  for (const label of ["B", "C"]) await addConnection(raw, entitlement.id, { label, target: { provider: "openai", projectId: "p" }, budgetUsd: 100, token: FAKE_TOKEN });
   (globalThis as { __slabKV?: KV }).__slabKV = kv;
   const cookie = await signAccessToken({ sub: entitlement.id, plan: entitlement.plan });
   const headers = { cookie: `${ACCESS_COOKIE}=${cookie}`, "x-forwarded-for": "10.0.0.1" };
@@ -95,7 +96,9 @@ export function estimate(c: Costs, connections: number, intervalHours: number) {
   const HOURS = 24 * 30;
   const perHour = connections / intervalHours;
   const workRuns = Math.min(59, Math.ceil(perHour / 2));
-  const cron = HOURS * (c.init + workRuns * c.runBase + perHour * Math.max(c.itemNotice, c.itemStop) + (59 - workRuns) * c.idleCold);
+  // + demo-token connections (R3-02): at most DEMO_CHECKS_PER_HOUR checks an hour, counted at full price.
+  const perItem = Math.max(c.itemNotice, c.itemStop);
+  const cron = HOURS * (c.init + workRuns * c.runBase + (perHour + DEMO_CHECKS_PER_HOUR) * perItem + (59 - workRuns) * c.idleCold);
   const dashboard = Math.ceil(connections / 2) * 10 * 30 * (c.dashboardState + c.pageview);
   const lp = 1000 * 30 * c.pageview;
   return { connections, intervalHours, cron: Math.round(cron), dashboard, lp, total: Math.round(cron + dashboard + lp) };
@@ -103,13 +106,17 @@ export function estimate(c: Costs, connections: number, intervalHours: number) {
 
 const costs: Partial<Record<Mode, Costs>> = {};
 
-beforeEach(() => resetCronMemory());
+beforeEach(() => {
+  resetCronMemory();
+  stubProviders();
+});
+afterEach(() => vi.unstubAllGlobals());
 
 describe("Upstash commands", () => {
-  it("per command: idle 0/1, list 5, one connection 5 whatever the outcome, dashboard 2, pageview 1", async () => {
+  it("per command: idle 0/1, list 6, one connection 5 whatever the outcome, dashboard 2, pageview 1", async () => {
     const c = (costs.command = await measure("command"));
     console.log("[upstash] per command", JSON.stringify(c));
-    expect(c).toMatchObject({ idleWarm: 0, idleCold: 1, init: 5, itemQuiet: 5, itemNotice: 5, itemStop: 5, dashboardState: 2, pageview: 1 });
+    expect(c).toMatchObject({ idleWarm: 0, idleCold: 1, init: 6, itemQuiet: 5, itemNotice: 5, itemStop: 5, dashboardState: 2, pageview: 1 });
   });
 
   it("worst case (MGET/MSET counted per key)", async () => {
@@ -118,7 +125,7 @@ describe("Upstash commands", () => {
     expect(c.idleWarm).toBe(0);
     expect(c.idleCold).toBe(1);
     expect(c.itemNotice).toBeLessThanOrEqual(10); // lock + MGET×5 + MSET×2 + unlock + SREM
-    expect(c.dashboardState).toBeLessThanOrEqual(4); // entitlement + MGET×3
+    expect(c.dashboardState).toBeLessThanOrEqual(5); // MGET×2 (entitlement + sign-out marker, R2-02) + MGET×3
   });
 
   it("every tier of CHECK_INTERVAL_TIERS fits the free tier at its upper bound (worst case)", () => {

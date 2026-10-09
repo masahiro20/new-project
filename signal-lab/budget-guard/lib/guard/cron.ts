@@ -1,9 +1,10 @@
 import { key, type KV } from "../redis";
+import { demoTokensAllowed } from "./demo";
 import { checkConnectionLocked } from "./service";
 import { sweepPurchases } from "../payments/purchases";
 import { MAX_DELETES_PER_SWEEP, MAX_PURCHASES_PER_SWEEP, SWEEP_EVERY_HOURS, sweepRetention } from "./retention";
 import { hourIndex, intervalFor, isDue, nextCheckHour } from "./schedule";
-import { listConnRefs, parseConnRef, rebuildConnIndex } from "./store";
+import { dropFromIndex, listConnRefs, listDemoConnRefs, moveToDemoIndex, parseConnRef, rebuildConnIndex } from "./store";
 
 // Hourly check, split into small slices so one invocation stays inside the Workers
 // Free limits (10 ms CPU, 50 subrequests) — and inside Upstash's free 500k commands a
@@ -34,6 +35,16 @@ import { listConnRefs, parseConnRef, rebuildConnIndex } from "./store";
 // → up to 60 small runs per hour.
 
 const HOUR_TTL = 3 * 3600;
+
+/**
+ * Demo-token connections (R3-02): checked every 12 hours, at most this many per hour, and not
+ * counted for the interval of real connections. They call no provider (offline demo data); the
+ * cap keeps a flood of demo sign-ups from eating the Upstash budget.
+ */
+export const DEMO_INTERVAL_HOURS = 12;
+export const DEMO_CHECKS_PER_HOUR = 2;
+/** Work-list items of demo connections carry this prefix (their schedule is DEMO_INTERVAL_HOURS). */
+const DEMO_PREFIX = "~";
 
 /** CRON_BATCH_SIZE (connections per run); unset = all of them (Vercel). */
 export function cronBatchSize(env: Record<string, string | undefined> = process.env): number {
@@ -77,6 +88,8 @@ export type CronSliceResult = {
   deletedAccounts?: number;
   /** Purchase records deleted (past 7 years) in this run. */
   deletedPurchases?: number;
+  /** Connections whose token could not be decrypted (R1-01: key missing / rotated) — an operator problem. */
+  tokenErrors?: number;
 };
 
 function shuffle<T>(xs: T[]): T[] {
@@ -87,7 +100,7 @@ function shuffle<T>(xs: T[]): T[] {
   return xs;
 }
 
-/** Requests one item can take (lock, MGET, MSET, unlock, SREM + error bookkeeping). */
+/** Requests one item can take (lock, MGET, MSET, unlock, SREM + error bookkeeping or an index fix). */
 const KV_OPS_PER_ITEM = 7;
 
 export async function runCronSlice(
@@ -117,6 +130,13 @@ export async function runCronSlice(
     if (refs.length === 0 && (await rebuildConnIndex(kv)) > 0) refs = await listConnRefs(kv); // data from before the index
     const interval = opts.interval ?? intervalFor(refs.length);
     const due = refs.filter((ref) => isDue(parseConnRef(ref)?.id ?? ref, now, interval));
+    // Demo tokens only work in development / an explicit demo deployment: elsewhere skip the SMEMBERS.
+    const demoDue = (demoTokensAllowed() ? await listDemoConnRefs(kv) : [])
+      .filter((ref) => isDue(parseConnRef(ref)?.id ?? ref, now, DEMO_INTERVAL_HOURS))
+      .sort()
+      .slice(0, DEMO_CHECKS_PER_HOUR)
+      .map((ref) => DEMO_PREFIX + ref);
+    due.push(...demoDue);
     const sentinel = `${SENTINEL_PREFIX}${interval}`;
     await kv.sadd(k.pending, sentinel, ...due);
     await kv.expire(k.pending, HOUR_TTL);
@@ -150,18 +170,26 @@ export async function runCronSlice(
   for (const ref of pending) {
     if (attempted >= batch + 2 || result.checked + result.skipped + result.errors >= batch || kvOps + KV_OPS_PER_ITEM > maxKvOps) break;
     attempted++;
-    const parsed = parseConnRef(ref);
+    const demo = ref.startsWith(DEMO_PREFIX);
+    const indexRef = demo ? ref.slice(DEMO_PREFIX.length) : ref;
+    const parsed = parseConnRef(indexRef);
+    const every = demo ? DEMO_INTERVAL_HOURS : interval;
     try {
       const r = parsed ? await checkConnectionLocked(kv, parsed.acct, parsed.id, now, {
             requireEntitlement: true,
             hour,
-            schedule: { intervalHours: interval, nextCheckAt: nextCheckHour(parsed.id, now, interval).toISOString() },
+            realOnly: !demo,
+            schedule: { intervalHours: every, nextCheckAt: nextCheckHour(parsed.id, now, every).toISOString() },
           }) : ({ status: "missing" } as const);
       if (r.status === "busy") continue; // being checked elsewhere right now: stays in the list
       if (r.status === "checked") {
         result.checked++;
         result.notices += r.notices.length;
+        if (r.tokenError) result.tokenErrors = (result.tokenErrors ?? 0) + 1;
       } else result.skipped++; // removed, no longer monitored, or already checked this hour by an overlapping run
+      // R3-02: keep the index to connections that are really monitored, so its size (→ interval) isn't inflated.
+      if (r.status === "demo") await moveToDemoIndex(kv, indexRef);
+      else if (r.status === "missing" || r.status === "inactive") await dropFromIndex(kv, indexRef, demo); // setStatus re-adds on reactivation
       await kv.srem(k.pending, ref);
     } catch (err) {
       result.errors++;

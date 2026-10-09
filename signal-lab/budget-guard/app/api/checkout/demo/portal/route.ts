@@ -1,7 +1,7 @@
 import { forbiddenOrigin, json, readCookie, readJson, sameOrigin, unauthorized } from "@/lib/api";
 import { ACCESS_COOKIE, verifyAccessToken } from "@/lib/access";
 import { getPlan } from "@/lib/config";
-import { getEntitlement, isActive } from "@/lib/entitlements";
+import { entitlementKeys, getEntitlement, isActive, sessionRevoked } from "@/lib/entitlements";
 import { getDemoCheckout, isDemoCheckoutId, setDemoPlanStatus } from "@/lib/payments/demo";
 import { demoCheckoutEnabled } from "@/lib/payments/mode";
 import { getKV } from "@/lib/redis";
@@ -11,7 +11,10 @@ import { getKV } from "@/lib/redis";
 
 async function demoClaims(request: Request) {
   const claims = await verifyAccessToken(readCookie(request, ACCESS_COOKIE));
-  return claims && isDemoCheckoutId(claims.sub) ? claims : null;
+  if (!claims || !isDemoCheckoutId(claims.sub)) return null;
+  // Same server-side sign-out check as accountFrom (lib/api.ts).
+  if (sessionRevoked(claims.iat, await getKV().get(entitlementKeys.sessAfter(claims.sub)))) return null;
+  return claims;
 }
 
 export async function GET(request: Request) {

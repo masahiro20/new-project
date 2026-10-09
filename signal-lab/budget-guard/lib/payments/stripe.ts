@@ -99,6 +99,7 @@ export async function getCompletedCheckout(sessionId: string): Promise<Completed
     paymentIntentId: idOf(s.payment_intent),
     licenseKey: s.customer && typeof s.customer === "object" && !s.customer.deleted ? s.customer.metadata[LICENSE_META] : undefined,
     consent: consentFromMetadata(s.metadata),
+    ...(typeof s.created === "number" && { createdAt: new Date(s.created * 1000).toISOString() }),
   };
 }
 

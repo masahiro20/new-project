@@ -1,3 +1,4 @@
+import { redactSecrets } from "./redact";
 import type { FetchLike, StopPlan } from "./stop";
 
 // One adapter per provider. Endpoints and field paths follow docs/provider-apis.md
@@ -27,7 +28,7 @@ export class ProviderHttpError extends Error {
     readonly status: number,
     body: string,
   ) {
-    super(`${host} ${status}: ${body.slice(0, 200)}`);
+    super(`${host} ${status}: ${redactSecrets(body.slice(0, 200))}`);
   }
 }
 

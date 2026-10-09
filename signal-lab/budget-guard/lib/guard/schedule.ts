@@ -3,7 +3,9 @@
 // THE one place to tune it. The tiers come from the Upstash free-tier estimate in
 // docs/deploy-cloudflare.md §7.1 (500k commands/month, counted the worst way: every
 // key of an MGET/MSET as one command), including dashboard use (10 opens a day per
-// person) and 1,000 page views a day. tests/upstash-budget.test.ts recomputes that
+// person; one MGET of 2 keys per request since the sign-out check, R2-02), a reserve for
+// demo-token connections (R3-02: at most 2 checks an hour) and 1,000 page views a day.
+// tests/upstash-budget.test.ts recomputes that
 // estimate and fails if a tier stops fitting.
 
 export type IntervalTier = { upTo: number; hours: number };
@@ -11,12 +13,12 @@ export type IntervalTier = { upTo: number; hours: number };
 /** Up to `upTo` connections (inclusive) → checked every `hours` hours. */
 export const CHECK_INTERVAL_TIERS: readonly IntervalTier[] = [
   { upTo: 50, hours: 1 },
-  { upTo: 95, hours: 2 },
-  { upTo: 130, hours: 3 },
-  { upTo: 160, hours: 4 },
-  { upTo: 210, hours: 6 },
-  { upTo: 250, hours: 8 },
-  { upTo: Infinity, hours: 12 }, // beyond ~250: still not guaranteed to fit — upgrade Upstash (see docs)
+  { upTo: 90, hours: 2 },
+  { upTo: 120, hours: 3 },
+  { upTo: 150, hours: 4 },
+  { upTo: 190, hours: 6 },
+  { upTo: 225, hours: 8 },
+  { upTo: Infinity, hours: 12 }, // beyond ~225: still not guaranteed to fit — upgrade Upstash (see docs)
 ];
 
 export function intervalFor(connections: number, tiers: readonly IntervalTier[] = CHECK_INTERVAL_TIERS): number {

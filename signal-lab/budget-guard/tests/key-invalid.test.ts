@@ -4,10 +4,10 @@ import { upsertEntitlement } from "@/lib/entitlements";
 import { trialMetrics } from "@/lib/guard/admin";
 import { checkConnection, type Connection } from "@/lib/guard/check";
 import { resetCronMemory, runCronSlice } from "@/lib/guard/cron";
-import { encryptSecret } from "@/lib/guard/crypto";
 import { setSlackUrl } from "@/lib/guard/service";
 import { addConnection, getLog, updateConnection } from "@/lib/guard/store";
 import { devOutbox } from "@/lib/mail";
+import { FAKE_TOKEN, stubProviders } from "./helpers/providers";
 import { createMemoryKV, type KV } from "@/lib/redis";
 
 const NOW = new Date("2026-10-09T03:00:00Z");
@@ -63,12 +63,8 @@ describe("through the cron: mail + Slack once, Upstash commands unchanged", () =
       get: (t, p: keyof KV) => (typeof t[p] === "function" ? (...a: unknown[]) => (commands++, (t[p] as (...x: unknown[]) => unknown).apply(t, a)) : t[p]),
     }) as KV;
     const { entitlement } = await upsertEntitlement(raw, { id: "cs_test_k", email: "k@example.com", plan: "monthly", source: "stripe" });
-    const c = await addConnection(raw, entitlement.id, { label: "OpenAI prod", target: openai, budgetUsd: 100, token: "demo" });
-    // Swap in a "real" (non-demo) token so the global fetch is used.
-    await updateConnection(raw, entitlement.id, c.id, {});
-    const conns = JSON.parse((await raw.get("budget-guard:bg:cs_test_k:conns"))!);
-    conns[0].sealedToken = encryptSecret("sk-admin-real-looking", c.id);
-    await raw.set("budget-guard:bg:cs_test_k:conns", JSON.stringify(conns));
+    // A non-demo token, so the (stubbed) global fetch is used.
+    await addConnection(raw, entitlement.id, { label: "OpenAI prod", target: openai, budgetUsd: 100, token: FAKE_TOKEN });
     await setSlackUrl(raw, entitlement.id, "https://hooks.slack.com/services/T000/B000/xyz");
 
     let providerStatus = 401;
@@ -90,7 +86,7 @@ describe("through the cron: mail + Slack once, Upstash commands unchanged", () =
       await runCronSlice(kv, { now: new Date(now), batch: 2, interval: 1 }); // list + 1 item
       return commands;
     };
-    expect(await hourly(0)).toBe(5 + 5); // building the list (5) + one check (5): same as a check without the alert
+    expect(await hourly(0)).toBe(6 + 5); // building the list (6, incl. the demo index since R3-02) + one check (5): same as a check without the alert
     expect(mails() - before).toBe(1);
     expect(slackPosts.length).toBe(1);
     expect(slackPosts[0]).toContain("token rejected");
@@ -110,13 +106,14 @@ describe("through the cron: mail + Slack once, Upstash commands unchanged", () =
 });
 
 describe("GET /api/admin/stats trial metrics", () => {
-  it("counts connections, modes and this month's alerts from the index (3 commands), auth unchanged", async () => {
+  it("counts connections, modes and this month's alerts from both indexes (4 commands), auth unchanged", async () => {
+    stubProviders(); // non-demo tokens: the cron checks them through (stubbed) fetch
     let now = NOW.getTime();
     const raw = createMemoryKV(() => now);
     const { entitlement: a } = await upsertEntitlement(raw, { id: "cs_test_m1", email: "m1@example.com", plan: "monthly", source: "stripe" });
     const { entitlement: b } = await upsertEntitlement(raw, { id: "cs_test_m2", email: "m2@example.com", plan: "monthly", source: "stripe" });
-    await addConnection(raw, a.id, { label: "warn", target: openai, budgetUsd: 100, token: "demo" }); // demo spend $85 → 80%
-    await addConnection(raw, a.id, { label: "over", target: openai, budgetUsd: 10, token: "demo" }); // → 100% + test stop
+    await addConnection(raw, a.id, { label: "warn", target: openai, budgetUsd: 100, token: FAKE_TOKEN }); // offline spend $85 → 80%
+    await addConnection(raw, a.id, { label: "over", target: openai, budgetUsd: 10, token: FAKE_TOKEN }); // → 100% + test stop
     const v = await addConnection(raw, b.id, { label: "v", target: { provider: "vercel", teamId: "team_1", projectIds: ["prj_1"] }, budgetUsd: 1000, token: "demo" });
     await updateConnection(raw, b.id, v.id, { stopMode: "off" });
     resetCronMemory();
@@ -128,14 +125,14 @@ describe("GET /api/admin/stats trial metrics", () => {
     }) as KV;
     now += 60_000;
     const m = await trialMetrics(kv, new Date(now));
-    expect(commands).toBe(3);
+    expect(commands).toBe(4); // SMEMBERS ×2 (real + demo index) + MGET×2
     expect(m).toMatchObject({
       month: "2026-10",
       accounts: 2,
-      connections: { total: 3, byProvider: { openai: 2, vercel: 1, anthropic: 0 }, demoToken: 3 },
+      connections: { total: 3, byProvider: { openai: 2, vercel: 1, anthropic: 0 }, demoToken: 1 },
       stopMode: { off: 1, test: 2, live: 0 },
       thisMonth: { warned: 1, reachedLimit: 1, testStopRecords: 1, keyInvalid: 0 },
-      neverChecked: 0,
+      neverChecked: 1, // the demo-token connection: checked every 12h (R3-02), not in this hour
     });
     expect(m.lastCheckedAt).toBe(NOW.toISOString());
 

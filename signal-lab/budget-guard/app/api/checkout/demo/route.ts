@@ -3,10 +3,10 @@ import { badRequest, forbiddenOrigin, json, readJson, sameOrigin } from "@/lib/a
 import { formatAmount, getPlan } from "@/lib/config";
 import { CONSENT_REQUIRED_ERROR, hasConsentFlag, newConsent } from "@/lib/consent";
 import { t } from "@/lib/i18n";
-import { getDemoCheckout, isDemoCheckoutId, payDemoCheckout } from "@/lib/payments/demo";
+import { DEMO_CHECKOUTS_PER_DAY, getDemoCheckout, isDemoCheckoutId, payDemoCheckout } from "@/lib/payments/demo";
 import { demoCheckoutEnabled } from "@/lib/payments/mode";
 import { clientIp, rateLimit } from "@/lib/ratelimit";
-import { getKV } from "@/lib/redis";
+import { getKV, key } from "@/lib/redis";
 
 // In-app stand-in for Stripe Checkout while PAYMENTS_MODE=demo (page: /checkout/demo).
 // Every handler re-checks demo mode, so nothing here can mint an entitlement once
@@ -45,6 +45,11 @@ export async function POST(request: Request) {
   if (!(await rateLimit(kv, `demo-pay:${clientIp(request.headers)}`, 20, 600))) {
     return json({ error: "しばらく時間をおいて再度お試しください / Too many attempts." }, 429);
   }
+  // R3-02: a site-wide daily cap on demo purchases (each one is a free account that can add connections).
+  const paidToday = key("rl", "demo-paid", new Date().toISOString().slice(0, 10));
+  if (Number(await kv.get(paidToday)) >= DEMO_CHECKOUTS_PER_DAY) {
+    return json({ error: "本日のデモ購入の受付は終了しました。明日もう一度お試しください / Demo sign-ups are closed for today." }, 429);
+  }
   const rawEmail = String(body.email ?? "").trim().toLowerCase();
   const email = rawEmail ? emailSchema.safeParse(rawEmail) : null;
   if (email && !email.success) return badRequest("メールアドレスを確認してください / Check the email address.");
@@ -60,5 +65,6 @@ export async function POST(request: Request) {
       ? json({ error: "チェックアウトの有効期限が切れました。料金ページからやり直してください / Checkout expired." }, 404)
       : json({ error: "入力内容を確認してください / Please check the card details.", errors: result.errors }, 400);
   }
+  if ((await kv.incr(paidToday)) === 1) await kv.expire(paidToday, 2 * 86_400);
   return json({ ok: true, redirect: `/success?session_id=${id}` });
 }

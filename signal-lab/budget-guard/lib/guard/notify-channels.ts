@@ -41,6 +41,12 @@ export async function postSlack(url: string, text: string, fetchImpl: FetchLike 
     return;
   }
   if (!isSlackWebhookUrl(url)) throw new Error("Not a Slack incoming webhook URL");
-  const res = await fetchImpl(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text }) });
+  const res = await fetchImpl(url, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ text }),
+    redirect: "manual", // never follow (see providerFetch in service.ts); a 3xx is !ok below
+    signal: AbortSignal.timeout(10_000),
+  });
   if (!res.ok) throw new Error(`Slack ${res.status}: ${(await res.text()).slice(0, 100)}`);
 }

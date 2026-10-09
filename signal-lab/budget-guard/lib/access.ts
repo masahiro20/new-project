@@ -5,6 +5,7 @@ import { findByEmail } from "./entitlements";
 import { t } from "./i18n";
 import { sendMail } from "./mail";
 import { key, type KV } from "./redis";
+import { isDummyAccessSecret, refuseDummySecret } from "./dummy-secrets";
 import { isBuildPhase, isProduction, siteUrl, warnOnce } from "./site";
 
 // Pure access primitives (no next/* imports) so they run under vitest.
@@ -16,14 +17,17 @@ export function accessSecret(env: Record<string, string | undefined> = process.e
   const secret = env.ACCESS_SECRET;
   if (secret) {
     if (secret.length < 32) throw new Error("ACCESS_SECRET must be at least 32 characters");
+    if (isDummyAccessSecret(secret)) refuseDummySecret("ACCESS_SECRET", env); // R1-13
     return new TextEncoder().encode(secret);
   }
-  if (env.NODE_ENV === "production" && !isBuildPhase()) throw new Error("ACCESS_SECRET must be set in production");
+  // Fail closed (like TOKEN_ENCRYPTION_KEY, R1-04): the public dev secret only when NODE_ENV says
+  // development / test — not when it is unset or anything else (e.g. a Worker bundle without it).
+  if (env.NODE_ENV !== "development" && env.NODE_ENV !== "test" && !isBuildPhase()) throw new Error("ACCESS_SECRET must be set");
   warnOnce("access-secret", "[access] ACCESS_SECRET is not set — using a fixed dev secret.");
   return new TextEncoder().encode(DEV_SECRET);
 }
 
-export type AccessClaims = { sub: string; plan: string };
+export type AccessClaims = { sub: string; plan: string; iat?: number };
 
 export async function signAccessToken(claims: AccessClaims, secret = accessSecret(), days = config.access.sessionDays): Promise<string> {
   return new SignJWT({ plan: claims.plan })
@@ -40,7 +44,7 @@ export async function verifyAccessToken(token: string | undefined, secret = acce
   try {
     const { payload } = await jwtVerify(token, secret, { algorithms: ["HS256"], audience: config.slug });
     if (!payload.sub || typeof payload.plan !== "string") return null;
-    return { sub: payload.sub, plan: payload.plan };
+    return { sub: payload.sub, plan: payload.plan, iat: payload.iat };
   } catch {
     return null;
   }

@@ -2,7 +2,7 @@ import type { KV } from "../redis";
 import { periodKey } from "./evaluate";
 import type { GuardState } from "./evaluate";
 import type { ProviderId } from "./providers";
-import { listConnRefs, parseActivity, parseConnRef, storeKeys, type StoredConnection } from "./store";
+import { listConnRefs, listDemoConnRefs, parseActivity, parseConnRef, storeKeys, type StoredConnection } from "./store";
 
 // Trial metrics for GET /api/admin/stats. Reuses the cron's connection index instead of
 // scanning keys: SMEMBERS index + MGET (connections + activity per account) + MGET
@@ -39,7 +39,7 @@ async function mgetAll(kv: KV, keys: string[]): Promise<(string | null)[]> {
 
 export async function trialMetrics(kv: KV, now = new Date()): Promise<TrialMetrics> {
   const month = periodKey(now);
-  const refs = (await listConnRefs(kv)).map(parseConnRef).filter((r): r is { acct: string; id: string } => !!r);
+  const refs = [...(await listConnRefs(kv)), ...(await listDemoConnRefs(kv))].map(parseConnRef).filter((r): r is { acct: string; id: string } => !!r);
   const accounts = [...new Set(refs.map((r) => r.acct))];
   const perAccount = await mgetAll(kv, accounts.flatMap((a) => [storeKeys.conns(a), storeKeys.activity(a)]));
 
@@ -62,7 +62,7 @@ export async function trialMetrics(kv: KV, now = new Date()): Promise<TrialMetri
       live.push({ acct, conn });
       m.connections.total++;
       m.connections.byProvider[conn.target.provider]++;
-      if (conn.tokenHint === "••••") m.connections.demoToken++; // maskSecret("demo")
+      if (conn.demo || conn.tokenHint === "••••") m.connections.demoToken++; // flag since R3-02; older: maskSecret("demo")
       m.stopMode[conn.stopMode]++;
       const checked = activity.snaps[conn.id]?.checkedAt;
       if (!checked) m.neverChecked++;
@@ -71,7 +71,7 @@ export async function trialMetrics(kv: KV, now = new Date()): Promise<TrialMetri
         if (!m.oldestCheckedAt || checked < m.oldestCheckedAt) m.oldestCheckedAt = checked;
       }
     }
-    // kind "stop-test" also records mode changes and arming; count only actual test runs.
+    // Mode changes and arming were kind "stop-test" before R3-08 (now "info"): count only actual test runs.
     m.thisMonth.testStopRecords += activity.log.filter(
       (e) => e.kind === "stop-test" && e.at.startsWith(month) && (e.message.startsWith("Manual test:") || e.message.startsWith("TEST MODE")),
     ).length;

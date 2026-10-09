@@ -6,6 +6,10 @@ import { addSchema, targetSchema } from "@/lib/guard/schemas";
 import { CONSENT_REQUIRED_ERROR, consentCurrent, hasConsentFlag, newConsent } from "@/lib/consent";
 import { fetchFor } from "@/lib/guard/service";
 import { addConnection } from "@/lib/guard/store";
+import { clientIp, rateLimit } from "@/lib/ratelimit";
+
+/** Add-connection attempts per account per hour (each one calls the provider with the token). */
+const ADD_PER_HOUR = 10;
 
 /** POST (JSON): add a connection. The token is verified with a read-only call before it is sealed and stored. */
 export async function POST(request: Request) {
@@ -24,6 +28,11 @@ export async function POST(request: Request) {
     return badRequest(issue ? `${issue.path.join(".")}: ${issue.message}` : "Invalid input");
   }
   if (isDemoToken(base.data.token) && !demoTokensAllowed()) return badRequest("The demo token only works in development or with PAYMENTS_MODE=demo");
+  // R1-10: each attempt makes a provider call with the given token — don't let this be a token-testing oracle.
+  // Per IP over 10 minutes only: the privacy policy keeps IP addresses for at most 10 minutes.
+  if (!(await rateLimit(kv, `add-conn:${account.id}`, ADD_PER_HOUR, 3600)) || !(await rateLimit(kv, `add-conn-ip:${clientIp(request.headers)}`, ADD_PER_HOUR, 600))) {
+    return json({ error: "Too many attempts. Please try again in an hour." }, 429);
+  }
   try {
     const now = new Date();
     const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));

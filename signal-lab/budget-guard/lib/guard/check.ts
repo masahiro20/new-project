@@ -1,5 +1,5 @@
 import { adapterFor, isAuthFailure, type Target } from "./providers";
-import { currentState, evaluate, periodStart, type Evaluation, type GuardState } from "./evaluate";
+import { currentState, evaluate, periodKey, periodStart, type Evaluation, type GuardState } from "./evaluate";
 import { runStop, type FetchLike, type StopMode, type StopResult } from "./stop";
 
 export interface Connection {
@@ -46,6 +46,8 @@ export async function checkConnection(conn: Connection, prev: GuardState | undef
   let spendUsd: number;
   try {
     ({ spendUsd } = await adapter.fetchSpend(conn.target, deps.token, periodStart(deps.now), deps.now, deps.fetchImpl));
+    // NaN / Infinity (an unexpected amount format) would evaluate as "ok" forever: report it instead of failing open.
+    if (!Number.isFinite(spendUsd)) throw new Error(`Provider returned a non-numeric spend (${spendUsd})`);
   } catch (err) {
     const message = `Usage fetch failed: ${err instanceof Error ? err.message : err}`;
     if (isAuthFailure(err) && !state.keyInvalidAt) {
@@ -63,7 +65,10 @@ export async function checkConnection(conn: Connection, prev: GuardState | undef
   }
   if (state.keyInvalidAt) delete state.keyInvalidAt; // the key works again: the next failure is reported again
 
-  const evaluation = evaluate(deps.forceLimit ? Math.max(spendUsd, conn.budgetUsd) : spendUsd, conn.budgetUsd, state, {
+  // A test-mode dry run must not count as "already stopped" once the connection is armed live (R3-01).
+  // In test mode either a dry run or a real stop this month means "done" (no TEST MODE mail after a real stop).
+  const stopState = conn.stopMode === "live" ? state : { ...state, stoppedAt: state.stopTestedAt ?? state.stoppedAt };
+  const evaluation = evaluate(deps.forceLimit ? Math.max(spendUsd, conn.budgetUsd) : spendUsd, conn.budgetUsd, stopState, {
     stopEnabled: conn.stopMode !== "off",
   });
   const pct = Math.round(evaluation.ratio * 100);
@@ -81,24 +86,56 @@ export async function checkConnection(conn: Connection, prev: GuardState | undef
   }
 
   let stop: StopResult | undefined;
+  // R3-11: a stop that keeps failing is retried every check, but mailed once a month (the first time).
+  const failed = (message: string) => {
+    if (state.stopFailedAt) return void console.error(`[guard] ${conn.id}: ${message} (retrying; already reported)`);
+    state.stopFailedAt = stamp;
+    notices.push({ kind: "stop-failed", connectionId: conn.id, message: `${message} Budget Guard retries at every check.` });
+  };
   if (evaluation.runStop) {
     try {
       const plan = await adapter.planStop(conn.target, deps.token, conn.budgetUsd, deps.fetchImpl);
       stop = await runStop(plan, conn.stopMode, adapter.authHeaders(deps.token), deps.fetchImpl);
       if (stop.dryRun) {
-        state.stoppedAt = stamp; // test mode: record once per period so we don't spam
+        state.stopTestedAt = stamp; // test mode: record once per period so we don't spam (not stoppedAt: arming live must still stop)
         notices.push({ kind: "stop-test", connectionId: conn.id, message: `TEST MODE — would have run: ${plan.summary}` });
       } else if (stop.ok) {
         state.stoppedAt = stamp;
         notices.push({ kind: "stopped", connectionId: conn.id, message: `Stopped: ${plan.summary} Undo: ${plan.undo}` });
       } else {
         // Leave stoppedAt unset so the next hourly pass retries.
-        notices.push({ kind: "stop-failed", connectionId: conn.id, message: `Stop failed: ${stop.requests.map((r) => r.error ?? r.status).join("; ")}` });
+        failed(`Stop failed: ${stop.requests.map((r) => r.error ?? r.status).join("; ")}`);
       }
     } catch (err) {
-      notices.push({ kind: "stop-failed", connectionId: conn.id, message: `Stop planning failed: ${err instanceof Error ? err.message : err}` });
+      failed(`Stop planning failed: ${err instanceof Error ? err.message : err}`);
     }
   }
 
   return { state, evaluation, spendUsd, stop, notices };
+}
+
+/**
+ * R3-01 data migration, applied when a state is read (under the connection lock, before the
+ * check), so there is no window between a deploy and a one-off script.
+ *
+ * Before the fix a test-mode dry run wrote `stoppedAt`, which then blocked the real stop for the
+ * rest of the month once the connection was armed live. A dry run and its "TEST MODE" log entry
+ * share one timestamp, so a legacy `stoppedAt` of this month is moved to `stopTestedAt` only when
+ * the log proves it was a dry run. If the entry has scrolled out of the capped log we keep it as a
+ * real stop: a second live stop in the same month (after the user resumed by hand) is the worse
+ * failure. Returns the state marked stopModel 2 (unchanged otherwise).
+ */
+export function migrateLegacyStop(
+  prev: GuardState | undefined,
+  log: ReadonlyArray<{ kind: string; connectionId: string; at: string; message: string }>,
+  connId: string,
+  now: Date,
+): GuardState | undefined {
+  if (!prev || prev.stopModel === 2) return prev;
+  const next: GuardState = { ...prev, stopModel: 2 };
+  if (!prev.stoppedAt || prev.period !== periodKey(now)) return next;
+  const dryRun = log.some((e) => e.connectionId === connId && e.at === prev.stoppedAt && e.kind === "stop-test" && e.message.startsWith("TEST MODE"));
+  if (!dryRun) return next;
+  const { stoppedAt, ...rest } = next;
+  return { ...rest, stopTestedAt: prev.stopTestedAt ?? stoppedAt };
 }

@@ -14,12 +14,14 @@ vi.mock("@/lib/guard/demo", async (orig) => {
   };
 });
 
-import { upsertEntitlement } from "@/lib/entitlements";
-import { cronBatchSize, MAX_ATTEMPTS, resetCronMemory, runCronSlice } from "@/lib/guard/cron";
+import { demoFetch } from "@/lib/guard/demo";
+import { setStatus, upsertEntitlement } from "@/lib/entitlements";
+import { FAKE_TOKEN } from "./helpers/providers";
+import { cronBatchSize, DEMO_CHECKS_PER_HOUR, DEMO_INTERVAL_HOURS, MAX_ATTEMPTS, resetCronMemory, runCronSlice } from "@/lib/guard/cron";
 import { CHECK_INTERVAL_TIERS, intervalFor, isDue, nextCheckHour, slotOf } from "@/lib/guard/schedule";
 import { dashboardView } from "@/lib/guard/views";
 import { CONN_LOCK_SECONDS } from "@/lib/guard/service";
-import { addConnection, getLog, MAX_CONNECTIONS } from "@/lib/guard/store";
+import { addConnection, connRef, getLog, listConnRefs, listDemoConnRefs, MAX_CONNECTIONS } from "@/lib/guard/store";
 import { createMemoryKV, type KV } from "@/lib/redis";
 
 const HOUR = Date.parse("2026-10-09T03:00:00Z");
@@ -52,16 +54,21 @@ async function seed(kv: KV, connections: number, budgetUsd = 100) {
   for (let a = 0; ids.length < connections; a++) {
     const { entitlement } = await upsertEntitlement(kv, { id: `cs_test_acct${a}`, email: `a${a}@example.com`, plan: "monthly", source: "stripe" });
     for (let c = 0; c < MAX_CONNECTIONS && ids.length < connections; c++) {
-      ids.push((await addConnection(kv, entitlement.id, { label: `C${c}`, target, budgetUsd, token: "demo" })).id);
+      ids.push((await addConnection(kv, entitlement.id, { label: `C${c}`, target, budgetUsd, token: FAKE_TOKEN })).id);
     }
   }
   return ids;
 }
 
-beforeEach(() => resetCronMemory());
+beforeEach(() => {
+  resetCronMemory();
+  // Non-demo tokens go through providerFetch → global fetch: answer with the offline data (counted above).
+  vi.stubGlobal("fetch", demoFetch());
+});
 afterEach(() => {
   providerCalls.n = 0;
   vi.unstubAllEnvs();
+  vi.unstubAllGlobals();
 });
 
 describe("cron slices (Cloudflare: * * * * * + CRON_BATCH_SIZE)", () => {
@@ -172,7 +179,7 @@ describe("cron slices (Cloudflare: * * * * * + CRON_BATCH_SIZE)", () => {
     const now = HOUR;
     const kv = createMemoryKV(() => now);
     await seed(kv, 2);
-    await addConnection(kv, "cs_test_lapsed", { label: "x", target, budgetUsd: 1, token: "demo" }); // no entitlement
+    await addConnection(kv, "cs_test_lapsed", { label: "x", target, budgetUsd: 1, token: FAKE_TOKEN }); // no entitlement
     await kv.del("budget-guard:bg:allconns"); // data written before the index existed
     const r = await runCronSlice(kv, { now: new Date(now) }); // Vercel: no batch limit
     expect(r).toMatchObject({ initialized: true, checked: 2, skipped: 1, remaining: 0 });
@@ -202,8 +209,8 @@ async function playHours(kv: KV, startHour: number, hours: number, stats: Return
 }
 
 describe("check interval by number of connections (lib/guard/schedule.ts)", () => {
-  it("tiers: ≤50 every hour, ≤95 every 2h, ≤130 3h, ≤160 4h, ≤210 6h, ≤250 8h, more 12h", () => {
-    expect([1, 50, 51, 95, 96, 130, 131, 160, 161, 210, 211, 250, 251, 1000].map((n) => intervalFor(n))).toEqual([1, 1, 2, 2, 3, 3, 4, 4, 6, 6, 8, 8, 12, 12]);
+  it("tiers: ≤50 every hour, ≤90 every 2h, ≤120 3h, ≤150 4h, ≤190 6h, ≤225 8h, more 12h", () => {
+    expect([1, 50, 51, 90, 91, 120, 121, 150, 151, 190, 191, 225, 226, 1000].map((n) => intervalFor(n))).toEqual([1, 1, 2, 2, 3, 3, 4, 4, 6, 6, 8, 8, 12, 12]);
     expect(CHECK_INTERVAL_TIERS.at(-1)?.upTo).toBe(Infinity);
   });
 
@@ -246,7 +253,7 @@ describe("check interval by number of connections (lib/guard/schedule.ts)", () =
     // 30 more connections on new accounts.
     for (let a = 100; a < 110; a++) {
       const { entitlement } = await upsertEntitlement(kv, { id: `cs_test_more${a}`, email: `m${a}@example.com`, plan: "monthly", source: "stripe" });
-      for (let c = 0; c < 3; c++) await addConnection(kv, entitlement.id, { label: `M${c}`, target, budgetUsd: 100, token: "demo" });
+      for (let c = 0; c < 3; c++) await addConnection(kv, entitlement.id, { label: `M${c}`, target, budgetUsd: 100, token: FAKE_TOKEN });
     }
     const after = await playHours(kv, HOUR + 2 * 3600_000, 6, stats);
     for (const id of first) {
@@ -254,5 +261,63 @@ describe("check interval by number of connections (lib/guard/schedule.ts)", () =
       for (let i = 1; i < hours.length; i++) expect(hours[i] - hours[i - 1]).toBeLessThanOrEqual(2);
       expect(hours.length - 1).toBe(3); // 6 hours / 2
     }
+  });
+});
+
+describe("R3-02: demo connections and lapsed accounts don't stretch the check interval", () => {
+  /** `n` demo accounts with 3 demo-token connections each (what anyone can create on a demo deployment). */
+  async function demoFlood(kv: KV, accounts: number) {
+    for (let a = 0; a < accounts; a++) {
+      const { entitlement } = await upsertEntitlement(kv, { id: `cs_test_flood${a}`, email: `f${a}@example.com`, plan: "monthly", source: "stripe" });
+      for (let c = 0; c < 3; c++) await addConnection(kv, entitlement.id, { label: `D${c}`, target, budgetUsd: 100, token: "demo" });
+    }
+  }
+
+  it("300 demo connections: real ones stay hourly; demo ones go to their own index, a few per hour", async () => {
+    const now = HOUR;
+    const kv = createMemoryKV(() => now);
+    const real = await seed(kv, 10);
+    await demoFlood(kv, 100);
+    expect((await listConnRefs(kv)).length).toBe(10);
+    expect((await listDemoConnRefs(kv)).length).toBe(300);
+    let demoChecked = 0;
+    for (let h = 0; h < DEMO_INTERVAL_HOURS; h++) {
+      resetCronMemory();
+      const r = await runCronSlice(kv, { now: new Date(HOUR + h * 3600_000) });
+      expect(r.intervalHours).toBe(1); // 10 real connections → hourly, whatever the demo count
+      expect(r.checked - real.length).toBeLessThanOrEqual(DEMO_CHECKS_PER_HOUR);
+      demoChecked += r.checked - real.length;
+    }
+    expect(demoChecked).toBeGreaterThan(0);
+    expect(demoChecked).toBeLessThanOrEqual(DEMO_CHECKS_PER_HOUR * DEMO_INTERVAL_HOURS);
+  });
+
+  it("a demo connection found in the real index (data from before the fix) moves to the demo index", async () => {
+    const now = HOUR;
+    const kv = createMemoryKV(() => now);
+    await seed(kv, 1);
+    const { entitlement } = await upsertEntitlement(kv, { id: "cs_test_old", email: "old@example.com", plan: "monthly", source: "stripe" });
+    const demo = await addConnection(kv, entitlement.id, { label: "D", target, budgetUsd: 100, token: "demo" });
+    // Before R3-02 every connection was in allconns.
+    await kv.srem("budget-guard:bg:democonns", connRef(entitlement.id, demo.id));
+    await kv.sadd("budget-guard:bg:allconns", connRef(entitlement.id, demo.id));
+    const r = await runCronSlice(kv, { now: new Date(now), interval: 1 });
+    expect(r).toMatchObject({ checked: 1, skipped: 1 });
+    expect(await listConnRefs(kv)).not.toContain(connRef(entitlement.id, demo.id));
+    expect(await listDemoConnRefs(kv)).toContain(connRef(entitlement.id, demo.id));
+  });
+
+  it("lapsed accounts leave the index (no longer counted) and come back when reactivated", async () => {
+    const now = HOUR;
+    const kv = createMemoryKV(() => now);
+    await seed(kv, 3); // cs_test_acct0: 3 connections
+    const { entitlement } = await upsertEntitlement(kv, { id: "cs_test_gone", email: "g@example.com", plan: "monthly", source: "stripe" });
+    for (let c = 0; c < 3; c++) await addConnection(kv, entitlement.id, { label: `G${c}`, target, budgetUsd: 100, token: FAKE_TOKEN });
+    const canceled = await setStatus(kv, entitlement, "canceled");
+    const r = await runCronSlice(kv, { now: new Date(now), interval: 1 });
+    expect(r).toMatchObject({ checked: 3, skipped: 3 });
+    expect((await listConnRefs(kv)).length).toBe(3);
+    await setStatus(kv, canceled, "active"); // resubscribed
+    expect((await listConnRefs(kv)).length).toBe(6);
   });
 });

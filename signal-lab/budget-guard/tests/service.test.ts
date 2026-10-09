@@ -12,7 +12,7 @@ describe("store", () => {
     const kv = createMemoryKV();
     const c = await addConnection(kv, "acct", { label: "A", target, budgetUsd: 50, token: "vercel_secret_token_123" });
     expect(c.stopMode).toBe("test");
-    expect(c.tokenHint).toBe("verc…_123");
+    expect(c.tokenHint).toBe("…_123"); // last 4 only (R1-07)
     expect(JSON.stringify(await listConnections(kv, "acct"))).not.toContain("secret_token");
   });
   it("enforces the plan limit and unique labels", async () => {

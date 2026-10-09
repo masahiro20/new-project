@@ -162,9 +162,34 @@ export function createMemoryKV(now: () => number = Date.now): KV {
 
 // ---------- Upstash adapter ----------
 
+/**
+ * R1-12: @upstash/redis puts the whole command into its error message (", command was: [...]"),
+ * i.e. keys (some contain an email) and values (sealed tokens, entitlements). Errors reach logs,
+ * so keep only the method and Upstash's own reason.
+ */
+export function upstashErrorMessage(method: string, err: unknown): string {
+  const raw = err instanceof Error ? err.message : String(err);
+  const reason = raw.split(", command was:")[0].slice(0, 200);
+  return `Upstash ${method} failed: ${reason}`;
+}
+
+function withSafeErrors(kv: KV): KV {
+  const out = {} as Record<string, unknown>;
+  for (const [name, fn] of Object.entries(kv) as [string, (...a: unknown[]) => Promise<unknown>][]) {
+    out[name] = async (...args: unknown[]) => {
+      try {
+        return await fn(...args);
+      } catch (err) {
+        throw new Error(upstashErrorMessage(name, err));
+      }
+    };
+  }
+  return out as unknown as KV;
+}
+
 function createUpstashKV(url: string, token: string): KV {
   const r = new Redis({ url, token, automaticDeserialization: false });
-  return {
+  return withSafeErrors({
     get: (k) => r.get<string>(k),
     mget: (...keys) => (keys.length ? r.mget<(string | null)[]>(...keys) : Promise.resolve([])),
     async mset(entries) {
@@ -191,7 +216,7 @@ function createUpstashKV(url: string, token: string): KV {
     srem: (k, ...members) => (members.length ? r.srem(k, ...members) : Promise.resolve(0)),
     smembers: (k) => r.smembers(k),
     scard: (k) => r.scard(k),
-  };
+  });
 }
 
 // Survive dev HMR reloads so the in-memory store isn't wiped on every edit.

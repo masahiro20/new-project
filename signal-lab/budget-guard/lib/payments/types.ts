@@ -22,6 +22,11 @@ export type CompletedCheckout = {
   licenseKey?: string;
   /** Consent given at checkout (stored with the checkout, copied onto the entitlement). */
   consent?: ConsentRecord;
+  /**
+   * When the purchase happened (Stripe: session.created). Becomes the entitlement's createdAt,
+   * so rebuilding a lost KV cache doesn't reopen the 24h license-key window (R2-01).
+   */
+  createdAt?: string;
 };
 
 export interface PaymentProvider {

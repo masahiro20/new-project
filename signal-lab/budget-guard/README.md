@@ -29,7 +29,7 @@ npm run typecheck && npm test && npm run build
 | `lib/guard/check.ts` | 1接続ぶんの毎時処理（取得 → 判定 → 通知 → 停止） |
 | `lib/guard/crypto.ts` | トークンの AES-256-GCM 暗号化（接続IDを AAD に束縛） |
 | `lib/guard/store.ts` / `service.ts` | KV への保存、メール、接続ごとのロック付きのチェック |
-| `lib/guard/cron.ts` + `lib/guard/schedule.ts` | 定期チェックを分割して実行（時間ごとの作業リスト、接続ごとのロック、再試行）。全接続数に応じて確認間隔を延ばす（〜50 件は 1 時間、〜95 件は 2 時間 … 251 件以上は 12 時間。段階の表は `schedule.ts` の 1 か所）。Upstash の無料枠に最悪の数え方でも収めるため（docs/deploy-cloudflare.md §7.1） |
+| `lib/guard/cron.ts` + `lib/guard/schedule.ts` | 定期チェックを分割して実行（時間ごとの作業リスト、接続ごとのロック、再試行）。全接続数に応じて確認間隔を延ばす（〜50 件は 1 時間、〜90 件は 2 時間 … 226 件以上は 12 時間。demo のトークンの接続は数えず、別に 12 時間ごと・1 時間に 2 件まで。段階の表は `schedule.ts` の 1 か所）。Upstash の無料枠に最悪の数え方でも収めるため（docs/deploy-cloudflare.md §7.1） |
 | `app/(product)/app/` + `components/client/` | ダッシュボード、停止設定ページ（`/app/c?id=…`）。静的な殻をブラウザで描画する |
 | `app/api/app/*` + `lib/api.ts` | ダッシュボードの JSON API（Cookie 認証、Origin チェック、レート制限） |
 | `app/api/cron/check` + `vercel.json` | Vercel：毎時 1 回で全件を処理（`CRON_SECRET` で認証）。Cloudflare：`wrangler.jsonc` の毎分の trigger で、`cf-worker.ts` の `scheduled()` が 1 回 2 件ずつ処理（docs/deploy-cloudflare.md §7） |

@@ -20,5 +20,6 @@ function authorized(request: Request): boolean {
 export async function GET(request: Request) {
   if (!authorized(request)) return new Response("Unauthorized", { status: 401 });
   const result = await runCronSlice(getKV(), { batch: cronBatchSize() });
-  return Response.json({ ok: true, ...result });
+  // R1-01: undecryptable tokens make the run fail (500) so Vercel's cron log shows it; the work itself is done.
+  return Response.json({ ok: !result.tokenErrors, ...result }, { status: result.tokenErrors ? 500 : 200 });
 }

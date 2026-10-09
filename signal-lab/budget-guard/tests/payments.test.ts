@@ -120,7 +120,7 @@ describe("demo checkout", () => {
     for (const secret of ["4242424242424242", "4242 4242", "12/30", "Taro"]) expect(raw).not.toContain(secret);
 
     const checkout = await provider.getCompletedCheckout(id);
-    expect(checkout).toEqual({ id, email: "buyer@example.com", planId: "monthly", status: "active" });
+    expect(checkout).toEqual({ id, email: "buyer@example.com", planId: "monthly", status: "active", createdAt: expect.any(String) }); // createdAt = paidAt (R2-01)
     const { entitlement, created } = await fulfillCheckout(kv, checkout!, provider.name);
     expect(created).toBe(true);
     expect(entitlement).toMatchObject({ id, source: "demo", plan: "monthly", status: "active" });

@@ -216,13 +216,13 @@ describe("admin manual deletion (requests: within 7 days)", () => {
     expect(await kv.get(`budget-guard:bg:lock:${conn.id}`)).toBeNull();
   });
 
-  it("deleteAccount costs 6 Upstash commands + 1 per connection (its lock)", async () => {
+  it("deleteAccount costs 7 Upstash commands + 1 per connection (its lock)", async () => {
     const raw = createMemoryKV();
     const { e } = await account(raw, "cs_test_cost", "stripe", T0());
     let n = 0;
     const kv = new Proxy(raw, { get: (t, p: keyof KV) => (typeof t[p] === "function" ? (...a: unknown[]) => (n++, (t[p] as (...x: unknown[]) => unknown).apply(t, a)) : t[p]) }) as KV;
     await deleteAccount(kv, e);
-    expect(n).toBe(7); // 1 connection
+    expect(n).toBe(8); // 1 connection (+1 since R3-02: SREM from the demo index too)
   });
 });
 

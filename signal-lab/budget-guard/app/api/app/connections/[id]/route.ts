@@ -1,9 +1,8 @@
 import { badRequest, guard, json, readJson } from "@/lib/api";
 import { consentCurrent } from "@/lib/consent";
 import { getKV } from "@/lib/redis";
-import { adapterFor } from "@/lib/guard/providers";
 import { connIdSchema, connOpSchema } from "@/lib/guard/schemas";
-import { checkAccountDetailed, challengeSecret, fetchFor, openToken, planFor, setVercelWebhookSecret } from "@/lib/guard/service";
+import { checkAccountDetailed, challengeSecret, manualStopLocked, planFor, setVercelWebhookSecret } from "@/lib/guard/service";
 import { runStop, verifyChallenge } from "@/lib/guard/stop";
 import { appendLog, getConnection, removeConnection, updateConnection } from "@/lib/guard/store";
 import { connectionDetailView } from "@/lib/guard/views";
@@ -56,7 +55,7 @@ export async function POST(request: Request, ctx: Ctx) {
 
     case "mode": // disarming never needs confirmation
       await updateConnection(kv, account.id, conn.id, { stopMode: op.data.mode });
-      await appendLog(kv, account.id, [{ kind: "stop-test", connectionId: conn.id, message: `Stop mode set to ${op.data.mode}`, at }]);
+      await appendLog(kv, account.id, [{ kind: "info", connectionId: conn.id, message: `Stop mode set to ${op.data.mode}`, at }]); // R3-08: not a test run
       return done(`mode-${op.data.mode}`);
 
     case "test-stop": {
@@ -81,17 +80,12 @@ export async function POST(request: Request, ctx: Ctx) {
       if (!check.ok) return done(`confirm-${check.reason}`, 400);
       if (op.data.action === "arm-live") {
         await updateConnection(kv, account.id, conn.id, { stopMode: "live" });
-        await appendLog(kv, account.id, [{ kind: "stop-test", connectionId: conn.id, message: `Stop action ARMED (live): ${plan.summary}`, at }]);
+        await appendLog(kv, account.id, [{ kind: "info", connectionId: conn.id, message: `Stop action ARMED (live): ${plan.summary}`, at }]);
         return done("armed");
       }
-      const token = openToken(conn);
-      const result = await runStop(plan, "live", adapterFor(conn.target).authHeaders(token), fetchFor(token));
-      await appendLog(kv, account.id, [
-        result.ok
-          ? { kind: "stopped", connectionId: conn.id, message: `Manual stop: ${plan.summary} Undo: ${plan.undo}`, at }
-          : { kind: "stop-failed", connectionId: conn.id, message: `Manual stop failed: ${result.requests.map((x) => x.error ?? x.status).join("; ")}`, at },
-      ]);
-      return done(result.ok ? "stopped" : "stop-failed", result.ok ? 200 : 502);
+      const stopped = await manualStopLocked(kv, account.id, conn, plan);
+      if (stopped.status === "busy") return done("busy", 409); // a check of this connection is running: try again in a moment
+      return done(stopped.ok ? "stopped" : "stop-failed", stopped.ok ? 200 : 502);
     }
 
     case "webhook-secret": {

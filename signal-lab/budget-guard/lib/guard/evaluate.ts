@@ -9,6 +9,15 @@ export interface GuardState {
   warnedAt?: string;
   limitNotifiedAt?: string;
   stoppedAt?: string;
+  /** Test mode recorded a would-be stop this period. Kept apart from stoppedAt so arming "live" later in the month still stops. */
+  stopTestedAt?: string;
+  /**
+   * 2 = written by code that keeps dry runs in stopTestedAt. A state without it may carry a
+   * stoppedAt that an old test-mode dry run wrote (R3-01): see migrateLegacyStop.
+   */
+  stopModel?: 2;
+  /** First failed stop attempt this period: mailed once, then retried hourly without a mail each time (R3-11). */
+  stopFailedAt?: string;
   /** UTC hour ("2026-10-09T03") the hourly cron last checked this connection: a second cron run of that hour skips it. */
   lastHour?: string;
   /** Set when the provider rejected the token (401/403) and we told the user; cleared by the next successful fetch. Survives the monthly reset. */

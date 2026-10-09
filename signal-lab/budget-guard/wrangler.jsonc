@@ -20,7 +20,11 @@
   "vars": {
     // Connections per cron run (≈11 Upstash commands + provider calls, max ~21 subrequests, ~3 ms CPU).
     // 60 runs/hour × 2 = up to ~118 connections per hour. See docs/deploy-cloudflare.md §7.
-    "CRON_BATCH_SIZE": "2"
+    "CRON_BATCH_SIZE": "2",
+    // R1-11: nothing sets NODE_ENV at runtime in the Worker (OpenNext only replaces the literal
+    // `process.env.NODE_ENV` at build time; code that reads it through a variable sees undefined —
+    // e.g. the demo token would be accepted). cf-worker.ts also defaults it.
+    "NODE_ENV": "production"
   },
   "observability": {
     "enabled": true

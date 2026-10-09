@@ -25,7 +25,12 @@ describe("token encryption", () => {
     parts[3] = Buffer.from("x").toString("base64url");
     expect(() => decryptSecret(parts.join("."), "conn_1", key)).toThrow();
   });
-  it("masks tokens", () => expect(maskSecret("sk-ant-admin01-abcdef")).toBe("sk-a…cdef"));
+  it("masks tokens: public prefix + last 4 only (R1-07)", () => {
+    expect(maskSecret("sk-ant-admin01-abcdefghijkl")).toBe("sk-ant-admin01-…ijkl");
+    expect(maskSecret("vercel0123456789abcdefWXYZ")).toBe("…WXYZ"); // no known prefix: nothing from the start
+    expect(maskSecret("demo")).toBe("••••");
+    expect(maskSecret("sk-short-123")).toBe("••••");
+  });
 });
 
 describe("evaluate", () => {

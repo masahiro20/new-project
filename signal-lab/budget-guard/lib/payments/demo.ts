@@ -12,6 +12,11 @@ import type { CompletedCheckout, PaymentProvider } from "./types";
 // Selected only while getPaymentsMode() === "demo"; demo_ ids are refused otherwise.
 
 export const DEMO_EMAIL = "demo@example.com";
+/**
+ * Demo purchases accepted per UTC day, site-wide (R3-02). Each is a free 30-day account that can
+ * add connections; without a cap anyone could create hundreds and load the cron / Upstash.
+ */
+export const DEMO_CHECKOUTS_PER_DAY = 50;
 const PENDING_TTL_SECONDS = 60 * 60; // unpaid checkouts expire after 1 hour
 const PAID_TTL_SECONDS = 90 * 24 * 60 * 60;
 
@@ -87,7 +92,7 @@ export function createDemoProvider(kv: () => KV = getKV): PaymentProvider {
     async getCompletedCheckout(id): Promise<CompletedCheckout | null> {
       const record = await getDemoCheckout(kv(), id);
       if (!record || record.status === "pending" || !getPlan(record.planId)) return null;
-      return { id, email: record.email, planId: record.planId, status: record.status === "canceled" ? "canceled" : "active", ...(record.consent && { consent: record.consent }) };
+      return { id, email: record.email, planId: record.planId, status: record.status === "canceled" ? "canceled" : "active", ...(record.consent && { consent: record.consent }), ...(record.paidAt && { createdAt: record.paidAt }) };
     },
     async createPortalUrl() {
       return "/checkout/demo/portal";

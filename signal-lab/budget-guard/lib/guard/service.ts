@@ -4,9 +4,9 @@ import { entitlementKey, getEntitlement, isActive, trialEnded, type Entitlement 
 import { sendMail } from "../mail";
 import type { KV } from "../redis";
 import { siteUrl } from "../site";
-import { checkConnection, type Notice } from "./check";
+import { checkConnection, migrateLegacyStop, type Notice } from "./check";
 import { decryptSecret, encryptSecret } from "./crypto";
-import { periodKey } from "./evaluate";
+import { currentState, periodKey } from "./evaluate";
 import { DEMO_SLACK_URL, postSlack, spendPayloadSchema, verifyVercelSignature } from "./notify-channels";
 import { demoFetch, demoTokensAllowed, isDemoToken } from "./demo";
 import { adapterFor } from "./providers";
@@ -14,18 +14,20 @@ import { isDemoMode } from "../payments/mode";
 
 /** Active, and (for demo entitlements) only while demo mode is on — mirrors entitlementUsable. */
 const monitored = (e: Entitlement | null): e is Entitlement => isActive(e) && (e.source !== "demo" || (isDemoMode() && !trialEnded(e)));
-import type { FetchLike, StopPlan } from "./stop";
+import { runStop, type FetchLike, type StopPlan, type StopResult } from "./stop";
 import {
   appendLog,
   claimHookEvent,
   getConnection,
   getSettings,
+  getState,
   listAccounts,
   listConnections,
   mergeLog,
   ownerOf,
   parseActivity,
   saveSettings,
+  saveState,
   storeKeys,
   updateConnection,
   withConnLock,
@@ -43,11 +45,21 @@ import type { GuardState } from "./evaluate";
  * notices / stops) and the first one's unlock delete the second one's lock.
  */
 export const PROVIDER_TIMEOUT_MS = 20_000;
-const fetchWithTimeout: FetchLike = (url, init) => fetch(url, { ...init, signal: init.signal ?? AbortSignal.timeout(PROVIDER_TIMEOUT_MS) });
+
+/**
+ * Provider fetch (R3-05): bounded in time, and never follows redirects (a redirect would carry
+ * the admin token — x-api-key is not stripped cross-origin — and replay POST bodies to another
+ * host). redirect "manual" + refusing 3xx rather than "error", which Workers may not accept.
+ */
+export const providerFetch: FetchLike = async (url, init) => {
+  const res = await fetch(url, { ...init, redirect: "manual", signal: init.signal ?? AbortSignal.timeout(PROVIDER_TIMEOUT_MS) });
+  if (res.status >= 300 && res.status < 400) throw new Error(`${new URL(url).host} answered ${res.status} (redirect refused)`);
+  return res;
+};
 
 /** Real fetch, or the offline demo for the "demo" token (see demoTokensAllowed). */
 export function fetchFor(token: string): FetchLike {
-  if (!isDemoToken(token)) return fetchWithTimeout;
+  if (!isDemoToken(token)) return providerFetch;
   if (!demoTokensAllowed()) throw new Error("The demo token is disabled in production");
   return demoFetch();
 }
@@ -183,7 +195,8 @@ export type LockedCheck =
   | { status: "missing" } // the connection was removed
   | { status: "inactive" } // entitlement lapsed (only with requireEntitlement)
   | { status: "already" } // cron: already checked in this hour
-  | { status: "checked"; notices: Notice[] };
+  | { status: "demo" } // cron: a demo-token connection found in the real index (moved to the demo index)
+  | { status: "checked"; notices: Notice[]; /** The sealed token could not be opened (R1-01): monitoring is off for it. */ tokenError?: true };
 
 const parse = <T>(raw: string | null): T | null => (raw === null ? null : (JSON.parse(raw) as T));
 const pickSchedule = (s: Snapshot | undefined) => (s?.intervalHours ? { intervalHours: s.intervalHours, nextCheckAt: s.nextCheckAt } : {});
@@ -209,6 +222,8 @@ export async function checkConnectionLocked(
     hour?: string;
     /** Cron: the current check interval and next due time, stored in the snapshot for the dashboard. */
     schedule?: { intervalHours: number; nextCheckAt: string };
+    /** Cron, item from the real index: a demo-token connection is not checked here (R3-02). */
+    realOnly?: boolean;
   } = {},
 ): Promise<LockedCheck> {
   const r = await withConnLock(kv, connId, CONN_LOCK_SECONDS, async (): Promise<LockedCheck> => {
@@ -227,25 +242,33 @@ export async function checkConnectionLocked(
     }
     const conn = (parse<StoredConnection[]>(connsRaw) ?? []).find((c) => c.id === connId);
     if (!conn) return { status: "missing" };
-    const prevState = parse<GuardState>(stateRaw) ?? undefined;
+    const activity = parseActivity(activityRaw);
+    // R3-01: a legacy stoppedAt written by a test-mode dry run becomes stopTestedAt (no extra command).
+    const prevState = migrateLegacyStop(parse<GuardState>(stateRaw) ?? undefined, activity.log, connId, now);
     // Read under the lock, so two cron runs of one hour can't both check (the second sees lastHour).
     if (opts.hour && prevState?.lastHour === opts.hour) return { status: "already" };
 
     const notices: Notice[] = [];
     const writes: Record<string, string> = {};
-    const activity = parseActivity(activityRaw);
     let activityChanged = false;
     let token: string | undefined;
     let fetchImpl: FetchLike | undefined;
     try {
       token = openToken(conn);
+      if (opts.realOnly && isDemoToken(token)) return { status: "demo" };
       fetchImpl = fetchFor(token);
     } catch (err) {
-      notices.push({ kind: "error", connectionId: conn.id, message: `${conn.label}: ${err instanceof Error ? err.message : err}` });
+      const reason = err instanceof Error ? err.message : String(err);
+      // The user can't fix this (missing / rotated TOKEN_ENCRYPTION_KEY): monitoring is off for
+      // this connection, so tell the operator. Only the id and the reason, never the sealed value.
+      console.error(`[guard] cannot open token for ${conn.id}: ${reason}`);
+      notices.push({ kind: "error", connectionId: conn.id, message: `${conn.label}: ${reason}` });
     }
     if (token !== undefined && fetchImpl) {
       const result = await checkConnection(conn, prevState, { token, fetchImpl, now, forceLimit: opts.forceLimit });
-      writes[storeKeys.state(acct, conn.id)] = JSON.stringify(opts.hour ? { ...result.state, lastHour: opts.hour } : result.state);
+      const saved: GuardState = { ...result.state, stopModel: 2 };
+      if (opts.hour) saved.lastHour = opts.hour;
+      writes[storeKeys.state(acct, conn.id)] = JSON.stringify(saved);
       activity.snaps[conn.id] = {
         spendUsd: result.spendUsd ?? 0,
         ratio: result.evaluation?.ratio ?? 0,
@@ -258,7 +281,7 @@ export async function checkConnectionLocked(
       activityChanged = true;
       notices.push(...result.notices);
     } else if (opts.hour) {
-      writes[storeKeys.state(acct, conn.id)] = JSON.stringify({ ...(prevState ?? { period: periodKey(now) }), lastHour: opts.hour });
+      writes[storeKeys.state(acct, conn.id)] = JSON.stringify({ ...(prevState ?? { period: periodKey(now) }), stopModel: 2, lastHour: opts.hour });
     }
     if (notices.length) {
       activity.log = mergeLog(activity.log, notices.map((n) => ({ ...n, at: now.toISOString() })));
@@ -267,7 +290,36 @@ export async function checkConnectionLocked(
     if (activityChanged) writes[storeKeys.activity(acct)] = JSON.stringify(activity);
     await kv.mset(writes);
     await notify(kv, acct, email, notices, opts.notifyFetch, parse<AccountSettings>(settingsRaw) ?? {});
-    return { status: "checked", notices };
+    return { status: "checked", notices, ...(token === undefined && { tokenError: true as const }) };
+  });
+  return r.ok ? r.value : { status: "busy" };
+}
+
+/**
+ * "Stop now" from the dashboard (R3-11): under the connection's lock, like every check, and it
+ * records stoppedAt so the automatic stop doesn't run a second time this month.
+ */
+export async function manualStopLocked(
+  kv: KV,
+  acct: string,
+  conn: StoredConnection,
+  plan: StopPlan,
+  now = new Date(),
+): Promise<{ status: "busy" } | { status: "done"; ok: boolean; result: StopResult }> {
+  const r = await withConnLock(kv, conn.id, CONN_LOCK_SECONDS, async () => {
+    const token = openToken(conn);
+    const result = await runStop(plan, "live", adapterFor(conn.target).authHeaders(token), fetchFor(token));
+    const at = now.toISOString();
+    if (result.ok) {
+      const state = currentState((await getState(kv, acct, conn.id)) ?? undefined, now);
+      await saveState(kv, acct, conn.id, { ...state, stoppedAt: at, stopModel: 2 });
+    }
+    await appendLog(kv, acct, [
+      result.ok
+        ? { kind: "stopped", connectionId: conn.id, message: `Manual stop: ${plan.summary} Undo: ${plan.undo}`, at }
+        : { kind: "stop-failed", connectionId: conn.id, message: `Manual stop failed: ${result.requests.map((x) => x.error ?? x.status).join("; ")}`, at },
+    ]);
+    return { status: "done" as const, ok: result.ok, result };
   });
   return r.ok ? r.value : { status: "busy" };
 }
@@ -311,6 +363,11 @@ export async function handleVercelWebhook(
 
   const ent = await getEntitlement(kv, acct);
   if (!monitored(ent)) return { outcome: { status: 200, result: "inactive" } };
+  // R2-04: the payload has no timestamp, so a signed body stays valid forever. Remember every body
+  // (hash) for 400 days: a replay in a later month is a duplicate, not a fresh "100%" (forced stop).
+  // A real alert of a new month differs in currentSpend / budget, so it gets through.
+  const bodyHash = createHash("sha256").update(rawBody).digest("base64url").slice(0, 32);
+  if (!(await claimHookEvent(kv, conn.id, `body:${bodyHash}`, 400 * 24 * 3600))) return { outcome: { status: 200, result: "duplicate" } };
   if (!(await claimHookEvent(kv, conn.id, `${periodKey(now)}:${payload.thresholdPercent}`))) {
     return { outcome: { status: 200, result: "duplicate" } };
   }

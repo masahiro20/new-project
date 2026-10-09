@@ -1,7 +1,7 @@
 import { ACCESS_COOKIE, verifyAccessToken } from "./access";
 import { config } from "./config";
-import { isActive, type Entitlement } from "./entitlements";
-import { resolveEntitlement } from "./payments";
+import { entitlementKeys, isActive, sessionRevoked, type Entitlement } from "./entitlements";
+import { entitlementUsable, resolveEntitlement } from "./payments";
 import type { KV } from "./redis";
 import { siteUrl } from "./site";
 
@@ -64,7 +64,12 @@ export async function accountFrom(request: Request, kv: KV): Promise<Account | n
   if (config.access.gate !== "license") return null; // Budget Guard needs per-buyer accounts
   const claims = await verifyAccessToken(readCookie(request, ACCESS_COOKIE));
   if (!claims) return null;
-  const entitlement = await resolveEntitlement(kv, claims.sub);
+  // One MGET: the entitlement and the sign-out marker (R2-02).
+  const [entRaw, afterRaw] = await kv.mget(entitlementKeys.ent(claims.sub), entitlementKeys.sessAfter(claims.sub));
+  // Signed out (server side) after this cookie was issued → the cookie is dead even if it was copied.
+  if (sessionRevoked(claims.iat, afterRaw)) return null;
+  const cached = entRaw ? (JSON.parse(entRaw) as Entitlement) : null;
+  const entitlement = cached ? (entitlementUsable(cached) ? cached : null) : await resolveEntitlement(kv, claims.sub);
   return isActive(entitlement) ? { id: entitlement.id, email: entitlement.email, entitlement } : null;
 }
 
