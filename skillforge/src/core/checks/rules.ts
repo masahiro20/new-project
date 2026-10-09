@@ -1,4 +1,4 @@
-import { BRACKET_WORD, displayLength, isRenpyText, PLACEHOLDER, placeholderText, RENPY_PACING_TAGS, RENPY_TAG, RENPY_TAG_NAMES, hideRenpyEscapes, visibleText } from "../text.js";
+import { BRACKET_WORD, displayLength, isRenpyText, KAG_STYLE_TAG, PLACEHOLDER, placeholderText, RENPY_PACING_TAGS, RENPY_TAG, RENPY_TAG_NAMES, hideRenpyEscapes, visibleText } from "../text.js";
 import { messages, type RubyProblem } from "../i18n.js";
 import type { Finding, Locale, Row, Side, Table } from "../types.js";
 
@@ -47,8 +47,11 @@ const base = (row: Row, side: Side) => ({ file: row.file, line: row.line, id: ro
  * Tags in `s`. A bare `<word>` that is not a known tag and is never closed in `pair` (source + target) is display
  * text such as `<unknown>` / `<不明>`, not markup.
  */
-function tags(s: string, pair: string, renpy: boolean): { list: string[]; unbalanced: string[] } {
+function tags(s: string, pair: string, renpy: boolean, kag = false): { list: string[]; unbalanced: string[] } {
   const list: string[] = [];
+  // KAG / TyranoScript styling tags in .ks text ([font …], [resetfont], [graph …]): compared by name only. [font] is
+  // reset by [resetfont] or by any [cm]/[er], so they are not checked for balance.
+  if (kag) for (const m of hideRenpyEscapes(s).matchAll(KAG_STYLE_TAG)) list.push(`[${m[1]}]`);
   const stack: string[] = [];
   const unbalanced: string[] = [];
   for (const m of s.matchAll(TAG)) {
@@ -292,7 +295,9 @@ export function checkRules(tables: Table[], opts: { wideAsTwo?: boolean; locale?
 
       const pair = `${row.source}\n${row.target}`;
       const renpy = isRenpyText(pair, t.format);
-      const ph = placeholderDiff(row.source, row.target, renpy);
+      const kag = t.format === "ks";
+      const noKag = (x: string) => (kag ? hideRenpyEscapes(x).replace(KAG_STYLE_TAG, "") : x);
+      const ph = placeholderDiff(noKag(row.source), noKag(row.target), renpy);
       if (ph.missing.length || ph.extra.length) {
         out.push({
           category: "placeholder", severity: "error", rule: "placeholder.mismatch", ...base(row, "target"),
@@ -302,8 +307,8 @@ export function checkRules(tables: Table[], opts: { wideAsTwo?: boolean; locale?
         out.push({ category: "placeholder", severity: "info", rule: "placeholder.count", ...base(row, "target"), message: msg.placeholderCount(ph.fewer, ph.more) });
       }
 
-      const st = tags(row.source, pair, renpy);
-      const tt = tags(row.target, pair, renpy);
+      const st = tags(row.source, pair, renpy, kag);
+      const tt = tags(row.target, pair, renpy, kag);
       const td = diff(st.list, tt.list);
       const emphasisOnly = t.targetLang === "ja" && !td.extra.length && td.missing.every((x) => EMPHASIS_TAGS.has(x.replace(/[</>{}]/g, "").toLowerCase()));
       if (td.missing.length && emphasisOnly) {

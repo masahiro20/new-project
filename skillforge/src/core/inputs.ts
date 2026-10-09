@@ -4,6 +4,7 @@ import { detectFormat, parseTableWithNotes, type Format, type ParseOptions } fro
 import { decodeText, stripBom } from "./parsers/decode.js";
 import { hasRenpyTranslations, renpyCharacters } from "./parsers/renpy.js";
 import { langFromName, otherLang, pairKey } from "./parsers/lang.js";
+import { ksBareKey, ksStructureNotes } from "./parsers/ks.js";
 import type { ColumnMap } from "./parsers/columns.js";
 import type { Lang, Row, Table } from "./types.js";
 
@@ -95,13 +96,19 @@ export function pairTables(src: Table, tgt: Table): { table: Table; missingInTar
   };
   const rows: Row[] = [];
   const missingInTarget: string[] = [];
+  // Scenario files (.ks): the translation is a file of its own that the user edits, so a paired row points at the
+  // translated text (file + line, like Ren'Py's tl files) and names the original's line in the context.
+  const ks = src.format === "ks" && tgt.format === "ks";
   for (const s of src.rows) {
     const t = byId.get(s.id)?.shift();
     if (!t) missingInTarget.push(s.id);
-    const ctx = [s.context, t?.context && t.context !== s.context ? t.context : undefined, t ? undefined : `missing in ${tgt.file}`].filter(Boolean);
+    const ctx = [
+      s.context, t?.context && t.context !== s.context ? t.context : undefined, t ? undefined : `missing in ${tgt.file}`,
+      ks && t ? `${src.singleLang}: ${s.file}:${s.line}` : undefined,
+    ].filter(Boolean);
     const row: Row = {
-      file,
-      line: s.line,
+      file: ks ? (t ?? s).file : file,
+      line: ks && t ? t.line : s.line,
       id: s.id,
       source: s.source,
       target: t?.source ?? "",
@@ -122,7 +129,7 @@ export function pairTables(src: Table, tgt: Table): { table: Table; missingInTar
     if (!q || !q.includes(t)) continue;
     onlyInTarget.push(t.id);
     // Line refers to the target file here; the context says so.
-    const row: Row = { ...t, file, source: "", target: t.source, missing: "source", context: [t.context, `only in ${tgt.file}:${t.line}`].filter(Boolean).join(" | ") };
+    const row: Row = { ...t, file: ks ? t.file : file, source: "", target: t.source, missing: "source", context: [t.context, `only in ${tgt.file}:${t.line}`].filter(Boolean).join(" | ") };
     if (src.singleLang === "ja" && legitPlural(t.id, srcIds, tgtIds)) row.pluralVariant = true;
     rows.push(row);
   }
@@ -234,6 +241,18 @@ export function loadInputs(files: InputFile[], opts: LoadOptions = {}): LoadResu
       used.add(j).add(cands[0]!);
     }
   }
+  // 1b) Scenario files (.ks): an original without a language token pairs with its tagged copy (first.ks ↔ first_en.ks,
+  // scenario/first.ks ↔ scenario/en/first.ks) when the names agree once the token is removed.
+  for (const j of jas) {
+    if (used.has(j) || j.table.format !== "ks") continue;
+    const k = ksBareKey(pairKey(j.input.name));
+    const sameJa = jas.filter((x) => !used.has(x) && x.table.format === "ks" && ksBareKey(pairKey(x.input.name)) === k);
+    const cands = ens.filter((e) => !used.has(e) && e.table.format === "ks" && ksBareKey(pairKey(e.input.name)) === k);
+    if (sameJa.length === 1 && cands.length === 1) {
+      pairs.push([j, cands[0]!, "matching names"]);
+      used.add(j).add(cands[0]!);
+    }
+  }
   // 2) Exactly one of each left: pair them.
   const restJa = jas.filter((s) => !used.has(s));
   const restEn = ens.filter((t) => !used.has(t));
@@ -255,6 +274,7 @@ export function loadInputs(files: InputFile[], opts: LoadOptions = {}): LoadResu
     note += `; direction ${s.table.singleLang}→${t.table.singleLang} (${dir.why})`;
     if (pluralSkipped.length) note += `; ${pluralSkipped.length} plural variant key(s) absent from the Japanese file not reported (Japanese has one plural form): ${list(pluralSkipped)}`;
     notes.push(note);
+    if (table.format === "ks") notes.push(...ksStructureNotes(s.table, t.table));
   }
   for (const p of singles) {
     if (used.has(p)) continue;

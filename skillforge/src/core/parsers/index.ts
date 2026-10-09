@@ -4,6 +4,7 @@ import { decodeText, stripBom } from "./decode.js";
 import { parseJson } from "./json.js";
 import { parsePo } from "./po.js";
 import { hasRenpyTranslations, parseRenpy } from "./renpy.js";
+import { parseKs } from "./ks.js";
 import { parseYaml } from "./yaml.js";
 import { isZip, parseXlsx } from "./xlsx.js";
 import { parseXliff } from "./xliff.js";
@@ -57,6 +58,7 @@ export function detectFormat(file: string, text: string | Uint8Array): Format {
   if (f.endsWith(".json")) return "json";
   if (f.endsWith(".yml") || f.endsWith(".yaml")) return "yaml";
   if (f.endsWith(".rpy")) return "renpy";
+  if (f.endsWith(".ks")) return "ks";
   if (f.endsWith(".tsv")) return "tsv";
   if (f.endsWith(".csv")) return "csv";
   if (typeof text !== "string") {
@@ -95,8 +97,8 @@ export function parseTableWithNotes(data: string | Uint8Array, file: string, opt
     text = d.text;
     if (d.note) notes.push(d.note);
   }
-  if (format === "yaml" || format === "renpy") {
-    const r = format === "yaml" ? parseYaml(text, file) : parseRenpy(text, file, { langs: opts.langs, characters: opts.renpyCharacters });
+  if (format === "yaml" || format === "renpy" || format === "ks") {
+    const r = format === "yaml" ? parseYaml(text, file) : format === "ks" ? parseKs(text, file) : parseRenpy(text, file, { langs: opts.langs, characters: opts.renpyCharacters });
     return { table: r.table, notes: [...notes, ...r.notes] };
   }
   return { table: parseText(text, file, format, opts), notes };

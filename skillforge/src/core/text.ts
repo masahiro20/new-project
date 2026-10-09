@@ -34,10 +34,12 @@ export function normalizeApostrophes(s: string): string {
  * without flags only counts when it looks like a variable (has `_`, `.` or a digit), so display labels such as
  * [none] / [empty] are not placeholders; see BRACKET_WORD for bare [word]s.
  * The printf branch has no space flag: "40% defense" is text, not `% d`.
+ * KAG / TyranoScript `[emb exp="f.name"]` (a variable shown in scenario text) is a placeholder too; the .ks parser
+ * writes it with canonical quoting so the two sides compare as equal strings.
  * Match it on `placeholderText(s)`, not the raw string, so Ren'Py escapes and text tags are out of the way.
  */
 export const PLACEHOLDER =
-  /\{[A-Za-z0-9_.$:]*\}|%(?:\d+\$)?[-+0#]*\d*(?:\.\d+)?(?:hh?|ll?|z|j|t)?[sdifxXuc@]|\$\{[^}]+\}|\$[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*\|?|\[[A-Z][A-Z0-9_]+\]|\[(?=[a-z0-9_.]*[_.0-9])[a-z_][a-z0-9_.]*\]|\[[A-Za-z_][A-Za-z0-9_.]*(?:![rsatuilcq]+(?::[-<>^=+#0-9,_.]*[A-Za-z%]?)?|:[-<>^=+#0-9,_.]*[A-Za-z%]?)\]/g;
+  /\[emb\s+exp\s*=\s*(?:"[^"\]]*"|'[^'\]]*'|[^\s\]]+)\s*\]|\{[A-Za-z0-9_.$:]*\}|%(?:\d+\$)?[-+0#]*\d*(?:\.\d+)?(?:hh?|ll?|z|j|t)?[sdifxXuc@]|\$\{[^}]+\}|\$[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*\|?|\[[A-Z][A-Z0-9_]+\]|\[(?=[a-z0-9_.]*[_.0-9])[a-z_][a-z0-9_.]*\]|\[[A-Za-z_][A-Za-z0-9_.]*(?:![rsatuilcq]+(?::[-<>^=+#0-9,_.]*[A-Za-z%]?)?|:[-<>^=+#0-9,_.]*[A-Za-z%]?)\]/g;
 
 /** A bare lowercase bracket word ([name], [none]): a Ren'Py variable or a display label. rules.ts decides which. */
 export const BRACKET_WORD = /\[[a-z][a-z]*\]/g;
@@ -88,9 +90,17 @@ export function placeholderText(s: string, renpy = false): string {
     RENPY_TAG_NAMES.has(name) && (renpy || close || value) ? "" : m);
 }
 
+/**
+ * KAG / TyranoScript inline styling tags kept in .ks text ([font size=30]…[resetfont], [graph storage=x.png], [mark]…
+ * [endmark]): [1] the tag name. Only .ks tables compare them (rules.ts); see KAG_STYLE_VISIBLE for display text.
+ */
+export const KAG_STYLE_TAG = /\[(font|resetfont|style|resetstyle|graph|mark|endmark|indent|endindent)(?:\s[^\]]*)?\]/g;
+/** The KAG styling tags no other format writes: one with attributes, or a reset/end tag. Removed from display text everywhere. */
+const KAG_STYLE_VISIBLE = /\[(?:(?:font|style|graph|mark|indent)\s+[^\]=]+=[^\]]*|resetfont|resetstyle|endmark|endindent)\]/g;
+
 const visibleCache = new Map<string, string>();
 
-/** Remove markup (HTML / Ren'Py tags, ruby, placeholders, `{#…}`; `{{` / `[[` become one bracket) so text checks and length counts see only visible text. Memoized. */
+/** Remove markup (HTML / Ren'Py / KAG styling tags, ruby, placeholders, `{#…}`; `{{` / `[[` become one bracket) so text checks and length counts see only visible text. Memoized. */
 export function visibleText(s: string): string {
   const hit = visibleCache.get(s);
   if (hit !== undefined) return hit;
@@ -105,6 +115,7 @@ function stripMarkup(s: string): string {
     .replace(/<rt>.*?<\/rt>/g, "")
     .replace(/\{rt\}.*?\{\/rt\}/g, "")
     .replace(/<\/?[A-Za-z][^<>]*>/g, "")
+    .replace(KAG_STYLE_VISIBLE, "")
     .replace(RENPY_TAG, (m, _c: string, name: string) => (RENPY_TAG_NAMES.has(name) ? "" : m))
     .replace(/\{([^{}|]+)\|[^{}]+\}/g, "$1")
     .replace(/[|｜]([^《|｜]+)《[^》]+》/g, "$1")
