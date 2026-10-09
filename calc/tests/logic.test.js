@@ -19,7 +19,7 @@ function load(file, scriptRe) {
   vm.runInNewContext(m[1], sandbox, { filename: file });
   return sandbox.module.exports;
 }
-const { Logic, Samples, PRICES } = load(PAGE, /<script id="app">([\s\S]*?)<\/script>/);
+const { Logic, Samples, PRICES, Share } = load(PAGE, /<script id="app">([\s\S]*?)<\/script>/);
 
 let pass = 0, fail = 0;
 const T = (name, fn) => {
@@ -31,7 +31,7 @@ const MAIN = new Set(["claude-fable-5-1", "claude-opus-5-5", "claude-sonnet-5-5"
   "gpt-6-astra", "gpt-6.1-sol", "gpt-6-luna", "gpt-5.4-mini", "gpt-5.4-nano", "o4-mini"]);
 
 /* ---------------- price data ---------------- */
-T("PRICES checkedOn is 2026-10-08", () => assert.equal(PRICES.checkedOn, "2026-10-08"));
+T("PRICES checkedOn is 2026-10-09", () => assert.equal(PRICES.checkedOn, "2026-10-09"));
 T("every model has numbers or is unverified, and an https source", () => {
   for (const m of PRICES.models) {
     assert(["verified", "unverified"].includes(m.status), m.id);
@@ -39,10 +39,24 @@ T("every model has numbers or is unverified, and an https source", () => {
     assert(/^https:\/\//.test(m.source), m.id);
   }
 });
-T("PRICES identical to the source tool (if the source is present)", () => {
+// v2 adds Google rows and a newer check date, so only the Anthropic/OpenAI prices must still match the source tool.
+T("Anthropic/OpenAI prices identical to the source tool (if the source is present)", () => {
   if (!fs.existsSync(SOURCE_TOOL)) { console.log("     (source tool not found, skipped)"); return; }
   const src = load(SOURCE_TOOL, /<script>([\s\S]*?)<\/script>/);
-  assert.deepStrictEqual(JSON.parse(JSON.stringify(PRICES)), JSON.parse(JSON.stringify(src.PRICES)));
+  const pick = (ms) => ms.filter((m) => m.provider !== "google").map(({ provider, id, name, input, output, cacheRead, cacheWrite, status }) => ({ provider, id, name, input, output, cacheRead, cacheWrite, status }));
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(pick(PRICES.models))), JSON.parse(JSON.stringify(pick(src.PRICES.models))));
+});
+T("Google rows: verified Gemini models with official source and no cache-write price", () => {
+  const g = PRICES.models.filter((m) => m.provider === "google");
+  assert(g.length >= 3, "gemini rows");
+  for (const m of g) {
+    assert.equal(m.source, "https://ai.google.dev/gemini-api/docs/pricing", m.id);
+    assert.equal(m.cacheWrite, null, m.id);
+    if (m.status === "verified") assert(m.input > 0 && m.output > 0 && m.cacheRead > 0, m.id);
+  }
+  const ids = new Set(PRICES.models.map((m) => m.id));
+  assert.equal(ids.size, PRICES.models.length, "duplicate ids");
+  for (const id of ["gemini-3.8-flash", "gemini-3.5-flash-lite", "gemini-3.1-pro-preview", "gemini-2.5-pro"]) assert(ids.has(id), id);
 });
 
 /* ---------------- Anthropic sample (hand-checked) ---------------- */
@@ -167,6 +181,101 @@ T("unverified row is excluded until a manual price is given", () => {
   assert(rx.excluded.some((m) => m.id === "x-1"));
   rx = Logic.compute(aA, pm, { mode: "raw", keepCache: true, manual: { "x-1": { input: 1, output: 2 } } });
   assert(rx.scenarios.some((s) => s.model.id === "x-1" && s.price.kind === "manual"));
+});
+
+/* ---------------- Google Gemini (hand-computed) ---------------- */
+// csv1 (Anthropic data, raw): unc 1M, cw5 2M, cw1 0.5M, cr 8M, out 0.3M.
+// Gemini has no cache-write price, so both cache-write classes are billed at input price.
+T("Anthropic data -> Gemini 3.8 Flash: 1x0.75 + 2.5x0.75 + 8x0.075 + 0.3x3.75 = $4.35", () => {
+  const r = one(csv1, { mode: "raw", keepCache: true })[2];
+  near(r.scenarios.find((s) => s.model.id === "gemini-3.8-flash").cost, 0.75 + 1.875 + 0.6 + 1.125);
+  near(r.scenarios.find((s) => s.model.id === "gemini-3.8-flash").cost, 4.35);
+});
+T("Anthropic data -> Gemini 3.1 Pro Preview (<=200K tier): 2 + 5 + 1.6 + 3.6 = $12.20; cache off = $26.60", () => {
+  near(one(csv1, { mode: "raw", keepCache: true })[2].scenarios.find((s) => s.model.id === "gemini-3.1-pro-preview").cost, 12.2);
+  near(one(csv1, { mode: "raw", keepCache: false })[2].scenarios.find((s) => s.model.id === "gemini-3.1-pro-preview").cost, 11.5 * 2 + 0.3 * 12);
+});
+T("Gemini usage via generic CSV: provider google, models/ prefix and current cost", () => {
+  const csv = "date,model,input_tokens,output_tokens,cached_input_tokens\n2026-09-01,models/gemini-2.5-flash,4000000,500000,1000000\n2026-09-02,gemini-3.5-flash-lite,2000000,100000,0";
+  const p = Logic.parseUsage(csv);
+  assert.equal(p.rows[0].provider, "google"); assert.equal(p.rows[0].unc, 3000000);
+  assert.equal(Logic.matchModel(p.rows[0].model, PRICES.models).id, "gemini-2.5-flash");
+  const r = Logic.compute(Logic.aggregate(p.rows), PRICES, { mode: "raw", keepCache: true, manual: {}, selected: null });
+  // 2.5 Flash: 3M x 0.30 + 1M x 0.03 + 0.5M x 2.50 = 0.9 + 0.03 + 1.25 = 2.18; 3.5 Flash-Lite: 2M x 0.30 + 0.1M x 2.50 = 0.85
+  near(r.current, 3.03); assert(r.currentComplete);
+});
+
+/* ---------------- share links ---------------- */
+const shareOf = (agg, extra) => Share.build({ agg, models: PRICES.models, selected: new Set(["gemini-3.8-flash", "claude-opus-5-5"]), mode: "30d", keepCache: true, manual: {}, ...extra });
+const plain = (x) => JSON.parse(JSON.stringify(x)); // values from the VM realm -> this realm
+const enc = (obj) => "#s=" + Share.toB64url(Share.utf8Bytes(JSON.stringify(obj)));
+T("share: round trip restores totals, mix, days, settings and the same costs", () => {
+  const pl = shareOf(aA, { mode: "raw", keepCache: false, selected: new Set(["gemini-3.8-flash", "gpt-6-luna"]) });
+  const h = "#" + Share.encode(pl);
+  assert(/^#s=[A-Za-z0-9_-]+$/.test(h));
+  const d = Share.decode(h, PRICES.models);
+  assert(d.ok, d.error); assert.equal(d.ignored, 0);
+  assert.equal(d.state.mode, "raw"); assert.equal(d.state.keepCache, false); assert.equal(d.state.days, 14);
+  assert.deepEqual([...d.state.compare].sort(), ["gemini-3.8-flash", "gpt-6-luna"]);
+  const agg2 = Share.toAgg(d.state, PRICES.models);
+  for (const k in TOT) near(agg2.totals[k], TOT[k], "total " + k);
+  for (const mode of ["30d", "raw"]) for (const keepCache of [true, false]) {
+    const o = { mode, keepCache, manual: {}, selected: null };
+    const a = Logic.compute(aA, PRICES, o), b = Logic.compute(agg2, PRICES, o);
+    near(b.current, a.current, "current");
+    a.scenarios.forEach((s) => near(b.scenarios.find((x) => x.model.id === s.model.id).cost, s.cost, s.model.id));
+  }
+});
+T("share: payload holds no raw data, unknown model names go to 'other'", () => {
+  const p = Logic.parseUsage("date,model,input_tokens,output_tokens\n2026-09-01,secret-internal-llm,1000,10\n2026-09-03,gpt-6-luna,500,5");
+  const pl = shareOf(Logic.aggregate(p.rows), { manual: { "gpt-6-luna": { input: 0.2, output: null }, "nope": { input: 1 } } });
+  const json = JSON.stringify(pl);
+  assert(!/secret|2026-09/.test(json), json);
+  assert.deepEqual(Object.keys(pl.models), ["gpt-6-luna"]); assert.equal(pl.other.unc, 1000);
+  assert.deepEqual(pl.manual, { "gpt-6-luna": { input: 0.2 } });
+  const d = Share.decode("#" + Share.encode(pl), PRICES.models);
+  assert(d.ok); assert.equal(d.state.days, 3);
+  const r = Logic.compute(Share.toAgg(d.state, PRICES.models), PRICES, { mode: "raw", keepCache: true, manual: {}, selected: null });
+  assert.equal(r.currentComplete, false); near(r.coverage, 505 / 1515);
+});
+T("share: base64url handles non-ASCII and every padding length", () => {
+  for (const str of ["", "a", "ab", "abc", "abcd", "日本語 ✓ <b>", "\u{1F600}"]) assert.equal(Share.utf8String(Share.fromB64url(Share.toB64url(Share.utf8Bytes(str)))), str);
+});
+T("share: malformed hashes are rejected without throwing", () => {
+  const bad = ["", "#", "#s=", "#tool", "#s=@@@@", "#s=a", "#s=%3Cscript%3E", "#s=" + "A".repeat(9000),
+    "#s=" + Share.toB64url([0xff, 0xfe, 0xfd]), enc("just a string"), enc([1, 2, 3]), enc(null), enc({ v: 2, totals: { unc: 1 } }),
+    enc({ v: 1 }), enc({ v: 1, totals: { unc: -5, out: "1e6" } }), "#s=" + Share.toB64url(Share.utf8Bytes("{\"v\":1,"))];
+  for (const h of bad) {
+    let d; assert.doesNotThrow(() => { d = Share.decode(h, PRICES.models); }, h.slice(0, 40));
+    assert.equal(d.ok, false, "accepted: " + h.slice(0, 60)); assert(typeof d.error === "string" && d.error.length);
+  }
+});
+T("share: hostile values are clamped / ignored", () => {
+  const d = Share.decode(enc({ v: 1, period: "<img src=x onerror=alert(1)>", keepCache: "no", days: 1e9,
+    // JSON.parse so "__proto__" is a real own key, as it would be in a hostile link
+    models: JSON.parse('{"<img src=x onerror=alert(1)>":{"unc":5,"out":5},"__proto__":{"unc":7},"claude-opus-5-5":{"unc":1e300,"cw5":-1,"cr":null,"out":"9","cw1":"NaN"}}'),
+    compare: ["claude-opus-5-5", "<script>alert(1)</script>", 42, { x: 1 }], manual: { "gpt-6-luna": { input: -1, output: 1e99, cacheRead: "0.1" }, "<b>x</b>": { input: 1 } } }), PRICES.models);
+  assert(d.ok, d.error);
+  const s = d.state;
+  assert.equal(s.mode, "30d"); assert.equal(s.keepCache, true); assert.equal(s.days, Share.LIMITS.days);
+  assert.deepEqual(s.models.map((m) => m.id), ["claude-opus-5-5"]);
+  assert.deepEqual(s.models[0].tok, { unc: Share.LIMITS.tokens, cw5: 0, cw1: 0, cr: 0, out: 0 });
+  assert.deepEqual(s.other, { unc: 12, cw5: 0, cw1: 0, cr: 0, out: 5 });
+  assert.deepEqual([...s.compare], ["claude-opus-5-5"]);
+  assert.deepEqual(s.manual, { "gpt-6-luna": { output: Share.LIMITS.price } });
+  assert.equal(d.ignored, 6); // 2 model ids + 3 compare entries + 1 manual id
+  const pp = Share.decode(enc({ v: 1, totals: { unc: 1 }, manual: JSON.parse('{"__proto__":{"polluted":1}}') }), PRICES.models);
+  assert(pp.ok); assert.equal(pp.state.manual.polluted, undefined); assert.equal(({}).polluted, undefined);
+  const agg = Share.toAgg(s, PRICES.models);
+  assert(agg.byModel.every((b) => !/[<>]/.test(b.model)));
+  const r = Logic.compute(agg, PRICES, { mode: s.mode, keepCache: s.keepCache, manual: s.manual, selected: s.compare });
+  assert(r.scenarios.every((x) => isFinite(x.cost)));
+});
+T("share: totals-only payload and default compare", () => {
+  const d = Share.decode(enc({ v: 1, totals: { unc: 1e6, out: 1e6 } }), PRICES.models);
+  assert(d.ok); assert.equal(d.state.compare, null); assert.equal(d.state.days, null);
+  const r = Logic.compute(Share.toAgg(d.state, PRICES.models), PRICES, { mode: "30d", keepCache: true, manual: {}, selected: null });
+  near(r.scenarios.find((s) => s.model.id === "gemini-3.8-flash").cost, 0.75 + 3.75);
 });
 
 console.log(`\npass ${pass} fail ${fail}`);
