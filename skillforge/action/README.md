@@ -1,5 +1,121 @@
 # Kotomark GitHub Action
 
+台本ファイルに `kotomark check`（日英ローカライズの一貫性QA）をかけ、指摘を PR の注釈、ジョブサマリー、
+任意の JUnit / JSON ファイルとして報告します。composite 形式の Action で、`dist/kotomark.mjs` にコミットした
+まとめ済みの CLI をランナーの Node で動かします。`npm install` も、ほかの Action も要りません。
+
+> English version: see [English](#english) at the end of this file.
+
+```yaml
+- uses: actions/checkout@v4
+- uses: masahiro20/new-project/skillforge/action@<ref>   # pin a commit SHA or tag
+  with:
+    paths: loc/
+    glossary: loc/kotomark.glossary.json
+```
+
+> **置き場所について。** 今のところ、この Action は `masahiro20/new-project` のサブディレクトリ（`skillforge/action`）にあります。
+> 別のリポジトリから `uses: owner/repo/path@ref` で使えるのは、このリポジトリが**公開**されている場合か、
+> 非公開／internal のリポジトリなら、呼び出し側が同じ組織／エンタープライズにいて、リポジトリの
+> *Settings → Actions → General → Access* で許可されている場合だけです。このリポジトリの中では、`actions/checkout` のあとに
+> `uses: ./skillforge/action` とも書けます。Kotomark を専用のリポジトリに移すときは、ディレクトリをそのまま
+> （`action.yml`、`run.sh`、`dist/`）移します。変わるのは `uses:` のパスだけです。
+
+## 必要なもの
+
+- **Node.js 20 以上**が `PATH` にあること。GitHub のホステッドランナーには入っています。セルフホストのランナーや Node の無いコンテナでは、
+  この Action の前に `actions/setup-node` を入れてください。Node が無いか古いと、この Action は終了コード 2 で失敗します。
+- **bash 4 以上**。Linux で試験済みです。macOS のランナーは `/bin/bash` が bash 3.2 ですが、GitHub の macOS イメージでは
+  新しい bash が `PATH` の先にあります。Windows のランナー（Git Bash）は未検証です。
+- **権限：** `contents: read`（checkout 用）以外は要りません。注釈とジョブサマリーにトークンは不要です。
+  チェックランを作る別のテストレポート用 Action を使う場合は、そのジョブに `checks: write` が必要です。
+
+## 入力
+
+| 入力 | 既定値 | 説明 |
+|---|---|---|
+| `paths` | `.` | 検査するファイルまたはディレクトリ。1行に1つ（行の中に空白があっても構いません）、または1行に空白区切りで並べます。1行だけで、それが実在するパス1つを指す場合は、そのまま使います。ディレクトリは中まで探し、`.csv .tsv .json .xlf .xliff .xlsx .po .pot` を対象にします。 |
+| `glossary` | — | 用語集（JSON または CSV）。空のときは、作業ディレクトリに `kotomark.glossary.json`、`glossary.json`、`kotomark.glossary.csv` があればそれを使います。 |
+| `fail-on` | `error` | この重大度以上の指摘があれば失敗にします：`error`、`warning`、`never`。 |
+| `locale` | `en` | メッセージとラベルの言語：`en`、`ja`。 |
+| `min-severity` | — | 注釈・JUnit・サマリーで、`info`/`warning`/`error` より低い指摘を隠します。合否判定と件数の出力は、常に**すべて**の指摘を使います。 |
+| `input-format` | — | 入力形式を固定します（`csv`、`tsv`、`json`、`xliff`、`xlsx`、`po`、`i18n-json`、`unity-csv`、`unreal-csv`）。 |
+| `junit-path` | — | JUnit XML のレポートをここに書きます。`<failure>` は `fail-on` に合わせます（`fail-on: never` のときは `warning`）。 |
+| `json-path` | — | JSON の全結果（全指摘と `summary`）をここに書きます。 |
+| `annotations` | `true` | 指摘を、検査したファイルへの `::error` / `::warning` / `::notice` 注釈として出します。 |
+| `summary` | `true` | Markdown のレポートをジョブサマリーに追記します。 |
+| `working-directory` | `.` | 実行するディレクトリ。上の相対パスはここを基準にします。注釈が正しいファイルに付くよう、リポジトリのルートのままにしてください。 |
+
+## 出力
+
+| 出力 | 説明 |
+|---|---|
+| `errors` | error の指摘の件数 |
+| `warnings` | warning の指摘の件数 |
+| `infos` | info の指摘の件数 |
+| `exit-code` | `0` 合格、`1` `fail-on` 以上の指摘あり、`2` 入力または使い方の誤り（ファイルが無い、オプションが不正、Node が古い） |
+
+このステップは、すべてのレポートを書き終えた**あとで** `exit-code` で終了します。検査が失敗しても、
+注釈、サマリー、JUnit/JSON ファイルは残ります。それらを使う後続のステップには `if: always()` を付けてください。
+
+## 例：JUnit のアップロードと独自の判定
+
+```yaml
+name: Localization QA
+on:
+  pull_request:
+    paths: ["loc/**"]
+
+permissions:
+  contents: read
+
+jobs:
+  kotomark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: kotomark
+        uses: masahiro20/new-project/skillforge/action@<ref>
+        with:
+          paths: |
+            loc/main story
+            loc/side quests
+          glossary: loc/kotomark.glossary.json
+          fail-on: error
+          junit-path: reports/kotomark-junit.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kotomark-junit
+          path: reports/kotomark-junit.xml
+      - if: always()
+        run: echo "Kotomark found ${{ steps.kotomark.outputs.errors }} error(s), ${{ steps.kotomark.outputs.warnings }} warning(s)"
+```
+
+JUnit ファイルをテストレポートとして表示するには、後ろにレポート用の Action を追加します（例：`mikepenz/action-junit-report`
+や `dorny/test-reporter`、`if: always()` 付き）。これらには `checks: write` が必要です。
+
+コピーして使えるワークフローは [`../.github-example/kotomark.yml`](../.github-example/kotomark.yml) にあります。
+
+PR の差分に出る注釈は、1ステップあたり各レベル最大10件、1ジョブあたり最大50件です。全件は
+ジョブサマリーと JUnit/JSON レポートにあります。
+
+## 開発
+
+- ステップの処理は `run.sh` にあります。`action.yml` は入力を `INPUT_*` 環境変数に渡すだけです（入力をスクリプトに
+  直接埋め込むことはしません）。ローカルで動かすには：
+  `INPUT_PATHS=samples/ja-en/script.csv INPUT_GLOSSARY=samples/ja-en/glossary.json bash action/run.sh`。
+- CLI や core を変えたら、`skillforge/` で `npm run build:action` を実行してバンドルを作り直し、
+  `action/dist/kotomark.mjs` をコミットしてください。依存パッケージをすべて含む1ファイルで、
+  Node の組み込みモジュール以外を import してはいけません。
+- テスト：`test/action.test.ts`（偽の `GITHUB_OUTPUT` / `GITHUB_STEP_SUMMARY` で `run.sh` を動かします）。
+
+---
+
+## English
+
+# Kotomark GitHub Action
+
 Runs `kotomark check` (JA↔EN localization consistency QA) on your script files and reports the findings as
 PR annotations, a job summary and optional JUnit / JSON files. It is a composite action that runs the bundled
 CLI committed at `dist/kotomark.mjs` with the runner's Node — no `npm install`, no other actions.

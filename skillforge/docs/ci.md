@@ -1,54 +1,54 @@
-# Running Kotomark in CI
+# CI で Kotomark を動かす
 
-`kotomark check` is one command that reads your script files (or whole directories), runs every check and
-exits non-zero when findings reach the severity you gate on. It needs Node 20+ and nothing else: the
-published `bin` is a single bundled file (`dist/kotomark.mjs`).
+`kotomark check` は1つのコマンドです。台本のファイル（またはディレクトリごと）を読み、すべての検査を行い、
+指定した重大度に達する指摘があれば 0 以外で終了します。必要なのは Node 20 以上だけです。公開する
+`bin` は、1つにまとめたファイル（`dist/kotomark.mjs`）です。
 
-> Kotomark is not on the npm registry yet (internal prototype). Until it is, install it from a packed tarball
-> (`npm pack` in `skillforge/` → `kotomark-0.1.0.tgz`) committed to the repo or published as a build artifact,
-> e.g. `npm install --no-save ./tools/kotomark-0.1.0.tgz`, then run `npx --no-install kotomark …`.
-> The examples below assume that; swap in `npx kotomark@<version>` once it is published.
+> Kotomark はまだ npm レジストリにありません（社内の試作品です）。公開されるまでは、固めた tarball から入れてください
+> （`skillforge/` で `npm pack` → `kotomark-0.1.0.tgz`）。リポジトリにコミットするか、ビルド成果物として置きます。
+> 例：`npm install --no-save ./tools/kotomark-0.1.0.tgz` のあと `npx --no-install kotomark …` で実行します。
+> 以下の例はこの前提で書いています。公開後は `npx kotomark@<version>` に置き換えてください。
 
-## Exit codes
+## 終了コード
 
-| Code | Meaning |
+| コード | 意味 |
 |---:|---|
-| `0` | Passed: no findings at or above `--fail-on` (findings below it may still be reported) |
-| `1` | Findings at or above `--fail-on` (default `error`) |
-| `2` | Bad input or usage: missing file, unreadable/unsupported table, bad option value, unknown flag |
+| `0` | 合格：`--fail-on` 以上の指摘なし（それより低い指摘はレポートに出ることがあります） |
+| `1` | `--fail-on`（既定は `error`）以上の指摘あり |
+| `2` | 入力または使い方の誤り：ファイルが無い、表が読めない／未対応、オプションの値が不正、知らないフラグ |
 
-`--fail-on error|warning|never` sets the gate. Gating always looks at **all** findings; `--min-severity`
-only hides lower-severity findings from the report.
+`--fail-on error|warning|never` で合否の基準を決めます。合否判定は常に**すべて**の指摘を見ます。`--min-severity`
+は、重大度の低い指摘をレポートから隠すだけです。
 
-## Report formats
+## レポートの形式
 
-| `--format` | Use |
+| `--format` | 用途 |
 |---|---|
-| `md` (default) | Human-readable Markdown report (also nice as a job summary: `>> $GITHUB_STEP_SUMMARY`) |
-| `json` | The full `CheckResult` (`tables`, `glossary`, `findings`, `usage`, `reviewPackets`) plus `summary: {errors, warnings, infos, byCategory}`. `--json` is an alias. |
-| `junit` | JUnit XML for test-report UIs (GitLab, Jenkins, Azure DevOps, GitHub test-reporter actions) |
-| `github` | GitHub Actions workflow commands: findings show up as annotations on the changed files |
+| `md`（既定） | 人が読む Markdown レポート（ジョブサマリーにも向いています：`>> $GITHUB_STEP_SUMMARY`） |
+| `json` | `CheckResult` 全体（`tables`、`glossary`、`findings`、`usage`、`reviewPackets`）に `summary: {errors, warnings, infos, byCategory}` を加えたもの。`--json` は別名です。 |
+| `junit` | テストレポート画面（GitLab、Jenkins、Azure DevOps、GitHub のテストレポート用 Action）向けの JUnit XML |
+| `github` | GitHub Actions のワークフローコマンド。指摘が、変更されたファイルの注釈として表示されます |
 
-`--out <file>` writes the report to a file (stdout stays empty); a one-line summary always goes to stderr
-for non-Markdown formats. `--locale ja` switches messages and category titles to Japanese in every format.
+`--out <file>` でレポートをファイルに書きます（stdout には何も出ません）。Markdown 以外の形式では、1行の要約が必ず stderr に出ます。
+`--locale ja` にすると、どの形式でもメッセージとカテゴリ名が日本語になります。
 
-### JUnit layout
+### JUnit の構成
 
-- One `<testsuite>` per **category** (`term`, `notation`, `name`, `honorific`, `voice`, `placeholder`, `tag`,
-  `ruby`, `length`), always all of them, so the report shape is stable between runs.
-- One `<testcase>` per finding: `name="<file>:<line> <rule>"`, `classname="<category>"`.
-- Findings at or above `--junit-fail-on` get `<failure type="<rule>" message="…">`. The default follows
-  `--fail-on` (or `warning` when `--fail-on never`), so the test report and the exit code agree.
-  Lower-severity findings are passing test cases with the details in `<system-out>`.
-- A category with no findings gets one passing test case `<category>: no findings`.
+- **カテゴリ**ごとに `<testsuite>` を1つ作ります（`term`、`notation`、`name`、`honorific`、`voice`、`placeholder`、`tag`、
+  `ruby`、`length`）。毎回すべてのカテゴリを出すので、実行ごとにレポートの形が変わりません。
+- 指摘ごとに `<testcase>` を1つ作ります：`name="<file>:<line> <rule>"`、`classname="<category>"`。
+- `--junit-fail-on` 以上の指摘には `<failure type="<rule>" message="…">` が付きます。既定は
+  `--fail-on` に合わせます（`--fail-on never` のときは `warning`）。これでテストレポートと終了コードが一致します。
+  重大度の低い指摘は合格のテストケースになり、詳細は `<system-out>` に入ります。
+- 指摘の無いカテゴリには、合格のテストケース `<category>: no findings` を1つ作ります。
 
-### GitHub annotations
+### GitHub の注釈
 
-`error` → `::error`, `warning` → `::warning`, `info` → `::notice`, with `file=` and `line=` relative to the
-working directory (run from the repo root so annotations land on the right files). Property values escape
-`%`, CR, LF, `:` and `,`; messages escape `%`, CR and LF, per the workflow-command spec.
+`error` → `::error`、`warning` → `::warning`、`info` → `::notice` です。`file=` と `line=` は作業ディレクトリからの
+相対パスです（注釈が正しいファイルに付くよう、リポジトリのルートで実行してください）。プロパティの値は
+`%`、CR、LF、`:`、`,` を、メッセージは `%`、CR、LF をエスケープします（ワークフローコマンドの仕様どおり）。
 
-## Inputs and glossary
+## 入力と用語集
 
 ```bash
 kotomark check loc/                          # recurse: .csv .tsv .json .xlf .xliff .xlsx .po .pot
@@ -56,16 +56,16 @@ kotomark check loc/ch1.csv loc/ch2.xlsx --glossary loc/glossary.json
 kotomark check script.txt --input-format csv
 ```
 
-- Directories skip `node_modules`, `.git`, files with `glossary` in the name and tool configs
-  (`package.json`, `tsconfig.json`, …). Explicit file arguments are always read.
-- Without `--glossary`, the first of `kotomark.glossary.json`, `glossary.json`, `kotomark.glossary.csv` in the
-  working directory is used (a note goes to stderr). `--no-glossary` turns that off.
-- Parser notes (skipped sheets, guessed columns, …) go to stderr.
+- ディレクトリを渡すと、`node_modules`、`.git`、名前に `glossary` を含むファイル、ツールの設定ファイル
+  （`package.json`、`tsconfig.json` など）を飛ばします。直接指定したファイルは必ず読みます。
+- `--glossary` が無いときは、作業ディレクトリにある `kotomark.glossary.json`、`glossary.json`、`kotomark.glossary.csv`
+  のうち最初に見つかったものを使います（stderr に通知が出ます）。`--no-glossary` で無効にします。
+- 読み込み時の注意（飛ばしたシート、推測した列など）は stderr に出ます。
 
-## GitHub Action (recommended)
+## GitHub Action（おすすめ）
 
-The repository ships a composite action, [`action/`](../action/README.md), that runs the bundled CLI
-(`action/dist/kotomark.mjs`, committed) with the runner's Node 20+ — no install step:
+このリポジトリには composite 形式の Action、[`action/`](../action/README.md) が入っています。まとめた CLI
+（`action/dist/kotomark.mjs`、コミット済み）をランナーの Node 20 以上で動かすので、インストールの手順は要りません。
 
 ```yaml
 permissions:
@@ -82,14 +82,14 @@ steps:
   # outputs: steps.kotomark.outputs.errors / warnings / infos / exit-code
 ```
 
-It runs one JSON pass (outputs + gate) and then renders annotations (`annotations: true`), the Markdown
-job summary (`summary: true`) and the optional JUnit/JSON files, and exits with the `fail-on` exit code only
-after every report is written. `uses: owner/repo/path@ref` from another repository requires this repository
-to be public, or same-organization access to be allowed. All inputs, outputs and a JUnit-upload example:
-[`action/README.md`](../action/README.md); a copyable workflow: [`.github-example/kotomark.yml`](../.github-example/kotomark.yml).
-After changing the CLI or core, rebuild the committed bundle with `npm run build:action`.
+JSON で1回だけ検査し（出力と合否判定）、そのあと注釈（`annotations: true`）、Markdown の
+ジョブサマリー（`summary: true`）、任意の JUnit/JSON ファイルを作ります。`fail-on` に応じた終了コードで終わるのは、
+すべてのレポートを書き終えてからです。別のリポジトリから `uses: owner/repo/path@ref` で使うには、このリポジトリが
+公開されているか、同じ組織からのアクセスが許可されている必要があります。入力・出力の一覧と JUnit のアップロード例：
+[`action/README.md`](../action/README.md)。コピーして使えるワークフロー：[`.github-example/kotomark.yml`](../.github-example/kotomark.yml)。
+CLI や core を変えたら、`npm run build:action` でコミット済みのバンドルを作り直してください。
 
-## GitHub Actions (CLI directly)
+## GitHub Actions（CLI を直接使う）
 
 ```yaml
 # .github/workflows/localization-qa.yml
@@ -136,8 +136,8 @@ jobs:
           check_name: Kotomark
 ```
 
-GitHub shows at most 10 annotations of each level per step in the PR "Files changed" view and 50 per job;
-the full list is in the JUnit report and the job summary.
+GitHub の PR の「Files changed」画面に出る注釈は、1ステップあたり各レベル最大10件、1ジョブあたり最大50件です。
+全件は JUnit レポートとジョブサマリーにあります。
 
 ## GitLab CI
 
@@ -155,10 +155,10 @@ kotomark:
     paths: [kotomark-junit.xml]
 ```
 
-The job fails on errors (exit 1) and the findings appear in the merge request's test summary. Use
-`--fail-on warning` to block on warnings too, or `--fail-on never` to report without blocking.
+エラーがあるとジョブは失敗し（終了コード 1）、指摘はマージリクエストのテスト結果に表示されます。
+警告でも止めたいときは `--fail-on warning`、止めずに報告だけしたいときは `--fail-on never` を使ってください。
 
-## Other CI
+## その他の CI
 
-Anything that reads exit codes works. `--format json` plus `jq` covers custom gates, e.g.
-`kotomark check loc/ --json --fail-on never | jq -e '.summary.byCategory.term.errors // 0 | . == 0'`.
+終了コードを読める CI なら何でも使えます。独自の判定には `--format json` と `jq` を組み合わせます。例：
+`kotomark check loc/ --json --fail-on never | jq -e '.summary.byCategory.term.errors // 0 | . == 0'`。
