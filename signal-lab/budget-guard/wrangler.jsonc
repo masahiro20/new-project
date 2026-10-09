@@ -11,9 +11,16 @@
     "directory": ".open-next/assets",
     "binding": "ASSETS"
   },
-  // Hourly, same as vercel.json. Free plan: 5 Cron Triggers per account (shared by all Workers).
+  // Every minute: each run checks a small slice of this hour's connections (lib/guard/cron.ts),
+  // so one run stays within the free plan's 10 ms CPU / 50 subrequests. One trigger of the
+  // 5 per account (free plan). vercel.json keeps its single hourly call.
   "triggers": {
-    "crons": ["0 * * * *"]
+    "crons": ["* * * * *"]
+  },
+  "vars": {
+    // Connections per cron run (≈30 KV requests + provider calls < 50 subrequests, ~3 ms CPU).
+    // 60 runs/hour × 2 = up to ~118 connections per hour. See docs/deploy-cloudflare.md §7.
+    "CRON_BATCH_SIZE": "2"
   },
   "observability": {
     "enabled": true

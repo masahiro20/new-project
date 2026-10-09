@@ -22,6 +22,7 @@ export interface KV {
   hincrby(key: string, field: string, by: number): Promise<number>;
   hgetall(key: string): Promise<Record<string, string>>;
   sadd(key: string, ...members: string[]): Promise<number>;
+  srem(key: string, ...members: string[]): Promise<number>;
   smembers(key: string): Promise<string[]>;
   scard(key: string): Promise<number>;
 }
@@ -129,6 +130,14 @@ export function createMemoryKV(now: () => number = Date.now): KV {
       for (const m of members) if (!s.has(m) && s.add(m)) added++;
       return added;
     },
+    async srem(k, ...members) {
+      const s = typed(k, isSet);
+      if (!s) return 0;
+      let removed = 0;
+      for (const m of members) if (s.delete(m)) removed++;
+      if (s.size === 0) data.delete(k);
+      return removed;
+    },
     async smembers(k) {
       return [...(typed(k, isSet) ?? [])];
     },
@@ -162,6 +171,7 @@ function createUpstashKV(url: string, token: string): KV {
     hincrby: (k, f, by) => r.hincrby(k, f, by),
     hgetall: async (k) => (await r.hgetall<Record<string, string>>(k)) ?? {},
     sadd: (k, ...members) => (members.length ? r.sadd(k, members[0], ...members.slice(1)) : Promise.resolve(0)),
+    srem: (k, ...members) => (members.length ? r.srem(k, ...members) : Promise.resolve(0)),
     smembers: (k) => r.smembers(k),
     scard: (k) => r.scard(k),
   };

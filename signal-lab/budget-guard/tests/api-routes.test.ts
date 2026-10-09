@@ -155,6 +155,12 @@ describe("/api/app/* auth", () => {
     expect((await r.json()).msg).toBe("checked");
     r = await postConn(req(`/api/app/connections/${aliceConn}`, { body: { op: "test-stop" }, cookie: alice.cookie }), ctx(aliceConn));
     expect((await r.json()).msg).toBe("tested");
+    // While the hourly cron holds this connection, "Check now" says busy instead of checking in parallel.
+    await getKV().set(`budget-guard:bg:lock:${aliceConn}`, "cron", { ex: 60 });
+    r = await postConn(req(`/api/app/connections/${aliceConn}`, { body: { op: "check" }, cookie: alice.cookie }), ctx(aliceConn));
+    expect(r.status).toBe(409);
+    expect((await r.json()).msg).toBe("busy");
+    await getKV().del(`budget-guard:bg:lock:${aliceConn}`);
     r = await postConn(req(`/api/app/connections/${aliceConn}`, { body: { op: "nope" }, cookie: alice.cookie }), ctx(aliceConn));
     expect(r.status).toBe(400);
     const s = await (await state(req("/api/app/state", { cookie: alice.cookie }))).json();

@@ -46,7 +46,41 @@ const k = {
   owner: (id: string) => key("bg", "owner", id),
   settings: (acct: string) => key("bg", acct, "settings"),
   hook: (id: string, event: string) => key("bg", "hook", id, event),
+  /** Every connection as `${acct}|${connId}`: the hourly cron's work list (one SMEMBERS). */
+  allConns: () => key("bg", "allconns"),
+  connLock: (id: string) => key("bg", "lock", id),
 };
+
+export const connRef = (acct: string, id: string) => `${acct}|${id}`;
+export function parseConnRef(ref: string): { acct: string; id: string } | null {
+  const i = ref.lastIndexOf("|");
+  return i > 0 ? { acct: ref.slice(0, i), id: ref.slice(i + 1) } : null;
+}
+export const listConnRefs = (kv: KV) => kv.smembers(k.allConns());
+
+/** Rebuild the connection index from accounts (one-off for data written before the index existed). */
+export async function rebuildConnIndex(kv: KV): Promise<number> {
+  const refs: string[] = [];
+  for (const acct of await listAccounts(kv)) for (const c of await listConnections(kv, acct)) refs.push(connRef(acct, c.id));
+  if (refs.length) await kv.sadd(k.allConns(), ...refs);
+  return refs.length;
+}
+
+/**
+ * Per-connection mutex around a check (cron, "Check now", Vercel webhook), so two
+ * checks of one connection never run at the same time — the stop action and the
+ * once-a-month notices are decided from state that the first check is about to write.
+ * Expires on its own if the holder dies.
+ */
+export async function withConnLock<T>(kv: KV, id: string, ttlSeconds: number, fn: () => Promise<T>): Promise<{ ok: true; value: T } | { ok: false }> {
+  if (!(await kv.set(k.connLock(id), String(Date.now()), { nx: true, ex: ttlSeconds }))) return { ok: false };
+  try {
+    return { ok: true, value: await fn() };
+  } finally {
+    // Plain DEL (one request): the lock can only belong to someone else if ours outlived its TTL.
+    await kv.del(k.connLock(id));
+  }
+}
 
 export async function listConnections(kv: KV, acct: string): Promise<StoredConnection[]> {
   return (await getJSON<StoredConnection[]>(kv, k.conns(acct))) ?? [];
@@ -75,6 +109,7 @@ export async function addConnection(
   await setJSON(kv, k.conns(acct), [...conns, conn]);
   await kv.set(k.owner(id), acct);
   await kv.sadd(k.accounts(), acct);
+  await kv.sadd(k.allConns(), connRef(acct, id));
   return conn;
 }
 
@@ -99,6 +134,7 @@ export async function removeConnection(kv: KV, acct: string, id: string): Promis
   const conns = await listConnections(kv, acct);
   await setJSON(kv, k.conns(acct), conns.filter((c) => c.id !== id));
   await kv.del(k.state(acct, id), k.snap(acct, id), k.owner(id));
+  await kv.srem(k.allConns(), connRef(acct, id));
 }
 
 /** Which account owns a connection (for inbound webhooks, which carry no session). */

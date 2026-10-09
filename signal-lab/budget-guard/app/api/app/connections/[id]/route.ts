@@ -2,7 +2,7 @@ import { badRequest, guard, json, readJson } from "@/lib/api";
 import { getKV } from "@/lib/redis";
 import { adapterFor } from "@/lib/guard/providers";
 import { connIdSchema, connOpSchema } from "@/lib/guard/schemas";
-import { checkAccount, challengeSecret, fetchFor, openToken, planFor, setVercelWebhookSecret } from "@/lib/guard/service";
+import { checkAccountDetailed, challengeSecret, fetchFor, openToken, planFor, setVercelWebhookSecret } from "@/lib/guard/service";
 import { runStop, verifyChallenge } from "@/lib/guard/stop";
 import { appendLog, getConnection, removeConnection, updateConnection } from "@/lib/guard/store";
 import { connectionDetailView } from "@/lib/guard/views";
@@ -50,7 +50,7 @@ export async function POST(request: Request, ctx: Ctx) {
 
   switch (op.data.op) {
     case "check":
-      await checkAccount(kv, account.id, account.email, new Date(), conn.id);
+      if ((await checkAccountDetailed(kv, account.id, account.email, new Date(), conn.id)).busy.length) return done("busy", 409);
       return done("checked");
 
     case "mode": // disarming never needs confirmation

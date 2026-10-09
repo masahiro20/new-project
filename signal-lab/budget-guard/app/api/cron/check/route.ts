@@ -1,10 +1,12 @@
 import { timingSafeEqual } from "node:crypto";
 import { getKV } from "@/lib/redis";
 import { isProduction } from "@/lib/site";
-import { checkAll } from "@/lib/guard/service";
+import { cronBatchSize, runCronSlice } from "@/lib/guard/cron";
 
-// Hourly check (vercel.json cron). Vercel sends `Authorization: Bearer $CRON_SECRET`.
-// Without CRON_SECRET the route only works outside production.
+// Hourly check. Vercel (vercel.json, hourly) sends `Authorization: Bearer $CRON_SECRET`
+// and, with CRON_BATCH_SIZE unset, checks every connection in one call. Cloudflare
+// runs lib/guard/cron.ts directly from cf-worker.ts every minute in small slices; this
+// route stays usable there for manual runs. Without CRON_SECRET it only works outside production.
 export const maxDuration = 300;
 
 function authorized(request: Request): boolean {
@@ -17,6 +19,6 @@ function authorized(request: Request): boolean {
 
 export async function GET(request: Request) {
   if (!authorized(request)) return new Response("Unauthorized", { status: 401 });
-  const result = await checkAll(getKV());
+  const result = await runCronSlice(getKV(), { batch: cronBatchSize() });
   return Response.json({ ok: true, ...result });
 }

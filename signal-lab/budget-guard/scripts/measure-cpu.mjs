@@ -82,7 +82,17 @@ function bursts(profile) {
 }
 
 /** Run `fns` one after another under one profile; CPU ms per call. */
-async function profileCalls(fns, { warmup = true } = {}) {
+async function profileCalls(fns, opts = {}) {
+  // Burst splitting can be fooled by a stray sample between requests: retry a couple of times.
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await profileCallsOnce(fns, opts);
+    } catch (e) {
+      if (attempt >= 3 || !String(e.message).includes("CPU bursts")) throw e;
+    }
+  }
+}
+async function profileCallsOnce(fns, { warmup = true } = {}) {
   await send("Profiler.start");
   if (warmup) {
     await call("/robots.txt"); // absorbs the profiler start-up cost
@@ -244,8 +254,52 @@ try {
       cookie = saved;
     }
   });
-  await route("scheduled() → /api/cron/check (1 account, 1 conn)", "cron", () => call("/__scheduled?cron=0+*+*+*+*"));
-  await route("GET /api/cron/check with secret (1 conn)", "api", () => call("/api/cron/check", { headers: { authorization: `Bearer ${CRON_SECRET}` } }));
+  await route("GET /api/cron/check with secret (1 conn, manual run)", "api", () => call("/api/cron/check", { headers: { authorization: `Bearer ${CRON_SECRET}` } }));
+
+  // Cron scaling: scheduled() runs one slice (CRON_BATCH_SIZE connections) per minute
+  // without Next.js. For N connections, play one hour minute by minute (`time=` picks
+  // the hour) and profile every run until the hour's list is done.
+  const seedAccount = async () => {
+    const co = new URL(JSON.parse((await call("/api/checkout", { body: { plan: "monthly" } })).text).url, BASE).searchParams.get("id");
+    await call("/api/checkout/demo", { body: { ...card, id: co } });
+    await call("/api/checkout/complete", { body: { session_id: co } });
+    return (await call("/api/access/verify", { form: { session_id: co } })).headers.get("set-cookie").split(";")[0];
+  };
+  let total = 1; // the session above keeps one connection
+  const savedCookie = cookie;
+  async function grow(n) {
+    while (total < n) {
+      cookie = await seedAccount();
+      for (let c = 0; c < 3 && total < n; c++, total++) {
+        const r = await call("/api/app/connections", { body: { provider: "openai", label: `Seed ${total}`, budgetUsd: "100", projectId: "proj_demo", token: "demo" } });
+        if (r.status !== 201) throw new Error(`seed: ${r.status} ${r.text}`);
+      }
+    }
+    cookie = savedCookie;
+  }
+  const hourBase = Date.UTC(2030, 0, 1);
+  let scenario = 0;
+  for (const n of [1, 10, 100]) {
+    await grow(n);
+    const hour = hourBase + scenario++ * 3600_000;
+    const runs = [];
+    for (let minute = 0; minute < 60; minute++) {
+      const at = hour + minute * 60_000 + 1000;
+      const before = log.length;
+      const { cpu } = await profileCalls([() => call(`/cdn-cgi/handler/scheduled?cron=*+*+*+*+*&time=${at}`)]);
+      await sleep(50);
+      const line = log.slice(before).match(/\[cron\] \* \* \* \* \* (\{.*\})/);
+      const res = line ? JSON.parse(line[1]) : null;
+      runs.push({ ms: cpu[0].ms, res });
+      if (res && !res.initialized && res.checked === 0 && res.remaining === 0) break;
+    }
+    const work = runs.filter((r) => r.res && r.res.checked > 0);
+    const done = runs.reduce((a, r) => a + (r.res?.checked ?? 0) + (r.res?.skipped ?? 0), 0);
+    const idle = runs.at(-1);
+    record(`scheduled() slice, ${total} conns: first run of the hour (init)`, "cron", runs[0].ms, [runs[0].ms]);
+    record(`scheduled() slice, ${total} conns: runs that checked (${work.length} runs, ${done} done)`, "cron", work[0]?.ms ?? 0, work.map((r) => r.ms));
+    record(`scheduled() slice, ${total} conns: nothing left (idle minute)`, "cron", idle.ms, [idle.ms]);
+  }
 } catch (e) {
   console.error(e);
   console.error(log.slice(-3000));

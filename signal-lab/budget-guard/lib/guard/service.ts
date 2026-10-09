@@ -28,6 +28,7 @@ import {
   saveSnapshot,
   saveState,
   updateConnection,
+  withConnLock,
   type StoredConnection,
 } from "./store";
 
@@ -118,9 +119,46 @@ export async function checkAccount(
   only?: string,
   opts: { forceLimit?: boolean; notifyFetch?: FetchLike } = {},
 ): Promise<Notice[]> {
+  return (await checkAccountDetailed(kv, acct, email, now, only, opts)).notices;
+}
+
+/** Longest a single connection check may hold its lock (provider calls + stop). */
+export const CONN_LOCK_SECONDS = 120;
+
+/**
+ * Like checkAccount, and also reports connections skipped because another check of
+ * the same connection was running (per-connection lock, see withConnLock) — the cron
+ * retries those later instead of checking twice at once.
+ */
+export async function checkAccountDetailed(
+  kv: KV,
+  acct: string,
+  email: string,
+  now = new Date(),
+  only?: string,
+  opts: { forceLimit?: boolean; notifyFetch?: FetchLike } = {},
+): Promise<{ notices: Notice[]; busy: string[]; checked: number }> {
   const all: Notice[] = [];
+  const busy: string[] = [];
+  let checked = 0;
   for (const conn of await listConnections(kv, acct)) {
     if (only && conn.id !== only) continue;
+    const r = await withConnLock(kv, conn.id, CONN_LOCK_SECONDS, () => checkOne(kv, acct, conn, now, opts));
+    if (!r.ok) busy.push(conn.id);
+    else {
+      checked++;
+      all.push(...r.value);
+    }
+  }
+  await appendLog(kv, acct, all.map((n) => ({ ...n, at: now.toISOString() })));
+  await notify(kv, acct, email, all, opts.notifyFetch);
+  return { notices: all, busy, checked };
+}
+
+/** One connection: fetch spend, evaluate against this month's state, stop if due, save. */
+async function checkOne(kv: KV, acct: string, conn: StoredConnection, now: Date, opts: { forceLimit?: boolean }): Promise<Notice[]> {
+  const all: Notice[] = [];
+  {
     let token: string;
     let fetchImpl: FetchLike;
     try {
@@ -128,7 +166,7 @@ export async function checkAccount(
       fetchImpl = fetchFor(token);
     } catch (err) {
       all.push({ kind: "error", connectionId: conn.id, message: `${conn.label}: ${err instanceof Error ? err.message : err}` });
-      continue;
+      return all;
     }
     const result = await checkConnection(conn, (await getState(kv, acct, conn.id)) ?? undefined, {
       token,
@@ -146,8 +184,6 @@ export async function checkAccount(
     });
     all.push(...result.notices);
   }
-  await appendLog(kv, acct, all.map((n) => ({ ...n, at: now.toISOString() })));
-  await notify(kv, acct, email, all, opts.notifyFetch);
   return all;
 }
 
@@ -207,12 +243,17 @@ export async function handleVercelWebhook(
     // we treat Vercel's own figure as the limit, so an armed stop runs immediately.
     followUp: async () => {
       await notify(kv, acct, ent.email, [notice]);
-      await checkAccount(kv, acct, ent.email, now, conn.id, { forceLimit: reachedLimit });
+      // If the cron (or a "Check now") holds this connection right now, wait for it rather than skip the forced check.
+      for (let attempt = 0; attempt < 4; attempt++) {
+        const r = await checkAccountDetailed(kv, acct, ent.email, now, conn.id, { forceLimit: reachedLimit });
+        if (r.busy.length === 0) break;
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+      }
     },
   };
 }
 
-/** Hourly cron: every account with an active entitlement. */
+/** Every account in one go (tests / tools). The cron uses lib/guard/cron.ts (sliced, locked). */
 export async function checkAll(kv: KV, now = new Date()): Promise<{ accounts: number; notices: number }> {
   let accounts = 0;
   let notices = 0;

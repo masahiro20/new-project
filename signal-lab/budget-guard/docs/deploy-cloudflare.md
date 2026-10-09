@@ -20,10 +20,11 @@ OpenNext（`@opennextjs/cloudflare`）で Next.js 16 アプリを 1 つの Worke
 | `lib/guard/views.ts`・`lib/guard/schemas.ts` | API が返す JSON の形と入力検証（トークンや秘密は返さない） |
 | `components/client/*` | `/app`・`/app/c`・`/access`・`/success`・`/checkout/demo`・ポータルのクライアント描画 |
 | `lib/payments/mode.ts`・`next.config.ts` | デモバナーをビルド時に決める（`BUDGET_GUARD_BUILD_PAYMENTS_MODE`）。実行時のモードと食い違えば決済を止める |
+| `lib/guard/cron.ts` | cron を分割して実行する（時間ごとの作業リスト、項目ごとの claim、接続ごとのロック、失敗時の再試行）。§7 |
 | `scripts/measure-cpu.mjs` | ルートごとの CPU 時間をローカル workerd で計測（`npm run cf:cpu`。§8.1） |
-| `wrangler.jsonc` | Worker 名 `budget-guard`、`nodejs_compat`、`compatibility_date` 2026-09-01、静的アセット（`ASSETS`）、毎時 cron |
+| `wrangler.jsonc` | Worker 名 `budget-guard`、`nodejs_compat`、`compatibility_date` 2026-09-01、静的アセット（`ASSETS`）、毎分の cron（`* * * * *`）、`CRON_BATCH_SIZE=2`（§7） |
 | `open-next.config.ts` | OpenNext の設定。読み取り専用の static-assets キャッシュ（R2/KV 不要）＋ `enableCacheInterception` |
-| `cf-worker.ts` | Worker の入口。OpenNext が生成した `.open-next/worker.js` を包み、次を足す：`scheduled()`（cron）、Next サーバーの起動時読み込み（§8.2）、`x-forwarded-for` を `cf-connecting-ip` に固定（レート制限の回避防止） |
+| `cf-worker.ts` | Worker の入口。OpenNext が生成した `.open-next/worker.js` を包み、次を足す：`scheduled()`（cron の 1 スライスを Next を通さずに実行。§7）、Next サーバーの起動時読み込み（§8.2）、`x-forwarded-for` を `cf-connecting-ip` に固定（レート制限の回避防止） |
 | `scripts/patch-opennext.mjs` | OpenNext 1.20.9 が Next 16.4 の `preview-props.json` を読めない不具合の回避（`build:cf` で自動実行。§9） |
 | `.dev.vars.example` | ローカル用のダミー値。`.dev.vars` にコピーして使う |
 | `scripts/gen-og.tsx` + `app/*.png` | OG 画像と favicon を静的 PNG にした（`npm run og` で再生成） |
@@ -38,7 +39,7 @@ OpenNext（`@opennextjs/cloudflare`）で Next.js 16 アプリを 1 つの Worke
 |---|---|
 | `npm run build:cf` | OpenNext ビルド（`.open-next/` を生成） |
 | `npm run preview` | ビルドして workerd でローカル実行（http://localhost:8787） |
-| `npm run preview:cron` | 同上＋ `--test-scheduled`（`/__scheduled` で cron を試せる） |
+| `npm run preview:cron` | 同上＋ `--test-scheduled`（`/__scheduled` や `/cdn-cgi/handler/scheduled?cron=…&time=<ms>` で cron を試せる） |
 | `npm run cf:size` | ビルドしてバンドルサイズを表示（`wrangler deploy --dry-run`。アップロードしない） |
 | `npm run deploy` / `npm run upload` | ビルドしてデプロイ／新しいバージョンをアップロードだけ（オーナーが実行） |
 | `npm run cf:cpu` | ルートごとの CPU 時間を計測（先に `build:cf`。Linux のみ） |
@@ -95,7 +96,8 @@ Worker の `process.env` には、wrangler の vars と secrets がリクエス�
 | `PAYMENTS_MODE` | ★ | `wrangler secret put` **と、ビルド時の環境変数の両方** | 当面 `demo`。静的ページのバナーはビルド時の値で決まる。実行時と違うと決済が止まる（§2.2） |
 | `ACCESS_SECRET` | ★ | secret | 32文字以上（`openssl rand -base64 32`） |
 | `TOKEN_ENCRYPTION_KEY` | ★ | secret | 32バイトの base64。本番（NODE_ENV=production）で未設定ならエラー |
-| `CRON_SECRET` | ★ | secret | cron の認証。未設定だと scheduled は何もせずエラーを記録する |
+| `CRON_SECRET` | ★ | secret | `/api/cron/check`（Vercel の cron、手動実行）の認証。Cloudflare の `scheduled()` はルートを通らないので使わない |
+| `CRON_BATCH_SIZE` | — | `wrangler.jsonc` の vars（`2`） | 1 回の cron で調べる接続数。**Vercel では設定しない**（未設定なら 1 回で全件。Vercel の cron は毎時 1 回だけなので） |
 | `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | ★（推奨） | secret | 未設定ならメモリ上の KV（`PAYMENTS_MODE=demo` のときだけ許可。§5） |
 | `RESEND_API_KEY` / `MAIL_FROM` | 任意 | secret | 未設定ならメールはログに出るだけ |
 | `ADMIN_TOKEN` | 任意 | secret | `/api/admin/stats` |
@@ -117,10 +119,11 @@ npx wrangler secret put UPSTASH_REDIS_REST_TOKEN
 | 最初の状態（`proxy.ts` あり、OG を `ImageResponse` で生成） | 14,002.72 KiB（13.7 MiB） | 3,139.71 KiB（3.07 MiB） |
 | OG・favicon を静的 PNG に | 13,159.67 KiB | 2,947.29 KiB |
 | さらに `proxy.ts` を削除 | 8,091.88 KiB（7.9 MiB） | 1,618.78 KiB（1.58 MiB） |
-| **現在**（静的化・API 化の後） | **7,926.47 KiB（7.7 MiB）** | **1,599.53 KiB（1.56 MiB）** |
+| 静的化・API 化の後 | 7,926.47 KiB（7.7 MiB） | 1,599.53 KiB（1.56 MiB） |
+| **現在**（cron の分割後。cron 用のコードを Next の外にも持つ） | **8,964.08 KiB（8.8 MiB）** | **1,769.23 KiB（1.73 MiB）** |
 
 - **上限**：Cloudflare の公式ドキュメント（Limits、2026-10-08 更新、2026-10-09 に確認）では、Worker のサイズ上限は Free・Paid とも **非圧縮 64 MiB**。「圧縮後の上限はなく、gzip の値は参考」と書かれている。以前の「無料プランは gzip 3 MiB」という上限は今は載っていない。念のため、現在の値はその古い上限も下回っている。
-- 起動時間の上限は 1 秒。`wrangler check startup` のローカル計測では、起動時の CPU は約 125 ms（Next サーバーを起動時に読み込む前は約 63 ms。§8.2）。
+- 起動時間の上限は 1 秒。`wrangler check startup` のローカル計測では、起動時の CPU は約 150 ms（Next サーバーを起動時に読み込む前は約 63 ms、cron 分割の前は約 125 ms。§8.2）。
 - **削った内容**
   - **`proxy.ts`**：Next 16 の proxy は Node.js ランタイムで動く。OpenNext は「Node.js middleware は実験的で、公式には保守していない」と警告を出す。さらに proxy 用の別ハンドラ（約 3 MB、`@vercel/og` と resvg.wasm を含む）がバンドルされていた。proxy は Cookie があるかを見るだけの楽観的なチェックだった。本当の検証は API 側で毎回行う（§2.1）。
   - **OG / favicon**：`next/og` の wasm とフォント（約 2 MB）がサーバーに入らないように、`npm run og` で PNG に書き出した。出力は元のルートと同じバイト列。`product.config.ts` の og / brand を変えたら `npm run og` を再実行する（`tests/og-static.test.ts` が alt テキストのずれを検出する）。
@@ -137,7 +140,8 @@ cp .dev.vars.example .dev.vars    # ダミー値。PAYMENTS_MODE=demo、Upstash 
 npm run preview:cron              # http://localhost:8787
 curl -i localhost:8787/api/cron/check                                              # 401
 curl -i -H "Authorization: Bearer local-dummy-cron-secret" localhost:8787/api/cron/check   # 200
-curl "localhost:8787/__scheduled?cron=0+*+*+*+*"                                   # scheduled() → cron ルート
+curl "localhost:8787/__scheduled?cron=*+*+*+*+*"                                   # scheduled() → 1 スライス
+curl "localhost:8787/cdn-cgi/handler/scheduled?cron=*+*+*+*+*&time=1893456001000"  # 時刻を指定（別の「時」を試す）
 ```
 2026-10-09 の結果（静的化・API 化の後。Playwright＋Chromium、`PAYMENTS_MODE=demo` でビルド）：21 項目すべて PASS。
 - **静的ページ**：`/` の HTML にバナーが入っている（ビルド時に決定）。`/pricing?canceled=1` のお知らせはブラウザで表示される。
@@ -158,21 +162,68 @@ curl "localhost:8787/__scheduled?cron=0+*+*+*+*"                                
   - 同じ Origin で Cookie なし → 401
 - cron：
   - 秘密なし・誤った秘密は 401、正しい秘密は 200 `{"ok":true,...}`
-  - `/__scheduled` を呼ぶとログに `[cron] 0 * * * * → /api/cron/check 200` が出る
+  - scheduled を呼ぶと、ログに `[cron] * * * * * {"hour":"…","initialized":true,"checked":1,…}` が出る（分割後。Next を通さずに実行）
 - `after()`（ライセンスメールの送信）が動作した。
 - AES-256-GCM（AAD の束縛）、停止チャレンジの HMAC、Vercel webhook の HMAC-SHA1 が workerd 上で正しく動いた。
 - Stripe webhook（ダミーの秘密で署名）：正しい署名は 200、不正な署名は 400。
 - 注意：`wrangler dev` はリダイレクト先のホストを `localhost` にするので、ブラウザでは `127.0.0.1` ではなく `http://localhost:8787` を開く（Cookie が別ホスト扱いになるため）。
 
-## 7. cron
-- `wrangler.jsonc` の `triggers.crons: ["0 * * * *"]`（UTC、毎時）。`vercel.json` と同じ。
-- `cf-worker.ts` の `scheduled()` が `/api/cron/check` をプロセス内で呼ぶ（`handler.fetch`。ネットワークを通らないので、サブリクエストに数えられず、公開ホスト名も不要）。`Authorization: Bearer $CRON_SECRET` を付けるので、ルート側の認証は Vercel のときと同じ。
-- 失敗（200 以外）は例外にして、ダッシュボードの Cron Events に失敗として残す。
-- 無料プランでは、**Cron Trigger はアカウント全体で 5 個まで**。他の Worker と合わせて数える。追加・変更が全体に反映されるまで最大 15 分かかる。
+## 7. cron（無料プランで接続 100 件まで）
+**目標**：1 回の起動で CPU 10 ms 以内、サブリクエスト 50 未満。接続 100 件を毎時調べる。
+
+**方式**：KV 上の「時間ごとの作業リスト」を、毎分の cron が 2 件ずつ処理する（`lib/guard/cron.ts`）。
+- **作業リスト**：
+  - 全接続の索引 `bg:allconns`（`acct|connId` の集合）を、接続の追加・削除のたびに更新する。
+  - その時間（UTC）の最初の実行が、索引を `bg:cron:{時}:pending` にコピーする（`SMEMBERS` 1 回）。
+  - 途中で追加された接続は、次の時間から対象になる。
+- **1 回の実行**：pending から順不同に取り、次を行う。
+  1. `SET item running NX EX 300` で claim する（同じ項目を同時に 2 つの実行が持たない）
+  2. 権利を確認し、その接続だけを調べる
+  3. `item=done` にして、pending から外す
+- **1 回の実行で処理する量**：上限は `CRON_BATCH_SIZE=2` 件。KV へのリクエスト数も数え、約 34 回を超えそうなら次の項目に進まない。残りは次の分の実行が処理する。
+- **起動回数**：`* * * * *` で 1 時間に 60 回。60 回 × 2 件で、1 時間に約 118 件（時間の最初の 1 回は 1 件）。100 件は約 50 回で終わる。
+- **Next を通さない**：`scheduled()` は `runCronSlice()` を直接呼ぶ。Next のリクエスト処理の固定費（約 4〜5 ms）と、isolate で最初の API 呼び出し（約 170 ms）を避けるため。モジュールは起動時に評価される。`/api/cron/check` も同じ関数を呼ぶ（Vercel と手動実行用）。
+- **二重実行の防止**：
+  - 項目の claim で、cron どうしが同じ接続を同時に処理しない。
+  - さらに、どの経路（cron、「Check now」、Vercel webhook）でも、1 接続の判定は接続ごとのロック（`bg:lock:{connId}`、`SET NX EX 120`）の中で行う。状態を読み、停止し、状態を書くまでを、同時に 1 つだけにするため。
+  - ロックが取れないときの動き：
+    - cron：claim を外して、後の実行に回す
+    - 「Check now」：409「チェック中」を返す
+    - webhook：5 秒おきに最大 4 回待つ
+- **通知と停止は月 1 回**：従来どおり、接続ごとの状態（`evaluate.ts` の `warnedAt`・`limitNotifiedAt`・`stoppedAt`）で決まる。ロックの中でしか状態を読み書きしないので、重なっても 2 回目は出ない。
+- **失敗と再試行**：
+  - プロバイダ API の失敗：従来どおり状態に記録し、次の時間に再試行する。停止の失敗は `stoppedAt` を書かないので、次の時間に再試行される。
+  - 例外：同じ時間のうちに後の実行で再試行する。3 回失敗したらその時間はあきらめ、次の時間に新しく試す。
+  - 実行の途中で落ちた（CPU 超過など）場合：claim が 5 分で切れ、後の実行が拾う。
+  - 落ちた位置が「停止を送った後、状態を書く前」だと、停止をもう一度送ることがある。pause や上限の再設定は何度送っても結果は同じ。
+- **Vercel**：`vercel.json` の毎時 1 回の cron は変更していない。`CRON_BATCH_SIZE` が未設定なので、1 回の呼び出しで全件を処理する（`maxDuration` 300 秒）。
+- **無料枠（公式ドキュメント、2026-10-09 確認）**：
+  - Cron Trigger はアカウント全体で 5 個まで。これは 1 個使う。
+  - cron 1 回の CPU は 10 ms、サブリクエストは 50。
+  - 毎分の実行は 1 日 1,440 回で、リクエスト上限（10 万/日）に対して小さい。
+  - 追加・変更が全体に反映されるまで最大 15 分かかる。
+- **検討して採らなかった案**：
+  - **Cloudflare Queues**：無料プランでも使える（1 日 10,000 操作、保持 24 時間。1 メッセージ約 3 操作）。100 接続 × 24 時間 = 7,200 操作で、再試行の余裕が少ない。また Vercel 版と別の仕組みになる。
+  - **自分自身への fetch**：Service binding 経由の呼び出しの CPU の数え方を確認できなかった。
+- **118 件を超える場合**：
+  - `CRON_BATCH_SIZE` は上げない（サブリクエストが 50 を超える）。
+  - 代わりに、分をずらした trigger を足す（例：`* * * * *` に加えて、もう 1 つの式）。同じ式を 2 つ置けるかは未確認。
+  - または Workers Paid にする。
+
+**テスト**（`tests/cron.test.ts`）：
+- 100 接続：60 回の実行の中で各接続がちょうど 1 回調べられ（状態の書き込みが接続ごとに 1 回）、1 回のサブリクエストが 50 未満（KV 28 回＋プロバイダ 2 回＋通知。実測で最大 32）
+- 4 つの実行を同時に 10 分間続けても、二重の判定がない
+- 次の時間に再び調べるが、通知と停止は月 1 回
+- 例外は後の実行で再試行され、3 回であきらめる
+- claim の期限切れで拾い直す
+- 「Check now」がロックを持っている間は待つ
+- 権利が切れたアカウントは飛ばす
+- 索引ができる前のデータを移行する
+- 「Check now」が 409 を返すこと（`tests/api-routes.test.ts`）
 
 ## 8. 無料プランの制限と懸念
 
-### 8.1 ルートごとの CPU 時間（ローカル workerd、2026-10-09）
+### 8.1 ルートごとの CPU 時間（ローカル workerd、2026-10-09。cron の行は分割後に計測し直した）
 **計測方法**（`npm run cf:cpu` = `scripts/measure-cpu.mjs`）：
 1. `opennextjs-cloudflare preview`（workerd）を V8 インスペクタ付きで起動する。
 2. Worker の isolate に CPU プロファイラ（サンプリング間隔 100 µs）をかけたまま、リクエストを 1 本ずつ間隔を空けて送る。
@@ -214,8 +265,12 @@ curl "localhost:8787/__scheduled?cron=0+*+*+*+*"                                
 | `POST /api/app/connections`（他サイトの Origin → 403） | 動的 API | 4.6 | 5.0 / 6.9 | ✅ |
 | `GET /api/checkout/demo/portal` | 動的 API | 6.8 | 4.9 / 8.1 | ✅ |
 | `GET /api/cron/check`（401） | 動的 API | 9.7 | 4.4 / 5.1 | ✅ |
-| `GET /api/cron/check`（秘密あり、1 アカウント・1 接続） | 動的 API | 4.8 | 5.1 / 6.9 | ✅ |
-| **cron**：`scheduled()` → `/api/cron/check`（1 アカウント・1 接続） | cron | 9.9 | 5.2 / 9.5 | ✅（接続が増えると ❌。下記） |
+| `GET /api/cron/check`（秘密あり、手動実行。Vercel の cron と同じ経路） | 動的 API | 6.9 | 4.1 / 11.7 | ⚠️ まれ（Cloudflare の cron はこの経路を通らない） |
+| **cron** `scheduled()`、1 スライス：接続 1 件（その時間の最初の実行） | cron | 4.6 | — | ✅ |
+| **cron** `scheduled()`、接続 10 件：処理した実行（6 回で完了） | cron | 1.7 | 2.4 / 5.4 | ✅ |
+| **cron** `scheduled()`、接続 100 件：その時間の最初の実行（作業リスト作成） | cron | 3.6 | — | ✅ |
+| **cron** `scheduled()`、接続 100 件：処理した実行（50 回で完了、各 2 件） | cron | 3.6 | 2.7 / 4.1 | ✅ |
+| **cron** `scheduled()`、残りなしの分（空振り） | cron | 0.4〜1.6 | — | ✅ |
 
 - **暗号処理そのものは小さい**：
   - AES-GCM・HMAC は Node 互換の `crypto`（ネイティブ）で 1 回 1 ms 未満。
@@ -229,14 +284,9 @@ curl "localhost:8787/__scheduled?cron=0+*+*+*+*"                                
   - 公式ドキュメントに「isolate ごとに、まれな超過は許容する」とある。対象は isolate ごとに 1 回の初回だけで、それ以外は 10 ms 以内。
   - それでも本番で Error 1102（`exceededCpu`）が続くなら、Workers Paid（$5/月）にする。
 - **warm 時のまれな超過（GC）**：許容範囲内の見込み。ダッシュボードの Metrics → Errors で `Exceeded CPU` を監視する。
-- **cron**
-  - 接続 1 件あたりの CPU の増え方は推定で約 1〜2 ms（復号、API の JSON パース、判定、KV への書き込み）。全アカウントを 1 回の起動で処理するので、**接続が 3〜5 件を超えると 10 ms を超える見込み**。
-  - 加えて、無料プランのサブリクエスト上限（50）にも当たる。
-  - 対策（未実施）：
-    - cron を「アカウントのカーソルを KV に置いて、1 回に N 件ずつ処理」に分ける
-    - 接続ごとに自分自身へ fetch して別の起動に分ける（それぞれが 10 ms の枠を持つ）
-    - Paid にする（cron の CPU は 15 分まで）
-  - 試作段階（数アカウント）では問題にならない。
+- **cron**：分割したので、接続の数によらず 1 回あたり CPU 約 2〜5 ms（測定値）、サブリクエスト約 32（テストで数えた値）。100 件で確認した（§7）。
+  - 計測は `npm run cf:cpu` の最後で行う。`/cdn-cgi/handler/scheduled?time=` で「時」をずらし、接続 1・10・100 件で 1 時間を分ごとに再現する。
+  - プロバイダ API は偽物で、I/O の待ちはない。本番では応答の JSON パースの分だけ増える。
 
 ### 8.2 起動時に Next サーバーを読み込む
 - `cf-worker.ts` は `.open-next/server-functions/default/handler.mjs` を静的に import している。
@@ -249,11 +299,11 @@ curl "localhost:8787/__scheduled?cron=0+*+*+*+*"                                
 ### 8.3 制限の一覧
 | 制限（Free） | 値 | この app への影響 |
 |---|---|---|
-| CPU 時間 | **10 ms / リクエスト**（cron も 10 ms） | §8.1 を参照。<br>・静的ページ：約 3 ms<br>・API（warm）：約 5〜7 ms<br>・超えるのは isolate ごとの初回と cron の件数増加。<br>以前（layout で `connection()` を呼び、全ページを毎回描画していたとき）は 1 ページ 27〜35 ms だった |
-| サブリクエスト | 50 / リクエスト | cron は「Upstash 数回＋プロバイダ API 1〜3 回」を接続の数だけ行う。接続が増える（目安で 10 前後）と超える。超えたら Paid にするか、cron を分割する |
+| CPU 時間 | **10 ms / リクエスト**（cron も 10 ms） | §8.1 を参照。<br>・静的ページ：約 3 ms<br>・API（warm）：約 5〜7 ms<br>・cron：1 回 2〜5 ms（分割済み）<br>・超えるのは isolate ごとの初回の API。<br>以前（layout で `connection()` を呼び、全ページを毎回描画していたとき）は 1 ページ 27〜35 ms だった |
+| サブリクエスト | 50 / リクエスト | cron は 1 回 2 件に分割した。KV 約 28 回＋プロバイダ API＋通知で約 32（§7）。Vercel の停止はプロジェクトの数だけ POST するので、20 プロジェクトを一度に止める接続が重なると上限に近づく |
 | リクエスト | 100,000 / 日 | 試作には十分 |
-| Worker サイズ | 非圧縮 64 MiB | 7.7 MiB で余裕あり |
-| 起動時間 | 1 秒 | ローカルで約 125 ms（§8.2） |
+| Worker サイズ | 非圧縮 64 MiB | 8.8 MiB で余裕あり |
+| 起動時間 | 1 秒 | ローカルで約 150 ms（§8.2） |
 | 静的アセット | 20,000 ファイル | 44 ファイル（静的アセットへのリクエストは Worker を起動しない） |
 
 ## 9. 既知の問題・Vercel との違い
@@ -280,7 +330,8 @@ npx wrangler tail budget-guard     # ログを見る
   - `/api/cron/check` は秘密なしで 401
   - 静的ページの応答ヘッダに `x-opennext-cache: HIT` が付いている
   - ダッシュボードの Metrics で、CPU time の p99 と `Exceeded CPU` のエラーを確認する
-  - ダッシュボードの Triggers に cron が表示され、Cron Events に毎時の結果が出る
+  - ダッシュボードの Triggers に `* * * * *` が表示され、Cron Events に毎分の結果（`[cron] {…"checked":…}`）が出る
+  - 1 時間のうちに、各接続のダッシュボードの「checked」時刻が更新される
 - 独自ドメインは、ダッシュボードの Worker → Settings → Domains & Routes で設定する。その後 `NEXT_PUBLIC_SITE_URL` を変えて、もう一度デプロイする。
 
 ## 11. ロールバック
