@@ -364,7 +364,35 @@
     noise({ t: t, dur: 0.008, gain: 0.08, type: 'highpass', f0: 3000 });
   }
 
-  function launchSequence() {
+  // 出撃演出の音はまとめて専用のゲート（launchBus）に通し、stopLaunch() で一度に消せるようにする
+  var launchBus = null;
+  var launchHapticTimer = null;
+  function withLaunchBus(fn) {
+    stopLaunch();
+    var bus = ctx.createGain();
+    bus.gain.value = 1;
+    bus.connect(master);
+    launchBus = bus;
+    var prev = master;
+    master = bus; // tone()/noise() と直接つなぐノードは master を出力先にするので、作る間だけ差し替える
+    try { fn(); } finally { master = prev; }
+  }
+  function stopLaunch() {
+    if (launchHapticTimer) { clearTimeout(launchHapticTimer); launchHapticTimer = null; }
+    if (!launchBus) return;
+    var bus = launchBus; launchBus = null;
+    try {
+      var t = ctx.currentTime;
+      bus.gain.cancelScheduledValues(t);
+      bus.gain.setValueAtTime(bus.gain.value, t);
+      bus.gain.linearRampToValueAtTime(0, t + 0.08);
+    } catch (e) { /* noop */ }
+    setTimeout(function () { try { bus.disconnect(); } catch (e) { /* noop */ } }, 150);
+    try { if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(0); } catch (e) { /* noop */ }
+  }
+
+  function launchSequence() { withLaunchBus(launchSequenceBody); }
+  function launchSequenceBody() {
     var t = now() + 0.03;
     var i;
     // 0.0s〜: 機械ロック解除（2段のクランク）
@@ -419,7 +447,7 @@
     noise({ t: gi + 0.02, dur: 0.9, gain: 0.2, type: 'bandpass', f0: 250, Q: 0.9 });
     metalRing(gi + 0.01, 140, 1.4, 0.12);
     creak(gi + 0.25, 70, 1.2, 0.1, 0.25);
-    setTimeout(function () { haptic(120); }, 4400);
+    launchHapticTimer = setTimeout(function () { launchHapticTimer = null; haptic(120); }, 4400);
   }
 
   var LEG_PITCH = [1.0, 0.96, 0.91, 0.88];
@@ -660,7 +688,8 @@
 
   // ---------------------------------------------------------------- 追加（MISSION 02 / 整備）
   // 2回目以降の短縮出撃（約1秒）：ロック解除→ゲート開放
-  function launchShort() {
+  function launchShort() { withLaunchBus(launchShortBody); }
+  function launchShortBody() {
     var t = now() + 0.02;
     noise({ t: t, dur: 0.07, gain: 0.3, type: 'bandpass', f0: 1600, Q: 1.5 });
     thud(t, 120, 55, 0.18, 0.4);
@@ -864,6 +893,7 @@
     setMaster: function (v) { try { setMaster(v); } catch (e) { /* noop */ } },
     haptic: guard(haptic, true),
     launchShort: guard(launchShort),
+    stopLaunch: guard(stopLaunch, true),
     ramCharge: guard(ramCharge),
     ramImpact: guard(ramImpact),
     bossShift: guard(bossShift),

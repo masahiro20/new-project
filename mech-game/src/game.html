@@ -1,4 +1,4 @@
-<title>グランドストライド</title>
+<title>鋼脚戦機 GRANDSTRIDE</title>
 <style>
 :root{
   color-scheme:dark;
@@ -139,7 +139,7 @@ button{font-family:inherit;color:inherit}
 #tPause{width:40px;height:40px;right:calc(var(--sr) + 10px);top:calc(var(--st) + 8px);border-radius:4px;font-size:12px}
 html.touch #topStats{margin-right:48px}
 #dash{transform-origin:50% 100%}
-html.touch #radarWrap{top:calc(var(--st) + 56px)}
+html.touch #radarWrap{top:calc(var(--st) + 62px)}
 
 /* title */
 #title,#pause,#result,#launch{position:absolute;inset:0;z-index:8}
@@ -181,7 +181,7 @@ html:not(.touch) #howto .tc{display:none}
   html.touch #warnBox{top:calc(var(--st) + 210px)}
   html.touch #obLabel{top:calc(var(--st) + 240px)}
   html.touch #tFire{bottom:calc(var(--sb) + 40px)}
-  html.touch #stickBase{bottom:calc(var(--sb) + 40px)}
+  html.touch #stickBase{bottom:calc(var(--sb) + 40px);left:calc(var(--sl) + 14px);width:112px;height:112px}
 }
 @media (max-height:460px){
   #logo .main{font-size:clamp(34px,11vmin,70px)}
@@ -210,8 +210,9 @@ html:not(.touch) #howto .tc{display:none}
 #skipHint{position:absolute;right:calc(var(--sr) + 16px);bottom:calc(var(--sb) + 14px);font-size:11px;color:var(--dim);letter-spacing:.08em}
 
 /* pause / result */
-#pause,#result{display:flex;align-items:center;justify-content:center;background:rgba(2,5,9,.72);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);padding:calc(var(--st) + 12px) calc(var(--sr) + 12px) calc(var(--sb) + 12px) calc(var(--sl) + 12px);overflow:auto}
-.card{min-width:min(420px,92vw);max-width:94vw;padding:22px 26px;text-align:center;background:rgba(5,13,19,.9);border:1px solid var(--line);
+html.qlow #pause,html.qlow #result,html.qlow #hangar{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(2,5,9,.86)}
+#pause,#result{display:flex;align-items:safe center;justify-content:safe center;background:rgba(2,5,9,.72);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);padding:calc(var(--st) + 12px) calc(var(--sr) + 12px) calc(var(--sb) + 12px) calc(var(--sl) + 12px);overflow:auto}
+.card{margin:auto;min-width:min(420px,92vw);max-width:94vw;padding:22px 26px;text-align:center;background:rgba(5,13,19,.9);border:1px solid var(--line);
   clip-path:polygon(16px 0,100% 0,100% calc(100% - 16px),calc(100% - 16px) 100%,0 100%,0 16px)}
 .card h2{margin:0 0 4px;font-size:clamp(22px,5vmin,36px);letter-spacing:.16em}
 .card .sub{font-size:11px;color:var(--dim);letter-spacing:.14em;margin-bottom:16px}
@@ -330,6 +331,95 @@ html:not(.touch) #howto .tc{display:none}
 #bossBar.mael #bossTrack::before{content:'';position:absolute;left:65%;top:0;bottom:0;width:1px;background:rgba(255,255,255,.6);z-index:1}
 html.touch #stormHud{top:calc(50% + 40px);font-size:10px}
 
+
+/* touch: bigger dashboard text (the whole dashboard is scaled down by dashScale) */
+html.touch #dash .lbl{font-size:13px}
+html.touch .gripNums{font-size:13px}
+html.touch .bar b{font-size:15px}
+html.touch .spd b{font-size:26px}
+html.touch .spd small{font-size:12px}
+/* low landscape phones (568x320): smaller stick / buttons so the dashboard fits between them (see onResize) */
+@media (orientation:landscape) and (max-height:360px){
+  html.touch #stickBase{left:calc(var(--sl) + 16px);bottom:calc(var(--sb) + 16px);width:110px;height:110px}
+  html.touch #tFire{width:88px;height:88px;right:calc(var(--sr) + 16px);bottom:calc(var(--sb) + 16px)}
+  html.touch #tBoost{width:60px;height:60px;right:calc(var(--sr) + 112px);bottom:calc(var(--sb) + 14px)}
+  html.touch #tDash{width:60px;height:60px;right:calc(var(--sr) + 104px);bottom:calc(var(--sb) + 76px)}
+  html.touch #dash .lbl,html.touch .gripNums{font-size:14px}
+}
+
+/* campaign / medals / modes */
+.mcard .mstars{display:flex;gap:2px;align-items:center;font-size:12px;line-height:1;color:var(--dim);letter-spacing:0;margin-top:1px}
+.mcard .mstars i{font-style:normal}
+.mcard .mstars i.on{color:var(--am);text-shadow:0 0 6px rgba(255,181,71,.6)}
+.mcard .mstars .hd{margin-left:6px;font-family:var(--m);font-size:9px;padding:1px 3px;border:1px solid rgba(255,59,59,.6);color:var(--rd);letter-spacing:.06em}
+.mcard.locked .mstars{display:none}
+#modeRow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px;font-size:11px}
+#modeRow .tgl{min-height:28px;font-family:var(--f);font-weight:700;letter-spacing:.06em;padding:0 10px;font-size:12px}
+#modeRow .tgl[disabled]{opacity:.38;cursor:default}
+#modeRow .tgl.hard.on{background:rgba(255,59,59,.28);border-color:var(--rd)}
+#modeRow .mnote{color:var(--dim);font-size:10px}
+#allClear{margin-top:8px;padding:4px 10px;border-left:3px solid var(--am);background:rgba(255,181,71,.1);font-size:11px;line-height:1.45;color:#e8d6b8;max-width:min(560px,92vw)}
+#allClear b{color:var(--am);letter-spacing:.12em}
+#titleNote{white-space:pre-line}
+#daily .tmr,#rewards .tmr{font-size:10px;color:var(--dim);margin-top:3px;line-height:1.4}
+#daily .tmr b,#rewards .tmr b{color:var(--cy);font-weight:400;font-family:var(--m)}
+#credit{position:absolute;left:0;right:0;bottom:calc(var(--sb) + 3px);text-align:center;font-size:9px;letter-spacing:.04em;color:rgba(170,195,203,.55);pointer-events:none;padding:0 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* low screens (phones in landscape, <=460px): settings and daily panel go into the flow below LAUNCH, settings at the
+   bottom right, so nothing sits on top of the logo / mission cards / LAUNCH (the title scrolls if it has to) */
+@media (max-height:460px) and (max-width:720px),(max-height:460px) and (pointer:coarse),(max-height:360px),(orientation:portrait){
+  #titleOpts{position:static;order:20;align-self:flex-end;flex-direction:row;flex-wrap:wrap;justify-content:flex-end;margin-top:10px;padding:6px 8px}
+  #daily{position:static!important;margin-top:10px!important;width:min(420px,100%)!important}
+  #credit{order:21}
+  #title{justify-content:flex-start}
+  #allClear{max-width:100%}
+  #modeRow{margin-top:6px}
+  #modeRow .tgl{min-height:26px}
+  #allClear{margin-top:6px}
+}
+@media (max-height:460px),(orientation:portrait){
+  #credit{position:static;text-align:left;white-space:normal;margin-top:10px;padding:0;overflow:visible;font-size:9px;line-height:1.4}
+}
+#rMedals{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:8px}
+#rMedals .md{display:flex;align-items:center;gap:4px;font-size:10px;padding:3px 7px;border:1px solid rgba(95,242,232,.2);color:var(--dim);white-space:nowrap}
+#rMedals .md i{font-style:normal;font-size:14px}
+#rMedals .md.on{color:#e9dcc0;border-color:rgba(255,181,71,.55)}
+#rMedals .md.on i{color:var(--am);text-shadow:0 0 8px rgba(255,181,71,.7)}
+#rMedals .md.new{animation:medalPop .7s cubic-bezier(.2,1.6,.4,1) both;background:rgba(255,181,71,.18)}
+#rMedals .md.off{text-decoration:line-through;opacity:.6}
+@keyframes medalPop{0%{transform:scale(2.2);opacity:0}100%{transform:scale(1);opacity:1}}
+#rewards .med{color:var(--am)}
+@media (max-height:460px){
+  #result .card{padding:8px 14px 10px}
+  #result .card h2{font-size:22px}
+  #rank{font-size:48px}
+  .stats{font-size:11px;gap:1px 14px}
+  .stats b{font-size:13px}
+  .stats .score b{font-size:17px}
+  #newHi:empty{display:none}
+  #rMedals{margin-top:4px}
+  #rMedals .md{padding:2px 6px}
+  #rewards{font-size:11px}
+  #rewards .pp{font-size:16px}
+  #result .card .btns{gap:8px;margin-top:6px}
+  #result .btn{font-size:14px;padding:7px 14px;letter-spacing:.1em}
+  #result #btnRetry.primary,#result #btnNext.primary{font-size:17px;padding:8px 20px}
+}
+#btnRetry,#btnNext,#btnAssist{white-space:nowrap}
+#btnNext.primary{font-size:22px;padding:12px 30px}
+#btnAssist{border-color:rgba(125,255,154,.55)}
+#btnAssist small{color:var(--gr)}
+#autoSave{position:absolute;right:calc(var(--sr) + 8px);bottom:calc(var(--sb) + 6px);z-index:10;pointer-events:none;font-family:var(--m);font-size:10px;letter-spacing:.14em;color:var(--cy);
+  padding:2px 6px;background:rgba(5,13,19,.6);border:1px solid rgba(95,242,232,.3);opacity:0;transition:opacity .25s}
+#autoSave.on{opacity:.9}
+#autoSave::before{content:'';display:inline-block;width:6px;height:6px;margin-right:5px;border-radius:50%;background:var(--cy);box-shadow:0 0 5px var(--cy)}
+#tutHint{position:absolute;left:50%;top:calc(50% + 70px);transform:translateX(-50%);text-align:center;font-size:13px;letter-spacing:.06em;color:#fff;white-space:nowrap;
+  padding:5px 14px;background:rgba(5,13,19,.7);border:1px solid var(--am);display:none}
+#tutHint small{display:block;font-family:var(--m);font-size:10px;color:var(--am);letter-spacing:.16em}
+#hud.tut #tutHint{display:block}
+@media (orientation:portrait){ #tutHint{top:calc(50% + 40px);font-size:12px} }
+#mnTag .mode{color:var(--rd);margin-left:6px}
+#mnTag .mode.as{color:var(--gr)}
+
 /* hangar */
 #hangar{position:absolute;inset:0;z-index:8;display:flex;align-items:center;justify-content:center;background:rgba(2,5,9,.8);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
   padding:calc(var(--st) + 10px) calc(var(--sr) + 10px) calc(var(--sb) + 10px) calc(var(--sl) + 10px);overflow:auto}
@@ -352,7 +442,8 @@ html.touch #stormHud{top:calc(50% + 40px);font-size:10px}
 #hReset{font-size:11px;padding:6px 12px;letter-spacing:.1em;border-color:rgba(255,59,59,.5)}
 #hConfirm{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;font-size:12px;color:var(--rd)}
 #hConfirm .btn{font-size:12px;padding:6px 12px}
-@media (max-width:640px){ .hsys{grid-template-columns:1fr} }
+@media (max-width:640px) and (orientation:portrait),(max-width:500px){ .hsys{grid-template-columns:1fr} }
+@media (max-height:460px) and (orientation:landscape){ .hcol .hrow{font-size:10px} .hcol .hrow b{font-size:11px} .hbuy{font-size:12px;padding:6px 6px} }
 @media (max-height:460px){ #hangar .card{padding:8px 12px 10px} #hangar h2{font-size:20px} #hangar .sub{margin-bottom:4px} .hsys{margin-top:6px} .hcol{padding:6px 8px 8px;gap:2px} .hcol h3{font-size:12px} }
 
 /* result extras */
@@ -399,7 +490,7 @@ html.touch #stormHud{top:calc(50% + 40px);font-size:10px}
 
   <div id="hud" class="hidden">
     <div id="hudTop">
-      <div id="missionName" class="panel"><span class="tag" id="mnTag">MISSION 01</span><span id="mnName">汀都 第七区画 防衛</span></div>
+      <div id="missionName" class="panel"><span class="tag"><span id="mnTag">MISSION 01</span><span id="mnMode" class="mode"></span></span><span id="mnName">汀都 第七区画 防衛</span></div>
       <div id="compass"><div id="compassStrip"></div><div id="compassCaret"></div><div id="compassVal">000</div></div>
       <div id="topStats">
         <div class="stat"><span class="lbl">残敵 TARGETS</span><b id="enemyCount">13</b></div>
@@ -423,6 +514,7 @@ html.touch #stormHud{top:calc(50% + 40px);font-size:10px}
     <div id="warn"><div class="beacon bl"></div><div class="beacon br"></div><div id="warnBox"><b>WARNING</b><span id="warnDetail"></span></div></div>
     <div id="bossBar"><div id="bossName">殻王 SHELL LORD<b id="bossPhase"></b></div><div id="bossTrack"><i id="bossFill"></i></div></div>
     <div id="obLabel">OVERBEAT ／ 鼓動モード</div>
+    <div id="tutHint"><small id="tutStep">STEP 1/5</small><span id="tutText"></span></div>
     <div id="dash">
       <div id="gripPanel" class="inst panel">
         <div class="lbl">脚圧 GRIP</div>
@@ -483,9 +575,14 @@ html.touch #stormHud{top:calc(50% + 40px);font-size:10px}
       <div class="sub2">四脚機ヘカトン HEKATON TYPE-04 ／ 汀都 SHORE CITY 2091</div>
     </div>
     <div id="missionSel" role="group" aria-label="作戦選択 MISSION SELECT">
-      <button type="button" class="mcard" data-m="1"><span class="mtag">MISSION 01</span><span class="mname">汀都 第七区画 防衛</span><span class="mbest">BEST<b id="hiVal">000000</b> <span id="hiRank"></span></span></button>
-      <button type="button" class="mcard" data-m="2"><span class="mtag">MISSION 02</span><span class="mname">汀都 港湾区画 夜間掃討</span><span class="mbest">BEST<b id="hiVal2">000000</b> <span id="hiRank2"></span></span><span class="mlock">LOCKED ／ MISSION 01 クリアで解放</span></button>
-      <button type="button" class="mcard" data-m="3"><span class="mtag">MISSION 03</span><span class="mname">汀都 第三防潮堤外縁 嵐中観測戦</span><span class="mbest">BEST<b id="hiVal3">000000</b> <span id="hiRank3"></span></span><span class="mlock">LOCKED ／ MISSION 02 クリアで解放</span></button>
+      <button type="button" class="mcard" data-m="1"><span class="mtag">MISSION 01</span><span class="mname">汀都 第七区画 防衛</span><span class="mbest">BEST<b id="hiVal">000000</b> <span id="hiRank"></span></span><span class="mstars" id="mStars1"></span></button>
+      <button type="button" class="mcard" data-m="2"><span class="mtag">MISSION 02</span><span class="mname">汀都 港湾区画 夜間掃討</span><span class="mbest">BEST<b id="hiVal2">000000</b> <span id="hiRank2"></span></span><span class="mstars" id="mStars2"></span><span class="mlock">LOCKED ／ MISSION 01 クリアで解放</span></button>
+      <button type="button" class="mcard" data-m="3"><span class="mtag">MISSION 03</span><span class="mname">汀都 第三防潮堤外縁 嵐中観測戦</span><span class="mbest">BEST<b id="hiVal3">000000</b> <span id="hiRank3"></span></span><span class="mstars" id="mStars3"></span><span class="mlock">LOCKED ／ MISSION 02 クリアで解放</span></button>
+    </div>
+    <div id="modeRow">
+      <button type="button" class="tgl hard" id="tglHard" aria-pressed="false">高難度 HARD</button>
+      <button type="button" class="tgl" id="tglAssist" aria-pressed="false">支援 ASSIST</button>
+      <span class="mnote" id="modeNote"></span>
     </div>
     <div id="titleBtns">
       <button id="btnLaunch" class="btn primary" type="button">出撃<small>LAUNCH</small></button>
@@ -502,12 +599,14 @@ html.touch #stormHud{top:calc(50% + 40px);font-size:10px}
       <div class="brief"><h4>作戦 BRIEFING</h4><span id="briefText">
         3分以内に灰殻12体と殻王を撃破。<br>一定のリズムで歩くと共鳴率が上がる。<br>共鳴率100%で鼓動モード OVERBEAT。</span></div>
     </div>
+    <div id="allClear" class="hidden"></div>
     <div id="titleNote"></div>
     <div id="daily" class="panel" aria-live="polite"></div>
     <div id="titleOpts" class="opts panel">
       <div class="opt"><span class="lbl">画質 QUALITY</span><div class="seg qseg" role="group" aria-label="画質 QUALITY"><button type="button" data-q="low">低<small>LOW</small></button><button type="button" data-q="mid">中<small>MID</small></button><button type="button" data-q="high">高<small>HIGH</small></button></div></div>
       <div class="opt"><span class="lbl">FPS表示 FPS</span><button type="button" class="tgl fpstgl" aria-pressed="false">OFF</button></div>
     </div>
+    <div id="credit">© Team GRANDSTRIDE ／ Made with generative AI (Claude) ／ three.js (MIT) ・ Chakra Petch, Share Tech Mono (OFL)</div>
   </div>
 
   <div id="hangar" class="hidden">
@@ -520,7 +619,7 @@ html.touch #stormHud{top:calc(50% + 40px);font-size:10px}
         <button id="hClose" class="btn" type="button">戻る<small>BACK</small></button>
         <button id="hReset" class="btn" type="button">整備データ初期化<small>RESET</small></button>
       </div>
-      <div id="hConfirm" class="hidden">強化・資材・MISSION 02／03 の解放を初期化します（最高スコアは残ります）。よろしいですか？
+      <div id="hConfirm" class="hidden">強化・資材・勲章・MISSION 02／03 の解放を初期化します（最高スコアは残ります）。よろしいですか？
         <button id="hYes" class="btn" type="button">初期化する</button><button id="hNo" class="btn" type="button">やめる</button></div>
     </div>
   </div>
@@ -556,9 +655,12 @@ html.touch #stormHud{top:calc(50% + 40px);font-size:10px}
         </div>
       </div>
       <div id="newHi"></div>
+      <div id="rMedals"></div>
       <div id="rewards"></div>
       <div class="btns">
+        <button id="btnNext" class="btn primary hidden" type="button">次の作戦へ<small>NEXT MISSION</small></button>
         <button id="btnRetry" class="btn primary" type="button">再出撃<small>RELAUNCH</small></button>
+        <button id="btnAssist" class="btn hidden" type="button">支援モードで再出撃<small>ASSIST −25%</small></button>
         <button id="btnResHangar" class="btn" type="button">整備<small>HANGAR</small></button>
         <button id="btnToTitle" class="btn" type="button">タイトルへ<small>TITLE</small></button>
       </div>
@@ -566,6 +668,7 @@ html.touch #stormHud{top:calc(50% + 40px);font-size:10px}
   </div>
   <div id="rotHint">横画面推奨 ／ LANDSCAPE RECOMMENDED</div>
   <div id="fpsMeter" class="hidden" aria-hidden="true">FPS --</div>
+  <div id="autoSave" aria-hidden="true">AUTO SAVE</div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -587,8 +690,17 @@ const rnd = (a,b) => a + Math.random() * (b - a);
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
 const store = {
   get(k,d){ try{ const v = localStorage.getItem(k); return v == null ? d : v; }catch(e){ return d; } },
-  set(k,v){ try{ localStorage.setItem(k, String(v)); }catch(e){} }
+  set(k,v){ try{ const sv = String(v); if (localStorage.getItem(k) === sv) return; localStorage.setItem(k, sv); noteSaved('setting:' + k); }catch(e){} }
 };
+// AUTO SAVE indicator: every write that really changes something shows it in the corner for ~1s
+const lastAutosave = {at:0, reason:'', count:0};
+let autoSaveTimer = 0;
+function noteSaved(reason){
+  lastAutosave.at = Date.now(); lastAutosave.reason = reason || ''; lastAutosave.count++;
+  const el = document.getElementById('autoSave'); if (!el) return;
+  el.classList.add('on'); clearTimeout(autoSaveTimer);
+  autoSaveTimer = setTimeout(() => el.classList.remove('on'), 1000);
+}
 const txtCache = new Map();
 function setText(el, v){ if (txtCache.get(el) !== v){ txtCache.set(el, v); el.textContent = v; } }
 const styCache = new Map();
@@ -1661,7 +1773,8 @@ function makeWarnLine(noFog){
 function spawnEnemy(type, x, z){
   const def = ENEMY_DEF[type];
   const model = (MAKERS[type] || makeLord)();
-  const e = {type, model, g:model.g, hp:def.hp, maxHp:def.hp, r:def.r, cy:def.cy, alive:true, t:Math.random()*10, state:'chase', st:0,
+  const hp = def.hp * (G.hard ? HARD_HP : 1);
+  const e = {type, model, g:model.g, hp, maxHp:hp, r:def.r, cy:def.cy, alive:true, t:Math.random()*10, state:'chase', st:0,
     fireT: rnd(1.5, 3), orbit: Math.random() < .5 ? -1 : 1, dir:new THREE.Vector3(), vel:new THREE.Vector3(), hitFlash:0};
   if (type === 'rammer'){ e.state = 'approach'; e.cd = rnd(2.5, 4); e.line = makeWarnLine(!!stage.fogFixed); }
   if (type === 'twin'){ e.state = 'walk'; e.phase = 1; e.open = 0; e.openT = 0; e.atkCD = 3; e.atkN = 0; e.line = makeWarnLine(); e.waves = []; }
@@ -1741,17 +1854,24 @@ const SPAWN_ORDER_2 = ['beetle','beetle','floater','rammer','beetle','floater','
 //   (MISSION 03, docs/mission-03.md) 汀都 第三防潮堤外縁・干潟区画 = MISSION 03 の舞台 / 霧殻 HAZE = 灰の霧で計器を乱す浮遊型
 //   渦殻王 MAELSHELL = 干潟の泥の下を泳ぐ殻王（MISSION 03 のボス）/ 震動探知 TREMOR SCAN = 踏み据えて脚で地面の震えを読む索敵
 //   観測塔 OBSERVATION TOWER = そばで踏み据えて電力を分けると起動し、視界とレーダーが広がる
+//   勲章 MEDALS = 作戦ごとの3つの達成印 / 高難度 HARD = クリア済み作戦の強化版 / 支援 ASSIST = 被ダメージ −25% の支援モード
+//   全作戦完了 ALL MISSIONS COMPLETE = 3作戦すべてクリア / 明日の報酬 TOMORROW = 翌日の連続出撃ボーナスの予告
+// Incoming damage per mission (multiplies every hit; see hurt()). Measured "idle until destroyed" times are in the report.
+const DMG_SCALE_M1 = 0.3, DMG_SCALE_M2 = 0.36, DMG_SCALE_M3 = 0.3;
 // Missions. M01 numbers are the original tuning (do not change: MISSION 01 must stay clearable without upgrades).
 const MISSIONS = {
   1: {id:1, tag:'MISSION 01', name:'汀都 第七区画 防衛', stage:'city', time:180, order:SPAWN_ORDER, boss:'lord', killPts:800, bossPts:6000,
       ranks:[20000, 15000, 10000], partsMul:1, firstBonus:250, hiKey:'grandstride_hiscore', rankKey:'grandstride_hirank', maxAlive:[4,5],
+      dmgScale:DMG_SCALE_M1, medalDmg:45,
       brief:'3分以内に灰殻12体と殻王を撃破。<br>一定のリズムで歩くと共鳴率が上がる。<br>共鳴率100%で鼓動モード OVERBEAT。'},
   2: {id:2, tag:'MISSION 02', name:'汀都 港湾区画 夜間掃討', stage:'port', time:240, order:SPAWN_ORDER_2, boss:'twin', killPts:850, bossPts:10000,
       ranks:[30000, 23000, 15000], partsMul:1.3, firstBonus:400, hiKey:'grandstride_m2_hiscore', rankKey:'grandstride_m2_hirank', maxAlive:[4,6],
+      dmgScale:DMG_SCALE_M2, medalDmg:55,
       brief:'4分以内に灰殻16体と双殻王を撃破。<br>突進型は溜めの赤い光が合図──横跳びで躱す。<br>激突して止まった背面が弱点。'},
   3: {id:3, tag:'MISSION 03', name:'汀都 第三防潮堤外縁 嵐中観測戦', stage:'storm', time:300, order:SPAWN_ORDER_3, boss:'mael', killPts:900, bossPts:14000,
       towers:3, towerPts:1500,
       ranks:[42500, 33500, 23500], partsMul:1.6, firstBonus:550, hiKey:'grandstride_m3_hiscore', rankKey:'grandstride_m3_hirank', maxAlive:[4,5],
+      dmgScale:DMG_SCALE_M3, medalDmg:65,
       brief:'5分以内に灰殻14体を撃破し、観測塔3基を起動。最後に渦殻王。<br>止まって踏み据えると震動探知──レーダーが広がる。<br>塔のそばで4秒踏み据えると起動。'},
 };
 let M = MISSIONS[1];
@@ -1759,7 +1879,11 @@ const RANK_NAMES = ['S','A','B','C'];
 
 /* ---- persistent progress (localStorage, versioned JSON) ---- */
 const SAVE_KEY = 'grandstride_save';
-const SAVE_V = 1;
+const SAVE_V = 2;
+// v2 (from v1): medals (3 per mission), HARD setting + HARD clear marks, ASSIST setting, consecutive losses per mission,
+// tutorial seen, and the "mission in progress" flag used to detect a run that was closed mid-mission.
+const MEDAL_BONUS = [60, 90, 120];
+const HARD_HP = 1.5, HARD_DMG = 1.35, HARD_PARTS = 1.5, ASSIST_DMG = 0.75;
 // Upgrade tables: 5 levels per system; cost of the level you buy next.
 const UP_COST = [120, 200, 320, 480, 700];
 const UP_MAX = 5;
@@ -1769,23 +1893,57 @@ const UPG = {
   armor: {name:'装甲', en:'ARMOR', stats:(l) => [['装甲最大 ARMOR MAX', 100 + 12*l, ''], ['被ダメ軽減 DMG CUT', 3*l, '%']]},
 };
 const UP_KEYS = ['legs', 'core', 'armor'];
-function defaultSave(){ return {v:SAVE_V, parts:0, up:{legs:0, core:0, armor:0}, cleared:{}, launched:false, daily:null, streak:{last:'', n:0}}; }
+function defaultSave(){ return {v:SAVE_V, parts:0, up:{legs:0, core:0, armor:0}, cleared:{}, launched:false, daily:null, streak:{last:'', n:0},
+  medals:{1:[false,false,false], 2:[false,false,false], 3:[false,false,false]}, hardClear:{}, hard:false, assist:false, loses:{}, tutorial:false, run:null}; }
 function loadSave(){
   let d = null;
   try { d = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); } catch(e){ d = null; }
   const s = defaultSave();
-  if (!d || typeof d !== 'object' || d.v !== SAVE_V) return s;
+  if (!d || typeof d !== 'object' || (d.v !== 1 && d.v !== SAVE_V)) return s;
   s.parts = Math.max(0, Math.floor(+d.parts || 0));
   for (const k of UP_KEYS) s.up[k] = clamp(Math.floor(+(d.up && d.up[k]) || 0), 0, UP_MAX);
   if (d.cleared && typeof d.cleared === 'object') s.cleared = {1:!!d.cleared[1], 2:!!d.cleared[2], 3:!!d.cleared[3]};
   s.launched = !!d.launched;
   if (d.daily && typeof d.daily === 'object' && typeof d.daily.date === 'string') s.daily = d.daily;
   if (d.streak && typeof d.streak === 'object') s.streak = {last:String(d.streak.last || ''), n:Math.max(0, Math.floor(+d.streak.n || 0))};
+  if (d.v === 1){
+    // v1 -> v2: a player who has already launched (or cleared MISSION 01) does not get the first-run tutorial again
+    s.tutorial = s.launched || !!s.cleared[1];
+    // medals that the v1 records already prove: CLEAR, and RANK A+ from the stored best rank (no bonus PARTS)
+    for (const id of [1, 2, 3]){
+      if (!s.cleared[id]) continue;
+      const r = store.get(MISSIONS[id].rankKey, '');
+      s.medals[id][0] = true; s.medals[id][1] = r === 'S' || r === 'A';
+    }
+    return s;
+  }
+  for (const id of [1, 2, 3]){
+    const m = d.medals && d.medals[id];
+    if (Array.isArray(m)) s.medals[id] = [0, 1, 2].map(i => !!m[i]);
+    s.hardClear[id] = !!(d.hardClear && d.hardClear[id]);
+    s.loses[id] = Math.max(0, Math.floor(+(d.loses && d.loses[id]) || 0));
+  }
+  s.hard = !!d.hard; s.assist = !!d.assist; s.tutorial = !!d.tutorial;
+  if (d.run && typeof d.run === 'object' && MISSIONS[d.run.m]) s.run = {m:+d.run.m, hard:!!d.run.hard, at:+d.run.at || 0};
   return s;
 }
 let SAVE = loadSave();
-function writeSave(){ try { localStorage.setItem(SAVE_KEY, JSON.stringify(SAVE)); } catch(e){} }
-let sessionDebug = false; // set by debug upgrade / parts hooks: every later run in this page is marked debug (no records saved)
+// Writes only when something changed (the title refreshes call it often); force = always write (page hide).
+let savedJson = '';
+function writeSave(force){
+  if (sessionDebug || debugDate != null) return; // debug upgrades / PARTS / fake date never reach the real save
+  try {
+    const js = JSON.stringify(SAVE);
+    if (!force && js === savedJson) return;
+    localStorage.setItem(SAVE_KEY, js); savedJson = js;
+    noteSaved('save');
+  } catch(e){}
+}
+try { savedJson = localStorage.getItem(SAVE_KEY) || ''; } catch(e){}
+function flushSave(){ writeSave(true); }
+window.addEventListener('pagehide', flushSave);
+document.addEventListener('visibilitychange', () => { if (document.hidden) flushSave(); });
+let sessionDebug = false; // set by debug upgrade / parts hooks: every later run in this page is marked debug (no records saved, writeSave() is off)
 // MISSION n unlocks when MISSION n-1 has been cleared (MISSION 01 is always open)
 function mUnlocked(id){ id = +id; return id === 1 || (!!MISSIONS[id] && !!SAVE.cleared[id - 1]); }
 function m2Unlocked(){ return mUnlocked(2); }
@@ -1854,7 +2012,7 @@ function dailyDef(id){ return DAILY_POOL.find(d => d.id === id); }
 function goalText(g){ return dailyDef(g.id).txt(g.n); }
 // Makes sure SAVE.daily is today's set; also advances the login streak (small PARTS bonus once per day).
 let streakNote = '';
-function ensureDaily(){
+function ensureDaily(noWrite){
   const ds = today();
   if (!SAVE.daily || SAVE.daily.date !== ds){
     SAVE.daily = {date:ds, goals:genDaily(ds).map(g => Object.assign(g, {prog:0, done:false})), allDone:false};
@@ -1866,7 +2024,7 @@ function ensureDaily(){
     SAVE.parts += bonus;
     streakNote = '連続出撃 STREAK ' + SAVE.streak.n + '日目 ボーナス 資材 +' + bonus;
   }
-  writeSave();
+  if (!noWrite) writeSave();
 }
 // Apply one finished (non-debug) run to today's goals. Returns [{text, reward}] newly completed (+ all-clear bonus).
 function applyDaily(st){
@@ -2001,6 +2159,29 @@ function refreshTitle(){
   });
   $('briefText').innerHTML = MISSIONS[selMission].brief;
   setText($('tParts'), '◆' + SAVE.parts);
+  // medals (★ x3) and the HARD clear mark on each card
+  for (const id of [1, 2, 3]){
+    const md = SAVE.medals[id] || [];
+    let h = '';
+    for (let i = 0; i < 3; i++) h += '<i class="' + (md[i] ? 'on' : '') + '" title="' + medalText(MISSIONS[id], i) + '">' + (md[i] ? '★' : '☆') + '</i>';
+    if (SAVE.hardClear[id]) h += '<span class="hd">HARD</span>';
+    $('mStars' + id).innerHTML = h;
+  }
+  // HARD (cleared missions only) / ASSIST
+  const canHard = !!SAVE.cleared[selMission];
+  const th = $('tglHard'), ta = $('tglAssist');
+  th.disabled = !canHard;
+  th.classList.toggle('on', SAVE.hard && canHard); th.setAttribute('aria-pressed', SAVE.hard && canHard ? 'true' : 'false');
+  ta.classList.toggle('on', SAVE.assist); ta.setAttribute('aria-pressed', SAVE.assist ? 'true' : 'false');
+  setText($('modeNote'), !canHard ? 'HARD はクリア済みの作戦で選べます' : SAVE.hard ? '敵の装甲と火力が上がる／資材 ×1.5' : SAVE.assist ? '被ダメージ −25%（勲章「ランクA以上」は無効）' : '');
+  // all three cleared: next goals (HARD clears, medals)
+  const all = [1, 2, 3].every(id => SAVE.cleared[id]);
+  const ac = $('allClear'); ac.classList.toggle('hidden', !all);
+  if (all){
+    const hc = [1, 2, 3].filter(id => SAVE.hardClear[id]).length, mc = medalCount();
+    ac.innerHTML = '<b>全作戦完了 ALL MISSIONS COMPLETE</b><br>次の目標：高難度 HARD クリア ' + hc + '/3 ・ 勲章 ★ ' + mc + '/9' +
+      (hc === 3 && mc === 9 ? ' ── 全勲章達成。汀都の灯りは、あなたが守りました' : '');
+  }
   renderDaily();
 }
 function renderDaily(){
@@ -2013,7 +2194,7 @@ function renderDaily(){
       (g.done ? '達成 +' + g.reward : g.prog + '/' + g.target + ' ◆' + g.reward) + '</b></div>';
   }
   if (d.allDone) h += '<div class="dg done"><span>全目標達成ボーナス</span><b>+' + DAILY_ALL_BONUS + '</b></div>';
-  el.innerHTML = h;
+  el.innerHTML = h + tomorrowHtml();
 }
 function goTitle(){
   clearMission();
@@ -2025,8 +2206,20 @@ function goTitle(){
   setBayOpen(0); bayLight.intensity = 0;
   if (!mUnlocked(selMission)) selMission = 1;
   setStage(MISSIONS[selMission].stage);
+  clearRunFlag(); // back to the title by choice (pause -> title): not an interruption
   exitLock(); refreshTitle();
-  if (streakNote){ setText($('titleNote'), streakNote); streakNote = ''; }
+  const notes = [interruptNote, streakNote].filter(Boolean);
+  if (notes.length){ setText($('titleNote'), notes.join('\n')); streakNote = ''; interruptNote = ''; }
+}
+// A run that was closed mid-mission (SAVE.run still set at load): report it and pay the defeat minimum.
+let interruptNote = '';
+function checkInterrupted(){
+  const r = SAVE.run; if (!r) return 0;
+  const m = MISSIONS[r.m] || MISSIONS[1];
+  const n = Math.round(calcReward(m, false, 0, 'C', false).total * (r.hard ? HARD_PARTS : 1));
+  SAVE.parts += n; SAVE.run = null; writeSave();
+  interruptNote = '前回の作戦は中断されました（' + m.tag + '）。最低報酬 資材 +' + n + ' を受け取りました。';
+  return n;
 }
 let audioInited = false;
 function initAudio(){ if (!audioInited){ audioInited = true; snd('init'); weatherSnd.r = -1; snd('setMaster', (parseInt(store.get('grandstride_vol','80'),10) || 0) / 100); } }
@@ -2048,6 +2241,7 @@ function clearMission(){
   hudEl.tint.classList.remove('on'); hudEl.ob.classList.remove('on'); hudEl.resPanel.classList.remove('ob');
   hudEl.flash.style.opacity = 0; hudEl.lock.classList.remove('on');
   hudEl.hud.classList.remove('boss');
+  if (G.tut) endTutorial(false);
   resetStorm();
 }
 function resetMission(id){
@@ -2056,12 +2250,15 @@ function resetMission(id){
   setStage(M.stage);
   resetPlayer();
   Object.assign(G, {t:0, timeLeft:M.time, kills:0, spawned:0, lordSpawned:false, lordDead:false, lordTimer:-1, spawnT:2.5, ending:0, win:false,
-    debugUsed:sessionDebug || (M.stage === 'storm' && SW.weather !== 'storm'), st:newRunStats()});
+    debugUsed:sessionDebug || (M.stage === 'storm' && SW.weather !== 'storm'), st:newRunStats(),
+    hard:!!(SAVE.hard && SAVE.cleared[M.id]), assist:!!SAVE.assist, rookie:M.id === 1 && !SAVE.cleared[1], tut:null});
   hull.visible = false;
   rig.position.copy(P.pos); rig.rotation.set(0,0,0);
   for (let i = 0; i < 4; i++){ legs[i].local.copy(FOOT_REST[i]); poseLeg(i); }
   input.fire = false; input.boost = false; input.fireTap = false;
   setText($('mnTag'), M.tag); setText($('mnName'), M.name);
+  setText($('mnMode'), [G.hard ? 'HARD' : '', G.assist ? 'ASSIST' : ''].filter(Boolean).join(' ')); $('mnMode').classList.toggle('as', !G.hard && G.assist);
+  hudEl.hud.classList.remove('tut');
   setText($('bossName').firstChild, BOSS_LABEL[M.boss] || BOSS_LABEL.lord);
   bossEl.bar.classList.toggle('mael', M.boss === 'mael');
   hudEl.hud.classList.toggle('storm', M.stage === 'storm');
@@ -2096,7 +2293,8 @@ function startLaunch(id){
 }
 function beginPlay(){
   if (G.state !== 'launch' && G.state !== 'title' && G.state !== 'result' && G.state !== 'paused') return;
-  if (G.state === 'launch' && !SAVE.launched){ SAVE.launched = true; writeSave(); }
+  const fromLaunch = G.state === 'launch';
+  if (fromLaunch && !SAVE.launched){ SAVE.launched = true; writeSave(); }
   G.state = 'play';
   showOnly([]);
   hudEl.hud.classList.remove('hidden', 'boot');
@@ -2114,11 +2312,61 @@ function beginPlay(){
   } else if (M.id === 2){
     say('管制イツカより鞍士へ。汀都 港湾区画、夜間掃討を開始。制限時間4分、灰殻16体と大型反応1。', {});
     say('霧が濃い。コンテナの陰に注意して。突進型は、溜めの赤い光が合図です。', {});
+  } else if (fromLaunch && !SAVE.tutorial){
+    startTutorial();
   } else {
     say('管制イツカより鞍士へ。汀都 第七区画に灰殻の群れ。制限時間3分、全機撃破してください。', {});
     say('一定のリズムで歩けば共鳴率は上がります。焦らずに。', {});
   }
-  G.spawnT = 1.5;
+  G.spawnT = G.rookie ? 3 : 1.5;
+  // "mission in progress": if the page is closed before the result, the next visit reports it (see checkInterrupted)
+  if (!G.debugUsed){ SAVE.run = {m:M.id, hard:G.hard, at:Date.now()}; writeSave(); }
+}
+function clearRunFlag(){ if (SAVE.run){ SAVE.run = null; writeSave(); } }
+
+/* ---- first-run tutorial (MISSION 01, first real launch only) ----
+   Itsuka walks the rider through move -> turn -> fire -> dash -> boost; each step waits for the action (or 25s).
+   The mission clock and the spawns hold until the dash step, so the first ASHSHELL arrives in the second half. */
+const TUT_STEPS = [
+  {id:'move',  pc:['まずは歩いてみて。W で前進、S で後退です。', 'W 前進 ／ S 後退'], tc:['まずは歩いてみて。左下のスティックを上に倒すと前進です。', 'スティック ▲ 前進']},
+  {id:'turn',  pc:['いい歩き方です。A／D で旋回、マウスで視点。照準は画面の中心です。', 'A / D 旋回 ・ マウス 視点'], tc:['いい歩き方です。スティックを左右で旋回、画面の右側をドラッグすると視点が動きます。', 'スティック ◀▶ 旋回 ・ 右側ドラッグ 視点']},
+  {id:'fire',  pc:['左クリックで射撃。照準の近くの敵は自動でロックします。3発、撃ってみて。', '左クリック 射撃 ×3'], tc:['射撃ボタンで撃てます。照準の近くの敵は自動でロックします。3発、撃ってみて。', '射撃ボタン FIRE ×3']},
+  {id:'dash',  pc:['Shift を押しながら前進で疾走。炉温が上がるので使いすぎに注意。……灰殻の反応、来ます。', 'Shift ＋ W 疾走'], tc:['疾走ボタンを押しながら前進で疾走。炉温が上がるので使いすぎに注意。……灰殻の反応、来ます。', '疾走ボタン ＋ スティック ▲']},
+  {id:'boost', pc:['Space で跳躍。甲虫型や殻王の体当たりは跳んで躱せます。', 'Space 跳躍'], tc:['跳躍ボタンで跳べます。甲虫型や殻王の体当たりは跳んで躱せます。', '跳躍ボタン BOOST']},
+];
+const TUT_SPAWN_STEP = 3, TUT_STEP_MAX = 25;
+function startTutorial(){
+  say('管制イツカより鞍士へ。初出撃ですね。灰殻が来る前に、操作を確かめましょう。', {});
+  G.tut = {step:-1, t:0, acc:0, h:P.heading, shots:P.shots};
+  hudEl.hud.classList.add('tut');
+  tutNext();
+}
+function tutNext(){
+  const T = G.tut; T.step++; T.t = 0; T.acc = 0; T.h = P.heading; T.shots = P.shots;
+  if (T.step >= TUT_STEPS.length){ endTutorial(true); return; }
+  const S = TUT_STEPS[T.step];
+  say((isTouch ? S.tc : S.pc)[0], {urgent:T.step > 0});
+  if (T.step === TUT_SPAWN_STEP) G.spawnT = 1.2;
+}
+function endTutorial(done){
+  if (!G.tut) return;
+  G.tut = null; hudEl.hud.classList.remove('tut');
+  if (done) say('操作は以上です。一定のリズムで歩けば共鳴率が上がります。灰殻を全機撃破して。', {});
+  if (!SAVE.tutorial){ SAVE.tutorial = true; writeSave(); }
+}
+function updTutorial(dt){
+  const T = G.tut; if (!T) return;
+  const S = TUT_STEPS[T.step];
+  T.t += dt;
+  let ok = false;
+  if (S.id === 'move'){ if (Math.abs(P.v) > 3) T.acc += dt; ok = T.acc > 0.8; }
+  else if (S.id === 'turn'){ let d = P.heading - T.h; T.h = P.heading; T.acc += Math.abs(d); ok = T.acc > 1.0; }
+  else if (S.id === 'fire') ok = P.shots - T.shots >= 3;
+  else if (S.id === 'dash'){ if (P.dashing) T.acc += dt; ok = T.acc > 0.7; }
+  else if (S.id === 'boost') ok = !P.grounded && P.vy > 0;
+  setText($('tutStep'), 'STEP ' + (T.step + 1) + '/' + TUT_STEPS.length);
+  setText($('tutText'), (isTouch ? S.tc : S.pc)[1]);
+  if ((ok && T.t > 0.6) || T.t > TUT_STEP_MAX){ snd('lockOn'); tutNext(); }
 }
 function pauseGame(){
   if (G.state !== 'play' || G.ending > 0) return;
@@ -2162,7 +2410,7 @@ function showResult(){
   let rank = score >= R[0] ? 'S' : score >= R[1] ? 'A' : score >= R[2] ? 'B' : 'C';
   if (!win && (rank === 'S' || rank === 'A')) rank = 'B';
   const rt = $('resTitle'); rt.textContent = win ? 'MISSION COMPLETE' : 'MISSION FAILED'; rt.className = win ? 'win' : 'lose';
-  $('resSub').textContent = M.tag + ' — ' + M.name + (win ? ' ／ 成功' : ' ／ 失敗');
+  $('resSub').textContent = M.tag + ' — ' + M.name + (G.hard ? ' ／ HARD' : '') + (G.assist ? ' ／ ASSIST' : '') + (win ? ' ／ 成功' : ' ／ 失敗');
   $('rKills').textContent = (G.kills + (G.lordDead ? 1 : 0)) + ' / ' + (total + 1);
   $('rAcc').textContent = Math.round(acc * 100) + '%';
   $('rRes').textContent = Math.round(P.maxRes) + '%';
@@ -2172,22 +2420,40 @@ function showResult(){
   const rk = $('rank'); rk.textContent = rank; rk.className = rank;
   const prev = hiscoreOf(M);
   const debug = !!G.debugUsed;
+  if (G.tut) endTutorial(false);
   if (score > prev && !debug){ store.set(M.hiKey, score); store.set(M.rankKey, rank); $('newHi').textContent = '最高スコア更新 NEW RECORD'; }
   else $('newHi').textContent = '';
   // rewards / progress (never from debug runs)
   const first = win && !SAVE.cleared[M.id];
   const rew = calcReward(M, win, score, rank, first);
-  let daily = [], unlocked = 0;
+  if (G.hard){ rew.hard = Math.round(rew.total * (HARD_PARTS - 1)); rew.total += rew.hard; }
+  // medals: CLEAR / RANK A+ (not while ASSIST is on) / damage taken <= M.medalDmg on a clear
+  const got = medalsOf(M, win, rank, P.dmgTaken, G.assist);
+  const had = SAVE.medals[M.id] || [false, false, false];
+  const newMedals = [];
+  if (!debug) got.forEach((g, i) => { if (g && !had[i]) newMedals.push(i); });
+  rew.medal = newMedals.reduce((a, i) => a + Math.round(MEDAL_BONUS[i] * M.partsMul), 0);
+  rew.total += rew.medal;
+  let daily = [], unlocked = 0, hardFirst = false;
   const st = Object.assign(G.st, {win, dmg:P.dmgTaken, rank, acc, timeLeft:G.timeLeft, towers:towersOn});
   if (!debug){
     ensureDaily();
     SAVE.parts += rew.total;
-    if (win){ if (MISSIONS[M.id + 1] && !SAVE.cleared[M.id]) unlocked = M.id + 1; SAVE.cleared[M.id] = true; }
+    for (const i of newMedals) SAVE.medals[M.id][i] = true;
+    if (win){
+      if (MISSIONS[M.id + 1] && !SAVE.cleared[M.id]) unlocked = M.id + 1;
+      SAVE.cleared[M.id] = true; SAVE.loses[M.id] = 0;
+      if (G.hard && !SAVE.hardClear[M.id]){ SAVE.hardClear[M.id] = true; hardFirst = true; }
+    } else SAVE.loses[M.id] = (SAVE.loses[M.id] || 0) + 1;
     daily = applyDaily(st);
-    writeSave();
   }
+  SAVE.run = null;
+  writeSave();
   let h = '<div class="pp"><small>獲得資材 PARTS</small>+' + rew.total + (debug ? ' <small>(DEBUG — 未保存)</small>' : '') + '</div>';
-  h += '<div class="why">スコア ' + rew.base + (rew.rank ? ' ＋ ランク ' + rew.rank : '') + (rew.first ? ' ＋ 初回クリア ' + rew.first : '') + '　／　所持 ◆' + SAVE.parts + '</div>';
+  h += '<div class="why">スコア ' + rew.base + (rew.rank ? ' ＋ ランク ' + rew.rank : '') + (rew.first ? ' ＋ 初回クリア ' + rew.first : '') +
+    (rew.hard ? ' ＋ HARD ' + rew.hard : '') + (rew.medal ? ' ＋ 勲章 ' + rew.medal : '') + '　／　所持 ◆' + SAVE.parts + '</div>';
+  for (const i of newMedals) h += '<div class="med">勲章獲得 MEDAL ★ ' + medalText(M, i) + '　資材 +' + Math.round(MEDAL_BONUS[i] * M.partsMul) + '</div>';
+  if (hardFirst) h += '<div class="med">HARD 初クリア ／ ' + M.tag + ' に HARD の印</div>';
   if (unlocked) h += '<div class="unl">' + MISSIONS[unlocked].tag + '「' + MISSIONS[unlocked].name + '」解放 UNLOCKED</div>';
   for (const d of daily) h += '<div class="dly">今日の作戦目標 達成：' + d.text + '　資材 +' + d.reward + '</div>';
   const nc = cheapestUp();
@@ -2197,11 +2463,38 @@ function showResult(){
   if (ri > 0){ const need = R[ri - 1] - score; nxt.push(win || ri > 2 ? '次のランク ' + RANK_NAMES[ri - 1] + ' まで あと ' + need + '点' : '成功でランク ' + RANK_NAMES[ri - 1] + ' 以上を狙える'); }
   else nxt.push('最高ランク S');
   h += '<div class="nxt">' + nxt.join('　／　') + '</div>';
+  h += tomorrowHtml();
   $('rewards').innerHTML = h;
+  // medal row (new ones pop in)
+  let mh = '';
+  for (let i = 0; i < 3; i++){
+    const on = !!(SAVE.medals[M.id] && SAVE.medals[M.id][i]) || (debug && got[i]);
+    const off = i === 1 && G.assist;
+    mh += '<span class="md' + (on ? ' on' : '') + (newMedals.indexOf(i) >= 0 ? ' new' : '') + (off ? ' off' : '') + '" style="animation-delay:' + (0.3 + 0.25 * newMedals.indexOf(i)) + 's"><i>' + (on ? '★' : '☆') + '</i>' +
+      medalText(M, i) + (off ? '（ASSIST中は無効）' : '') + '</span>';
+  }
+  $('rMedals').innerHTML = mh;
+  if (newMedals.length){ snd('upgrade', 3); snd('haptic', 60); }
+  // campaign: after a clear the next mission is the main button; after a defeat it is RELAUNCH
+  const nextId = win && MISSIONS[M.id + 1] && mUnlocked(M.id + 1) ? M.id + 1 : 0;
+  $('btnNext').classList.toggle('hidden', !nextId);
+  $('btnRetry').classList.toggle('primary', !nextId);
+  const offerAssist = !win && !G.assist && !debug && (SAVE.loses[M.id] || 0) >= 2;
+  $('btnAssist').classList.toggle('hidden', !offerAssist);
   G.lastResult = {win, score, rank, debug, mission:M.id, parts:rew.total, partsDetail:rew, daily, unlocked:!!unlocked, unlockedMission:unlocked || null, towers:towersOn,
-    kills:G.kills + (G.lordDead ? 1 : 0), accuracy:acc, maxResonance:P.maxRes, damageTaken:P.dmgTaken, time:used};
+    kills:G.kills + (G.lordDead ? 1 : 0), accuracy:acc, maxResonance:P.maxRes, damageTaken:P.dmgTaken, time:used,
+    hard:!!G.hard, assist:!!G.assist, medals:got, newMedals, hardFirst, next:nextId || null, assistOffered:offerAssist};
   showOnly(['result']);
-  try { $('btnRetry').focus({preventScroll:true}); } catch(e){}
+  try { $(nextId ? 'btnNext' : 'btnRetry').focus({preventScroll:true}); } catch(e){}
+}
+const MEDAL_NAMES = ['クリア', 'ランクA以上', ''];
+function medalText(m, i){ return i === 2 ? '被ダメージ' + m.medalDmg + '以下' : MEDAL_NAMES[i]; }
+function medalsOf(m, win, rank, dmg, assist){ return [win, win && !assist && (rank === 'S' || rank === 'A'), win && dmg <= m.medalDmg]; }
+function medalCount(){ let n = 0; for (const id of [1, 2, 3]) n += (SAVE.medals[id] || []).filter(Boolean).length; return n; }
+// tomorrow's STREAK bonus (if the rider comes back tomorrow) + the daily goals refresh
+function tomorrowHtml(){
+  const n = SAVE.streak.last === today() ? SAVE.streak.n + 1 : 1;
+  return '<div class="tmr">明日の報酬 TOMORROW：連続出撃 ' + n + '日目 資材 <b>+' + (10 * Math.min(n, 7)) + '</b> ／ 今日の作戦目標は明日 新しくなります</div>';
 }
 function fmtTime(s){ s = Math.max(0, Math.ceil(s)); return Math.floor(s/60) + ':' + String(s % 60).padStart(2, '0'); }
 
@@ -2333,7 +2626,7 @@ $('hReset').addEventListener('click', () => { snd('uiClick'); $('hConfirm').clas
 $('hNo').addEventListener('click', () => { snd('uiClick'); $('hConfirm').classList.add('hidden'); $('hReset').classList.remove('hidden'); });
 $('hYes').addEventListener('click', () => {
   const keep = SAVE;
-  SAVE = defaultSave(); SAVE.daily = keep.daily; SAVE.streak = keep.streak; SAVE.launched = keep.launched;
+  SAVE = defaultSave(); SAVE.daily = keep.daily; SAVE.streak = keep.streak; SAVE.launched = keep.launched; SAVE.tutorial = keep.tutorial; SAVE.assist = keep.assist;
   writeSave(); snd('explosion', 0.3);
   $('hConfirm').classList.add('hidden'); $('hReset').classList.remove('hidden');
   if (selMission !== 1) selectMission(1, true);
@@ -2394,6 +2687,15 @@ $('launch').addEventListener('pointerdown', (e) => { e.preventDefault(); skipLau
 $('btnResume').addEventListener('click', () => { snd('uiClick'); resumeGame(); });
 $('btnPauseTitle').addEventListener('click', () => { snd('uiClick'); goTitle(); });
 $('btnRetry').addEventListener('click', () => { initAudio(); snd('uiClick'); startLaunch(M.id); });
+$('btnNext').addEventListener('click', () => {
+  const id = M.id + 1; if (!MISSIONS[id] || !mUnlocked(id)) return;
+  initAudio(); snd('uiClick'); selMission = id; store.set('grandstride_mission', id); startLaunch(id);
+});
+$('btnAssist').addEventListener('click', () => { initAudio(); snd('uiClick'); setAssist(true); startLaunch(M.id); });
+$('tglHard').addEventListener('click', (e) => { e.stopPropagation(); initAudio(); snd('uiClick'); setHard(!SAVE.hard); });
+$('tglAssist').addEventListener('click', (e) => { e.stopPropagation(); initAudio(); snd('uiClick'); setAssist(!SAVE.assist); });
+function setHard(on){ SAVE.hard = !!on; writeSave(); if (G.state === 'title') refreshTitle(); return SAVE.hard; }
+function setAssist(on){ SAVE.assist = !!on; writeSave(); if (G.state === 'title') refreshTitle(); return SAVE.assist; }
 $('btnToTitle').addEventListener('click', () => { snd('uiClick'); goTitle(); });
 (function(){
   const v = $('vol'); v.value = store.get('grandstride_vol', '80');
@@ -2405,6 +2707,7 @@ function skipLaunch(){
   // frame runs, so during a long first-launch frame every skip press was ignored.
   if ((performance.now() - launchSeq.t0) / 1000 < 0.4) return;
   P.res = Math.max(P.res, 40);
+  snd('stopLaunch'); // the launch sounds and the delayed haptic stop with the skip
   beginPlay();
 }
 
@@ -2471,7 +2774,19 @@ function updBullets(dt){
         if (segSphere(b.prev, b.pos, tmpW, wi.r)){ damageEnemy(e, b.dmg * wi.mul, tmpW, true, wi.mul); hit = true; break; }
       }
       enemyCenter(e, tmpC);
-      if (segSphere(b.prev, b.pos, tmpC, e.r)){ damageEnemy(e, b.dmg * bodyMul(e), b.pos, false); hit = true; break; }
+      if (segSphere(b.prev, b.pos, tmpC, e.r)){
+        // QA (M02): an exposed weak point that sits inside the body sphere (TWINSHELL core ~2m from the centre) was never
+        // reached at 60fps: a round moves ~5m per frame, so it always touched the body sphere first. On a body hit, carry
+        // the round on to its closest approach to the body centre (+ the weak radius) and test the weak point there.
+        // Weak points on the far side (RAMSHELL back seen from the front) stay out of reach.
+        if (wi){
+          V1.copy(b.vel).normalize();
+          const tc = V2.subVectors(tmpC, b.prev).dot(V1);
+          V3.copy(b.prev).addScaledVector(V1, Math.max(0, tc) + wi.r);
+          if (segSphere(b.prev, V3, tmpW, wi.r)){ damageEnemy(e, b.dmg * wi.mul, tmpW, true, wi.mul); hit = true; break; }
+        }
+        damageEnemy(e, b.dmg * bodyMul(e), b.pos, false); hit = true; break;
+      }
     }
     if (hit){ P.hits++; kill(b); continue; }
     if (b.pos.y <= 0.2){ b.pos.y = 0.3; sparks(b.pos, 8); dustBurst(b.pos.x, b.pos.z, 3, 0.6); kill(b); continue; }
@@ -2539,11 +2854,13 @@ function killEnemy(e){
     }
   }
 }
-// Incoming damage multiplier. QA: at 1.0 an idle mech died in ~30s of a 3:00 mission.
+// Incoming damage multiplier. QA: at 1.0 an idle mech died in ~30s of a 3:00 mission. Per mission: M.dmgScale.
+// HARD multiplies it by HARD_DMG, ASSIST by ASSIST_DMG (-25%).
 const DAMAGE_SCALE = 0.5;
+function dmgMul(){ return (M.dmgScale || DAMAGE_SCALE) * (G.hard ? HARD_DMG : 1) * (G.assist ? ASSIST_DMG : 1); }
 function hurt(amount, src, extraGrip){
   if (G.state !== 'play' || G.ending > 0) return;
-  amount *= DAMAGE_SCALE * (1 - P.dmgRed);
+  amount *= dmgMul() * (1 - P.dmgRed);
   P.armor = Math.max(0, P.armor - amount);
   P.dmgTaken += amount;
   P.trauma = Math.min(1, P.trauma + 0.3 + amount / 30);
@@ -2640,7 +2957,7 @@ function updEnemies(dt){
         else { e.dir.x = lerp(e.dir.x, nx, Math.min(1, dt * 2.5)); e.dir.z = lerp(e.dir.z, nz, Math.min(1, dt * 2.5)); }
         const l = Math.hypot(e.dir.x, e.dir.z) || 1;
         p.x += e.dir.x / l * sp * dt; p.z += e.dir.z / l * sp * dt;
-        if (d < 12 && P.y < 6){ hurt(9, p); e.state = 'recoil'; e.st = 1.5; sparks(V1.set(p.x, 4, p.z), 20); P.v *= 0.6; }
+        if (d < 12 && P.y < 5){ hurt(9, p); e.state = 'recoil'; e.st = 1.5; sparks(V1.set(p.x, 4, p.z), 20); P.v *= 0.6; }
         pushOut(p, 4.5);
         if (e.state === 'chase') unstick(e, p, ox, oz, sp * dt, dt);
       }
@@ -2671,7 +2988,7 @@ function updEnemies(dt){
         else { p.x += nx * 8 * dt; p.z += nz * 8 * dt; }
         pushOut(p, 12); unstick(e, p, ox, oz, 8 * dt, dt);
       }
-      else if (d < 24 && P.y < 8){ hurt(16, p); e.state = 'recoil'; e.st = 2; }
+      else if (d < 24 && P.y < 6){ hurt(16, p); e.state = 'recoil'; e.st = 2; }
       pushOut(p, 12);
       e.g.lookAt(px, 0, pz);
       for (const L of e.model.legs) L.pivot.rotation.x = Math.sin(e.t * 4 + L.z * 0.3 + (L.s > 0 ? Math.PI : 0)) * 0.25;
@@ -2699,6 +3016,8 @@ function updEnemies(dt){
     } else if (e.type === 'mael'){
       updMael(e, dt, d, nx, nz, dx, dz);
     }
+    // QA (M02): the mech walked through the bosses. Push it out of SHELL LORD / TWINSHELL (MAELSHELL: maelKnock()).
+    if ((e.type === 'lord' || e.type === 'twin') && d < e.r + 6 && P.y < 10){ P.pos.x = p.x + nx * (e.r + 6); P.pos.z = p.z + nz * (e.r + 6); pushOut(P.pos, 10); }
     // keep in arena
     stage.clampEnemy(p);
     // hit flash
@@ -2740,17 +3059,20 @@ function bearingName(x, z){
   const deg = ((ang * 180 / Math.PI) + 360) % 360;
   return ['北','北東','東','南東','南','南西','西','北西'][Math.round(deg / 45) % 8];
 }
+const ROOKIE = {maxAlive:[3,4], gapFirst:1.8, gap:3.0};
 function updSpawns(dt){
   const total = M.order.length;
   const aliveReg = enemies.filter(e => e.alive && !BOSS_TYPES[e.type]).length;
+  if (G.tut && G.tut.step < TUT_SPAWN_STEP) return;
   G.spawnT -= dt;
-  const maxAlive = G.kills < 4 ? M.maxAlive[0] : M.maxAlive[1];
+  // first MISSION 01 (until it is cleared once): fewer at a time, more time between arrivals
+  const maxAlive = G.rookie ? (G.kills < 4 ? ROOKIE.maxAlive[0] : ROOKIE.maxAlive[1]) : (G.kills < 4 ? M.maxAlive[0] : M.maxAlive[1]);
   if (G.spawned < total && aliveReg < maxAlive && G.spawnT <= 0){
     const type = M.order[G.spawned];
     const [x, z] = spawnPos(type === 'floater' ? 130 : 150);
     spawnEnemy(type, x, z);
     G.spawned++;
-    G.spawnT = G.spawned < 4 ? 0.8 : 2.6;
+    G.spawnT = G.rookie ? (G.spawned < 4 ? ROOKIE.gapFirst : ROOKIE.gap) : (G.spawned < 4 ? 0.8 : 2.6);
     if (G.spawned === 1 && M.id !== 3) say('灰殻の反応、' + bearingName(x, z) + 'から接近。甲虫型です。', {key:'spawn', cd:8});
     else if (type === 'haze' && !SW.saidHaze){ SW.saidHaze = true; say('計器にノイズ──霧殻です。砂嵐の真ん中にいる。撃てば晴れます', {urgent:true}); }
     else if (type === 'rammer' && M.order.indexOf('rammer') === G.spawned - 1){
@@ -2821,9 +3143,13 @@ function updRammer(e, dt, d, nx, nz){
   let glow = 0;
   if (e.state === 'approach'){
     let radial = 0; if (d > RAM.standMax) radial = 22; else if (d < RAM.standMin) radial = -14;
-    const tx = -nz * e.orbit, tz = nx * e.orbit;
-    p.x += (nx * radial + tx * 7) * dt; p.z += (nz * radial + tz * 7) * dt;
+    const tx = -nz * e.orbit, tz = nx * e.orbit, ox = p.x, oz = p.z;
+    // QA (M02): pinned against a building next to the player (too close to charge, retreat blocked) it stopped
+    // attacking. unstick() makes it slide along the face for a while, out to charging range.
+    if (e.slideT > 0){ e.slideT -= dt; p.x += (tx * 18 - nx * 6) * dt; p.z += (tz * 18 - nz * 6) * dt; }
+    else { p.x += (nx * radial + tx * 7) * dt; p.z += (nz * radial + tz * 7) * dt; }
     pushOut(p, 6);
+    if (radial || e.slideT > 0) unstick(e, p, ox, oz, Math.max(Math.abs(radial), 7) * dt, dt);
     e.g.lookAt(P.pos.x, 0, P.pos.z);
     e.cd -= dt;
     if (e.cd <= 0){
@@ -2909,6 +3235,7 @@ function startTwinAttack(e, d, nx, nz){
 }
 function twinTransform(e){
   e.state = 'transform'; e.st = 4.0; e.tfT = 0; e.tfDet = false; hideLine(e);
+  e.model.shellMat.emissive.setRGB(0, 0, 0); e.model.body.position.x = 0; // a transform during a charge wind-up left the shells red
   snd('bossShift'); P.trauma = 0.8;
   for (const s2 of eShots){ if (s2.homing){ s2.alive = false; s2.m.visible = false; } }
   say('殻が…剥がれていく！？ 反応増大、形態が変わります！', {urgent:true});
@@ -3114,11 +3441,26 @@ function maelShot(e){
 }
 // push the mech out of the shell (it surfaces right under you); straight back when you are dead centre
 const MAEL_PUSH_R = 24;
+// The push may not cross a wall: from the launch bay a straight push could land behind its back wall, and pushOut()
+// then kept the mech on the far side. Try the straight direction first, then turn away from it step by step.
+const KNOCK_TRY = [0, 0.5, -0.5, 1, -1, 1.5, -1.5, 2, -2, 2.6, -2.6, Math.PI];
+function knockFree(x0, z0, x1, z1){
+  if (!clearAt(x1, z1, 10) || !stage.inBounds(x1, z1, 10)) return false;
+  const n = Math.ceil(Math.hypot(x1 - x0, z1 - z0) / 3);
+  for (let i = 1; i <= n; i++){ const k = i / n; if (buildingAt(x0 + (x1 - x0) * k, 3, z0 + (z1 - z0) * k)) return false; }
+  return true;
+}
 function maelKnock(p, r){
   let dx = P.pos.x - p.x, dz = P.pos.z - p.z, d = Math.hypot(dx, dz);
   if (d >= r) return false;
   if (d < 0.5){ dx = Math.sin(P.heading); dz = Math.cos(P.heading); d = 1; } // heading 0 faces -z, so this is "behind"
-  P.pos.x = p.x + dx / d * r; P.pos.z = p.z + dz / d * r;
+  const a0 = Math.atan2(dx / d, dz / d);
+  let tx = p.x + dx / d * r, tz = p.z + dz / d * r;
+  for (const da of KNOCK_TRY){
+    const x = p.x + Math.sin(a0 + da) * r, z = p.z + Math.cos(a0 + da) * r;
+    if (knockFree(P.pos.x, P.pos.z, x, z)){ tx = x; tz = z; break; }
+  }
+  P.pos.x = tx; P.pos.z = tz;
   pushOut(P.pos, 10); stage.clampPlayer(P.pos);
   return true;
 }
@@ -3249,7 +3591,8 @@ function updMael(e, dt, d, nx, nz, dx, dz){
   if (!e.sub && e.y > -8 && maelKnock(p, MAEL_PUSH_R)) P.v *= 0.5;
   // vents: orange while open (phase 1/3); in phase 2 only the lightning shows them
   e.open = approach(e.open, wantOpen, dt * 3);
-  if (e.phase === 2 && e.state !== 'shift'){ const l = stormLit() ? 0.75 + 0.25 * Math.sin(e.t * 30) : 0.04; m.ventMat.color.setRGB(0.55 * l + 0.05, 0.95 * l + 0.03, l + 0.02); }
+  // between flashes the vents keep a faint slow pulse so you can tell where they are (they still cannot be hit)
+  if (e.phase === 2 && e.state !== 'shift'){ const l = stormLit() ? 0.75 + 0.25 * Math.sin(e.t * 30) : 0.16 + 0.07 * Math.sin(e.t * 3); m.ventMat.color.setRGB(0.55 * l + 0.05, 0.95 * l + 0.03, l + 0.02); }
   else { const b = e.open > 0.5 ? 0.6 + Math.sin(e.t * 10) * 0.25 : 0.12 * e.open; m.ventMat.color.setRGB(b + 0.1, 0.5 * b + 0.05, 0.1 * b + 0.02); }
   if (e.state !== 'call') m.shellMat.emissive.setRGB(SW.flashK * 0.12, SW.flashK * 0.14, SW.flashK * 0.2);
   const ls = walking ? 5 : 0;
@@ -3337,6 +3680,7 @@ function updStorm(dt){
 }
 
 /* ================= player update ================= */
+const BOOST_VY = 21;
 function updPlayer(dt){
   const kbF = (keys.has('f') ? 1 : 0) - (keys.has('b') ? 1 : 0);
   const kbT = (keys.has('l') ? 1 : 0) - (keys.has('r') ? 1 : 0);
@@ -3386,7 +3730,8 @@ function updPlayer(dt){
   }
   // jump
   if (input.boost && P.grounded && !P.overheated && P.heat < 92 && G.ending <= 0){
-    P.vy = 19; P.grounded = false; P.heat += 16 * P.heatMul; P.boostT = 0.7; if (P.v > 3) P.v += 4;
+    // BOOST_VY 21 m/s with gravity 32 -> peak 6.9m: clears the beetle (5m) and SHELL LORD (6m) body slams
+    P.vy = BOOST_VY; P.grounded = false; P.heat += 16 * P.heatMul; P.boostT = 0.7; if (P.v > 3) P.v += 4;
     snd('jumpBoost'); snd('haptic', 40); P.trauma = Math.min(1, P.trauma + 0.2);
     rig.updateMatrixWorld();
     for (let i = 0; i < 4; i++){ const w = V1.copy(legs[i].local).applyMatrix4(rig.matrixWorld); dustBurst(w.x, w.z, 6, 1.6); }
@@ -3526,7 +3871,7 @@ function updCamera(dt){
   P.frameY = lerp(P.frameY, P.bobY * 24 + sy * 22 + (P.grounded ? 0 : -P.vy * 0.6), Math.min(1, dt * 12));
   const rot = (-P.effTurn * 0.05 + sr * 0.03) * 57.3 * 0.6 - P.tiltZ * 20;
   setSty(hudEl.frame, 'transform', 'translate(' + P.frameX.toFixed(0) + 'px,' + P.frameY.toFixed(0) + 'px) rotate(' + rot.toFixed(1) + 'deg) scale(1.06)');
-  setSty(hudEl.dash, 'transform', 'translate(calc(-50% + ' + (P.frameX * 0.8).toFixed(0) + 'px),' + (P.frameY * 0.8).toFixed(0) + 'px)' + ' scale(' + dashScale + ')');
+  setSty(hudEl.dash, 'transform', 'translate(calc(-50% + ' + (P.frameX * 0.8 + dashShift).toFixed(0) + 'px),' + (P.frameY * 0.8).toFixed(0) + 'px)' + ' scale(' + dashScale + ')');
 }
 
 /* ================= lock-on ================= */
@@ -3815,13 +4160,15 @@ const weatherSnd = {r:-1, w:-1};
 let lastNear = 1e9;
 function updPlay(dt){
   G.t += dt;
-  if (G.ending <= 0){
+  if (G.debugUsed && SAVE.run && !SAVE.run.sim) clearRunFlag(); // a debug run never pays out as an interrupted mission
+  if (G.ending <= 0 && !(G.tut && G.tut.step < TUT_SPAWN_STEP)){
     G.timeLeft -= dt;
     if (G.timeLeft <= 60 && G.timeLeft + dt > 60) say('残り時間1分。', {});
     if (G.timeLeft <= 30 && G.timeLeft + dt > 30) say('残り30秒！ 急いで！', {});
     if (G.timeLeft <= 0){ G.timeLeft = 0; endMission(false); }
   }
   updPlayer(dt);
+  if (G.tut && G.ending <= 0) updTutorial(dt);
   if (G.ending <= 0) updSpawns(dt);
   const near = updEnemies(G.ending > 0 ? dt * 0.3 : dt);
   if (near < 70 && lastNear >= 70) say('灰殻、至近距離！ 接近してきます！', {key:'near', cd:12});
@@ -3838,13 +4185,13 @@ function updPlay(dt){
   if (G.ending > 0){ G.ending = Math.max(0.001, (G.endAt - performance.now()) / 1000); if (performance.now() >= G.endAt){ G.ending = 0; showResult(); } }
 }
 let last = performance.now();
-let simT = 0, fpsAcc = 0, fpsN = 0, fps = 60;
+let simT = 0, fpsAcc = 0, fpsN = 0, fps = 60, pausedDrawAt = 0;
 function frame(now){
   requestAnimationFrame(frame);
   const raw = Math.max(0, (now - last) / 1000); last = now;
   const dt = Math.min(0.05, raw);
   simT += dt; fpsAcc += raw; fpsN++; if (fpsAcc >= 1){ fps = fpsN / fpsAcc; fpsAcc = 0; fpsN = 0; adaptRes(); updFpsMeter(); }
-  if (G.state === 'paused'){ renderer.render(scene, camera); return; }
+  if (G.state === 'paused'){ if (now - pausedDrawAt >= 250){ pausedDrawAt = now; renderer.render(scene, camera); } return; }
   if (G.state !== 'play') G.t += dt;
   if (G.state === 'title') updTitle(dt);
   else if (G.state === 'launch') updLaunch(dt);
@@ -3863,10 +4210,20 @@ function adaptRes(){
   if (lowFpsSecs >= 2 && PR > Q.prMin){ PR = Math.max(Q.prMin, PR - 0.25); renderer.setPixelRatio(PR); onResize(); lowFpsSecs = 0; }
 }
 
-let dashScale = 1;
+let dashScale = 1, dashShift = 0;
 function onResize(){
   const w = window.innerWidth, h = window.innerHeight;
-  dashScale = (w < h && isTouch) ? clamp(w / 640, 0.5, 0.75) : clamp(Math.min(h / 820, w / 1100), 0.55, 1) * (isTouch ? 0.85 : 1);
+  // touch (QA: the old 0.47-0.6 scale left 4.7-6.4px text): portrait 0.6-0.8; landscape fits the dashboard (~470px
+  // wide unscaled) into the gap between the stick and the BOOST button and centres it there (dashShift).
+  // The edges follow the CSS: stick base right edge 160px (126px on low screens), BOOST left edge w-208 (w-172).
+  dashShift = 0;
+  if (isTouch && w < h) dashScale = clamp((w - 16) / 480, 0.6, 0.8);
+  else if (isTouch){
+    const low = h <= 360, l = (low ? 126 : 160), r = w - (low ? 172 : 208);
+    dashScale = clamp(Math.min((r - l - 12) / 470, h / 560), 0.5, 0.8);
+    dashShift = Math.round((l + r) / 2 - w / 2);
+  }
+  else dashScale = clamp(Math.min(h / 820, w / 1100), 0.55, 1);
   dashScale = Math.round(dashScale * 100) / 100;
   renderer.setSize(w, h);
   camera.aspect = w / h;
@@ -3894,6 +4251,8 @@ function refreshOptsUI(){
 function applyQuality(name){
   if (!QUALITY[name]) return false;
   qName = name; Q = QUALITY[name];
+  document.documentElement.classList.toggle('qlow', name === 'low'); // low: no backdrop blur behind pause / result / hangar
+  pausedDrawAt = 0;
   // antialias is fixed at renderer creation (see above); everything below switches live
   PR = Math.min(window.devicePixelRatio || 1, Q.pr); lowFpsSecs = 0;
   renderer.setPixelRatio(PR);
@@ -3992,12 +4351,12 @@ window.__GAME = {
   debugSetUpgrades(o){
     o = o || {};
     for (const k of UP_KEYS) if (o[k] != null) SAVE.up[k] = clamp(Math.floor(+o[k] || 0), 0, UP_MAX);
-    writeSave(); sessionDebug = true; G.debugUsed = true; // debug: no records from now on in this page session
+    sessionDebug = true; G.debugUsed = true; // debug: no records from now on in this page session, and nothing is written to the save
     if (hangarFrom) renderHangar(); if (G.state === 'title') refreshTitle();
     return Object.assign({}, SAVE.up);
   },
   debugAddParts(n){
-    SAVE.parts = Math.max(0, SAVE.parts + Math.floor(+n || 0)); writeSave(); sessionDebug = true; G.debugUsed = true;
+    SAVE.parts = Math.max(0, SAVE.parts + Math.floor(+n || 0)); sessionDebug = true; G.debugUsed = true; // in memory only
     if (hangarFrom) renderHangar(); if (G.state === 'title') refreshTitle();
     return SAVE.parts;
   },
@@ -4032,7 +4391,7 @@ window.__GAME = {
     return n === 1;
   },
   debugBossPhase2(){ return this.debugBossPhase(2); },
-  get daily(){ ensureDaily(); return {date:SAVE.daily.date, goals:SAVE.daily.goals.map(g => ({id:g.id, text:goalText(g), prog:g.prog, target:g.target, done:g.done, reward:g.reward, m2:!!g.m2, m:goalMission(g)})), allDone:SAVE.daily.allDone, streak:SAVE.streak.n}; },
+  get daily(){ ensureDaily(true); return {date:SAVE.daily.date, goals:SAVE.daily.goals.map(g => ({id:g.id, text:goalText(g), prog:g.prog, target:g.target, done:g.done, reward:g.reward, m2:!!g.m2, m:goalMission(g)})), allDone:SAVE.daily.allDone, streak:SAVE.streak.n}; },
   debugSetDate(ds){
     if (ds != null && !/^\d{4}-\d{2}-\d{2}$/.test(String(ds))) return false;
     debugDate = ds == null ? null : String(ds);
@@ -4040,6 +4399,27 @@ window.__GAME = {
     return today();
   },
   get launchShort(){ return !!SAVE.launched; },
+  // medals per mission: [CLEAR, RANK A+, low damage] + HARD clear marks
+  get medals(){ const o = {}; for (const id of [1, 2, 3]) o[id] = {medals:(SAVE.medals[id] || []).slice(), hardClear:!!SAVE.hardClear[id], loses:SAVE.loses[id] || 0}; o.total = medalCount(); return o; },
+  // HARD / ASSIST settings (HARD only applies to missions already cleared; read result.hard for the run)
+  get hard(){ return !!SAVE.hard; },
+  setHard: (on) => setHard(on),
+  get assist(){ return !!SAVE.assist; },
+  setAssist: (on) => setAssist(on),
+  // current first-run tutorial step ('move'|'turn'|'fire'|'dash'|'boost') or null
+  get tutorial(){ return G.tut ? TUT_STEPS[G.tut.step].id : null; },
+  get tutorialDone(){ return !!SAVE.tutorial; },
+  debugSkipTutorial(){ if (G.tut){ G.tut.step = TUT_STEPS.length - 1; endTutorial(false); if (G.spawnT > 1.2) G.spawnT = 1.2; } if (!SAVE.tutorial){ SAVE.tutorial = true; writeSave(); } return true; },
+  get lastAutosave(){ return lastAutosave.at ? {at:lastAutosave.at, reason:lastAutosave.reason, count:lastAutosave.count} : null; },
+  // Leaves the "mission in progress" flag set as if the page had been closed mid-run (reload to see the notice).
+  // Like the other debug hooks that touch the save, the rest of this page session is a debug session.
+  debugSimulateInterrupted(id){
+    id = MISSIONS[+id] ? +id : (G.state === 'play' || G.state === 'paused' ? M.id : selMission);
+    SAVE.run = {m:id, hard:false, at:Date.now(), sim:true};
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify(SAVE)); noteSaved('save'); } catch(e){} // the one write this hook exists for
+    sessionDebug = true; G.debugUsed = true;
+    return Object.assign({}, SAVE.run);
+  },
   debugKillAll(){
     if (G.state !== 'play') return false;
     G.debugUsed = true; // QA shortcut: never record this run as a high score
@@ -4096,6 +4476,7 @@ window.__GAME = {
     extra.forEach(m => m.mats.forEach(x => x.dispose()));
   }catch(e){}
 })();
+checkInterrupted();
 goTitle();
 requestAnimationFrame(frame);
 })();
