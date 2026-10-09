@@ -1,6 +1,5 @@
-# Test fixtures
+# テスト用フィクスチャ
 
-Every file here is **hand-written mock HTML** made for tests. None of it is copied
-from a real Yahoo! Auctions, Mercari, Rakuma or Mandarake page; the structure is
-deliberately generic (label/value tables, definition lists, `data-testid`
-attributes) and the listing text is invented. Do not add saved copies of real pages.
+ここにあるファイルはすべて、テストのために**手で書いた模擬 HTML** です。ヤフオク・メルカリ・ラクマ・まんだらけの実際のページからコピーしたものは一つもありません。構造はわざと一般的なもの（ラベルと値の表、定義リスト、`data-testid` 属性）にしてあり、出品の文章も架空です。実際のページを保存したものは追加しないでください。
+
+`rates/` は総額計算のテスト用の**架空の料金表**です（Proxy A／Proxy B、架空の率）。本物の手数料や税率ではありません。

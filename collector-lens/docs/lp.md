@@ -1,6 +1,13 @@
 <!-- DRAFT — not published. Publishing requires owner approval. -->
 <!-- Name pending trademark search (USPTO / J-PlatPat, classes 9 and 42). "Tanuki Scout" is the provisional name (HQ decision 2026-10-09); do not use as a final name until cleared. -->
 
+<!--
+オーナー向けの説明（日本語）：
+待機リスト用ランディングページの原稿（下書き・未公開）です。海外のコレクター向けなので本文は英語です。
+構成：見出し「入札の前に、日本語の細かい注意書きを読もう」→ 課題（「美品」のはずがカビ、時計の文字盤の塗り直し、機械翻訳の限界）→ 使い方3ステップ → 解説する用語の例 → プライバシーと権限 → 正直な限界（鑑定ではない、ルールベース、サイトの変更に弱い）→ FAQ → 待機リストのフォーム（未作成）。
+公開にはオーナーの承認が必要です。名前は仮（docs/naming.md）。スクリーンショットは模擬ページです。
+-->
+
 # Tanuki Scout (working title)
 
 ## Read the Japanese fine print before you bid.
