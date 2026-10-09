@@ -55,7 +55,7 @@ The Founding Supporter plan is a one-time purchase made on **Ko-fi** (ko-fi.com)
 - **Your supporter key contains no personal information.** It holds a random ID, the plan and the issue date, signed by us.
   It does not contain your name, your email address or your Ko-fi order number.
 - **Linking the key to your order:** we keep a private record that links the key's random ID to your Ko-fi order, so we can
-  handle refunds and keys that have been shared publicly. We delete this link TODO (proposal: 60 days after purchase —
+  handle refunds and keys that have been shared publicly. We delete this link 60 days after purchase (30-day refund window plus 30 days).
   the 30-day refund period plus 30 days). Ko-fi keeps its own order records under its own policy.
 - **Checking the key:** the app checks your key on your device, offline. The key is never sent to us or anyone else.
   If a key is refunded or shared widely, it is listed in a later version of the app and stops working there.
@@ -116,12 +116,12 @@ supporters are also told by email.
 - **創設サポーター（Ko-fi）：** 支払いは Ko-fi（と決済会社）が扱い、カード情報は受け取らない。私たちが受け取るのは
   **メールアドレスと注文の情報**（入力された名前・注文番号・金額・日時）で、キーの送付・返金（30日）・問い合わせにだけ使う。
   **キーに個人情報は入らない**（乱数の lid・plan・発行日だけ）。**lid と注文の対応表**は非公開の台帳に置き、
-  **保管期限は案：購入から60日（30日の返金期間＋30日）— TODO（オーナー）**。キーは端末内でオフラインで確かめ、送信しない。
+  **保管期限は購入から60日（30日の返金期間＋30日）。本部決定**。キーは端末内でオフラインで確かめ、送信しない。
   販売はまだ始まっていない（専用のオリジンに移ってから。d32）。
 - **端末に保存するもの：** localStorage（サポーターキー、今日判定した語の ID、単語リスト、練習の記録の集計、インストールの案内を閉じた印）、
   IndexedDB（評価協力モードの録音だけ）、Service Worker のキャッシュ（アプリのファイルだけ。個人情報なし）。
   キーの保存時に `persist()` を要求する。
 - **アクセス解析なし・Cookie なし・外部の読み込みなし。** 配信元（いまは GitHub Pages、予定は Cloudflare Pages）は、
   ページを届けるために IP アドレスなどの通常の技術情報を受け取る（TODO：配信元の設定で解析が無効であることを確認）。
-- **連絡先：TODO（オーナー）。** 法令上の権利・法的根拠・国外移転・年齢は TODO（法務）。
+- **連絡先：未定（収集開始時に決定）。** 法令上の権利・法的根拠・国外移転・年齢は TODO（法務）。
 - 公開の前に：専門家の確認、TODO の記入、LP からのリンク、同意欄・README.txt の連絡先と同じ値にそろえること。
