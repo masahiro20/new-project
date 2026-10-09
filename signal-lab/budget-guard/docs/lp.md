@@ -27,7 +27,7 @@
 | Pricing | **案・承認待ち。** Monthly $9／月（監視接続 3 つまで、全利用者の接続数の合計に応じて 1〜12 時間ごとに確認（合計 50 接続までは毎時）、80% 通知と 100% 停止、テストモード）。Yearly は「年払いは準備中」で購入できない。いつでも解約でき、支払済み期間の終わりまで使える。 |
 | FAQ | 必要なキー、管理者キーが要る理由、データの鮮度（日単位・途中集計）、100% で即止まるわけではないこと、通知だけの使い方、テストモードの中身、停止の戻し方（ユーザー自身が操作、ワンクリック復旧は未実装）、月替わりの動作、保存するデータと削除、標準機能の代わりではないこと。 |
 | Coming later | 未実装：ワンクリック復旧、利用状況グラフ、Slack 以外の汎用 webhook、対応プロバイダの追加（例：Cloudflare、GCP。範囲は未定）。 |
-| Final CTA | 次の想定外の請求の前に、ハードな停止を。初期段階の製品なので、ウェイトリストに登録してもらい、準備ができたら招待する。使い捨てのプロジェクトでテストモードから試せる。 |
+| Final CTA | 次の想定外の請求の前に、ハードな停止を。初期段階の製品なので、公開の告知は X で行う（X のアカウントはまだないので、リンクは張らない）。使い捨てのプロジェクトでテストモードから試せる。待機リストは当面作らない（ピーターの判断、2026-10-09）。 |
 | Alt headlines / Meta description | 見出しの別案 5 つと、検索結果用の説明文。それぞれ和訳を添えた。 |
 
 ---
@@ -38,7 +38,7 @@
 
 One budget for your Vercel, OpenAI and Anthropic spend. Budget Guard checks your spend hourly (less often at high load — see pricing) and emails you at 80%. At 100% it runs the stop you set up and tested ahead of time: it pauses a Vercel project, caps an OpenAI project, or deactivates Anthropic keys. You can undo each stop.
 
-**[Join the waitlist]** · *Every connection starts in test mode. Nothing gets stopped until you switch it to live.*
+**Launch updates will be posted on X.** · *Every connection starts in test mode. Nothing gets stopped until you switch it to live.*
 
 ---
 
@@ -188,9 +188,7 @@ These are not built yet:
 
 **Put a hard stop on usage-billed services before the next surprise bill.**
 
-Budget Guard is an early product. Join the waitlist and we'll invite you when it's ready to try. You can start in test mode with a throwaway project.
-
-**[Join the waitlist]**
+Budget Guard is an early product. Launch updates will be posted on X. You can start in test mode with a throwaway project.
 
 ---
 

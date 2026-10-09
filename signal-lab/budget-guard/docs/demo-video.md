@@ -5,7 +5,7 @@
 > - **カット A**：60 秒、英語、4:5。X／Product Hunt 用。音なしで伝わる作り。
 > - **カット B**：2 分 56 秒、英語ナレーション、英語・日本語字幕、16:9。機能の通し説明。
 > - 守ること：実績の数字・推薦文・ロゴは出さない。`lp.md` にない主張はしない。価格は出さない（ぼかす）。「まずテストモード」「停止はすべて元に戻せる」を必ず言う。画面に架空データの注記を出し続ける。
-> - 未定：ウェイトリストの URL（`[WAITLIST_URL]`）はオーナーが埋める。
+> - エンドカードは「公開の告知は X で」とする。待機リストは当面作らない（ピーターの判断、2026-10-09）。X のアカウントはまだないので、URL やアカウント名は入れない。
 > - 英語のキャプション・ナレーションは海外の顧客向けなので英語のまま。各ショットに和訳を並べてある。
 
 > 状態：オーナー／本部レビュー用の下書き。未公開。
@@ -84,7 +84,7 @@
 | S6 | 0:32–0:44 | **手順4: 停止の確認へ** をクリック。「確認 1」（リクエスト一覧）を映す。**確認を発行** をクリック（タイマーが 5:00 から始まる）。ラベル欄をクリックして `openai-prod` と入力。3 つのチェックがすべて緑になる。 | **To go live, you need: ① the full request list ② a signed confirmation that expires in 5 min ③ the label, typed exactly** | "Going live takes three checks: the full request list, a signed confirmation that expires in five minutes, and the label typed exactly." | ライブにするには 3 つが必要：① リクエストの全一覧 ② 5 分で期限が切れる署名付きの確認 ③ ラベルの正確な入力 | 無料プランの注意書きより下から映し始める（§0 参照）。入力部分は 2 倍速。タイマーが動き出すところを 120% ズーム。 |
 | S7 | 0:44–0:50 | **テストモードで実行(送信しません)** をクリック。緑の注意書き `テストモードで実行しました。送信していません。` が出る。 | **Test mode first. Nothing was sent.** | "Every connection starts in test mode. Nothing was sent." | まずテストモード。何も送っていない。／接続はすべてテストモードから始まる。何も送っていない。 | 緑の注意書きに強調枠。4 フレームのフラッシュ転換。 |
 | S8 | 0:50–0:56 | **手順5: 戻し方を見る** をクリック。OpenAI の復旧カード（`DELETE …/spend_limit`）を映し、キー ID の並ぶ Anthropic のカードまでスクロール。 | **You can undo every stop. Budget Guard shows the exact steps and IDs.** | "You can undo every stop. Budget Guard shows the exact steps and IDs to run." | 停止はすべて元に戻せる。手順と対象 ID は Budget Guard が表示する。 | ゆっくりパン。このカットでは「戻したことを記録」は押さない。 |
-| S9 | 0:56–1:00 | 手順 5 をぼかした画面の上にエンドカード。 | **Budget Guard** · **Test mode first. You can undo every stop.** · **Join the waitlist** | "Test mode first. Join the waitlist." | まずテストモード。停止はすべて元に戻せる。ウェイトリストに登録を。／まずテストモードで。ウェイトリストに登録を。 | ウェイトリストの URL：`[WAITLIST_URL]`（オーナーが記入）。最後のフレームを 0.5 秒止める。 |
+| S9 | 0:56–1:00 | 手順 5 をぼかした画面の上にエンドカード。 | **Budget Guard** · **Test mode first. You can undo every stop.** · **Launch updates on X** | "Test mode first. Launch updates on X." | まずテストモード。停止はすべて元に戻せる。公開の告知は X で。／まずテストモードで。公開の告知は X で。 | X のアカウントはまだないので、URL やアカウント名は入れない。最後のフレームを 0.5 秒止める。 |
 
 検算：4 + 6 + 6 + 8 + 8 + 12 + 6 + 6 + 4 = **60 秒**。
 
@@ -116,7 +116,7 @@ S5 0:24          S6 0:32          S8 0:50          S9 0:56
 │ spend_limit│   │  ai-prod▌] │   │apikey_01De…│   │ first.     │
 │┌[送信して   ┐│   │✓ ✓ ✓      │   │→ active    │   │ Undo every │
 ││ いません] ││   │────────────│   │────────────│   │ stop.      │
-│└──Not sent┘│   │3 checks…   │   │Undo every… │   │ Waitlist → │
+│└──Not sent┘│   │3 checks…   │   │Undo every… │   │ Updates: X │
 └────────────┘   └────────────┘   └────────────┘   └────────────┘
 ```
 （S7 0:44 は S6 と同じ構図を使い、緑の注意書きに "Nothing was sent."（何も送っていない）を重ねる。）
@@ -147,7 +147,7 @@ S5 0:24          S6 0:32          S8 0:50          S9 0:56
 | W11 | 2:06–2:22 | **手順5: 戻し方を見る** をクリック。OpenAI のカード（`DELETE …/spend_limit`）を映し、Vercel（`POST …/unpause`）と Anthropic（キー ID → `active`）へスクロール。OpenAI のカードで **戻したことを記録(デモ)** をクリック。ログに `復旧` の行が出る。 | **You can undo every stop.** · Budget Guard shows the exact steps and IDs, and you run them in the provider's dashboard or API. · 小：*One-click undo: coming later.* | 停止はすべて元に戻せる。・手順と対象 ID は Budget Guard が表示し、操作はプロバイダのダッシュボードか API で行う。・小：ワンクリック復旧は今後提供予定。 | "You can undo every stop. Budget Guard shows the exact steps and IDs: unpause, delete the limit, or set keys back to active. You run them in the provider's dashboard or API. One-click undo is coming later." | 停止はすべて元に戻せます。Budget Guard は戻し方を対象IDつきで表示します（一時停止の解除、上限の削除、キーを active に戻す）。操作はプロバイダのダッシュボードかAPIで行います。ワンクリック復旧は今後提供予定です。 | ゆっくりパン。ログに小さなラベル："Logged only. Nothing sent to the provider."（記録のみ。プロバイダには何も送っていない） |
 | W12 | 2:22–2:36 | ヘッダーのチップ **プラン 無料** をクリック。決済パネルが開く。**価格はぼかす。** Monthly の **購入** をクリック。`4242 4242 4242 4242`、`12/28`、`123`、`DEMO USER` を入力。**デモで支払う** をクリック。成功の注意書きが出る。 | **Demo checkout: no real charges.** · 小：*Pricing is a draft and isn't shown.* | デモ決済：実際の請求はない。・小：価格は案の段階のため表示しない。 | "The checkout is a demo too. No charge is made, and the card details never leave the page. Pricing isn't final, so we've left it out." | 決済もデモです。実際の請求はなく、カード情報はページの外に出ません。料金は確定前のため、この動画では表示しません。 | このショットの全フレームに §C のぼかしを入れる。`デモ：実際の請求はありません` と `料金は案・承認待ち` はぼかさない。 |
 | W13 | 2:36–2:48 | 上までスクロールして戻る：`#strip` とログ。静止。 | **A backstop, not a guarantee.** · Checks run hourly, less often at high load · providers report cost daily · no provider offers a read-only cost key | 保証ではなく、最後の砦。・チェックはふだん毎時（負荷が高いと間隔が延びる）・コストの報告は日単位・読み取り専用のコストキーはどの社にもない | "A stop runs on the first check that sees you at or over 100%, and providers report cost with a delay. Treat it as a backstop that limits the damage. And since no provider offers a read-only cost key, use a dedicated key you can revoke." | 停止は、100%以上を検知した最初のチェックで実行されます。コストの報告には遅れがあります。被害を抑える最後の砦として使ってください。読み取り専用のコストキーはどの社にもないため、いつでも失効できる専用キーを使ってください。 | 右 3 分の 1 に文字だけのカード。箇条書きを 1 つずつ出す。 |
-| W14 | 2:48–2:56 | 手順 1 をぼかした画面の上にエンドカード。 | **Budget Guard** · **Test mode first. You can undo every stop.** · **Join the waitlist** `[WAITLIST_URL]` | まずテストモード。停止はすべて元に戻せる。・ウェイトリストに登録を。 | "Start in test mode, with a throwaway project. Join the waitlist, and we'll invite you when it's ready." | まずはテストモードで、使い捨てのプロジェクトから。ウェイトリストに登録いただくと、準備ができしだいご招待します。 | 最後の 12 フレームで黒にフェードアウト。 |
+| W14 | 2:48–2:56 | 手順 1 をぼかした画面の上にエンドカード。 | **Budget Guard** · **Test mode first. You can undo every stop.** · **Launch updates on X** | まずテストモード。停止はすべて元に戻せる。・公開の告知は X で。 | "Start in test mode, with a throwaway project. Launch updates will be posted on X." | まずはテストモードで、使い捨てのプロジェクトから。公開の告知は X で行います。 | 最後の 12 フレームで黒にフェードアウト。 |
 
 検算：8 + 12 + 14 + 14 + 14 + 12 + 16 + 10 + 16 + 10 + 16 + 14 + 12 + 8 = **176 秒 = 2:56**。
 

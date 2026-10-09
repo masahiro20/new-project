@@ -205,7 +205,7 @@
 | デモ購入の数（アカウント作成） | `GET /api/admin/stats` の `days.{日付}.purchase` | `Authorization: Bearer $ADMIN_TOKEN` が要る。誤ると 404。直近14日の日別。オーナー自身の購入も数えるので差し引く。 |
 | 購入の開始数 | 同 `checkout_start` | — |
 | LP の閲覧・CTA | 同 `pageview`、`cta_click` | 個人は特定しない。 |
-| 待機リストの人数 | 同 `waitlist` | — |
+| （使わない）待機リストの人数 | 同 `waitlist` | 待機リストは当面作らない（ピーターの判断、2026-10-09）。公開の告知は X で行う。この指標は見ない。 |
 | 全体の接続数・プロバイダ別・demo トークンの数 | `GET /api/admin/stats` の `trial.connections`（`total`・`byProvider`・`demoToken`） | 認証は従来どおり `Authorization: Bearer $ADMIN_TOKEN`。索引 `bg:allconns` と demo の索引 `bg:democonns` を使い、Upstash は 4 コマンド（`lib/guard/admin.ts`）。 |
 | 本物の接続か `demo` か | 各アカウントの `budget-guard:bg:{アカウントID}:conns`（JSON）の `tokenHint`。`demo` は `••••`、本物は `公開の接頭辞…末尾4`（78dcf0d より前に追加した接続は `先頭4…末尾4`） | 試用者のダッシュボード（画面共有）でも「token …」として見える。 |
 | テストモード／live の数 | `GET /api/admin/stats` の `trial.stopMode`（`off` / `test` / `live`） | ダッシュボードのバッジ「Stop: test mode」「Stop: LIVE」でも見える。 |

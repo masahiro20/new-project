@@ -71,7 +71,7 @@
 - 待機リストは当面作らない。アカウントと個人情報の扱いが増えるため。
 - そのため、このチェックリストには待機リストの受け付け先の項目を置かない。
 - `/bg/` の公開に OK が出たら、ページには「公開の通知は X で」という一文だけを置く。
-- 既存の docs には、まだ待機リストの文言が残っている（lp.md の「Join the waitlist」、demo-video.md の `[WAITLIST_URL]`、trial-onboarding.md §4.1 の「待機リストの人数」）。この文書では直していない。
+- （対応済み、2026-10-09）既存の docs の待機リストの文言を直した。lp.md の CTA は「Launch updates will be posted on X.」に、demo-video.md のエンドカードは X の告知にした（`[WAITLIST_URL]` は削除）。trial-onboarding.md §4.1 の「待機リストの人数」は使わない指標とした。
 
 ---
 
