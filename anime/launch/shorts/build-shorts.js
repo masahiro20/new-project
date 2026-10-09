@@ -58,7 +58,7 @@ async function preparePanels(browser, nums) {
   }
 }
 
-const BOOK_PAGES = [1, 5, 7, 10, 13, 15, 16, 17, 20, 25, 28, 30];
+const BOOK_PAGES = [1, 5, 7, 10, 13, 15, 16, 17, 20, 25, 28]; // p30 (colophon) omitted: it carries the seller name, which is still a placeholder
 function prepareBook() {
   const pdf = path.join(ANIME, 'book/vol0-en.pdf');
   for (const n of BOOK_PAGES) {
