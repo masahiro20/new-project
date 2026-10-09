@@ -159,7 +159,43 @@ td a{color:var(--accent)}
 .today .tchips{display:flex;flex-wrap:wrap;gap:6px}
 .today .rep{font-size:.86rem;color:#c9d1e6;overflow-wrap:anywhere}
 .today .rep button{font:inherit;font-size:.8rem;background:none;border:0;color:var(--accent);cursor:pointer;padding:0;text-decoration:underline;text-underline-offset:3px}
-@media (max-width:640px){.today .tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.wrap>.today{order:2}}
+@media (max-width:640px){.today .tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.wrap>.today{order:4}}
+.sum{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.sum .st3{display:grid;gap:4px;align-content:start;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink);text-decoration:none;min-width:0}
+.sum a.st3:hover{border-color:var(--accent)}
+.sum .st3:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.sum .k3{font-size:.78rem;color:var(--muted)}
+.sum .v3{font-family:var(--display);font-weight:400;font-size:1.9rem;line-height:1.05;font-variant-numeric:tabular-nums}
+.sum .s3{font-size:.78rem;color:#c9d1e6;overflow-wrap:anywhere}
+.sum .ask3 .v3{color:var(--wait)}.sum .ask3.zero .v3{color:var(--live)}.sum .tod3 .v3{color:var(--gold)}.sum .liv3 .v3{color:var(--live)}
+.sum .liv3 .links{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:.8rem}
+.sum .liv3 a{color:var(--accent)}
+@media (max-width:640px){.sum{grid-template-columns:1fr 1fr}.sum .liv3{grid-column:1 / -1}.sum .v3{font-size:1.6rem}
+  .hdr-right .stuck{display:none}.wrap>.sum{order:1}.wrap>.asks{order:2}.wrap>.inbox{order:3}.wrap>.today{order:4}}
+.asks{display:grid;gap:10px;border:1px solid rgba(255,181,71,.45);border-radius:12px;padding:14px 16px;background:linear-gradient(180deg,rgba(255,181,71,.10),transparent 70%),var(--panel)}
+.asks .ah{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;justify-content:space-between}
+.asks .ah b.n{font-family:var(--display);font-weight:400;font-size:1.5rem;color:var(--wait)}
+.asks .warn{font-size:.8rem;color:var(--muted)}
+.alist{display:grid;gap:8px}
+.ask{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:4px 12px;align-items:start;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--panel2)}
+.ask.urgent{border-color:var(--wait);box-shadow:0 0 0 1px rgba(255,181,71,.35) inset}
+.ask.done{opacity:.55}
+.ask .no{font-family:var(--display);font-weight:400;font-size:1.3rem;color:var(--gold);line-height:1.1}
+.ask .tt{font-weight:700;font-size:.95rem;overflow-wrap:anywhere}
+.ask .meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
+.ask .meta span{font-size:.72rem;padding:1px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.ask .meta span.due{border-color:var(--wait);color:var(--wait);font-weight:700}
+.ask ul{margin:4px 0 0;padding-left:1.1em;font-size:.84rem;display:grid;gap:2px}
+.ask .gain{font-size:.78rem;color:var(--muted);margin-top:4px;overflow-wrap:anywhere}
+.ask .act{display:grid;gap:4px;justify-items:end}
+.ask .act button{font:inherit;font-size:.85rem;font-weight:700;padding:8px 14px;border-radius:8px;border:1px solid #3ee08f;background:#1f6b48;color:#fff;cursor:pointer;white-space:nowrap}
+.ask .act button.undo{background:none;border:0;color:var(--muted);font-weight:400;font-size:.75rem;padding:0;text-decoration:underline}
+.ask .act button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.ask .act .ok{font-size:.78rem;color:var(--live);white-space:nowrap}
+.ask.compact ul,.ask.compact .gain{display:none}
+.ask .more{font:inherit;font-size:.78rem;background:none;border:0;color:var(--accent);cursor:pointer;padding:6px 0 0;text-decoration:underline;text-underline-offset:3px;justify-self:start}
+@media (max-width:640px){.sum .liv3 a,.livel,.ap .minor,.dfilt button,.rdates button,.today .rep button,.today li a,.ask .more,.ask .act button.undo{min-height:36px;display:inline-flex;align-items:center}}
+@media (max-width:640px){.ask{grid-template-columns:auto minmax(0,1fr)}.ask .act{grid-column:1 / -1;justify-items:stretch}.ask .act button{min-height:44px}}
 .rev{display:grid;gap:10px}
 .rev .tot{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:baseline;font-size:.88rem}
 .rev .tot b{font-family:var(--display);font-weight:400;font-size:1.4rem;color:var(--gold)}
@@ -229,7 +265,7 @@ td a{color:var(--accent)}
 .ap .minor{justify-self:start;background:none!important;border:0!important;color:var(--muted)!important;font-size:.8rem!important;padding:2px 0!important;text-decoration:underline;text-underline-offset:3px}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:2000;background:rgba(9,14,26,.94);border:1px solid var(--live);color:var(--ink);padding:10px 16px;border-radius:999px;font-weight:700;font-size:.9rem;box-shadow:0 8px 30px rgba(0,0,0,.5);max-width:calc(100% - 32px);text-align:center}
 @media (max-width:640px){
-  .wrap>*{order:3}.wrap>header{order:0}.wrap>.inbox{order:1}
+  .wrap>*{order:5}.wrap>header{order:0}
   .ap .tt{font-size:1.05rem}
   .stage{aspect-ratio:4/5;min-height:0;max-height:76vh}
   .hud{max-width:calc(100% - 24px);top:50px}
@@ -252,6 +288,19 @@ td a{color:var(--accent)}
       <button class="btn primary" type="button" id="presentBtn"><i class="tri"></i>プレゼンモード</button>
     </div>
   </header>
+
+  <section class="sum" id="sum" aria-label="まとめ">
+    <a class="st3 ask3" href="#asks"><span class="k3">オーナーへのお願い（未完了）</span><span class="v3" id="sumAsk">—</span><span class="s3" id="sumAskS">読み込み中…</span></a>
+    <a class="st3 tod3" href="#today"><span class="k3">今日の成果（完了）</span><span class="v3" id="sumTod">—</span><span class="s3" id="sumTodS">読み込み中…</span></a>
+    <div class="st3 liv3"><span class="k3">公開中のサイト</span><span class="v3" id="sumLive">—</span><div class="links" id="sumLiveL"></div></div>
+  </section>
+
+  <section class="asks" id="asks" aria-label="オーナーへのお願い">
+    <div class="ah"><h2>オーナーへのお願い</h2><span><b class="n" id="askN">—</b> <span class="note" id="askSub">読み込み中…</span></span></div>
+    <div class="warn">収益への効き目が大きい順です。金額は12か月の見込み（標準値）で、約束ではありません。パスワード・マイナンバー・口座番号はどこにも書かず、終わったら「できた」を押すだけで大丈夫です。</div>
+    <div class="alist" id="askList"></div>
+    <div class="note" id="askSrc"></div>
+  </section>
 
   <section class="today" id="today" aria-label="今日の成果">
     <div class="th"><h2 id="todayTitle">今日の成果</h2><span class="note" id="todayNote">読み込み中…</span></div>
@@ -1077,7 +1126,7 @@ function render(){
   if(mode==="live"){b.textContent="実測";src.append("データ：",b," Claude Code の作業記録から1分ごとに取得");}
   else if(mode==="report"){b.className="rep";b.textContent="報告値";src.append("データ：",b," ピーターの巡回記録（実測に接続できないため）");}
   else src.textContent="データ：接続中…";
-  renderRoad();renderInbox();renderToday();renderDecisions();renderRevenueRoad();
+  renderRoad();renderInbox();renderToday();renderDecisions();renderRevenueRoad();renderSummary();
   if(W3)W3.updateSigns();
 }
 // team nav
@@ -1146,7 +1195,61 @@ function renderToday(){if(!document.getElementById("today"))return;
   if(body){const first=String(body).split(/\r?\n/).map(x=>x.replace(/^#+\s*/,"").trim()).filter(Boolean).slice(0,2).join(" ／ ");rep.append(document.createTextNode(first.slice(0,140)+(first.length>140?"…":"")+" "));
     const b=el("button",null,"全文を読む");b.type="button";b.addEventListener("click",()=>{showReport(today);document.getElementById("reports").scrollIntoView({behavior:"smooth"});});rep.append(b);}
   else rep.textContent=REPORTS.files[today]?"届いています。下の「夜の報告」で読めます。":"まだ届いていません（22時ごろに届きます）";
-  document.getElementById("todayNote").textContent=ready?"本部の記録・承認ボックス・夜の報告から自動で集計":"読み込み中…";}
+  document.getElementById("todayNote").textContent=ready?"本部の記録・承認ボックス・夜の報告から自動で集計":"読み込み中…";renderSummary();}
+
+// ---------- first-screen summary ----------
+function renderSummary(){if(!document.getElementById("sum"))return;
+  // asks
+  if(ASKS.length){const open=ASKS.filter(a=>!(ASK_DONE[askKey(a)]||{}).done);const near=open.filter(a=>{const d=dueDays(a.due);return a.urgentMark||(d!=null&&d<=5);});
+    document.getElementById("sumAsk").textContent=open.length+"件";document.querySelector(".sum .ask3").classList.toggle("zero",!open.length);
+    document.getElementById("sumAskS").textContent=open.length?(near.length?"期限が近い："+near.map(a=>a.no+" "+((a.due.match(/\d{1,2}\/\d{1,2}/)||[a.due])[0])).join("、"):"期限の近いものはありません"):"すべて完了しました";}
+  // today
+  const t=id=>{const e=document.getElementById(id);return e?e.textContent:"—";};
+  if(dbRef){document.getElementById("sumTod").textContent=t("tDone")+"件";document.getElementById("sumTodS").textContent="公開 "+t("tPub")+" ・ 決定 "+t("tDec")+" ・ オーナー待ち "+t("tOwn");}
+  // live sites
+  const live=TEAMS.filter(tm=>tm.code!=="HQ").map(tm=>({tm,L:liveOf(tm.code),pj:PROJECTS[tm.code.toLowerCase()]||{}})).filter(x=>x.L);
+  const v=document.getElementById("sumLive"),L=document.getElementById("sumLiveL");L.textContent="";
+  if(!Object.keys(PROJECTS).length){v.textContent="—";L.append(el("span","s3",dbRef?"記録なし":"読み込み中…"));return;}
+  v.textContent=live.length+"件";
+  for(const x of live){const nm=(x.pj.name||x.tm.name).replace(/（[^）]*）/g,"");if(x.L.url){const a=el("a",null,nm+" ↗");a.href=x.L.url;a.target="_blank";a.rel="noopener";L.append(a);}else L.append(el("span","s3",nm));}
+  if(!live.length)L.append(el("span","s3","まだありません"));}
+
+// ---------- owner asks (Midas: peter-hq/revenue/owner-asks.md, published as revenue/owner-asks.md) ----------
+let ASKS=[],ASK_DONE={};
+const ASK_KEYWORDS={Kotomark:"P1","計算機":"P2","Budget Guard":"P2"};
+function askCodes(a){const t=a.title+" "+a.gain;const c=new Set(projCodes(t));for(const k in ASK_KEYWORDS)if(t.includes(k))c.add(ASK_KEYWORDS[k]);return[...c];}
+function parseAsks(md){const out=[];const strip=x=>x.replace(/\*\*/g,"").replace(/`/g,"").trim();
+  for(const line of md.split(/\r?\n/)){if(!/^\|\s*[①②③④⑤⑥⑦⑧⑨⑩]/.test(line))continue;const c=line.replace(/^\||\|\s*$/g,"").split("|").map(x=>x.trim());if(c.length<6)continue;
+    out.push({no:strip(c[0]),title:strip(c[1]),time:strip(c[2]),steps:c[3].split(/<br\s*\/?>/).map(x=>strip(x).replace(/^・/,"")).filter(Boolean),gain:strip(c[4]),due:strip(c[5]),urgentMark:/\*\*/.test(c[5])});}
+  return out;}
+function dueDays(due){const m=String(due).match(/(\d{1,2})\/(\d{1,2})/);if(!m)return null;const today=dayJST(new Date());const y=Number(today.slice(0,4));
+  const d=Date.UTC(y,Number(m[1])-1,Number(m[2]));const t=Date.UTC(y,Number(today.slice(5,7))-1,Number(today.slice(8,10)));return Math.round((d-t)/864e5);}
+function askKey(a){return"a"+("①②③④⑤⑥⑦⑧⑨⑩".indexOf(a.no)+1);}
+function renderAsks(){const list=document.getElementById("askList");if(!list)return;list.textContent="";
+  if(!ASKS.length){list.append(el("p","note","読み込み中…"));return;}
+  const open=ASKS.filter(a=>!(ASK_DONE[askKey(a)]||{}).done);
+  document.getElementById("askN").textContent=open.length+"件";document.getElementById("askSub").textContent="残り（全"+ASKS.length+"件）";
+  let shownOpen=0;
+  for(const a of ASKS){const k=askKey(a),done=!!(ASK_DONE[k]||{}).done;const dd=dueDays(a.due);const urgent=!done&&(a.urgentMark||(dd!=null&&dd<=5));
+    // keep the list short: the top open ask and every urgent one stay open; the rest fold until asked
+    const expanded=!done&&(urgent||shownOpen<1);if(!done)shownOpen++;
+    const c=el("article","ask"+(urgent?" urgent":"")+(done?" done":"")+(expanded?"":" compact"));
+    const body=el("div");body.append(el("div","tt",a.title));
+    const meta=el("div","meta");meta.append(el("span",null,"所要 "+a.time));
+    if(a.due){meta.append(el("span",urgent?"due":null,"期限 "+a.due+(dd!=null&&!done?(dd<0?"（"+(-dd)+"日過ぎ）":dd===0?"（今日）":"（あと"+dd+"日）"):"")));}
+    body.append(meta);const ul=el("ul");a.steps.slice(0,3).forEach(x=>ul.append(el("li",null,x)));body.append(ul);
+    if(a.gain)body.append(el("div","gain","見込み："+a.gain));
+    if(!expanded){const m=el("button","more","手順を見る");m.type="button";m.setAttribute("aria-expanded","false");m.addEventListener("click",()=>{const open=c.classList.toggle("compact");m.textContent=open?"手順を見る":"手順を閉じる";m.setAttribute("aria-expanded",String(!open));});body.append(m);}
+    const act=el("div","act");
+    if(done){act.append(el("span","ok","できた ✓ "+(ASK_DONE[k].doneAt?hhmm(ASK_DONE[k].doneAt):"")));const u=el("button","undo","取り消す");u.type="button";u.addEventListener("click",()=>markAsk(a,false,u));act.append(u);}
+    else{const b=el("button",null,"できた");b.type="button";b.disabled=!dbRef||!canWrite;b.addEventListener("click",()=>markAsk(a,true,b));act.append(b);}
+    c.append(el("div","no",a.no),body,act);list.append(c);}
+  renderRevenueRoad();}
+async function markAsk(a,done,btn){if(!dbRef)return;btn.disabled=true;const k=askKey(a);
+  try{await dbRef.doc("ownerAsks/"+k).set({no:a.no,title:a.title,done,doneAt:done?new Date().toISOString():null,seenByPeter:false});
+    if(done){const t=el("div","toast","「"+a.title+"」を受け取りました。ありがとうございます！");document.body.append(t);setTimeout(()=>t.remove(),3000);}}
+  catch(e){btn.disabled=false;const t=el("div","toast","送れませんでした。もう一度押してください。");t.style.borderColor="var(--wait)";document.body.append(t);setTimeout(()=>t.remove(),3000);}}
+(async()=>{try{const r=await fetch("revenue/owner-asks.md");if(!r.ok)return;ASKS=parseAsks(await r.text());document.getElementById("askSrc").textContent="元：Midas の owner-asks.md（手順書は peter-hq/revenue/owner-guide-this-week.md ほか）";renderAsks();}catch(e){}})();
 
 // ---------- road to revenue ----------
 // Stage per product: 0 無料公開, 1 計測, 2 有料の準備, 3 課金開始, 4 初売上 (-1 = まだ無料公開の前, null = 保留).
@@ -1171,17 +1274,19 @@ function renderRevenueRoad(){const list=document.getElementById("revList"),tot=d
   if(all)tot.append(document.createTextNode("　30日の標準目標（見込み）："+yen(all.target)+"（"+all.week_ending.slice(5).replace("-","/")+"まで）"));
   list.textContent="";
   const rows=TEAMS.filter(t=>t.code!=="HQ").map(tm=>{const pj=PROJECTS[tm.code.toLowerCase()]||{};const o=Object.assign({},REV_DEFAULT[tm.code]||{stage:-1,next:"記録なし",who:"team"},pj.revenue||{});
-    const pend=pendingFor(tm.code);if(pend.length)o.who="owner";return{tm,pj,o,pend,fromDb:!!pj.revenue};});
+    const pend=pendingFor(tm.code);const asks=ASKS.filter(a=>!(ASK_DONE[askKey(a)]||{}).done&&askCodes(a).includes(tm.code));
+    o.who=pend.length||asks.length?"owner":"team";return{tm,pj,o,pend,asks,fromDb:!!pj.revenue};});
   rows.sort((a,b)=>(b.o.stage??-2)-(a.o.stage??-2));
   for(const r of rows){const d=el("div","rv"+(r.o.stage==null?" hold":""));d.style.setProperty("--tc",r.tm.color);
     const hd=el("div","hd2");hd.append(el("span","code",r.tm.code),el("b",null,r.pj.name||r.tm.name),el("span","src3",r.fromDb?"チームの記録":"本部の判断（10/9）"));d.append(hd);
     const st=el("div","steps");REV_STEPS.forEach((n,i)=>{const s2=el("span",r.o.stage==null?"":i<r.o.stage?"done":i===r.o.stage?"now":"",n);st.append(s2);});d.append(st);
     if(r.o.stage===-1)d.append(el("div","tg","まだ無料公開の前です"));if(r.o.stage==null)d.append(el("div","tg","保留中"));
     const nx=el("div","nx2");nx.append(el("span","whom "+(r.o.who==="owner"?"owner":"team"),r.o.who==="owner"?"オーナー待ち":"チームが進める"),document.createTextNode(r.o.next||""));d.append(nx);
+    if(r.asks.length)d.append(el("div","tg","オーナーへのお願い："+r.asks.map(a=>a.no+" "+a.title).join("、")));
     if(r.pend.length)d.append(el("div","tg","承認ボックス："+r.pend.map(a=>"「"+a.title+"」").join("、")));
     const tg=REV_TARGETS.filter(t=>t.project===r.tm.code);
     if(tg.length){const t=el("div","tg");t.append(document.createTextNode("見込み（標準値）："));tg.forEach((x,i)=>{t.append(el("em",null,x.metric+" "+Number(x.target).toLocaleString("ja-JP")+x.unit.replace(/\(累計\)|/g,"").replace(/^件$/,"件").replace(/^円$/,"円")+"（"+x.week_ending.slice(5).replace("-","/")+"まで）"));if(i<tg.length-1)t.append(document.createTextNode("、"));});d.append(t);}
-    list.append(d);}}
+    list.append(d);}renderSummary();}
 
 // ---------- decision log ----------
 let DEC_F="all";
@@ -1326,6 +1431,7 @@ render();renderInbox();setInterval(render,30000);
     try{const u=await window.claude.use("user");if(u&&u.can){const c=await u.can("data.write");if(c===false)canWrite=false;}}catch(e){}
     dbRef.collection("approvals").onSnapshot(snap=>{APPROVALS=snap.docs.map(d=>Object.assign({_id:d.id},d.data()));renderInbox();render();},()=>{});
     dbRef.collection("reports").onSnapshot(snap=>{REPORTS.db={};snap.docs.forEach(d=>{const v=d.data()||{};const date=v.date||d.id;if(v.body)REPORTS.db[date]=String(v.body);});renderReports();renderToday();},()=>{});
+    dbRef.collection("ownerAsks").onSnapshot(snap=>{ASK_DONE={};snap.docs.forEach(d=>{ASK_DONE[d.id]=d.data()||{};});renderAsks();},()=>{});
     dbRef.doc("hq/log").onSnapshot(sn=>{const v=sn&&sn.exists?sn.data():null;HQLOG=v&&Array.isArray(v.entries)?v.entries:[];renderToday();},()=>{});
     dbRef.doc("hq/revenue").onSnapshot(sn=>{REVENUE=sn&&sn.exists?{state:"ok",v:sn.data()||{}}:{state:"none"};renderRevenue();},()=>{REVENUE={state:"error"};renderRevenue();});
     dbRef.collection("projects").onSnapshot(snap=>{PROJECTS={};snap.docs.forEach(d=>{PROJECTS[d.id]=d.data();});render();},()=>{});
