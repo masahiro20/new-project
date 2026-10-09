@@ -129,7 +129,7 @@ html,body{margin:0;background:var(--ink)}
 .priceline{margin-top:30px;font-family:'IBM Plex Mono';font-weight:700;font-size:36px;color:var(--ivory)}
 .bio{margin-top:38px;background:var(--red);color:var(--ivory);font-family:'Dela Gothic One';font-size:54px;padding:16px 46px 20px;border-radius:999px;box-shadow:0 10px 40px rgba(229,23,47,.35)}
 .bio small{font-family:'Zen Kaku Gothic New';font-weight:900;font-size:30px;display:block;margin-top:2px}
-.ai{margin-top:44px;font-family:'IBM Plex Mono';font-weight:500;font-size:26px;color:var(--ash);letter-spacing:.02em}
+.ai{margin-top:44px;font-family:'IBM Plex Mono';font-weight:500;font-size:30px;color:var(--ash);letter-spacing:.02em}
 .ai span{font-family:'Zen Kaku Gothic New';font-weight:700}
 #price .big{font-family:'Dela Gothic One';font-size:150px;line-height:1;color:var(--ivory)}
 #price .big .r{color:var(--red)}
@@ -424,7 +424,7 @@ function stateAt(sp, t) {
       s.book = { under: b.under, flip: b.flip };
       s.bg = path.join(ASSETS, 'bg-book-01.png'.replace('.png', '.jpg'));
       if (b.slam) { s.flash = 0.7 * b.slam; }
-      if (t < T_HOOK) s.dim = 0.78;
+      if (t < T_HOOK) s.dim = 0.55;
     }
     if (sp.price && t >= sp.price.t0 && t < sp.card.t0 + 0.4) {
       const k = easeOut(prog(t, sp.price.t0, sp.price.t0 + 0.35));

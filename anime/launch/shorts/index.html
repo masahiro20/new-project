@@ -1,0 +1,83 @@
+<title>LEDGERBREAKER ショート動画</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=IBM+Plex+Mono:wght@400;600&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<style>
+/* Layout: three phone screens side by side, like a posting schedule board; each has its posting note beneath. */
+:root {
+  --bg: #ECEBE4;
+  --surface: #F8F7F1;
+  --ink: #1F2128;
+  --muted: #5B5E62;
+  --rule: #CFCDC2;
+  --red: #D3122C;
+  --display: "Dela Gothic One", "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+  --body: "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #111217; --surface: #1B1D24; --ink: #E9E6DD; --muted: #A3A19A; --rule: #31343D; --red: #F0344A; color-scheme: dark; }
+}
+:root[data-theme="dark"] { --bg: #111217; --surface: #1B1D24; --ink: #E9E6DD; --muted: #A3A19A; --rule: #31343D; --red: #F0344A; color-scheme: dark; }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.7; padding-inline: 16px; padding-block: 24px 64px; }
+.wrap { max-width: 1080px; margin-inline: auto; display: grid; gap: 24px; }
+header { display: grid; gap: 8px; }
+.eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--display); font-weight: 400; font-size: clamp(26px, 4.4vw, 40px); line-height: 1.2; margin: 0; text-wrap: balance; word-break: keep-all; overflow-wrap: anywhere; }
+h1 .red { color: var(--red); }
+p { margin: 0; max-width: 66ch; }
+.grid { display: grid; gap: 28px 22px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); }
+article { display: grid; gap: 10px; align-content: start; min-width: 0; }
+video { width: 100%; max-width: 100%; aspect-ratio: 9 / 16; height: auto; display: block; background: #08090C; border: 1px solid var(--rule); }
+.meta { display: flex; justify-content: space-between; gap: 8px; font-family: var(--mono); font-size: 12px; color: var(--muted); border-bottom: 1px solid var(--rule); padding-bottom: 6px; }
+.meta b { color: var(--red); font-weight: 600; }
+h2 { font-family: var(--display); font-weight: 400; font-size: 19px; line-height: 1.35; margin: 0; }
+.note { font-size: 14px; display: grid; gap: 4px; }
+.note .en { font-family: var(--mono); font-size: 12.5px; color: var(--muted); }
+.foot { font-size: 13px; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 12px; display: grid; gap: 4px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">P7 Anime · 社外秘 · 集客用ショート動画</span>
+    <h1>LEDGERBREAKER <span class="red">ショート動画3本</span></h1>
+    <p>YouTubeショート／TikTok／リール用の縦型動画です（1080×1920、音声なし）。投稿はオーナーが行います。音楽は各プラットフォームで付けてください。字幕は英語で、下に小さく日本語を付けています。</p>
+  </header>
+
+  <div class="grid">
+    <article>
+      <video src="short1-voice-taken.mp4" controls muted playsinline preload="metadata"></video>
+      <div class="meta"><span>25秒</span><b>投稿：最初の1本（発売前の予告にも）</b></div>
+      <h2>声が消える</h2>
+      <div class="note">
+        <p>払えない者は「声」を取り立てられる、という世界のルールを最初の数秒で見せます。Webtoon 1〜6コマから。</p>
+        <span class="en">"In this city, if you can't pay, they take your voice."</span>
+      </div>
+    </article>
+    <article>
+      <video src="short2-im-not-paying.mp4" controls muted playsinline preload="metadata"></video>
+      <div class="meta"><span>30秒</span><b>投稿：発売4日後</b></div>
+      <h2>払わねえよ。</h2>
+      <div class="note">
+        <p>覚醒シーン。掴む→「契約停止 00:03」→鎖を奪う→決め台詞→一撃。最後はタイトルと「プロフィールのリンクから」。</p>
+        <span class="en">"I'm not paying."</span>
+      </div>
+    </article>
+    <article>
+      <video src="short3-book-flip.mp4" controls muted playsinline preload="metadata"></video>
+      <div class="meta"><span>20秒</span><b>投稿：発売日〜7日後</b></div>
+      <h2>帳簿の書 Vol.0 をめくる</h2>
+      <div class="note">
+        <p>設定資料集の中身を見せて、価格（BOOTH 500円／Ko-fi $4）を出します。脚本のページはぼかしています。</p>
+        <span class="en">Book of the Ledger Vol.0 — ¥500 / $4</span>
+      </div>
+    </article>
+  </div>
+
+  <div class="foot">
+    <p>最後の画面に「Made with AI assistance / AI使用」を入れています。各サービスでAI生成コンテンツの表示を求められたら、表示をオンにしてください。</p>
+    <p>キャプション・ハッシュタグ・投稿のコツは、リポジトリの anime/launch/shorts/README.md にまとめています。</p>
+  </div>
+</div>

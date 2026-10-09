@@ -19,6 +19,10 @@
 | 第1話 絵コンテ（225カット、作画91枚） | [storyboard/ep01/](storyboard/ep01/)（[カット表](storyboard/ep01/ep01-conte.md)）→ https://claude.ai/artifact/C1NpLaAX8fqYLuiE9UWkKL |
 | Webtoon 第1話 ネーム（40コマ） | [webtoon/ep01/](webtoon/ep01/) → https://claude.ai/artifact/YGituh2DyYSpxG1K6UsHgW |
 | 代わりのタイトル案（商標の自己チェック） | [docs/title-alternatives.md](docs/title-alternatives.md) |
+| 集客用ショート動画3本（MP4）と投稿メモ | [launch/shorts/](launch/shorts/) → https://claude.ai/artifact/KxRcNchccbtQipccSmy3c4 |
+| 出品当日のチェックリスト（オーナー用） | [launch/owner-launch-checklist.md](launch/owner-launch-checklist.md) |
+| 第2話の脚本 | [scripts/ep02-script.md](scripts/ep02-script.md) |
+| 決定記録 | [docs/decisions.md](docs/decisions.md) |
 | 市場分析・比較作品 | [docs/market-and-comps.md](docs/market-and-comps.md) |
 | レビューとショーランナー決定 | [docs/review.md](docs/review.md) |
 
