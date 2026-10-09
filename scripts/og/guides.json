@@ -9,7 +9,7 @@
   },
   {
     "slug": "unei-shidou-junbi",
-    "title": "障害福祉の運営指導で指摘されやすい書類チェックリスト"
+    "title": "運営指導で指摘されやすい書類チェックリスト｜障害福祉・放デイ・児発に対応"
   },
   {
     "slug": "bcp-gensan-jidou",
@@ -18,6 +18,10 @@
   {
     "slug": "gensan-kasan-hayamihyo",
     "title": "障害福祉の減算早見表【令和6年度改定】サービス種別ごとの減算率一覧"
+  },
+  {
+    "slug": "gensan-kaizen-keikaku",
+    "title": "減算の改善計画の書き方｜虐待防止・身体拘束の改善計画書と3か月後の報告（記入例）"
   },
   {
     "slug": "gyakutai-iinkai-gijiroku",
@@ -29,8 +33,16 @@
     "serviceType": "共同生活援助（グループホーム）"
   },
   {
+    "slug": "gyakutai-iinkai-kosei",
+    "title": "虐待防止委員会のメンバー構成｜小規模な放デイ・児発で職員数人でも開く方法"
+  },
+  {
     "slug": "gyakutai-kenshu-shiryou",
     "title": "虐待防止研修の資料｜放デイ・児童発達支援の60分構成例と無料の公的資料"
+  },
+  {
+    "slug": "gyakutai-tantousha",
+    "title": "虐待防止担当者は児発管が兼務できる？虐待防止責任者との違いと決め方"
   },
   {
     "slug": "houkago-day-shintai-kousoku-rei",
@@ -42,9 +54,17 @@
     "serviceType": "放課後等デイサービス"
   },
   {
+    "slug": "iinkai-ittai-kaisai",
+    "title": "虐待防止委員会と身体拘束適正化委員会は一体で開ける？通知と議事録の分け方"
+  },
+  {
     "slug": "jidou-hattatsu-gensan",
     "title": "児童発達支援の減算対策｜虐待防止・身体拘束・BCPの要件と必要書類",
     "serviceType": "児童発達支援"
+  },
+  {
+    "slug": "jidou-hyouka-kouhyou",
+    "title": "自己評価・保護者評価の公表と減算｜放課後等デイサービスの支援プログラム・情報公表"
   },
   {
     "slug": "kenshu-rikaido-test",
@@ -101,5 +121,13 @@
     "slug": "tanki-nyusho-gensan",
     "title": "短期入所（ショートステイ）の減算対策｜虐待防止・身体拘束・BCPと書類",
     "serviceType": "短期入所"
+  },
+  {
+    "slug": "unei-kitei-gyakutai",
+    "title": "運営規程の虐待防止の記載例｜放課後等デイサービス・児童発達支援の条文例と変更届"
+  },
+  {
+    "slug": "unei-shidou-tsuchi",
+    "title": "運営指導の通知が来たら？当日までの準備とやることリスト｜放デイ・児発"
   }
 ]

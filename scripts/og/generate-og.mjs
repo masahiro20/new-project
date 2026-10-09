@@ -66,6 +66,7 @@ function greedy(parts, maxEm) {
       // hiragana tail ("…未実施減算|とは？"), then fall back to characters
       const tail = part.match(/^(.*[^\p{Script=Hiragana}？?！!])(\p{Script=Hiragana}+[？?！!]?)$/u);
       if (tail && ems(tail[1]) <= maxEm) {
+        lines.split = true; // acceptable as a last resort, not while balancing
         if (cur) lines.push(cur);
         lines.push(tail[1]);
         cur = tail[2];
@@ -95,6 +96,7 @@ function wrap(text, maxEm, maxLines) {
   }
   if (lines.length > maxLines) {
     const kept = lines.slice(0, maxLines);
+    kept.split = lines.split;
     let last = kept[maxLines - 1];
     while (ems(last + "…") > maxEm) last = last.slice(0, -1);
     kept[maxLines - 1] = last + "…";
@@ -118,7 +120,8 @@ function render(g) {
   // largest size at which the title fits without "…"
   let size = 64, lines = wrap(main, TEXT_W / size, 2);
   for (const [sz, max] of [[54, 3], [46, 3]]) {
-    if (!lines.some((l) => l.endsWith("…"))) break;
+    // smaller type before a line has to break inside a phrase or end in "…"
+    if (!lines.split && !lines.some((l) => l.endsWith("…"))) break;
     size = sz;
     lines = wrap(main, TEXT_W / size, max);
   }
