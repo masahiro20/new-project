@@ -144,6 +144,19 @@ td a{color:var(--accent)}
 .box{border:1px solid var(--line);background:var(--panel);padding:12px 14px;display:grid;gap:6px;font-size:.88rem;border-radius:6px;min-width:0}
 .box .k{color:var(--muted);font-size:.75rem}.box .v{font-family:var(--mono);font-variant-numeric:tabular-nums}
 .err{color:var(--wait);font-size:.82rem}
+.road{display:grid;gap:8px}
+.rd{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 14px;padding:12px 14px;border:1px solid var(--line);background:var(--panel);border-radius:8px;border-left:4px solid var(--tc)}
+.rd .nm{font-weight:700;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.rd .nm .code{font-family:var(--mono);font-size:.72rem;color:var(--muted)}
+.rd>*{grid-column:2;min-width:0}
+.rd .who{grid-column:1;grid-row:1 / span 4;align-self:start;font-size:.72rem;font-weight:700;padding:2px 8px;border-radius:4px;white-space:nowrap;border:1px solid currentColor}
+.rd .who.owner{color:var(--wait)}.rd .who.team{color:var(--accent)}.rd .who.live{color:var(--live)}
+.rd .stg{font-size:.82rem;color:var(--muted);overflow-wrap:anywhere}
+.rd .nx{font-size:.88rem;overflow-wrap:anywhere}
+.rd .nx b{color:var(--gold);font-weight:700;margin-right:4px}
+.rd .ow{font-size:.84rem;color:var(--wait);overflow-wrap:anywhere}
+@media (max-width:640px){.rd{grid-template-columns:minmax(0,1fr)}.rd>*{grid-column:1}.rd .who{grid-row:auto;justify-self:start}}
+.road h3{margin:.4em 0 0;font-size:.85rem;color:var(--muted);font-weight:500;letter-spacing:.06em}
 .reports{display:grid;gap:10px}
 .rdates{display:flex;gap:6px;flex-wrap:wrap}
 .rdates button{font:inherit;font-family:var(--mono);font-size:.78rem;padding:4px 12px;border-radius:999px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);cursor:pointer}
@@ -229,6 +242,11 @@ td a{color:var(--accent)}
   <section style="display:grid;gap:10px">
     <div class="ihead"><h2>チームとメンバー</h2><span class="note">部下はリーダーの中で動く補助AI（サブエージェント）。稼働はリーダーの記録に含まれます</span></div>
     <div class="teams" id="teams"></div>
+  </section>
+
+  <section class="road" id="road">
+    <div class="ihead"><h2>公開まであと何が必要か</h2><span class="note">各チームの記録（projects）と承認ボックスから作っています</span></div>
+    <div id="roadList" class="road"><p class="note">読み込み中…</p></div>
   </section>
 
   <section class="reports" id="reports">
@@ -992,6 +1010,7 @@ function render(){
   if(mode==="live"){b.textContent="実測";src.append("データ：",b," Claude Code の作業記録から1分ごとに取得");}
   else if(mode==="report"){b.className="rep";b.textContent="報告値";src.append("データ：",b," ピーターの巡回記録（実測に接続できないため）");}
   else src.textContent="データ：接続中…";
+  renderRoad();
   if(W3)W3.updateSigns();
 }
 // team nav
@@ -1027,6 +1046,22 @@ async function decide(a,val,note,btn){if(!dbRef)return;const res=document.getEle
 function celebrate(a){const codes=projCodes(a.project);const names=codes.map(c=>{const t=TEAMS.find(x=>x.code===c);return t?t.members.find(m=>m.lead).name:null;}).filter(Boolean);
   if(W3)codes.forEach(c=>W3.cheer(c));
   const t=el("div","toast",names.length?names.join("・")+" が受け取りました。ありがとうございます！":"承認しました。");document.body.append(t);setTimeout(()=>t.remove(),3200);}
+
+// ---------- road to launch ----------
+function renderRoad(){const box=document.getElementById("roadList");if(!box)return;box.textContent="";
+  const rows=TEAMS.filter(t=>t.code!=="HQ").map(tm=>{const pj=PROJECTS[tm.code.toLowerCase()]||null;const pend=pendingFor(tm.code);return{tm,pj,pend,live:!!liveOf(tm.code)};});
+  if(!Object.keys(PROJECTS).length){box.append(el("p","note",dbRef?"チームの記録がまだありません。":"読み込み中…"));return;}
+  const add=(title,list)=>{if(!list.length)return;box.append(el("h3",null,title+"（"+list.length+"）"));
+    for(const r of list){const d=el("div","rd");d.style.setProperty("--tc",r.tm.color);
+      const who=r.pend.length?el("span","who owner","オーナーの番"):r.live?el("span","who live","公開中"):el("span","who team","チームの番");
+      const nm=el("div","nm");nm.append(el("span","code",r.tm.code),document.createTextNode((r.pj&&r.pj.name)||r.tm.name));
+      d.append(who,nm);
+      if(r.pj&&r.pj.stage)d.append(el("div","stg","いま："+r.pj.stage));
+      const nx=el("div","nx");nx.append(el("b",null,r.live?"次（売上へ）":"公開まで"),document.createTextNode((r.pj&&r.pj.next)||"記録なし"));d.append(nx);
+      if(r.pend.length){const ow=el("div","ow","承認ボックスで待っています："+r.pend.map(a=>"「"+a.title+"」").join("、"));d.append(ow);}
+      box.append(d);}};
+  add("まだ公開していない",rows.filter(r=>!r.live).sort((a,b)=>b.pend.length-a.pend.length));
+  add("公開中",rows.filter(r=>r.live));}
 
 // ---------- nightly reports ----------
 // Sources: the reports/ files published with this page (index.json + <date>.md) and, if present,
