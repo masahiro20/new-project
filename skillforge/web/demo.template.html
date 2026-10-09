@@ -258,10 +258,10 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
 
     <div class="panel" id="panel-gloss">
       <h2>用語集・キャラ設定 <span class="en">Glossary (optional)</span></h2>
-      <p class="hint">JSON または CSV。省略しても表記揺れ・話者名・タグ等は検出できますが、訳揺れ・敬称・口調のチェックには用語集が必要です。</p>
+      <p class="hint">JSON・CSV/TSV（Crowdin・Phrase などの用語集エクスポートも可）・TBX。省略しても表記揺れ・話者名・タグ等は検出できますが、訳揺れ・敬称・口調のチェックには用語集が必要です。</p>
       <div class="field">
         <label for="gloss-file">ファイルを読み込む <span class="en">Load file</span></label>
-        <input type="file" id="gloss-file" accept=".json,.csv">
+        <input type="file" id="gloss-file" accept=".json,.csv,.tsv,.txt,.tbx,.xml">
       </div>
       <div class="field">
         <label for="gloss-text">内容 <span class="en">Contents</span></label>
@@ -349,6 +349,13 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
     catch (_) {
       try { return new TextDecoder("shift_jis").decode(buf); } catch (_) { return new TextDecoder("utf-8").decode(buf); }
     }
+  }
+  // Glossary files may be UTF-16 with a BOM (Excel / Trados TBX exports).
+  async function readGlossaryText(file) {
+    const b = new Uint8Array(await file.slice(0, 2).arrayBuffer());
+    if (b[0] === 0xff && b[1] === 0xfe) return new TextDecoder("utf-16le").decode(await file.arrayBuffer());
+    if (b[0] === 0xfe && b[1] === 0xff) return new TextDecoder("utf-16be").decode(await file.arrayBuffer());
+    return readFileText(file);
   }
   function uniqueName(name) {
     const taken = new Set(state.files.map((f) => f.name));
@@ -456,8 +463,17 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
     let glossError = false;
     if (gtext.trim()) {
       const head = gtext.trimStart();
-      const gname = head.startsWith("{") || head.startsWith("[") ? "glossary.json" : "glossary.csv";
-      try { glossary = Kotomark.parseGlossary(gtext, gname); }
+      const first = head.split(/\r?\n/, 1)[0] || "";
+      const gname = head.startsWith("{") || head.startsWith("[") ? "glossary.json" : head.startsWith("<") ? "glossary.tbx"
+        : first.includes("\t") && !first.includes(",") ? "glossary.tsv" : "glossary.csv";
+      // TBX and ja/en-column CSVs are read in the script's direction (most rows win).
+      let ja = 0, en = 0;
+      for (const t of tables) { if (t.sourceLang === "en") en += t.rows.length; else ja += t.rows.length; }
+      try {
+        const parsed = Kotomark.parseGlossaryWithNotes(gtext, gname, { sourceLang: en > ja ? "en" : "ja" });
+        glossary = parsed.glossary;
+        state.notes = state.notes.concat(parsed.notes.map((n) => "用語集 " + n));
+      }
       catch (e) { glossError = true; errors.push({ where: "用語集 " + gname, msg: (e && e.message) || String(e) }); }
     }
     if (glossError || !tables.length) {
@@ -668,7 +684,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
   $("script-files").addEventListener("change", async (e) => { leaveSample(); await addFiles(e.target.files); e.target.value = ""; });
   $("gloss-file").addEventListener("change", async (e) => {
     const f = e.target.files[0];
-    if (f) { $("gloss-text").value = await readFileText(f); markDirty(); }
+    if (f) { $("gloss-text").value = await readGlossaryText(f); markDirty(); }
     e.target.value = "";
   });
   $("script-text").addEventListener("input", leaveSample);

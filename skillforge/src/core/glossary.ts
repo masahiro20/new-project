@@ -1,6 +1,7 @@
 import { z } from "zod";
-import { parseCsvRecords } from "./parsers/csv.js";
-import type { Glossary } from "./types.js";
+import { importCsv, importTbx, isTbx, sniffDelimiter } from "./glossary-import.js";
+import { decodeText, stripBom } from "./parsers/decode.js";
+import type { Glossary, Lang } from "./types.js";
 
 const list = z.array(z.string()).optional();
 
@@ -48,54 +49,72 @@ const GlossarySchema = z.object({
 
 export const EMPTY_GLOSSARY: Glossary = { terms: [], characters: [] };
 
-const split = (s?: string) =>
-  (s ?? "")
-    .split(/[;；|]/)
-    .map((x) => x.trim())
-    .filter(Boolean);
-
-/**
- * Glossary CSV columns: type (term|character), source/ja, target/en, allowed, forbidden, note.
- * Multiple values in a cell are separated by ";".
- */
-function fromCsv(text: string): Glossary {
-  const recs = parseCsvRecords(text);
-  const header = recs.shift()?.cells.map((h) => h.trim().toLowerCase()) ?? [];
-  const col = (...names: string[]) => header.findIndex((h) => names.includes(h));
-  const iType = col("type", "kind", "種別");
-  const iSrc = col("source", "ja", "japanese", "原文");
-  const iTgt = col("target", "en", "english", "訳語");
-  const iAllowed = col("allowed", "aliases", "許容");
-  const iForbidden = col("forbidden", "ng", "禁止");
-  const iNote = col("note", "notes", "備考");
-  if (iSrc < 0 || iTgt < 0) throw new Error("Glossary CSV needs source/ja and target/en columns");
-  const g: Glossary = { terms: [], characters: [] };
-  for (const r of recs) {
-    const c = (i: number) => (i >= 0 ? (r.cells[i] ?? "").trim() : "");
-    if (!c(iSrc) || !c(iTgt)) continue;
-    if (/^(character|char|name|キャラ)/i.test(c(iType))) {
-      g.characters.push({
-        id: c(iTgt).toLowerCase(),
-        ja: c(iSrc),
-        en: c(iTgt),
-        aliases: { en: split(c(iAllowed)) },
-        forbidden: { en: split(c(iForbidden)) },
-      });
-    } else {
-      g.terms.push({ source: c(iSrc), target: c(iTgt), allowed: split(c(iAllowed)), forbidden: split(c(iForbidden)), note: c(iNote) || undefined });
-    }
-  }
-  return g;
+export interface GlossaryParseResult {
+  glossary: Glossary;
+  /** Things worth telling the user: skipped entries, ignored languages, merged translations, the direction used. */
+  notes: string[];
+  format: "json" | "csv" | "tsv" | "tbx";
+  /** Direction the terms were read in (CSV with explicit source/target columns: "source"/"target"). */
+  direction?: { source: Lang | "source"; target: Lang | "target" };
+  /**
+   * True when the file names its languages (TBX, "ja,en" or Crowdin/Phrase CSV) and can be rebuilt for the other
+   * direction with `sourceLang`. JSON glossaries and type/source/target CSVs are fixed.
+   */
+  orientable: boolean;
 }
 
-export function parseGlossary(text: string, file = "glossary.json"): Glossary {
-  if (!text.trim()) return EMPTY_GLOSSARY;
-  const isJson = file.toLowerCase().endsWith(".json") || /^\s*[{[]/.test(text);
-  if (!isJson) return fromCsv(text);
-  const raw: unknown = JSON.parse(text.replace(/^﻿/, ""));
+export interface GlossaryParseOptions {
+  /**
+   * Language of the script's source text, for files that name their languages (TBX, bilingual CSV/TSV). Default:
+   * the file's own hint (TBX root xml:lang, first language column), else ja.
+   */
+  sourceLang?: Lang;
+}
+
+function fromJson(text: string): Glossary {
+  const raw: unknown = JSON.parse(stripBom(text));
   const parsed = GlossarySchema.safeParse(Array.isArray(raw) ? { terms: raw } : raw);
   if (!parsed.success) {
     throw new Error(`Invalid glossary: ${parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ")}`);
   }
   return parsed.data;
+}
+
+/**
+ * Parses a glossary and reports what the import had to decide or skip. Dispatches on extension and content:
+ * `.json` (or text starting with { or [) → Kotomark JSON; `.tbx`/`.xml` (or a <martif>/<tbx> root) → TBX;
+ * anything else → CSV/TSV (Kotomark's type/source/target columns, or a termbase export such as Crowdin or
+ * Phrase, or a plain "ja,en" list). Accepts bytes too (UTF-8, or UTF-16 with a BOM as Excel/Trados export it).
+ */
+export function parseGlossaryWithNotes(input: string | Uint8Array, file = "glossary.json", opts: GlossaryParseOptions = {}): GlossaryParseResult {
+  const decoded = typeof input === "string" ? { text: input } : decodeText(input, file);
+  const text = stripBom(decoded.text);
+  const pre = decoded.note ? [decoded.note] : [];
+  if (!text.trim()) return { glossary: EMPTY_GLOSSARY, notes: pre, format: /\.json$/i.test(file) ? "json" : "csv", orientable: false };
+  const lower = file.toLowerCase();
+  const head = text.trimStart();
+  if (lower.endsWith(".json") || /^[{[]/.test(head)) return { glossary: fromJson(text), notes: pre, format: "json", orientable: false };
+  if (/\.(tbx|tbxm|xml)$/.test(lower) || head.startsWith("<")) {
+    if (!isTbx(text)) throw new Error(`${file}: XML glossaries must be TBX (a <martif> or <tbx> root element)`);
+    const r = importTbx(text, file, opts);
+    const sum = `${file}: TBX, ${r.glossary.terms.length} term(s) read as ${r.direction.source}→${r.direction.target}`;
+    return { ...r, notes: [...pre, sum, ...r.notes], format: "tbx" };
+  }
+  const r = importCsv(text, file, opts);
+  const format = sniffDelimiter(text, file) === "\t" ? "tsv" : "csv";
+  const sum = r.orientable ? [`${file}: ${r.glossary.terms.length} term(s) read as ${r.direction.source}→${r.direction.target}`] : [];
+  return { ...r, notes: [...pre, ...sum, ...r.notes], format };
+}
+
+/** Parses a glossary (see parseGlossaryWithNotes, which also returns the import notes). */
+export function parseGlossary(input: string | Uint8Array, file = "glossary.json", opts: GlossaryParseOptions = {}): Glossary {
+  if (typeof input === "string" && !input.trim()) return EMPTY_GLOSSARY;
+  return parseGlossaryWithNotes(input, file, opts).glossary;
+}
+
+/** Kotomark JSON for a glossary, without empty lists or unset fields (for `glossary convert`). */
+export function glossaryToJson(g: Glossary): string {
+  const empty = (v: unknown): boolean =>
+    v === undefined || (Array.isArray(v) && v.length === 0) || (!!v && typeof v === "object" && !Array.isArray(v) && Object.values(v).every(empty));
+  return JSON.stringify(g, (k, v: unknown) => (k !== "" && k !== "terms" && empty(v) ? undefined : v), 2);
 }

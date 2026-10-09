@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE martif SYSTEM "TBXBasiccoreStructV02.dtd">
+<!-- Invented sample termbase (TBX-Basic, TBX v2 <martif>) with the same terms as samples/ja-en/glossary.json.
+     Character entries (names, voice profiles) cannot be expressed in TBX; keep them in a Kotomark JSON glossary. -->
+<martif type="TBX-Basic" xml:lang="ja">
+  <martifHeader>
+    <fileDesc>
+      <titleStmt><title>Kotomark sample termbase</title></titleStmt>
+      <sourceDesc><p>Invented for the Kotomark samples.</p></sourceDesc>
+    </fileDesc>
+    <encodingDesc><p type="XCSURI">TBXBasicXCSV02.xcs</p></encodingDesc>
+  </martifHeader>
+  <text>
+    <body>
+      <termEntry id="c1">
+        <descrip type="definition">A stone that stores magical power &amp; channels it.</descrip>
+        <langSet xml:lang="ja-JP">
+          <tig>
+            <term>魔導石</term>
+            <termNote type="partOfSpeech">noun</termNote>
+            <termNote type="administrativeStatus">preferredTerm-admn-sts</termNote>
+          </tig>
+        </langSet>
+        <langSet xml:lang="en-US">
+          <tig>
+            <term>Mana Stone</term>
+            <termNote type="administrativeStatus">preferredTerm-admn-sts</termNote>
+          </tig>
+          <tig>
+            <term>Magic Stone</term>
+            <termNote type="administrativeStatus">deprecatedTerm-admn-sts</termNote>
+            <note>Used in the first draft; do not use.</note>
+          </tig>
+        </langSet>
+        <langSet xml:lang="de">
+          <tig><term>Manastein</term></tig>
+        </langSet>
+      </termEntry>
+      <termEntry id="c2">
+        <langSet xml:lang="ja">
+          <tig><term>星詠み</term></tig>
+        </langSet>
+        <langSet xml:lang="en">
+          <tig>
+            <term>Stargazer</term>
+            <termNote type="administrativeStatus">preferredTerm-admn-sts</termNote>
+          </tig>
+          <tig>
+            <term>Star Reader</term>
+            <termNote type="administrativeStatus">supersededTerm-admn-sts</termNote>
+          </tig>
+        </langSet>
+      </termEntry>
+      <termEntry id="c3">
+        <langSet xml:lang="ja">
+          <descrip type="definition"><![CDATA[Lisette's archive <the "Ashen Archive">.]]></descrip>
+          <tig><term>灰の書庫</term></tig>
+        </langSet>
+        <langSet xml:lang="en">
+          <tig><term>Ashen Archive</term></tig>
+        </langSet>
+      </termEntry>
+      <termEntry id="c4">
+        <langSet xml:lang="ja">
+          <tig><term>暁の騎士団</term></tig>
+        </langSet>
+        <langSet xml:lang="en">
+          <tig>
+            <term>Order of Dawn</term>
+            <termNote type="administrativeStatus">preferredTerm-admn-sts</termNote>
+          </tig>
+          <tig>
+            <term>Dawn Knights</term>
+            <termNote type="administrativeStatus">deprecatedTerm-admn-sts</termNote>
+          </tig>
+        </langSet>
+      </termEntry>
+      <termEntry id="c5">
+        <langSet xml:lang="ja">
+          <ntig>
+            <termGrp>
+              <term>ルーンゲート</term>
+              <termNote type="administrativeStatus">preferredTerm-admn-sts</termNote>
+            </termGrp>
+          </ntig>
+        </langSet>
+        <langSet xml:lang="en">
+          <ntig>
+            <termGrp>
+              <term>Rune Gate</term>
+              <termNote type="administrativeStatus">preferredTerm-admn-sts</termNote>
+            </termGrp>
+          </ntig>
+          <ntig>
+            <termGrp>
+              <term>Runegate</term>
+              <termNote type="administrativeStatus">admittedTerm-admn-sts</termNote>
+            </termGrp>
+          </ntig>
+        </langSet>
+      </termEntry>
+    </body>
+  </text>
+</martif>

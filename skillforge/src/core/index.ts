@@ -3,7 +3,7 @@ export { parseTable, detectFormat, type Format, type ColumnMap, type ParseOption
 export { loadInputs, pairTables, type InputFile, type LoadOptions, type LoadResult } from "./inputs.js";
 export { parseXlsx } from "./parsers/xlsx.js";
 export { parsePo } from "./parsers/po.js";
-export { parseGlossary, EMPTY_GLOSSARY } from "./glossary.js";
+export { parseGlossary, parseGlossaryWithNotes, glossaryToJson, EMPTY_GLOSSARY, type GlossaryParseResult, type GlossaryParseOptions } from "./glossary.js";
 export { runChecks } from "./engine.js";
 export { renderMarkdown } from "./report.js";
 export { draftGlossary, type DraftEntry, type GlossaryDraft, type DraftOptions } from "./draft.js";

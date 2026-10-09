@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { readFileSync, writeFileSync } from "node:fs";
 import { parseArgs } from "node:util";
-import { loadInputs, parseGlossary, renderMarkdown, runChecks, type ColumnMap, type Format, type Glossary, type Locale, type Severity, type Table } from "../core/index.js";
+import { glossaryToJson, loadInputs, parseGlossaryWithNotes, renderMarkdown, runChecks, type ColumnMap, type Format, type Glossary, type Lang, type Locale, type Severity, type Table } from "../core/index.js";
 import { draftGlossary } from "../core/draft.js";
 import { atOrAbove, renderJUnit } from "../core/junit.js";
 import { findingsToLabelCsv, renderScore, scoreLabels } from "../core/pilot.js";
@@ -13,13 +13,18 @@ const USAGE = `Usage:
   kotomark check <file|dir>... [options]                                  consistency check (CI-ready)
   kotomark draft <file|dir>... [--glossary existing.json] [--max-terms N] [--out draft.json]
   kotomark labels <file|dir>... [--glossary g.json] --out labels.csv      export findings as a labeling sheet
+  kotomark glossary convert <in.csv|in.tsv|in.tbx> [--source-lang ja|en] [--out glossary.json]
+                                                                          termbase export → Kotomark JSON
   kotomark score <labels.csv> [--known known.csv] [--out score.md]       precision (and recall) from a labeled sheet
   kotomark token create <user> [--plan solo|studio] [--label text]        prints the token once
   kotomark token list | kotomark token revoke <user|token-prefix>
 
 check options:
-  -g, --glossary <file>        glossary (JSON or CSV). Default: ./kotomark.glossary.json, ./glossary.json
-                               or ./kotomark.glossary.csv if present. --no-glossary disables the lookup.
+  -g, --glossary <file>        glossary: Kotomark JSON, CSV/TSV (Kotomark columns or a termbase export
+                               such as Crowdin/Phrase) or TBX. Default: ./kotomark.glossary.json,
+                               ./glossary.json or ./kotomark.glossary.csv if present. --no-glossary
+                               disables the lookup. TBX and ja/en-column CSVs are read in the script's
+                               direction (--source-lang ja|en to force it).
   --format md|json|junit|github  report format (default md). --json = --format json.
   --input-format <fmt>         force the input format (csv|tsv|json|xliff|xlsx|po|i18n-json|
                                unity-csv|unreal-csv); default: detected from extension + content.
@@ -94,6 +99,7 @@ function main(argv: string[]): number {
       plan: { type: "string" },
       label: { type: "string" },
       "max-terms": { type: "string" },
+      "source-lang": { type: "string" },
       help: { type: "boolean", short: "h" },
     },
   });
@@ -125,7 +131,19 @@ function main(argv: string[]): number {
     return found;
   };
   const gPath = cmd === "check" || cmd === "draft" || cmd === "labels" ? glossaryPath() : undefined;
-  const loadGlossary = (): Glossary | undefined => (gPath ? parseGlossary(readFileSync(gPath, "utf8"), gPath) : undefined);
+  const forcedSourceLang = values["source-lang"] === undefined ? undefined : oneOf<Lang>("--source-lang", values["source-lang"], ["ja", "en"], "ja");
+  const readGlossary = (path: string, sourceLang?: Lang): Glossary => {
+    const { glossary, notes } = parseGlossaryWithNotes(readFileSync(path), path, { sourceLang: forcedSourceLang ?? sourceLang });
+    for (const n of notes) console.error(`note: ${n}`);
+    return glossary;
+  };
+  // Files that name their languages (TBX, ja/en CSV) are read in the direction of the script (most rows win).
+  const loadGlossary = (tables: Table[]): Glossary | undefined => {
+    if (!gPath) return undefined;
+    const rows = { ja: 0, en: 0 };
+    for (const t of tables) rows[t.sourceLang] += t.rows.length;
+    return readGlossary(gPath, rows.en > rows.ja ? "en" : "ja");
+  };
   const loadTables = (): Table[] => {
     const files = expandArgs(args, gPath ? [gPath] : []);
     const { tables, notes } = loadInputs(readInputs(files), { format: inputFormat as Format | undefined, columns: parseColumns(values.columns), sheet });
@@ -141,7 +159,7 @@ function main(argv: string[]): number {
       const minSeverity = values["no-info"] && !values["min-severity"] ? "warning" : oneOf<Severity>("--min-severity", values["min-severity"], SEVERITIES, "info");
       const junitFailOn = oneOf<Severity | "never">("--junit-fail-on", values["junit-fail-on"], [...SEVERITIES, "never"], failOn === "never" ? "warning" : failOn);
       const tables = loadTables();
-      const full = runChecks(tables, loadGlossary(), { rules: !values["no-rules"], wideAsTwo: values.wide, locale });
+      const full = runChecks(tables, loadGlossary(tables), { rules: !values["no-rules"], wideAsTwo: values.wide, locale });
       const shown = filterBySeverity(full, minSeverity);
       let text: string;
       switch (outputFormat) {
@@ -169,7 +187,8 @@ function main(argv: string[]): number {
     case "draft": {
       if (!args.length) break;
       const max = values["max-terms"] ? Number.parseInt(values["max-terms"], 10) : undefined;
-      const draft = draftGlossary(loadTables(), loadGlossary(), { maxTerms: max });
+      const tables = loadTables();
+      const draft = draftGlossary(tables, loadGlossary(tables), { maxTerms: max });
       emit(JSON.stringify(draft.glossary, null, 2), values.out);
       for (const n of draft.notes) console.error(`note: ${n}`);
       console.error(`${draft.glossary.terms.length} terms, ${draft.glossary.characters.length} characters drafted from ${draft.entries.length} candidates — review before use.`);
@@ -178,9 +197,17 @@ function main(argv: string[]): number {
     case "labels": {
       if (!args.length || !values.out) break;
       const tables = loadTables();
-      const result = runChecks(tables, loadGlossary());
+      const result = runChecks(tables, loadGlossary(tables));
       emit(findingsToLabelCsv(result, tables), values.out);
       console.error(`${result.findings.length} findings written to ${values.out}. Fill the "verdict" column with TP / FP (or 正 / 誤).`);
+      return 0;
+    }
+    case "glossary": {
+      const [sub, input] = args;
+      if (sub !== "convert" || !input || args.length !== 2) break;
+      const g = readGlossary(input);
+      emit(glossaryToJson(g), values.out);
+      console.error(`${g.terms.length} terms, ${g.characters.length} characters${values.out ? ` written to ${values.out}` : ""} — review before use.`);
       return 0;
     }
     case "score": {

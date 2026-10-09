@@ -1,6 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { parseGlossary, parseTable, renderMarkdown, runChecks, type CheckResult, type Format, type Glossary, type Locale, type Severity, type Table } from "../core/index.js";
+import { parseGlossaryWithNotes, parseTable, renderMarkdown, runChecks, type CheckResult, type Format, type Glossary, type Lang, type Locale, type Severity, type Table } from "../core/index.js";
 import { draftGlossary } from "../core/draft.js";
 import { Limiter, PLANS, type Principal } from "./auth.js";
 import { judgePacket, serverJudgeEnabled } from "./judge.js";
@@ -27,9 +27,17 @@ const GlossarySource = {
   glossary: z
     .object({ filename: z.string().optional(), content: z.string() })
     .optional()
-    .describe("Glossary JSON (terms + characters + voice profiles) or a simple CSV term list."),
+    .describe(
+      "Glossary JSON (terms + characters + voice profiles), a CSV/TSV term list (Kotomark columns or a Crowdin/Phrase-style termbase export) " +
+        "or TBX. Give the filename (e.g. terms.tbx) so the format is detected; TBX and ja/en-column CSVs are read in the script's direction.",
+    ),
   glossaryName: z.string().optional().describe("Name of a glossary saved with save_glossary (used when `glossary` is not given)."),
 };
+
+const SourceLangArg = z
+  .enum(["ja", "en"])
+  .optional()
+  .describe("Source language of the script, for TBX and ja/en-column CSV glossaries (default: the file's hint, else ja).");
 
 const CheckInput = {
   tables: z.array(TableInput).min(1).max(LIMITS.maxTables),
@@ -60,8 +68,15 @@ function loadTables(ctx: ServerContext, args: TableArg[]): Table[] {
   return tables;
 }
 
-async function loadGlossary(ctx: ServerContext, args: GlossaryArgs): Promise<Glossary | undefined> {
-  if (args.glossary) return parseGlossary(args.glossary.content, args.glossary.filename);
+/** Source language of most rows, used to orient TBX / bilingual CSV glossaries. */
+function scriptSourceLang(tables: Table[]): Lang {
+  const rows = { ja: 0, en: 0 };
+  for (const t of tables) rows[t.sourceLang] += t.rows.length;
+  return rows.en > rows.ja ? "en" : "ja";
+}
+
+async function loadGlossary(ctx: ServerContext, args: GlossaryArgs, sourceLang?: Lang): Promise<Glossary | undefined> {
+  if (args.glossary) return parseGlossaryWithNotes(args.glossary.content, args.glossary.filename, { sourceLang }).glossary;
   if (!args.glossaryName) return undefined;
   const g = await ctx.store.get(ctx.principal.user, args.glossaryName);
   if (!g) throw new Error(`No saved glossary named "${args.glossaryName}". Use list_glossaries to see what is saved.`);
@@ -69,8 +84,10 @@ async function loadGlossary(ctx: ServerContext, args: GlossaryArgs): Promise<Glo
 }
 
 export async function check(ctx: ServerContext, args: CheckArgs): Promise<CheckResult> {
-  const glossary = await loadGlossary(ctx, args);
+  // The glossary is validated before any rows are charged, then read in the tables' direction.
+  await loadGlossary(ctx, args);
   const tables = loadTables(ctx, args.tables);
+  const glossary = await loadGlossary(ctx, args, scriptSourceLang(tables));
   const result = runChecks(tables, glossary, { rules: args.options?.rules, wideAsTwo: args.options?.wideAsTwo, locale: args.options?.locale });
   const order: Severity[] = ["error", "warning", "info"];
   const min = order.indexOf(args.options?.minSeverity ?? "info");
@@ -170,8 +187,10 @@ export function buildServer(ctx: ServerContext = devContext()): McpServer {
     },
     async (args) => {
       try {
-        const existing = await loadGlossary(ctx, args);
-        const draft = draftGlossary(loadTables(ctx, args.tables), existing, { maxTerms: args.maxTerms });
+        await loadGlossary(ctx, args);
+        const tables = loadTables(ctx, args.tables);
+        const existing = await loadGlossary(ctx, args, scriptSourceLang(tables));
+        const draft = draftGlossary(tables, existing, { maxTerms: args.maxTerms });
         const lines = draft.entries
           .slice(0, 40)
           .map((e) => `- ${e.source} → ${e.target ?? "?"} (${Math.round(e.confidence * 100)}%, ${e.rows} rows; ${Object.entries(e.renderings).map(([k, v]) => `${k} ×${v}`).join(", ")})`);
@@ -188,13 +207,20 @@ export function buildServer(ctx: ServerContext = devContext()): McpServer {
     {
       title: "Save glossary",
       description: "Save (or replace) a glossary under a name for this account. Stored encrypted; can be deleted at any time with delete_glossary.",
-      inputSchema: { name: z.string().min(1).max(64), content: z.string().describe("Glossary JSON or CSV."), filename: z.string().optional() },
+      inputSchema: {
+        name: z.string().min(1).max(64),
+        content: z.string().describe("Glossary JSON, CSV/TSV (Kotomark columns or a Crowdin/Phrase termbase export) or TBX."),
+        filename: z.string().optional().describe("Original file name, e.g. terms.tbx or glossary.csv — used for format detection."),
+        sourceLang: SourceLangArg,
+      },
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
-    async ({ name, content, filename }) => {
+    async ({ name, content, filename, sourceLang }) => {
       try {
-        const m = await saveGlossary(ctx, name, parseGlossary(content, filename));
-        return { content: [{ type: "text", text: `Saved "${m.name}": ${m.terms} terms, ${m.characters} characters.` }], structuredContent: { ...m } };
+        const parsed = parseGlossaryWithNotes(content, filename, { sourceLang });
+        const m = await saveGlossary(ctx, name, parsed.glossary);
+        const text = [`Saved "${m.name}": ${m.terms} terms, ${m.characters} characters.`, ...parsed.notes.map((n) => `Note: ${n}`)].join("\n");
+        return { content: [{ type: "text", text }], structuredContent: { ...m, notes: parsed.notes } };
       } catch (e) {
         return errorResult(e);
       }
@@ -256,16 +282,24 @@ export function buildServer(ctx: ServerContext = devContext()): McpServer {
     {
       title: "Validate glossary",
       description: "Parse a glossary and report what was understood (term and character counts, honorific policy) or the validation errors.",
-      inputSchema: { content: z.string(), filename: z.string().optional() },
+      inputSchema: {
+        content: z.string().describe("Glossary JSON, CSV/TSV (Kotomark columns or a Crowdin/Phrase termbase export) or TBX."),
+        filename: z.string().optional().describe("Original file name, e.g. terms.tbx — used for format detection."),
+        sourceLang: SourceLangArg,
+      },
       annotations: ro,
     },
-    async ({ content, filename }) => {
+    async ({ content, filename, sourceLang }) => {
       try {
-        const g = parseGlossary(content, filename);
+        const { glossary: g, notes, format, direction } = parseGlossaryWithNotes(content, filename, { sourceLang });
         const text =
           `Terms: ${g.terms.length}\nCharacters: ${g.characters.map((c) => `${c.ja}/${c.en}${c.voice ? " (voice profile)" : ""}`).join(", ") || "none"}\n` +
-          `Honorific policy: ${g.honorificPolicy ?? "not set (drift is still checked)"}`;
-        return { content: [{ type: "text", text }], structuredContent: { terms: g.terms.length, characters: g.characters.length, honorificPolicy: g.honorificPolicy ?? null } };
+          `Honorific policy: ${g.honorificPolicy ?? "not set (drift is still checked)"}` +
+          notes.map((n) => `\nNote: ${n}`).join("");
+        return {
+          content: [{ type: "text", text }],
+          structuredContent: { terms: g.terms.length, characters: g.characters.length, honorificPolicy: g.honorificPolicy ?? null, format, direction: direction ?? null, notes },
+        };
       } catch (e) {
         return errorResult(e);
       }
