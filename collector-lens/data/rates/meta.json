@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "status": "placeholder",
-  "data_version": "0.0.0-placeholder",
-  "note": "リリース前の雛形。数値はすべて null（要確認）。公式の公開情報で人が確認してから埋める。設計書 docs/v1.1-total-cost-design.md §4・§7",
-  "last_reviewed": null,
+  "status": "partial",
+  "data_version": "0.1.0-partial",
+  "note": "一部確認済み（2026-10-09）。shipping.json（日本郵便）と destinations.json（5か国の税関・税務当局）の一部を公式ページで確認して記入。代行業者（proxies.json）と為替の参考レートは null（要確認）のまま。確認記録は docs/v1.1-total-cost-design.md §12。設計書 §4・§7",
+  "last_reviewed": "2026-10-09",
   "stale_after_days": 45,
   "expire_after_days": 90,
   "fx_reference": {

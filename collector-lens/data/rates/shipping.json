@@ -14,102 +14,2621 @@
   },
   "methods": [
     {
-      "id": "method_example",
-      "label": "Example method (placeholder)",
+      "id": "jp_ems",
+      "label": "Japan Post EMS",
+      "service_ja": "EMS（国際スピード郵便）",
       "volumetric_divisor": {
         "rows": [
           {
             "effective_from": null,
             "value": null,
-            "checked_at": null,
+            "checked_at": "2026-10-09",
             "source": null,
-            "checked_by": null,
-            "note": "要確認：容積重量の係数（縦×横×高さ cm ÷ 係数）"
+            "checked_by": "P4 research (Claude)",
+            "note": "要確認：EMS（国際スピード郵便）の公式ページ（料金表・サービス概要・国際郵便条件表）に容積重量の規定は見当たらない（2026-10-09）。実重量と大きさの上限だけが書かれている。規定がないことの公式な明言も見つからないため null のまま（計算は実重量のみ）"
           }
         ]
       },
       "destinations": {
         "US": {
           "base": "chargeable_weight_kg",
+          "zone": 4,
           "rows": [
             {
-              "effective_from": null,
+              "effective_from": "2026-10-09",
+              "effective_from_basis": "確認日（出典に施行日の記載がないため、この日に有効であることを確認した日を記入）",
               "kind": "tiered",
               "currency": "JPY",
-              "tiers": null,
+              "tiers": [
+                {
+                  "up_to": 0.5,
+                  "amount": 3900
+                },
+                {
+                  "up_to": 0.6,
+                  "amount": 4180
+                },
+                {
+                  "up_to": 0.7,
+                  "amount": 4460
+                },
+                {
+                  "up_to": 0.8,
+                  "amount": 4740
+                },
+                {
+                  "up_to": 0.9,
+                  "amount": 5020
+                },
+                {
+                  "up_to": 1,
+                  "amount": 5300
+                },
+                {
+                  "up_to": 1.25,
+                  "amount": 5990
+                },
+                {
+                  "up_to": 1.5,
+                  "amount": 6600
+                },
+                {
+                  "up_to": 1.75,
+                  "amount": 7290
+                },
+                {
+                  "up_to": 2,
+                  "amount": 7900
+                },
+                {
+                  "up_to": 2.5,
+                  "amount": 9100
+                },
+                {
+                  "up_to": 3,
+                  "amount": 10300
+                },
+                {
+                  "up_to": 3.5,
+                  "amount": 11500
+                },
+                {
+                  "up_to": 4,
+                  "amount": 12700
+                },
+                {
+                  "up_to": 4.5,
+                  "amount": 13900
+                },
+                {
+                  "up_to": 5,
+                  "amount": 15100
+                },
+                {
+                  "up_to": 5.5,
+                  "amount": 16300
+                },
+                {
+                  "up_to": 6,
+                  "amount": 17500
+                },
+                {
+                  "up_to": 7,
+                  "amount": 19900
+                },
+                {
+                  "up_to": 8,
+                  "amount": 22300
+                },
+                {
+                  "up_to": 9,
+                  "amount": 24700
+                },
+                {
+                  "up_to": 10,
+                  "amount": 27100
+                },
+                {
+                  "up_to": 11,
+                  "amount": 29500
+                },
+                {
+                  "up_to": 12,
+                  "amount": 31900
+                },
+                {
+                  "up_to": 13,
+                  "amount": 34300
+                },
+                {
+                  "up_to": 14,
+                  "amount": 36700
+                },
+                {
+                  "up_to": 15,
+                  "amount": 39100
+                },
+                {
+                  "up_to": 16,
+                  "amount": 41500
+                },
+                {
+                  "up_to": 17,
+                  "amount": 43900
+                },
+                {
+                  "up_to": 18,
+                  "amount": 46300
+                },
+                {
+                  "up_to": 19,
+                  "amount": 48700
+                },
+                {
+                  "up_to": 20,
+                  "amount": 51100
+                },
+                {
+                  "up_to": 21,
+                  "amount": 53500
+                },
+                {
+                  "up_to": 22,
+                  "amount": 55900
+                },
+                {
+                  "up_to": 23,
+                  "amount": 58300
+                },
+                {
+                  "up_to": 24,
+                  "amount": 60700
+                },
+                {
+                  "up_to": 25,
+                  "amount": 63100
+                },
+                {
+                  "up_to": 26,
+                  "amount": 65500
+                },
+                {
+                  "up_to": 27,
+                  "amount": 67900
+                },
+                {
+                  "up_to": 28,
+                  "amount": 70300
+                },
+                {
+                  "up_to": 29,
+                  "amount": 72700
+                },
+                {
+                  "up_to": 30,
+                  "amount": 75100
+                }
+              ],
               "rounding": "round",
-              "checked_at": null,
-              "source": null,
-              "checked_by": null,
-              "note": "要確認：重量帯ごとの料金"
+              "checked_at": "2026-10-09",
+              "source": "https://www.post.japanpost.jp/send/oversea/charge/list-ems/zone4.html ; https://www.post.japanpost.jp/cgi-kokusai/country.php?cid=7",
+              "checked_by": "P4 research (Claude)",
+              "note": "第4地帯の料金（特別追加料金を含む、と料金表に記載）。最大 30kg（国際郵便条件表 US）。地帯は国際郵便条件表で確認。米国あて（2026-10-01 時点の差出可否早見表・国際郵便条件表）：販売品・100米ドル超の物品は、CBP 認定の当社推奨事業者のアプリで関税等を事前に支払い、日本郵便が指定する郵便局から差し出す場合に限り引受け。書類と100米ドル以下の個人間の贈り物はどの郵便局からでも可。その事前支払いの手数料は未確認"
             }
           ]
         },
         "GB": {
           "base": "chargeable_weight_kg",
+          "zone": 3,
           "rows": [
             {
-              "effective_from": null,
+              "effective_from": "2026-10-09",
+              "effective_from_basis": "確認日（出典に施行日の記載がないため、この日に有効であることを確認した日を記入）",
               "kind": "tiered",
               "currency": "JPY",
-              "tiers": null,
+              "tiers": [
+                {
+                  "up_to": 0.5,
+                  "amount": 3150
+                },
+                {
+                  "up_to": 0.6,
+                  "amount": 3400
+                },
+                {
+                  "up_to": 0.7,
+                  "amount": 3650
+                },
+                {
+                  "up_to": 0.8,
+                  "amount": 3900
+                },
+                {
+                  "up_to": 0.9,
+                  "amount": 4150
+                },
+                {
+                  "up_to": 1,
+                  "amount": 4400
+                },
+                {
+                  "up_to": 1.25,
+                  "amount": 5000
+                },
+                {
+                  "up_to": 1.5,
+                  "amount": 5550
+                },
+                {
+                  "up_to": 1.75,
+                  "amount": 6150
+                },
+                {
+                  "up_to": 2,
+                  "amount": 6700
+                },
+                {
+                  "up_to": 2.5,
+                  "amount": 7750
+                },
+                {
+                  "up_to": 3,
+                  "amount": 8800
+                },
+                {
+                  "up_to": 3.5,
+                  "amount": 9850
+                },
+                {
+                  "up_to": 4,
+                  "amount": 10900
+                },
+                {
+                  "up_to": 4.5,
+                  "amount": 11950
+                },
+                {
+                  "up_to": 5,
+                  "amount": 13000
+                },
+                {
+                  "up_to": 5.5,
+                  "amount": 14050
+                },
+                {
+                  "up_to": 6,
+                  "amount": 15100
+                },
+                {
+                  "up_to": 7,
+                  "amount": 17200
+                },
+                {
+                  "up_to": 8,
+                  "amount": 19300
+                },
+                {
+                  "up_to": 9,
+                  "amount": 21400
+                },
+                {
+                  "up_to": 10,
+                  "amount": 23500
+                },
+                {
+                  "up_to": 11,
+                  "amount": 25600
+                },
+                {
+                  "up_to": 12,
+                  "amount": 27700
+                },
+                {
+                  "up_to": 13,
+                  "amount": 29800
+                },
+                {
+                  "up_to": 14,
+                  "amount": 31900
+                },
+                {
+                  "up_to": 15,
+                  "amount": 34000
+                },
+                {
+                  "up_to": 16,
+                  "amount": 36100
+                },
+                {
+                  "up_to": 17,
+                  "amount": 38200
+                },
+                {
+                  "up_to": 18,
+                  "amount": 40300
+                },
+                {
+                  "up_to": 19,
+                  "amount": 42400
+                },
+                {
+                  "up_to": 20,
+                  "amount": 44500
+                },
+                {
+                  "up_to": 21,
+                  "amount": 46600
+                },
+                {
+                  "up_to": 22,
+                  "amount": 48700
+                },
+                {
+                  "up_to": 23,
+                  "amount": 50800
+                },
+                {
+                  "up_to": 24,
+                  "amount": 52900
+                },
+                {
+                  "up_to": 25,
+                  "amount": 55000
+                },
+                {
+                  "up_to": 26,
+                  "amount": 57100
+                },
+                {
+                  "up_to": 27,
+                  "amount": 59200
+                },
+                {
+                  "up_to": 28,
+                  "amount": 61300
+                },
+                {
+                  "up_to": 29,
+                  "amount": 63400
+                },
+                {
+                  "up_to": 30,
+                  "amount": 65500
+                }
+              ],
               "rounding": "round",
-              "checked_at": null,
-              "source": null,
-              "checked_by": null,
-              "note": "要確認：重量帯ごとの料金"
+              "checked_at": "2026-10-09",
+              "source": "https://www.post.japanpost.jp/send/oversea/charge/list-ems/zone3.html ; https://www.post.japanpost.jp/cgi-kokusai/country.php?cid=74",
+              "checked_by": "P4 research (Claude)",
+              "note": "第3地帯の料金（特別追加料金を含む、と料金表に記載）。最大 30kg（国際郵便条件表 GB）。地帯は国際郵便条件表で確認"
             }
           ]
         },
         "DE": {
           "base": "chargeable_weight_kg",
+          "zone": 3,
           "rows": [
             {
-              "effective_from": null,
+              "effective_from": "2026-10-09",
+              "effective_from_basis": "確認日（出典に施行日の記載がないため、この日に有効であることを確認した日を記入）",
               "kind": "tiered",
               "currency": "JPY",
-              "tiers": null,
+              "tiers": [
+                {
+                  "up_to": 0.5,
+                  "amount": 3150
+                },
+                {
+                  "up_to": 0.6,
+                  "amount": 3400
+                },
+                {
+                  "up_to": 0.7,
+                  "amount": 3650
+                },
+                {
+                  "up_to": 0.8,
+                  "amount": 3900
+                },
+                {
+                  "up_to": 0.9,
+                  "amount": 4150
+                },
+                {
+                  "up_to": 1,
+                  "amount": 4400
+                },
+                {
+                  "up_to": 1.25,
+                  "amount": 5000
+                },
+                {
+                  "up_to": 1.5,
+                  "amount": 5550
+                },
+                {
+                  "up_to": 1.75,
+                  "amount": 6150
+                },
+                {
+                  "up_to": 2,
+                  "amount": 6700
+                },
+                {
+                  "up_to": 2.5,
+                  "amount": 7750
+                },
+                {
+                  "up_to": 3,
+                  "amount": 8800
+                },
+                {
+                  "up_to": 3.5,
+                  "amount": 9850
+                },
+                {
+                  "up_to": 4,
+                  "amount": 10900
+                },
+                {
+                  "up_to": 4.5,
+                  "amount": 11950
+                },
+                {
+                  "up_to": 5,
+                  "amount": 13000
+                },
+                {
+                  "up_to": 5.5,
+                  "amount": 14050
+                },
+                {
+                  "up_to": 6,
+                  "amount": 15100
+                },
+                {
+                  "up_to": 7,
+                  "amount": 17200
+                },
+                {
+                  "up_to": 8,
+                  "amount": 19300
+                },
+                {
+                  "up_to": 9,
+                  "amount": 21400
+                },
+                {
+                  "up_to": 10,
+                  "amount": 23500
+                },
+                {
+                  "up_to": 11,
+                  "amount": 25600
+                },
+                {
+                  "up_to": 12,
+                  "amount": 27700
+                },
+                {
+                  "up_to": 13,
+                  "amount": 29800
+                },
+                {
+                  "up_to": 14,
+                  "amount": 31900
+                },
+                {
+                  "up_to": 15,
+                  "amount": 34000
+                },
+                {
+                  "up_to": 16,
+                  "amount": 36100
+                },
+                {
+                  "up_to": 17,
+                  "amount": 38200
+                },
+                {
+                  "up_to": 18,
+                  "amount": 40300
+                },
+                {
+                  "up_to": 19,
+                  "amount": 42400
+                },
+                {
+                  "up_to": 20,
+                  "amount": 44500
+                },
+                {
+                  "up_to": 21,
+                  "amount": 46600
+                },
+                {
+                  "up_to": 22,
+                  "amount": 48700
+                },
+                {
+                  "up_to": 23,
+                  "amount": 50800
+                },
+                {
+                  "up_to": 24,
+                  "amount": 52900
+                },
+                {
+                  "up_to": 25,
+                  "amount": 55000
+                },
+                {
+                  "up_to": 26,
+                  "amount": 57100
+                },
+                {
+                  "up_to": 27,
+                  "amount": 59200
+                },
+                {
+                  "up_to": 28,
+                  "amount": 61300
+                },
+                {
+                  "up_to": 29,
+                  "amount": 63400
+                },
+                {
+                  "up_to": 30,
+                  "amount": 65500
+                }
+              ],
               "rounding": "round",
-              "checked_at": null,
-              "source": null,
-              "checked_by": null,
-              "note": "要確認：重量帯ごとの料金"
+              "checked_at": "2026-10-09",
+              "source": "https://www.post.japanpost.jp/send/oversea/charge/list-ems/zone3.html ; https://www.post.japanpost.jp/cgi-kokusai/country.php?cid=6",
+              "checked_by": "P4 research (Claude)",
+              "note": "第3地帯の料金（特別追加料金を含む、と料金表に記載）。最大 30kg（国際郵便条件表 DE）。地帯は国際郵便条件表で確認"
             }
           ]
         },
         "AU": {
           "base": "chargeable_weight_kg",
+          "zone": 3,
           "rows": [
             {
-              "effective_from": null,
+              "effective_from": "2026-10-09",
+              "effective_from_basis": "確認日（出典に施行日の記載がないため、この日に有効であることを確認した日を記入）",
               "kind": "tiered",
               "currency": "JPY",
-              "tiers": null,
+              "tiers": [
+                {
+                  "up_to": 0.5,
+                  "amount": 3150
+                },
+                {
+                  "up_to": 0.6,
+                  "amount": 3400
+                },
+                {
+                  "up_to": 0.7,
+                  "amount": 3650
+                },
+                {
+                  "up_to": 0.8,
+                  "amount": 3900
+                },
+                {
+                  "up_to": 0.9,
+                  "amount": 4150
+                },
+                {
+                  "up_to": 1,
+                  "amount": 4400
+                },
+                {
+                  "up_to": 1.25,
+                  "amount": 5000
+                },
+                {
+                  "up_to": 1.5,
+                  "amount": 5550
+                },
+                {
+                  "up_to": 1.75,
+                  "amount": 6150
+                },
+                {
+                  "up_to": 2,
+                  "amount": 6700
+                },
+                {
+                  "up_to": 2.5,
+                  "amount": 7750
+                },
+                {
+                  "up_to": 3,
+                  "amount": 8800
+                },
+                {
+                  "up_to": 3.5,
+                  "amount": 9850
+                },
+                {
+                  "up_to": 4,
+                  "amount": 10900
+                },
+                {
+                  "up_to": 4.5,
+                  "amount": 11950
+                },
+                {
+                  "up_to": 5,
+                  "amount": 13000
+                },
+                {
+                  "up_to": 5.5,
+                  "amount": 14050
+                },
+                {
+                  "up_to": 6,
+                  "amount": 15100
+                },
+                {
+                  "up_to": 7,
+                  "amount": 17200
+                },
+                {
+                  "up_to": 8,
+                  "amount": 19300
+                },
+                {
+                  "up_to": 9,
+                  "amount": 21400
+                },
+                {
+                  "up_to": 10,
+                  "amount": 23500
+                },
+                {
+                  "up_to": 11,
+                  "amount": 25600
+                },
+                {
+                  "up_to": 12,
+                  "amount": 27700
+                },
+                {
+                  "up_to": 13,
+                  "amount": 29800
+                },
+                {
+                  "up_to": 14,
+                  "amount": 31900
+                },
+                {
+                  "up_to": 15,
+                  "amount": 34000
+                },
+                {
+                  "up_to": 16,
+                  "amount": 36100
+                },
+                {
+                  "up_to": 17,
+                  "amount": 38200
+                },
+                {
+                  "up_to": 18,
+                  "amount": 40300
+                },
+                {
+                  "up_to": 19,
+                  "amount": 42400
+                },
+                {
+                  "up_to": 20,
+                  "amount": 44500
+                }
+              ],
               "rounding": "round",
-              "checked_at": null,
-              "source": null,
-              "checked_by": null,
-              "note": "要確認：重量帯ごとの料金"
+              "checked_at": "2026-10-09",
+              "source": "https://www.post.japanpost.jp/send/oversea/charge/list-ems/zone3.html ; https://www.post.japanpost.jp/cgi-kokusai/country.php?cid=14",
+              "checked_by": "P4 research (Claude)",
+              "note": "第3地帯の料金（特別追加料金を含む、と料金表に記載）。最大 20kg（国際郵便条件表 AU）。地帯は国際郵便条件表で確認"
             }
           ]
         },
         "CA": {
           "base": "chargeable_weight_kg",
+          "zone": 3,
           "rows": [
             {
-              "effective_from": null,
+              "effective_from": "2026-10-09",
+              "effective_from_basis": "確認日（出典に施行日の記載がないため、この日に有効であることを確認した日を記入）",
               "kind": "tiered",
               "currency": "JPY",
-              "tiers": null,
+              "tiers": [
+                {
+                  "up_to": 0.5,
+                  "amount": 3150
+                },
+                {
+                  "up_to": 0.6,
+                  "amount": 3400
+                },
+                {
+                  "up_to": 0.7,
+                  "amount": 3650
+                },
+                {
+                  "up_to": 0.8,
+                  "amount": 3900
+                },
+                {
+                  "up_to": 0.9,
+                  "amount": 4150
+                },
+                {
+                  "up_to": 1,
+                  "amount": 4400
+                },
+                {
+                  "up_to": 1.25,
+                  "amount": 5000
+                },
+                {
+                  "up_to": 1.5,
+                  "amount": 5550
+                },
+                {
+                  "up_to": 1.75,
+                  "amount": 6150
+                },
+                {
+                  "up_to": 2,
+                  "amount": 6700
+                },
+                {
+                  "up_to": 2.5,
+                  "amount": 7750
+                },
+                {
+                  "up_to": 3,
+                  "amount": 8800
+                },
+                {
+                  "up_to": 3.5,
+                  "amount": 9850
+                },
+                {
+                  "up_to": 4,
+                  "amount": 10900
+                },
+                {
+                  "up_to": 4.5,
+                  "amount": 11950
+                },
+                {
+                  "up_to": 5,
+                  "amount": 13000
+                },
+                {
+                  "up_to": 5.5,
+                  "amount": 14050
+                },
+                {
+                  "up_to": 6,
+                  "amount": 15100
+                },
+                {
+                  "up_to": 7,
+                  "amount": 17200
+                },
+                {
+                  "up_to": 8,
+                  "amount": 19300
+                },
+                {
+                  "up_to": 9,
+                  "amount": 21400
+                },
+                {
+                  "up_to": 10,
+                  "amount": 23500
+                },
+                {
+                  "up_to": 11,
+                  "amount": 25600
+                },
+                {
+                  "up_to": 12,
+                  "amount": 27700
+                },
+                {
+                  "up_to": 13,
+                  "amount": 29800
+                },
+                {
+                  "up_to": 14,
+                  "amount": 31900
+                },
+                {
+                  "up_to": 15,
+                  "amount": 34000
+                },
+                {
+                  "up_to": 16,
+                  "amount": 36100
+                },
+                {
+                  "up_to": 17,
+                  "amount": 38200
+                },
+                {
+                  "up_to": 18,
+                  "amount": 40300
+                },
+                {
+                  "up_to": 19,
+                  "amount": 42400
+                },
+                {
+                  "up_to": 20,
+                  "amount": 44500
+                },
+                {
+                  "up_to": 21,
+                  "amount": 46600
+                },
+                {
+                  "up_to": 22,
+                  "amount": 48700
+                },
+                {
+                  "up_to": 23,
+                  "amount": 50800
+                },
+                {
+                  "up_to": 24,
+                  "amount": 52900
+                },
+                {
+                  "up_to": 25,
+                  "amount": 55000
+                },
+                {
+                  "up_to": 26,
+                  "amount": 57100
+                },
+                {
+                  "up_to": 27,
+                  "amount": 59200
+                },
+                {
+                  "up_to": 28,
+                  "amount": 61300
+                },
+                {
+                  "up_to": 29,
+                  "amount": 63400
+                },
+                {
+                  "up_to": 30,
+                  "amount": 65500
+                }
+              ],
               "rounding": "round",
-              "checked_at": null,
-              "source": null,
-              "checked_by": null,
-              "note": "要確認：重量帯ごとの料金"
+              "checked_at": "2026-10-09",
+              "source": "https://www.post.japanpost.jp/send/oversea/charge/list-ems/zone3.html ; https://www.post.japanpost.jp/cgi-kokusai/country.php?cid=37",
+              "checked_by": "P4 research (Claude)",
+              "note": "第3地帯の料金（特別追加料金を含む、と料金表に記載）。最大 30kg（国際郵便条件表 CA）。地帯は国際郵便条件表で確認"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "jp_air_packet",
+      "label": "Japan Post International Air Packet (tracked, up to 2 kg)",
+      "service_ja": "国際エアパケット（旧 国際eパケットライト）",
+      "volumetric_divisor": {
+        "rows": [
+          {
+            "effective_from": null,
+            "value": null,
+            "checked_at": "2026-10-09",
+            "source": null,
+            "checked_by": "P4 research (Claude)",
+            "note": "要確認：国際エアパケット（旧 国際eパケットライト）の公式ページ（料金表・サービス概要・国際郵便条件表）に容積重量の規定は見当たらない（2026-10-09）。実重量と大きさの上限だけが書かれている。規定がないことの公式な明言も見つからないため null のまま（計算は実重量のみ）"
+          }
+        ]
+      },
+      "destinations": {
+        "US": {
+          "base": "chargeable_weight_kg",
+          "zone": 4,
+          "rows": [
+            {
+              "effective_from": "2026-10-09",
+              "effective_from_basis": "確認日（出典に施行日の記載がないため、この日に有効であることを確認した日を記入）",
+              "kind": "tiered",
+              "currency": "JPY",
+              "tiers": [
+                {
+                  "up_to": 0.1,
+                  "amount": 1200
+                },
+                {
+                  "up_to": 0.2,
+                  "amount": 1410
+                },
+                {
+                  "up_to": 0.3,
+                  "amount": 1620
+                },
+                {
+                  "up_to": 0.4,
+                  "amount": 1830
+                },
+                {
+                  "up_to": 0.5,
+                  "amount": 2040
+                },
+                {
+                  "up_to": 0.6,
+                  "amount": 2250
+                },
+                {
+                  "up_to": 0.7,
+                  "amount": 2460
+                },
+                {
+                  "up_to": 0.8,
+                  "amount": 2670
+                },
+                {
+                  "up_to": 0.9,
+                  "amount": 2880
+                },
+                {
+                  "up_to": 1,
+                  "amount": 3090
+                },
+                {
+                  "up_to": 1.1,
+                  "amount": 3300
+                },
+                {
+                  "up_to": 1.2,
+                  "amount": 3510
+                },
+                {
+                  "up_to": 1.3,
+                  "amount": 3720
+                },
+                {
+                  "up_to": 1.4,
+                  "amount": 3930
+                },
+                {
+                  "up_to": 1.5,
+                  "amount": 4140
+                },
+                {
+                  "up_to": 1.6,
+                  "amount": 4350
+                },
+                {
+                  "up_to": 1.7,
+                  "amount": 4560
+                },
+                {
+                  "up_to": 1.8,
+                  "amount": 4770
+                },
+                {
+                  "up_to": 1.9,
+                  "amount": 4980
+                },
+                {
+                  "up_to": 2,
+                  "amount": 5190
+                }
+              ],
+              "rounding": "round",
+              "checked_at": "2026-10-09",
+              "source": "https://www.post.japanpost.jp/service/send/oversea/list/delivery/airpacket.html ; https://www.post.japanpost.jp/cgi-kokusai/country.php?cid=7",
+              "checked_by": "P4 research (Claude)",
+              "note": "第4地帯の料金（国際特定記録料370円を含む、と料金表に記載）。2kgまで、長さ＋幅＋厚さ90cm・長さ60cmまで。2026-06-01 に「国際eパケットライト」から名称変更し取扱国を全世界へ拡大（同ページ）。差出には国際郵便マイページでのラベル作成が必要。米国あて（2026-10-01 時点の差出可否早見表・国際郵便条件表）：販売品・100米ドル超の物品は、CBP 認定の当社推奨事業者のアプリで関税等を事前に支払い、日本郵便が指定する郵便局から差し出す場合に限り引受け。書類と100米ドル以下の個人間の贈り物はどの郵便局からでも可。その事前支払いの手数料は未確認。早見表の『米国等宛ての通常郵便物の引受可否』では国際eパケットライト（現 国際エアパケット）は書類・100米ドル以下の贈り物のみ△1"
+            }
+          ]
+        },
+        "GB": {
+          "base": "chargeable_weight_kg",
+          "zone": 3,
+          "rows": [
+            {
+              "effective_from": "2026-10-09",
+              "effective_from_basis": "確認日（出典に施行日の記載がないため、この日に有効であることを確認した日を記入）",
+              "kind": "tiered",
+              "currency": "JPY",
+              "tiers": [
+                {
+                  "up_to": 0.1,
+                  "amount": 880
+                },
+                {
+                  "up_to": 0.2,
+                  "amount": 1060
+                },
+                {
+                  "up_to": 0.3,
+                  "amount": 1240
+                },
+                {
+                  "up_to": 0.4,
+                  "amount": 1420
+                },
+                {
+                  "up_to": 0.5,
+                  "amount": 1600
+                },
+                {
+                  "up_to": 0.6,
+                  "amount": 1780
+                },
+                {
+                  "up_to": 0.7,
+                  "amount": 1960
+                },
+                {
+                  "up_to": 0.8,
+                  "amount": 2140
+                },
+                {
+                  "up_to": 0.9,
+                  "amount": 2320
+                },
+                {
+                  "up_to": 1,
+                  "amount": 2500
+                },
+                {
+                  "up_to": 1.1,
+                  "amount": 2680
+                },
+                {
+                  "up_to": 1.2,
+                  "amount": 2860
+                },
+                {
+                  "up_to": 1.3,
+                  "amount": 3040
+                },
+                {
+                  "up_to": 1.4,
+                  "amount": 3220
+                },
+                {
+                  "up_to": 1.5,
+                  "amount": 3400
+                },
+                {
+                  "up_to": 1.6,
+                  "amount": 3580
+                },
+                {
+                  "up_to": 1.7,
+                  "amount": 3760
+                },
+                {
+                  "up_to": 1.8,
+                  "amount": 3940
+                },
+                {
+                  "up_to": 1.9,
+                  "amount": 4120
+                },
+                {
+                  "up_to": 2,
+                  "amount": 4300
+                }
+              ],
+              "rounding": "round",
+              "checked_at": "2026-10-09",
+              "source": "https://www.post.japanpost.jp/service/send/oversea/list/delivery/airpacket.html ; https://www.post.japanpost.jp/cgi-kokusai/country.php?cid=74",
+              "checked_by": "P4 research (Claude)",
+              "note": "第3地帯の料金（国際特定記録料370円を含む、と料金表に記載）。2kgまで、長さ＋幅＋厚さ90cm・長さ60cmまで。2026-06-01 に「国際eパケットライト」から名称変更し取扱国を全世界へ拡大（同ページ）。差出には国際郵便マイページでのラベル作成が必要"
+            }
+          ]
+        },
+        "DE": {
+          "base": "chargeable_weight_kg",
+          "zone": 3,
+          "rows": [
+            {
+              "effective_from": "2026-10-09",
+              "effective_from_basis": "確認日（出典に施行日の記載がないため、この日に有効であることを確認した日を記入）",
+              "kind": "tiered",
+              "currency": "JPY",
+              "tiers": [
+                {
+                  "up_to": 0.1,
+                  "amount": 880
+                },
+                {
+                  "up_to": 0.2,
+                  "amount": 1060
+                },
+                {
+                  "up_to": 0.3,
+                  "amount": 1240
+                },
+                {
+                  "up_to": 0.4,
+                  "amount": 1420
+                },
+                {
+                  "up_to": 0.5,
+                  "amount": 1600
+                },
+                {
+                  "up_to": 0.6,
+                  "amount": 1780
+                },
+                {
+                  "up_to": 0.7,
+                  "amount": 1960
+                },
+                {
+                  "up_to": 0.8,
+                  "amount": 2140
+                },
+                {
+                  "up_to": 0.9,
+                  "amount": 2320
+                },
+                {
+                  "up_to": 1,
+                  "amount": 2500
+                },
+                {
+                  "up_to": 1.1,
+                  "amount": 2680
+                },
+                {
+                  "up_to": 1.2,
+                  "amount": 2860
+                },
+                {
+                  "up_to": 1.3,
+                  "amount": 3040
+                },
+                {
+                  "up_to": 1.4,
+                  "amount": 3220
+                },
+                {
+                  "up_to": 1.5,
+                  "amount": 3400
+                },
+                {
+                  "up_to": 1.6,
+                  "amount": 3580
+                },
+                {
+                  "up_to": 1.7,
+                  "amount": 3760
+                },
+                {
+                  "up_to": 1.8,
+                  "amount": 3940
+                },
+                {
+                  "up_to": 1.9,
+                  "amount": 4120
+                },
+                {
+                  "up_to": 2,
+                  "amount": 4300
+                }
+              ],
+              "rounding": "round",
+              "checked_at": "2026-10-09",
+              "source": "https://www.post.japanpost.jp/service/send/oversea/list/delivery/airpacket.html ; https://www.post.japanpost.jp/cgi-kokusai/country.php?cid=6",
+              "checked_by": "P4 research (Claude)",
+              "note": "第3地帯の料金（国際特定記録料370円を含む、と料金表に記載）。2kgまで、長さ＋幅＋厚さ90cm・長さ60cmまで。2026-06-01 に「国際eパケットライト」から名称変更し取扱国を全世界へ拡大（同ページ）。差出には国際郵便マイページでのラベル作成が必要"
+            }
+          ]
+        },
+        "AU": {
+          "base": "chargeable_weight_kg",
+          "zone": 3,
+          "rows": [
+            {
+              "effective_from": "2026-10-09",
+              "effective_from_basis": "確認日（出典に施行日の記載がないため、この日に有効であることを確認した日を記入）",
+              "kind": "tiered",
+              "currency": "JPY",
+              "tiers": [
+                {
+                  "up_to": 0.1,
+                  "amount": 880
+                },
+                {
+                  "up_to": 0.2,
+                  "amount": 1060
+                },
+                {
+                  "up_to": 0.3,
+                  "amount": 1240
+                },
+                {
+                  "up_to": 0.4,
+                  "amount": 1420
+                },
+                {
+                  "up_to": 0.5,
+                  "amount": 1600
+                },
+                {
+                  "up_to": 0.6,
+                  "amount": 1780
+                },
+                {
+                  "up_to": 0.7,
+                  "amount": 1960
+                },
+                {
+                  "up_to": 0.8,
+                  "amount": 2140
+                },
+                {
+                  "up_to": 0.9,
+                  "amount": 2320
+                },
+                {
+                  "up_to": 1,
+                  "amount": 2500
+                },
+                {
+                  "up_to": 1.1,
+                  "amount": 2680
+                },
+                {
+                  "up_to": 1.2,
+                  "amount": 2860
+                },
+                {
+                  "up_to": 1.3,
+                  "amount": 3040
+                },
+                {
+                  "up_to": 1.4,
+                  "amount": 3220
+                },
+                {
+                  "up_to": 1.5,
+                  "amount": 3400
+                },
+                {
+                  "up_to": 1.6,
+                  "amount": 3580
+                },
+                {
+                  "up_to": 1.7,
+                  "amount": 3760
+                },
+                {
+                  "up_to": 1.8,
+                  "amount": 3940
+                },
+                {
+                  "up_to": 1.9,
+                  "amount": 4120
+                },
+                {
+                  "up_to": 2,
+                  "amount": 4300
+                }
+              ],
+              "rounding": "round",
+              "checked_at": "2026-10-09",
+              "source": "https://www.post.japanpost.jp/service/send/oversea/list/delivery/airpacket.html ; https://www.post.japanpost.jp/cgi-kokusai/country.php?cid=14",
+              "checked_by": "P4 research (Claude)",
+              "note": "第3地帯の料金（国際特定記録料370円を含む、と料金表に記載）。2kgまで、長さ＋幅＋厚さ90cm・長さ60cmまで。2026-06-01 に「国際eパケットライト」から名称変更し取扱国を全世界へ拡大（同ページ）。差出には国際郵便マイページでのラベル作成が必要"
+            }
+          ]
+        },
+        "CA": {
+          "base": "chargeable_weight_kg",
+          "zone": 3,
+          "rows": [
+            {
+              "effective_from": "2026-10-09",
+              "effective_from_basis": "確認日（出典に施行日の記載がないため、この日に有効であることを確認した日を記入）",
+              "kind": "tiered",
+              "currency": "JPY",
+              "tiers": [
+                {
+                  "up_to": 0.1,
+                  "amount": 880
+                },
+                {
+                  "up_to": 0.2,
+                  "amount": 1060
+                },
+                {
+                  "up_to": 0.3,
+                  "amount": 1240
+                },
+                {
+                  "up_to": 0.4,
+                  "amount": 1420
+                },
+                {
+                  "up_to": 0.5,
+                  "amount": 1600
+                },
+                {
+                  "up_to": 0.6,
+                  "amount": 1780
+                },
+                {
+                  "up_to": 0.7,
+                  "amount": 1960
+                },
+                {
+                  "up_to": 0.8,
+                  "amount": 2140
+                },
+                {
+                  "up_to": 0.9,
+                  "amount": 2320
+                },
+                {
+                  "up_to": 1,
+                  "amount": 2500
+                },
+                {
+                  "up_to": 1.1,
+                  "amount": 2680
+                },
+                {
+                  "up_to": 1.2,
+                  "amount": 2860
+                },
+                {
+                  "up_to": 1.3,
+                  "amount": 3040
+                },
+                {
+                  "up_to": 1.4,
+                  "amount": 3220
+                },
+                {
+                  "up_to": 1.5,
+                  "amount": 3400
+                },
+                {
+                  "up_to": 1.6,
+                  "amount": 3580
+                },
+                {
+                  "up_to": 1.7,
+                  "amount": 3760
+                },
+                {
+                  "up_to": 1.8,
+                  "amount": 3940
+                },
+                {
+                  "up_to": 1.9,
+                  "amount": 4120
+                },
+                {
+                  "up_to": 2,
+                  "amount": 4300
+                }
+              ],
+              "rounding": "round",
+              "checked_at": "2026-10-09",
+              "source": "https://www.post.japanpost.jp/service/send/oversea/list/delivery/airpacket.html ; https://www.post.japanpost.jp/cgi-kokusai/country.php?cid=37",
+              "checked_by": "P4 research (Claude)",
+              "note": "第3地帯の料金（国際特定記録料370円を含む、と料金表に記載）。2kgまで、長さ＋幅＋厚さ90cm・長さ60cmまで。2026-06-01 に「国際eパケットライト」から名称変更し取扱国を全世界へ拡大（同ページ）。差出には国際郵便マイページでのラベル作成が必要"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "jp_small_packet_air",
+      "label": "Japan Post Small Packet, airmail (no tracking, up to 2 kg)",
+      "service_ja": "小形包装物（航空便）",
+      "volumetric_divisor": {
+        "rows": [
+          {
+            "effective_from": null,
+            "value": null,
+            "checked_at": "2026-10-09",
+            "source": null,
+            "checked_by": "P4 research (Claude)",
+            "note": "要確認：小形包装物（航空便）の公式ページ（料金表・サービス概要・国際郵便条件表）に容積重量の規定は見当たらない（2026-10-09）。実重量と大きさの上限だけが書かれている。規定がないことの公式な明言も見つからないため null のまま（計算は実重量のみ）"
+          }
+        ]
+      },
+      "destinations": {
+        "US": {
+          "base": "chargeable_weight_kg",
+          "zone": 4,
+          "rows": [
+            {
+              "effective_from": "2026-10-09",
+              "effective_from_basis": "確認日（出典に施行日の記載がないため、この日に有効であることを確認した日を記入）",
+              "kind": "tiered",
+              "currency": "JPY",
+              "tiers": [
+                {
+                  "up_to": 0.1,
+                  "amount": 830
+                },
+                {
+                  "up_to": 0.2,
+                  "amount": 1040
+                },
+                {
+                  "up_to": 0.3,
+                  "amount": 1250
+                },
+                {
+                  "up_to": 0.4,
+                  "amount": 1460
+                },
+                {
+                  "up_to": 0.5,
+                  "amount": 1670
+                },
+                {
+                  "up_to": 0.6,
+                  "amount": 1880
+                },
+                {
+                  "up_to": 0.7,
+                  "amount": 2090
+                },
+                {
+                  "up_to": 0.8,
+                  "amount": 2300
+                },
+                {
+                  "up_to": 0.9,
+                  "amount": 2510
+                },
+                {
+                  "up_to": 1,
+                  "amount": 2720
+                },
+                {
+                  "up_to": 1.1,
+                  "amount": 2930
+                },
+                {
+                  "up_to": 1.2,
+                  "amount": 3140
+                },
+                {
+                  "up_to": 1.3,
+                  "amount": 3350
+                },
+                {
+                  "up_to": 1.4,
+                  "amount": 3560
+                },
+                {
+                  "up_to": 1.5,
+                  "amount": 3770
+                },
+                {
+                  "up_to": 1.6,
+                  "amount": 3980
+                },
+                {
+                  "up_to": 1.7,
+                  "amount": 4190
+                },
+                {
+                  "up_to": 1.8,
+                  "amount": 4400
+                },
+                {
+                  "up_to": 1.9,
+                  "amount": 4610
+                },
+                {
+                  "up_to": 2,
+                  "amount": 4820
+                }
+              ],
+              "rounding": "round",
+              "checked_at": "2026-10-09",
+              "source": "https://www.post.japanpost.jp/send/oversea/charge/list-normal/zone4.html ; https://www.post.japanpost.jp/cgi-kokusai/country.php?cid=7",
+              "checked_by": "P4 research (Claude)",
+              "note": "第4地帯の航空便・小形包装物の料金。2kgまで（国際郵便条件表 US）。追跡なし・書留不可（同条件表）。米国あて（2026-10-01 時点の差出可否早見表・国際郵便条件表）：販売品・100米ドル超の物品は、CBP 認定の当社推奨事業者のアプリで関税等を事前に支払い、日本郵便が指定する郵便局から差し出す場合に限り引受け。書類と100米ドル以下の個人間の贈り物はどの郵便局からでも可。その事前支払いの手数料は未確認。早見表では小形包装物は書類・100米ドル以下の贈り物のみ△1"
+            }
+          ]
+        },
+        "GB": {
+          "base": "chargeable_weight_kg",
+          "zone": 3,
+          "rows": [
+            {
+              "effective_from": "2026-10-09",
+              "effective_from_basis": "確認日（出典に施行日の記載がないため、この日に有効であることを確認した日を記入）",
+              "kind": "tiered",
+              "currency": "JPY",
+              "tiers": [
+                {
+                  "up_to": 0.1,
+                  "amount": 510
+                },
+                {
+                  "up_to": 0.2,
+                  "amount": 690
+                },
+                {
+                  "up_to": 0.3,
+                  "amount": 870
+                },
+                {
+                  "up_to": 0.4,
+                  "amount": 1050
+                },
+                {
+                  "up_to": 0.5,
+                  "amount": 1230
+                },
+                {
+                  "up_to": 0.6,
+                  "amount": 1410
+                },
+                {
+                  "up_to": 0.7,
+                  "amount": 1590
+                },
+                {
+                  "up_to": 0.8,
+                  "amount": 1770
+                },
+                {
+                  "up_to": 0.9,
+                  "amount": 1950
+                },
+                {
+                  "up_to": 1,
+                  "amount": 2130
+                },
+                {
+                  "up_to": 1.1,
+                  "amount": 2310
+                },
+                {
+                  "up_to": 1.2,
+                  "amount": 2490
+                },
+                {
+                  "up_to": 1.3,
+                  "amount": 2670
+                },
+                {
+                  "up_to": 1.4,
+                  "amount": 2850
+                },
+                {
+                  "up_to": 1.5,
+                  "amount": 3030
+                },
+                {
+                  "up_to": 1.6,
+                  "amount": 3210
+                },
+                {
+                  "up_to": 1.7,
+                  "amount": 3390
+                },
+                {
+                  "up_to": 1.8,
+                  "amount": 3570
+                },
+                {
+                  "up_to": 1.9,
+                  "amount": 3750
+                },
+                {
+                  "up_to": 2,
+                  "amount": 3930
+                }
+              ],
+              "rounding": "round",
+              "checked_at": "2026-10-09",
+              "source": "https://www.post.japanpost.jp/send/oversea/charge/list-normal/zone3.html ; https://www.post.japanpost.jp/cgi-kokusai/country.php?cid=74",
+              "checked_by": "P4 research (Claude)",
+              "note": "第3地帯の航空便・小形包装物の料金。2kgまで（国際郵便条件表 GB）。追跡なし・書留不可（同条件表）"
+            }
+          ]
+        },
+        "DE": {
+          "base": "chargeable_weight_kg",
+          "zone": 3,
+          "rows": [
+            {
+              "effective_from": "2026-10-09",
+              "effective_from_basis": "確認日（出典に施行日の記載がないため、この日に有効であることを確認した日を記入）",
+              "kind": "tiered",
+              "currency": "JPY",
+              "tiers": [
+                {
+                  "up_to": 0.1,
+                  "amount": 510
+                },
+                {
+                  "up_to": 0.2,
+                  "amount": 690
+                },
+                {
+                  "up_to": 0.3,
+                  "amount": 870
+                },
+                {
+                  "up_to": 0.4,
+                  "amount": 1050
+                },
+                {
+                  "up_to": 0.5,
+                  "amount": 1230
+                },
+                {
+                  "up_to": 0.6,
+                  "amount": 1410
+                },
+                {
+                  "up_to": 0.7,
+                  "amount": 1590
+                },
+                {
+                  "up_to": 0.8,
+                  "amount": 1770
+                },
+                {
+                  "up_to": 0.9,
+                  "amount": 1950
+                },
+                {
+                  "up_to": 1,
+                  "amount": 2130
+                },
+                {
+                  "up_to": 1.1,
+                  "amount": 2310
+                },
+                {
+                  "up_to": 1.2,
+                  "amount": 2490
+                },
+                {
+                  "up_to": 1.3,
+                  "amount": 2670
+                },
+                {
+                  "up_to": 1.4,
+                  "amount": 2850
+                },
+                {
+                  "up_to": 1.5,
+                  "amount": 3030
+                },
+                {
+                  "up_to": 1.6,
+                  "amount": 3210
+                },
+                {
+                  "up_to": 1.7,
+                  "amount": 3390
+                },
+                {
+                  "up_to": 1.8,
+                  "amount": 3570
+                },
+                {
+                  "up_to": 1.9,
+                  "amount": 3750
+                },
+                {
+                  "up_to": 2,
+                  "amount": 3930
+                }
+              ],
+              "rounding": "round",
+              "checked_at": "2026-10-09",
+              "source": "https://www.post.japanpost.jp/send/oversea/charge/list-normal/zone3.html ; https://www.post.japanpost.jp/cgi-kokusai/country.php?cid=6",
+              "checked_by": "P4 research (Claude)",
+              "note": "第3地帯の航空便・小形包装物の料金。2kgまで（国際郵便条件表 DE）。追跡なし・書留不可（同条件表）"
+            }
+          ]
+        },
+        "AU": {
+          "base": "chargeable_weight_kg",
+          "zone": 3,
+          "rows": [
+            {
+              "effective_from": "2026-10-09",
+              "effective_from_basis": "確認日（出典に施行日の記載がないため、この日に有効であることを確認した日を記入）",
+              "kind": "tiered",
+              "currency": "JPY",
+              "tiers": [
+                {
+                  "up_to": 0.1,
+                  "amount": 510
+                },
+                {
+                  "up_to": 0.2,
+                  "amount": 690
+                },
+                {
+                  "up_to": 0.3,
+                  "amount": 870
+                },
+                {
+                  "up_to": 0.4,
+                  "amount": 1050
+                },
+                {
+                  "up_to": 0.5,
+                  "amount": 1230
+                },
+                {
+                  "up_to": 0.6,
+                  "amount": 1410
+                },
+                {
+                  "up_to": 0.7,
+                  "amount": 1590
+                },
+                {
+                  "up_to": 0.8,
+                  "amount": 1770
+                },
+                {
+                  "up_to": 0.9,
+                  "amount": 1950
+                },
+                {
+                  "up_to": 1,
+                  "amount": 2130
+                },
+                {
+                  "up_to": 1.1,
+                  "amount": 2310
+                },
+                {
+                  "up_to": 1.2,
+                  "amount": 2490
+                },
+                {
+                  "up_to": 1.3,
+                  "amount": 2670
+                },
+                {
+                  "up_to": 1.4,
+                  "amount": 2850
+                },
+                {
+                  "up_to": 1.5,
+                  "amount": 3030
+                },
+                {
+                  "up_to": 1.6,
+                  "amount": 3210
+                },
+                {
+                  "up_to": 1.7,
+                  "amount": 3390
+                },
+                {
+                  "up_to": 1.8,
+                  "amount": 3570
+                },
+                {
+                  "up_to": 1.9,
+                  "amount": 3750
+                },
+                {
+                  "up_to": 2,
+                  "amount": 3930
+                }
+              ],
+              "rounding": "round",
+              "checked_at": "2026-10-09",
+              "source": "https://www.post.japanpost.jp/send/oversea/charge/list-normal/zone3.html ; https://www.post.japanpost.jp/cgi-kokusai/country.php?cid=14",
+              "checked_by": "P4 research (Claude)",
+              "note": "第3地帯の航空便・小形包装物の料金。2kgまで（国際郵便条件表 AU）。追跡なし・書留不可（同条件表）"
+            }
+          ]
+        },
+        "CA": {
+          "base": "chargeable_weight_kg",
+          "zone": 3,
+          "rows": [
+            {
+              "effective_from": "2026-10-09",
+              "effective_from_basis": "確認日（出典に施行日の記載がないため、この日に有効であることを確認した日を記入）",
+              "kind": "tiered",
+              "currency": "JPY",
+              "tiers": [
+                {
+                  "up_to": 0.1,
+                  "amount": 510
+                },
+                {
+                  "up_to": 0.2,
+                  "amount": 690
+                },
+                {
+                  "up_to": 0.3,
+                  "amount": 870
+                },
+                {
+                  "up_to": 0.4,
+                  "amount": 1050
+                },
+                {
+                  "up_to": 0.5,
+                  "amount": 1230
+                },
+                {
+                  "up_to": 0.6,
+                  "amount": 1410
+                },
+                {
+                  "up_to": 0.7,
+                  "amount": 1590
+                },
+                {
+                  "up_to": 0.8,
+                  "amount": 1770
+                },
+                {
+                  "up_to": 0.9,
+                  "amount": 1950
+                },
+                {
+                  "up_to": 1,
+                  "amount": 2130
+                },
+                {
+                  "up_to": 1.1,
+                  "amount": 2310
+                },
+                {
+                  "up_to": 1.2,
+                  "amount": 2490
+                },
+                {
+                  "up_to": 1.3,
+                  "amount": 2670
+                },
+                {
+                  "up_to": 1.4,
+                  "amount": 2850
+                },
+                {
+                  "up_to": 1.5,
+                  "amount": 3030
+                },
+                {
+                  "up_to": 1.6,
+                  "amount": 3210
+                },
+                {
+                  "up_to": 1.7,
+                  "amount": 3390
+                },
+                {
+                  "up_to": 1.8,
+                  "amount": 3570
+                },
+                {
+                  "up_to": 1.9,
+                  "amount": 3750
+                },
+                {
+                  "up_to": 2,
+                  "amount": 3930
+                }
+              ],
+              "rounding": "round",
+              "checked_at": "2026-10-09",
+              "source": "https://www.post.japanpost.jp/send/oversea/charge/list-normal/zone3.html ; https://www.post.japanpost.jp/cgi-kokusai/country.php?cid=37",
+              "checked_by": "P4 research (Claude)",
+              "note": "第3地帯の航空便・小形包装物の料金。2kgまで（国際郵便条件表 CA）。追跡なし・書留不可（同条件表）"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "jp_parcel_air",
+      "label": "Japan Post International Parcel, airmail",
+      "service_ja": "国際小包（航空便）",
+      "volumetric_divisor": {
+        "rows": [
+          {
+            "effective_from": null,
+            "value": null,
+            "checked_at": "2026-10-09",
+            "source": null,
+            "checked_by": "P4 research (Claude)",
+            "note": "要確認：国際小包（航空便）の公式ページ（料金表・サービス概要・国際郵便条件表）に容積重量の規定は見当たらない（2026-10-09）。実重量と大きさの上限だけが書かれている。規定がないことの公式な明言も見つからないため null のまま（計算は実重量のみ）"
+          }
+        ]
+      },
+      "destinations": {
+        "US": {
+          "base": "chargeable_weight_kg",
+          "zone": 4,
+          "rows": [
+            {
+              "effective_from": "2026-10-09",
+              "effective_from_basis": "確認日（出典に施行日の記載がないため、この日に有効であることを確認した日を記入）",
+              "kind": "tiered",
+              "currency": "JPY",
+              "tiers": [
+                {
+                  "up_to": 1,
+                  "amount": 4200
+                },
+                {
+                  "up_to": 2,
+                  "amount": 6700
+                },
+                {
+                  "up_to": 3,
+                  "amount": 9200
+                },
+                {
+                  "up_to": 4,
+                  "amount": 11700
+                },
+                {
+                  "up_to": 5,
+                  "amount": 14200
+                },
+                {
+                  "up_to": 6,
+                  "amount": 16700
+                },
+                {
+                  "up_to": 7,
+                  "amount": 19200
+                },
+                {
+                  "up_to": 8,
+                  "amount": 21700
+                },
+                {
+                  "up_to": 9,
+                  "amount": 24200
+                },
+                {
+                  "up_to": 10,
+                  "amount": 26700
+                },
+                {
+                  "up_to": 11,
+                  "amount": 28700
+                },
+                {
+                  "up_to": 12,
+                  "amount": 30700
+                },
+                {
+                  "up_to": 13,
+                  "amount": 32700
+                },
+                {
+                  "up_to": 14,
+                  "amount": 34700
+                },
+                {
+                  "up_to": 15,
+                  "amount": 36700
+                },
+                {
+                  "up_to": 16,
+                  "amount": 38700
+                },
+                {
+                  "up_to": 17,
+                  "amount": 40700
+                },
+                {
+                  "up_to": 18,
+                  "amount": 42700
+                },
+                {
+                  "up_to": 19,
+                  "amount": 44700
+                },
+                {
+                  "up_to": 20,
+                  "amount": 46700
+                },
+                {
+                  "up_to": 21,
+                  "amount": 48700
+                },
+                {
+                  "up_to": 22,
+                  "amount": 50700
+                },
+                {
+                  "up_to": 23,
+                  "amount": 52700
+                },
+                {
+                  "up_to": 24,
+                  "amount": 54700
+                },
+                {
+                  "up_to": 25,
+                  "amount": 56700
+                },
+                {
+                  "up_to": 26,
+                  "amount": 58700
+                },
+                {
+                  "up_to": 27,
+                  "amount": 60700
+                },
+                {
+                  "up_to": 28,
+                  "amount": 62700
+                },
+                {
+                  "up_to": 29,
+                  "amount": 64700
+                },
+                {
+                  "up_to": 30,
+                  "amount": 66700
+                }
+              ],
+              "rounding": "round",
+              "checked_at": "2026-10-09",
+              "source": "https://www.post.japanpost.jp/send/oversea/charge/list-parcel/zone4.html ; https://www.post.japanpost.jp/cgi-kokusai/country.php?cid=7",
+              "checked_by": "P4 research (Claude)",
+              "note": "第4地帯の航空小包の料金（特別追加料金を含む、と料金表に記載）。最大 30kg（国際郵便条件表 US）。数量による割引は含めていない。米国あて（2026-10-01 時点の差出可否早見表・国際郵便条件表）：販売品・100米ドル超の物品は、CBP 認定の当社推奨事業者のアプリで関税等を事前に支払い、日本郵便が指定する郵便局から差し出す場合に限り引受け。書類と100米ドル以下の個人間の贈り物はどの郵便局からでも可。その事前支払いの手数料は未確認"
+            }
+          ]
+        },
+        "GB": {
+          "base": "chargeable_weight_kg",
+          "zone": 3,
+          "rows": [
+            {
+              "effective_from": "2026-10-09",
+              "effective_from_basis": "確認日（出典に施行日の記載がないため、この日に有効であることを確認した日を記入）",
+              "kind": "tiered",
+              "currency": "JPY",
+              "tiers": [
+                {
+                  "up_to": 1,
+                  "amount": 3850
+                },
+                {
+                  "up_to": 2,
+                  "amount": 6000
+                },
+                {
+                  "up_to": 3,
+                  "amount": 8150
+                },
+                {
+                  "up_to": 4,
+                  "amount": 10300
+                },
+                {
+                  "up_to": 5,
+                  "amount": 12450
+                },
+                {
+                  "up_to": 6,
+                  "amount": 14600
+                },
+                {
+                  "up_to": 7,
+                  "amount": 16750
+                },
+                {
+                  "up_to": 8,
+                  "amount": 18900
+                },
+                {
+                  "up_to": 9,
+                  "amount": 21050
+                },
+                {
+                  "up_to": 10,
+                  "amount": 23200
+                },
+                {
+                  "up_to": 11,
+                  "amount": 24800
+                },
+                {
+                  "up_to": 12,
+                  "amount": 26400
+                },
+                {
+                  "up_to": 13,
+                  "amount": 28000
+                },
+                {
+                  "up_to": 14,
+                  "amount": 29600
+                },
+                {
+                  "up_to": 15,
+                  "amount": 31200
+                },
+                {
+                  "up_to": 16,
+                  "amount": 32800
+                },
+                {
+                  "up_to": 17,
+                  "amount": 34400
+                },
+                {
+                  "up_to": 18,
+                  "amount": 36000
+                },
+                {
+                  "up_to": 19,
+                  "amount": 37600
+                },
+                {
+                  "up_to": 20,
+                  "amount": 39200
+                },
+                {
+                  "up_to": 21,
+                  "amount": 40800
+                },
+                {
+                  "up_to": 22,
+                  "amount": 42400
+                },
+                {
+                  "up_to": 23,
+                  "amount": 44000
+                },
+                {
+                  "up_to": 24,
+                  "amount": 45600
+                },
+                {
+                  "up_to": 25,
+                  "amount": 47200
+                },
+                {
+                  "up_to": 26,
+                  "amount": 48800
+                },
+                {
+                  "up_to": 27,
+                  "amount": 50400
+                },
+                {
+                  "up_to": 28,
+                  "amount": 52000
+                },
+                {
+                  "up_to": 29,
+                  "amount": 53600
+                },
+                {
+                  "up_to": 30,
+                  "amount": 55200
+                }
+              ],
+              "rounding": "round",
+              "checked_at": "2026-10-09",
+              "source": "https://www.post.japanpost.jp/send/oversea/charge/list-parcel/zone3.html ; https://www.post.japanpost.jp/cgi-kokusai/country.php?cid=74",
+              "checked_by": "P4 research (Claude)",
+              "note": "第3地帯の航空小包の料金（特別追加料金を含む、と料金表に記載）。最大 30kg（国際郵便条件表 GB）。数量による割引は含めていない"
+            }
+          ]
+        },
+        "DE": {
+          "base": "chargeable_weight_kg",
+          "zone": 3,
+          "rows": [
+            {
+              "effective_from": "2026-10-09",
+              "effective_from_basis": "確認日（出典に施行日の記載がないため、この日に有効であることを確認した日を記入）",
+              "kind": "tiered",
+              "currency": "JPY",
+              "tiers": [
+                {
+                  "up_to": 1,
+                  "amount": 3850
+                },
+                {
+                  "up_to": 2,
+                  "amount": 6000
+                },
+                {
+                  "up_to": 3,
+                  "amount": 8150
+                },
+                {
+                  "up_to": 4,
+                  "amount": 10300
+                },
+                {
+                  "up_to": 5,
+                  "amount": 12450
+                },
+                {
+                  "up_to": 6,
+                  "amount": 14600
+                },
+                {
+                  "up_to": 7,
+                  "amount": 16750
+                },
+                {
+                  "up_to": 8,
+                  "amount": 18900
+                },
+                {
+                  "up_to": 9,
+                  "amount": 21050
+                },
+                {
+                  "up_to": 10,
+                  "amount": 23200
+                },
+                {
+                  "up_to": 11,
+                  "amount": 24800
+                },
+                {
+                  "up_to": 12,
+                  "amount": 26400
+                },
+                {
+                  "up_to": 13,
+                  "amount": 28000
+                },
+                {
+                  "up_to": 14,
+                  "amount": 29600
+                },
+                {
+                  "up_to": 15,
+                  "amount": 31200
+                },
+                {
+                  "up_to": 16,
+                  "amount": 32800
+                },
+                {
+                  "up_to": 17,
+                  "amount": 34400
+                },
+                {
+                  "up_to": 18,
+                  "amount": 36000
+                },
+                {
+                  "up_to": 19,
+                  "amount": 37600
+                },
+                {
+                  "up_to": 20,
+                  "amount": 39200
+                },
+                {
+                  "up_to": 21,
+                  "amount": 40800
+                },
+                {
+                  "up_to": 22,
+                  "amount": 42400
+                },
+                {
+                  "up_to": 23,
+                  "amount": 44000
+                },
+                {
+                  "up_to": 24,
+                  "amount": 45600
+                },
+                {
+                  "up_to": 25,
+                  "amount": 47200
+                },
+                {
+                  "up_to": 26,
+                  "amount": 48800
+                },
+                {
+                  "up_to": 27,
+                  "amount": 50400
+                },
+                {
+                  "up_to": 28,
+                  "amount": 52000
+                },
+                {
+                  "up_to": 29,
+                  "amount": 53600
+                },
+                {
+                  "up_to": 30,
+                  "amount": 55200
+                }
+              ],
+              "rounding": "round",
+              "checked_at": "2026-10-09",
+              "source": "https://www.post.japanpost.jp/send/oversea/charge/list-parcel/zone3.html ; https://www.post.japanpost.jp/cgi-kokusai/country.php?cid=6",
+              "checked_by": "P4 research (Claude)",
+              "note": "第3地帯の航空小包の料金（特別追加料金を含む、と料金表に記載）。最大 30kg（国際郵便条件表 DE）。数量による割引は含めていない"
+            }
+          ]
+        },
+        "AU": {
+          "base": "chargeable_weight_kg",
+          "zone": 3,
+          "rows": [
+            {
+              "effective_from": "2026-10-09",
+              "effective_from_basis": "確認日（出典に施行日の記載がないため、この日に有効であることを確認した日を記入）",
+              "kind": "tiered",
+              "currency": "JPY",
+              "tiers": [
+                {
+                  "up_to": 1,
+                  "amount": 3850
+                },
+                {
+                  "up_to": 2,
+                  "amount": 6000
+                },
+                {
+                  "up_to": 3,
+                  "amount": 8150
+                },
+                {
+                  "up_to": 4,
+                  "amount": 10300
+                },
+                {
+                  "up_to": 5,
+                  "amount": 12450
+                },
+                {
+                  "up_to": 6,
+                  "amount": 14600
+                },
+                {
+                  "up_to": 7,
+                  "amount": 16750
+                },
+                {
+                  "up_to": 8,
+                  "amount": 18900
+                },
+                {
+                  "up_to": 9,
+                  "amount": 21050
+                },
+                {
+                  "up_to": 10,
+                  "amount": 23200
+                },
+                {
+                  "up_to": 11,
+                  "amount": 24800
+                },
+                {
+                  "up_to": 12,
+                  "amount": 26400
+                },
+                {
+                  "up_to": 13,
+                  "amount": 28000
+                },
+                {
+                  "up_to": 14,
+                  "amount": 29600
+                },
+                {
+                  "up_to": 15,
+                  "amount": 31200
+                },
+                {
+                  "up_to": 16,
+                  "amount": 32800
+                },
+                {
+                  "up_to": 17,
+                  "amount": 34400
+                },
+                {
+                  "up_to": 18,
+                  "amount": 36000
+                },
+                {
+                  "up_to": 19,
+                  "amount": 37600
+                },
+                {
+                  "up_to": 20,
+                  "amount": 39200
+                }
+              ],
+              "rounding": "round",
+              "checked_at": "2026-10-09",
+              "source": "https://www.post.japanpost.jp/send/oversea/charge/list-parcel/zone3.html ; https://www.post.japanpost.jp/cgi-kokusai/country.php?cid=14",
+              "checked_by": "P4 research (Claude)",
+              "note": "第3地帯の航空小包の料金（特別追加料金を含む、と料金表に記載）。最大 20kg（国際郵便条件表 AU）。数量による割引は含めていない"
+            }
+          ]
+        },
+        "CA": {
+          "base": "chargeable_weight_kg",
+          "zone": 3,
+          "rows": [
+            {
+              "effective_from": "2026-10-09",
+              "effective_from_basis": "確認日（出典に施行日の記載がないため、この日に有効であることを確認した日を記入）",
+              "kind": "tiered",
+              "currency": "JPY",
+              "tiers": [
+                {
+                  "up_to": 1,
+                  "amount": 3850
+                },
+                {
+                  "up_to": 2,
+                  "amount": 6000
+                },
+                {
+                  "up_to": 3,
+                  "amount": 8150
+                },
+                {
+                  "up_to": 4,
+                  "amount": 10300
+                },
+                {
+                  "up_to": 5,
+                  "amount": 12450
+                },
+                {
+                  "up_to": 6,
+                  "amount": 14600
+                },
+                {
+                  "up_to": 7,
+                  "amount": 16750
+                },
+                {
+                  "up_to": 8,
+                  "amount": 18900
+                },
+                {
+                  "up_to": 9,
+                  "amount": 21050
+                },
+                {
+                  "up_to": 10,
+                  "amount": 23200
+                },
+                {
+                  "up_to": 11,
+                  "amount": 24800
+                },
+                {
+                  "up_to": 12,
+                  "amount": 26400
+                },
+                {
+                  "up_to": 13,
+                  "amount": 28000
+                },
+                {
+                  "up_to": 14,
+                  "amount": 29600
+                },
+                {
+                  "up_to": 15,
+                  "amount": 31200
+                },
+                {
+                  "up_to": 16,
+                  "amount": 32800
+                },
+                {
+                  "up_to": 17,
+                  "amount": 34400
+                },
+                {
+                  "up_to": 18,
+                  "amount": 36000
+                },
+                {
+                  "up_to": 19,
+                  "amount": 37600
+                },
+                {
+                  "up_to": 20,
+                  "amount": 39200
+                },
+                {
+                  "up_to": 21,
+                  "amount": 40800
+                },
+                {
+                  "up_to": 22,
+                  "amount": 42400
+                },
+                {
+                  "up_to": 23,
+                  "amount": 44000
+                },
+                {
+                  "up_to": 24,
+                  "amount": 45600
+                },
+                {
+                  "up_to": 25,
+                  "amount": 47200
+                },
+                {
+                  "up_to": 26,
+                  "amount": 48800
+                },
+                {
+                  "up_to": 27,
+                  "amount": 50400
+                },
+                {
+                  "up_to": 28,
+                  "amount": 52000
+                },
+                {
+                  "up_to": 29,
+                  "amount": 53600
+                },
+                {
+                  "up_to": 30,
+                  "amount": 55200
+                }
+              ],
+              "rounding": "round",
+              "checked_at": "2026-10-09",
+              "source": "https://www.post.japanpost.jp/send/oversea/charge/list-parcel/zone3.html ; https://www.post.japanpost.jp/cgi-kokusai/country.php?cid=37",
+              "checked_by": "P4 research (Claude)",
+              "note": "第3地帯の航空小包の料金（特別追加料金を含む、と料金表に記載）。最大 30kg（国際郵便条件表 CA）。数量による割引は含めていない"
             }
           ]
         }
       }
     }
-  ]
+  ],
+  "note": "日本郵便の国際郵便（2026-10-09 に公式ページで確認）。SAL 便は5か国とも引受停止中（各国の国際郵便条件表：『現在、SAL扱いの郵便物の引受けは全面的に停止しています』）、船便は日数が長く対象外のため収録していない。地帯：米国＝第4地帯、英・独・豪・加＝第3地帯"
 }

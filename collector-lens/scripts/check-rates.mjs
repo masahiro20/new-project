@@ -1,6 +1,12 @@
 // Schema gate for the landed-cost rate tables (design docs/v1.1-total-cost-design.md §4, §7).
-// Checks data/rates/ (the real tables; while meta.status is "placeholder" every
-// value must still be null) and test/fixtures/rates/ (fictional numbers for tests/demo).
+// Checks data/rates/ (the real tables) and test/fixtures/rates/ (fictional numbers for tests/demo).
+// meta.status:
+//   "placeholder" every value must still be null.
+//   "partial"     some values are filled from official sources, the rest stay null.
+//   "verified"    all reviewed (design §11.3).
+// Whatever the status, a filled value needs checked_at, source and effective_from,
+// and a null value needs a note. In data/rates a filled value's source must be an
+// https URL and a null note must say "要確認"; partial/verified need meta.last_reviewed.
 //   node scripts/check-rates.mjs
 // Also importable: validateRates(tables, { today, label }) -> string[] of errors.
 import { readFileSync } from "node:fs";
@@ -18,7 +24,7 @@ const SERVICE_BASES = new Set(["item_price", "domestic_shipping", "goods_total"]
 const PAYMENT_BASES = new Set([...SERVICE_BASES, "proxy_charges", "international_shipping", "proxy_charges_plus_shipping"]);
 const DUTY_CATEGORIES = ["camera", "lens", "watch"];
 const WEIGHT_KEYS = ["lens", "film_camera", "digital_camera", "watch"];
-const STATUSES = new Set(["placeholder", "verified", "fixture"]);
+const STATUSES = new Set(["placeholder", "partial", "verified", "fixture"]);
 const VALUE_FIELDS = ["value", "amount", "rate", "min", "tiers"];
 const ID = /^[a-z0-9_]+$/;
 
@@ -53,6 +59,7 @@ export function validateRates(tables, { today = new Date().toISOString().slice(0
       if (!nonEmpty(r.source)) err(where, "a non-null value needs source");
       if (!isDate(r.effective_from)) err(where, "a non-null value needs effective_from");
       if (placeholder) err(where, 'meta.status is "placeholder": every value must stay null until a person verifies it');
+      if (label === "data/rates" && nonEmpty(r.source) && !/^https:\/\//.test(r.source)) err(where, "source must be the official page's https URL");
     } else {
       if (!nonEmpty(r.note)) err(where, "a null row needs a note explaining what must be checked");
       else if (label === "data/rates" && !r.note.includes("要確認")) err(where, 'a null row\'s note must contain "要確認"');
@@ -139,6 +146,7 @@ export function validateRates(tables, { today = new Date().toISOString().slice(0
     err("meta", "stale_after_days / expire_after_days must be integers with 0 < stale < expire");
   }
   if (meta.last_reviewed !== null && !isDate(meta.last_reviewed)) err("meta", "last_reviewed must be an ISO date or null");
+  if ((meta.status === "partial" || meta.status === "verified") && !isDate(meta.last_reviewed)) err("meta", `status "${meta.status}" needs last_reviewed`);
   const fx = meta.fx_reference || {};
   for (const cur of Object.values(DESTINATIONS)) if (!fx[cur]) err("meta.fx_reference", `missing ${cur}`);
   for (const [cur, c] of Object.entries(fx)) {
@@ -239,7 +247,7 @@ export function validateRates(tables, { today = new Date().toISOString().slice(0
   }
   for (const cc of Object.keys(DESTINATIONS)) if (!found.has(cc)) err("destinations", `missing ${cc}`);
 
-  return { errors, rowCount, placeholder };
+  return { errors, rowCount, placeholder, status: meta.status };
 }
 
 export function loadTables(dir) {
@@ -259,7 +267,8 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
       continue;
     }
     if (res.errors.length) { console.error(res.errors.join("\n")); failed = true; continue; }
-    console.log(`${label} OK: ${res.rowCount} rows${res.placeholder ? " (placeholder: all values null, 要確認)" : ""}`);
+    const why = res.placeholder ? " (placeholder: all values null, 要確認)" : res.status === "partial" ? " (partial: some values null, 要確認)" : "";
+    console.log(`${label} OK: ${res.rowCount} rows${why}`);
   }
   if (failed) process.exit(1);
 }

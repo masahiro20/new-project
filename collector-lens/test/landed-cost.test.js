@@ -173,14 +173,52 @@ test("null value -> unknown, listed but excluded from the total", () => {
   assert.equal(r.used.unknown_lines, r.lines.filter((l) => l.status === "unknown").length);
 });
 
-test("placeholder tables in data/rates: every fee is unknown, total = item + domestic only, no NaN", () => {
-  const real = readTables("data/rates");
-  const r = CL.landedCost({ price_jpy: 30000, domestic_shipping: "up_to_1000", destination: "US", subgenre: "lens", fx_rate: 150 }, real, TODAY);
+// data/rates with every value set back to null, as before any check (meta.status "placeholder").
+function placeholderOf(tables) {
+  const t = structuredClone(tables);
+  const walk = (x) => {
+    if (Array.isArray(x)) return x.forEach(walk);
+    if (!x || typeof x !== "object") return;
+    if (Array.isArray(x.rows)) for (const r of x.rows) {
+      for (const f of ["value", "amount", "rate", "min", "tiers"]) if (f in r) r[f] = null;
+      Object.assign(r, { effective_from: null, checked_at: null, source: null, note: "要確認：placeholder copy for tests" });
+    }
+    Object.values(x).forEach(walk);
+  };
+  walk(t);
+  t.meta.status = "placeholder";
+  t.meta.last_reviewed = null;
+  return t;
+}
+
+test("placeholder tables (data/rates with every value null): every fee is unknown, total = item + domestic only, no NaN", () => {
+  const ph = placeholderOf(readTables("data/rates"));
+  const r = CL.landedCost({ price_jpy: 30000, domestic_shipping: "up_to_1000", destination: "US", subgenre: "lens", fx_rate: 150 }, ph, TODAY);
   for (const l of r.lines) if (!["item", "domestic_shipping"].includes(l.id)) assert.equal(l.status, "unknown", l.id);
   assert.equal(r.currency, "USD");
   assert.equal(r.low, 200);
   assert.equal(r.high, 206.67);
   assertFinite(r);
+});
+
+test("partial tables in data/rates: checked values are used, proxy fees stay unknown, no NaN", () => {
+  const real = readTables("data/rates");
+  assert.equal(real.meta.status, "partial");
+  for (const cc of ["US", "GB", "DE", "AU", "CA"]) {
+    for (const sub of ["lens", "film_camera", "digital_camera", "watch"]) {
+      const r = CL.landedCost({ price_jpy: 30000, domestic_shipping: "up_to_1000", destination: cc, subgenre: sub, fx_rate: 150 }, real, TODAY);
+      assertFinite(r);
+      assert.equal(line(r, "proxy.service_fee").status, "unknown", cc + sub);
+      assert.equal(line(r, "shipping.international").status, "ok", cc + sub);
+      const sum = (k) => Math.round(r.lines.reduce((a, l) => a + (l[k] ?? 0), 0) * 100) / 100;
+      assert.equal(r.low, sum("low"));
+      assert.equal(r.high, sum("high"));
+    }
+  }
+  // US lens, 0.5 kg default -> first method (EMS, zone 4, up to 500 g) = ¥3,900 = $26 at ¥150.
+  const us = CL.landedCost({ price_jpy: 30000, domestic_shipping: "free", destination: "US", subgenre: "lens", fx_rate: 150 }, real, TODAY);
+  assert.deepEqual(line(us, "shipping.international").native, { currency: "JPY", low: 3900, high: 3900 });
+  assert.equal(line(us, "dest.duty").low, 25); // FOB $200 x 12.5 %
 });
 
 // ---------- duty base, de minimis ----------
@@ -371,7 +409,7 @@ test("today accepts a Date; ranges always low <= high", () => {
 
 // ---------- schema gate (scripts/check-rates.mjs) ----------
 
-test("check-rates: real placeholder tables and fixtures pass; broken tables fail", async () => {
+test("check-rates: real tables and fixtures pass; broken tables fail", async () => {
   const { validateRates } = await import("../scripts/check-rates.mjs");
   assert.deepEqual(validateRates(readTables("data/rates"), { label: "data/rates", today: TODAY }).errors, []);
   assert.deepEqual(validateRates(T(), { label: "fixture", today: TODAY }).errors, []);
@@ -387,4 +425,15 @@ test("check-rates: real placeholder tables and fixtures pass; broken tables fail
   const real = readTables("data/rates");
   real.proxies.proxies[0].plans[0].components[0].rows[0].note = "check";
   assert.match(validateRates(real, { label: "data/rates", today: TODAY }).errors.join("\n"), /要確認/);
+  // placeholder forbids values; partial allows them but needs an https source and last_reviewed.
+  const ph = readTables("data/rates");
+  ph.meta.status = "placeholder";
+  assert.match(validateRates(ph, { label: "data/rates", today: TODAY }).errors.join("\n"), /placeholder/);
+  assert.deepEqual(validateRates(placeholderOf(readTables("data/rates")), { label: "data/rates", today: TODAY }).errors, []);
+  const nosrc = readTables("data/rates");
+  nosrc.shipping.methods[0].destinations.US.rows[0].source = "Japan Post website";
+  assert.match(validateRates(nosrc, { label: "data/rates", today: TODAY }).errors.join("\n"), /https URL/);
+  const noReview = readTables("data/rates");
+  noReview.meta.last_reviewed = null;
+  assert.match(validateRates(noReview, { label: "data/rates", today: TODAY }).errors.join("\n"), /needs last_reviewed/);
 });

@@ -1,6 +1,7 @@
 // "Estimated total" section of the panel (design docs/v1.1-total-cost-design.md §8)
-// and its settings storage helper. Uses the bundled placeholder tables
-// (src/rates-data.js, all values null) and the FICTIONAL fixture tables.
+// and its settings storage helper. Uses the bundled tables (src/rates-data.js,
+// partly checked; proxies still null), a copy of them with every value null
+// (placeholder), and the FICTIONAL fixture tables.
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
@@ -14,6 +15,22 @@ const ROOT = path.join(__dirname, "..");
 const FIXTURE = Object.fromEntries(["meta", "proxies", "shipping", "destinations"].map((k) =>
   [k, JSON.parse(fs.readFileSync(path.join(ROOT, "test/fixtures/rates", k + ".json"), "utf8"))]));
 const TODAY = "2026-10-09";
+// The bundled tables with every value set back to null (meta.status "placeholder").
+const PLACEHOLDER = (() => {
+  const t = structuredClone(CL.RATES);
+  const walk = (x) => {
+    if (Array.isArray(x)) return x.forEach(walk);
+    if (!x || typeof x !== "object") return;
+    if (Array.isArray(x.rows)) for (const r of x.rows) {
+      for (const f of ["value", "amount", "rate", "min", "tiers"]) if (f in r) r[f] = null;
+      Object.assign(r, { effective_from: null, checked_at: null, source: null, note: "要確認：placeholder copy for tests" });
+    }
+    Object.values(x).forEach(walk);
+  };
+  walk(t);
+  t.meta.status = "placeholder";
+  return t;
+})();
 const TITLE = "ニコン 50mm 単焦点レンズ";
 const LISTING = { title: TITLE, description: "50mmの単焦点レンズです。カビ、くもりなし。動作確認済み。", condition: "目立った傷や汚れなし" };
 
@@ -112,7 +129,7 @@ test("no price on the page: input only, no total, no NaN", () => {
 });
 
 test("placeholder tables (all null): finite total from the price, other lines 'Not confirmed yet — excluded'", () => {
-  const { shadow, q } = render({ today: TODAY, listing: { is_auction: true, genre: "camera", subgenre: "lens" } });
+  const { shadow, q } = render({ tables: PLACEHOLDER, today: TODAY, listing: { is_auction: true, genre: "camera", subgenre: "lens" } });
   open(q);
   set(q, ".est-bid", "30000");
   set(q, ".est-dest", "US");
@@ -285,4 +302,23 @@ test("the panel saves choices (not listing content) and restores them on the nex
 test("bundled code and saved settings never contain listing URLs", () => {
   const src = fs.readFileSync(path.join(ROOT, "src/estimate-settings.js"), "utf8");
   assert.ok(!/location|document\.|href/.test(src.replace(/\/\*[\s\S]*?\*\//g, "")), "settings helper must not read the page");
+});
+
+test("bundled partial tables: Japan Post shipping and import taxes shown with dates, proxy fees excluded, no NaN", () => {
+  const { shadow, q } = render({ today: TODAY, listing: { price_jpy: 30000, is_auction: false, genre: "camera", subgenre: "lens" } });
+  open(q);
+  set(q, ".est-dest", "DE");
+  set(q, ".est-domestic", "free");
+  set(q, ".est-fx", "160");
+  click(q(".est-bd-toggle"));
+  const lines = lineTexts(shadow);
+  const ship = lines.find((t) => t.startsWith("International shipping"));
+  assert.ok(ship, lines.join("\n"));
+  assert.match(ship, /Japan Post/);
+  assert.match(ship, /Checked 2026-10-09/);
+  assert.match(ship, /post\.japanpost\.jp/);
+  assert.ok(lines.find((t) => t.startsWith("Proxy service fee")).includes("Not confirmed yet — excluded"));
+  assert.ok(lines.some((t) => /Import VAT/.test(t) && /Checked 2026-10-09/.test(t)), lines.join("\n"));
+  assert.match(q(".est-total").textContent, /€/);
+  assert.ok(!/NaN|Infinity|undefined|null/.test(shadow.querySelector(".est").textContent));
 });

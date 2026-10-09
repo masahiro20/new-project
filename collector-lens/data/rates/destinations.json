@@ -8,29 +8,30 @@
       "duty_basis": {
         "rows": [
           {
-            "effective_from": null,
-            "value": null,
-            "checked_at": null,
-            "source": null,
-            "checked_by": null,
-            "note": "要確認：課税価格が FOB（商品価格のみ）か CIF（送料・保険込み）か"
+            "checked_at": "2026-10-09",
+            "checked_by": "P4 research (Claude)",
+            "effective_from": "2026-10-09",
+            "value": "FOB",
+            "source": "https://www.cbp.gov/sites/default/files/assets/documents/2016-Apr/icp049_3.pdf",
+            "note": "取引価格（transaction value）は日本から米国への国際輸送費・保険を含まない（19 U.S.C. 1401a(b)(4)(A)。CBP『Proper Deductions』）。実額が分かる場合に限り控除できる",
+            "effective_from_basis": "確認日（出典に施行日の記載がないため、この日に有効であることを確認した日を記入）"
           }
         ]
       },
       "de_minimis": {
         "rows": [
           {
-            "effective_from": null,
-            "value": null,
+            "checked_at": "2026-10-09",
+            "checked_by": "P4 research (Claude)",
+            "effective_from": "2026-06-24",
+            "value": 0,
             "currency": "USD",
             "applies_to": [
               "duty",
               "import_tax"
             ],
-            "checked_at": null,
-            "source": null,
-            "checked_by": null,
-            "note": "要確認：少額免税の基準額と、免除されるのが関税だけか税も含むか"
+            "source": "https://public-inspection.federalregister.gov/2026-12669.pdf ; https://www.federalregister.gov/d/2026-12669",
+            "note": "郵便物の少額免税（Section 321、800ドル以下）は無期限停止（CBP Dec. 26-13、2026-06-24 官報掲載日に発効。新しい郵便簡易通関は30日後）。それ以前も E.O. 14324／14388 で停止。100ドル以下の真正な贈り物の免税は停止されていないが、購入品には当たらない。郵便の通関は MPF（通関手数料）の対象外（同規則 脚注68、19 CFR 24.23(c)(1)(v)）"
           }
         ]
       },
@@ -38,28 +39,28 @@
         "camera": {
           "rows": [
             {
-              "effective_from": null,
+              "checked_at": "2026-10-09",
+              "checked_by": "P4 research (Claude)",
+              "effective_from": "2026-07-24",
               "kind": "rate",
+              "rate": 0.125,
               "rounding": "round",
-              "checked_at": null,
-              "source": null,
-              "checked_by": null,
-              "note": "要確認：HSコード 9006 系",
-              "rate": null
+              "source": "https://hts.usitc.gov/reststop/search?keyword=9006 ; https://www.whitehouse.gov/wp-content/uploads/2026/07/ANNEX.pdf",
+              "note": "合計12.5%。一般税率：9006.53.02（35mm ロールフィルム用）・9006.59.01（一眼レフ）・9006.59.91（10ドル超）は Free。日本原産で一般税率が12.5%未満の品目は、9903.05.49 により一般税率＋追加関税の合計が12.5%（U.S. note 52(k)）。固定焦点（9006.59.40 等 4%）・10ドル以下（6.8%）も合計12.5%。デジタルカメラは 8525.89.40（一般税率 Free）で、合計は同じ12.5%"
             }
           ]
         },
         "lens": {
           "rows": [
             {
-              "effective_from": null,
+              "checked_at": "2026-10-09",
+              "checked_by": "P4 research (Claude)",
+              "effective_from": "2026-07-24",
               "kind": "rate",
+              "rate": 0.125,
               "rounding": "round",
-              "checked_at": null,
-              "source": null,
-              "checked_by": null,
-              "note": "要確認：HSコード 9002 系",
-              "rate": null
+              "source": "https://hts.usitc.gov/reststop/search?keyword=9002 ; https://www.whitehouse.gov/wp-content/uploads/2026/07/ANNEX.pdf",
+              "note": "合計12.5%。一般税率：9002.11.90（カメラ用の対物レンズ、その他）2.3%。日本原産で一般税率が12.5%未満のため、9903.05.49 により合計12.5%（U.S. note 52(k)）"
             }
           ]
         },
@@ -69,11 +70,11 @@
               "effective_from": null,
               "kind": "rate",
               "rounding": "round",
-              "checked_at": null,
+              "rate": null,
+              "checked_at": "2026-10-09",
               "source": null,
-              "checked_by": null,
-              "note": "要確認：HSコード 9101/9102 系。時計は個数・素材で課税方式が異なる国あり",
-              "rate": null
+              "checked_by": "P4 research (Claude)",
+              "note": "要確認：9101/9102 の一般税率は『1個あたりの従量税＋ケース・バンド・電池ごとの従価税』の複合税（例：9102.21.50 自動巻 $1.75/個＋ケース4.8%＋バンド2.2%）。U.S. note 52(k) により従価換算率で12.5%との差を追加するが、1つの率では表せない。計算エンジンが複合税に対応するまで null（出典 https://hts.usitc.gov/reststop/search?keyword=9102 ）"
             }
           ]
         }
@@ -83,14 +84,14 @@
         "base": "customs_value",
         "rows": [
           {
-            "effective_from": null,
+            "checked_at": "2026-10-09",
+            "checked_by": "P4 research (Claude)",
+            "effective_from": "2026-07-24",
             "kind": "rate",
+            "rate": 0,
             "rounding": "round",
-            "checked_at": null,
-            "source": null,
-            "checked_by": null,
-            "note": "要確認：日本原産品への追加関税",
-            "rate": null
+            "source": "https://www.whitehouse.gov/presidential-actions/2026/07/actions-by-the-united-states-in-the-investigations-under-section-301-of-the-trade-act-of-1974-of-the-acts-policies-and-practices-of-60-economies-related-to-the-failure-of-each-economy-to-impose-and/ ; https://www.whitehouse.gov/wp-content/uploads/2026/07/ANNEX.pdf",
+            "note": "日本原産品への追加関税（通商法301条、9903.05.48/49、2026-07-24 発効）は、上の duty（カメラ・レンズ）に合計12.5%として含めた。二重に数えないためここは0。時計は duty が null のため未計上。それ以前の 9903.03.01（通商法122条の一律10%、2026-02-24 から 2026-07-24 までの期限つき）は期限を過ぎている。2026-07-24 の 301条措置の Annex には日本向けの品目が 9903.05.48/49 として入っている"
           }
         ]
       },
@@ -103,13 +104,14 @@
             "currency": "USD",
             "amount": null,
             "rounding": "round",
-            "checked_at": null,
+            "checked_at": "2026-10-09",
             "source": null,
-            "checked_by": null,
-            "note": "要確認：配送業者により異なる"
+            "checked_by": "P4 research (Claude)",
+            "note": "要確認：郵便の正式・簡易通関は MPF の対象外（CBP Dec. 26-13 脚注68）だが、日本郵便は米国あての販売品について『CBP 認定事業者のアプリでの関税等の事前支払い』を条件にしている。その事業者の手数料は公式ページで確認できていない"
           }
         ]
-      }
+      },
+      "note": "日本原産品。関税は HTSUS の一般税率（column 1-General）に、2026-07-24 発効の通商法301条措置（9903.05.48/49、U.S. note 52(k)）を合わせた合計で持つ"
     },
     {
       "country": "GB",
@@ -119,29 +121,30 @@
       "duty_basis": {
         "rows": [
           {
-            "effective_from": null,
-            "value": null,
-            "checked_at": null,
-            "source": null,
-            "checked_by": null,
-            "note": "要確認：課税価格が FOB（商品価格のみ）か CIF（送料・保険込み）か"
+            "checked_at": "2026-10-09",
+            "checked_by": "P4 research (Claude)",
+            "effective_from": "2026-10-09",
+            "value": "CIF",
+            "source": "https://www.gov.uk/goods-sent-from-abroad/tax-and-duty",
+            "note": "関税は『商品の代金』と『送料・梱包・保険』の両方にかかる（gov.uk）",
+            "effective_from_basis": "確認日（出典に施行日の記載がないため、この日に有効であることを確認した日を記入）"
           }
         ]
       },
       "de_minimis": {
         "rows": [
           {
-            "effective_from": null,
-            "value": null,
+            "checked_at": "2026-10-09",
+            "checked_by": "P4 research (Claude)",
+            "effective_from": "2026-10-09",
+            "value": 135,
             "currency": "GBP",
             "applies_to": [
-              "duty",
-              "import_tax"
+              "duty"
             ],
-            "checked_at": null,
-            "source": null,
-            "checked_by": null,
-            "note": "要確認：少額免税の基準額と、免除されるのが関税だけか税も含むか"
+            "source": "https://www.gov.uk/goods-sent-from-abroad/tax-and-duty",
+            "note": "非物品税の商品で135ポンド以下は関税なし。VAT は免除されない：135ポンド以下で自分で買った品は販売者が購入時に VAT を含めて請求（代行経由の場合に誰が VAT を請求するかは要確認）。135ポンド超は配送業者に VAT を払う",
+            "effective_from_basis": "確認日（出典に施行日の記載がないため、この日に有効であることを確認した日を記入）"
           }
         ]
       },
@@ -149,28 +152,28 @@
         "camera": {
           "rows": [
             {
-              "effective_from": null,
+              "checked_at": "2026-10-09",
+              "checked_by": "P4 research (Claude)",
+              "effective_from": "2021-01-01",
               "kind": "rate",
+              "rate": 0,
               "rounding": "round",
-              "checked_at": null,
-              "source": null,
-              "checked_by": null,
-              "note": "要確認：HSコード 9006 系",
-              "rate": null
+              "source": "https://www.trade-tariff.service.gov.uk/commodities/9006538000 ; https://www.trade-tariff.service.gov.uk/commodities/9006590000 ; https://www.trade-tariff.service.gov.uk/commodities/8525890000",
+              "note": "Third country duty 0.00%（9006 53 80 00、9006 59 00 00）。デジタルカメラ 8525 89 00 00 も 0.00%（2022-01-01〜）。日本の特恵税率も 0%"
             }
           ]
         },
         "lens": {
           "rows": [
             {
-              "effective_from": null,
+              "checked_at": "2026-10-09",
+              "checked_by": "P4 research (Claude)",
+              "effective_from": "2025-04-14",
               "kind": "rate",
+              "rate": 0,
               "rounding": "round",
-              "checked_at": null,
-              "source": null,
-              "checked_by": null,
-              "note": "要確認：HSコード 9002 系",
-              "rate": null
+              "source": "https://www.trade-tariff.service.gov.uk/commodities/9002110090",
+              "note": "Third country duty 0.00%（9002 11 00 90、2025-04-14〜）。日本の特恵税率も 0%"
             }
           ]
         },
@@ -180,11 +183,11 @@
               "effective_from": null,
               "kind": "rate",
               "rounding": "round",
-              "checked_at": null,
+              "rate": null,
+              "checked_at": "2026-10-09",
               "source": null,
-              "checked_by": null,
-              "note": "要確認：HSコード 9101/9102 系。時計は個数・素材で課税方式が異なる国あり",
-              "rate": null
+              "checked_by": "P4 research (Claude)",
+              "note": "要確認：Third country duty は 0.20 GBP／個の従量税（9101 11/21、9102 11/21 とも、2021-01-01〜）。率では表せないため null。日本の特恵税率（Tariff preference）は 0%（原産地の申告が必要）。出典 https://www.trade-tariff.service.gov.uk/commodities/9102210000"
             }
           ]
         }
@@ -194,14 +197,14 @@
         "base": "customs_value_plus_duty",
         "rows": [
           {
-            "effective_from": null,
+            "checked_at": "2026-10-09",
+            "checked_by": "P4 research (Claude)",
+            "effective_from": "2011-01-04",
             "kind": "rate",
+            "rate": 0.2,
             "rounding": "round",
-            "checked_at": null,
-            "source": null,
-            "checked_by": null,
-            "note": "要確認：輸入時の VAT/GST の率と課税標準",
-            "rate": null
+            "source": "https://www.gov.uk/vat-rates ; https://www.gov.uk/goods-sent-from-abroad/tax-and-duty",
+            "note": "標準税率20%（2011-01-04 に17.5%から引き上げ、gov.uk）。配送業者に払う VAT は商品価格・送料・梱包・保険・関税の合計にかかる（gov.uk）"
           }
         ]
       },
@@ -214,10 +217,10 @@
             "currency": "GBP",
             "amount": null,
             "rounding": "round",
-            "checked_at": null,
+            "checked_at": "2026-10-09",
             "source": null,
-            "checked_by": null,
-            "note": "要確認：配送業者により異なる"
+            "checked_by": "P4 research (Claude)",
+            "note": "要確認：Royal Mail の手数料ページ（royalmail.com）は自動取得を 403 で拒否し、確認できなかった"
           }
         ]
       }
@@ -230,29 +233,30 @@
       "duty_basis": {
         "rows": [
           {
-            "effective_from": null,
-            "value": null,
-            "checked_at": null,
-            "source": null,
-            "checked_by": null,
-            "note": "要確認：課税価格が FOB（商品価格のみ）か CIF（送料・保険込み）か"
+            "checked_at": "2026-10-09",
+            "checked_by": "P4 research (Claude)",
+            "effective_from": "2026-10-09",
+            "value": "CIF",
+            "source": "https://taxation-customs.ec.europa.eu/system/files/2019-03/06_taxud_ucc_customs_valuation_quick_info_en.pdf",
+            "note": "EU の関税評価額は取引価格に『EU 関税領域に入る地点までの輸送費・保険』を加える（UCC 第71条。欧州委員会 Customs Valuation Quick Info）",
+            "effective_from_basis": "確認日（出典に施行日の記載がないため、この日に有効であることを確認した日を記入）"
           }
         ]
       },
       "de_minimis": {
         "rows": [
           {
-            "effective_from": null,
-            "value": null,
+            "checked_at": "2026-10-09",
+            "checked_by": "P4 research (Claude)",
+            "effective_from": "2026-07-01",
+            "value": 0,
             "currency": "EUR",
             "applies_to": [
               "duty",
               "import_tax"
             ],
-            "checked_at": null,
-            "source": null,
-            "checked_by": null,
-            "note": "要確認：少額免税の基準額と、免除されるのが関税だけか税も含むか"
+            "source": "https://taxation-customs.ec.europa.eu/document/download/053e5b4e-f0be-4f20-9a23-3e3b659a6676_en?filename=Customs+Guidance+on+EUR+3+customs+duty.pdf",
+            "note": "免税の基準額はない。VAT は2021-07-01から少額でも課税。関税の150ユーロ以下免除は Council Regulation (EU) 2026/382 で廃止。代わりに、通信販売（distance sales）で150ユーロ以下の貨物には1品目 €3 の定額関税（2026-07-01〜2028-07-01）。計算エンジンは定額関税を表せないため、150ユーロ以下でも従価の関税率で計算する（ずれは数ユーロ）。代行業者経由の購入が distance sale に当たるかは要確認。別に1品目 €2 の Union handling fee が 2026-11-01 から見込み（委任規則は審査中）"
           }
         ]
       },
@@ -260,28 +264,28 @@
         "camera": {
           "rows": [
             {
-              "effective_from": null,
+              "checked_at": "2026-10-09",
+              "checked_by": "P4 research (Claude)",
+              "effective_from": "1999-01-01",
               "kind": "rate",
+              "rate": 0.042,
               "rounding": "round",
-              "checked_at": null,
-              "source": null,
-              "checked_by": null,
-              "note": "要確認：HSコード 9006 系",
-              "rate": null
+              "source": "https://trade.ec.europa.eu/access-to-markets/en/results?product=9006538000&origin=JP&destination=DE ; https://trade.ec.europa.eu/access-to-markets/api/tariffs/get/9006538000/JP/DE?lang=EN ; https://trade.ec.europa.eu/access-to-markets/api/tariffs/get/9006590000/JP/DE?lang=EN",
+              "note": "Third country duty 4.20%（9006 53 80、9006 59 00。EU Access2Markets）。日本の特恵税率（EU・日本 EPA）は 0%（2020-02-01〜。原産地に関する申告が必要）。デジタルカメラ 8525 89 00 は 0%で、この率は当てはまらない（エンジンは camera 区分にまとめているため要対応）"
             }
           ]
         },
         "lens": {
           "rows": [
             {
-              "effective_from": null,
+              "checked_at": "2026-10-09",
+              "checked_by": "P4 research (Claude)",
+              "effective_from": "1999-01-01",
               "kind": "rate",
+              "rate": 0.067,
               "rounding": "round",
-              "checked_at": null,
-              "source": null,
-              "checked_by": null,
-              "note": "要確認：HSコード 9002 系",
-              "rate": null
+              "source": "https://trade.ec.europa.eu/access-to-markets/en/results?product=9002110090&origin=JP&destination=DE ; https://trade.ec.europa.eu/access-to-markets/api/tariffs/get/9002110090/JP/DE?lang=EN",
+              "note": "Third country duty 6.70%（9002 11 00 90。EU Access2Markets）。日本の特恵税率は 0%（2022-02-01〜。原産地に関する申告が必要）"
             }
           ]
         },
@@ -291,11 +295,11 @@
               "effective_from": null,
               "kind": "rate",
               "rounding": "round",
-              "checked_at": null,
+              "rate": null,
+              "checked_at": "2026-10-09",
               "source": null,
-              "checked_by": null,
-              "note": "要確認：HSコード 9101/9102 系。時計は個数・素材で課税方式が異なる国あり",
-              "rate": null
+              "checked_by": "P4 research (Claude)",
+              "note": "要確認：Third country duty は 4.50%、ただし1個あたり最低0.30ユーロ・最高0.80ユーロ（9101 11/21、9102 11/21。EU Access2Markets https://trade.ec.europa.eu/access-to-markets/api/tariffs/get/9102210000/JP/DE?lang=EN ）。上限つきの率は表せないため null。日本の特恵税率は 0%"
             }
           ]
         }
@@ -305,14 +309,15 @@
         "base": "customs_value_plus_duty",
         "rows": [
           {
-            "effective_from": null,
+            "checked_at": "2026-10-09",
+            "checked_by": "P4 research (Claude)",
+            "effective_from": "2026-10-09",
             "kind": "rate",
+            "rate": 0.19,
             "rounding": "round",
-            "checked_at": null,
-            "source": null,
-            "checked_by": null,
-            "note": "要確認：輸入時の VAT/GST の率と課税標準",
-            "rate": null
+            "source": "https://trade.ec.europa.eu/access-to-markets/api/taxes/get/9006538000/JP/DE",
+            "note": "ドイツの輸入 VAT（Einfuhrumsatzsteuer）標準税率19%（EU Access2Markets、データ改訂日 2026-07-01）。課税標準は関税評価額＋関税（＋最初の仕向地までの輸送費）",
+            "effective_from_basis": "確認日（出典に施行日の記載がないため、この日に有効であることを確認した日を記入）"
           }
         ]
       },
@@ -320,15 +325,16 @@
         "label": "Customs clearance fee",
         "rows": [
           {
-            "effective_from": null,
+            "checked_at": "2026-10-09",
+            "checked_by": "P4 research (Claude)",
+            "effective_from": "2026-10-09",
             "kind": "fixed",
             "currency": "EUR",
-            "amount": null,
+            "amount": 7.5,
             "rounding": "round",
-            "checked_at": null,
-            "source": null,
-            "checked_by": null,
-            "note": "要確認：配送業者により異なる"
+            "source": "https://www.deutschepost.de/de/hilfe-kundenservice/post-international/zollinformation/fragen-zu-kosten.html",
+            "note": "Deutsche Post の Auslagepauschale（立替手数料）7.50ユーロ／件。Deutsche Post が関税・輸入 VAT を立て替えて受取人から集める場合にかかる（日本郵便の国際郵便は Deutsche Post が配達）。自分で税関に申告した場合や、輸入税がかからない場合はかからない",
+            "effective_from_basis": "確認日（出典に施行日の記載がないため、この日に有効であることを確認した日を記入）"
           }
         ]
       }
@@ -340,29 +346,31 @@
       "duty_basis": {
         "rows": [
           {
-            "effective_from": null,
-            "value": null,
-            "checked_at": null,
-            "source": null,
-            "checked_by": null,
-            "note": "要確認：課税価格が FOB（商品価格のみ）か CIF（送料・保険込み）か"
+            "checked_at": "2026-10-09",
+            "checked_by": "P4 research (Claude)",
+            "effective_from": "2026-10-09",
+            "value": "FOB",
+            "source": "https://www.abf.gov.au/help-and-support-subsite/Guides/doc-import-declaration-guide.pdf",
+            "note": "関税評価額（Customs value）は通常、取引価格を豪ドルに換算したもの。申告書の FOB 欄は輸出地までの費用を含み、国際輸送・保険を含まない（ABF Import Declaration Guide）。なお GST の課税標準は関税評価額＋関税＋国際輸送・保険（下の import_tax 参照）",
+            "effective_from_basis": "確認日（出典に施行日の記載がないため、この日に有効であることを確認した日を記入）"
           }
         ]
       },
       "de_minimis": {
         "rows": [
           {
-            "effective_from": null,
-            "value": null,
+            "checked_at": "2026-10-09",
+            "checked_by": "P4 research (Claude)",
+            "effective_from": "2026-10-09",
+            "value": 1000,
             "currency": "AUD",
             "applies_to": [
               "duty",
               "import_tax"
             ],
-            "checked_at": null,
-            "source": null,
-            "checked_by": null,
-            "note": "要確認：少額免税の基準額と、免除されるのが関税だけか税も含むか"
+            "source": "https://www.abf.gov.au/imports/Pages/How-to-import/Import-declarations.aspx",
+            "note": "1,000豪ドル以下の物品は関税・GST とも国境では課されない（たばこ・酒を除く）。ただし2018-07-01以降、1,000豪ドル以下の輸入品の GST は販売者が販売時に徴収する仕組み（ATO 管轄。代行経由で誰が徴収するかは要確認）。1,000豪ドル超は関税・GST・輸入処理手数料（import processing charge）がかかる",
+            "effective_from_basis": "確認日（出典に施行日の記載がないため、この日に有効であることを確認した日を記入）"
           }
         ]
       },
@@ -370,42 +378,45 @@
         "camera": {
           "rows": [
             {
-              "effective_from": null,
+              "checked_at": "2026-10-09",
+              "checked_by": "P4 research (Claude)",
+              "effective_from": "2026-10-09",
               "kind": "rate",
+              "rate": 0,
               "rounding": "round",
-              "checked_at": null,
-              "source": null,
-              "checked_by": null,
-              "note": "要確認：HSコード 9006 系",
-              "rate": null
+              "source": "https://www.abf.gov.au/importing-exporting-and-manufacturing/tariff-classification/current-tariff/schedule-3/section-xviii/chapter-90",
+              "note": "9006.53.00（35mm）Free、9006.59.90（その他）Free（Customs Tariff Act 1995 Schedule 3）。デジタルカメラ（8525.89）は未確認",
+              "effective_from_basis": "確認日（出典に施行日の記載がないため、この日に有効であることを確認した日を記入）"
             }
           ]
         },
         "lens": {
           "rows": [
             {
-              "effective_from": null,
+              "checked_at": "2026-10-09",
+              "checked_by": "P4 research (Claude)",
+              "effective_from": "2026-10-09",
               "kind": "rate",
+              "rate": 0,
               "rounding": "round",
-              "checked_at": null,
-              "source": null,
-              "checked_by": null,
-              "note": "要確認：HSコード 9002 系",
-              "rate": null
+              "source": "https://www.abf.gov.au/importing-exporting-and-manufacturing/tariff-classification/current-tariff/schedule-3/section-xviii/chapter-90",
+              "note": "9002.11.00（カメラ用対物レンズ）Free（Schedule 3）",
+              "effective_from_basis": "確認日（出典に施行日の記載がないため、この日に有効であることを確認した日を記入）"
             }
           ]
         },
         "watch": {
           "rows": [
             {
-              "effective_from": null,
+              "checked_at": "2026-10-09",
+              "checked_by": "P4 research (Claude)",
+              "effective_from": "2026-10-09",
               "kind": "rate",
+              "rate": 0,
               "rounding": "round",
-              "checked_at": null,
-              "source": null,
-              "checked_by": null,
-              "note": "要確認：HSコード 9101/9102 系。時計は個数・素材で課税方式が異なる国あり",
-              "rate": null
+              "source": "https://www.abf.gov.au/importing-exporting-and-manufacturing/tariff-classification/current-tariff/schedule-3/section-xviii/chapter-91",
+              "note": "9101.11〜9101.99、9102.11〜9102.29 とも Free（Schedule 3）",
+              "effective_from_basis": "確認日（出典に施行日の記載がないため、この日に有効であることを確認した日を記入）"
             }
           ]
         }
@@ -415,14 +426,15 @@
         "base": "customs_value_plus_duty",
         "rows": [
           {
-            "effective_from": null,
+            "checked_at": "2026-10-09",
+            "checked_by": "P4 research (Claude)",
+            "effective_from": "2026-10-09",
             "kind": "rate",
+            "rate": 0.1,
             "rounding": "round",
-            "checked_at": null,
-            "source": null,
-            "checked_by": null,
-            "note": "要確認：輸入時の VAT/GST の率と課税標準",
-            "rate": null
+            "source": "https://www.abf.gov.au/importing-exporting-and-manufacturing/importing/cost-of-importing-goods/gst-and-other-taxes",
+            "note": "GST 10%。課税標準は関税評価額＋関税＋豪州までの輸送費・保険（ABF）。計算エンジンは課税標準に国際送料を含めないため、1,000豪ドル超の場合 GST を送料×10%だけ少なく見積もる（要対応）",
+            "effective_from_basis": "確認日（出典に施行日の記載がないため、この日に有効であることを確認した日を記入）"
           }
         ]
       },
@@ -435,10 +447,10 @@
             "currency": "AUD",
             "amount": null,
             "rounding": "round",
-            "checked_at": null,
+            "checked_at": "2026-10-09",
             "source": null,
-            "checked_by": null,
-            "note": "要確認：配送業者により異なる"
+            "checked_by": "P4 research (Claude)",
+            "note": "要確認：1,000豪ドル超の輸入処理手数料（import processing charge）の金額と、郵便物での扱いを公式ページで確認できていない"
           }
         ]
       }
@@ -450,29 +462,31 @@
       "duty_basis": {
         "rows": [
           {
-            "effective_from": null,
-            "value": null,
-            "checked_at": null,
-            "source": null,
-            "checked_by": null,
-            "note": "要確認：課税価格が FOB（商品価格のみ）か CIF（送料・保険込み）か"
+            "checked_at": "2026-10-09",
+            "checked_by": "P4 research (Claude)",
+            "effective_from": "2026-10-09",
+            "value": "FOB",
+            "source": "https://www.cbsa-asfc.gc.ca/publications/dm-md/d13/d13-3-3-eng.html",
+            "note": "課税価格（value for duty）に、直接積出地からカナダまでの輸送費は含めない（CBSA Memorandum D13-3-3）",
+            "effective_from_basis": "確認日（出典に施行日の記載がないため、この日に有効であることを確認した日を記入）"
           }
         ]
       },
       "de_minimis": {
         "rows": [
           {
-            "effective_from": null,
-            "value": null,
+            "checked_at": "2026-10-09",
+            "checked_by": "P4 research (Claude)",
+            "effective_from": "2026-10-09",
+            "value": 20,
             "currency": "CAD",
             "applies_to": [
               "duty",
               "import_tax"
             ],
-            "checked_at": null,
-            "source": null,
-            "checked_by": null,
-            "note": "要確認：少額免税の基準額と、免除されるのが関税だけか税も含むか"
+            "source": "https://www.cbsa-asfc.gc.ca/import/personal-personnel/postal-postale-eng.html ; https://www.canadapost-postescanada.ca/cpc/en/support/articles/customs-requirements/customs-duty-taxes-and-exemptions.page",
+            "note": "郵便物は20カナダドル以下なら関税・税とも課されない（Postal Imports Remission Order。米国・メキシコ以外のすべての国から）。20ドルを超えると全額に課税",
+            "effective_from_basis": "確認日（出典に施行日の記載がないため、この日に有効であることを確認した日を記入）"
           }
         ]
       },
@@ -483,56 +497,57 @@
               "effective_from": null,
               "kind": "rate",
               "rounding": "round",
-              "checked_at": null,
+              "rate": null,
+              "checked_at": "2026-10-09",
               "source": null,
-              "checked_by": null,
-              "note": "要確認：HSコード 9006 系",
-              "rate": null
+              "checked_by": "P4 research (Claude)",
+              "note": "要確認：MFN は 9006.53.10／9006.59.10（ネガ・ポジ作成用、使い捨てカメラ）が5%、9006.53.90／9006.59.90（その他）が Free で、一般の中古フィルムカメラがどちらに当たるか判断できない。日本の特恵（JT、CPTPPT）は Free（原産地の証明が必要）。出典 https://www.cbsa-asfc.gc.ca/trade-commerce/tariff-tarif/2026/html/02/ch90-eng.html （T2026-2、2026-09-01 発効）"
             }
           ]
         },
         "lens": {
           "rows": [
             {
-              "effective_from": null,
+              "checked_at": "2026-10-09",
+              "checked_by": "P4 research (Claude)",
+              "effective_from": "2026-09-01",
               "kind": "rate",
+              "rate": 0,
               "rounding": "round",
-              "checked_at": null,
-              "source": null,
-              "checked_by": null,
-              "note": "要確認：HSコード 9002 系",
-              "rate": null
+              "source": "https://www.cbsa-asfc.gc.ca/trade-commerce/tariff-tarif/2026/html/02/ch90-eng.html",
+              "note": "9002.11.10（写真用カメラ用ほか）MFN Free（Customs Tariff T2026-2、2026-09-01 発効版）。9002.11.90（その他）は MFN 2%。日本の特恵（JT）は Free"
             }
           ]
         },
         "watch": {
           "rows": [
             {
-              "effective_from": null,
+              "checked_at": "2026-10-09",
+              "checked_by": "P4 research (Claude)",
+              "effective_from": "2026-09-01",
               "kind": "rate",
+              "rate": 0.05,
               "rounding": "round",
-              "checked_at": null,
-              "source": null,
-              "checked_by": null,
-              "note": "要確認：HSコード 9101/9102 系。時計は個数・素材で課税方式が異なる国あり",
-              "rate": null
+              "source": "https://www.cbsa-asfc.gc.ca/trade-commerce/tariff-tarif/2026/html/02/ch91-eng.html",
+              "note": "MFN 5%（9101.11.00、9101.21.00、9102.11.00、9102.21.00。T2026-2）。日本の特恵（JT、CPTPPT）は Free（原産地の証明が必要）。ここでは MFN を使う"
             }
           ]
         }
       },
       "import_tax": {
-        "label": "Import GST",
+        "label": "Import GST (5% federal; HST provinces pay more)",
         "base": "customs_value_plus_duty",
         "rows": [
           {
-            "effective_from": null,
+            "checked_at": "2026-10-09",
+            "checked_by": "P4 research (Claude)",
+            "effective_from": "2026-10-09",
             "kind": "rate",
+            "rate": 0.05,
             "rounding": "round",
-            "checked_at": null,
-            "source": null,
-            "checked_by": null,
-            "note": "要確認：輸入時の VAT/GST の率と課税標準",
-            "rate": null
+            "source": "https://www.cbsa-asfc.gc.ca/import/postal-postale/dtytx-drttx-eng.html",
+            "note": "郵便の輸入品には GST 5%（CBSA）。HST を CBSA が徴収する州（13%など）では GST の代わりに HST、州によっては PST も別にかかる。ここは連邦 GST 5% のみで、州の税は含まない",
+            "effective_from_basis": "確認日（出典に施行日の記載がないため、この日に有効であることを確認した日を記入）"
           }
         ]
       },
@@ -540,15 +555,16 @@
         "label": "Customs clearance fee",
         "rows": [
           {
-            "effective_from": null,
+            "checked_at": "2026-10-09",
+            "checked_by": "P4 research (Claude)",
+            "effective_from": "2026-10-09",
             "kind": "fixed",
             "currency": "CAD",
-            "amount": null,
+            "amount": 9.95,
             "rounding": "round",
-            "checked_at": null,
-            "source": null,
-            "checked_by": null,
-            "note": "要確認：配送業者により異なる"
+            "source": "https://www.canadapost-postescanada.ca/cpc/en/support/articles/customs-requirements/customs-duty-taxes-and-exemptions.page",
+            "note": "Canada Post の取扱手数料 9.95カナダドル／個。関税または税がかかる郵便物だけに課される（関税・税がかからない場合は0）",
+            "effective_from_basis": "確認日（出典に施行日の記載がないため、この日に有効であることを確認した日を記入）"
           }
         ]
       }
