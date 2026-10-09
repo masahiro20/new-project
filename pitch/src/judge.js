@@ -22,6 +22,7 @@ export const DEFAULTS = {
   particle: true, // false = isolated word without が (then flat and tail-high look the same)
   pitchCueWeight: 0.5, // reward for a boundary on an F0 rise/fall, relative to a consonant cue (0 = off)
   pitchCueSt: [0.5, 2], // F0 movement (semitones) that starts to count / counts fully as a boundary cue
+  cuePeaks: true, // reward each consonant cue at one frame only (see segmentFrames)
   breakDipDb: [1, 3], // energy dip (dB) across a voicing break: below [0] not a consonant, full cue at [1]
 };
 
@@ -204,6 +205,16 @@ export function segmentFrames(track, st, i0, i1, labels, o = DEFAULTS) {
     const off = voiced(i - 1) && !voiced(i) ? voicingBreakStrength(st, E, i, i1, look, o) : 0;
     const fall = E ? Math.max(0, Math.min(1, (E[i - 1] - Math.min(...E.slice(i, Math.min(i + look + 1, i1 - 1)))) / 12)) : 0;
     cue[i] = Math.max(off, fall);
+  }
+  if (o.cuePeaks) {
+    // One consonant is one event: its energy fall and its voicing break a few frames
+    // later must not be able to pay for two boundaries. Keep each cue only at its
+    // local peak (earliest frame on a tie, i.e. where the consonant starts).
+    const peak = cue.map((c, i) => {
+      for (let x = Math.max(0, i - look); x <= Math.min(cue.length - 1, i + look); x++) if (cue[x] > c || (cue[x] === c && x < i)) return 0;
+      return c;
+    });
+    cue.splice(0, cue.length, ...peak);
   }
   // Pitch movement: Tokyo H/L tones are mora-level targets, so a fast F0 rise or
   // fall marks a mora boundary — the only cue a vowel-initial mora (よ|う) has.
