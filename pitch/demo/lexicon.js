@@ -22,11 +22,15 @@ export const fold = (s) => toHiragana(String(s)).toLowerCase().replace(/[\s　]+
 /** The accent the "wrong pattern" sample uses: flat ↔ final drop, else the first k not accepted. */
 export function wrongK(w) {
   const n = w.morae.length;
+  // A drop placed on a special mora (っ, ん, ー) is not a Tokyo pattern and,
+  // for っ, cannot be heard at all — skip those so the "wrong" sample is audibly wrong.
+  const ok = (k) => !w.accent.includes(k) && !(k > 0 && SPECIAL.has(w.morae[k - 1]));
   const alt = w.accent[0] === 0 ? n : 0;
-  if (!w.accent.includes(alt)) return alt;
-  for (let k = 0; k <= n; k++) if (!w.accent.includes(k)) return k;
+  if (ok(alt)) return alt;
+  for (let k = 0; k <= n; k++) if (ok(k)) return k;
   return alt;
 }
+const SPECIAL = new Set(['っ', 'ん', 'ー']);
 
 /** Deterministic synth seed per word and accent. */
 export const sampleSeed = (w, k) => 1 + ((w.id.charCodeAt(w.id.length - 1) * 31 + k) % 997);

@@ -20,9 +20,6 @@ export const DEFAULTS = {
   segmentation: 'auto', // 'auto' = use energy/voicing cues when available, 'equal' = equal slots
   evidenceWeight: 1.0, // reward for putting a boundary on a cue (vs. the duration prior)
   particle: true, // false = isolated word without が (then flat and tail-high look the same)
-  pitchCueWeight: 0.5, // reward for a boundary on an F0 rise/fall, relative to a consonant cue (0 = off)
-  pitchCueSt: [0.5, 2], // F0 movement (semitones) that starts to count / counts fully as a boundary cue
-  cuePeaks: true, // reward each consonant cue at one frame only (see segmentFrames)
   breakDipDb: [1, 3], // energy dip (dB) across a voicing break: below [0] not a consonant, full cue at [1]
 };
 
@@ -147,34 +144,6 @@ function voicingBreakStrength(st, E, i, i1, look, o) {
 }
 
 /**
- * Where F0 moves between two levels: |median F0 of the w frames after i − median
- * of the w frames before i| (voiced frames only, so a tracker dropout in the
- * middle of the movement is bridged), kept only at its local peak so each
- * movement gives one candidate frame. 0 below pitchCueSt[0] semitones, 1 from
- * pitchCueSt[1].
- */
-export function pitchMoveCue(st, i0, i1, w, o = DEFAULTS) {
-  const [d0, d1] = o.pitchCueSt;
-  const delta = new Array(st.length).fill(0);
-  const side = (a, b) => {
-    const v = [];
-    for (let x = Math.max(i0, a); x <= Math.min(i1, b); x++) if (!Number.isNaN(st[x])) v.push(st[x]);
-    return v.length >= 2 ? median(v) : NaN;
-  };
-  for (let i = i0 + 2; i <= i1 - 2; i++) {
-    const d = Math.abs(side(i, i + w - 1) - side(i - w, i - 1));
-    if (Number.isFinite(d)) delta[i] = d;
-  }
-  const out = new Array(st.length).fill(0);
-  for (let i = i0 + 2; i <= i1 - 2; i++) {
-    let peak = true;
-    for (let x = i - w; x <= i + w && peak; x++) if (x !== i && x >= 0 && x < st.length && (delta[x] > delta[i] || (delta[x] === delta[i] && x < i))) peak = false;
-    if (peak) out[i] = Math.max(0, Math.min(1, (delta[i] - d0) / (d1 - d0)));
-  }
-  return out;
-}
-
-/**
  * Mora boundaries from acoustic cues. Most morae start with a consonant, which
  * shows up as a voicing break (voiceless consonant, っ) or an energy fall
  * (nasal, voiced stop, flap). We know the morae, so we know which boundaries
@@ -206,20 +175,6 @@ export function segmentFrames(track, st, i0, i1, labels, o = DEFAULTS) {
     const fall = E ? Math.max(0, Math.min(1, (E[i - 1] - Math.min(...E.slice(i, Math.min(i + look + 1, i1 - 1)))) / 12)) : 0;
     cue[i] = Math.max(off, fall);
   }
-  if (o.cuePeaks) {
-    // One consonant is one event: its energy fall and its voicing break a few frames
-    // later must not be able to pay for two boundaries. Keep each cue only at its
-    // local peak (earliest frame on a tie, i.e. where the consonant starts).
-    const peak = cue.map((c, i) => {
-      for (let x = Math.max(0, i - look); x <= Math.min(cue.length - 1, i + look); x++) if (cue[x] > c || (cue[x] === c && x < i)) return 0;
-      return c;
-    });
-    cue.splice(0, cue.length, ...peak);
-  }
-  // Pitch movement: Tokyo H/L tones are mora-level targets, so a fast F0 rise or
-  // fall marks a mora boundary — the only cue a vowel-initial mora (よ|う) has.
-  // Weaker than a consonant cue, and it works for any boundary.
-  const move = o.pitchCueWeight > 0 ? pitchMoveCue(st, i0, i1, look + 1, o) : null;
   const weight = labels.map((l) => (consonantClass(l) === 'vowel' ? 0 : 1));
   const prior = labels.map((_, j) => (j === slots - 1 ? 1.2 : 1));
   const ps = prior.reduce((a, b) => a + b, 0);
@@ -239,7 +194,7 @@ export function segmentFrames(track, st, i0, i1, labels, o = DEFAULTS) {
         if (b > i1 + 1 || (ends && b !== i1 + 1)) continue;
         if (!ends && b > i1) continue;
         const dur = ((L - D[j]) / D[j]) ** 2;
-        const ev = j < slots - 1 ? Math.max(weight[j + 1] * cue[b], move ? o.pitchCueWeight * move[b] : 0) : 0;
+        const ev = j < slots - 1 ? weight[j + 1] * cue[b] : 0;
         const c = ca + dur - o.evidenceWeight * ev;
         if (c < (cur.get(b) ?? INF)) { cur.set(b, c); bk.set(b, a); }
       }

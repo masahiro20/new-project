@@ -3,7 +3,7 @@
 // cache-first. Only same-origin GETs for those files and navigations within the app folder
 // are handled; everything else (cross-origin, other paths) goes straight to the network and is
 // never cached. Audio never passes through here: files are decoded in the page.
-const VERSION = 'c26d2a85a839';
+const VERSION = 'a1158011d966';
 const SCOPE = self.registration.scope;
 const PREFIX = 'pitch-app:' + SCOPE + ':';
 const CACHE = PREFIX + VERSION;

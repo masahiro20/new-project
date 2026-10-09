@@ -78,16 +78,32 @@ node scripts/qa-pwa.mjs --fixtures /tmp/pitch-fx   # Playwright: install criteri
    we know which boundaries should show a consonant cue — a voicing break (voiceless
    consonant, っ) or an energy fall (nasal, voiced stop, flap). A small dynamic programme
    places the boundaries on those cues while keeping mora lengths near equal (Japanese
-   is mora-timed); vowel-initial morae rely on the length prior. `segmentation: 'equal'`
-   gives the old equal split. Each slot gets the median pitch of its frames.
+   is mora-timed); vowel-initial morae rely on the length prior. A voicing break only
+   counts as a consonant cue as far as the energy dips across it (none below 1 dB, full
+   from 3 dB): pitch trackers often lose lock *inside* a vowel while F0 rises or falls
+   fast, i.e. exactly at the accent, and such a break must not pull a consonant boundary
+   onto the drop. `segmentation: 'equal'` gives the old equal split. Each slot gets the
+   median pitch of its frames; っ gets none (it is a silent closure — any F0 in its slot
+   is the neighbour's, smeared in by the tracker window).
 4. Every H/L template k = 0…n (0 = flat) is fitted as `a + b·template + c·mora`
    with a bounded downdrift slope c. The best fit with a real H/L contrast
    (b ≥ 1.2 semitones) is the detected downstep; if none has one, the speech was flat.
-5. Pass = detected k is one of the dictionary's accepted k's. Otherwise the verdict says
-   whether the drop came too early, too late, was missing, or should not be there.
+   Templates that differ only on morae without F0 (っ, a devoiced mora) predict the same
+   audible contour and are one answer (`equivalentK`), e.g. a drop before or after the
+   っ of ごっこ.
+5. Pass = detected k (or an equivalent one) is one of the dictionary's accepted k's.
+   Otherwise the verdict says whether the drop came too early, too late, was missing, or
+   should not be there.
 
-Known limits: boundaries before vowel-initial morae (お|う in おとうと, ー) have no cue;
-creaky voice and heavy devoicing reduce the usable frames.
+Known limits: boundaries before vowel-initial morae (よ|う in すいようび, お|う in おとうと,
+ー) still have no segmental cue and rely on the length prior; we deliberately do not use
+the F0 movement itself as a boundary cue (tried: no clear accuracy gain on the synthetic set,
+and on real speech F0 turning points lag mora boundaries, so it would bias the judgement
+towards whatever the speaker did). A "drop on っ" cannot be heard, so such a reading
+judges like the drop before っ — or, when that leaves no audible H at all (筆者 ひっしゃ
+said with k = 2), like monotone speech, which is read as flat. Very short morae (fast
+speech, ~120 ms) with a stop onset leave only a few voiced frames and are the main
+remaining source of errors. Creaky voice and heavy devoicing reduce the usable frames.
 
 ## Evaluation
 

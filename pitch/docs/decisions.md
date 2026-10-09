@@ -23,3 +23,6 @@ Short, dated notes. Newest at the bottom of each section.
 - 2026-10-09: Back side uses inline styles only (stock Basic note type has no CSS): overline on high morae, right border at the drop, が dimmed, plus an `L H ＋L` text line, 「尾高型［2］ 「はし」の後、「が」で下がる」 and the gloss. Multi-accent words list each accepted accent. Tags: `pitch::<type>` per accepted type, `p3pitch`, plus `pitch::minimal-pair` / `pitch::failed` by scope.
 - 2026-10-09: Minimal-pair scope reuses `buildMinimalPairs` from demo/practice.js (same definition as the practice mode), falling back to "same kana, ≥ 2 distinct accents" if its shape ever changes.
 - 2026-10-09: 「この回で不合格だった単語」 counts only real recordings judged in the checker; synthetic samples (including the auto sample on load) are excluded. Practice-mode attempts are not counted (they don't pass through the checker). Session-only, nothing stored.
+
+## 2026-10-09 — "wrong" sample avoids drops on っ/ん/ー (Kana)
+- `wrongK` no longer picks a downstep on a special mora. A drop on っ is inaudible (no F0), so after the segmentation fix (っ slots carry no pitch) such a sample is indistinguishable from flat and is not a meaningful wrong reading (筆者 [1,0] used k=2). The judge itself is unchanged by this; only which contrast the demo plays as "wrong".
