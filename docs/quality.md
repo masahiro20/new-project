@@ -17,7 +17,10 @@
    ```bash
    npx wrangler dev -c worker/wrangler.jsonc --var PAYMENTS_MODE:demo --var DEMO_SIGNING_SECRET:test \
      --var DEMO_GENERATE_PER_HOUR:100 --var ALLOWED_ORIGINS:http://localhost:8099
-   # キーがない予行演習は --var AI_MOCK:1 を付ける。本番の AI で回すときは ANTHROPIC_API_KEY を .dev.vars（worker/）に入れる
+   # キーがない予行演習は --var AI_MOCK:1 を付ける。
+   # 本物の AI で回すとき（ローカルのみ）：ANTHROPIC_API_KEY を worker/.dev.vars に入れ、
+   #   --var DEMO_ALLOW_REAL_AI:1 --var RATE_LIMIT_ALLOW_MEMORY:1 を付ける（デモ購入は通常 AI を使わない。セキュリティ確認 SEC-01）。
+   #   本番の Worker ではこの2つを設定しない。
    ```
 2. `npm run quality`（別の API なら `QUALITY_API=https://… npm run quality`）
 3. `.quality/report.md` に、ケースごとの判定・所要時間・文字数・指摘が出る。× が1件でもあれば終了コード1。

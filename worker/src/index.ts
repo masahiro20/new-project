@@ -24,7 +24,7 @@ function corsHeaders(request: Request, env: Env): Record<string, string> {
   };
 }
 
-type Env = { ALLOWED_ORIGINS?: string };
+type Env = { ALLOWED_ORIGINS?: string; PAYMENTS_MODE?: string };
 
 const worker = {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -39,8 +39,21 @@ const worker = {
     if (request.headers.get("Origin") && !cors["Access-Control-Allow-Origin"]) {
       return Response.json({ error: "Origin not allowed" }, { status: 403 });
     }
+    // Fail closed: lib/payments/mode.ts treats an unset PAYMENTS_MODE without a Stripe key as demo
+    // (free purchases). The deployed API must always say which mode it is in.
+    if (!env.PAYMENTS_MODE?.trim()) {
+      console.error("PAYMENTS_MODE is not set on the Worker; refusing requests");
+      return Response.json({ error: "Service unavailable" }, { status: 503, headers: cors });
+    }
 
-    const response = await handler(request);
+    let response: Response;
+    try {
+      response = await handler(request);
+    } catch (error) {
+      // Without this, an exception becomes Cloudflare's error page with no CORS headers.
+      console.error("unhandled API error", error instanceof Error ? error.name : "unknown");
+      return Response.json({ error: "Internal error" }, { status: 500, headers: cors });
+    }
     // Re-wrap to add CORS headers; the body (possibly a stream) passes through unchanged.
     const headers = new Headers(response.headers);
     for (const [k, v] of Object.entries(cors)) headers.set(k, v);

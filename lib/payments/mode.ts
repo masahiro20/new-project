@@ -10,7 +10,9 @@
 //   stripe          (unset)                error    (PaymentsConfigError)
 //   anything else   any                    error
 //
-// Going live is: put the Stripe key into env and leave PAYMENTS_MODE unset (or "stripe").
+// Always set PAYMENTS_MODE explicitly in a deployment ("stripe" in production). The unset rows
+// exist for local dev only: losing the Stripe key would otherwise silently turn purchases free
+// (demo). The Worker (worker/src/index.ts) refuses every request while PAYMENTS_MODE is unset.
 
 export type PaymentsMode = "demo" | "stripe";
 type Env = Record<string, string | undefined>;

@@ -9,8 +9,15 @@
   "compatibility_flags": ["nodejs_compat"],
   "observability": { "enabled": true },
   "vars": {
-    // demo until the owner switches to stripe (docs/paid-launch.md step 4)
+    // demo until the owner switches to stripe (docs/paid-launch.md step 4). Never remove it:
+    // the Worker answers 503 to everything while PAYMENTS_MODE is unset.
     "PAYMENTS_MODE": "demo",
+    // Keep "0": demo purchases then get the mock output and never spend the Anthropic key.
+    "DEMO_ALLOW_REAL_AI": "0",
+    // Site-wide cap on free previews per day (needs Upstash).
+    "PREVIEW_PER_DAY": "300",
+    // Turnstile tokens must have been solved on this host.
+    "TURNSTILE_EXPECTED_HOSTNAMES": "masahiro20.github.io",
     "PRICE_JPY": "2980",
     // The static site: Stripe returns buyers here, and only this origin may call the API.
     "NEXT_PUBLIC_SITE_URL": "https://masahiro20.github.io/new-project",
@@ -19,4 +26,6 @@
   // Secrets (set with `npx wrangler secret put NAME -c worker/wrangler.jsonc`, never here):
   //   DEMO_SIGNING_SECRET, ANTHROPIC_API_KEY, STRIPE_SECRET_KEY,
   //   UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN, TURNSTILE_SECRET_KEY
+  // With ANTHROPIC_API_KEY set, the free preview refuses requests unless TURNSTILE_SECRET_KEY and
+  // Upstash are set too (fail closed). Put the AI key in together with PAYMENTS_MODE=stripe.
 }

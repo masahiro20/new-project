@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { PRODUCT_NAME, REGENERATE_PER_DAY } from "@/lib/purchase";
+import { GENERATIONS_PER_PURCHASE, PRODUCT_NAME, PURCHASE_VALID_DAYS } from "@/lib/purchase";
 
 /** Final-confirmation details required by the Act on Specified Commercial Transactions (art. 12-6), shown right before the purchase button. */
 export default function PurchaseSummary({ price, demo = false }: { price: number; demo?: boolean }) {
   const rows: [string, string][] = [
     ["商品", PRODUCT_NAME],
-    ["内容・数量", `1事業所分。3つの書類セット（委員会・研修・身体拘束等適正化）を1回作成します。生成に失敗した場合は、同じ入力内容で7日間、各セット1日${REGENERATE_PER_DAY}回まで作り直せます。`],
+    ["内容・数量", `1事業所分。3つの書類セット（委員会・研修・身体拘束等適正化）を1回作成します。生成に失敗した場合は、同じ入力内容で${PURCHASE_VALID_DAYS}日間、3セット合わせて${GENERATIONS_PER_PURCHASE}回（最初の作成を含む）まで作り直せます。`],
     ["価格", `${price.toLocaleString()}円（税込）。月額料金や自動更新はありません。`],
     [
       "支払方法・時期",

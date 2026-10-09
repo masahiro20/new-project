@@ -15,6 +15,8 @@ const MODEL = "claude-opus-5-5";
 export function streamDocuments(part: Part | "preview", input: FacilityInput): ReadableStream<Uint8Array> {
   const encoder = new TextEncoder();
   const isPreview = part === "preview";
+  let upstream: { abort(): void } | null = null;
+  let cancelled = false;
 
   return new ReadableStream({
     async start(controller) {
@@ -22,15 +24,19 @@ export function streamDocuments(part: Part | "preview", input: FacilityInput): R
         client ??= new Anthropic();
         const stream = client.beta.messages.stream({
           model: MODEL,
-          max_tokens: isPreview ? 8000 : 32000,
+          // The preview is one table; a small cap bounds what a free (or prompt-injected) call can cost.
+          max_tokens: isPreview ? 4000 : 32000,
           betas: ["server-side-fallback-2026-07-01"],
           fallbacks: "default",
           output_config: { effort: isPreview ? "low" : "medium" },
           system: SYSTEM_PROMPT,
           messages: [{ role: "user", content: buildUserPrompt(part, input) }],
         });
+        upstream = stream;
 
-        stream.on("text", (delta) => controller.enqueue(encoder.encode(delta)));
+        stream.on("text", (delta) => {
+          if (!cancelled) controller.enqueue(encoder.encode(delta));
+        });
         const final = await stream.finalMessage();
 
         if (final.stop_reason === "refusal") {
@@ -39,6 +45,7 @@ export function streamDocuments(part: Part | "preview", input: FacilityInput): R
           controller.enqueue(encoder.encode(`\n\n> ${NOTICES.maxTokens}`));
         }
       } catch (error) {
+        if (cancelled) return;
         console.error("generation failed", error);
         const message =
           error instanceof Anthropic.RateLimitError
@@ -46,8 +53,13 @@ export function streamDocuments(part: Part | "preview", input: FacilityInput): R
             : NOTICES.error;
         controller.enqueue(encoder.encode(`\n\n> ${message}`));
       } finally {
-        controller.close();
+        if (!cancelled) controller.close();
       }
+    },
+    // The client went away (closed tab, aborted fetch): stop the upstream request so we stop paying for it.
+    cancel() {
+      cancelled = true;
+      upstream?.abort();
     },
   });
 }

@@ -15,7 +15,10 @@ export const isDemoToken = (id: string) => /^demo_[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+
 function signingSecret(): string {
   const secret = process.env.DEMO_SIGNING_SECRET;
   if (secret) return secret;
-  if (process.env.NODE_ENV !== "production") return "dev-only-demo-signing-secret";
+  // Fall back only when explicitly in dev/test. Wrangler inlines NODE_ENV from the *build*
+  // machine, so "not production" (e.g. NODE_ENV=staging or ci) must not mean "public secret".
+  const nodeEnv = process.env.NODE_ENV;
+  if (nodeEnv === "development" || nodeEnv === "test") return "dev-only-demo-signing-secret";
   throw new Error("DEMO_SIGNING_SECRET is not set");
 }
 
@@ -23,9 +26,21 @@ const enc = new TextEncoder();
 const b64url = (bytes: Uint8Array) => btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 const fromB64url = (s: string) => Uint8Array.from(atob(s.replace(/-/g, "+").replace(/_/g, "/")), (c) => c.charCodeAt(0));
 
+const hmacKey = () => crypto.subtle.importKey("raw", enc.encode(signingSecret()), { name: "HMAC", hash: "SHA-256" }, false, ["sign", "verify"]);
+
 async function hmac(data: string): Promise<string> {
-  const key = await crypto.subtle.importKey("raw", enc.encode(signingSecret()), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-  return b64url(new Uint8Array(await crypto.subtle.sign("HMAC", key, enc.encode(data))));
+  return b64url(new Uint8Array(await crypto.subtle.sign("HMAC", await hmacKey(), enc.encode(data))));
+}
+
+/** Constant-time check (subtle.verify) instead of comparing strings. */
+async function validSignature(data: string, sig: string): Promise<boolean> {
+  let mac: Uint8Array<ArrayBuffer>;
+  try {
+    mac = fromB64url(sig);
+  } catch {
+    return false;
+  }
+  return crypto.subtle.verify("HMAC", await hmacKey(), mac, enc.encode(data));
 }
 
 async function sign(payload: Payload): Promise<string> {
@@ -37,7 +52,7 @@ async function sign(payload: Payload): Promise<string> {
 async function verify(token: string, now = Date.now()): Promise<Payload | null> {
   if (!isDemoToken(token)) return null;
   const [body, sig] = token.slice("demo_".length).split(".");
-  if ((await hmac(body)) !== sig) return null;
+  if (!(await validSignature(body, sig))) return null;
   try {
     const payload = JSON.parse(new TextDecoder().decode(fromB64url(body))) as Payload;
     const age = now / 1000 - payload.t;
