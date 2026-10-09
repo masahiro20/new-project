@@ -289,6 +289,10 @@ for (const [name, data] of [...files, ['sw.js', sw]]) hasher.update(name).update
 const version = hasher.digest('hex').slice(0, 12);
 files.set('sw.js', sw.replace('__VERSION__', version));
 
+// 秘密鍵の形は公開物に入れない（build-demo と同じ検査を、PWA の全ファイルにも）。
+for (const [name, data] of files) {
+  if (typeof data === 'string' && (/PRIVATE KEY/.test(data) || /["']d["']\s*:\s*["'][A-Za-z0-9_-]{32,}={0,2}["']/.test(data))) fail(`private-key-like text in ${name}; refusing to publish`);
+}
 for (const [name, data] of files) await writeFile(join(outDir, name), data);
 const kb = (n) => `${(n / 1024).toFixed(1)} KB`;
 console.log(`build-pwa: wrote ${outDir} — cache version ${version}`);

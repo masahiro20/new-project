@@ -471,7 +471,7 @@ footer { font-size: .8rem; color: var(--muted); display: flex; flex-direction: c
     <p class="sup-price" id="sup-price"></p>
     <p class="small" id="sup-refund"></p>
     <p class="small" id="sup-buy"></p>
-    <p class="muted small">キーには氏名やメールアドレスは入っていません。キーの確認はこの端末の中だけで行い、どこにも送信しません。キーは使う端末ごとに貼り付けてください。</p>
+    <p class="muted small">キーには氏名やメールアドレスは入っていません。キーの確認はこの端末の中だけで行い、どこにも送信しません。キーは使う端末ごとに貼り付けてください。返金したキーや、広く共有されたキーは、次の版から使えなくなります。</p>
     <p class="sup-note" id="sup-unconfigured" hidden>準備中です。サポーターキーの受付はまだ始まっていません。</p>
     <label class="muted small" for="sup-key">サポーターキー</label>
     <textarea id="sup-key" rows="3" spellcheck="false" autocomplete="off" autocapitalize="characters"></textarea>
@@ -483,6 +483,7 @@ footer { font-size: .8rem; color: var(--muted); display: flex; flex-direction: c
       <button type="button" id="sup-remove">この端末からキーを削除</button>
       <span class="muted small" id="sup-saved-note" hidden>この端末に保存できないため、ページを閉じると元に戻ります。</span>
     </div>
+    <p class="muted small" id="sup-keep-note" hidden>キーはこのブラウザの中だけに保存しています。サイトのデータを消したときや、ブラウザが保存を消したときは、購入時のメールにあるキーをもう一度貼り付けてください。</p>
   </section>
 
   <!-- 評価協力モード (demo/evalmode.js) -->

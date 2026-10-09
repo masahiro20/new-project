@@ -5,6 +5,8 @@
 //    DEMO_LEXICON=… is the same as --lexicon; default data/lexicon-2000.json)
 //   SUPPORTER_PUBKEY=path.js：テスト用に demo/supporter-pubkey.js を差し替える（scripts/qa-supporter.mjs）。
 //   差し替えたビルドは dist/ と site/ には書けません（テスト鍵が公開用のページに入らないように）。
+//   差し替えの一覧はテスト用の kid（240〜254）だけ、本番の一覧はテスト用の kid なし（validateKeyList）。
+//   SUPPORTER_KEYS_SHA256=<指紋>：本番の公開鍵の一覧の指紋がこれと違えば失敗（オーナーから受け取った値と照合）。
 //
 // Inlines everything (bundled script, lexicon JSON, licence texts) so the page
 // makes no network requests at all — it is published as a claude.ai Artifact,
@@ -12,10 +14,11 @@
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { execSync } from 'node:child_process';
 import { dirname, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { build } from 'esbuild';
 import { splitMorae } from '../src/mora.js';
 import { accentType } from '../src/accent.js';
+import { validateKeyList, keysFingerprint } from '../demo/supporter.js';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const argv = process.argv.slice(2);
@@ -31,6 +34,15 @@ const fail = (msg) => { console.error(`build-demo: ${msg}`); process.exit(1); };
 const testPubkey = process.env.SUPPORTER_PUBKEY ? resolve(process.env.SUPPORTER_PUBKEY) : null;
 if (testPubkey && [`${root}/dist/`, `${root}/site/`].some((d) => `${outPath}/`.startsWith(d) || outPath.startsWith(d))) {
   fail(`SUPPORTER_PUBKEY is set: refusing to write a test-key build into ${outPath} (use a scratch directory)`);
+}
+// 創設サポーターの公開鍵の一覧を確かめる（本番：テスト用の kid なし、テスト：テスト用の kid だけ）。
+const keyModulePath = testPubkey ?? `${root}/demo/supporter-pubkey.js`;
+const keyModule = await import(pathToFileURL(keyModulePath).href);
+const keyErrs = validateKeyList({ keys: keyModule.SUPPORTER_KEYS, retired: keyModule.RETIRED_KIDS, revoked: keyModule.REVOKED_LIDS }, { test: !!testPubkey });
+if (keyErrs.length) fail(`supporter key list ${keyModulePath}: ${keyErrs.join('; ')}`);
+const keyFpr = await keysFingerprint(keyModule.SUPPORTER_KEYS);
+if (!testPubkey && process.env.SUPPORTER_KEYS_SHA256 && process.env.SUPPORTER_KEYS_SHA256.toLowerCase() !== keyFpr) {
+  fail(`supporter key list fingerprint ${keyFpr} ≠ SUPPORTER_KEYS_SHA256 ${process.env.SUPPORTER_KEYS_SHA256}`);
 }
 // 創設サポーターの公開鍵の差し替え（テスト用）。
 const pubkeyPlugin = {
@@ -105,6 +117,7 @@ const lexiconTag = `<script type="application/json" id="lexicon-data">${lexicon.
 const licences = [
   ['pitchy 4.1.0 (MIT License)', 'vendor/pitchy.LICENSE'],
   ['fft.js 4.0.4 (MIT License)', 'vendor/fft.LICENSE'],
+  ['@noble/ed25519 2.3.0 — supporter key verification fallback (MIT License)', 'vendor/noble-ed25519.LICENSE'],
   ['UniDic 2.1.2 — accent data (BSD License)', 'data/UNIDIC-BSD-LICENSE'],
   ['symphonia-codec-aac 0.5.4 — AAC tables in the m4a decoder (Mozilla Public License 2.0)', 'vendor/symphonia-aac-tables.LICENSE'],
 ];
@@ -146,6 +159,20 @@ const patterns = [
   /\bRTCPeerConnection\b/g,
   /\bimportScripts\s*\(/g,
 ];
+// 秘密鍵の形（PEM・秘密の値の入った JWK）は公開物に入れない（Atlas REPORT §5-8）。
+const SECRET_PATTERNS = [
+  /-----BEGIN[A-Z0-9 ]*PRIVATE KEY-----/g,
+  /PRIVATE KEY/g,
+  /["']d["']\s*:\s*["'][A-Za-z0-9_-]{32,}={0,2}["']/g,
+  /["']seed["']\s*:\s*["'][0-9a-fA-F]{64}["']/g,
+];
+const secrets = new Set();
+for (const re of SECRET_PATTERNS) for (const m of html.matchAll(re)) secrets.add(m[0].slice(0, 60));
+if (secrets.size) {
+  console.error('build-demo: ERROR private-key-like text in output (never publish a private key):');
+  for (const o of secrets) console.error(`  - ${o}`);
+  process.exit(1);
+}
 for (const re of patterns) for (const m of html.matchAll(re)) offenders.add(m[0].slice(0, 120));
 if (offenders.size) {
   // The page promises 「外部に送信されません」: fail the build instead of only warning.
@@ -159,4 +186,5 @@ await writeFile(outPath, html);
 const kb = (n) => `${(n / 1024).toFixed(1)} KB`;
 console.log(`build-demo: wrote ${outPath} — ${kb(Buffer.byteLength(html))} (script ${kb(Buffer.byteLength(js))}, lexicon ${kb(Buffer.byteLength(lexicon))} from ${kb(lexiconRawBytes)} minified source) [${stamp}]`);
 if (testPubkey) console.log(`build-demo: TEST supporter public key from ${testPubkey} (not for publishing)`);
+console.log(`build-demo: supporter keys ${keyModule.SUPPORTER_KEYS.length ? keyModule.SUPPORTER_KEYS.map((k) => k.kid).join(',') : 'none (unconfigured: keys unlock nothing)'} — sha256 ${keyFpr}${testPubkey ? ' [TEST]' : ''}`);
 console.log(`build-demo: lexicon ${lexiconPath.replace(`${root}/`, '')} — ${compact.length} words in the page${excluded.length ? `, ${excluded.length} held back for review: ${excluded.join(' ')}` : ', none held back (review hold-back already applied at lexicon build)'}`);

@@ -105,26 +105,30 @@ node scripts/qa-evalmode.mjs --fixtures /tmp/pitch-fx          # Playwright: 同
 | 練習の記録（`demo/progress.js`） | 直近7日 | 全期間 |
 | 辞書引き・お手本・共有カード | ○ | ○ |
 
-- 価格・返金・Ko-fi の URL・無料枠の数字は `demo/supporter.js` の `PLAN` だけにあります（未定の値は TODO）。
+- 価格（$19・買い切り）・返金（30日）・Ko-fi の URL・無料枠の数字は `demo/supporter.js` の `PLAN` だけにあります。
   Ko-fi の URL が空のあいだは「購入ページは準備中です」と表示し、リンクを作りません。
-- キーは ECDSA P-256 の署名つき（`PITCH-XXXXX-…`）。ページの公開鍵（`demo/supporter-pubkey.js`）だけで、
-  端末の中で検証します（送信なし）。中身は版・通し番号・発行日・機能フラグだけで、個人情報は入りません。
-  検証済みのキーは localStorage に保存し、「この端末からキーを削除」で無料に戻ります。
-- **公開鍵はまだ未設定** です（秘密鍵の保管者が決まるまで本番の鍵ペアを作らない）。未設定のあいだはキー入力欄が
-  「準備中」で、何も解除しません。無料枠は適用します（`PLAN.freeLimitsActive`）。
-- 評価協力モードがオンのあいだは、1日の上限を適用しません。
+- キーは Ed25519 の署名つき（`PITCH1-XXXXXXXX-…`、Atlas のレビュー §5 の要件どおり）。ページに埋め込んだ公開鍵の一覧
+  （`demo/supporter-pubkey.js`）だけで、端末の中で検証します（送信なし）。WebCrypto の Ed25519 が使えないブラウザでは
+  `vendor/noble-ed25519.js`（@noble/ed25519 2.3.0、MIT）で検証します。中身は版・kid・乱数の lid・plan・発行日だけで、
+  個人情報は入りません。キーの文字列だけを localStorage（`pitch:supporter:v1`）に保存し、開くたびに検証し直します。
+  `#key=…` のリンクでも受け取れます（読んだら URL から消す）。画面には「サポーター #A7K3」だけを出します。
+- **公開鍵はまだ未設定** です（本部の決定 d32：販売は専用のオリジンに移ってから。本番の鍵はそのときオーナーの端末で作る）。
+  未設定のあいだはキー入力欄が「準備中」で、何も解除しません。無料枠も販売開始まで適用しません（`PLAN.freeLimitsActive = false`）。
+- 評価協力モードがオンのあいだは、1日の上限を適用しません。評価協力の書き出しにサポーターかどうかは入りません。
 - 単語リスト・練習の記録・1日の判定数・キーは、すべてこの端末の localStorage だけに保存します。
 
 ```sh
-node scripts/supporter-key.mjs init --key ~/.config/p3pitch/supporter-key.pem   # 鍵ペア（秘密鍵はリポジトリの外、0600）
-node scripts/supporter-key.mjs issue --key ~/.config/p3pitch/supporter-key.pem --serial 1
-node scripts/supporter-key.mjs verify "PITCH-…"
-node scripts/supporter-key.mjs revoke --serial 1                                 # 取り消し → ページを再ビルド
+node scripts/supporter-key.mjs test-init --out <scratch>                         # テスト用の鍵（kid 240〜254）だけ
+node scripts/supporter-key.mjs test-issue --seed <scratch>/test-seed.json --pubkey <scratch>/test-pubkey.js
+node scripts/supporter-key.mjs verify "PITCH1-…"                                 # 公開鍵の一覧で検証（問い合わせの確認）
+node scripts/supporter-key.mjs pubkey-hex supporter-kid1.pub.pem                 # オーナーの公開鍵 → 一覧に書く16進
 node --test test/supporter.test.js
 node scripts/qa-supporter.mjs --out <scratch>   # テスト鍵を差し込んだビルド（scratch に出力）と本番ビルドを Playwright で確認
 ```
 
-運用の手順（鍵の作成、キーの発行、Ko-fi 購入後に送る手順、取り消し）：`docs/supporter-ops.md`。
+本番のキーを発行する道具はこのリポジトリに置きません（オーナーの非公開のリポジトリ）。
+運用の手順（オーナーの端末での鍵の作成、公開鍵の受け渡し、Ko-fi 購入後に送る手順、失効）：`docs/supporter-ops.md`。
+評価協力の録音の受領・保管・削除：`docs/eval-data-policy.md`。プライバシーポリシーの草案：`docs/privacy-policy-draft.md`。
 設計の判断：`docs/decisions.md`（創設サポーター）。
 
 ## 判定のしくみ（`src/judge.js`）

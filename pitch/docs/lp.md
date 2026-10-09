@@ -34,7 +34,7 @@ Pitch listens to you and answers one question precisely: **where does your pitch
 - **Mora-level feedback, not a waveform to squint at.** Every word is split into its morae, high and low marked.
 - **All four accent types.** Flat (heiban), head-high (atamadaka), mid-high (nakadaka), tail-high (odaka).
 - **Minimal pairs built in.** 箸・橋・端, 雨・飴, 花・鼻, 神・紙・髪 and more.
-- **Private by design.** Your voice is analysed in your browser. Recordings never leave your device.
+- **Private by design.** Your voice is analysed in your browser. Recordings never leave your device unless you export and send them yourself.
 - **Honest sources.** Accent data from UniDic (NINJAL). Pitch tracking with open-source, commercially licensed tools.
 
 ## Who it's for

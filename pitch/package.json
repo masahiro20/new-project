@@ -11,6 +11,7 @@
     "serve:site": "node scripts/serve.mjs 5174 --root site"
   },
   "devDependencies": {
+    "@noble/ed25519": "2.3.0",
     "esbuild": "0.25.10",
     "onnxruntime-node": "1.30.0",
     "onnxruntime-web": "1.30.0",

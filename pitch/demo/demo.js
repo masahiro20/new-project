@@ -514,4 +514,4 @@ entitlement.subscribe(() => {
   myLists.refresh();
   progress.refresh();
 });
-entitlement.load();
+entitlement.load().then(() => supporterPanel.useIncoming()); // 保存済みのキーを検証し直し、#key=… で渡されたキーがあれば確かめる

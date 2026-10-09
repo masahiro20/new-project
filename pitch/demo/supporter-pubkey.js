@@ -1,14 +1,19 @@
-// 創設サポーターキーの公開鍵と、取り消したキーの通し番号。
+// 創設サポーターキーの公開鍵の一覧、外した kid、失効した lid（docs/supporter-ops.md）。
 //
-// scripts/supporter-key.mjs の `init` がこのファイルを書き、`revoke` が取り消しリストを更新します。
-// 秘密鍵はリポジトリの外にだけ置きます（docs/supporter-ops.md）。
+// このファイルには公開してよい値だけを置きます。秘密鍵はオーナーの端末の外に出しません
+// （このリポジトリにもセッションにも置かない。本部の決定 d32）。
+// build-demo は本番のビルドでこの一覧を validateKeyList() で確かめ、指紋（SHA-256）を表示します。
+// SUPPORTER_KEYS_SHA256=<オーナーから受け取った指紋> を付けてビルドすると、一致しないときに失敗します。
 //
-// SUPPORTER_PUBLIC_KEY = null は「未設定」：キー入力欄は「準備中」と表示し、どのキーも
-// 何も解除しません（fail closed）。本番の鍵ペアは、秘密鍵を誰が持つかが決まるまで作りません。
-// TODO(オーナー・本部): 秘密鍵の保管者を決めてから `init` で本番の鍵ペアを作る。
+// SUPPORTER_KEYS が空のあいだは「未設定」：キー入力欄は「準備中」と表示し、どのキーも何も解除しません
+// （fail closed）。本番の鍵は販売開始時（専用のオリジンに移ったあと）にオーナーの端末で作ります。
+// kid 240〜254 はテスト用の鍵だけが使う範囲で、ここには入れられません。
 
-/** ECDSA P-256 の公開鍵（JWK: { kty: 'EC', crv: 'P-256', x, y }）。null = 未設定。 */
-export const SUPPORTER_PUBLIC_KEY = null;
+/** Ed25519 の公開鍵の一覧：[{ kid: 1〜239, pub: '<32バイトの16進・64文字>', added: 'YYYY-MM-DD' }]。空 = 未設定。 */
+export const SUPPORTER_KEYS = [];
 
-/** 取り消したキーの通し番号（返金・不正な共有など）。 */
-export const REVOKED_SERIALS = [];
+/** 外した kid（署名鍵が漏れたなど）。この kid のキーは使えず、出し直しの案内を出す。公開鍵は SUPPORTER_KEYS から消す。 */
+export const RETIRED_KIDS = [];
+
+/** 失効した lid（返金・流出）。16バイトの16進（32文字）。各リリースに埋め込む。 */
+export const REVOKED_LIDS = [];

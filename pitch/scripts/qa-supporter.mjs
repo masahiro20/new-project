@@ -2,11 +2,15 @@
 //
 //   node scripts/qa-supporter.mjs --out <scratch のフォルダ>
 //
-// 1. テスト用の鍵ペアを --out の中に作り（scripts/supporter-key.mjs init）、テストキーを発行する。
-// 2. テスト用の公開鍵を差し込んだページ（SUPPORTER_PUBLIC_KEY 差し替え）と、本番と同じページ（未設定）を
+// 1. テスト用の鍵ペア（Ed25519、テスト用の kid）を --out の中に作り（scripts/supporter-key.mjs test-init）、
+//    テストキーを発行する。
+// 2. テスト用の公開鍵を差し込んだページ（SUPPORTER_PUBKEY で一覧を差し替え）と、本番と同じページ（未設定）を
 //    --out の中にビルドする。dist/ と site/ には書かない（書こうとすると build-demo が拒否することも確認）。
 // 3. テスト用のページ：無料で20語判定 → 21語目がブロック → テストキーで解除 → 無制限・単語リスト・
 //    全範囲の Anki・全部の最小対・全期間の記録 → 再読み込みでも解除のまま → キー削除で無料に戻る。
+//    #key=… のリンクで解除し、URL からキーが消えること。「解除済み」の印だけでは解除されないこと。
+//    WebCrypto の Ed25519 を無効にしたページでも解除できること（純 JS の経路）。
+//    キーの文字列がコンソール・画面の文字に出ないこと。
 // 4. 本番のページ：「準備中」と表示し、有効なテストキーでも何も解除しない（fail closed）。
 // 5. dist/pitch-demo.html と site/app/index.html にテスト用の公開鍵が入っていないこと。
 import { mkdirSync, readFileSync, writeFileSync, existsSync, rmSync } from 'node:fs';
@@ -32,11 +36,13 @@ const record = (id, check, ok, detail = '') => { results.push({ id, check, ok, d
 const keyDir = join(outDir, 'keys');
 rmSync(keyDir, { recursive: true, force: true });
 const pubPath = join(keyDir, 'test-pubkey.js');
-const privPath = join(keyDir, 'private', 'test-key.pem');
-node('scripts/supporter-key.mjs', ['init', '--key', privPath, '--pubkey-out', pubPath]);
-const testKey = node('scripts/supporter-key.mjs', ['issue', '--key', privPath, '--serial', '1', '--pubkey', pubPath]).trim();
-const testX = /"x":"([^"]+)"/.exec(readFileSync(pubPath, 'utf8'))[1];
-record('keys', 'テスト鍵ペアを scratch に作成・キーを発行', /^PITCH-/.test(testKey), testKey.slice(0, 24) + '…');
+const seedPath = join(keyDir, 'test-seed.json');
+node('scripts/supporter-key.mjs', ['test-init', '--out', keyDir]);
+const testKey = node('scripts/supporter-key.mjs', ['test-issue', '--seed', seedPath, '--pubkey', pubPath]).trim();
+const testX = /"pub":"([0-9a-f]{64})"/.exec(readFileSync(pubPath, 'utf8'))[1];
+const keyBody = testKey.replace(/-/g, '').slice('PITCH1'.length);
+const leaked = (text) => text.includes(keyBody.slice(0, 24)) || text.includes(testKey.slice(7, 30));
+record('keys', 'テスト鍵ペア（Ed25519・テスト用の kid）を scratch に作成・キーを発行', /^PITCH1-/.test(testKey), testKey.slice(0, 16) + '…');
 
 // ---------------------------------------------------------------- 2. ビルド
 const testHtml = join(outDir, 'pitch-supporter-test.html');
@@ -91,8 +97,8 @@ function wrap(htmlPath) {
 
 async function openPage(url, context) {
   const page = await context.newPage();
-  const log = { errors: [], requests: [] };
-  page.on('console', (m) => { if (m.type() === 'error') log.errors.push(m.text()); });
+  const log = { errors: [], requests: [], console: [] };
+  page.on('console', (m) => { log.console.push(m.text()); if (m.type() === 'error') log.errors.push(m.text()); });
   page.on('pageerror', (e) => log.errors.push(`pageerror: ${e.message}`));
   context.on('request', (r) => log.requests.push(r.url()));
   await context.route(/^https?:/, (route) => route.abort());
@@ -178,10 +184,11 @@ const openScopes = async (page) => (await ankiScopes(page)).filter((o) => !o.dis
   await page.click('#sup-activate');
   await page.waitForFunction(() => window.__supporter.status === 'supporter', null, { timeout: 10000 }).catch(() => {});
   s = await sup(page);
-  record(L, 'テストキー（小文字・改行入り）で解除', s.status === 'supporter' && s.serial === 1, `${JSON.stringify(s)} msg=${await page.textContent('#sup-msg')}`);
-  record(L, '解除状態の表示とキー削除ボタン', (await page.textContent('#sup-status')).includes('解除済み') && await page.isVisible('#sup-remove'));
-  const stored = await page.evaluate(() => localStorage.getItem('pitch-supporter-key'));
-  record(L, '検証済みのキーを localStorage に保存（表示形）', stored === testKey);
+  record(L, 'テストキー（小文字・改行入り）で解除', s.status === 'supporter' && /^#[0-9A-Z]{4}$/.test(s.short ?? ''), `${JSON.stringify(s)} msg=${await page.textContent('#sup-msg')}`);
+  record(L, '解除状態の表示（サポーター #XXXX の短い表示）とキー削除ボタン', (await page.textContent('#sup-status')).includes(`サポーター ${s.short}`) && await page.isVisible('#sup-remove') && await page.isVisible('#sup-keep-note'), await page.textContent('#sup-status'));
+  const stored = await page.evaluate(() => ({ v1: localStorage.getItem('pitch:supporter:v1'), keys: Object.keys(localStorage).filter((k) => /supporter/.test(k)) }));
+  record(L, '検証済みのキーの文字列だけを localStorage の pitch:supporter:v1 に保存', stored.v1 === testKey && stored.keys.length === 1, JSON.stringify(stored.keys));
+  record(L, 'キーの文字列が画面の文字・入力欄・QA 用の状態に残らない', !leaked(await page.evaluate(() => document.body.innerText + document.querySelector('#sup-key').value + JSON.stringify(window.__supporter))));
 
   const r21b = await judgeFile(page, ids[20]);
   const r22 = await judgeFile(page, ids[21]);
@@ -233,16 +240,72 @@ const openScopes = async (page) => (await ankiScopes(page)).filter((o) => !o.dis
   // キーを削除 → 無料に戻る
   await page.click('#sup-remove');
   s = await sup(page);
-  record(L, 'キー削除で無料に戻る', s.status === 'free' && (await page.evaluate(() => localStorage.getItem('pitch-supporter-key'))) === null, JSON.stringify(s));
+  record(L, 'キー削除で無料に戻る', s.status === 'free' && (await page.evaluate(() => localStorage.getItem('pitch:supporter:v1'))) === null, JSON.stringify(s));
   const r23 = await judgeFile(page, ids[22]);
   record(L, '削除後：新しい語はまたブロック（今日の数は残る）', r23.state === 'limit', JSON.stringify(r23).slice(0, 120));
   record(L, '削除後：Anki は「不合格だった単語」だけ・リストは使えない', JSON.stringify(await openScopes(page)) === '["failed"]' && await page.isVisible('#lists-locked'));
   await page.selectOption('#pair-select', pairs[10]);
   record(L, '削除後：6組目以降の聞き分けは使えない', !(await page.isEnabled('#drill-play')));
 
+  // 「解除済み」の印だけを書いても解除されない
+  await page.evaluate(() => { localStorage.setItem('pitch:supporter:v1', 'true'); localStorage.setItem('pitch:supporter:unlocked', '1'); });
+  await page.reload();
+  await page.waitForFunction(() => window.__supporter && window.__pitchLast, null, { timeout: 60000 });
+  await page.waitForTimeout(300);
+  s = await sup(page);
+  record(L, 'localStorage に「解除済み」の印だけを書いても解除されない', s.status === 'free', JSON.stringify(s));
+  await page.evaluate(() => { localStorage.removeItem('pitch:supporter:v1'); localStorage.removeItem('pitch:supporter:unlocked'); });
+
   record(L, 'コンソールエラーなし', log.errors.length === 0, log.errors.slice(0, 3).join(' | '));
+  record(L, 'コンソールにキーを出さない', !leaked(log.console.join('\n')));
   const remote = log.requests.filter((u) => !/^(file|data|blob):/.test(u));
   record(L, '外部への通信なし', remote.length === 0, remote.slice(0, 3).join(', '));
+  await context.close();
+}
+
+// ---------------------------------------------------------------- 3b. #key=… のリンク・WebCrypto の Ed25519 なし
+{
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const url = `${wrap(testHtml)}#key=${encodeURIComponent(testKey)}`;
+  const { page, log } = await openPage(url, context);
+  const L = 'link';
+  await page.waitForFunction(() => window.__supporter?.status === 'supporter', null, { timeout: 15000 }).catch(() => {});
+  const s = await sup(page);
+  const href = await page.evaluate(() => location.href);
+  record(L, '#key=… で開くと解除される', s.status === 'supporter', JSON.stringify(s));
+  record(L, '読んだキーは URL から消える（履歴にも残さない）', !href.includes('#key=') && !leaked(href) && !(await page.evaluate(() => location.hash)), href.slice(-40));
+  const len = await page.evaluate(() => history.length);
+  const plain = await context.newPage();
+  await plain.goto(wrap(testHtml));
+  const base = await plain.evaluate(() => history.length); // ハッシュなしで開いたときと同じ（about:blank の分を含む）
+  record(L, '履歴を増やさない（replaceState）', len === base, `history.length=${len} (plain ${base})`);
+  record(L, 'コンソールにキーを出さない', !leaked(log.console.join('\n')) && log.errors.length === 0, log.errors.slice(0, 2).join(' | '));
+  await context.close();
+}
+{
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  // WebCrypto の Ed25519 を無効にする（古いブラウザの代わり）。SHA-512 などはそのまま
+  await context.addInitScript(() => {
+    const s = crypto.subtle;
+    const orig = s.importKey.bind(s);
+    s.importKey = (fmt, data, alg, ...rest) => {
+      if ((alg?.name ?? alg) === 'Ed25519') return Promise.reject(new DOMException('Unrecognized name.', 'NotSupportedError'));
+      return orig(fmt, data, alg, ...rest);
+    };
+    window.__noEd25519 = true;
+  });
+  const { page, log } = await openPage(wrap(testHtml), context);
+  const L = 'noEd25519';
+  const bad = testKey.slice(0, 30) + (testKey[30] === 'A' ? 'B' : 'A') + testKey.slice(31);
+  await page.fill('#sup-key', bad);
+  await page.click('#sup-activate');
+  await page.waitForFunction(() => document.querySelector('#sup-msg').dataset.kind === 'ng');
+  record(L, 'Ed25519 なし：改ざんしたキーは通らない', (await sup(page)).status === 'free');
+  await page.fill('#sup-key', testKey);
+  await page.click('#sup-activate');
+  await page.waitForFunction(() => window.__supporter.status === 'supporter', null, { timeout: 15000 }).catch(() => {});
+  record(L, 'Ed25519 なし：純 JS の経路で解除できる', (await sup(page)).status === 'supporter' && (await page.evaluate(() => window.__noEd25519)) === true, await page.textContent('#sup-msg'));
+  record(L, 'コンソールエラーなし', log.errors.length === 0, log.errors.slice(0, 2).join(' | '));
   await context.close();
 }
 
@@ -263,13 +326,13 @@ const openScopes = async (page) => (await ankiScopes(page)).filter((o) => !o.dis
   s = await sup(page);
   record(L, '有効なテストキーを入れても解除しない（fail closed）', s.status === 'unconfigured' && (await page.textContent('#sup-msg')).includes('準備中'), await page.textContent('#sup-msg'));
   // 保存済みのキーがあっても
-  await page.evaluate((k) => localStorage.setItem('pitch-supporter-key', k), testKey);
+  await page.evaluate((k) => localStorage.setItem('pitch:supporter:v1', k), testKey);
   await page.reload();
   await page.waitForFunction(() => window.__supporter && window.__pitchLast, null, { timeout: 60000 });
   await page.waitForTimeout(300);
   s = await sup(page);
   // 販売開始前（freeLimitsActive = false）は全員がすべて使えるので、キーが「受け付けられていない」ことだけを確かめる
-  record(L, '保存済みのテストキーでも受け付けない（サポーター扱いにならない）', s.status === 'unconfigured' && !s.serial, JSON.stringify(s));
+  record(L, '保存済みのテストキーでも受け付けない（サポーター扱いにならない）', s.status === 'unconfigured' && !s.short, JSON.stringify(s));
   // 無料枠はそのまま（今日20語使った状態から）
   const ids = (await page.$$eval('#word-select option', (os) => os.map((o) => o.value))).filter((id) => !inPairs.has(id));
   await page.evaluate((words) => {

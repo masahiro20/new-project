@@ -16,7 +16,13 @@ copyFileSync(nm('pitchy/LICENSE'), out('pitchy.LICENSE'));
 // fft.js ships CommonJS only — wrap it as an ES module.
 const fft = readFileSync(nm('fft.js/lib/fft.js'), 'utf8');
 writeFileSync(out('fft.js'), `// fft.js ${JSON.parse(readFileSync(nm('fft.js/package.json'))).version} (MIT, Fedor Indutny), wrapped as ESM by scripts/vendor.mjs\nconst module = { exports: {} };\n${fft}\nexport default module.exports;\n`);
-console.log('vendored pitchy + fft.js');
+// @noble/ed25519（創設サポーターキーの検証の予備の経路。WebCrypto の Ed25519 が使えないブラウザ用）。
+// 版は package.json で固定（2.3.0、MIT）。ES module のまま置き、build-demo の esbuild がページに入れる。
+const noble = JSON.parse(readFileSync(nm('@noble/ed25519/package.json'), 'utf8'));
+if (noble.version !== '2.3.0' || noble.license !== 'MIT') throw new Error(`@noble/ed25519: expected 2.3.0 (MIT), got ${noble.version} (${noble.license})`);
+writeFileSync(out('noble-ed25519.js'), `// @noble/ed25519 ${noble.version} (MIT, Paul Miller) — copied unchanged by scripts/vendor.mjs; licence: vendor/noble-ed25519.LICENSE\n${readFileSync(nm('@noble/ed25519/index.js'), 'utf8')}`);
+copyFileSync(nm('@noble/ed25519/LICENSE'), out('noble-ed25519.LICENSE'));
+console.log('vendored pitchy + fft.js + @noble/ed25519');
 writeFileSync(out('fft.LICENSE'), `fft.js — https://github.com/indutny/fft.js
 License: MIT (as declared in its package.json; the npm package ships no LICENSE file)
 
