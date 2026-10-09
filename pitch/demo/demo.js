@@ -394,11 +394,13 @@ async function runFile(file) {
   await nextFrame();
   try {
     const buf = await file.arrayBuffer();
-    const { samples, rate, duration } = await decodeAudioFile(buf);
+    const { samples, rate, duration, decoder } = await decodeAudioFile(buf);
     if (id !== runId) return;
     const u = pickUtterance(samples, rate, { maxSec: 4 });
-    $('source').textContent = `${file.name}（全体 ${duration.toFixed(1)} 秒のうち ${u.start.toFixed(1)}–${u.end.toFixed(1)} 秒を判定）`;
-    await analyze(u.samples, rate, w, { kind: 'file', name: file.name, duration, start: u.start, end: u.end }, u.start);
+    // decoder 'js-aac' / 'js-alac': the browser could not decode the m4a; the built-in decoder did.
+    const via = decoder && decoder !== 'native' ? '・内蔵デコーダで読み込み' : '';
+    $('source').textContent = `${file.name}（全体 ${duration.toFixed(1)} 秒のうち ${u.start.toFixed(1)}–${u.end.toFixed(1)} 秒を判定${via}）`;
+    await analyze(u.samples, rate, w, { kind: 'file', name: file.name, duration, start: u.start, end: u.end, decoder }, u.start);
   } catch (e) {
     console.warn(e);
     if (id !== runId) return;

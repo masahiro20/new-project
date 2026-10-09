@@ -1,6 +1,9 @@
 // Audio-file decoding for the demo page, plus utterance picking.
 // mixToMono and pickUtterance are pure (Node-testable); decodeAudioFile needs a
-// browser AudioContext. Nothing here touches the network: audio stays in the page.
+// browser AudioContext (with a pure-JS AAC / ALAC fallback for .m4a, see ./m4a/).
+// Nothing here touches the network: audio stays in the page.
+
+import { decodeM4A, looksLikeMp4 } from './m4a/index.js';
 
 /** Average any number of channels into one Float32Array. */
 export function mixToMono(channels) {
@@ -134,15 +137,10 @@ function makeDecodeContext() {
   return null;
 }
 
-/**
- * Decode an audio file (browser only) to mono samples.
- * @param {ArrayBuffer} arrayBuffer file contents
- * @returns {Promise<{ samples: Float32Array, rate: number, duration: number }>}
- */
-export async function decodeAudioFile(arrayBuffer) {
-  if (!arrayBuffer || arrayBuffer.byteLength === 0) throw new Error('ファイルが空です');
+/** Native decode via the browser's decodeAudioData → { samples, rate }. */
+async function decodeNative(arrayBuffer) {
   const ctx = makeDecodeContext();
-  if (!ctx) throw new Error('このブラウザは音声ファイルの読み込みに対応していません');
+  if (!ctx) throw new Error('no AudioContext');
   try {
     // decodeAudioData detaches the buffer; pass a copy so callers keep theirs.
     const copy = arrayBuffer.slice(0);
@@ -159,13 +157,41 @@ export async function decodeAudioFile(arrayBuffer) {
     if (!buf || !buf.length) throw new Error('empty');
     const channels = [];
     for (let c = 0; c < buf.numberOfChannels; c++) channels.push(buf.getChannelData(c));
-    const samples = mixToMono(channels);
-    return { samples, rate: buf.sampleRate, duration: samples.length / buf.sampleRate };
-  } catch (e) {
-    const err = new Error(DECODE_ERROR);
-    err.cause = e;
-    throw err;
+    return { samples: mixToMono(channels), rate: buf.sampleRate };
   } finally {
     try { const r = ctx.close && ctx.close(); if (r && r.catch) r.catch(() => {}); } catch { /* ignore */ }
   }
+}
+
+/**
+ * Decode an audio file (browser only) to mono samples.
+ * Tries the browser's decoder first; if that fails and the file is MP4/M4A
+ * (iPhone voice memos), falls back to the built-in pure-JS decoder (AAC-LC, or
+ * Apple Lossless), so m4a works even where the browser has no AAC codec (e.g.
+ * open-source Chromium).
+ * @param {ArrayBuffer} arrayBuffer file contents
+ * @returns {Promise<{ samples: Float32Array, rate: number, duration: number, decoder: 'native'|'js-aac'|'js-alac' }>}
+ */
+export async function decodeAudioFile(arrayBuffer) {
+  if (!arrayBuffer || arrayBuffer.byteLength === 0) throw new Error('ファイルが空です');
+  const isMp4 = looksLikeMp4(new Uint8Array(arrayBuffer, 0, Math.min(16, arrayBuffer.byteLength)));
+  let nativeError;
+  try {
+    const { samples, rate } = await decodeNative(arrayBuffer);
+    return { samples, rate, duration: samples.length / rate, decoder: 'native' };
+  } catch (e) {
+    nativeError = e;
+  }
+  if (isMp4) {
+    try {
+      const { samples, rate, codec } = decodeM4A(arrayBuffer);
+      if (samples.length) return { samples, rate, duration: samples.length / rate, decoder: codec === 'alac' ? 'js-alac' : 'js-aac' };
+    } catch (e) {
+      console.warn('built-in m4a decoder:', e);
+    }
+  }
+  if (nativeError && nativeError.message === 'no AudioContext') throw new Error('このブラウザは音声ファイルの読み込みに対応していません');
+  const err = new Error(DECODE_ERROR);
+  err.cause = nativeError;
+  throw err;
 }

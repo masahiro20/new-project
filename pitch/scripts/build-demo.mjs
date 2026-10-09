@@ -92,6 +92,7 @@ const licences = [
   ['pitchy 4.1.0 (MIT License)', 'vendor/pitchy.LICENSE'],
   ['fft.js 4.0.4 (MIT License)', 'vendor/fft.LICENSE'],
   ['UniDic 2.1.2 — accent data (BSD License)', 'data/UNIDIC-BSD-LICENSE'],
+  ['symphonia-codec-aac 0.5.4 — AAC tables in the m4a decoder (Mozilla Public License 2.0)', 'vendor/symphonia-aac-tables.LICENSE'],
 ];
 let licenceHtml = '';
 for (const [title, file] of licences) {

@@ -1,7 +1,8 @@
 // Minimal MP4 / M4A (ISO BMFF, QuickTime) demuxer for the first audio track.
-// Reads just what an AAC decoder needs: the codec (stsd → mp4a → esds →
-// AudioSpecificConfig), the sample table (stsz, stsc, stco/co64) and the edit
-// list (edts/elst, which carries the encoder priming delay). The moov box may
+// Reads just what the decoders need: the codec config (stsd → mp4a → esds →
+// AudioSpecificConfig, or stsd → alac → ALACSpecificConfig), the sample table
+// (stsz, stsc, stco/co64) and the edit list (edts/elst, which carries the
+// encoder priming delay). The moov box may
 // come before or after mdat (`-movflags +faststart` or not): the whole file is
 // in memory, so order does not matter. Fragmented MP4 (moof) is not supported.
 // Written from ISO/IEC 14496-12 / 14496-14; no third-party code.
@@ -95,7 +96,7 @@ function findDeep(u8, dv, start, end, type, depth = 3) {
 
 /**
  * Parse an audio sample entry (mp4a / alac / …) inside stsd.
- * @returns {{ codec:string, channels:number, rate:number, objectType?:number, asc?:Uint8Array }}
+ * @returns {{ codec:string, channels:number, rate:number, objectType?:number, asc?:Uint8Array, cookie?:Uint8Array }}
  */
 function parseSampleEntry(u8, dv, entry) {
   const codec = entry.type;
@@ -113,6 +114,11 @@ function parseSampleEntry(u8, dv, entry) {
     const esds = findDeep(u8, dv, kids, entry.end, 'esds');
     if (!esds) throw new Error('m4a: mp4a track without esds');
     Object.assign(info, parseEsds(u8, esds.body + 4, esds.end));
+  } else if (codec === 'alac') {
+    // Inner 'alac' full box: version/flags(4) + 24-byte ALACSpecificConfig.
+    const cfg = findDeep(u8, dv, kids, entry.end, 'alac');
+    if (!cfg || cfg.end - cfg.body < 28) throw new Error('m4a: alac track without config');
+    info.cookie = u8.slice(cfg.body + 4, cfg.body + 28);
   }
   return info;
 }
@@ -120,7 +126,7 @@ function parseSampleEntry(u8, dv, entry) {
 /**
  * Demux the first audio track of an MP4/M4A file.
  * @param {ArrayBuffer|Uint8Array} buffer
- * @returns {{ codec:string, objectType?:number, asc?:Uint8Array, channels:number, rate:number,
+ * @returns {{ codec:string, objectType?:number, asc?:Uint8Array, cookie?:Uint8Array, channels:number, rate:number,
  *   timescale:number, frames:Uint8Array[], skip:number, duration:number|null }}
  *   frames: the encoded access units in decode order; skip/duration: edit-list
  *   trim in media-timescale units (duration null = no edit list).
@@ -195,6 +201,8 @@ export function demuxMp4(buffer) {
         off = end;
       }
     }
+
+    if (!frames.length && child(top, 'moof')) throw new Error('m4a: fragmented MP4 is not supported');
 
     // Edit list: first non-empty edit gives the priming skip and the playable length.
     let skip = 0, duration = null;
