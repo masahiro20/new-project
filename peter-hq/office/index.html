@@ -18,6 +18,9 @@ header{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;justify-conte
 .stuck{display:grid;grid-template-columns:auto auto;align-items:center;gap:0 12px;padding:6px 16px 6px 12px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
 .stuck b{font-family:var(--display);font-weight:400;font-size:clamp(2rem,6vw,2.8rem);line-height:1;grid-row:span 2;font-variant-numeric:tabular-nums;color:var(--muted)}
 .stuck b.hot{color:var(--wait)}.stuck b.ok{color:var(--live)}
+.stuck.rev b{color:var(--gold)}
+.team .hd .livel{font-size:.72rem;font-weight:700;padding:1px 8px;border-radius:4px;background:#e5172f;color:#fff;text-decoration:none;white-space:nowrap}
+.team .hd .livel:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .stuck .lb1{font-weight:700;font-size:.92rem}
 .stuck .lb2{font-family:var(--mono);font-size:.72rem;color:var(--muted);font-variant-numeric:tabular-nums}
 .hdr-right{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
@@ -170,6 +173,7 @@ td a{color:var(--accent)}
       <div class="src" id="src">データ：接続中…</div>
     </div>
     <div class="hdr-right">
+      <div class="stuck rev" aria-live="polite"><b id="revN">—</b><span class="lb1">収益（今月）</span><span class="lb2" id="revSub">確認中</span></div>
       <div class="stuck" aria-live="polite"><b id="stuckN">—</b><span class="lb1">止まっているチーム</span><span class="lb2" id="stuckSub">確認中</span></div>
       <button class="btn primary" type="button" id="presentBtn"><i class="tri"></i>プレゼンモード</button>
     </div>
@@ -344,6 +348,16 @@ function reasonOf(tm){const s=S[tm.code],pend=pendingFor(tm.code);
   const peterIsSelf=tm.code==="HQ";
   const why=s.state==="blocked"?(s.needs||"セッションが返事を待っている"):s.state==="failed"?"エラーで止まっている":peterIsSelf?"次の巡回まで待機":"任務を終えて次の指示待ち";
   return{k:"peter",label:peterIsSelf?"巡回待ち":"ピーター待ち",pend,detail:why};}
+function liveOf(code){const pj=PROJECTS[code.toLowerCase()];if(!pj||!/公開中/.test(String(pj.stage||"")))return null;
+  const url=pj.liveUrl||pj.url||((pj.deliverables||[]).find(d=>d&&d.url)||{}).url||null;return{url,label:((pj.deliverables||[]).find(d=>d&&d.url===url)||{}).label||"公開ページ"};}
+function openLive(code){const L=liveOf(code);if(!L||!L.url)return;const a=document.createElement("a");a.href=L.url;a.target="_blank";a.rel="noopener";document.body.append(a);a.click();a.remove();}
+const yen=n=>"¥"+Math.round(Number(n)||0).toLocaleString("ja-JP");
+let REVENUE={state:"loading"};
+function renderRevenue(){const b=document.getElementById("revN"),sub=document.getElementById("revSub");if(!b)return;
+  if(REVENUE.state==="loading"){b.textContent="—";sub.textContent="確認中";return;}
+  if(REVENUE.state==="error"){b.textContent="—";sub.textContent="収益データを読み込めません";return;}
+  if(REVENUE.state==="none"){b.textContent="¥0";sub.textContent="まだ売上なし";return;}
+  const v=REVENUE.v;b.textContent=yen(v.monthJpy);sub.textContent="累計 "+yen(v.totalJpy)+(v.updatedAt?" ・ "+rel(v.updatedAt)+"に更新":"")+(!(Number(v.totalJpy)>0)?"（まだ売上なし）":"");}
 function stColor(st){return st==="working"?"#3ee08f":st==="blocked"?"#ffb547":st==="failed"?"#ff6b6b":"#8d97b2";}
 function fromSession(s){
   const c=s&&(s.ccr||s);if(!c||!c.id)return null;
@@ -651,7 +665,13 @@ function initWorld(){
       nameS.scale.set(1.1,.39,1);nameS.position.y=2.15;p.add(nameS);
       people.push({p,u:p.userData,desk,team:tm,member:m,lead:!!m.lead,i:people.length,a,rs,seat:seat.clone(),seatYaw:p.rotation.y,pod,center,mode:"sit",next:2+Math.random()*10,until:0,path:null,pi:0,yaw:p.rotation.y,nameS,walkPh:0,visitors:0});
     });
-    pods.push({tm,pod,ring,inner,pl,beam,ringPulse,core,ang,px,pz,center,holo,emitter,padGlow,rad});
+    const lc=document.createElement("canvas");lc.width=256;lc.height=96;{const g=lc.getContext("2d");g.fillStyle="rgba(229,23,47,.92)";g.beginPath();if(g.roundRect)g.roundRect(4,4,248,88,44);else g.rect(4,4,248,88);g.fill();g.strokeStyle="#ffd0d6";g.lineWidth=4;g.stroke();
+      g.fillStyle="#fff";g.beginPath();g.arc(60,48,14,0,7);g.fill();g.font="700 54px 'JetBrains Mono', monospace";g.textBaseline="middle";g.fillText("LIVE",88,52);}
+    const liveTex=new THREE.CanvasTexture(lc);liveTex.encoding=THREE.sRGBEncoding;
+    const live=new THREE.Sprite(new THREE.SpriteMaterial({map:liveTex,transparent:true,depthWrite:false,toneMapped:false}));live.scale.set(3.6,1.35,1);live.position.y=holo.position.y+hh/2+1.4;live.visible=false;live.userData={live:tm.code};pod.add(live);
+    const liveGlow=glowSprite(0xe5172f,6,.0);liveGlow.position.copy(live.position);pod.add(liveGlow);
+    const livePillar=addBeam(pod,0,.25,0,live.position.y-.7,.18,.18,0xe5172f,.5);livePillar.visible=false;
+    pods.push({tm,pod,ring,inner,pl,beam,ringPulse,core,ang,px,pz,center,holo,emitter,padGlow,rad,live,liveGlow,livePillar});
   });
   const leaderOf={};for(const q of people)if(q.lead)leaderOf[q.team.code]=q;
 
@@ -699,7 +719,8 @@ function initWorld(){
   el3.addEventListener("wheel",e=>{e.preventDefault();cam.g.dist=Math.max(7,Math.min(36,cam.g.dist*(1+Math.sign(e.deltaY)*.1)));touch();},{passive:false});
   el3.addEventListener("dblclick",()=>focusTeam(null));
   const ray=new THREE.Raycaster(),mv=new THREE.Vector2();
-  function pick(e){const r=el3.getBoundingClientRect();mv.set(((e.clientX-r.left)/r.width)*2-1,-((e.clientY-r.top)/r.height)*2+1);ray.setFromCamera(mv,camera);const hit=ray.intersectObjects(pickables,false)[0];
+  function pick(e){const r=el3.getBoundingClientRect();mv.set(((e.clientX-r.left)/r.width)*2-1,-((e.clientY-r.top)/r.height)*2+1);ray.setFromCamera(mv,camera);const lv=ray.intersectObjects(pods.map(p=>p.live).filter(x=>x.visible),false)[0];if(lv){openLive(lv.object.userData.live);return;}
+    const hit=ray.intersectObjects(pickables,false)[0];
     if(hit){const d=hit.object.userData;showProfile(d.team,d.member);focusTeam(d.team.code,true);}}
   function teamShot(pd,u,tight){const sw=pd.center?.9:.7;return[pd.center?-.9+u*sw:pd.ang+(-sw/2+u*sw),(pd.center?.32:.36)-u*.06,(tight?8.5:11)-u*1.5+(pd.center?5:0),pd.px,pd.center?2.6:1.7,pd.pz];}
   function focusTeam(code,keepDrawer){touch();if(!code){goal(cam.az,.48,33,0,2,0);if(!keepDrawer)hideProfile();return;}
@@ -829,6 +850,7 @@ function initWorld(){
     halo.rotation.y+=dt*.02*sp;for(const a of antenna)a.material.opacity=.5+.5*Math.max(0,Math.sin(t*2+a.position.x));
     let workingN=0;
     for(const pd of pods){const st=S[pd.tm.code].state,on=st==="working";if(on&&!pd.center)workingN++;
+      if(pd.live.visible){const k=1+.06*Math.sin(t*3);pd.live.scale.set(3.6*k,1.35*k,1);pd.liveGlow.material.opacity=.45+.25*Math.sin(t*3);}
       pd.ring.material.color.set(st==="blocked"?0xffb547:pd.tm.color);
       pd.pl.intensity=((on?.95:st==="blocked"?.8:.4)+(on?.15*Math.sin(t*3*sp):0))*(pd.center?.6:1);
       if(pd.beam)pd.beam.material.uniforms.uStr.value=on?.26+.05*Math.sin(t*2*sp):.09;
@@ -862,7 +884,7 @@ function initWorld(){
     requestAnimationFrame(tick);
   }
   requestAnimationFrame(tick);
-  function updateSigns(){for(const pd of pods)drawHolo(pd);}
+  function updateSigns(){for(const pd of pods){drawHolo(pd);const L=liveOf(pd.tm.code);pd.live.visible=!!L;pd.liveGlow.visible=!!L;pd.livePillar.visible=!!L;if(!L)pd.liveGlow.material.opacity=0;}}
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{updateSigns();for(const q of people)q.nameS.userData.draw([{t:q.member.name,f:"700 30px 'Zen Kaku Gothic New', sans-serif"},{t:q.member.role,f:"500 22px 'Zen Kaku Gothic New', sans-serif",c:"#a9b3cc"}],q.team.color);});
   // presentation director (driven from outside)
   function setPresent(p){present=p;if(!p){cam.mode="auto";cam.queue=[];cam.shot=null;}}
@@ -916,6 +938,7 @@ function render(){
   for(const tm of TEAMS){const s=S[tm.code];const card=el("article","team");card.style.setProperty("--tc",tm.color);
     const hd=el("div","hd");const row=el("div","row");const dot=el("i");dot.style.cssText="width:10px;height:10px;border-radius:2px;background:"+tm.color;
     row.append(dot,el("b",null,tm.name),el("span","code",tm.code));const st=el("span","st "+s.state,ST_JA[s.state]||"—");row.append(st);hd.append(row);
+    {const L=liveOf(tm.code);if(L){let x;if(L.url){x=el("a","livel","● LIVE 公開中 ↗");x.href=L.url;x.target="_blank";x.rel="noopener";x.title=L.label+"を開く";}else x=el("span","livel","● LIVE 公開中");row.insertBefore(x,st);}}
     const why=reasonOf(tm);const wr=el("div");wr.style.cssText="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;min-width:0";wr.append(el("span","why "+why.k,why.label));if(why.k!=="work"||why.pend.length)wr.append(el("span","whyd",why.detail));if(why.k==="peter"||why.k==="unknown")wr.lastChild.style.color="var(--muted)";hd.append(wr);
     const pj=PROJECTS[tm.code.toLowerCase()];hd.append(el("div","one",tm.one+(pj&&pj.stage?" ／ "+pj.stage:"")));card.append(hd);
     const ul=el("ul");for(const m of tm.members){const li=el("li");const d=el("span","dot"+(m.lead?" lead":""));d.style.background=tm.color;d.style.opacity=m.lead?1:.75;
@@ -1043,6 +1066,7 @@ render();renderInbox();setInterval(render,30000);
   if(dbRef){
     try{const u=await window.claude.use("user");if(u&&u.can){const c=await u.can("data.write");if(c===false)canWrite=false;}}catch(e){}
     dbRef.collection("approvals").onSnapshot(snap=>{APPROVALS=snap.docs.map(d=>Object.assign({_id:d.id},d.data()));renderInbox();render();},()=>{});
+    dbRef.doc("hq/revenue").onSnapshot(sn=>{REVENUE=sn&&sn.exists?{state:"ok",v:sn.data()||{}}:{state:"none"};renderRevenue();},()=>{REVENUE={state:"error"};renderRevenue();});
     dbRef.collection("projects").onSnapshot(snap=>{PROJECTS={};snap.docs.forEach(d=>{PROJECTS[d.id]=d.data();});render();},()=>{});
     setTimeout(()=>{if(live)return;const map={working:"working",research:"working",meeting:"working",waiting:"blocked",blocked:"blocked",done:"idle",offline:"sleep"};
       const idmap={peter:"HQ",mina:"P0",forge:"P1",vega:"P2",kana:"P3",ren:"P4",atlas:"P5",hikaru:"P7",rook:"P8"};
@@ -1051,7 +1075,7 @@ render();renderInbox();setInterval(render,30000);
         if(idmap[d.id])S[idmap[d.id]]=rec;else if(memmap[d.id])MS[memmap[d.id]]=rec;}mode="report";render();},()=>{});
       dbRef.doc("hq/heartbeat").onSnapshot(s=>{if(live||!s.exists)return;const v=s.data();T.hb={last:v.at,next:v.nextAt,ok:null};render();},()=>{});
     },9000);
-  } else renderInbox();
+  } else {renderInbox();REVENUE={state:"error"};renderRevenue();}
 })();
 })();
 </script>
