@@ -20,7 +20,7 @@ const root = new URL('..', import.meta.url).pathname;
 const htmlPath = resolve(arg('--html', join(root, 'dist/pitch-demo.html')));
 const fixDir = arg('--fixtures', null) && resolve(arg('--fixtures'));
 const outDir = resolve(arg('--out', join(root, '.qa-out')));
-const EXPECTED_WORDS = Number(arg('--words', 266));
+const EXPECTED_WORDS = Number(arg('--words', 2000)); // 266 for a --lexicon 200 build
 const SAMPLE_WORDS = ['w0001', 'w0002', 'w0003', 'w0026', 'w0020'];
 mkdirSync(outDir, { recursive: true });
 
@@ -131,9 +131,11 @@ record('g', `lexicon has ${EXPECTED_WORDS} words in #word-select`, wordOpts.leng
 // #word-search filters the picker (soft check)
 try {
   await page.fill('#word-search', 'さくら');
+  await page.waitForTimeout(400); // the page debounces search input
   const visible = await page.$$eval('#word-select option', (os) => os.filter((o) => !o.hidden && o.style.display !== 'none' && !o.disabled).map((o) => o.value));
   record('search', '#word-search "さくら" narrows #word-select and keeps w0026', visible.includes('w0026') && visible.length < opts.length, `visible=${visible.length} [${visible.slice(0, 5).join(',')}]`);
   await page.fill('#word-search', '');
+  await page.waitForTimeout(400);
 } catch (e) { record('search', '#word-search usable', false, e.message.split('\n')[0]); }
 
 // (d) samples per word

@@ -8,19 +8,24 @@ import { judge, DEFAULTS as JUDGE_DEFAULTS } from '../src/judge.js';
 import { pitchPattern, accentType, TYPE_NAMES } from '../src/accent.js';
 import { synthesizeWord } from '../src/synth.js';
 import { decodeAudioFile, pickUtterance } from './decode.js';
+import { decodeLexicon, fold, wrongK, sampleSeed } from './lexicon.js';
 
 const $ = (id) => document.getElementById(id);
 const SR = 16000;
 const DEFAULT_SURFACE = '橋';
 
 // ---------- lexicon ----------
-const lex = JSON.parse($('lexicon-data').textContent);
-const words = lex.words;
+const words = decodeLexicon(JSON.parse($('lexicon-data').textContent));
+const byId = new Map(words.map((w) => [w.id, w]));
 const byKana = new Map();
 for (const w of words) {
   if (!byKana.has(w.kana)) byKana.set(w.kana, []);
   byKana.get(w.kana).push(w);
 }
+// Search keys, folded once: surface, kana (katakana queries match too), gloss.
+const keys = new Map(words.map((w) => [w, { s: fold(w.surface), k: fold(w.kana), g: w.gloss.toLowerCase() }]));
+// Famous minimal pairs / triples, offered as quick picks when the lexicon has them.
+const QUICK_PICKS = ['はし', 'あめ', 'はな', 'かみ', 'かき'];
 
 let current = words.find((w) => w.surface === DEFAULT_SURFACE) ?? words[0];
 let lastAudio = null; // { samples, rate }
@@ -61,31 +66,77 @@ const ERROR_TEXT = {
 };
 
 // ---------- word picker ----------
-function matches(w, q, t) {
-  if (t && w.type !== t) return false;
-  if (!q) return true;
-  return w.surface.includes(q) || w.kana.includes(q) || w.gloss.toLowerCase().includes(q.toLowerCase());
+/** 0 = exact, 1 = prefix, 2 = contains, -1 = no match (surface, kana, English gloss). */
+function rank(w, q) {
+  if (!q) return 2;
+  const { s, k, g } = keys.get(w);
+  if (s === q || k === q || g === q) return 0;
+  if (s.startsWith(q) || k.startsWith(q) || g.startsWith(q) || g.includes(` ${q}`)) return 1;
+  if (s.includes(q) || k.includes(q) || (q.length >= 3 && g.includes(q))) return 2; // 'a' ≠ every gloss with an a
+  return -1;
 }
 
+const nf = new Intl.NumberFormat('ja-JP');
+
 function renderSelect() {
-  const q = $('word-search').value.trim();
+  const q = fold($('word-search').value);
   const t = $('type-filter').value;
-  const list = words.filter((w) => matches(w, q, t));
+  const buckets = [[], [], []]; // exact matches first, then prefix, then the rest (lexicon order)
+  for (const w of words) {
+    if (t && w.type !== t) continue;
+    const r = rank(w, q);
+    if (r >= 0) buckets[r].push(w);
+  }
+  const list = buckets.flat();
   const sel = $('word-select');
-  sel.textContent = '';
+  const frag = document.createDocumentFragment();
   for (const w of list) {
     const o = document.createElement('option');
     o.value = w.id;
     o.textContent = `${w.surface}（${w.kana}）${w.gloss} · ${TYPE_NAMES[w.type].ja}`;
-    sel.append(o);
+    frag.append(o);
   }
+  sel.replaceChildren(frag);
   $('word-count').textContent = list.length === words.length
-    ? `${words.length} 語`
-    : `${list.length} / ${words.length} 語${list.length === 0 ? '（該当なし）' : ''}`;
+    ? `全 ${nf.format(words.length)} 語`
+    : `${nf.format(list.length)} / ${nf.format(words.length)} 語${list.length === 0 ? '（該当なし）' : ''}`;
   sel.disabled = list.length === 0;
+  for (const c of $('word-picks').children) c.setAttribute('aria-pressed', String(fold(c.dataset.kana) === q));
   if (list.length === 0) return;
   if (list.includes(current)) sel.value = current.id;
   else selectWord(list[0]);
+}
+
+let searchTimer = 0;
+function onSearch() {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(renderSelect, 150);
+}
+
+function renderPicks() {
+  const box = $('word-picks');
+  const frag = document.createDocumentFragment();
+  for (const kana of QUICK_PICKS) {
+    const group = byKana.get(kana) ?? [];
+    if (group.length < 2) continue;
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'chip';
+    b.dataset.kana = kana;
+    b.setAttribute('aria-pressed', 'false');
+    b.textContent = group.map((w) => w.surface).join('・');
+    b.title = `「${kana}」の同音語`;
+    b.addEventListener('click', () => {
+      clearTimeout(searchTimer);
+      $('word-search').value = kana;
+      $('type-filter').value = '';
+      renderSelect();
+    });
+    frag.append(b);
+  }
+  box.replaceChildren(frag);
+  box.hidden = box.children.length === 0;
+  $('word-picks-label').hidden = box.hidden;
 }
 
 function selectWord(w) {
@@ -322,21 +373,13 @@ async function analyze(samples, rate, w, source, offset = 0) {
   window.__pitchLast = { result: r, word: w, source };
 }
 
-function wrongK(w) {
-  const k0 = w.accent[0];
-  const alt = k0 === 0 ? n(w) : 0;
-  if (!w.accent.includes(alt)) return alt;
-  for (let k = 0; k <= n(w); k++) if (!w.accent.includes(k)) return k;
-  return alt;
-}
-
 async function runSample(kind) {
   const w = current;
   const k = kind === 'wrong' ? wrongK(w) : w.accent[0];
   setState('busy');
   $('source').textContent = `合成音声のサンプル（${kind === 'wrong' ? '違う型' : '正しい型'}: ${typeWithDrop(k, w)}）`;
   await nextFrame();
-  const seed = 1 + ((w.id.charCodeAt(w.id.length - 1) * 31 + k) % 997);
+  const seed = sampleSeed(w, k);
   const { audio, sampleRate } = synthesizeWord(w.morae, k, { sampleRate: SR, baseHz: 140, seed });
   await analyze(audio, sampleRate, w, { kind: 'sample', sample: kind, k });
 }
@@ -380,10 +423,11 @@ function play(samples, rate) {
 }
 
 // ---------- wiring ----------
-$('word-search').addEventListener('input', renderSelect);
+$('word-search').addEventListener('input', onSearch);
+$('word-search').addEventListener('keydown', (e) => { if (e.key === 'Enter') { clearTimeout(searchTimer); renderSelect(); } });
 $('type-filter').addEventListener('change', renderSelect);
 $('word-select').addEventListener('change', () => {
-  const w = words.find((x) => x.id === $('word-select').value);
+  const w = byId.get($('word-select').value);
   if (w) selectWord(w);
 });
 $('file').addEventListener('change', () => {
@@ -411,6 +455,7 @@ drop.addEventListener('drop', (e) => {
 window.addEventListener('dragover', (e) => e.preventDefault());
 window.addEventListener('drop', (e) => e.preventDefault());
 
+renderPicks();
 renderSelect();
 selectWord(current);
 runSample('correct');

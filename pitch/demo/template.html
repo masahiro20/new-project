@@ -60,6 +60,10 @@ input[type="search"], select { font: inherit; color: var(--ink); background: var
 #word-search { flex: 1 1 12rem; }
 #type-filter { flex: 0 1 auto; }
 #word-select { width: 100%; }
+.picks { display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { min-height: 40px; padding: 4px 12px; border-radius: 999px; font-size: .9rem; background: var(--surface); }
+.chip[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
 button { font: inherit; cursor: pointer; border-radius: 8px; min-height: 44px; padding: 8px 14px; border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); }
 button:hover { border-color: var(--accent); }
 button:disabled { opacity: .5; cursor: default; }
@@ -133,7 +137,7 @@ footer { font-size: .8rem; color: var(--muted); display: flex; flex-direction: c
     <h2 id="h-word">単語を選ぶ</h2>
     <div class="row">
       <label class="visually-hidden" for="word-search">単語を検索</label>
-      <input id="word-search" type="search" placeholder="検索: 橋・はし・bridge" autocomplete="off">
+      <input id="word-search" type="search" placeholder="検索: 橋・はし・bridge" autocomplete="off" enterkeyhint="search" aria-describedby="word-count">
       <label class="visually-hidden" for="type-filter">アクセント型で絞り込み</label>
       <select id="type-filter">
         <option value="">すべての型</option>
@@ -143,9 +147,13 @@ footer { font-size: .8rem; color: var(--muted); display: flex; flex-direction: c
         <option value="odaka">尾高型</option>
       </select>
     </div>
+    <div class="picks">
+      <span class="muted small" id="word-picks-label">よく比べる同音語:</span>
+      <div class="chips" id="word-picks" role="group" aria-labelledby="word-picks-label"></div>
+    </div>
     <label class="visually-hidden" for="word-select">単語</label>
     <select id="word-select"></select>
-    <p id="word-count" class="muted small"></p>
+    <p id="word-count" class="muted small" aria-live="polite"></p>
     <div class="word" id="word">
       <span class="surface" id="word-surface"></span>
       <span class="kana" id="word-kana"></span>

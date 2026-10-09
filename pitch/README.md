@@ -20,6 +20,27 @@ npm test
 ONNX Runtime wasm is not (`npm run vendor` recreates it). Without it the default
 pitchy engine still works; only the optional SwiftF0 engine needs it.
 
+## Single-file demo page (`dist/pitch-demo.html`)
+
+The Japanese file-upload demo (no microphone; pick a voice memo of 「〜が」) is one
+self-contained HTML file with everything inlined — script, lexicon, licence texts.
+
+```sh
+npm run build:demo                                   # 2,000 words (data/lexicon-2000.json)
+node scripts/build-demo.mjs --lexicon 200            # the old 266-word page
+node scripts/demo-sanity.mjs                         # synthetic correct/wrong sample of every shipped word
+node scripts/qa-demo.mjs [--words 266]               # Playwright end-to-end QA
+```
+
+The build ships the lexicon in a compact array form (`demo/lexicon.js` decodes it;
+morae and type are derived from kana and accent), ~82 KB for 2,000 words, ~135 KB page.
+Words held back for native review (`data/needs-review-*.tsv`) are never shipped.
+The picker has search (kanji, kana or katakana, English gloss), a type filter and
+quick picks for the classic homophone sets (箸・橋・端, 雨・飴, 花・鼻, 神・紙・髪, 柿・牡蠣).
+On the synthetic samples 14 of the 2,000 words fail their *correct* sample: accent
+3 or 1 where the next mora is a bare vowel or っ (曜日 words, 案内, 材料, 北極 …), a
+segmentation limit — see `demo-sanity.mjs` output.
+
 ## How the judgement works (`src/judge.js`)
 
 1. F0 per 10 ms frame (pitchy/MPM, or SwiftF0 at 16 ms), unreliable frames dropped,
@@ -55,8 +76,8 @@ creaky voice and heavy devoicing reduce the usable frames.
 |---|---|
 | `data/words-seed-200.tsv` | Our own word list (surface, reading, English gloss) for the demo |
 | `data/words-candidates-2000.tsv` | Larger candidate list for the 2,000-word build |
-| `data/lexicon-200.json` | Demo lexicon (accent from UniDic) — loaded by the page |
-| `data/lexicon-2000.json` | 2,000-word lexicon, built by the same script |
+| `data/lexicon-200.json` | 266-word lexicon (accent from UniDic) — loaded by the dev page (`index.html`) |
+| `data/lexicon-2000.json` | 2,000-word lexicon, built by the same script — embedded in `dist/pitch-demo.html` |
 
 Rebuild with UniDic (BSD option, via unidic-lite):
 

@@ -1,7 +1,8 @@
 // Build the single-file demo page: dist/pitch-demo.html.
 //
-//   node scripts/build-demo.mjs [template.html] [out.html]
-//   (DEMO_ENTRY=path overrides the bundled entry, default demo/demo.js)
+//   node scripts/build-demo.mjs [--lexicon 2000|200|path.json] [template.html] [out.html]
+//   (DEMO_ENTRY=path overrides the bundled entry, default demo/demo.js;
+//    DEMO_LEXICON=… is the same as --lexicon; default data/lexicon-2000.json)
 //
 // Inlines everything (bundled script, lexicon JSON, licence texts) so the page
 // makes no network requests at all — it is published as a claude.ai Artifact,
@@ -11,10 +12,17 @@ import { execSync } from 'node:child_process';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
+import { splitMorae } from '../src/mora.js';
+import { accentType } from '../src/accent.js';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const templatePath = resolve(process.argv[2] ?? `${root}/demo/template.html`);
-const outPath = resolve(process.argv[3] ?? `${root}/dist/pitch-demo.html`);
+const argv = process.argv.slice(2);
+let lexiconOpt = process.env.DEMO_LEXICON ?? '2000';
+const li = argv.indexOf('--lexicon');
+if (li >= 0) lexiconOpt = argv.splice(li, 2)[1];
+const lexiconPath = /^\d+$/.test(lexiconOpt) ? `${root}/data/lexicon-${lexiconOpt}.json` : resolve(lexiconOpt);
+const templatePath = resolve(argv[0] ?? `${root}/demo/template.html`);
+const outPath = resolve(argv[1] ?? `${root}/dist/pitch-demo.html`);
 const entry = resolve(process.env.DEMO_ENTRY ?? `${root}/demo/demo.js`); // override for testing
 
 const fail = (msg) => { console.error(`build-demo: ${msg}`); process.exit(1); };
@@ -44,8 +52,39 @@ if (/swiftf0|onnxruntime|ort\.wasm/i.test(js)) console.warn('build-demo: WARNING
 // A literal "</script" (or "<!--") inside the inline script would end it early.
 js = js.replace(/<\/(script)/gi, '<\\/$1').replace(/<!--/g, '<\\!--');
 
-// 2. Lexicon as inline JSON.
-const lexicon = JSON.stringify(JSON.parse(await readFile(`${root}/data/lexicon-200.json`, 'utf8')));
+// 2. Lexicon as inline JSON, in a compact form (decoded by demo/lexicon.js):
+//    {"v":2, "count", "source", "words": [[idNum, surface, kana, accent, gloss], …]}
+//    accent is a number when there is one accepted drop, else an array. morae and
+//    type are not shipped: they are splitMorae(kana) and accentType(accent[0], n),
+//    and the build checks that for every word.
+//    Words held back for native review (data/needs-review-*.tsv, see needs_review()
+//    in scripts/build_lexicon.py) are already left out of the lexicon files; the
+//    same rule is re-applied here so a lexicon rebuilt with --include-unverified
+//    can never reach the page.
+const rawLex = JSON.parse(await readFile(lexiconPath, 'utf8').catch(() => fail(`lexicon not found: ${lexiconPath}`)));
+const heldBack = new Set();
+for (const f of ['data/needs-review-200.tsv', 'data/needs-review-2000.tsv']) {
+  const tsv = await readFile(`${root}/${f}`, 'utf8').catch(() => '');
+  for (const line of tsv.split('\n').slice(1)) {
+    const [surface, reading] = line.split('\t');
+    if (surface && reading) heldBack.add(`${surface}\t${reading}`);
+  }
+}
+const needsReview = (w) => w.source === 'tdmelodic'
+  || (w.source === 'unidic-rule' && ((w.rule ?? '').split(' + ')[0].includes('[P') || (w.rule ?? '').endsWith('つ[C3]')));
+const excluded = [];
+const compact = [];
+for (const w of rawLex.words) {
+  if (heldBack.has(`${w.surface}\t${w.kana}`) || needsReview(w)) { excluded.push(w.surface); continue; }
+  const m = /^w(\d+)$/.exec(w.id);
+  if (!m) fail(`unexpected word id ${w.id}`);
+  if (JSON.stringify(splitMorae(w.kana)) !== JSON.stringify(w.morae)) fail(`${w.surface}: morae ≠ splitMorae(kana)`);
+  if (accentType(w.accent[0], w.morae.length) !== w.type) fail(`${w.surface}: type ≠ accentType(accent)`);
+  if (/[\t|]/.test(w.surface + w.kana + w.gloss)) fail(`${w.surface}: unexpected separator character`);
+  compact.push([Number(m[1]), w.surface, w.kana, w.accent.length === 1 ? w.accent[0] : w.accent, w.gloss]);
+}
+const lexicon = JSON.stringify({ v: 2, count: compact.length, source: rawLex.source, words: compact });
+const lexiconRawBytes = Buffer.byteLength(JSON.stringify(rawLex));
 const lexiconTag = `<script type="application/json" id="lexicon-data">${lexicon.replace(/</g, '\\u003c')}</script>`;
 
 // 3. Licence texts.
@@ -99,4 +138,5 @@ if (offenders.size) {
 await mkdir(dirname(outPath), { recursive: true });
 await writeFile(outPath, html);
 const kb = (n) => `${(n / 1024).toFixed(1)} KB`;
-console.log(`build-demo: wrote ${outPath} — ${kb(Buffer.byteLength(html))} (script ${kb(Buffer.byteLength(js))}, lexicon ${kb(Buffer.byteLength(lexicon))}) [${stamp}]`);
+console.log(`build-demo: wrote ${outPath} — ${kb(Buffer.byteLength(html))} (script ${kb(Buffer.byteLength(js))}, lexicon ${kb(Buffer.byteLength(lexicon))} from ${kb(lexiconRawBytes)} minified source) [${stamp}]`);
+console.log(`build-demo: lexicon ${lexiconPath.replace(`${root}/`, '')} — ${compact.length} words in the page${excluded.length ? `, ${excluded.length} held back for review: ${excluded.join(' ')}` : ', none held back (review hold-back already applied at lexicon build)'}`);
