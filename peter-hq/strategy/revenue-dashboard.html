@@ -124,6 +124,19 @@ td.std .num { color: var(--gold); }
 .asks .t { font-family: var(--f-num); font-size: 12.5px; color: var(--muted); white-space: nowrap; }
 ol.asks { margin: 0; padding: 0; }
 
+/* this week's top 3 */
+.top3 { margin: 0; padding: 0; display: grid; background: var(--surface); border: 1px solid var(--accent); }
+.top3 li { list-style: none; display: grid; grid-template-columns: 2.4em minmax(0, 1fr) 230px; gap: 14px; padding: 16px; border-top: 1px solid var(--line); align-items: start; }
+.top3 li:first-child { border-top: 0; }
+.top3 .n { font-family: var(--f-num); font-size: 26px; font-weight: 600; color: var(--accent); line-height: 1.1; }
+.top3 .body { display: grid; gap: 4px; min-width: 0; }
+.top3 .body p { font-size: 13.5px; color: var(--muted); }
+.top3 .side { display: grid; gap: 2px; font-size: 13px; }
+.top3 .side .label { font-size: 11.5px; color: var(--muted); letter-spacing: .06em; }
+.top3 .side .num { color: var(--gold); font-weight: 600; }
+.top3 .side .ask b { color: var(--accent); }
+@media (max-width: 700px) { .top3 li { grid-template-columns: 2.2em minmax(0, 1fr); } .top3 .side { grid-column: 2; } }
+
 .foot { font-size: 12.5px; color: var(--muted); display: grid; gap: 4px; border-top: 1px solid var(--line); padding-top: 14px; }
 </style>
 
@@ -132,17 +145,48 @@ ol.asks { margin: 0; padding: 0; }
     <div class="eyebrow">ピーター本部 ・ 収益戦略</div>
     <h1>Midas 収益ダッシュボード</h1>
     <p class="lede">どのプロジェクトが、誰から、いくら、いつ稼げるか。お金をかけずに、オーナーの手間を最小にして、最初の売上までの道筋をまとめました。</p>
-    <div class="meta"><span>作成 2026-10-08</span><span>対象期間 2026年10月〜2027年9月</span><span>1ドル＝150円で換算（仮置き）</span></div>
+    <div class="meta"><span>作成 2026-10-08 ・ 更新 2026-10-09（P7・P8 の見込みと今週の打ち手を追加）</span><span>対象期間 2026年10月〜2027年9月</span><span>1ドル＝150円で換算（仮置き）</span></div>
   </header>
 
   <section aria-label="要点">
     <div class="kpis">
-      <div class="kpi"><span class="label">30日の目標（標準）</span><span class="value">2<small>万円</small></span><span class="sub">悲観 0円 ／ 楽観 約6.5万円</span></div>
-      <div class="kpi"><span class="label">12か月・集中3本（標準）</span><span class="value">60<small>万円</small></span><span class="sub">悲観 7万円 ／ 楽観 約300万円</span></div>
-      <div class="kpi"><span class="label">最初の1円が最も早い</span><span class="value">14<small>〜21日</small></span><span class="sub">P0 減算ゼロ（2,980円）</span></div>
-      <div class="kpi"><span class="label">オーナーへのお願い</span><span class="value">4<small>つ</small></span><span class="sub">30日間で合計 約1〜2時間</span></div>
+      <div class="kpi"><span class="label">30日の目標（標準）</span><span class="value">2.5<small>万円</small></span><span class="sub">悲観 0円 ／ 楽観 約9万円</span></div>
+      <div class="kpi"><span class="label">12か月・上位5本（標準）</span><span class="value">100<small>万円</small></span><span class="sub">悲観 8万円 ／ 楽観 約590万円</span></div>
+      <div class="kpi"><span class="label">最初の1円が最も早い</span><span class="value">14<small>〜21日</small></span><span class="sub">P0（2,980円）、P7（500円）、P8（投げ銭）</span></div>
+      <div class="kpi"><span class="label">オーナーへのお願い</span><span class="value">5<small>つ</small></span><span class="sub">30日間で合計 約2時間</span></div>
     </div>
-    <p class="note">集中するのは <b>P0 減算ゼロ</b> と <b>P2 Budget Guard</b>。<b>P1 Yuragi</b> は小さく確かめるだけ。残りは保留、または収益目的では撤退候補です。</p>
+    <p class="note">集中するのは <b>P0 減算ゼロ</b> と <b>P2 Budget Guard</b>。完成した試作がある <b>P8 GRANDSTRIDE</b> は無料公開で反応を見る。<b>P1</b> と <b>P7</b> は小さく確かめるだけ。</p>
+  </section>
+
+  <section aria-labelledby="h-top3">
+    <div class="sec-head"><h2 id="h-top3">今週の打ち手トップ3</h2><span class="note">10/9〜10/15。どれもお金はかかりません</span></div>
+    <ol class="top3">
+      <li>
+        <span class="n">1</span>
+        <div class="body">
+          <h3>P0 減算ゼロを無料で公開する</h3>
+          <p>診断・解説11本・書類の見本を公開し、検索エンジンに登録。X の投稿案14本は用意済み。来週からの有料販売の土台です。</p>
+        </div>
+        <div class="side"><span class="label">狙い</span><span class="num">訪問 週200</span><span class="ask"><b>お願い</b> 無料サーバーへの登録（約15分）</span></div>
+      </li>
+      <li>
+        <span class="n">2</span>
+        <div class="body">
+          <h3>P8 GRANDSTRIDE を itch.io で無料公開する</h3>
+          <p>試作（1作戦・約3分、PC とスマホ）と itch 用のファイルはできています。投げ銭あり（推奨 $3）で出し、build in public を始めます。</p>
+        </div>
+        <div class="side"><span class="label">狙い</span><span class="num">プレイ 300・投げ銭 1件</span><span class="ask"><b>お願い</b> itch.io の登録と受け取り設定（約20分）</span></div>
+      </li>
+      <li>
+        <span class="n">3</span>
+        <div class="body">
+          <h3>P7『帳簿の書 Vol.0』の販売を始める</h3>
+          <p>PDF（A5・30ページ、日英）と出品原稿はできています。BOOTH 500円、Ko-fi $4。AI 使用の表示を必ず入れます。</p>
+        </div>
+        <div class="side"><span class="label">狙い</span><span class="num">販売 1〜5件</span><span class="ask"><b>お願い</b> BOOTH・Ko-fi の登録（約30分）</span></div>
+      </li>
+    </ol>
+    <p class="note">本部だけでやること：Model Switch Calculator の公開準備、Budget Guard の待機リストページ、P0 の有料販売に使う無料サーバーの確認。</p>
   </section>
 
   <section aria-labelledby="h-range">
@@ -162,6 +206,7 @@ ol.asks { margin: 0; padding: 0; }
       </table>
     </div>
     <p class="note"><span class="tag">根拠</span> 価格・需要の証拠・粗利は各チームのレポートと計画書から。 <span class="tag">仮置き</span> 件数と伸び方は前提。30日の実績で置き換えます。詳細は peter-hq/strategy/2026-10-08-revenue-map.md。</p>
+    <p class="note"><b>P8 の見込みについて：</b>P8 チームの試算（itch・CrazyGames・Steam）をもとに、Steam は1段階控えめに見直しました。Steam の早期アクセスは 2027年夏の予定で、この12か月に入るのは発売後1〜2か月分だけです。Steam への登録費 $100 は、ブラウザ版で「遊ばれる」数字が出てから判断します。<br><b>P7 の見込みについて：</b>P7 チームの見込み（12か月で月1〜10万円）より控えめにしています。AI で作った作品への反発と、販売サイトの AI 規約が主なリスクです。</p>
   </section>
 
   <section aria-labelledby="h-prio">
@@ -189,20 +234,21 @@ ol.asks { margin: 0; padding: 0; }
       </div>
       <div class="pcard">
         <span class="rank">3位</span>
-        <h3>P1 Yuragi <span class="chip light">小さく続行</span></h3>
+        <h3>P8 GRANDSTRIDE <span class="chip light">小さく続行</span></h3>
         <ul>
-          <li>単価が高く（$29〜99/月）、競合の空白がはっきり</li>
-          <li>払う意思はまだ未確認</li>
-          <li>試用5人と、1タイトル $49 の単発で確かめるだけ</li>
+          <li>遊べる試作と itch 用のファイルが完成済み</li>
+          <li>itch と CrazyGames は登録無料。費用0円で出せる</li>
+          <li>上振れは Steam（2027年夏）。数字が出てから判断</li>
+          <li>10/8 の「撤退候補」から引き上げ</li>
         </ul>
       </div>
     </div>
     <div class="holdlist">
+      <div class="hrow"><b>P1 Yuragi</b><span><span class="chip light">小さく続行</span> 4位</span><span>単価は高い（$29〜99/月）が、払う意思は未確認。試用5人と、1タイトル $49 の単発で確かめるだけ。</span></div>
+      <div class="hrow"><b>P7 RED LEDGER</b><span><span class="chip light">小さく続行</span> 5位</span><span>設定資料集 PDF が完成済みなので、販売だけ始める。漫画・Webtoon など手間の大きい次の段階は、90日で30件売れてから。10/8 の「撤退候補」から変更。</span></div>
       <div class="hrow"><b>P3 Pitch</b><span><span class="chip hold">保留</span> 30日後に再判断</span><span>人の声での精度が未確認。オーナーやご家族が録音すれば無料で確かめられるので、2か月目の候補。</span></div>
       <div class="hrow"><b>P5 Atlas</b><span><span class="chip hold">保留</span> 作業を止める</span><span>上振れは大きいが、企業への売り込みに時間と手間がかかる。デモは残し、Budget Guard で開発者とのつながりができてから再開。</span></div>
       <div class="hrow"><b>P4 Collector Lens</b><span><span class="chip exit">保留・撤退候補</span></span><span>弁護士確認と Chrome ストア登録（$5）が必要で、お金をかけない方針と合わない。90日で法務の見通しが立たなければ撤退。</span></div>
-      <div class="hrow"><b>P7 アニメIP</b><span><span class="chip exit">収益目的では撤退候補</span></span><span>売上まで長く、AI で作った作品は著作権の保護が弱い可能性。続けるなら発信の材料として週数時間まで。</span></div>
-      <div class="hrow"><b>P8 四足ロボットゲーム</b><span><span class="chip exit">収益目的では撤退候補</span></span><span>同上。続けるなら itch.io に無料で出せる小さな版を1本まで。</span></div>
     </div>
   </section>
 
@@ -212,40 +258,40 @@ ol.asks { margin: 0; padding: 0; }
       <div class="week">
         <span class="when">第1週 ・ 10/9〜10/15</span>
         <h3>無料で公開する</h3>
-        <div class="target num">0円<small>土台づくり</small></div>
+        <div class="target num">0〜3,000円<small>P7 の初売上、P8 の投げ銭</small></div>
         <ul>
-          <li>P0 を無料で公開（解説11本と書類の見本つき）</li>
-          <li>検索エンジンに登録</li>
-          <li>Calculator を無料で公開</li>
+          <li>P0 を無料で公開し、検索エンジンに登録</li>
+          <li>P8 を itch.io で無料公開（投げ銭あり）</li>
+          <li>P7 の Vol.0 を販売開始</li>
         </ul>
-        <div class="ask"><b>お願い ①②</b> 無料サーバーへの登録、X アカウントの作成</div>
+        <div class="ask"><b>お願い ①②③</b> 無料サーバー、itch.io、BOOTH・Ko-fi の登録</div>
       </div>
       <div class="week">
         <span class="when">第2週 ・ 10/16〜10/22</span>
         <h3>売る準備</h3>
-        <div class="target num">0円<small>品質確認と待機リスト</small></div>
+        <div class="target num">約3,000円<small>P7・P8 の小さな売上</small></div>
         <ul>
           <li>P0 で実際に書類を作り、品質を確認</li>
-          <li>Budget Guard の待機リストページ</li>
-          <li>P1 の試用者募集の文面</li>
+          <li>Calculator の公開と Budget Guard の待機リスト</li>
+          <li>P8 を CrazyGames に提出</li>
         </ul>
-        <div class="ask"><b>お願い ③</b> お金を受け取る仕組み（Stripe）の登録と本人確認</div>
+        <div class="ask"><b>お願い ④</b> お金を受け取る仕組み（Stripe）の登録と本人確認</div>
       </div>
       <div class="week">
         <span class="when">第3週 ・ 10/23〜10/29</span>
-        <h3>最初の売上</h3>
-        <div class="target num">2,980〜14,900円<small>P0 を1〜5件</small></div>
+        <h3>最初の大きな売上</h3>
+        <div class="target num">6,000〜18,000円<small>P0 を1〜5件＋P7・P8</small></div>
         <ul>
           <li>P0 の有料販売を開始（2,980円）</li>
           <li>解説ページを毎日1本追加</li>
           <li>Budget Guard を5人に無料で試してもらう</li>
         </ul>
-        <div class="ask"><b>お願い ④</b> AI を使うための鍵の発行（使いすぎ防止の上限つき）</div>
+        <div class="ask"><b>お願い ⑤</b> AI を使うための鍵の発行（使いすぎ防止の上限つき）</div>
       </div>
       <div class="week">
         <span class="when">第4週 ・ 10/30〜11/7</span>
-        <h3>2本目の売上</h3>
-        <div class="target num">約20,000円<small>累計：P0 6件前後＋Budget Guard 1〜2人</small></div>
+        <h3>2本目の継続収入</h3>
+        <div class="target num">約25,000円<small>累計：P0 6件前後＋Budget Guard 1〜2人＋P7・P8</small></div>
         <ul>
           <li>Budget Guard の有料販売（月 $9）</li>
           <li>P1 の試用を開始</li>
@@ -257,19 +303,20 @@ ol.asks { margin: 0; padding: 0; }
   </section>
 
   <section aria-labelledby="h-asks">
-    <div class="sec-head"><h2 id="h-asks">オーナーにお願いすること</h2><span class="note">本人にしかできないことだけです</span></div>
+    <div class="sec-head"><h2 id="h-asks">オーナーにお願いすること</h2><span class="note">本人にしかできないことだけです。X は既存のアカウントを使います</span></div>
     <ol class="asks">
       <li><span class="n">1</span><span>無料のサーバーに登録する（GitHub でログインするだけ）</span><span class="t">約15分 ・ 第1週</span></li>
-      <li><span class="n">2</span><span>X アカウントを作る。投稿の下書きは本部が作り、オーナーは確認だけ</span><span class="t">約10分 ・ 第1週</span></li>
-      <li><span class="n">3</span><span>Stripe（ネットでお金を受け取る仕組み）に登録して本人確認。販売者として表示する名前と連絡先を教える</span><span class="t">約30分 ・ 第2週</span></li>
-      <li><span class="n">4</span><span>AI を使うための鍵を発行し、月の上限を設定する</span><span class="t">約10分 ・ 第3週</span></li>
+      <li><span class="n">2</span><span>itch.io（ゲームを置くサイト）に登録し、お金の受け取り先と税の書類（海外からの支払いに必要）を入れる</span><span class="t">約20分 ・ 第1週</span></li>
+      <li><span class="n">3</span><span>BOOTH と Ko-fi（PDF を売るサイト）に登録し、振込先を入れる</span><span class="t">約30分 ・ 第1週</span></li>
+      <li><span class="n">4</span><span>Stripe（ネットでお金を受け取る仕組み）に登録して本人確認。販売者として表示する名前と連絡先を教える</span><span class="t">約30分 ・ 第2週</span></li>
+      <li><span class="n">5</span><span>AI を使うための鍵を発行し、月の上限を設定する</span><span class="t">約10分 ・ 第3週</span></li>
     </ol>
-    <p class="note">お金がかかるのは AI の生成費用だけ（1件 約50〜100円、売上から十分まかなえます）。独自ドメイン（年 約1,500円）は最初の売上が出てから、その売上で取ります。Vercel の無料プランは商用利用ができないため、有料販売に使うサーバーは本部が第1週に確かめます。</p>
+    <p class="note">投稿の下書きは本部が作り（P0 14本、Calculator 5本、P8 10本、P7 5本）、オーナーは確認だけです。お金がかかるのは P0 の AI 生成費用だけ（1件 約50〜100円、売上から十分まかなえます）。独自ドメイン（年 約1,500円）と Steam の登録費（$100）は、売上や数字が出てから判断します。Vercel の無料プランは商用利用ができないため、有料販売に使うサーバーは本部が第1週に確かめます。</p>
   </section>
 
   <footer class="foot">
     <span>作成：Midas（本部・収益戦略担当）。数字は誇張せず、根拠のあるものと仮置きを分けています。</span>
-    <span>P7・P8 は本部にまだ資料がないため、数字はすべて仮置きです。</span>
+    <span>P7・P8 の価格と試算は各チームの収益化計画（anime/docs/monetization.md、mech-game/docs/monetization.md）が根拠。件数は仮置きです。</span>
   </footer>
 </div>
 
@@ -278,12 +325,12 @@ const P = [
   { id: "P0", name: "P0 減算ゼロ", st: "focus", stl: "集中", who: "障害福祉事業所（法人の経費）", price: "2,980円/年（1回払い）。後で年間更新4,980円・法人プラン", steps: "無料公開 → Stripe と販売者情報 → 有料ボタンをオン → 解説ページから購入", days: "14〜21日", owner: "Stripe・販売者情報・AIの鍵・無料サーバー（計2〜3時間）", lo: 6, mid: 25, hi: 100 },
   { id: "P2", name: "P2 Budget Guard", st: "focus", stl: "集中", who: "クラウド・AI API を自腹で払う開発者（海外中心）", price: "$9/月 または $79/年", steps: "待機リスト → 外部5人に無料で試用 → 同じ Stripe で課金", days: "25〜35日", owner: "告知の承認（Stripe は P0 と共用）", lo: 1, mid: 20, hi: 120 },
   { id: "P2c", name: "P2 Calculator", st: "focus", stl: "集中（入口）", who: "直接は払われない。Budget Guard への送客", price: "無料（寄付は任意）", steps: "無料公開して Budget Guard の入口にする", days: "7日（公開）", owner: "告知の承認だけ", lo: 0, mid: 0.5, hi: 3 },
+  { id: "P8", name: "P8 GRANDSTRIDE", st: "light", stl: "小さく続行", who: "ブラウザ・PC でメカアクションを遊ぶ人（海外中心）", price: "itch は無料＋投げ銭（推奨$3）、支援者版$4.99。CrazyGames は広告分配。Steam は$9.99前後（2027年夏）", steps: "itch.io に無料公開（投げ銭）→ CrazyGames → 数字が出たら Steam", days: "14〜28日", owner: "itch.io の登録と税の書類（約20分）。Steam は後で$100", lo: 1, mid: 35, hi: 250 },
   { id: "P1", name: "P1 Yuragi", st: "light", stl: "小さく続行", who: "日英ゲームの翻訳者・LQA担当・小さなパブリッシャー", price: "$49/タイトル、$29/月、$99/月（5席）", steps: "試用5人で実台本テスト → 単発 $49 で初売上", days: "45〜60日", owner: "試用者の紹介か募集の承認（約2時間）", lo: 0, mid: 15, hi: 80 },
+  { id: "P7", name: "P7 RED LEDGER", st: "light", stl: "小さく続行", who: "オリジナル作品の設定資料を読みたいファン（日英）", price: "設定資料集PDF：BOOTH 500円（応援版1,000円）、Ko-fi $4", steps: "BOOTH・Ko-fi で販売開始 → X で告知（投稿案あり）", days: "14〜28日", owner: "BOOTH・Ko-fi の登録と振込先（約30分）", lo: 0.3, mid: 5, hi: 40 },
   { id: "P3", name: "P3 Pitch", st: "hold", stl: "保留", who: "上級の日本語学習者（海外の個人）", price: "$9/月、$69/年、$149 買い切り", steps: "人の声で精度確認 → 無料公開 → 課金", days: "60〜90日", owner: "録音者4人以上とアクセント確認役", lo: 0, mid: 15, hi: 120 },
   { id: "P4", name: "P4 Collector Lens", st: "exit", stl: "保留・撤退候補", who: "ヤフオクで買う海外のカメラ・時計コレクター", price: "$3.99/月、$29/年、$59 買い切り", steps: "弁護士確認 → Chrome ストア登録 → 課金", days: "60〜90日", owner: "弁護士確認（有料の可能性）、$5 の登録", lo: 0, mid: 8, hi: 50 },
-  { id: "P5", name: "P5 Atlas", st: "hold", stl: "保留", who: "50〜500人規模の会社の基盤・セキュリティ担当", price: "$99〜499/月、年 $6k〜12k", steps: "無料の判定ページ → 5チームに試験提供 → 契約", days: "90〜150日", owner: "企業への紹介・声かけ、請求書払い", lo: 0, mid: 9, hi: 150 },
-  { id: "P7", name: "P7 アニメIP", st: "exit", stl: "収益目的では撤退候補", who: "視聴者・ファン（広告・グッズ・支援）", price: "グッズ数百〜数千円、広告は条件達成後", steps: "作品を無料公開 → ファンを集める → グッズ・支援", days: "120日以上", owner: "方向決め、アカウント、権利の確認", lo: 0, mid: 1, hi: 30 },
-  { id: "P8", name: "P8 四足ロボットゲーム", st: "exit", stl: "収益目的では撤退候補", who: "ゲームの購入者", price: "数百〜1,500円の買い切り", steps: "遊べる版 → itch.io で投げ銭付き公開 → Steam", days: "90日以上", owner: "出品アカウント（Steam は $100）", lo: 0, mid: 2, hi: 50 }
+  { id: "P5", name: "P5 Atlas", st: "hold", stl: "保留", who: "50〜500人規模の会社の基盤・セキュリティ担当", price: "$99〜499/月、年 $6k〜12k", steps: "無料の判定ページ → 5チームに試験提供 → 契約", days: "90〜150日", owner: "企業への紹介・声かけ、請求書払い", lo: 0, mid: 9, hi: 150 }
 ];
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const man = v => (v === 0 ? "0" : (Number.isInteger(v) ? v : v.toFixed(1))) + "万円";
@@ -304,12 +351,12 @@ document.getElementById("map").innerHTML = P.map(p => `
 
 (function drawRange() {
   const svg = document.getElementById("range");
-  const W = 900, left = 190, right = 30, top = 18, rowH = 38, max = 150;
+  const W = 900, left = 190, right = 30, top = 18, rowH = 38, max = 250;
   const H = top + P.length * rowH + 34;
   svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
   const x = v => left + (v / max) * (W - left - right);
   let g = "";
-  [0, 25, 50, 75, 100, 125, 150].forEach(t => {
+  [0, 50, 100, 150, 200, 250].forEach(t => {
     g += `<line x1="${x(t)}" x2="${x(t)}" y1="${top - 6}" y2="${top + P.length * rowH}" stroke="var(--line)" stroke-width="1"/>`;
     g += `<text x="${x(t)}" y="${top + P.length * rowH + 20}" text-anchor="middle" font-size="12" fill="var(--muted)" font-family="IBM Plex Mono, monospace">${t}万</text>`;
   });
