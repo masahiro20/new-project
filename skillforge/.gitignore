@@ -4,3 +4,4 @@ node_modules/
 *.tsbuildinfo
 .kotomark-data/
 web/dist/kotomark-engine.js
+/out/

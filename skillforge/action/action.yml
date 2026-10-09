@@ -1,5 +1,5 @@
-name: Kotomark localization QA
-description: Whole-script consistency checks for Japanese <-> English game localization (terms, names, honorifics, voice, placeholders, tags, ruby, length).
+name: Kotomark script consistency check
+description: Whole-script consistency QA for Japanese-English game localization (terms, names, honorifics, placeholders, tags).
 author: Kotomark
 branding:
   icon: check-square
