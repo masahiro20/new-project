@@ -43,7 +43,8 @@ export default function DemoCheckoutClient({ amountLabel, ai, apiBase = "" }: { 
     setMessage(null);
     const res = await fetch(`${apiBase}/api/checkout/demo`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ token }) });
     const data = await res.json().catch(() => ({}));
-    if (data.url) router.push(data.url);
+    // Only an in-app path is followed (not javascript: or //host).
+    if (typeof data.url === "string" && data.url.startsWith("/") && !data.url.startsWith("//") && !data.url.startsWith("/\\")) router.push(data.url);
     else {
       setMessage(data.error ?? "デモ決済を完了できませんでした。");
       setPending(false);

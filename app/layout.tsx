@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Analytics from "./Analytics";
-import { aiEnabled, demoPurchase, liveBilling } from "@/lib/launch";
+import { siteCsp } from "@/lib/csp";
+import { aiEnabled, demoPurchase, isStaticExport, liveBilling } from "@/lib/launch";
 import { DEMO_BANNER } from "@/lib/payments/mode";
 import { ogImage } from "@/lib/og";
 import { siteUrl } from "@/lib/site";
@@ -27,6 +28,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const ai = aiEnabled();
   return (
     <html lang="ja">
+      <head>
+        {/* Static site only: GitHub Pages can't send a CSP header. The server build can use headers instead. */}
+        {isStaticExport() && <meta httpEquiv="Content-Security-Policy" content={siteCsp()} />}
+      </head>
       <body>
         {demoPurchase() && (
           <div className="demo-banner" role="status">

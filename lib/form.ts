@@ -1,5 +1,8 @@
 import { z } from "zod";
 
+// No runtime code generation: zod otherwise probes `Function("")`, which the static site's CSP (no 'unsafe-eval') reports as a violation.
+z.config({ jitless: true });
+
 export const SERVICE_TYPES = [
   "放課後等デイサービス",
   "児童発達支援",

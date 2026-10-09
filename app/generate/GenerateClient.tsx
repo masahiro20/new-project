@@ -193,8 +193,14 @@ export default function GenerateClient({
     const data = await res.json().catch(() => ({}));
     if (data.url) {
       // Demo checkout is an in-app page (basePath-aware navigation); Stripe is an external URL.
-      if (data.url.startsWith("/")) router.push(data.url);
-      else window.location.href = data.url;
+      // Only an in-app path or Stripe Checkout (https) is followed; anything else (javascript:, //host) is refused.
+      const url = String(data.url);
+      if (url.startsWith("/") && !url.startsWith("//") && !url.startsWith("/\\")) router.push(url);
+      else if (/^https:\/\/checkout\.stripe\.com\//.test(url)) window.location.href = url;
+      else {
+        setMessage("決済ページを開けませんでした。");
+        setBusy(false);
+      }
     } else {
       setMessage(data.error ?? "決済ページを開けませんでした。");
       setBusy(false);

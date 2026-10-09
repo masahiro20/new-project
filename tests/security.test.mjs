@@ -329,3 +329,19 @@ test("d30: one purchase may generate at most 15 times in total, across all sets"
   assert.equal(over.status, 429);
   assert.match((await over.json()).error, /合計15回/);
 });
+
+test("static-site CSP: no eval, no plugins, and only the hosts the site talks to (X-1)", async () => {
+  const { staticCsp } = await import("../lib/csp.ts");
+  const dir = (csp, name) => csp.split("; ").find((d) => d.startsWith(name + " "));
+  const free = staticCsp();
+  assert.ok(!free.includes("unsafe-eval"));
+  assert.equal(dir(free, "connect-src"), "connect-src 'self'");
+  assert.equal(dir(free, "object-src"), "object-src 'none'");
+  assert.equal(dir(free, "base-uri"), "base-uri 'none'");
+  assert.equal(dir(free, "frame-src"), "frame-src 'none'");
+  const paid = staticCsp({ goatcounter: "abc", turnstile: true, paidApi: "https://api.example.workers.dev/" });
+  assert.equal(dir(paid, "connect-src"), "connect-src 'self' https://abc.goatcounter.com https://api.example.workers.dev https://challenges.cloudflare.com");
+  assert.match(dir(paid, "script-src"), /https:\/\/gc\.zgo\.at https:\/\/challenges\.cloudflare\.com$/);
+  // A bad API URL adds nothing rather than a broken or wildcard source.
+  assert.equal(dir(staticCsp({ paidApi: "javascript:alert(1)" }), "connect-src"), "connect-src 'self'");
+});
