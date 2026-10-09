@@ -19,7 +19,6 @@ export const GUIDE_CATEGORIES: { id: string; name: string; slugs: string[] }[] =
       "gyakutai-kenshu-shiryou",
       "kenshu-rikaido-test",
       "nenkan-kenshu-keikaku",
-      "shogu-kaizen-keikakusho",
       "gyakutai-boushi-self-check",
       "unei-kitei-gyakutai",
     ],
