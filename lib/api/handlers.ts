@@ -19,6 +19,12 @@ const textStream = (stream: ReadableStream<Uint8Array>) =>
 
 const generator = () => (aiMock() ? streamMock : streamDocuments);
 
+/** Demo generations per IP per hour (default 6 = 2 sets). Raise only for a quality run (DEMO_GENERATE_PER_HOUR). */
+function demoGeneratePerHour(): number {
+  const n = Number(process.env.DEMO_GENERATE_PER_HOUR);
+  return Number.isInteger(n) && n > 0 ? n : 6;
+}
+
 // The page sends null when Turnstile is not configured, so accept null as "no token".
 const previewSchema = z.object({ input: facilitySchema, turnstileToken: z.string().max(4096).nullish() });
 
@@ -82,7 +88,7 @@ export async function handleGenerate(request: Request): Promise<Response> {
     return Response.json({ error: "お支払いを確認できませんでした。購入時と同じ入力内容でお試しください。" }, { status: 402 });
   }
   // Demo purchases cost nothing to make, so cap them per IP as well (each purchase runs 3 sets).
-  if (demoPurchase() && !(await allow(`demo-generate:${ipKey(request)}`, 6, 60 * 60 * 1000))) {
+  if (demoPurchase() && !(await allow(`demo-generate:${ipKey(request)}`, demoGeneratePerHour(), 60 * 60 * 1000))) {
     return Response.json({ error: "デモの作成は1時間に2セットまでです。" }, { status: 429 });
   }
   // A paid session may regenerate for 7 days; cap it so one payment can't run up unbounded API cost.

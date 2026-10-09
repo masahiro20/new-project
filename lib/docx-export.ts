@@ -71,12 +71,16 @@ function toDocx(block: Block): (Paragraph | Table)[] {
   }
 }
 
-export async function downloadDocx(markdown: string, filename: string): Promise<void> {
-  const doc = new Document({
+/** The Word document for a generated set (also used by the quality check in scripts/quality). */
+export function buildDocx(markdown: string): Document {
+  return new Document({
     styles: { default: { document: { run: { font: FONT, size: 21 } } } },
     sections: [{ children: parseBlocks(markdown).flatMap(toDocx) }],
   });
-  const blob = await Packer.toBlob(doc);
+}
+
+export async function downloadDocx(markdown: string, filename: string): Promise<void> {
+  const blob = await Packer.toBlob(buildDocx(markdown));
   const url = URL.createObjectURL(blob);
   const a = Object.assign(document.createElement("a"), { href: url, download: filename });
   document.body.appendChild(a);

@@ -12,11 +12,12 @@
     "cf:build": "opennextjs-cloudflare build",
     "cf:preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "cf:deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
-    "test": "node --test --experimental-strip-types --no-warnings tests/payments.test.mjs tests/check.test.mjs",
+    "test": "node --test --experimental-strip-types --no-warnings tests/payments.test.mjs tests/check.test.mjs tests/quality.test.mjs",
     "og:generate": "node scripts/og/extract-guides.mjs . > scripts/og/guides.json && node scripts/og/generate-og.mjs --in scripts/og/guides.json --out public/og --png && rm -f public/og/*.svg",
     "api:dev": "wrangler dev -c worker/wrangler.jsonc",
     "api:deploy": "wrangler deploy -c worker/wrangler.jsonc",
-    "api:check": "wrangler deploy -c worker/wrangler.jsonc --dry-run --outdir .wrangler/dry-run"
+    "api:check": "wrangler deploy -c worker/wrangler.jsonc --dry-run --outdir .wrangler/dry-run",
+    "quality": "esbuild scripts/quality/run.ts --bundle --platform=node --format=esm --outfile=.quality/run.mjs --log-level=warning && node .quality/run.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.131.0",
@@ -32,6 +33,7 @@
     "@types/node": "^26.6.3",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
+    "esbuild": "0.25.4",
     "eslint": "^9.39.5",
     "eslint-config-next": "^16.3.8",
     "typescript": "^5.9.3",

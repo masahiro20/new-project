@@ -18,7 +18,7 @@
 | 2 | API の Worker を GitHub から作る | 「Workers & Pages」→ Create → **Import a repository** → `masahiro20/new-project` | 5分 | 下の「Worker の設定値」をそのまま入力 |
 | 3 | デモ用の署名鍵を入れる | 作った Worker → **Settings → Variables and Secrets** → Add → 種類 **Secret** | 2分 | `DEMO_SIGNING_SECRET` = 長いランダム文字列（パスワード生成機能で32文字以上） |
 | 4 | Stripe の準備（テストモード） | https://dashboard.stripe.com → 本人確認 → 開発者 → API キー | 10分 | **テスト用**シークレットキー `sk_test_…` を手順3と同じ場所に Secret `STRIPE_SECRET_KEY` で入れる。設定 → メール → **支払い成功時の領収書メール**をオン |
-| 5 | AI のキーを入れる（有料化の基準を満たしてから。本部の決定 d17） | https://console.anthropic.com → API Keys、**Limits で月の上限を設定** | 5分 | Secret `ANTHROPIC_API_KEY` |
+| 5 | AI のキーを入れる（有料化の基準を満たしてから。本部の決定 d17）。入れたら本部が品質チェック（docs/quality.md）を回す | https://console.anthropic.com → API Keys、**Limits で月の上限を設定** | 5分 | Secret `ANTHROPIC_API_KEY` |
 | 6 | 販売者情報を本部に渡す | — | 3分 | 販売事業者名、運営責任者、所在地（または「請求があれば遅滞なく開示」）、連絡先メール。特商法の表記・利用規約・プライバシーポリシーに入る |
 
 **Worker の設定値**（手順2）
