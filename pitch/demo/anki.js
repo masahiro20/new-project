@@ -162,6 +162,7 @@ export async function saveBlob(blob, name) {
 const SCOPES = {
   current: 'この単語',
   results: '検索結果',
+  list: '自分の単語リスト',
   pairs: '同音で型が違う語',
   failed: 'この回で不合格だった単語',
 };
@@ -169,7 +170,9 @@ const SCOPES = {
 /**
  * Wire the Anki panel (#anki-* in demo/template.html).
  * ctx: { words, byId, getCurrent(), pairs? } — pairs: optional builder (words) → word groups.
- * Returns { judged(e) } for demo.js to call after each judgement.
+ * 創設サポーター（demo/supporter.js）用の任意のフック：scopeOpen(scope) → 選べるか、
+ * listWords() / listName() → 自分の単語リスト。どれもなければ従来どおり全部選べる。
+ * Returns { judged(e), refresh() } for demo.js to call after each judgement.
  */
 export function mountAnki(ctx) {
   const $ = (id) => document.getElementById(id);
@@ -182,26 +185,32 @@ export function mountAnki(ctx) {
     if (s === 'current') return [ctx.getCurrent()];
     if (s === 'results') return listed();
     if (s === 'pairs') return groups.flat();
+    if (s === 'list') return ctx.listWords?.() ?? [];
     return failedWords(session);
   };
-  const extraTags = (s) => (s === 'pairs' ? ['pitch::minimal-pair'] : s === 'failed' ? ['pitch::failed'] : []);
+  const extraTags = (s) => (s === 'pairs' ? ['pitch::minimal-pair'] : s === 'failed' ? ['pitch::failed'] : s === 'list' ? ['pitch::mylist'] : []);
+  const isOpen = (s) => (ctx.scopeOpen ? ctx.scopeOpen(s) : true);
   $('anki-download').hidden = !downloadCapable();
   saverReady.then(() => { $('anki-download').hidden = !downloadCapable(); });
   const text = $('anki-text');
 
   function refresh() {
-    const counts = { current: 1, results: listed().length, pairs: groups.flat().length, failed: failedWords(session).length };
+    const counts = { current: 1, results: listed().length, list: (ctx.listWords?.() ?? []).length, pairs: groups.flat().length, failed: failedWords(session).length };
     for (const o of scope.options) {
-      o.textContent = o.value === 'current'
+      const name = o.value === 'list' && ctx.listName?.() ? `${SCOPES.list}「${ctx.listName()}」` : SCOPES[o.value];
+      o.textContent = (o.value === 'current'
         ? `${SCOPES.current}（${ctx.getCurrent().surface}）`
-        : `${SCOPES[o.value]}（${counts[o.value]} 語${o.value === 'pairs' ? `・${groups.length} 組` : ''}）`;
+        : `${name}（${counts[o.value]} 語${o.value === 'pairs' ? `・${groups.length} 組` : ''}）`) + (isOpen(o.value) ? '' : '・サポーター向け');
+      o.disabled = !isOpen(o.value);
     }
+    if (!isOpen(scope.value)) scope.value = [...scope.options].find((o) => !o.disabled)?.value ?? scope.value;
     const nNow = counts[scope.value];
     $('anki-copy').disabled = nNow === 0;
     $('anki-download').disabled = nNow === 0;
     $('anki-status').textContent = nNow === 0 && scope.value === 'failed'
       ? '録音ファイルで不合格になった単語がまだありません（合成音声のサンプルは数えません）。'
-      : '';
+      : nNow === 0 && scope.value === 'list' ? '自分の単語リストに語がありません（「自分の単語リスト」で追加できます）。' : '';
+    if ($('anki-gate')) $('anki-gate').hidden = [...scope.options].every((o) => !o.disabled);
     $('anki-text-wrap').hidden = true;
   }
 
@@ -246,6 +255,7 @@ export function mountAnki(ctx) {
       session.push({ word: e.word, pass: !!e.result.pass });
       refresh();
     },
+    refresh,
     session,
   };
 }

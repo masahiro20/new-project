@@ -11,6 +11,9 @@ import { mountAnki } from './anki.js'; // Anki への書き出し
 import { SR, loadUtterance, judgeSamples, play } from './pipeline.js'; // shared with practice.js
 import { initPractice } from './practice.js'; // 最小対で練習
 import { mountEvalMode } from './evalmode.js'; // 評価協力モード（端末内だけに保存）
+import { createEntitlement, createJudgeGate, mountSupporter, gatesFor, pairOpen, safeStorage, PLAN } from './supporter.js'; // 創設サポーター
+import { mountLists } from './mylists.js'; // 自分の単語リスト
+import { mountProgress } from './progress.js'; // 練習の記録
 
 const $ = (id) => document.getElementById(id);
 const DEFAULT_SURFACE = '橋';
@@ -170,7 +173,10 @@ function selectWord(w) {
 }
 
 // ---------- result rendering ----------
-function setState(s) { $('result').dataset.state = s; }
+function setState(s) {
+  $('result').dataset.state = s;
+  $('limit-note').hidden = s !== 'limit'; // 創設サポーター：1日の上限の案内
+}
 
 function setIdle() {
   setState('idle');
@@ -391,6 +397,15 @@ async function runFile(file) {
   if (!file) return;
   const w = current;
   const id = ++runId;
+  const blocked = judgeGate.check(w); // 無料版の1日の上限（demo/supporter.js）
+  if (blocked) {
+    showError(blocked, w);
+    setState('limit');
+    $('source').textContent = file.name;
+    $('verdict').textContent = '今日の無料の判定はここまでです';
+    window.__pitchLast = { result: null, blocked: 'daily-limit', word: w, source: { kind: 'file', name: file.name } };
+    return;
+  }
   setState('busy');
   $('source').textContent = `${file.name} を読み込み中…`;
   $('verdict').textContent = '解析中…';
@@ -447,14 +462,35 @@ drop.addEventListener('drop', (e) => {
 window.addEventListener('dragover', (e) => e.preventDefault());
 window.addEventListener('drop', (e) => e.preventDefault());
 
+// ---------- 創設サポーター・自分の単語リスト・練習の記録 (demo/supporter.js, mylists.js, progress.js) ----------
+const storage = safeStorage();
+const entitlement = createEntitlement({ storage });
+const gates = () => gatesFor(entitlement.isSupporter());
+const listed = () => [...$('word-select').options].map((o) => byId.get(o.value)).filter(Boolean);
+const myLists = mountLists({ byId, storage, listed, getCurrent: () => current, selectWord, isOpen: () => gates().lists });
+const progress = mountProgress({ storage, window: () => gates().historyDays });
+
 // ---------- share card + Anki export (demo/share.js, demo/anki.js) ----------
 const shareCard = mountShare();
-const ankiExport = mountAnki({ words, byId, getCurrent: () => current });
+const ankiExport = mountAnki({
+  words, byId, getCurrent: () => current,
+  scopeOpen: (s) => gates().ankiScopes.has(s), listWords: myLists.activeWords, listName: myLists.activeName,
+});
 const evalMode = mountEvalMode({ getCurrent: () => current, getBuild: () => $('build').textContent.trim() });
+const judgeGate = createJudgeGate({ entitlement, storage, isExempt: evalMode.isOn });
+const supporterPanel = mountSupporter({ entitlement, gate: judgeGate });
+myLists.onChange?.(ankiExport.refresh);
 function afterJudge(e) {
   shareCard.judged(e);
   ankiExport.judged(e);
   evalMode.judged(e); // 録音ファイルのときだけ、オンなら端末内に保存
+  countJudgement(e);
+}
+/** 判定画面と練習の言い分けの両方から：1日の判定数と練習の記録（録音ファイルだけ）。 */
+function countJudgement(e) {
+  judgeGate.record(e);
+  progress.judged(e);
+  supporterPanel.refresh();
 }
 
 renderPicks();
@@ -463,4 +499,19 @@ selectWord(current);
 runSample('correct');
 
 // ---------- 最小対で練習 (demo/practice.js) ----------
-initPractice({ words, loadUtterance, judgeSamples, play, synthesizeWord, sampleRate: SR, sampleSeed, onJudged: evalMode.judged });
+const practice = initPractice({
+  words, loadUtterance, judgeSamples, play, synthesizeWord, sampleRate: SR, sampleSeed,
+  onJudged: (e) => { evalMode.judged(e); countJudgement(e); },
+  pairOpen: (i) => pairOpen(gates(), i),
+  lockedText: `この組の聞き分けドリルは${PLAN.name}向けです（無料版は最初の${PLAN.freePracticePairs}組）。言い分け（録音で判定）はどの組でも使えます。`,
+  beforeJudge: (w) => judgeGate.check(w),
+});
+
+// 解除の状態が変わったら、各機能の表示を合わせる。保存済みのキーはここで検証し直す。
+entitlement.subscribe(() => {
+  practice?.refresh();
+  ankiExport.refresh?.();
+  myLists.refresh();
+  progress.refresh();
+});
+entitlement.load();

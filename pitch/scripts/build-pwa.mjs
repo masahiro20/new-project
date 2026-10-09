@@ -26,6 +26,8 @@ const li = argv.indexOf('--lexicon');
 if (li >= 0) lexArgs.push(...argv.splice(li, 2));
 const outDir = resolve(argv[0] ?? `${root}/site/app`);
 const fail = (msg) => { console.error(`build-pwa: ${msg}`); process.exit(1); };
+// テスト用の公開鍵（SUPPORTER_PUBKEY）で site/ に書かない。
+if (process.env.SUPPORTER_PUBKEY && `${outDir}/`.startsWith(`${root}/site/`)) fail(`SUPPORTER_PUBKEY is set: refusing to write a test-key build into ${outDir}`);
 
 // Page tokens (demo/template.html :root) used outside the page.
 const LIGHT_BG = '#f3f6f8';

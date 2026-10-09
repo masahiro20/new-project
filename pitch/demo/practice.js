@@ -132,6 +132,10 @@ const ERROR_TEXT = {
  * Wire the 「最小対で練習」 section. Does nothing if the section is not in the page.
  * deps: { words, loadUtterance, judgeSamples, play, synthesizeWord, sampleRate, sampleSeed, onJudged? }
  * onJudged(e): 判定のたびに呼ぶ（評価協力モード。e = { result, word, track, source, samples, rate, practice }）
+ * 創設サポーター（demo/supporter.js）用の任意のフック：
+ *   pairOpen(index) → buildMinimalPairs の index 番目を聞き分けドリルに使えるか（既定は全部）
+ *   lockedText … 使えない組で表示する文、beforeJudge(word) → null か、判定しない理由の文（1日の上限）
+ * 返り値 { groups, refresh() }：解除の状態が変わったら refresh() を呼ぶ。
  */
 export function initPractice(deps) {
   const $ = (id) => document.getElementById(id);
@@ -147,6 +151,7 @@ export function initPractice(deps) {
   let lastAudio = null;
 
   if (!group) { $('practice').hidden = true; return null; }
+  const isOpen = (g) => (deps.pairOpen ? deps.pairOpen(groups.indexOf(g)) : true);
 
   const synth = (o, opts = {}) => synthesizeWord(group.morae, opts.k ?? o.k, { sampleRate, baseHz: 140, seed: 7, ...opts });
   const nextFrame = () => new Promise((res) => requestAnimationFrame(() => setTimeout(res, 0)));
@@ -159,7 +164,7 @@ export function initPractice(deps) {
     for (const g of list) {
       const o = document.createElement('option');
       o.value = g.id;
-      o.textContent = `${g.kana} — ${g.options.map((x) => x.label).join('／')}`;
+      o.textContent = `${g.kana} — ${g.options.map((x) => x.label).join('／')}${isOpen(g) ? '' : '（聞き分けはサポーター向け）'}`;
       frag.append(o);
     }
     sel.replaceChildren(frag);
@@ -321,6 +326,13 @@ export function initPractice(deps) {
   async function runFile(file) {
     if (!file) return;
     const id = ++runId;
+    const blocked = deps.beforeJudge?.(group.options.find((o) => o.id === targetId).words[0]);
+    if (blocked) {
+      $('pair-source').textContent = file.name;
+      showError(blocked);
+      window.__practiceLast = { result: null, blocked: 'daily-limit', group: group.id, target: targetId, source: { kind: 'file', name: file.name } };
+      return;
+    }
     $('pair-result').dataset.state = 'busy';
     $('pair-source').textContent = `${file.name} を読み込み中…`;
     $('pair-verdict').textContent = '解析中…';
@@ -369,6 +381,12 @@ export function initPractice(deps) {
     $('drill-replay').disabled = true;
     $('drill-feedback').textContent = '「▶ 問題を再生」を押して、どの語に聞こえたかを選んでください。';
     $('drill-feedback').dataset.state = 'idle';
+    const open = isOpen(group);
+    $('drill-play').disabled = !open;
+    if (!open) {
+      $('drill-feedback').textContent = deps.lockedText ?? 'この組の聞き分けドリルは使えません。';
+      $('drill-feedback').dataset.state = 'locked';
+    }
   }
 
   function playQuestion() {
@@ -422,7 +440,7 @@ export function initPractice(deps) {
   $('pair-file').addEventListener('change', () => { runFile($('pair-file').files[0]); $('pair-file').value = ''; });
   $('pair-sample').addEventListener('click', runSample);
   $('pair-replay').addEventListener('click', () => { if (lastAudio) play(lastAudio.samples, lastAudio.rate); });
-  $('drill-play').addEventListener('click', newQuestion);
+  $('drill-play').addEventListener('click', () => { if (isOpen(group)) newQuestion(); });
   $('drill-replay').addEventListener('click', () => { if (question) playQuestion(); });
   $('drill-reset').addEventListener('click', () => { score = emptyScore(); renderScore(); });
   const drop = $('pair-drop');
@@ -433,5 +451,5 @@ export function initPractice(deps) {
   renderSelect();
   selectPair(group);
   renderScore();
-  return { groups };
+  return { groups, refresh() { renderSelect(); renderDrill(); } };
 }

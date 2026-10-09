@@ -4,3 +4,9 @@ node_modules/
 vendor/ort/*.mjs
 vendor/ort/*.wasm
 .qa-out/
+# 創設サポーターキーの秘密鍵は絶対にコミットしない（scripts/supporter-key.mjs はリポジトリの外にしか書かない）
+*.pem
+*.key
+*.p8
+*private*key*
+supporter-key*.json

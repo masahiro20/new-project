@@ -3,6 +3,8 @@
 //   node scripts/build-demo.mjs [--lexicon 2000|200|path.json] [template.html] [out.html]
 //   (DEMO_ENTRY=path overrides the bundled entry, default demo/demo.js;
 //    DEMO_LEXICON=… is the same as --lexicon; default data/lexicon-2000.json)
+//   SUPPORTER_PUBKEY=path.js：テスト用に demo/supporter-pubkey.js を差し替える（scripts/qa-supporter.mjs）。
+//   差し替えたビルドは dist/ と site/ には書けません（テスト鍵が公開用のページに入らないように）。
 //
 // Inlines everything (bundled script, lexicon JSON, licence texts) so the page
 // makes no network requests at all — it is published as a claude.ai Artifact,
@@ -26,6 +28,15 @@ const outPath = resolve(argv[1] ?? `${root}/dist/pitch-demo.html`);
 const entry = resolve(process.env.DEMO_ENTRY ?? `${root}/demo/demo.js`); // override for testing
 
 const fail = (msg) => { console.error(`build-demo: ${msg}`); process.exit(1); };
+const testPubkey = process.env.SUPPORTER_PUBKEY ? resolve(process.env.SUPPORTER_PUBKEY) : null;
+if (testPubkey && [`${root}/dist/`, `${root}/site/`].some((d) => `${outPath}/`.startsWith(d) || outPath.startsWith(d))) {
+  fail(`SUPPORTER_PUBKEY is set: refusing to write a test-key build into ${outPath} (use a scratch directory)`);
+}
+// 創設サポーターの公開鍵の差し替え（テスト用）。
+const pubkeyPlugin = {
+  name: 'supporter-pubkey',
+  setup(b) { b.onResolve({ filter: /[\\/]supporter-pubkey\.js$/ }, () => ({ path: testPubkey })); },
+};
 
 const escapeHtml = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
@@ -42,6 +53,9 @@ try {
     write: false,
     legalComments: 'none', // full licence texts are inlined in the page instead
     alias: { 'fft.js': `${root}/vendor/fft.js`, pitchy: `${root}/vendor/pitchy.js` },
+    plugins: testPubkey ? [pubkeyPlugin] : [],
+    // テスト用ビルド（SUPPORTER_PUBKEY あり）に限り、SUPPORTER_FREE_LIMITS=1 で無料枠を適用した状態にできる
+    define: { __PITCH_FREE_LIMITS__: testPubkey && process.env.SUPPORTER_FREE_LIMITS === '1' ? 'true' : 'undefined' },
     logLevel: 'warning',
   });
   js = res.outputFiles[0].text;
@@ -140,4 +154,5 @@ await mkdir(dirname(outPath), { recursive: true });
 await writeFile(outPath, html);
 const kb = (n) => `${(n / 1024).toFixed(1)} KB`;
 console.log(`build-demo: wrote ${outPath} — ${kb(Buffer.byteLength(html))} (script ${kb(Buffer.byteLength(js))}, lexicon ${kb(Buffer.byteLength(lexicon))} from ${kb(lexiconRawBytes)} minified source) [${stamp}]`);
+if (testPubkey) console.log(`build-demo: TEST supporter public key from ${testPubkey} (not for publishing)`);
 console.log(`build-demo: lexicon ${lexiconPath.replace(`${root}/`, '')} — ${compact.length} words in the page${excluded.length ? `, ${excluded.length} held back for review: ${excluded.join(' ')}` : ', none held back (review hold-back already applied at lexicon build)'}`);

@@ -195,6 +195,35 @@ footer { font-size: .8rem; color: var(--muted); display: flex; flex-direction: c
 .danger { background: var(--ng); color: var(--surface); border-color: var(--ng); font-weight: 600; }
 #eval-status:empty { display: none; }
 #eval-unavailable { color: var(--ng); font-size: .9rem; }
+/* ---- 創設サポーター・自分の単語リスト・練習の記録 (demo/supporter.js, mylists.js, progress.js) ---- */
+#result[data-state="limit"] .verdict-box { background: var(--accent-soft); }
+#result[data-state="limit"] #verdict { color: var(--accent); font-size: 1.25rem; }
+#limit-note[hidden], #usage-note[hidden], #anki-gate[hidden], #lists-locked[hidden], #lists-body[hidden], #sup-unconfigured[hidden], #sup-active[hidden], #sup-saved-note[hidden], #progress-more[hidden], #progress-empty[hidden], .sup-table[hidden] { display: none; }
+.sup-tag { font-size: .75rem; font-weight: 600; color: var(--accent); background: var(--accent-soft); border-radius: 999px; padding: 1px 8px; vertical-align: .15em; }
+.sup-note { padding: 8px 10px; border-radius: 8px; background: var(--accent-soft); color: var(--ink); font-size: .9rem; }
+.sup-beta { padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface-2); font-weight: 600; }
+#sup-status { font-weight: 600; }
+#sup-status[data-state="supporter"] { color: var(--ok); }
+.sup-price { font-size: 1.15rem; font-weight: 700; }
+.sup-table-wrap { overflow-x: auto; }
+.sup-table { width: 100%; border-collapse: collapse; font-size: .85rem; font-variant-numeric: tabular-nums; }
+.sup-table th, .sup-table td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.sup-table thead th { color: var(--muted); font-weight: 600; }
+.sup-table tbody th { font-weight: 400; }
+#sup-key, #list-name { font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; min-height: 44px; box-sizing: border-box; width: 100%; }
+#sup-key { font-family: var(--mono); font-size: .85rem; resize: vertical; overflow-wrap: anywhere; }
+#list-name { flex: 1 1 14rem; width: auto; }
+#sup-msg:empty, #list-status:empty { display: none; }
+#sup-msg[data-kind="ok"] { color: var(--ok); font-weight: 600; }
+#sup-msg[data-kind="ng"] { color: var(--ng); }
+#list-select { flex: 1 1 12rem; }
+#list-words { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px; }
+.list-item { display: flex; align-items: stretch; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); min-width: 0; max-width: 100%; }
+.list-pick { border: 0; background: transparent; min-height: 40px; padding: 4px 10px; overflow-wrap: anywhere; text-align: left; }
+.list-pick[aria-current="true"] { color: var(--accent); font-weight: 700; }
+.list-del { border: 0; border-left: 1px solid var(--line); border-radius: 0 8px 8px 0; background: transparent; min-height: 40px; min-width: 40px; padding: 4px 8px; color: var(--muted); }
+#lists-body { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+#drill-feedback[data-state="locked"] { color: var(--muted); font-weight: 400; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; scroll-behavior: auto !important; } }
 </style>
 
@@ -204,6 +233,7 @@ footer { font-size: .8rem; color: var(--muted); display: flex; flex-direction: c
     <p>単語に「が」を付けて言った録音から声の高さを測り、下がり目（アクセント核）の位置が辞書と同じかを判定します。</p>
     <p class="privacy">音声はこの端末のブラウザ内だけで処理され、外部に送信されません。</p>
     <a class="jump" id="jump-practice" href="#practice">最小対（箸・橋・端 など）で練習する ↓</a>
+    <a class="jump" id="jump-supporter" href="#supporter">創設サポーター（買い切りの応援）について ↓</a>
     <p class="eval-badge" id="eval-badge" hidden>評価協力モード：オン（録音をこの端末に保存中・<span id="eval-badge-count">0 件</span>）<a id="eval-badge-link" href="#evalmode">確認する ↓</a></p>
   </header>
 
@@ -263,6 +293,7 @@ footer { font-size: .8rem; color: var(--muted); display: flex; flex-direction: c
       <button type="button" id="sample-correct" data-sample="correct">正しい型で試す</button>
       <button type="button" id="sample-wrong" data-sample="wrong">違う型で試す</button>
     </div>
+    <p class="muted small" id="usage-note" hidden></p>
   </section>
 
   <section class="panel" id="result" data-state="idle" aria-labelledby="h-result" aria-live="polite">
@@ -273,6 +304,7 @@ footer { font-size: .8rem; color: var(--muted); display: flex; flex-direction: c
       <p id="reason"></p>
       <p id="homophone" hidden></p>
       <p id="flat-note" hidden></p>
+      <p id="limit-note" hidden><a href="#supporter">創設サポーターについて ↓</a></p>
     </div>
     <dl class="facts" id="facts" hidden>
       <div><dt>あなたの型</dt><dd id="fact-detected"></dd></div>
@@ -318,6 +350,7 @@ footer { font-size: .8rem; color: var(--muted); display: flex; flex-direction: c
     <select id="anki-scope">
       <option value="current">この単語</option>
       <option value="results">検索結果</option>
+      <option value="list">自分の単語リスト</option>
       <option value="pairs">同音で型が違う語</option>
       <option value="failed">この回で不合格だった単語</option>
     </select>
@@ -325,6 +358,7 @@ footer { font-size: .8rem; color: var(--muted); display: flex; flex-direction: c
       <button type="button" id="anki-download" class="primary" hidden>Pitch-anki.txt をダウンロード</button>
       <button type="button" id="anki-copy">テキストをコピー</button>
     </div>
+    <p class="muted small" id="anki-gate" hidden>無料版では「不合格だった単語」を書き出せます。自分の単語リスト・検索結果・最小対などの書き出しは<a href="#supporter">創設サポーター</a>向けです。</p>
     <p class="small" id="anki-status" role="status"></p>
     <div id="anki-text-wrap" hidden>
       <label class="visually-hidden" for="anki-text">Anki 用テキスト</label>
@@ -384,6 +418,70 @@ footer { font-size: .8rem; color: var(--muted); display: flex; flex-direction: c
         <p id="drill-score" aria-live="polite"></p>
         <button type="button" id="drill-reset" disabled>スコアをリセット</button>
       </div>
+    </div>
+  </section>
+
+  <!-- 自分の単語リスト (demo/mylists.js) -->
+  <section class="panel" id="mylists" aria-labelledby="h-lists">
+    <h2 id="h-lists">自分の単語リスト <span class="sup-tag">サポーター</span></h2>
+    <p class="small">教科書やアニメの語など、辞書の語を名前つきのリストにまとめ、リストから選んで練習したり、Anki に書き出したりできます。リストはこの端末のブラウザ内だけに保存します。</p>
+    <p class="sup-note" id="lists-locked" hidden>自分の単語リストは創設サポーター向けの機能です。<a href="#supporter">創設サポーターについて ↓</a></p>
+    <div class="panel-body" id="lists-body" hidden>
+      <div class="row">
+        <label class="visually-hidden" for="list-name">リストの名前</label>
+        <input id="list-name" type="text" maxlength="40" autocomplete="off" placeholder="リストの名前（例：第5課の単語）">
+        <button type="button" id="list-create">リストを作る</button>
+      </div>
+      <div class="row">
+        <label class="visually-hidden" for="list-select">リストを選ぶ</label>
+        <select id="list-select"></select>
+        <button type="button" id="list-rename">名前を変える</button>
+        <button type="button" id="list-delete">リストを削除</button>
+      </div>
+      <div class="row">
+        <button type="button" id="list-add-current" class="primary">この単語を追加</button>
+        <button type="button" id="list-add-results">検索結果をまとめて追加</button>
+        <button type="button" id="list-next">リストの次の語を練習 →</button>
+      </div>
+      <p class="muted small" id="list-count"></p>
+      <ul id="list-words" aria-label="リストの語"></ul>
+      <p class="small" id="list-status" role="status"></p>
+    </div>
+  </section>
+
+  <!-- 練習の記録 (demo/progress.js) -->
+  <section class="panel" id="progress" aria-labelledby="h-progress">
+    <h2 id="h-progress">練習の記録</h2>
+    <p class="small">録音ファイルで判定した回数と合格数を、日ごとと辞書の型ごとに、この端末のブラウザ内だけに記録します（音声や単語名は残しません。合成音声のサンプルと聞き分けドリルは記録しません）。</p>
+    <p id="progress-range"></p>
+    <p class="muted small" id="progress-empty">まだ記録がありません。</p>
+    <div class="sup-table-wrap"><table class="sup-table" id="progress-days" hidden></table></div>
+    <div class="sup-table-wrap"><table class="sup-table" id="progress-types" hidden></table></div>
+    <p class="sup-note" id="progress-more" hidden></p>
+    <button type="button" id="progress-clear">記録を消す</button>
+  </section>
+
+  <!-- 創設サポーター (demo/supporter.js)。お金に関わる文言は supporter.js の PLAN から入れる -->
+  <section class="panel" id="supporter" aria-labelledby="h-supporter">
+    <h2 id="h-supporter">創設サポーター</h2>
+    <p id="sup-status" data-state="free"></p>
+    <p class="small">Pitch の開発を応援してくださる方のための買い切りのプランです。判定の中身は無料版と同じで、練習の道具（回数・単語リスト・Anki・記録）が増えます。</p>
+    <p class="sup-beta" id="sup-beta"></p>
+    <div class="sup-table-wrap"><table class="sup-table" id="sup-plan"></table></div>
+    <p class="sup-price" id="sup-price"></p>
+    <p class="small" id="sup-refund"></p>
+    <p class="small" id="sup-buy"></p>
+    <p class="muted small">キーには氏名やメールアドレスは入っていません。キーの確認はこの端末の中だけで行い、どこにも送信しません。キーは使う端末ごとに貼り付けてください。</p>
+    <p class="sup-note" id="sup-unconfigured" hidden>準備中です。サポーターキーの受付はまだ始まっていません。</p>
+    <label class="muted small" for="sup-key">サポーターキー</label>
+    <textarea id="sup-key" rows="3" spellcheck="false" autocomplete="off" autocapitalize="characters"></textarea>
+    <div class="row">
+      <button type="button" id="sup-activate" class="primary">キーを確認して解除</button>
+    </div>
+    <p class="small" id="sup-msg" role="status"></p>
+    <div class="row" id="sup-active" hidden>
+      <button type="button" id="sup-remove">この端末からキーを削除</button>
+      <span class="muted small" id="sup-saved-note" hidden>この端末に保存できないため、ページを閉じると元に戻ります。</span>
     </div>
   </section>
 

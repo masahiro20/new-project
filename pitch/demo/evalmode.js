@@ -396,11 +396,11 @@ async function storeExists(idb) {
 /**
  * 「評価協力モード」パネル（demo/template.html の #eval-*）をつなぐ。
  * ctx: { getCurrent() → 判定画面の単語, getBuild() → ビルド番号 }
- * 戻り値 { judged(e) }：demo.js（判定画面）と練習モードから、判定のたびに呼ぶ。
+ * 戻り値 { judged(e), isOn() }：demo.js（判定画面）と練習モードから、判定のたびに呼ぶ。
  */
 export function mountEvalMode(ctx) {
   const $ = (id) => document.getElementById(id);
-  if (!$('evalmode')) return { judged() {} };
+  if (!$('evalmode')) return { judged() {}, isOn: () => false };
   let store = null;
   let on = false;
   let count = 0;
@@ -591,6 +591,8 @@ export function mountEvalMode(ctx) {
   render();
 
   return {
+    /** オンで保存できる状態か（創設サポーターの1日の上限は、このあいだ数えない）。 */
+    isOn: () => on && !!store,
     judged(e) {
       recorder.judged(e).catch((err) => { console.warn(err); status(`保存できませんでした（${err?.name || err}）。容量が足りない可能性があります。`); });
     },

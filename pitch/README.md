@@ -91,6 +91,42 @@ node scripts/qa-evalmode.mjs --fixtures /tmp/pitch-fx          # Playwright: 同
 
 設計の判断：`docs/decisions.md`（評価協力モード）。
 
+## 創設サポーター（`demo/supporter.js`）
+
+最初の有料プラン（買い切り。本部の決定 d31）。判定の中身は無料版と同じで、練習の道具が増えます。
+購入画面に「判定はベータで調整中です。精度を約束するものではありません。」と明記しています。
+
+| 機能 | 無料 | 創設サポーター |
+|---|---|---|
+| 録音の判定 | 1日20語まで（異なる語。端末の日付で数える。合成サンプル・聞き分けは数えない） | 上限なし |
+| 最小対の聞き分けドリル | 最初の5組 | すべて |
+| Anki への書き出し | この回で不合格だった語だけ | この単語・検索結果・自分の単語リスト・最小対 |
+| 自分の単語リスト（`demo/mylists.js`） | — | 名前つきで複数、リストから練習・書き出し |
+| 練習の記録（`demo/progress.js`） | 直近7日 | 全期間 |
+| 辞書引き・お手本・共有カード | ○ | ○ |
+
+- 価格・返金・Ko-fi の URL・無料枠の数字は `demo/supporter.js` の `PLAN` だけにあります（未定の値は TODO）。
+  Ko-fi の URL が空のあいだは「購入ページは準備中です」と表示し、リンクを作りません。
+- キーは ECDSA P-256 の署名つき（`PITCH-XXXXX-…`）。ページの公開鍵（`demo/supporter-pubkey.js`）だけで、
+  端末の中で検証します（送信なし）。中身は版・通し番号・発行日・機能フラグだけで、個人情報は入りません。
+  検証済みのキーは localStorage に保存し、「この端末からキーを削除」で無料に戻ります。
+- **公開鍵はまだ未設定** です（秘密鍵の保管者が決まるまで本番の鍵ペアを作らない）。未設定のあいだはキー入力欄が
+  「準備中」で、何も解除しません。無料枠は適用します（`PLAN.freeLimitsActive`）。
+- 評価協力モードがオンのあいだは、1日の上限を適用しません。
+- 単語リスト・練習の記録・1日の判定数・キーは、すべてこの端末の localStorage だけに保存します。
+
+```sh
+node scripts/supporter-key.mjs init --key ~/.config/p3pitch/supporter-key.pem   # 鍵ペア（秘密鍵はリポジトリの外、0600）
+node scripts/supporter-key.mjs issue --key ~/.config/p3pitch/supporter-key.pem --serial 1
+node scripts/supporter-key.mjs verify "PITCH-…"
+node scripts/supporter-key.mjs revoke --serial 1                                 # 取り消し → ページを再ビルド
+node --test test/supporter.test.js
+node scripts/qa-supporter.mjs --out <scratch>   # テスト鍵を差し込んだビルド（scratch に出力）と本番ビルドを Playwright で確認
+```
+
+運用の手順（鍵の作成、キーの発行、Ko-fi 購入後に送る手順、取り消し）：`docs/supporter-ops.md`。
+設計の判断：`docs/decisions.md`（創設サポーター）。
+
 ## 判定のしくみ（`src/judge.js`）
 
 1. 10 ms のフレームごとに F0 を求め（pitchy/MPM、または 16 ms の SwiftF0）、信頼できないフレームを捨て、
