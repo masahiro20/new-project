@@ -1,0 +1,49 @@
+diff --git a/pitch/demo/evalmode.js b/pitch/demo/evalmode.js
+index dd28501..0a0597e 100644
+--- a/pitch/demo/evalmode.js
++++ b/pitch/demo/evalmode.js
+@@ -45,12 +45,15 @@ export function crc32(bytes) {
+ const enc = new TextEncoder();
+ const toBytes = (d) => (typeof d === 'string' ? enc.encode(d) : d instanceof Uint8Array ? d : new Uint8Array(d));
+ 
+-/** Date → MS-DOS の日付・時刻（ローカル時刻、1980 年より前は 1980-01-01 に丸める）。 */
++/**
++ * Date → MS-DOS の日付・時刻（UTC、1980 年より前は 1980 年に丸める）。
++ * ローカル時刻にすると、manifest.json の exportedAt（UTC）との差から書き出した人のタイムゾーンがわかるため、UTC で書く。
++ */
+ export function dosDateTime(date) {
+-  const y = Math.max(1980, date.getFullYear());
++  const y = Math.max(1980, date.getUTCFullYear());
+   return {
+-    time: (date.getHours() << 11) | (date.getMinutes() << 5) | (date.getSeconds() >> 1),
+-    date: ((y - 1980) << 9) | ((date.getMonth() + 1) << 5) | date.getDate(),
++    time: (date.getUTCHours() << 11) | (date.getUTCMinutes() << 5) | (date.getUTCSeconds() >> 1),
++    date: ((y - 1980) << 9) | ((date.getUTCMonth() + 1) << 5) | date.getUTCDate(),
+   };
+ }
+ 
+diff --git a/pitch/test/evalmode.test.js b/pitch/test/evalmode.test.js
+index 15a19d8..a2394d2 100644
+--- a/pitch/test/evalmode.test.js
++++ b/pitch/test/evalmode.test.js
+@@ -7,7 +7,7 @@ import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
+ import { tmpdir } from 'node:os';
+ import { join } from 'node:path';
+ import {
+-  crc32, makeZip, encodeWav16, toEvalWav, buildRecord, buildExportFiles, buildExportZip, shouldSave,
++  crc32, makeZip, dosDateTime, encodeWav16, toEvalWav, buildRecord, buildExportFiles, buildExportZip, shouldSave,
+   createRecorder, exportFileName, intendedFrom, thinF0, README_TEXT, SCHEMA, EVAL_SR,
+ } from '../demo/evalmode.js';
+ import { readWav } from '../src/wav.js';
+@@ -207,6 +207,11 @@ test('書き出し: README・manifest・wav＋JSON、unzip -t で OK', () => {
+   assert.match(unzipTest(buildExportZip([], { now })), /No errors detected/);
+ });
+ 
++test('dosDateTime: UTC で書く（タイムゾーンを zip に残さない）', () => {
++  const d = new Date('2026-10-09T05:02:40Z');
++  assert.deepEqual(dosDateTime(d), { time: (5 << 11) | (2 << 5) | 20, date: (46 << 9) | (10 << 5) | 9 });
++});
++
+ test('exportFileName: Pitch-eval-YYYYMMDD.zip', () => {
+   assert.equal(exportFileName(new Date(2026, 0, 5, 23, 59)), 'Pitch-eval-20260105.zip');
+ });

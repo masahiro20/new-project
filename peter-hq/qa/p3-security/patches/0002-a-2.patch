@@ -1,0 +1,62 @@
+diff --git a/pitch/demo/evalmode.js b/pitch/demo/evalmode.js
+index dd28501..f0ef315 100644
+--- a/pitch/demo/evalmode.js
++++ b/pitch/demo/evalmode.js
+@@ -277,6 +277,8 @@ export const README_TEXT = `P3 Pitch 評価協力データ
+      改めてあなたの許可を求めます（断っても構いません）。
+   3. 開発者は受け取った録音を受領から90日で削除します。それより前でも、話者本人から依頼があれば7日以内に削除します。
+   4. あなたはいつでも、渡した録音の削除を開発者に求めることができます。
++     依頼するときは、manifest.json の exportId（書き出しごとの番号）を伝えてください。
++     開発者はこの番号で、あなたから受け取った録音を探して削除します。
+ 
+ 同意しない場合は、このファイルを渡さないでください。
+ 渡し方（メール、ファイル共有など）は、あなたが選んでください。
+@@ -286,10 +288,18 @@ export const README_TEXT = `P3 Pitch 評価協力データ
+ ブラウザのサイトデータ（このサイトの保存データ）を消しても削除されます。
+ `;
+ 
++/** 書き出しごとのランダムな番号（端末や本人とは結びつかない）。削除の依頼で、受け取った録音を探すのに使う。 */
++export function newExportId() {
++  const c = globalThis.crypto;
++  if (c?.randomUUID) return c.randomUUID();
++  const b = c?.getRandomValues ? c.getRandomValues(new Uint8Array(16)) : Uint8Array.from({ length: 16 }, () => Math.floor(Math.random() * 256));
++  return [...b].map((x) => x.toString(16).padStart(2, '0')).join('');
++}
++
+ /**
+  * 保存済みレコード [{ id, meta, wav }] → zip に入れるファイルの一覧。
+  */
+-export function buildExportFiles(records, { now = new Date(), build = '' } = {}) {
++export function buildExportFiles(records, { now = new Date(), build = '', exportId = newExportId() } = {}) {
+   const files = [];
+   const list = [];
+   records.forEach((rec, i) => {
+@@ -308,6 +318,7 @@ export function buildExportFiles(records, { now = new Date(), build = '' } = {})
+   const manifest = {
+     schema: SCHEMA,
+     app: 'P3 Pitch',
++    exportId: String(exportId),
+     exportedAt: now.toISOString(),
+     build: String(build),
+     count: records.length,
+diff --git a/pitch/test/evalmode.test.js b/pitch/test/evalmode.test.js
+index 15a19d8..3350fa4 100644
+--- a/pitch/test/evalmode.test.js
++++ b/pitch/test/evalmode.test.js
+@@ -192,6 +192,8 @@ test('書き出し: README・manifest・wav＋JSON、unzip -t で OK', () => {
+   assert.equal(manifest.schema, SCHEMA);
+   assert.equal(manifest.count, 2);
+   assert.equal(manifest.build, 'B1');
++  assert.match(manifest.exportId, /^[0-9a-f-]{32,36}$/, '削除の依頼に使う exportId');
++  assert.notEqual(JSON.parse(buildExportFiles(recs, { now, build: 'B1' })[1].data).exportId, manifest.exportId, '書き出しごとに変わる');
+   assert.deepEqual(manifest.audioFormat, { container: 'wav', encoding: 'pcm16', channels: 1, sampleRate: 16000 });
+   assert.deepEqual(manifest.records.map((r) => [r.wav, r.json, r.wordId, r.pass, r.detectedK]), [
+     ['rec-001-w0001.wav', 'rec-001-w0001.json', 'w0001', true, 2], ['rec-002-w0001.wav', 'rec-002-w0001.json', 'w0001', true, 2],
+@@ -203,6 +205,7 @@ test('書き出し: README・manifest・wav＋JSON、unzip -t で OK', () => {
+   assert.equal(readme, README_TEXT);
+   assert.match(readme, /権利.*話者/);
+   assert.match(readme, /同意文/);
++  assert.match(readme, /exportId/);
+   assert.match(unzipTest(zip), /No errors detected/);
+   assert.match(unzipTest(buildExportZip([], { now })), /No errors detected/);
+ });

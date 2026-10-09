@@ -1,0 +1,24 @@
+diff --git a/pitch/demo/evalmode.js b/pitch/demo/evalmode.js
+index dd28501..df42029 100644
+--- a/pitch/demo/evalmode.js
++++ b/pitch/demo/evalmode.js
+@@ -282,6 +282,7 @@ export const README_TEXT = `P3 Pitch 評価協力データ
+ 渡し方（メール、ファイル共有など）は、あなたが選んでください。
+ 
+ ■ 端末内のデータの消し方
++端末内のデータには保存期限がなく、自動では消えません（上の90日は、開発者が受け取った分の期限です）。
+ アプリの「評価協力モード」の一覧で、1件ずつ、またはすべて削除できます。
+ ブラウザのサイトデータ（このサイトの保存データ）を消しても削除されます。
+ `;
+diff --git a/pitch/demo/template.html b/pitch/demo/template.html
+index db42ed9..2d24e99 100644
+--- a/pitch/demo/template.html
++++ b/pitch/demo/template.html
+@@ -399,6 +399,7 @@ footer { font-size: .8rem; color: var(--muted); display: flex; flex-direction: c
+         <li><b>保存するもの：</b>判定に使った部分の音声（16 kHz の wav・最長約4秒）、単語、判定結果、下で選んだ回答（任意）、アプリのビルド番号、日時</li>
+         <li><b>保存しないもの：</b>元の録音ファイル、ファイル名、氏名やメールなど。合成音声のサンプルも保存しません</li>
+         <li><b>保存場所：</b>このブラウザの中（IndexedDB）だけ。外部には送信しません</li>
++        <li><b>端末内の保存期間：</b>期限はありません。自分で削除するまで残り、自動では消えません（オフにしても、アプリを開かなくても残ります）</li>
+         <li><b>消し方：</b>下の一覧で1件ずつ、または「すべて削除」。ブラウザのサイトデータを消しても消えます</li>
+         <li><b>開発者に渡した場合：</b>精度の検証と改善だけに使い、受領から90日で削除します。それより前でも、依頼があれば7日以内に削除します（zip の README.txt の同意文と同じ）</li>
+       </ul>

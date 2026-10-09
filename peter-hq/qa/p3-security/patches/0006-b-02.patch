@@ -1,0 +1,33 @@
+diff --git a/pitch/scripts/build-pwa.mjs b/pitch/scripts/build-pwa.mjs
+--- a/pitch/scripts/build-pwa.mjs
++++ b/pitch/scripts/build-pwa.mjs
+@@ -130,6 +130,7 @@
+ <html lang="ja">
+ <head>
+ <meta charset="utf-8">
++<!--PITCH-CSP-->
+ <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+ ${title}
+ <meta name="description" content="日本語の高低アクセント（下がり目）を、録音ファイルからブラウザ内で判定します。">
+@@ -151,7 +152,20 @@
+ 
+ if (!/<\/header>/.test(fragment)) fail('</header> not found — cannot place the install hint');
+ const body = fragment.replace(/(\n?\s*)<\/header>/, (m, ws) => `\n    ${installHint}${ws}</header>`).trim();
+-const html = `${head}${body}\n${pwaScript}\n</body>\n</html>\n`;
++let html = `${head}${body}\n${pwaScript}\n</body>\n</html>\n`;
++
++// Content-Security-Policy (GitHub Pages cannot send headers, so a <meta>): only this build's
++// two inline scripts may run, and the page may not connect anywhere — recordings and the
++// evaluation data stay in the browser even if injected markup or a vendored library misbehaves.
++const scriptHashes = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)]
++  .map((m) => `'sha256-${createHash('sha256').update(m[1]).digest('base64')}'`);
++if (scriptHashes.length !== 2) fail(`expected 2 inline scripts (app + PWA), found ${scriptHashes.length}`);
++const csp = [
++  "default-src 'none'", `script-src ${scriptHashes.join(' ')}`, "style-src 'unsafe-inline'",
++  "img-src 'self' data: blob:", "media-src 'self' data: blob:", "connect-src 'none'",
++  "manifest-src 'self'", "worker-src 'self'", "object-src 'none'", "base-uri 'none'", "form-action 'none'",
++].join('; ');
++html = html.replace('<!--PITCH-CSP-->', `<meta http-equiv="Content-Security-Policy" content="${csp}">`);
+ 
+ // 4. Manifest and icons.
+ const manifest = {
