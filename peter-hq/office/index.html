@@ -1,6 +1,6 @@
 <title>ピーター本部</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" media="print" onload="this.media='all'">
 <style>
 /* Layout: a live WebGL floor (bloom, reflections, holograms, cinematic camera, presentation mode) on top, then the owner's approvals inbox, the team roster, deliverables, and the evidence table read from Claude Code. Single dark world by design. */
 :root{
@@ -317,16 +317,6 @@ td a{color:var(--accent)}
   </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/GammaCorrectionShader.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/objects/Reflector.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/environments/RoomEnvironment.js"></script>
 <script>
 (function(){
 "use strict";
@@ -909,7 +899,10 @@ function initWorld(){
 
   // ---- animation ----
   const clock=new THREE.Clock();let frames=0,slowAcc=0,fpsT=0,present=null;
+  // stop drawing while the 3D floor is off-screen or the tab is hidden (saves battery on phones)
+  let onscreen=true;if(window.IntersectionObserver)new IntersectionObserver(es=>{onscreen=es[es.length-1].isIntersecting;},{rootMargin:"100px"}).observe(stage);
   function tick(){
+    if((!onscreen&&!present)||document.hidden){clock.getDelta();requestAnimationFrame(tick);return;}
     const raw=clock.getDelta(),dt=Math.min(.05,raw),t=clock.elapsedTime,sp=reduce?.3:1;
     // auto quality: drop to lite if the GPU struggles
     if(qualityAuto&&!LITE){fpsT+=dt;frames++;if(fpsT>4){if(frames/fpsT<28){slowAcc++;if(slowAcc>=2){LITE=true;applyQuality();updateQualityBtn();}}else slowAcc=0;fpsT=0;frames=0;}}
@@ -1197,7 +1190,7 @@ function presentStep(dt){if(!P.on)return;P.t+=dt;const s=P.steps[P.i];const u=Ma
   subB.style.width=(u*100).toFixed(1)+"%";
   if(P.t>=s.dur){P.i++;P.t=0;if(P.i>=P.steps.length){P.steps=buildSteps();P.i=0;}showStep();}
   const j=jst();pclock.textContent="実測 · 東京 "+String(j.h).padStart(2,"0")+":"+String(j.m).padStart(2,"0");}
-function startPresent(){if(P.on)return;P.on=true;P.steps=buildSteps();P.i=0;P.t=0;showStep();hideProfile();
+async function startPresent(){if(P.on)return;await startWorld();if(P.on)return;P.on=true;P.steps=buildSteps();P.i=0;P.t=0;showStep();hideProfile();
   stage.classList.add("present");document.body.classList.add("presenting");
   try{const r=stage.requestFullscreen?stage.requestFullscreen():stage.webkitRequestFullscreen?stage.webkitRequestFullscreen():null;if(r&&r.catch)r.catch(()=>{});}catch(e){}
   if(W3){W3.setPresent({step:presentStep});setTimeout(W3.resize,50);}else P.timer=setInterval(()=>presentStep(.1),100);}
@@ -1212,7 +1205,15 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape")stopPresent();});
 document.addEventListener("fullscreenchange",()=>{if(!document.fullscreenElement&&P.on)stopPresent();});
 
 // ---------- boot ----------
-try{W3=initWorld();}catch(e){W3=null;stage.append(el("div","fallback","3D 表示の初期化に失敗しました。下の一覧で状況を確認できます。"));}
+// The 3D libraries load only when the floor is needed, so the approvals box and today's results appear at once.
+const LIBS=["https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js", "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js", "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js", "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/GammaCorrectionShader.js", "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js", "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js", "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js", "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js", "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/objects/Reflector.js", "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/environments/RoomEnvironment.js"];
+function loadScript(u){return new Promise((ok,ng)=>{const t=document.createElement("script");t.src=u;t.async=false;t.onload=ok;t.onerror=ng;document.head.append(t);});}
+// start the 3D floor only when it comes near the screen (on phones it sits below the approvals box)
+let worldStarted=null;
+function startWorld(){if(worldStarted)return worldStarted;const msg=el("div","fallback","3D 表示を読み込んでいます…");stage.append(msg);
+  worldStarted=(async()=>{try{await Promise.all(LIBS.map(loadScript));}catch(e){}msg.remove();
+    try{W3=initWorld();}catch(e){W3=null;stage.append(el("div","fallback","3D 表示の初期化に失敗しました。下の一覧で状況を確認できます。"));}if(W3)W3.updateSigns();})();return worldStarted;}
+if(window.IntersectionObserver&&isPhone){setTimeout(()=>{const io=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){io.disconnect();startWorld();}},{rootMargin:"150px"});io.observe(stage);},2500);}else setTimeout(startWorld,900);
 render();renderInbox();setInterval(render,30000);
 
 (async()=>{
