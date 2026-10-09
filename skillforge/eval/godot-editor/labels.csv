@@ -1,0 +1,161 @@
+config,file_line,id,rule,severity,verdict,cause,note
+A,ja.po:9582,A#0,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:9744,A#2,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:9760,A#3,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:15947,A#4,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:4673,A#5,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:4765,A#6,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:4944,A#7,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:5369,A#8,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:5829,A#11,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:6291,A#12,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:8031,A#13,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:8403,A#14,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:17879,A#16,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:17882,A#17,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:17891,A#18,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:18006,A#19,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:11549,A#20,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:3150,A#21,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:3159,A#22,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:2409,A#23,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:7188,A#24,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:5532,A#25,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:7628,A#27,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:7658,A#28,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:15050,A#29,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:11567,A#30,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:11582,A#31,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:16879,A#32,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:5488,A#34,notation.katakana,warning,tp,,real drift; expected contradicts base フォルダ majority
+A,ja.po:9809,A#35,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:10085,A#36,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:17293,A#37,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:16088,A#38,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:17281,A#39,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:17302,A#40,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:20325,A#42,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:3020,A#43,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:5306,A#44,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:6101,A#45,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:6108,A#46,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:12948,A#47,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:13452,A#48,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:14599,A#50,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:20245,A#53,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:3616,A#54,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:3645,A#55,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:3683,A#56,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:3686,A#57,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:3694,A#58,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:3721,A#59,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:5164,A#61,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:5246,A#63,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:5252,A#64,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:6101,A#65,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:8314,A#67,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:13736,A#68,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:13739,A#69,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:13811,A#70,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:10133,A#71,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:17441,A#73,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:5121,A#75,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:5242,A#76,notation.katakana,warning,tp,,real drift; expected contradicts base フォルダ majority
+A,ja.po:18999,A#77,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,ja.po:1167,A#78,placeholder.mismatch,error,fp,bracketed UI label treated as placeholder,[foo] is translatable display text
+A,ja.po:4579,A#80,placeholder.mismatch,error,fp,bracketed UI label treated as placeholder,[foo] is translatable display text
+A,ja.po:4582,A#81,placeholder.mismatch,error,fp,bracketed UI label treated as placeholder,[foo] is translatable display text
+A,ja.po:12613,A#82,placeholder.mismatch,error,fp,plural forms: msgid paired with msgstr[0],nplurals=1; msgstr[0] matches msgid_plural
+A,ja.po:12620,A#83,placeholder.mismatch,error,fp,plural forms: msgid paired with msgstr[0],nplurals=1; msgstr[0] matches msgid_plural
+A,ja.po:12627,A#84,placeholder.mismatch,error,fp,plural forms: msgid paired with msgstr[0],nplurals=1; msgstr[0] matches msgid_plural
+A,ja.po:12634,A#85,placeholder.mismatch,error,fp,plural forms: msgid paired with msgstr[0],nplurals=1; msgstr[0] matches msgid_plural
+A,ja.po:12641,A#86,placeholder.mismatch,error,fp,plural forms: msgid paired with msgstr[0],nplurals=1; msgstr[0] matches msgid_plural
+A,ja.po:12648,A#87,placeholder.mismatch,error,fp,plural forms: msgid paired with msgstr[0],nplurals=1; msgstr[0] matches msgid_plural
+A,ja.po:13401,A#88,placeholder.mismatch,error,fp,plural forms: msgid paired with msgstr[0],nplurals=1; msgstr[0] matches msgid_plural
+A,ja.po:18467,A#92,placeholder.mismatch,error,fp,translator-added menu-path brackets,[macOS] > [rcodesign] menu path in target
+A,ja.po:18498,A#93,placeholder.mismatch,error,fp,translator-added menu-path brackets,[macOS] > [rcodesign] menu path in target
+A,ja.po:19593,A#94,placeholder.mismatch,error,fp,bracketed UI label treated as placeholder,[foo] is translatable display text
+A,ja.po:4378,A#95,tag.mismatch,error,fp,angle-bracket display text treated as tag,"<…> is translatable UI text, not markup"
+A,ja.po:4466,A#96,tag.mismatch,error,fp,angle-bracket display text treated as tag,"<…> is translatable UI text, not markup"
+A,ja.po:6696,A#97,tag.mismatch,error,fp,angle-bracket display text treated as tag,"<…> is translatable UI text, not markup"
+A,ja.po:7339,A#98,tag.mismatch,error,fp,angle-bracket display text treated as tag,"<…> is translatable UI text, not markup"
+B,ja.po:10564,B#1,term.missing,warning,fp,draft glossary pair misaligned (wrong target),AABB drafted as 可視性
+B,ja.po:18174,B#6,term.missing,warning,fp,draft glossary pair misaligned (wrong target),App Store drafted as 配布
+B,ja.po:18202,B#7,term.missing,warning,fp,draft glossary pair misaligned (wrong target),App Store drafted as 配布
+B,ja.po:18206,B#8,term.missing,warning,fp,draft glossary pair misaligned (wrong target),App Store drafted as 配布
+B,ja.po:18216,B#11,term.missing,warning,fp,draft glossary pair misaligned (wrong target),drafted as 発行者
+B,ja.po:2633,B#17,term.missing,warning,fp,inflection/particle variation of same term,バスのレイアウト vs バスレイアウト
+B,ja.po:14586,B#20,term.missing,warning,fp,draft target over-extended/truncated phrase,drafted as コンパイルプロファイル
+B,ja.po:17406,B#22,term.missing,warning,tp,,作成 vs 合成 within same VisualShader node family
+B,ja.po:17412,B#23,term.missing,warning,tp,,作成 vs 合成 within same VisualShader node family
+B,ja.po:12327,B#24,term.missing,warning,tp,,"drops Point, 曲線 vs カーブポイント elsewhere"
+B,ja.po:765,B#25,term.missing,warning,fp,inflection/particle variation of same term,選択を解除 vs 選択解除
+B,ja.po:12768,B#26,term.missing,warning,fp,inflection/particle variation of same term,選択を解除 vs 選択解除
+B,ja.po:16591,B#28,term.missing,warning,unsure,context-dependent rendering,frame detach 切り離す vs script デタッチ; maybe intentional
+B,ja.po:12497,B#31,term.missing,warning,fp,polysemy: different sense of source word,"Expand size flag 拡大, not expand/collapse"
+B,ja.po:16501,B#35,term.missing,warning,tp,,"same command 16464 uses 展開, here 拡張"
+B,ja.po:12638,B#39,term.missing,warning,fp,draft target over-extended/truncated phrase,drafted as フォントサイズアイテム
+B,ja.po:12713,B#40,term.missing,warning,fp,draft target over-extended/truncated phrase,drafted as フォントサイズアイテム
+B,ja.po:19096,B#41,term.missing,warning,fp,inflection/particle variation of same term,の生成 vs 生成中
+B,ja.po:15606,B#49,term.missing,warning,fp,source term legitimately kept in English,class name GridMap kept
+B,ja.po:15609,B#50,term.missing,warning,fp,source term legitimately kept in English,class name GridMap kept
+B,ja.po:15618,B#53,term.missing,warning,fp,source term legitimately kept in English,class name GridMap kept
+B,ja.po:977,B#55,term.missing,warning,fp,"common word, legit paraphrase",内容を確認 acceptable
+B,ja.po:2065,B#56,term.missing,warning,fp,draft target over-extended/truncated phrase,drafted as アニメーションキーフレーム
+B,ja.po:2068,B#57,term.missing,warning,fp,draft target over-extended/truncated phrase,drafted as アニメーションキーフレーム
+B,ja.po:10853,B#58,term.missing,warning,fp,"common word, legit paraphrase",固定 acceptable for Lock
+B,ja.po:11085,B#59,term.missing,warning,fp,draft glossary pair misaligned (wrong target),drafted as 平面
+B,ja.po:720,B#62,term.missing,warning,fp,draft glossary pair misaligned (wrong target),drafted as バランスハンドル
+B,ja.po:1422,B#67,term.missing,warning,fp,draft glossary pair misaligned (wrong target),drafted as 順序; source has move nodes
+B,ja.po:11889,B#70,term.missing,warning,fp,draft glossary pair misaligned (wrong target),drafted as 順序
+B,ja.po:8577,B#71,term.missing,warning,fp,draft target over-extended/truncated phrase,drafted as ムービーメーカーモード
+B,ja.po:14381,B#74,term.missing,warning,fp,draft glossary pair misaligned (wrong target),drafted as アクションマップ; kept verbatim
+B,ja.po:14447,B#75,term.missing,warning,fp,draft glossary pair misaligned (wrong target),drafted as アクションマップ; kept verbatim
+B,ja.po:19081,B#86,term.missing,warning,fp,inflection/particle variation of same term,準備しています vs 準備中
+B,ja.po:19090,B#87,term.missing,warning,fp,inflection/particle variation of same term,の準備 vs 準備中
+B,ja.po:5066,B#88,term.missing,warning,fp,draft target over-extended/truncated phrase,drafted as truncated 最近開
+B,ja.po:7927,B#90,term.missing,warning,fp,draft glossary pair misaligned (wrong target),drafted as バックエンド; kept verbatim
+B,ja.po:14390,B#91,term.missing,warning,fp,draft glossary pair misaligned (wrong target),drafted as バックエンド
+B,ja.po:1281,B#92,term.missing,warning,fp,source term legitimately kept in English,"RESET is animation name, case-insensitive match"
+B,ja.po:1687,B#93,term.missing,warning,fp,source term legitimately kept in English,"RESET is animation name, case-insensitive match"
+B,ja.po:1891,B#94,term.missing,warning,fp,source term legitimately kept in English,"RESET is animation name, case-insensitive match"
+B,ja.po:2092,B#96,term.missing,warning,fp,source term legitimately kept in English,"RESET is animation name, case-insensitive match"
+B,ja.po:7071,B#97,term.missing,warning,fp,"common word, legit paraphrase",デフォルトに戻す fine
+B,ja.po:1984,B#107,term.missing,warning,fp,draft glossary pair misaligned (wrong target),drafted as 選択中
+B,ja.po:16537,B#108,term.missing,warning,fp,"common word, legit paraphrase",自動伸縮 acceptable
+B,ja.po:17130,B#114,term.missing,warning,fp,draft glossary pair misaligned (wrong target),drafted as 絶対導関数の合計
+B,ja.po:13465,B#116,term.missing,warning,tp,,一意な名前 vs 固有名 (majority)
+B,ja.po:13483,B#117,term.missing,warning,tp,,ユニーク名 vs 固有名 (majority)
+B,ja.po:5771,B#129,term.missing,warning,fp,draft glossary pair misaligned (wrong target),drafted as ライン
+B,ja.po:4944,B#137,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+B,ja.po:5488,B#139,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+B,ja.po:5829,B#141,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+B,ja.po:8031,B#143,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+B,ja.po:17882,B#147,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+B,ja.po:11549,B#150,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+B,ja.po:3150,B#151,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+B,ja.po:7188,B#154,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+B,ja.po:7658,B#158,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+B,ja.po:11567,B#160,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+B,ja.po:14002,B#163,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+B,ja.po:10085,B#166,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+B,ja.po:20317,B#171,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+B,ja.po:3020,B#173,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+B,ja.po:6108,B#176,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+B,ja.po:13452,B#178,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+B,ja.po:14596,B#179,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+B,ja.po:14865,B#182,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+B,ja.po:20245,B#183,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+B,ja.po:3694,B#188,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+B,ja.po:3721,B#189,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+B,ja.po:5252,B#194,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+B,ja.po:5242,B#206,notation.katakana,warning,tp,,real drift; expected contradicts base フォルダ majority
+B,ja.po:1167,B#208,placeholder.mismatch,error,fp,bracketed UI label treated as placeholder,[foo] is translatable display text
+B,ja.po:1170,B#209,placeholder.mismatch,error,fp,bracketed UI label treated as placeholder,[foo] is translatable display text
+B,ja.po:4579,B#210,placeholder.mismatch,error,fp,bracketed UI label treated as placeholder,[foo] is translatable display text
+B,ja.po:12620,B#213,placeholder.mismatch,error,fp,plural forms: msgid paired with msgstr[0],nplurals=1; msgstr[0] matches msgid_plural
+B,ja.po:12641,B#216,placeholder.mismatch,error,fp,plural forms: msgid paired with msgstr[0],nplurals=1; msgstr[0] matches msgid_plural
+B,ja.po:16461,B#219,placeholder.mismatch,error,fp,bracketed UI label treated as placeholder,[foo] is translatable display text
+B,ja.po:18256,B#220,placeholder.mismatch,error,fp,translator-added menu-path brackets,[macOS] > [rcodesign] menu path in target
+B,ja.po:4378,B#225,tag.mismatch,error,fp,angle-bracket display text treated as tag,"<…> is translatable UI text, not markup"
+B,ja.po:4466,B#226,tag.mismatch,error,fp,angle-bracket display text treated as tag,"<…> is translatable UI text, not markup"

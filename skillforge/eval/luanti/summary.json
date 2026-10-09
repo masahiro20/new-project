@@ -1,0 +1,76 @@
+{
+  "project": "luanti",
+  "configs": {
+    "A": {
+      "findings": 15,
+      "sampled": 15,
+      "tp": 13,
+      "fp": 2,
+      "unsure": 0,
+      "byRule": {
+        "notation.katakana": {
+          "tp": 13,
+          "fp": 0,
+          "unsure": 0
+        },
+        "tag.mismatch": {
+          "tp": 0,
+          "fp": 2,
+          "unsure": 0
+        }
+      },
+      "fpCauses": {
+        "angle-bracket display text treated as tag": 2
+      },
+      "precision": 0.867,
+      "precisionUnsureAsFp": 0.867
+    },
+    "B": {
+      "findings": 32,
+      "sampled": 32,
+      "tp": 13,
+      "fp": 18,
+      "unsure": 1,
+      "byRule": {
+        "term.missing": {
+          "tp": 0,
+          "fp": 16,
+          "unsure": 1
+        },
+        "notation.katakana": {
+          "tp": 13,
+          "fp": 0,
+          "unsure": 0
+        },
+        "tag.mismatch": {
+          "tp": 0,
+          "fp": 2,
+          "unsure": 0
+        }
+      },
+      "fpCauses": {
+        "draft glossary pair misaligned (wrong target)": 9,
+        "draft target over-extended/truncated phrase": 5,
+        "source term legitimately kept in English": 1,
+        "inflection/particle variation of same term": 1,
+        "angle-bracket display text treated as tag": 2
+      },
+      "precision": 0.419,
+      "precisionUnsureAsFp": 0.406
+    }
+  },
+  "entries": 1575,
+  "misses": {
+    "sampled": 60,
+    "seed": 7,
+    "count": 4,
+    "byCategory": {
+      "notation": 2,
+      "term": 2
+    }
+  },
+  "sampling": {
+    "labelSeed": 42,
+    "method": "python random.Random(seed).sample(range(n),80) over findings array index, when n>80"
+  }
+}

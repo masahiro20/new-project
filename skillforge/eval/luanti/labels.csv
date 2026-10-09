@@ -1,0 +1,48 @@
+config,file_line,id,rule,severity,verdict,cause,note
+A,luanti.po:50,A#0,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,luanti.po:1502,A#1,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,luanti.po:2746,A#2,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,luanti.po:4627,A#3,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,luanti.po:5421,A#4,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,luanti.po:4142,A#5,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,luanti.po:7085,A#6,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,luanti.po:7795,A#7,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,luanti.po:3106,A#8,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,luanti.po:7938,A#9,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,luanti.po:6189,A#10,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,luanti.po:6093,A#11,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,luanti.po:4106,A#12,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+A,luanti.po:333,A#13,tag.mismatch,error,fp,angle-bracket display text treated as tag,"<…> is translatable UI text, not markup"
+A,luanti.po:507,A#14,tag.mismatch,error,fp,angle-bracket display text treated as tag,"<…> is translatable UI text, not markup"
+B,luanti.po:2948,B#0,term.missing,warning,fp,draft glossary pair misaligned (wrong target),ABM drafted as 時間予算
+B,luanti.po:5344,B#1,term.missing,warning,fp,draft glossary pair misaligned (wrong target),ABM drafted as 時間予算
+B,luanti.po:7319,B#2,term.missing,warning,fp,draft glossary pair misaligned (wrong target),ABM drafted as 時間予算
+B,luanti.po:5050,B#3,term.missing,warning,fp,draft target over-extended/truncated phrase,Loading vs Active block modifiers are different terms
+B,luanti.po:5481,B#4,term.missing,warning,fp,draft target over-extended/truncated phrase,Loading vs Active block modifiers are different terms
+B,luanti.po:87,B#5,term.missing,warning,fp,draft glossary pair misaligned (wrong target),Browse drafted as オンラインコンテンツ
+B,luanti.po:2098,B#6,term.missing,warning,fp,source term legitimately kept in English,key name Clear kept as Clearキー
+B,luanti.po:7382,B#7,term.missing,warning,fp,inflection/particle variation of same term,ジョイスティックのボタン is same term
+B,luanti.po:5050,B#8,term.missing,warning,fp,draft target over-extended/truncated phrase,duplicate of overlapping Block Modifiers term
+B,luanti.po:5481,B#9,term.missing,warning,fp,draft target over-extended/truncated phrase,duplicate of overlapping Block Modifiers term
+B,luanti.po:6245,B#10,term.missing,warning,fp,draft target over-extended/truncated phrase,Poisson filtering vs Poisson disk
+B,luanti.po:5200,B#11,term.missing,warning,fp,draft glossary pair misaligned (wrong target),Quicktune drafted as エントリ; kept verbatim
+B,luanti.po:5212,B#12,term.missing,warning,fp,draft glossary pair misaligned (wrong target),Quicktune drafted as エントリ; kept verbatim
+B,luanti.po:6317,B#13,term.missing,warning,fp,draft glossary pair misaligned (wrong target),Quicktune drafted as エントリ; kept verbatim
+B,luanti.po:6321,B#14,term.missing,warning,fp,draft glossary pair misaligned (wrong target),Quicktune drafted as エントリ; kept verbatim
+B,luanti.po:3927,B#15,term.missing,warning,unsure,draft target over-extended/truncated phrase,real ソート vs 並べ替え drift but expected truncated
+B,luanti.po:6213,B#16,term.missing,warning,fp,draft glossary pair misaligned (wrong target),TrueType drafted as フォールバックフォント
+B,luanti.po:50,B#17,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+B,luanti.po:1502,B#18,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+B,luanti.po:2746,B#19,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+B,luanti.po:4627,B#20,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+B,luanti.po:5421,B#21,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+B,luanti.po:4142,B#22,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+B,luanti.po:7085,B#23,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+B,luanti.po:7795,B#24,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+B,luanti.po:3106,B#25,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+B,luanti.po:7938,B#26,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+B,luanti.po:6189,B#27,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+B,luanti.po:6093,B#28,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+B,luanti.po:4106,B#29,notation.katakana,warning,tp,,real long-vowel/middle-dot drift
+B,luanti.po:333,B#30,tag.mismatch,error,fp,angle-bracket display text treated as tag,"<…> is translatable UI text, not markup"
+B,luanti.po:507,B#31,tag.mismatch,error,fp,angle-bracket display text treated as tag,"<…> is translatable UI text, not markup"

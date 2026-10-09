@@ -1,0 +1,5 @@
+file_line,id,category,note
+luanti.po:3559,L3559,notation,規定 used for default; file majority 既定 (30 vs 7)
+luanti.po:5624,L5624,term,Map rendered 地図; file uses マップ 40 times
+luanti.po:5826,L5826,notation,プレーヤー vs majority プレイヤー (34 vs 8); イ/ー variant not detected
+luanti.po:878,L878,term,world left in English (worldフォルダ); elsewhere ワールド 32 times

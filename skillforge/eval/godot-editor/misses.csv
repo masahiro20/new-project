@@ -1,0 +1,4 @@
+file_line,id,category,note
+ja.po:2020,L2020,notation,ellipsis … where 150 other entries keep ...
+ja.po:9423,L9423,term,Remove rendered 削除; 51 entries use 除去 (Remove/Delete split)
+ja.po:16351,L16351,term,Remove rendered 削除 while sibling L16342 uses 除去

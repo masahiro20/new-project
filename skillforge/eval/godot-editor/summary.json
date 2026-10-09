@@ -1,0 +1,94 @@
+{
+  "project": "godot-editor",
+  "configs": {
+    "A": {
+      "findings": 99,
+      "sampled": 80,
+      "tp": 63,
+      "fp": 17,
+      "unsure": 0,
+      "byRule": {
+        "notation.katakana": {
+          "tp": 63,
+          "fp": 0,
+          "unsure": 0
+        },
+        "placeholder.mismatch": {
+          "tp": 0,
+          "fp": 13,
+          "unsure": 0
+        },
+        "tag.mismatch": {
+          "tp": 0,
+          "fp": 4,
+          "unsure": 0
+        }
+      },
+      "fpCauses": {
+        "bracketed UI label treated as placeholder": 4,
+        "plural forms: msgid paired with msgstr[0]": 7,
+        "translator-added menu-path brackets": 2,
+        "angle-bracket display text treated as tag": 4
+      },
+      "precision": 0.787,
+      "precisionUnsureAsFp": 0.787
+    },
+    "B": {
+      "findings": 229,
+      "sampled": 80,
+      "tp": 29,
+      "fp": 50,
+      "unsure": 1,
+      "byRule": {
+        "term.missing": {
+          "tp": 6,
+          "fp": 41,
+          "unsure": 1
+        },
+        "notation.katakana": {
+          "tp": 23,
+          "fp": 0,
+          "unsure": 0
+        },
+        "placeholder.mismatch": {
+          "tp": 0,
+          "fp": 7,
+          "unsure": 0
+        },
+        "tag.mismatch": {
+          "tp": 0,
+          "fp": 2,
+          "unsure": 0
+        }
+      },
+      "fpCauses": {
+        "draft glossary pair misaligned (wrong target)": 16,
+        "inflection/particle variation of same term": 6,
+        "draft target over-extended/truncated phrase": 7,
+        "polysemy: different sense of source word": 1,
+        "source term legitimately kept in English": 7,
+        "common word, legit paraphrase": 4,
+        "bracketed UI label treated as placeholder": 4,
+        "plural forms: msgid paired with msgstr[0]": 2,
+        "translator-added menu-path brackets": 1,
+        "angle-bracket display text treated as tag": 2
+      },
+      "precision": 0.367,
+      "precisionUnsureAsFp": 0.362
+    }
+  },
+  "entries": 5689,
+  "misses": {
+    "sampled": 60,
+    "seed": 7,
+    "count": 3,
+    "byCategory": {
+      "notation": 1,
+      "term": 2
+    }
+  },
+  "sampling": {
+    "labelSeed": 42,
+    "method": "python random.Random(seed).sample(range(n),80) over findings array index, when n>80"
+  }
+}
