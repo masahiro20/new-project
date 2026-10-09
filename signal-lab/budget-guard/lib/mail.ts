@@ -14,7 +14,9 @@ export async function sendMail(mail: Mail): Promise<void> {
     if (isProduction()) warnOnce("mail-prod", "[mail] RESEND_API_KEY is not set in production — emails are only logged.");
     devOutbox.push(mail);
     if (devOutbox.length > OUTBOX_SIZE) devOutbox.shift();
-    console.info(`[mail:dev] to=${mail.to} subject=${JSON.stringify(mail.subject)}\n${mail.text}`);
+    // In production the body can hold license keys and sign-in links, so only the subject is logged.
+    if (isProduction()) console.info(`[mail:unsent] subject=${JSON.stringify(mail.subject)}`);
+    else console.info(`[mail:dev] to=${mail.to} subject=${JSON.stringify(mail.subject)}\n${mail.text}`);
     return;
   }
   const from = process.env.MAIL_FROM ?? `${config.name} <no-reply@example.com>`;

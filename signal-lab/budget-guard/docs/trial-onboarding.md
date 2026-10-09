@@ -228,7 +228,7 @@
 | 追加後、キーが無効になった（期限切れ・失効） | 定期チェックの利用額取得が 401・403 になる。**メールで 1 回知らせる**（件名「Provider token rejected — monitoring is paused for this connection」）。Slack を登録していれば Slack にも送る。接続カードには毎回 `Usage fetch failed: …` が出る。キーが直る（取得が成功する）と、次に無効になったときにまた知らせる。月が変わっても、同じ無効のままなら再送しない。 | 新しいキーを発行する。今の接続を削除し、作り直す（トークンだけを差し替える機能はない）。 | `GET /api/admin/stats` の `trial.thisMonth.keyInvalid` で数を見る。 |
 | Check now で「This connection is being checked right now」 | 毎時チェックが同じ接続のロックを持っている（409）。 | 1分ほど待って、もう一度押す。 | — |
 | `Your plan allows 3 connections` | 1アカウント3接続まで。 | 使わない接続を削除する。 | — |
-| 通知メールが来ない | ① `RESEND_API_KEY` が未設定（ログに出るだけ）② 購入時にメールを入れず、宛先が `demo@example.com` になった ③ まだ 80% に達していない ④ 今月すでに送った（月1回だけ）⑤ 迷惑メールに入った | 迷惑メールを確かめる。ダッシュボードの「Alerts go to …」の宛先を確かめる。 | ① `npx wrangler tail` に `[mail:dev]` が出ていれば未設定。② は宛先を変える機能がない。新しいアカウントで作り直すしかない（未確認：KV の手修正で直せるか）。⑤ の対策（送信ドメインの認証など）は未確認。 |
+| 通知メールが来ない | ① `RESEND_API_KEY` が未設定（ログに出るだけ）② 購入時にメールを入れず、宛先が `demo@example.com` になった ③ まだ 80% に達していない ④ 今月すでに送った（月1回だけ）⑤ 迷惑メールに入った | 迷惑メールを確かめる。ダッシュボードの「Alerts go to …」の宛先を確かめる。 | ① `npx wrangler tail` に `[mail:unsent]`（本番。件名だけ）か `[mail:dev]`（開発）が出ていれば未設定。② は宛先を変える機能がない。新しいアカウントで作り直すしかない（未確認：KV の手修正で直せるか）。⑤ の対策（送信ドメインの認証など）は未確認。 |
 | Slack に来ない | Slack への送信失敗はアクティビティに `Slack delivery failed: …` として残る。メールと停止は止まらない。 | Send test message で確かめる。URL を登録し直す。 | — |
 | 停止が失敗した（`Stop failed: …` / `Stop action FAILED` のメール） | プロバイダが拒否した。権限不足、ID の誤りなど。`stoppedAt` を書かないので、次の毎時チェックで再試行する。 | エラー本文を確かめる。止めたいなら、プロバイダの画面で自分で止める。 | 権限の要件（Vercel の pause に要るロールなど）は未確認。原因を記録し、本部に報告する。 |
 | 停止計画が作れない（`Could not build the stop plan`） | Vercel のプロジェクトが未指定、Anthropic のキー一覧の取得失敗など。 | ID を確かめ、接続を作り直す。 | — |
