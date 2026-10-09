@@ -20,6 +20,7 @@ export const DEFAULTS = {
   segmentation: 'auto', // 'auto' = use energy/voicing cues when available, 'equal' = equal slots
   evidenceWeight: 1.0, // reward for putting a boundary on a cue (vs. the duration prior)
   particle: true, // false = isolated word without が (then flat and tail-high look the same)
+  breakDipDb: 6, // a voicing break is a consonant cue only if energy dips (dB) across it
 };
 
 /** Hz → semitones relative to 100 Hz. */
@@ -117,6 +118,30 @@ function utteranceSpan(track, voicedIdx, slots, o) {
 }
 
 /**
+ * How much a voicing break starting at frame i looks like a consonant.
+ * A voiceless consonant (closure, frication, っ) takes energy out of the signal;
+ * a pitch tracker that merely loses lock while F0 moves fast inside a vowel
+ * (common at a rise or a fall — exactly where the accent is) leaves the energy
+ * untouched. So a break only counts as a cue in proportion to the energy dip
+ * across it (full strength at `breakDipDb`). Without an energy track every
+ * break counts fully, as before.
+ */
+function voicingBreakStrength(st, E, i, i1, look, o) {
+  if (!E) return 1;
+  let j = i;
+  while (j <= i1 && Number.isNaN(st[j])) j++;
+  // Energy frames are ~30 ms wide: look a little past the gap on both sides.
+  const lo = Math.max(0, i - look), hi = Math.min(E.length - 1, j + look);
+  let before = -Infinity, after = -Infinity, low = Infinity;
+  for (let x = lo; x < i; x++) before = Math.max(before, E[x]);
+  for (let x = j; x <= hi; x++) after = Math.max(after, E[x]);
+  for (let x = i; x < Math.min(j + 1, E.length); x++) low = Math.min(low, E[x]);
+  if (!Number.isFinite(low)) return 1;
+  const ref = Number.isFinite(after) ? Math.min(before, after) : before;
+  return Math.max(0, Math.min(1, (ref - low) / o.breakDipDb));
+}
+
+/**
  * Mora boundaries from acoustic cues. Most morae start with a consonant, which
  * shows up as a voicing break (voiceless consonant, っ) or an energy fall
  * (nasal, voiced stop, flap). We know the morae, so we know which boundaries
@@ -144,7 +169,7 @@ export function segmentFrames(track, st, i0, i1, labels, o = DEFAULTS) {
   const cue = new Array(st.length).fill(0);
   // Skip the last few frames: the final vowel's decay is not a consonant.
   for (let i = i0 + 2; i <= i1 - look - 2; i++) {
-    const off = voiced(i - 1) && !voiced(i) ? 1 : 0;
+    const off = voiced(i - 1) && !voiced(i) ? voicingBreakStrength(st, E, i, i1, look, o) : 0;
     const fall = E ? Math.max(0, Math.min(1, (E[i - 1] - Math.min(...E.slice(i, Math.min(i + look + 1, i1 - 1)))) / 12)) : 0;
     cue[i] = Math.max(off, fall);
   }
@@ -210,9 +235,13 @@ export function judge(track, word, opts = {}) {
     for (let i = bounds[s]; i < bounds[s + 1]; i++) if (!Number.isNaN(st[i])) vals.push(st[i]);
     const start = track.times[bounds[s]] - hop / 2;
     const end = (bounds[s + 1] <= i1 ? track.times[bounds[s + 1]] : track.times[i1] + hop) - hop / 2;
-    segments.push({ label: labels[s], start, end, value: median(vals), voicedFrames: vals.length });
+    // っ is a silent closure (or voiceless frication): it has no pitch of its own.
+    // Voiced frames that land in its slot are the tracker window or coarticulation
+    // smearing the neighbouring mora's F0 into it, so they are not evidence.
+    const silent = consonantClass(labels[s]) === 'geminate';
+    segments.push({ label: labels[s], start, end, value: silent ? NaN : median(vals), voicedFrames: vals.length, ...(silent ? { silent } : {}) });
   }
-  // A devoiced mora (e.g. し in した) has no F0 and simply drops out of the fit.
+  // A devoiced mora (e.g. し in した) or っ has no F0 and simply drops out of the fit.
   const values = segments.map((s) => s.value);
   if (values.filter((v) => !Number.isNaN(v)).length < 2) return { error: 'no-voice', st };
 
@@ -234,17 +263,30 @@ export function judge(track, word, opts = {}) {
   } else {
     detected = valid.reduce((best, c) => (c.sse < best.sse ? c : best));
   }
+  // Templates that differ only on morae without F0 (っ, a devoiced mora) predict the
+  // same audible contour, so the recording cannot tell them apart (e.g. a drop
+  // before vs. after the っ of ごっこ). Treat them as one answer.
+  const observable = values.map((v) => !Number.isNaN(v));
+  const patternOf = (k) => pitchPattern(k, n).slice(0, slots);
+  const sameAudible = (k1, k2) => {
+    const p1 = patternOf(k1), p2 = patternOf(k2);
+    return p1.every((p, i) => !observable[i] || p === p2[i]);
+  };
+  const equivalentK = flat ? [detected.k] : valid.filter((c) => sameAudible(c.k, detected.k)).map((c) => c.k);
   const ranked = [...candidates].sort((a, b) => a.sse - b.sse);
-  const others = ranked.filter((c) => c.k !== detected.k);
+  const others = ranked.filter((c) => !equivalentK.includes(c.k));
   const spread = Math.max(...values.filter((v) => !Number.isNaN(v))) - Math.min(...values.filter((v) => !Number.isNaN(v)));
   const margin = others.length ? (others[0].sse - detected.sse) / Math.max(1e-6, spread * spread) : 1;
 
   const expected = o.particle ? word.accent : [...new Set(word.accent.map((k) => (k === n ? 0 : k)))];
-  const pass = expected.includes(detected.k);
+  const hit = equivalentK.find((k) => expected.includes(k));
+  if (hit !== undefined && hit !== detected.k) detected = candidates.find((c) => c.k === hit);
+  const pass = hit !== undefined;
   return {
     pass,
     detectedK: detected.k,
     detectedType: detected.type,
+    equivalentK, // all k the audible contour is consistent with (usually just [detectedK])
     expectedK: expected,
     expectedType: expected.map((k) => accentType(k, n)),
     verdict: verdictFor(detected.k, expected[0]),

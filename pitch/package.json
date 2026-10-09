@@ -6,7 +6,9 @@
     "test": "node --test \"test/**/*.test.js\"",
     "vendor": "node scripts/vendor.mjs && node scripts/vendor-ort.mjs",
     "serve": "node scripts/serve.mjs",
-    "build:demo": "node scripts/build-demo.mjs"
+    "build:demo": "node scripts/build-demo.mjs",
+    "build:pwa": "node scripts/build-pwa.mjs",
+    "serve:site": "node scripts/serve.mjs 5174 --root site"
   },
   "devDependencies": {
     "esbuild": "0.25.10",
