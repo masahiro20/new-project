@@ -1,31 +1,31 @@
-# Design decisions
+# 設計上の判断
 
-Short, dated notes. Newest at the bottom of each section.
+日付付きの短いメモです。各セクションの中では新しいものが下にあります。
 
 ## 最小対で練習 (minimal-pair practice) — 2026-10-09
 
-- 2026-10-09: A "minimal pair" = same-kana words whose accent differs. Words with identical accent sets merge into one option (紙・髪 → one answer), so 川・皮・革 or 雲・蜘蛛 are not pairs.
-- 2026-10-09: Multi-accent words: an option is usable only if it has a *distinctive* k no other option accepts (鹿[0,2] vs 歯科[1,2] → 0 vs 1). A group needs ≥ 2 usable options; 巣/酢, 脳/能, 錨/怒り, 機械/機会, 鳴き声/泣き声 are dropped. Result on the 2,000-word lexicon: 29 groups (of 61 same-kana groups, 34 with differing accent).
-- 2026-10-09: Synth samples, drill questions and the H/L display use each option's distinctive k, so the drill never plays an ambiguous pattern.
-- 2026-10-09: Classification is exact-k only (`classifyAgainstPair`): match / ambiguous (target and another option share k) / other / none. No "nearest k" fallback — numeric k distance is not perceptual distance (0 vs n differ only on が).
-- 2026-10-09: Recording is judged with `judge()` against the target word; the pair verdict comes from detected k, not from `r.pass`.
-- 2026-10-09: File pipeline (decode → pickUtterance → F0 → judge) and `play()` moved to `demo/pipeline.js`, shared by demo.js and practice.js. practice.js gets the pipeline injected via `initPractice(deps)`, so its pure functions load in Node tests without the browser.
-- 2026-10-09: One section on the main page (with a jump link in the header) rather than tabs: keeps the existing checker DOM/QA contract untouched. Practice writes `window.__practiceLast` / `window.__practiceDrill`, never `__pitchLast` or `#result`.
-- 2026-10-09: Drill score is session-only (no localStorage): nothing to clear, nothing persisted on shared devices. Drill voices vary (seed, base 115–200 Hz) so the learner listens to the contour, not one fixed sample.
+- 2026-10-09: 「最小対（minimal pair）」＝かなが同じでアクセントが違う語。アクセントの組がまったく同じ語は1つの選択肢にまとめます（紙・髪 → 1つの答え）。そのため 川・皮・革 や 雲・蜘蛛 は対になりません。
+- 2026-10-09: 複数のアクセントを持つ語：選択肢として使えるのは、他のどの選択肢も認めない *区別できる* k を持つ場合だけです（鹿[0,2] 対 歯科[1,2] → 0 対 1）。グループには使える選択肢が2つ以上必要です。巣/酢、脳/能、錨/怒り、機械/機会、鳴き声/泣き声 は除外しました。2,000語の辞書での結果：29グループ（かなが同じグループ61のうち、アクセントが違うものは34）。
+- 2026-10-09: 合成サンプル、ドリルの問題、H/L の表示には各選択肢の区別できる k を使うので、ドリルがどちらとも取れる型を再生することはありません。
+- 2026-10-09: 分類は k の完全一致のみです（`classifyAgainstPair`）：match / ambiguous（目標と別の選択肢が k を共有）/ other / none。「最も近い k」への代替はしません。k の数値上の距離は聞こえ方の距離ではないためです（0 と n は が でしか違わない）。
+- 2026-10-09: 録音は目標の語に対して `judge()` で判定します。対としての判定は `r.pass` ではなく、検出した k から決めます。
+- 2026-10-09: ファイル処理の流れ（decode → pickUtterance → F0 → judge）と `play()` は `demo/pipeline.js` に移し、demo.js と practice.js で共有します。practice.js にはこの処理を `initPractice(deps)` で注入するので、その純粋関数はブラウザなしで Node のテストから読み込めます。
+- 2026-10-09: タブではなく、メインページの1セクション（ヘッダーにジャンプリンク付き）にしました。既存の判定画面の DOM／QA の約束事に手を触れずに済むためです。練習モードは `window.__practiceLast` / `window.__practiceDrill` に書き込み、`__pitchLast` や `#result` には決して書きません。
+- 2026-10-09: ドリルのスコアはそのセッションだけです（localStorage なし）。消すものも、共用端末に残るものもありません。ドリルの声は毎回変えます（シード、基本周波数 115–200 Hz）。学習者が特定のサンプル1つではなく、音の形そのものを聞くようにするためです。
 
 ## 結果の共有カード画像・Anki への書き出し — 2026-10-09
 
-- 2026-10-09: Code lives in `demo/share.js` and `demo/anki.js`; demo.js only imports `mountShare`/`mountAnki` and calls one `afterJudge({ result, word, track, source })` after each judgement. Stale-card handling watches `#result[data-state]` and the Anki 検索結果 count watches `#word-select` via MutationObserver, so no further demo.js hooks are needed.
-- 2026-10-09: Share card = 1200×630 PNG from `drawShareCard(ctx, prepareShareCard(…))`. Data prep is pure (normalised 0–1 coordinates, H/L, short reason) and unit-tested; drawing is tested on a recording stub context. Light theme tokens always; system Japanese font stack. No file name, no audio.
-- 2026-10-09: The card is always shown as an `<img src="data:…">` preview with 「画像を長押し（右クリック）で保存できます」 — that is the one path that works in the claude.ai Artifact. 「共有」 appears only when `navigator.canShare({ files })` is true (rejection → message, AbortError ignored); otherwise a download button only in a top-level page.
-- 2026-10-09: "Can download" = `window.top === window.self`. The Artifact runs in a sandboxed iframe (downloads silently blocked); the PWA and a locally opened file are top-level. Copy + `<textarea readonly>` (all text selected, `execCommand('copy')` fallback) is offered everywhere for the Anki text.
-- 2026-10-09: Anki file = TSV with `#separator:tab`, `#html:true`, `#notetype:Basic`, `#deck:Pitch::Accent`, `#columns`, `#tags column:3`, then a `#` comment with "Accent data: UniDic (NINJAL), BSD licence" (TSV has no deck-description field). Fields are HTML-escaped (incl. `"`), newlines → `<br>`, tabs → space, so a row is always exactly 3 fields.
-- 2026-10-09: Back side uses inline styles only (stock Basic note type has no CSS): overline on high morae, right border at the drop, が dimmed, plus an `L H ＋L` text line, 「尾高型［2］ 「はし」の後、「が」で下がる」 and the gloss. Multi-accent words list each accepted accent. Tags: `pitch::<type>` per accepted type, `p3pitch`, plus `pitch::minimal-pair` / `pitch::failed` by scope.
-- 2026-10-09: Minimal-pair scope reuses `buildMinimalPairs` from demo/practice.js (same definition as the practice mode), falling back to "same kana, ≥ 2 distinct accents" if its shape ever changes.
-- 2026-10-09: 「この回で不合格だった単語」 counts only real recordings judged in the checker; synthetic samples (including the auto sample on load) are excluded. Practice-mode attempts are not counted (they don't pass through the checker). Session-only, nothing stored.
+- 2026-10-09: コードは `demo/share.js` と `demo/anki.js` にあります。demo.js は `mountShare`/`mountAnki` を import し、判定のたびに `afterJudge({ result, word, track, source })` を1回呼ぶだけです。古いカードの扱いは `#result[data-state]` を、Anki の検索結果の件数は `#word-select` を MutationObserver で監視するので、demo.js にこれ以上フックを足す必要はありません。
+- 2026-10-09: 共有カード＝ `drawShareCard(ctx, prepareShareCard(…))` で作る 1200×630 の PNG。データ準備は純粋関数（0–1 に正規化した座標、H/L、短い理由）で単体テスト済み、描画は記録用のスタブ context でテストしています。常にライトテーマのトークンを使い、フォントはシステムの日本語フォントです。ファイル名も音声も含めません。
+- 2026-10-09: カードは常に `<img src="data:…">` のプレビューと「画像を長押し（右クリック）で保存できます」の表示で見せます。claude.ai の Artifact で確実に動くのはこの方法だけだからです。「共有」は `navigator.canShare({ files })` が true のときだけ表示し（拒否 → メッセージ、AbortError は無視）、そうでなければトップレベルのページでのみダウンロードボタンを出します。
+- 2026-10-09: 「ダウンロードできる」＝ `window.top === window.self`。Artifact はサンドボックス化された iframe で動き（ダウンロードは黙って遮断されます）、PWA とローカルで開いたファイルはトップレベルです。Anki 用テキストには、コピーと `<textarea readonly>`（全文選択済み、`execCommand('copy')` の代替あり）をどの環境でも用意します。
+- 2026-10-09: Anki ファイル＝ `#separator:tab`、`#html:true`、`#notetype:Basic`、`#deck:Pitch::Accent`、`#columns`、`#tags column:3` を持つ TSV で、その後に "Accent data: UniDic (NINJAL), BSD licence" という `#` コメントを置きます（TSV にはデッキの説明欄がないため）。各フィールドは HTML エスケープし（`"` を含む）、改行 → `<br>`、タブ → 空白にするので、1行は必ずちょうど3フィールドになります。
+- 2026-10-09: 裏面はインラインスタイルのみを使います（標準の Basic ノートタイプには CSS がないため）。高いモーラに上線、下がり目に右の罫線、が は薄く表示し、さらに `L H ＋L` のテキスト行、「尾高型［2］ 「はし」の後、「が」で下がる」、訳語を載せます。複数のアクセントを持つ語は、認められるアクセントをすべて並べます。タグ：認められる型ごとに `pitch::<type>`、`p3pitch`、さらに範囲に応じて `pitch::minimal-pair` / `pitch::failed`。
+- 2026-10-09: 最小対の範囲は demo/practice.js の `buildMinimalPairs` を再利用します（練習モードと同じ定義）。その形が将来変わった場合は「かなが同じで、異なるアクセントが2つ以上」に切り替えます。
+- 2026-10-09: 「この回で不合格だった単語」は、判定画面で判定した実際の録音だけを数えます。合成サンプル（読み込み時の自動サンプルを含む）は除外します。練習モードの試行は数えません（判定画面を通らないため）。そのセッションだけで、何も保存しません。
 
-## 2026-10-09 — "wrong" sample avoids drops on っ/ん/ー (Kana)
-- `wrongK` no longer picks a downstep on a special mora. A drop on っ is inaudible (no F0), so after the segmentation fix (っ slots carry no pitch) such a sample is indistinguishable from flat and is not a meaningful wrong reading (筆者 [1,0] used k=2). The judge itself is unchanged by this; only which contrast the demo plays as "wrong".
+## 2026-10-09 — 「wrong」サンプルは っ／ん／ー での下がり目を避ける（Kana）
+- `wrongK` は特殊モーラでの下がり目を選ばなくなりました。っ での下がり目は聞き取れない（F0 がない）ので、区切りの修正（っ の枠はピッチを持たない）以降、そのようなサンプルは平板と区別できず、意味のある誤った読みになりません（筆者 [1,0] で k=2 を使っていた）。判定自体はこの変更で変わりません。変わるのは、デモが「wrong」として再生する対比だけです。
 
-## 2026-10-09 — Saving files from the artifact (Kana)
-- The artifact declares the `downloads` capability; `saveBlob` uses `claude.use("downloads").save()` when present (viewer confirms), else an `<a download>` link on top-level pages (PWA/browser). Copy and image preview stay as fallbacks.
+## 2026-10-09 — Artifact からのファイル保存（Kana）
+- Artifact は `downloads` capability を宣言しています。`saveBlob` は、使える場合は `claude.use("downloads").save()` を使い（閲覧者が確認します）、そうでなければトップレベルのページ（PWA／ブラウザ）で `<a download>` リンクを使います。コピーと画像プレビューは代替手段として残します。

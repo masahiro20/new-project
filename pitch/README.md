@@ -1,12 +1,11 @@
-# P3 Pitch — browser demo (stage 2, internal prototype)
+# P3 Pitch — ブラウザ版デモ（ステージ2、社内プロトタイプ）
 
-Say a Japanese word followed by **が**. The page tracks your pitch (F0), splits the
-utterance into morae, lays it over the dictionary accent pattern and says whether
-your pitch drops (下がり目) in the right place.
+日本語の単語に **が** を付けて言ってください。このページは声の高さ（F0）を追跡し、発話をモーラに
+区切り、辞書のアクセント型と重ねて表示して、声の高さが正しい位置で下がっているか（下がり目、downstep）を判定します。
 
-Standalone: nothing here touches the root app (減算ゼロ). Plain ES modules, no bundler.
+単体で動きます。ルートのアプリには一切手を触れません（減算ゼロ）。素の ES モジュールで、バンドラーは使いません。
 
-## Run
+## 実行方法
 
 ```sh
 cd pitch
@@ -16,14 +15,14 @@ npm run serve        # http://localhost:5173/  (mic needs localhost or https)
 npm test
 ```
 
-`vendor/pitchy.js`, `vendor/fft.js` and the SwiftF0 model are committed; the 14 MB
-ONNX Runtime wasm is not (`npm run vendor` recreates it). Without it the default
-pitchy engine still works; only the optional SwiftF0 engine needs it.
+`vendor/pitchy.js`、`vendor/fft.js` と SwiftF0 のモデルはコミット済みです。14 MB ある
+ONNX Runtime の wasm はコミットしていません（`npm run vendor` で再生成されます）。これがなくても既定の
+pitchy エンジンは動きます。必要なのは任意の SwiftF0 エンジンだけです。
 
-## Single-file demo page (`dist/pitch-demo.html`)
+## 1ファイル版デモページ（`dist/pitch-demo.html`）
 
-The Japanese file-upload demo (no microphone; pick a voice memo of 「〜が」) is one
-self-contained HTML file with everything inlined — script, lexicon, licence texts.
+日本語のファイルアップロード版デモ（マイクなし。「〜が」のボイスメモを選びます）は、スクリプト・辞書データ・
+ライセンス文などすべてを埋め込んだ、単独で完結する HTML ファイル1つです。
 
 ```sh
 npm run build:demo                                   # 2,000 words (data/lexicon-2000.json)
@@ -32,19 +31,19 @@ node scripts/demo-sanity.mjs                         # synthetic correct/wrong s
 node scripts/qa-demo.mjs [--words 266]               # Playwright end-to-end QA
 ```
 
-The build ships the lexicon in a compact array form (`demo/lexicon.js` decodes it;
-morae and type are derived from kana and accent), ~82 KB for 2,000 words, ~135 KB page.
-Words held back for native review (`data/needs-review-*.tsv`) are never shipped.
-The picker has search (kanji, kana or katakana, English gloss), a type filter and
-quick picks for the classic homophone sets (箸・橋・端, 雨・飴, 花・鼻, 神・紙・髪, 柿・牡蠣).
-On the synthetic samples 14 of the 2,000 words fail their *correct* sample: accent
-3 or 1 where the next mora is a bare vowel or っ (曜日 words, 案内, 材料, 北極 …), a
-segmentation limit — see `demo-sanity.mjs` output.
+ビルドでは辞書データをコンパクトな配列形式で埋め込みます（`demo/lexicon.js` が復元します。
+モーラと型はかなとアクセントから算出）。2,000語で約82 KB、ページ全体で約135 KB です。
+ネイティブの確認待ちの語（`data/needs-review-*.tsv`）は決して含めません。
+単語選択には、検索（漢字・ひらがな・カタカナ・英語の訳語）、型による絞り込み、
+代表的な同音語セット（箸・橋・端、雨・飴、花・鼻、神・紙・髪、柿・牡蠣）のクイック選択があります。
+合成サンプルでは、2,000語のうち14語が *正しい* サンプルで不合格になります。次のモーラが母音だけ、または っ で
+アクセントが 3 か 1 の語（曜日の語、案内、材料、北極 …）で、区切り方の限界によるものです。詳しくは
+`demo-sanity.mjs` の出力を見てください。
 
-## Offline PWA (`site/app/`)
+## オフライン PWA（`site/app/`）
 
-The same page as an installable, offline-capable web app, for any static host (all URLs
-are relative, so it works under any sub-path; the landing page links to it as `./app/`).
+同じページを、インストールでき、オフラインでも動く Web アプリにしたものです。任意の静的ホストに置けます（URL は
+すべて相対パスなので、どのサブパスでも動きます。ランディングページからは `./app/` としてリンクしています）。
 
 ```sh
 npm run build:pwa        # build-demo content → site/app/{index.html, manifest.webmanifest, sw.js, icons/}
@@ -53,76 +52,73 @@ node scripts/qa-make-fixtures.mjs /tmp/pitch-fx    # once: synthetic .wav fixtur
 node scripts/qa-pwa.mjs --fixtures /tmp/pitch-fx   # Playwright: install criteria, SW, offline judge
 ```
 
-- `build-pwa.mjs` runs `build-demo.mjs` unchanged into a temp file and wraps it in a full
-  document (`lang="ja"`, `viewport-fit=cover`, light/dark `theme-color`, manifest,
-  apple-touch-icon, iOS web-app metas). The Artifact build (`dist/pitch-demo.html`) stays
-  SW-free and byte-identical.
-- `sw.js` precaches the page, manifest and icons under a cache named by a content hash
-  (rebuild → new cache, old ones deleted on activate). Precached files are cache-first;
-  navigations in the app folder get the cached page offline. Nothing cross-origin and no
-  audio is ever cached (files are decoded in the page). Serve `sw.js` with `no-cache`.
-- Icons are drawn in code (`scripts/pwa-icons.mjs`, deterministic) and committed.
-- 「ホーム画面に追加」 hint: an install button on Chrome/Android (`beforeinstallprompt`), the
-  Share → ホーム画面に追加 instruction on iOS; hidden when already standalone or dismissed.
-  Still file-picker only (no microphone).
-- Manual offline check: open `/app/`, reload once, then DevTools → Network → Offline (or
-  stop the server) and reload — the page, samples and file uploads keep working.
+- `build-pwa.mjs` は `build-demo.mjs` をそのまま実行して一時ファイルに出力し、それを完全な HTML
+  文書で包みます（`lang="ja"`、`viewport-fit=cover`、ライト／ダークの `theme-color`、manifest、
+  apple-touch-icon、iOS の Web アプリ用 meta）。Artifact 用のビルド（`dist/pitch-demo.html`）は
+  Service Worker を含まず、バイト単位で同一のままです。
+- `sw.js` はページ・manifest・アイコンを、内容のハッシュで名付けたキャッシュに事前キャッシュします
+  （再ビルドすると新しいキャッシュになり、古いものは activate 時に削除）。事前キャッシュしたファイルはキャッシュ優先です。
+  アプリのフォルダ内のページ遷移は、オフラインではキャッシュしたページを返します。他オリジンのものや
+  音声は一切キャッシュしません（ファイルはページ内でデコードします）。`sw.js` は `no-cache` で配信してください。
+- アイコンはコードで描画しており（`scripts/pwa-icons.mjs`、毎回同じ結果）、コミット済みです。
+- 「ホーム画面に追加」の案内：Chrome／Android ではインストールボタン（`beforeinstallprompt`）、
+  iOS では「共有 → ホーム画面に追加」の説明を表示します。すでにスタンドアロンで開いている場合や閉じた場合は表示しません。
+  引き続きファイル選択のみです（マイクなし）。
+- オフラインの手動確認：`/app/` を開いて一度再読み込みし、DevTools → Network → Offline にする（または
+  サーバーを止める）と、再読み込みしてもページ・サンプル・ファイルのアップロードが動き続けます。
 
-## How the judgement works (`src/judge.js`)
+## 判定のしくみ（`src/judge.js`）
 
-1. F0 per 10 ms frame (pitchy/MPM, or SwiftF0 at 16 ms), unreliable frames dropped,
-   octave jumps folded back, median-filtered, converted to semitones.
-2. The utterance span is the voiced region, extended by at most one mora where the
-   signal energy shows a devoiced mora (し in した).
-3. The span is split into n + 1 mora slots (n word morae + が). Since we know the morae,
-   we know which boundaries should show a consonant cue — a voicing break (voiceless
-   consonant, っ) or an energy fall (nasal, voiced stop, flap). A small dynamic programme
-   places the boundaries on those cues while keeping mora lengths near equal (Japanese
-   is mora-timed); vowel-initial morae rely on the length prior. A voicing break only
-   counts as a consonant cue as far as the energy dips across it (none below 1 dB, full
-   from 3 dB): pitch trackers often lose lock *inside* a vowel while F0 rises or falls
-   fast, i.e. exactly at the accent, and such a break must not pull a consonant boundary
-   onto the drop. `segmentation: 'equal'` gives the old equal split. Each slot gets the
-   median pitch of its frames; っ gets none (it is a silent closure — any F0 in its slot
-   is the neighbour's, smeared in by the tracker window).
-4. Every H/L template k = 0…n (0 = flat) is fitted as `a + b·template + c·mora`
-   with a bounded downdrift slope c. The best fit with a real H/L contrast
-   (b ≥ 1.2 semitones) is the detected downstep; if none has one, the speech was flat.
-   Templates that differ only on morae without F0 (っ, a devoiced mora) predict the same
-   audible contour and are one answer (`equivalentK`), e.g. a drop before or after the
-   っ of ごっこ.
-5. Pass = detected k (or an equivalent one) is one of the dictionary's accepted k's.
-   Otherwise the verdict says whether the drop came too early, too late, was missing, or
-   should not be there.
+1. 10 ms のフレームごとに F0 を求め（pitchy/MPM、または 16 ms の SwiftF0）、信頼できないフレームを捨て、
+   オクターブの跳びを折り返し、メディアンフィルタをかけ、半音（semitone）に変換します。
+2. 発話の範囲は有声区間です。信号のエネルギーから無声化したモーラ（した の し）があるとわかる場合は、
+   最大1モーラ分だけ延長します。
+3. 範囲を n + 1 個のモーラ枠（単語の n モーラ ＋ が）に区切ります。モーラがわかっているので、
+   どの境界に子音の手がかり（有声の途切れ＝無声子音や っ、またはエネルギーの低下＝鼻音・有声破裂音・はじき音）が
+   出るはずかもわかります。小さな動的計画法で、モーラ長をほぼ等しく保ちながら（日本語は
+   モーラ拍のリズム）境界をそれらの手がかりに合わせます。母音で始まるモーラは長さの事前分布だけに頼ります。有声の途切れは、
+   その前後でエネルギーが落ちている程度に応じてのみ子音の手がかりとして数えます（1 dB 未満なら数えず、
+   3 dB 以上で満点）。ピッチ追跡器は F0 が速く上下するとき、つまりまさにアクセントの位置で、母音の *途中* で
+   追跡を失うことがよくあり、そうした途切れが子音境界を下がり目の上に引き寄せてはいけないからです。
+   `segmentation: 'equal'` を指定すると以前の等分割になります。各枠にはそのフレームの
+   ピッチの中央値を割り当てます。っ には割り当てません（無音の閉鎖なので、その枠にある F0 は
+   追跡器の窓によってにじんできた隣のモーラのものです）。
+4. H/L のテンプレート k = 0…n（0 = 平板）それぞれを、`a + b·template + c·mora` の形で
+   当てはめます（下がり傾向（downdrift）の傾き c には上下限あり）。H/L の差がはっきりある（b ≥ 1.2 半音）中で
+   最もよく当てはまったものを、検出した下がり目とします。どれにも差がなければ、平板に話したと判定します。
+   F0 のないモーラ（っ、無声化したモーラ）でしか違わないテンプレートは、聞こえる音の形が同じになるため、
+   同じ答えとして扱います（`equivalentK`）。例えば ごっこ の っ の前で下がるか後で下がるか、です。
+5. 合格 = 検出した k（または同等とみなす k）が、辞書が認める k のいずれかであること。
+   そうでなければ、下がるのが早すぎる、遅すぎる、下がっていない、下がるべきでない、のどれかを返します。
 
-Known limits: boundaries before vowel-initial morae (よ|う in すいようび, お|う in おとうと,
-ー) still have no segmental cue and rely on the length prior; we deliberately do not use
-the F0 movement itself as a boundary cue (tried: no clear accuracy gain on the synthetic set,
-and on real speech F0 turning points lag mora boundaries, so it would bias the judgement
-towards whatever the speaker did). A "drop on っ" cannot be heard, so such a reading
-judges like the drop before っ — or, when that leaves no audible H at all (筆者 ひっしゃ
-said with k = 2), like monotone speech, which is read as flat. Very short morae (fast
-speech, ~120 ms) with a stop onset leave only a few voiced frames and are the main
-remaining source of errors. Creaky voice and heavy devoicing reduce the usable frames.
+既知の限界：母音で始まるモーラの前の境界（すいようび の よ|う、おとうと の お|う、
+ー）には、今も分節上の手がかりがなく、長さの事前分布に頼っています。F0 の動きそのものを境界の手がかりに
+使うことは意図的に避けています（試したところ、合成データでは精度の明確な向上がなく、
+実際の音声では F0 の変わり目がモーラ境界より遅れるため、判定が話者の言い方に
+引きずられてしまいます）。「っ で下がる」は耳で聞き分けられないので、そのような読みは
+っ の前で下がるのと同じに判定されます。それで聞こえる H がまったくなくなる場合（筆者 ひっしゃ
+を k = 2 で言った場合）は、単調な発話と同じになり、平板と判定されます。とても短いモーラ（速い
+発話、約120 ms）で破裂音で始まるものは有声フレームがわずかしか残らず、残っている誤りの主な原因です。
+きしみ声（creaky voice）や強い無声化も、使えるフレームを減らします。
 
-## Evaluation
+## 評価
 
-- `node scripts/eval-segmentation.mjs [--swiftf0]` — synthetic audio with consonants and
-  uneven timing, equal vs. cue-based segmentation. Results: `docs/eval-results.md`.
-- `node scripts/eval-real.mjs manifest.json [--swiftf0] [--csv out.csv]` — real recordings.
-- Human evaluation protocol (on hold until we have speakers): `docs/eval-plan.md`,
-  word list `docs/eval-words.tsv`. Waitlist LP copy: `docs/lp.md`.
+- `node scripts/eval-segmentation.mjs [--swiftf0]` — 子音と不均一なタイミングを含む合成音声で、
+  等分割と手がかりによる区切りを比較します。結果：`docs/eval-results.md`。
+- `node scripts/eval-real.mjs manifest.json [--swiftf0] [--csv out.csv]` — 実際の録音で評価します。
+- 人の声での評価手順（録音者が見つかるまで保留）：`docs/eval-plan.md`、
+  語のリストは `docs/eval-words.tsv`。ウェイトリスト用 LP の原稿：`docs/lp.md`。
 
-## Data
+## データ
 
-| File | What |
+| ファイル | 内容 |
 |---|---|
-| `data/words-seed-200.tsv` | Our own word list (surface, reading, English gloss) for the demo |
-| `data/words-candidates-2000.tsv` | Larger candidate list for the 2,000-word build |
-| `data/lexicon-200.json` | 266-word lexicon (accent from UniDic) — loaded by the dev page (`index.html`) |
-| `data/lexicon-2000.json` | 2,000-word lexicon, built by the same script — embedded in `dist/pitch-demo.html` |
+| `data/words-seed-200.tsv` | デモ用の自作の語リスト（表記・読み・英語の訳語） |
+| `data/words-candidates-2000.tsv` | 2,000語版ビルド用の、より大きな候補リスト |
+| `data/lexicon-200.json` | 266語の辞書データ（アクセントは UniDic から）。開発用ページ（`index.html`）が読み込みます |
+| `data/lexicon-2000.json` | 同じスクリプトで作った2,000語の辞書データ。`dist/pitch-demo.html` に埋め込まれます |
 
-Rebuild with UniDic (BSD option, via unidic-lite):
+UniDic で再生成する方法（BSD ライセンスを選択、unidic-lite 経由）：
 
 ```sh
 python3 -m venv .venv && .venv/bin/pip install fugashi unidic-lite
@@ -130,6 +126,6 @@ python3 -m venv .venv && .venv/bin/pip install fugashi unidic-lite
 .venv/bin/python scripts/build_lexicon.py data/words-candidates-2000.tsv data/lexicon-2000.json --limit 2000
 ```
 
-Words UniDic doesn't know under the given reading are dropped and listed. Model audio is
-a synthetic pitch line (`src/synth.js`) until licence-cleared native recordings exist.
-Licences and sources: `licenses.html`.
+指定した読みで UniDic が知らない語は除外され、一覧表示されます。手本の音声は、ライセンス確認済みの
+ネイティブ録音ができるまで、合成のピッチ線（`src/synth.js`）です。
+ライセンスと出典：`licenses.html`。

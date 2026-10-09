@@ -1,107 +1,106 @@
-# Evaluation results (P3 Pitch, 2026-10-08, updated 2026-10-09)
+# 評価結果（P3 Pitch、2026-10-08、2026-10-09 更新）
 
-## 1. Synthetic audio (`scripts/eval-segmentation.mjs`)
+## 1. 合成音声（`scripts/eval-segmentation.mjs`）
 
-Every lexicon word is rendered as "<word>が" audio with crude but realistic consonants
-(stop closures and bursts, fricative noise, nasals, voiced stops, っ silence, ん),
-uneven mora lengths (±25–35 %), a lengthened final が, pitch jitter and downdrift,
-for 3 synthetic speakers (105 / 190 / 240 Hz). Each word is said once with the dictionary
-accent and once with the opposite (flat ⇄ drop) to measure wrong passes.
-Boundary error is measured on interior mora boundaries against the synthesis ground truth.
+辞書データの全語を「<語>が」の音声として合成します。子音は粗いながらも現実に近い形で入れ
+（破裂音の閉鎖と破裂、摩擦音のノイズ、鼻音、有声破裂音、っ の無音、ん）、モーラ長は不均一（±25–35 %）、
+末尾の が は長め、ピッチの揺れ（jitter）と下がり傾向（downdrift）も加えています。
+合成話者は3人（105 / 190 / 240 Hz）です。各語を辞書どおりのアクセントで1回、逆の型（平板 ⇄ 下がり目あり）で1回言わせ、
+誤合格を測ります。
+境界の誤差は、語の内部のモーラ境界について、合成時の正解と比べて測ります。
 
-### 266-word demo lexicon (pitchy and SwiftF0)
+### 266語のデモ用辞書（pitchy と SwiftF0）
 
-| engine / segmentation | correct reading passes | detected k exact | wrong reading wrongly passes | boundary error median | boundaries within 40 ms |
+| エンジン／区切り方 | 正しい読みの合格率 | 検出 k の完全一致 | 誤った読みの誤合格率 | 境界誤差の中央値 | 40 ms 以内の境界 |
 |---|---|---|---|---|---|
 | pitchy/equal | 98.2% | 98.2% | 0.3% | 42 ms | 47.7% |
 | pitchy/auto | 99.9% | 99.9% | 0.1% | 13 ms | 96.5% |
 | swiftf0/equal | 90.9% | 90.7% | 2.7% | 41 ms | 48.6% |
 | swiftf0/auto | 98.7% | 98.7% | 0.0% | 14 ms | 96.6% |
 
-### 2,000-word lexicon (pitchy and SwiftF0)
+### 2,000語の辞書（pitchy と SwiftF0）
 
-| engine / segmentation | correct reading passes | detected k exact | wrong reading wrongly passes | boundary error median | boundaries within 40 ms |
+| エンジン／区切り方 | 正しい読みの合格率 | 検出 k の完全一致 | 誤った読みの誤合格率 | 境界誤差の中央値 | 40 ms 以内の境界 |
 |---|---|---|---|---|---|
 | pitchy/equal | 98.6% | 98.6% | 0.2% | 42 ms | 48.2% |
 | pitchy/auto | 99.8% | 99.7% | 0.1% | 13 ms | 95.6% |
 | swiftf0/equal | 95.2% | 95.0% | 1.4% | 40 ms | 49.8% |
 | swiftf0/auto | 98.8% | 98.8% | 0.1% | 15 ms | 95.2% |
 
-**Reading:** cue-based segmentation cuts the median boundary error from ~42 ms to ~13 ms
-and puts ~96 % of boundaries within 40 ms (vs ~48 %). Accent detection improves most for
-SwiftF0 (16 ms frames). Wrong readings almost never pass (≤ 0.1 %).
-Caveat: synthetic speech is far cleaner than real speech; these are upper bounds.
+**読み方：** 手がかりを使った区切りで、境界誤差の中央値は約42 ms から約13 ms に下がり、
+40 ms 以内に入る境界は約96 %（等分割では約48 %）になります。アクセント検出の改善が最も大きいのは
+SwiftF0（16 ms フレーム）です。誤った読みが合格することはほぼありません（≤ 0.1 %）。
+注意：合成音声は実際の音声よりはるかにきれいなので、これらは上限値です。
 
-### 2026-10-09: drop before a vowel-initial mora / next to っ
+### 2026-10-09：母音で始まるモーラの前／っ の隣での下がり目
 
-`demo-sanity` showed 14 of 2,000 words whose *correct* sample failed (水曜日, 案内, 材料 …
-detected one mora early; 鬼ごっこ, 紙コップ one late; 北極). Two causes:
+`demo-sanity` で、2,000語のうち14語の *正しい* サンプルが不合格になっていました（水曜日、案内、材料 … は
+1モーラ早く検出、鬼ごっこ、紙コップ は1モーラ遅く検出、それに 北極）。原因は2つです。
 
-1. **Tracker dropouts read as consonants.** pitchy loses lock for 40–60 ms inside a vowel
-   whenever F0 moves fast — i.e. at the accent. The segmenter took that voicing break
-   for a consonant and moved the nearest consonant-initial boundary onto it (い|よ of
-   すいようび onto the よ|う fall), so the drop landed one slot early. Fix: a voicing
-   break is a consonant cue only as far as energy dips across it (0 below 1 dB, full from
-   3 dB). Measured on the 266 lexicon: breaks at no consonant dip ≈ 0 dB (p95 0.2 dB);
-   flaps/glides 1.8–3.7 dB, nasals 7–10, fricatives/voiced stops 10+, stops 20+.
-2. **っ has no pitch.** Its slot only held F0 smeared in from the neighbour, which read as
-   "still high" (ごっこ) or "already low". っ now gives no value; templates that differ only
-   on pitchless morae are one answer (`equivalentK`). No dictionary accent in either
-   lexicon puts the drop on っ.
+1. **追跡器の途切れを子音と読んでいた。** pitchy は F0 が速く動くとき、つまりアクセントの位置で、
+   母音の途中で 40–60 ms ほど追跡を失います。区切り処理はその有声の途切れを子音とみなし、
+   最も近い子音始まりの境界をそこへ動かしていました（すいようび の い|よ を よ|う の下降の上へ）。
+   そのため下がり目が1枠早くなっていました。修正：有声の途切れは、その前後でエネルギーが落ちている程度に応じてのみ
+   子音の手がかりとする（1 dB 未満は 0、3 dB 以上で満点）。266語の辞書での実測：子音のない途切れでの落ち込みは ≈ 0 dB（p95 0.2 dB）、
+   はじき音・わたり音 1.8–3.7 dB、鼻音 7–10、摩擦音・有声破裂音 10+、破裂音 20+。
+2. **っ にはピッチがない。** その枠には隣からにじんできた F0 しかなく、それが
+   「まだ高い」（ごっこ）や「もう低い」と読まれていました。現在 っ は値を持ちません。ピッチのないモーラでしか
+   違わないテンプレートは同じ答えとして扱います（`equivalentK`）。どちらの辞書データにも、
+   っ で下がる辞書アクセントはありません。
 
-`eval-segmentation.mjs` before → after (pitchy/auto and swiftf0/auto; equal is unchanged):
+`eval-segmentation.mjs` の修正前 → 修正後（pitchy/auto と swiftf0/auto。equal は変化なし）：
 
-| lexicon / engine | correct passes | detected k exact | wrong passes | boundary median | within 40 ms |
+| 辞書／エンジン | 正しい読みの合格率 | 検出 k の完全一致 | 誤合格率 | 境界誤差の中央値 | 40 ms 以内 |
 |---|---|---|---|---|---|
 | 266 pitchy | 99.6% → 99.9% | 99.6% → 99.9% | 0.1% → 0.1% | 13 → 13 ms | 96.1% → 96.5% |
 | 266 SwiftF0 | 98.5% → 98.7% | 98.5% → 98.7% | 0.0% → 0.0% | 15 → 14 ms | 96.4% → 96.6% |
 | 2,000 pitchy | 99.1% → 99.8% | 99.1% → 99.7% | 0.1% → 0.1% | 13 → 13 ms | 95.2% → 95.6% |
 | 2,000 SwiftF0 | 98.7% → 98.8% | 98.7% → 98.8% | 0.1% → 0.1% | 15 → 15 ms | 95.2% → 95.2% |
 
-`demo-sanity` (2,000 words, the page's samples): correct 1,986 → **2,000**/2,000; wrong
-1,997 → 1,996/1,997. The one wrong sample that now passes is 筆者 ひっしゃ [1, 0] said with
-k = 2, i.e. the drop *on っ*: with っ silent its only H is inaudible, the rest is
-monotone, and monotone speech reads as flat (accepted). The old judge failed it only
-because 0.9 st of smeared F0 sat in the っ slot. (The page's "wrong pattern" button could
-avoid drops on っ/ん/ー, which Tokyo Japanese does not have; not changed here.)
+`demo-sanity`（2,000語、ページのサンプル）：正しいサンプルは 1,986 → **2,000**/2,000、誤ったサンプルは
+1,997 → 1,996/1,997。新たに合格するようになった誤ったサンプル1件は、筆者 ひっしゃ [1, 0] を
+k = 2、つまり *っ で* 下がるように言ったものです。っ が無音なので唯一の H が聞こえず、残りは
+単調で、単調な発話は平板（認められる型）と読まれます。以前の判定がこれを不合格にしていたのは、
+っ の枠に 0.9 st のにじんだ F0 があったからにすぎません。（ページの「wrong pattern」ボタンは、東京式の日本語には
+ない っ／ん／ー での下がり目を避けるようにできます。ここでは変更していません。）
 
-Robustness, outside the demo seeds (scratch harness, not in the repo): fresh seeds and
-three other speakers (fast 120 ms morae / 2.2 st step / 4 st step with 0.3 st jitter),
-and **every** non-accepted k as a wrong reading, not just flat ⇄ drop. Same audio for
-both judges, pitchy, auto segmentation:
+頑健性の確認（デモのシード以外。リポジトリ外の使い捨てハーネス）：新しいシードと、
+別の話者3人（速い 120 ms モーラ／2.2 st の段差／4 st の段差で 0.3 st の揺れ）、さらに
+平板 ⇄ 下がり目だけでなく、認められない **すべての** k を誤った読みとして使いました。両方の判定に同じ音声、
+pitchy、auto 区切りです。
 
-| set | correct passes | wrong k wrongly passes | of which adjacent k | drop on っ/ん/ー passes | boundary median | within 40 ms |
+| セット | 正しい読みの合格率 | 誤った k の誤合格率 | うち隣接 k | っ／ん／ー で下がる読みの合格 | 境界誤差の中央値 | 40 ms 以内 |
 |---|---|---|---|---|---|---|
-| 2,000 (seed 7000) before | 99.12% (6661/6720) | 0.16% (27/16860) | 0.29% (23/7851) | 71/1854 | 17 ms | 92.0% |
-| 2,000 (seed 7000) after | 99.90% (6713/6720) | 0.08% (14/16860) | 0.11% (9/7851) | 137/1854 | 13 ms | 92.5% |
-| 266 (seed 5000) before | 99.54% (872/876) | 0.10% (2/1944) | 0.20% (2/1023) | 6/120 | 17 ms | 94.6% |
-| 266 (seed 5000) after | 99.77% (874/876) | 0.05% (1/1944) | 0.10% (1/1023) | 9/120 | 17 ms | 94.8% |
-| 266 (seed 9000) before | 99.43% (871/876) | 0.15% (3/1944) | 0.29% (3/1023) | 6/120 | 17 ms | 94.9% |
-| 266 (seed 9000) after | 99.89% (875/876) | 0.05% (1/1944) | 0.10% (1/1023) | 10/120 | 17 ms | 95.1% |
+| 2,000 (seed 7000) 修正前 | 99.12% (6661/6720) | 0.16% (27/16860) | 0.29% (23/7851) | 71/1854 | 17 ms | 92.0% |
+| 2,000 (seed 7000) 修正後 | 99.90% (6713/6720) | 0.08% (14/16860) | 0.11% (9/7851) | 137/1854 | 13 ms | 92.5% |
+| 266 (seed 5000) 修正前 | 99.54% (872/876) | 0.10% (2/1944) | 0.20% (2/1023) | 6/120 | 17 ms | 94.6% |
+| 266 (seed 5000) 修正後 | 99.77% (874/876) | 0.05% (1/1944) | 0.10% (1/1023) | 9/120 | 17 ms | 94.8% |
+| 266 (seed 9000) 修正前 | 99.43% (871/876) | 0.15% (3/1944) | 0.29% (3/1023) | 6/120 | 17 ms | 94.9% |
+| 266 (seed 9000) 修正後 | 99.89% (875/876) | 0.05% (1/1944) | 0.10% (1/1023) | 10/120 | 17 ms | 95.1% |
 
-"Drop on っ/ん/ー" readings (no such accent exists in Tokyo Japanese) are counted apart:
-on 2,000 words, drops on っ pass 71 → 134 of 171 (inaudible, see above), on ん 0 → 3 of
-1,560, on ー 0 of 123. Remaining errors after the change are mostly the fast speaker:
-short morae with a stop onset leave a handful of voiced frames, and a weak flap cue
-(テレビ, カメラ said with k = 2 pass as k = 1).
+「っ／ん／ー で下がる」読み（東京式の日本語にはそのようなアクセントは存在しません）は別に数えています。
+2,000語では、っ で下がる読みの合格が 171件中 71 → 134（聞き取れないため。上記参照）、ん では
+1,560件中 0 → 3、ー では 123件中 0 です。修正後に残る誤りは主に速い話者のものです。
+破裂音で始まる短いモーラでは有声フレームがわずかしか残らないことと、はじき音の手がかりが弱いこと
+（テレビ、カメラ を k = 2 で言うと k = 1 として合格する）が原因です。
 
-Tried and not kept: F0 movement as a weak boundary cue for every boundary (+3 correct,
-−1 / +3 wrong passes on the 2,000 set — no clear gain, and on real speech F0 turning
-points lag the mora boundary); rewarding each consonant cue at one frame only
-(clearly worse: 99.9% → 99.3% correct on the 266 set).
+試したが採用しなかったもの：すべての境界で F0 の動きを弱い境界の手がかりにする（2,000語のセットで正しい読みの合格 +3、
+誤合格 −1 / +3。明確な改善がなく、実際の音声では F0 の変わり目が
+モーラ境界より遅れる）。子音の手がかりを1フレームだけで評価する
+（明らかに悪化：266語のセットで正しい読みの合格率 99.9% → 99.3%）。
 
-## 2. Public real-speech data (Lingua Libre, Wikimedia Commons)
+## 2. 公開されている実際の音声データ（Lingua Libre、Wikimedia Commons）
 
-- **Source:** native-speaker isolated-word recordings, licence-filtered to CC0 / CC BY / CC BY-SA.
-  650 candidates from 13 speaker accounts (~12 people), all licence-checked:
-  CC0 447, CC BY-SA 4.0 104, CC BY 4.0 99 (`data/eval-lingualibre-candidates.json`, metadata only).
-- **Status: blocked.** `upload.wikimedia.org` rate-limited the sandbox's shared IP
-  (HTTP 429, retry-after 600 s) after the first file. We did not work around the limit.
-  Only 1 file was downloaded (卵 たまご, CC0): both engines and both segmentations judged it
-  correctly — this only shows the pipeline runs end-to-end, it is **not** an accuracy figure.
-- **Limits of this data even when downloaded:** isolated words have no が, so flat vs.
-  tail-high cannot be tested (`particle: false` mode merges them); some speakers may not be
-  native and need checking first.
-- **To resume:** `WIKIMEDIA_CONTACT=… python3 scripts/fetch_lingualibre.py OUT_DIR`, then
-  `scripts/annotate_manifest.py` and `scripts/eval-real.mjs` (see the script header).
-  Audio stays outside the repo.
+- **出典：** ネイティブ話者による単語単体の録音。ライセンスで CC0 / CC BY / CC BY-SA に絞り込み済み。
+  13の話者アカウント（約12人）から650件の候補があり、すべてライセンス確認済みです：
+  CC0 447、CC BY-SA 4.0 104、CC BY 4.0 99（`data/eval-lingualibre-candidates.json`、メタデータのみ）。
+- **状態：ブロック中。** 最初の1ファイルの後、`upload.wikimedia.org` がサンドボックスの共有 IP にレート制限をかけました
+  （HTTP 429、retry-after 600 s）。制限を回避することはしていません。
+  ダウンロードできたのは1ファイルだけです（卵 たまご、CC0）。両エンジン・両区切り方とも正しく判定しましたが、
+  これはパイプラインが最後まで動くことを示すだけで、精度の数値では **ありません**。
+- **ダウンロードできたとしてもこのデータにある限界：** 単語単体なので が がなく、平板と
+  尾高の区別は検証できません（`particle: false` モードでは両者を同一に扱います）。話者の中には
+  ネイティブでない人がいる可能性があり、先に確認が必要です。
+- **再開する方法：** `WIKIMEDIA_CONTACT=… python3 scripts/fetch_lingualibre.py OUT_DIR` の後、
+  `scripts/annotate_manifest.py` と `scripts/eval-real.mjs` を実行します（スクリプトの冒頭を参照）。
+  音声はリポジトリの外に置きます。

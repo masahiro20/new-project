@@ -1,3 +1,8 @@
+> **このファイルについて（日本語メモ）**
+> - これは P3 Pitch の英語ランディングページ（LP）の原稿です。ウェイトリスト登録を想定した下書きで、本文は英語のまま残しています。
+> - 実際に作ったページは `pitch/site/index.html`（＋ `site/assets/site.css`）です。この原稿をもとに **無料ベータ** 向けに作り直したもので、料金・ウェイトリストのフォーム・精度の主張は載せず、ボタンは `./app/` に飛びます。
+> - どちらもまだ公開していません。公開するには **オーナーの承認とドメイン** が必要です。精度の数値は人の声での検証（`docs/eval-plan.md`）が終わるまで載せません。
+
 <!-- P3 Pitch — waitlist landing page copy (draft, NOT published). Owner approval needed before going live. -->
 
 > **Built page:** `pitch/site/index.html` (+ `site/assets/site.css`) — static English LP adapted from this draft for the **free beta** (no pricing, no waitlist form, CTA → `./app/`, no accuracy claim). Not live: going live still needs **owner approval + a domain**.
