@@ -35,3 +35,13 @@ test("every content script file exists", () => {
   }
   for (const f of Object.values(m.icons)) assert.ok(fs.existsSync(path.join(__dirname, "..", f)), f);
 });
+
+test("store build settings fit Chrome Web Store limits", () => {
+  const cfg = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "store", "store.json"), "utf8"));
+  assert.ok(cfg.name.length <= 75, "name");
+  assert.ok(cfg.short_name.length <= 12, "short_name");
+  assert.ok(cfg.description.length <= 132, "description");
+  assert.match(cfg.version, /^\d+\.\d+\.\d+$/);
+  // The repo manifest keeps the working title; only the store build is renamed.
+  assert.match(m.name, /prototype/i);
+});

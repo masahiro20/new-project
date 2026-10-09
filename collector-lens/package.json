@@ -9,7 +9,9 @@
     "test": "node scripts/build-data.mjs --check && node scripts/check-glossary.mjs && node --test \"test/*.test.js\"",
     "review-sheet": "node scripts/export-review-sheet.mjs",
     "package": "node scripts/build-data.mjs && node scripts/package.mjs",
-    "build:demo": "node scripts/build-demo.mjs"
+    "build:demo": "node scripts/build-demo.mjs",
+    "package:store": "node scripts/build-data.mjs && node scripts/package-store.mjs",
+    "store:screenshots": "node scripts/store-screenshots.mjs"
   },
   "devDependencies": {
     "jsdom": "^24.1.3"
