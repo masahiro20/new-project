@@ -1,0 +1,118 @@
+diff --git a/pitch/README.md b/pitch/README.md
+index 21b8f50..8c9f87c 100644
+--- a/pitch/README.md
++++ b/pitch/README.md
+@@ -32,13 +32,13 @@ node scripts/qa-demo.mjs [--words 266]               # Playwright end-to-end QA
+ ```
+ 
+ ビルドでは辞書データをコンパクトな配列形式で埋め込みます（`demo/lexicon.js` が復元します。
+-モーラと型はかなとアクセントから算出）。2,000語で約82 KB、ページ全体で約135 KB です。
++モーラと型はかなとアクセントから算出）。2,000語で約82 KB、ページ全体で約250 KB です（m4a デコーダー・練習モード・評価協力モードを含む）。
+ ネイティブの確認待ちの語（`data/needs-review-*.tsv`）は決して含めません。
+ 単語選択には、検索（漢字・ひらがな・カタカナ・英語の訳語）、型による絞り込み、
+ 代表的な同音語セット（箸・橋・端、雨・飴、花・鼻、神・紙・髪、柿・牡蠣）のクイック選択があります。
+-合成サンプルでは、2,000語のうち14語が *正しい* サンプルで不合格になります。次のモーラが母音だけ、または っ で
+-アクセントが 3 か 1 の語（曜日の語、案内、材料、北極 …）で、区切り方の限界によるものです。詳しくは
+-`demo-sanity.mjs` の出力を見てください。
++合成サンプルでは、2,000語すべてで *正しい* サンプルが合格し、*違う型* のサンプルが不合格になります
++（2,000/2,000 と 1,997/1,997。以前は曜日の語・案内・材料・北極など14語の正しいサンプルが不合格でしたが、
++区切りの修正で解消しました。`docs/eval-results.md` 参照）。詳しくは `demo-sanity.mjs` の出力を見てください。
+ 
+ ## オフライン PWA（`site/app/`）
+ 
+diff --git a/pitch/demo/practice.js b/pitch/demo/practice.js
+index af57f15..59d3a12 100644
+--- a/pitch/demo/practice.js
++++ b/pitch/demo/practice.js
+@@ -189,6 +189,7 @@ export function initPractice(deps) {
+       d.append(tone, kk);
+       box.append(d);
+     });
++    box.setAttribute('role', 'img');
+     box.setAttribute('aria-label', `高低パターン: ${[...group.morae, 'が'].map((m, i) => `${m}${pat[i] ? '高' : '低'}`).join(' ')}`);
+     return box;
+   }
+diff --git a/pitch/demo/template.html b/pitch/demo/template.html
+index ab024ff..4125ba1 100644
+--- a/pitch/demo/template.html
++++ b/pitch/demo/template.html
+@@ -235,7 +235,7 @@ footer { font-size: .8rem; color: var(--muted); display: flex; flex-direction: c
+     </div>
+     <div class="dict">
+       <p><span class="muted small">辞書のアクセント</span>　<span class="dict-type" id="word-type"></span></p>
+-      <div class="morae" id="word-pattern" aria-label="高低パターン"></div>
++      <div class="morae" id="word-pattern" role="img" aria-label="高低パターン"></div>
+       <p class="muted small" id="word-homophones" hidden></p>
+     </div>
+   </section>
+@@ -400,6 +400,7 @@ footer { font-size: .8rem; color: var(--muted); display: flex; flex-direction: c
+         <li><b>保存しないもの：</b>元の録音ファイル、ファイル名、氏名やメールなど。合成音声のサンプルも保存しません</li>
+         <li><b>保存場所：</b>このブラウザの中（IndexedDB）だけ。外部には送信しません</li>
+         <li><b>消し方：</b>下の一覧で1件ずつ、または「すべて削除」。ブラウザのサイトデータを消しても消えます</li>
++        <li><b>開発者に渡した場合：</b>精度の検証と改善だけに使い、受領から90日で削除します。それより前でも、依頼があれば7日以内に削除します（zip の README.txt の同意文と同じ）</li>
+       </ul>
+       <label class="eval-check" for="eval-agree"><input type="checkbox" id="eval-agree">上の内容を理解し、録音と結果をこの端末に保存することに同意します</label>
+       <div class="row">
+diff --git a/pitch/docs/eval-results.md b/pitch/docs/eval-results.md
+index 349988a..0f78a1b 100644
+--- a/pitch/docs/eval-results.md
++++ b/pitch/docs/eval-results.md
+@@ -58,11 +58,12 @@ SwiftF0（16 ms フレーム）です。誤った読みが合格することは
+ | 2,000 SwiftF0 | 98.7% → 98.8% | 98.7% → 98.8% | 0.1% → 0.1% | 15 → 15 ms | 95.2% → 95.2% |
+ 
+ `demo-sanity`（2,000語、ページのサンプル）：正しいサンプルは 1,986 → **2,000**/2,000、誤ったサンプルは
+-1,997 → 1,996/1,997。新たに合格するようになった誤ったサンプル1件は、筆者 ひっしゃ [1, 0] を
++1,997 → 1,996/1,997（区切りの修正のみの時点）。新たに合格するようになった誤ったサンプル1件は、筆者 ひっしゃ [1, 0] を
+ k = 2、つまり *っ で* 下がるように言ったものです。っ が無音なので唯一の H が聞こえず、残りは
+ 単調で、単調な発話は平板（認められる型）と読まれます。以前の判定がこれを不合格にしていたのは、
+ っ の枠に 0.9 st のにじんだ F0 があったからにすぎません。（ページの「wrong pattern」ボタンは、東京式の日本語には
+-ない っ／ん／ー での下がり目を避けるようにできます。ここでは変更していません。）
++ない っ／ん／ー での下がり目を避けるようにできます。）その後 `wrongK` をそのように変更したため（`docs/decisions.md`
++2026-10-09「wrong サンプルは っ／ん／ー での下がり目を避ける」）、現在の `demo-sanity` は誤ったサンプルも **1,997/1,997** が不合格です。
+ 
+ 頑健性の確認（デモのシード以外。リポジトリ外の使い捨てハーネス）：新しいシードと、
+ 別の話者3人（速い 120 ms モーラ／2.2 st の段差／4 st の段差で 0.3 st の揺れ）、さらに
+diff --git a/pitch/scripts/build-demo.mjs b/pitch/scripts/build-demo.mjs
+index ffaad25..37fb1da 100644
+--- a/pitch/scripts/build-demo.mjs
++++ b/pitch/scripts/build-demo.mjs
+@@ -97,7 +97,7 @@ const licences = [
+ let licenceHtml = '';
+ for (const [title, file] of licences) {
+   const text = await readFile(`${root}/${file}`, 'utf8');
+-  licenceHtml += `<h3>${escapeHtml(title)}</h3>\n<pre>${escapeHtml(text.trimEnd())}</pre>\n`;
++  licenceHtml += `<h3>${escapeHtml(title)}</h3>\n<pre tabindex="0">${escapeHtml(text.trimEnd())}</pre>\n`;
+ }
+ 
+ // 4. Build stamp.
+diff --git a/pitch/site/index.html b/pitch/site/index.html
+index 57d33ba..905a4c5 100644
+--- a/pitch/site/index.html
++++ b/pitch/site/index.html
+@@ -29,7 +29,7 @@
+ 
+ <header class="top">
+   <div class="wrap">
+-    <a class="brand" href="./" aria-label="Pitch, home">
++    <a class="brand" href="./" aria-label="Pitch Beta, home">
+       <svg width="30" height="20" viewBox="0 0 30 20" aria-hidden="true"><polyline class="lg-h" points="4,15 13,5 22,5"/><path class="lg-d" d="M22 5 L26 15"/></svg>
+       Pitch <span class="tag">Beta</span>
+     </a>
+@@ -111,7 +111,7 @@
+         <li>
+           <h3>See your pitch on the morae</h3>
+           <p>Your pitch is laid over the dictionary pattern, one column per mora, with a clear pass or fail and what went wrong.</p>
+-          <p class="verdicts" aria-label="Possible feedback"><span>dropped too early</span><span>too late</span><span>never dropped</span><span>shouldn't drop</span></p>
++          <p class="verdicts" role="group" aria-label="Possible feedback"><span>dropped too early</span><span>too late</span><span>never dropped</span><span>shouldn't drop</span></p>
+         </li>
+       </ol>
+     </div>
+@@ -240,7 +240,7 @@
+         </details>
+         <details>
+           <summary>Do you store my recordings?</summary>
+-          <div><p>No. Analysis happens on your device and recordings never leave it.</p></div>
++          <div><p>No. Analysis happens on your device and recordings never leave it.</p><p>The only exception is the optional evaluation mode in the app, which is off by default. If you switch it on, the clips it analyses are kept in your browser until you delete them, and nothing is sent: you decide whether to export them and pass them to us. Clips we receive are deleted 90 days after we get them, or within 7 days of your request if you ask sooner.</p></div>
+         </details>
+       </div>
+     </div>
