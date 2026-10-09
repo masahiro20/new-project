@@ -58,3 +58,17 @@
 3. 【info】NODE_ENV を development/test にすると、すべての検査を素通りできる（設定できるのは運営者だけ）。デプロイした Worker では production に固定するか、文書で禁止する。
 4. 【info】以前の例の鍵で動かしていた環境では、トークンが復号できなくなる。「その鍵は公開されているので、トークンを失効させて入れ直す」手順を文書に書く。
 5. 【info】demo の索引から外せるのは1日48件まで。流入が上回ると索引が増える（害は小さい）。
+
+## 残り5件の対応の確認（68e9d0a）— Atlas、2026-10-09（軽い確認）
+
+**結論：残り5件は対応済み。新しい問題は見当たらない。** `git archive 68e9d0a` のコピーで `npx vitest run` は 25ファイル・**269件すべて合格**、`npm run typecheck` も通過。
+
+| 項目 | 確認したこと |
+|---|---|
+| 文書（low） | demo-payments.md §1・§5 と README の起動例が、PAYMENTS_MODE の明示が必須である点に合わせて直っており、`__Host-` への切り替えも手順に入った（記録は docs/security-review-atlas.md §11・§12） |
+| 仮の値の判定 | `PLACEHOLDER` の正規表現に `do[-_]?not[-_]?use` が入った |
+| Worker の NODE_ENV | `cf-worker.ts` は、実行時の NODE_ENV が production 以外なら起動を拒否する（wrangler が置き換えないよう、変数を通して読んでいる） |
+| demo の索引 | 上限 `DEMO_INDEX_MAX = 600`。上限に達したら追加を 503 で断る |
+| 追加された CSP | HTML はページごとにスクリプトを sha256 で許可し、`unsafe-inline` を使っていない。HTML 以外は `default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'`。`X-Frame-Options: DENY` も付く |
+
+公開鍵からの移行手順（deploy-cloudflare.md §3.2）は、文書があることだけを確かめた。CSP は、実機のブラウザで違反が出ないかを、デプロイ前に一度確かめること。
