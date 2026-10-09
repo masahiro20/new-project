@@ -20,6 +20,8 @@ export const DEFAULTS = {
   noiseMarginDb: 6, // … and at least this far above the noise floor (10th percentile of frame energies)
   bridgeGapS: 0.08, // the start may cross one silent gap this short (stop closure after a devoiced mora)
   tailDropDb: 6, // the utterance ends where the last syllable's energy has fallen this far (reverb tails)
+  gaSmearS: 0.03, // skip this much of the start of the が slot (previous mora's pitch in the tracker window)
+  gaMinFrames: 3, // fewer voiced frames than this in が = its pitch is not heard
   maxPauseS: 0.5, // voiced stretches further apart than this are separate sounds (keep the loudest)
   onsetRiseDb: 6, // energy rise (within 50 ms) that marks the onset of the last syllable
   segmentation: 'auto', // 'auto' = use energy/voicing cues when available, 'equal' = equal slots
@@ -154,9 +156,9 @@ function utteranceSpan(track, voicedIdx, slots, o) {
   const floor = fin[Math.floor(fin.length * 0.1)];
   const thr = Math.max(ref + o.energyFloorDb, floor + o.noiseMarginDb);
   const on = db.map((d) => d >= thr);
-  const j0 = Math.max(a, finalDecayEnd(db, a, z, ref, o));
-  // Room for one devoiced mora plus the voiceless start (closure, burst) of the next.
-  const maxExt = (1.5 * (T[j0] - T[a])) / Math.max(1, slots - 1);
+  // Room for one devoiced mora plus the voiceless start (closure, burst) of the next
+  // (measured on the voiced span without a reverberant tail).
+  const maxExt = (1.5 * (T[Math.max(a, finalDecayEnd(db, a, z, ref, o))] - T[a])) / Math.max(1, slots - 1);
   const rise = (x, dir) => { // energy at x vs. the median of the 50 ms before (dir −1) / after (dir +1) it
     const w = [];
     for (let y = x + dir; y !== x + 6 * dir && y >= 0 && y <= last; y += dir) w.push(db[y]);
@@ -178,13 +180,11 @@ function utteranceSpan(track, voicedIdx, slots, o) {
   let s = a;
   for (let x = i; x < a; x++) if (on[x] && rise(x, -1) >= o.onsetRiseDb) { s = x; break; }
 
-  // End (isolated words only): the same, forwards, without gap crossing.
-  let j = j0;
-  if (!o.particle) {
-    let e = j0;
-    while (e < last && on[e + 1] && T[e + 1] - T[j0] <= maxExt) e++;
-    for (let x = e; x > j0; x--) if (rise(x, 1) >= o.onsetRiseDb) { j = x; break; }
-  }
+  // End: the same forwards (a devoiced or creaky final mora: sound without pitch),
+  // without gap crossing; then cut the final decay.
+  let e = z;
+  while (e < last && on[e + 1] && T[e + 1] - T[z] <= maxExt) e++;
+  const j = Math.max(s, finalDecayEnd(db, a, e, ref, o));
   return [s, j];
 }
 
@@ -332,9 +332,15 @@ export function judge(track, word, opts = {}) {
   const bounds = segmentFrames(track, st, i0, i1, labels, o);
   const hop = track.times[1] - track.times[0];
   const segments = [];
+  const smear = Math.round(o.gaSmearS / hop);
   for (let s = 0; s < slots; s++) {
+    // が alone tells flat from tail-high, and it is the mora most often creaky or
+    // fading. Its first frames still carry the previous mora's pitch (the tracker
+    // window is 64 ms), so they are skipped, and a few frames are not enough.
+    const isGa = o.particle && s === slots - 1;
     const vals = [];
-    for (let i = bounds[s]; i < bounds[s + 1]; i++) if (!Number.isNaN(st[i])) vals.push(st[i]);
+    for (let i = bounds[s] + (isGa ? smear : 0); i < bounds[s + 1]; i++) if (!Number.isNaN(st[i])) vals.push(st[i]);
+    if (isGa && vals.length < o.gaMinFrames) vals.length = 0;
     const start = track.times[bounds[s]] - hop / 2;
     const end = (bounds[s + 1] <= i1 ? track.times[bounds[s + 1]] : track.times[i1] + hop) - hop / 2;
     // っ is a silent closure (or voiceless frication): it has no pitch of its own.
@@ -381,6 +387,14 @@ export function judge(track, word, opts = {}) {
   const margin = others.length ? (others[0].sse - detected.sse) / Math.max(1e-6, spread * spread) : 1;
 
   const expected = o.particle ? word.accent : [...new Set(word.accent.map((k) => (k === n ? 0 : k)))];
+  // When が has no usable pitch, flat and tail-high sound the same; if that is
+  // exactly the difference between the expected answer and a wrong one, say so
+  // instead of passing (a creaky or whispered が would otherwise pass anything).
+  if (o.particle && Number.isNaN(values[slots - 1])) {
+    const ok = equivalentK.filter((k) => expected.includes(k)), bad = equivalentK.filter((k) => !expected.includes(k));
+    const differsOnGa = (k1, k2) => pitchPattern(k1, n)[n] !== pitchPattern(k2, n)[n];
+    if (ok.some((k1) => bad.some((k2) => differsOnGa(k1, k2)))) return { error: 'no-ga', st, segments, span: [t0, t1] };
+  }
   const hit = equivalentK.find((k) => expected.includes(k));
   if (hit !== undefined && hit !== detected.k) detected = candidates.find((c) => c.k === hit);
   const pass = hit !== undefined;

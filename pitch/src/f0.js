@@ -45,7 +45,7 @@ export function resample(samples, fromRate, toRate) {
  * transient). Without hum nothing stands out and the signal is returned as is.
  * @returns {{samples: Float32Array, removed: number[]}} removed = notched frequencies (Hz)
  */
-export function removeHum(samples, rate, { maxHarmonic = 10, minProminenceDb = 10, bandwidth = 3 } = {}) {
+export function removeHum(samples, rate, { maxHarmonic = 10, minProminenceDb = 15, bandwidth = 3 } = {}) {
   const N = samples.length;
   const T = N / rate;
   if (T < 0.5) return { samples, removed: [] };
