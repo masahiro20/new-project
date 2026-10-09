@@ -84,6 +84,11 @@ test("every ja message template is Japanese and free of English template words",
     rubyMalformed: (m) => m.rubyMalformed(),
     rubyLeak: (m) => m.rubyLeak(),
     lengthLimit: (m) => m.lengthLimit(40, 30, true),
+    honorificTargetDrift: (m) => m.honorificTargetDrift("様", "Kalenz", "殿", 3),
+    tagEmphasisDropped: (m) => m.tagEmphasisDropped(["<i>", "</i>"]),
+    untranslatedEmpty: (m) => m.untranslatedEmpty(),
+    untranslatedCopy: (m) => m.untranslatedCopy(),
+    untranslatedFuzzy: (m) => m.untranslatedFuzzy(),
   };
   assert.deepEqual(Object.keys(calls).sort(), Object.keys(ja).sort());
   for (const [key, call] of Object.entries(calls)) {

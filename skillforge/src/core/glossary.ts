@@ -15,6 +15,7 @@ const GlossarySchema = z.object({
         allowed: list,
         forbidden: list,
         note: z.string().optional(),
+        draft: z.boolean().optional(),
       }),
     )
     .default([]),

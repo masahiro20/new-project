@@ -19,6 +19,8 @@ export interface Messages {
   honorificPolicyKeep(jaWithHonorific: string, found: string, expected: string): string;
   honorificDrift(form: string, jaHon: string, majority: string, count: number): string;
   honorificSourceShift(hon: string, majority: string, count: number): string;
+  /** EN→JA: the same English form is dressed with a different Japanese honorific. */
+  honorificTargetDrift(jaHon: string, enForm: string, majority: string, count: number): string;
   voiceFirstPersonProfile(name: string, odd: string[], expected: string[]): string;
   voiceFirstPersonMajority(name: string, odd: string[], majority: string, count: number, total: number): string;
   voicePolitenessProfile(name: string, expected: "polite" | "plain", actual: "polite" | "plain"): string;
@@ -28,10 +30,14 @@ export interface Messages {
   /** placeholder.mismatch and tag.mismatch. */
   mismatch(missing: string[], extra: string[]): string;
   tagUnbalanced(tags: string[]): string;
+  tagEmphasisDropped(tags: string[]): string;
   rubyReading(reading: string, base: string): string;
   rubyMalformed(): string;
   rubyLeak(): string;
   lengthLimit(length: number, max: number, wideAsTwo: boolean): string;
+  untranslatedEmpty(): string;
+  untranslatedCopy(): string;
+  untranslatedFuzzy(): string;
 }
 
 const en: Messages = {
@@ -51,6 +57,7 @@ const en: Messages = {
   honorificDrift: (form, jaHon, m, n) => `"${form}" here, but this speaker's "${jaHon}" is rendered "${m}" in ${n} other lines.`,
   honorificSourceShift: (h, m, n) =>
     `In Japanese this speaker uses "${h}" here but "${m}" in ${n} other lines. Confirm it is an intentional shift (and that the English reflects it).`,
+  honorificTargetDrift: (h, e, m, n) => `"${e}" is rendered with "${h}" here, but with "${m}" in ${n} other lines by this speaker.`,
   voiceFirstPersonProfile: (name, odd, exp) => `${name} uses "${odd.join(", ")}" but their profile says "${exp.join(", ")}".`,
   voiceFirstPersonMajority: (name, odd, m, n, total) => `${name} uses "${odd.join(", ")}" here but "${m}" in ${n} of ${total} lines.`,
   voicePolitenessProfile: (name, exp, p) => `${name} is written ${exp} but this line is ${p}.`,
@@ -60,10 +67,14 @@ const en: Messages = {
   mismatch: (missing, extra) =>
     [missing.length && `missing ${missing.join(" ")}`, extra.length && `unexpected ${extra.join(" ")}`].filter(Boolean).join("; "),
   tagUnbalanced: (tags) => `Unbalanced tags: ${tags.join(" ")}`,
+  tagEmphasisDropped: (tags) => `Emphasis markup dropped in the translation: ${tags.join(" ")} (common in Japanese; check it is intended).`,
   rubyReading: (r, b) => `Ruby reading "${r}" for "${b}" is not kana.`,
   rubyMalformed: () => "Malformed <ruby>/<rt> markup.",
   rubyLeak: () => "Ruby markup copied into the English text.",
   lengthLimit: (n, max, wide) => `Length ${n} exceeds the limit of ${max}${wide ? " (wide chars count 2)" : ""}.`,
+  untranslatedEmpty: () => "The translation is empty.",
+  untranslatedCopy: () => "The translation is identical to the source text (left untranslated?).",
+  untranslatedFuzzy: () => "Fuzzy (draft) translation: gettext ignores it until it is reviewed and the fuzzy flag is removed.",
 };
 
 const POLITENESS_JA = { polite: "丁寧体", plain: "常体" } as const;
@@ -87,6 +98,7 @@ const ja: Messages = {
   honorificDrift: (form, jaHon, m, n) => `ここでは「${form}」ですが、この話者の「${jaHon}」は他の${n}行で「${m}」と訳されています。`,
   honorificSourceShift: (h, m, n) =>
     `日本語でこの話者はここで「${h}」を使っていますが、他の${n}行では「${m}」です。意図的な変化か（英語にも反映されているか）確認してください。`,
+  honorificTargetDrift: (h, e, m, n) => `「${e}」がここでは「${h}」付きで訳されていますが、この話者の他の${n}行では「${m}」です。`,
   voiceFirstPersonProfile: (name, odd, exp) => `${name} が一人称${q(odd)}を使っていますが、プロフィールでは${q(exp)}です。`,
   voiceFirstPersonMajority: (name, odd, m, n, total) => `${name} はここで一人称${q(odd)}を使っていますが、${total}行中${n}行では「${m}」です。`,
   voicePolitenessProfile: (name, exp, p) => `${name} は${POLITENESS_JA[exp]}で話すキャラですが、この行は${POLITENESS_JA[p]}です。`,
@@ -97,10 +109,14 @@ const ja: Messages = {
   mismatch: (missing, extra) =>
     [missing.length && `不足: ${missing.join(" ")}`, extra.length && `余分: ${extra.join(" ")}`].filter(Boolean).join("／"),
   tagUnbalanced: (tags) => `タグの開始と終了が対応していません: ${tags.join(" ")}`,
+  tagEmphasisDropped: (tags) => `訳文で強調タグが省かれています: ${tags.join(" ")}（日本語では一般的です。意図どおりか確認してください）`,
   rubyReading: (r, b) => `「${b}」のルビ「${r}」がかなではありません。`,
   rubyMalformed: () => "<ruby>/<rt> のマークアップが不正です。",
   rubyLeak: () => "ルビのマークアップが英語テキストに混入しています。",
   lengthLimit: (n, max, wide) => `文字数${n}が上限${max}を超えています${wide ? "（全角は2文字として計算）" : ""}。`,
+  untranslatedEmpty: () => "訳文が空です。",
+  untranslatedCopy: () => "訳文が原文と同じです（未翻訳の可能性があります）。",
+  untranslatedFuzzy: () => "fuzzy（仮訳）です。fuzzy フラグを外すまで gettext はこの訳を使いません。",
 };
 
 const MESSAGES: Record<Locale, Messages> = { en, ja };
@@ -138,6 +154,7 @@ const reportEn: ReportLabels = {
     tag: "Tags (bonus)",
     ruby: "Ruby (bonus)",
     length: "Length limits (bonus)",
+    untranslated: "Untranslated (bonus) / 未翻訳",
   },
   tableLine: (f, fmt, n, sl, tl) => `- **${f}** — ${fmt}, ${n} rows, ${sl} → ${tl}`,
   glossaryLine: (t, c) => `- Glossary: ${t} terms, ${c} characters`,
@@ -163,6 +180,7 @@ const reportJa: ReportLabels = {
     tag: "タグ",
     ruby: "ルビ",
     length: "文字数制限",
+    untranslated: "未翻訳",
   },
   tableLine: (f, fmt, n, sl, tl) => `- **${f}** — ${fmt}、${n}行、${sl} → ${tl}`,
   glossaryLine: (t, c) => `- 用語集: 用語${t}件、キャラクター${c}名`,

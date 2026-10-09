@@ -1,29 +1,75 @@
-import { containsPhrase, countBy, KATAKANA_RUN, katakanaKey, looksJapanese, ref, textOf, visibleText } from "../text.js";
+import { containsPhrase, countBy, enPhraseRegex, isInterjection, KATAKANA_RUN, katakanaKey, looksJapanese, ref, textOf, visibleText } from "../text.js";
 import { messages } from "../i18n.js";
 import type { Finding, Glossary, Locale, ReviewPacket, Side, Table, UsageSummary } from "../types.js";
+
+/** Fold a plural last word to its singular so a term stored as "Egg Hunts" also matches "Egg hunt". */
+function singularOf(phrase: string): string {
+  return phrase.replace(/([A-Za-z]+)$/, (w) =>
+    /^[A-Z]{2,}s$/.test(w) ? w.slice(0, -1) // AIs, NPCs
+      : w.length > 4 && /ies$/i.test(w) ? `${w.slice(0, -3)}y`
+      : w.length > 4 && /(x|ch|sh|ss)es$/i.test(w) ? w.slice(0, -2)
+        : w.length > 3 && /[^s]s$/i.test(w) && !/(us|is)$/i.test(w) ? w.slice(0, -1) : w);
+}
+
+const isAllCaps = (s: string) => /[A-Z].*[A-Z]/.test(s) && !/[a-z]/.test(s);
+
+/**
+ * Does an English source contain the term? Case-insensitive, singular or plural, but an ALL-CAPS word (an
+ * identifier such as the animation name RESET) is not an occurrence of a mixed-case term (Reset).
+ */
+function enSourceHas(text: string, phrase: string): boolean {
+  for (const form of new Set([phrase, singularOf(phrase)])) {
+    const caps = isAllCaps(form);
+    const re = enPhraseRegex(form);
+    const all = new RegExp(re.source, `${re.flags}g`);
+    for (const m of text.matchAll(all)) if (caps || !isAllCaps(m[0])) return true;
+  }
+  return false;
+}
 
 /**
  * Glossary term drift: every line whose source contains a glossary term must render it with the
  * approved target (or an allowed variant). Forbidden variants are flagged wherever they appear.
+ *
+ * term.missing is not reported when a Japanese target keeps the English term as-is (App Store, GridMap), when a
+ * longer glossary term containing this one also matches the line (Loading Block Modifiers vs Modifiers), or when
+ * the approved rendering appears with ordinary grammar around it (選択を解除 for 選択解除). Unreviewed draft terms
+ * (`draft: true`) report it as info.
  */
 export function checkTerms(tables: Table[], g: Glossary, locale: Locale = "en"): { findings: Finding[]; usage: UsageSummary[] } {
   const msg = messages(locale);
   const findings: Finding[] = [];
   const usage: UsageSummary[] = [];
-  for (const term of g.terms) {
+  const srcHas = (text: string, phrase: string, lang: Table["sourceLang"]) =>
+    lang === "ja" ? containsPhrase(text, phrase, "ja") : enSourceHas(text, phrase);
+  // Which terms each row's source contains, for longest-match-wins.
+  const matched = new Map<Table, boolean[][]>();
+  for (const t of tables) {
+    matched.set(t, t.rows.map((row) => {
+      const src = visibleText(row.source);
+      return g.terms.map((term) => looksJapanese(term.source) === (t.sourceLang === "ja") && srcHas(src, term.source, t.sourceLang));
+    }));
+  }
+  g.terms.forEach((term, ti) => {
     const group = `${term.source} → ${term.target}`;
     const counts: Record<string, number> = {};
     const approved = [term.target, ...(term.allowed ?? [])];
+    // Longer terms that contain this one ("Block Modifiers" for "Modifiers").
+    const longer = g.terms
+      .map((o, oi) => ({ o, oi }))
+      .filter(({ o, oi }) => oi !== ti && o.source.length > term.source.length && looksJapanese(o.source) === looksJapanese(term.source) &&
+        containsPhrase(o.source, term.source, looksJapanese(term.source) ? "ja" : "en"))
+      .map(({ oi }) => oi);
     for (const t of tables) {
       // A JA→EN glossary says nothing about an EN→JA table (and vice versa); see glossaryDirection().
       if (looksJapanese(term.source) !== (t.sourceLang === "ja")) continue;
-      for (const row of t.rows) {
-        if (!row.target.trim()) continue;
-        const src = visibleText(row.source);
+      const rowHits = matched.get(t)!;
+      t.rows.forEach((row, ri) => {
+        if (!row.target.trim()) return;
         const tgt = visibleText(row.target);
         const forbiddenHit = (term.forbidden ?? []).find((f) => containsPhrase(tgt, f, t.targetLang));
-        if (containsPhrase(src, term.source, t.sourceLang)) {
-          const hit = approved.find((a) => containsPhrase(tgt, a, t.targetLang));
+        if (rowHits[ri]![ti]) {
+          const hit = approved.find((a) => containsPhrase(tgt, a, t.targetLang, false, true));
           if (hit) {
             counts[hit] = (counts[hit] ?? 0) + 1;
           } else if (forbiddenHit) {
@@ -34,16 +80,21 @@ export function checkTerms(tables: Table[], g: Glossary, locale: Locale = "en"):
               message: msg.termForbidden(term.source, forbiddenHit, term.target),
               found: forbiddenHit, expected: term.target,
             });
+          } else if (t.targetLang === "ja" && !looksJapanese(term.source) && [term.source, singularOf(term.source)].some((f) => containsPhrase(tgt, f, "en"))) {
+            // Kept in English in the translation (a product, class or key name), in any case (VSync / VSYNC).
+            counts[term.source] = (counts[term.source] ?? 0) + 1;
+          } else if (longer.some((oi) => rowHits[ri]![oi])) {
+            // The longer term owns this span and reports on it.
           } else {
             counts["(not found)"] = (counts["(not found)"] ?? 0) + 1;
             findings.push({
-              category: "term", severity: "warning", rule: "term.missing", group,
+              category: "term", severity: term.draft ? "info" : "warning", rule: "term.missing", group,
               file: row.file, line: row.line, id: row.id, side: "target",
               message: msg.termMissing(term.source, term.target),
               expected: term.target,
             });
           }
-        } else if (forbiddenHit && !approved.some((a) => containsPhrase(tgt, a, t.targetLang))) {
+        } else if (forbiddenHit && !approved.some((a) => containsPhrase(tgt, a, t.targetLang, false, true))) {
           findings.push({
             category: "term", severity: "warning", rule: "term.forbidden-stray", group,
             file: row.file, line: row.line, id: row.id, side: "target",
@@ -51,10 +102,10 @@ export function checkTerms(tables: Table[], g: Glossary, locale: Locale = "en"):
             found: forbiddenHit, expected: term.target,
           });
         }
-      }
+      });
     }
     if (Object.keys(counts).length) usage.push({ category: "term", group, counts });
-  }
+  });
   return { findings, usage };
 }
 
@@ -72,8 +123,10 @@ export function glossaryDirection(tables: Table[], g: Glossary, locale: Locale =
 }
 
 /**
- * Japanese katakana notation drift (表記揺れ): spellings that differ only by ・, ー, ヴ/バ or small kana,
- * e.g. マナ・ストーン / マナストーン, サーバー / サーバ. Runs on whichever side is Japanese.
+ * Japanese katakana notation drift (表記揺れ): spellings that differ only by ・, ー, ヴ/バ, small kana or イ/ウ vs ー,
+ * e.g. マナ・ストーン / マナストーン, サーバー / サーバ. Runs on whichever side is Japanese. Interjections (アアァ) are
+ * skipped. A compound (データフォルダー) is steered towards the house style of the words it
+ * contains (フォルダ ×25), so it never gets advice that contradicts the standalone word's group.
  */
 export function checkNotation(tables: Table[], locale: Locale = "en"): { findings: Finding[]; usage: UsageSummary[] } {
   type Hit = { surface: string; file: string; line: number; id: string; side: Side };
@@ -85,7 +138,7 @@ export function checkNotation(tables: Table[], locale: Locale = "en"): { finding
       const seen = new Set<string>();
       for (const m of visibleText(textOf(row, side)).matchAll(KATAKANA_RUN)) {
         const surface = m[0].replace(/^[・＝]+|[・＝]+$/g, "");
-        if (surface.length < 3 || seen.has(surface)) continue;
+        if (surface.length < 3 || seen.has(surface) || isInterjection(surface)) continue;
         seen.add(surface);
         hits.push({ surface, file: row.file, line: row.line, id: row.id, side });
       }
@@ -93,14 +146,26 @@ export function checkNotation(tables: Table[], locale: Locale = "en"): { finding
   }
   const findings: Finding[] = [];
   const usage: UsageSummary[] = [];
-  for (const [, group] of countBy(hits, (h) => katakanaKey(h.surface))) {
+  const groups = countBy(hits, (h) => katakanaKey(h.surface));
+  // Words whose spelling is settled: a single form, or a form used more often than any other.
+  const settled: { key: string; form: string; total: number }[] = [];
+  for (const [key, group] of groups) {
+    const ranked = [...countBy(group, (h) => h.surface).entries()].sort((a, b) => b[1].length - a[1].length);
+    if (ranked.length === 1 || ranked[0]![1].length > ranked[1]![1].length) settled.push({ key, form: ranked[0]![0], total: group.length });
+  }
+  for (const [key, group] of groups) {
     const forms = countBy(group, (h) => h.surface);
     if (forms.size < 2) continue;
     const ranked = [...forms.entries()].sort((a, b) => b[1].length - a[1].length);
-    const majority = ranked[0]![0];
+    // Settled words contained in this compound, used at least as often as the compound itself.
+    const bases = settled.filter((b) => b.key !== key && b.key.length >= 2 && key.includes(b.key) && b.total >= group.length);
+    const score = (form: string) => bases.filter((b) => containsWord(form, b.form)).length;
+    const best = bases.length ? Math.max(...ranked.map(([f]) => score(f))) : 0;
+    const majority = best > 0 ? ranked.find(([f]) => score(f) === best)![0] : ranked[0]![0];
     const label = ranked.map(([s]) => s).join(" / ");
     usage.push({ category: "notation", group: label, counts: Object.fromEntries(ranked.map(([s, h]) => [s, h.length])) });
-    for (const [surface, list] of ranked.slice(1)) {
+    for (const [surface, list] of ranked) {
+      if (surface === majority) continue;
       for (const h of list) {
         findings.push({
           category: "notation", severity: "warning", rule: "notation.katakana", group: label,
@@ -112,6 +177,14 @@ export function checkNotation(tables: Table[], locale: Locale = "en"): { finding
     }
   }
   return { findings, usage };
+}
+
+/** `word` occurs in `compound` as a whole spelling: not followed by ー or a small kana (フォルダ is not in フォルダー). */
+function containsWord(compound: string, word: string): boolean {
+  for (let i = compound.indexOf(word); i >= 0; i = compound.indexOf(word, i + 1)) {
+    if (!/^[ーァィゥェォャュョ・]/.test(compound.slice(i + word.length))) return true;
+  }
+  return false;
 }
 
 /**

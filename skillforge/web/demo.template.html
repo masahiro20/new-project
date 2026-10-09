@@ -305,11 +305,12 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
   const ESC = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ESC[c]);
 
-  const CAT_ORDER = ["term", "notation", "name", "honorific", "voice", "placeholder", "tag", "ruby", "length"];
+  const CAT_ORDER = ["term", "notation", "name", "honorific", "voice", "placeholder", "tag", "ruby", "length", "untranslated"];
   const CAT_TITLE = {
     term: ["用語の訳揺れ", "Glossary term drift"], notation: ["表記揺れ", "Katakana notation"], name: ["キャラ名の揺れ", "Character names"],
     honorific: ["敬称の揺れ", "Honorifics"], voice: ["口調の揺れ", "Voice"], placeholder: ["プレースホルダー", "Placeholders"],
     tag: ["タグ", "Tags"], ruby: ["ルビ", "Ruby"], length: ["文字数制限", "Length limits"],
+    untranslated: ["未翻訳", "Untranslated"],
   };
   const FILTERS = [
     { key: "all", ja: "すべて", en: "all", cats: CAT_ORDER },
@@ -318,7 +319,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
     { key: "name", ja: "キャラ名", en: "name", cats: ["name"] },
     { key: "honorific", ja: "敬称", en: "honorific", cats: ["honorific"] },
     { key: "voice", ja: "口調", en: "voice", cats: ["voice"] },
-    { key: "other", ja: "その他", en: "tags etc.", cats: ["placeholder", "tag", "ruby", "length"] },
+    { key: "other", ja: "その他", en: "tags etc.", cats: ["placeholder", "tag", "ruby", "length", "untranslated"] },
   ];
   const SEV = { error: ["エラー", "error"], warning: ["警告", "warning"], info: ["参考", "info"] };
   const SEV_ORDER = ["error", "warning", "info"];

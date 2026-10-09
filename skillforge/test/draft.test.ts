@@ -23,7 +23,7 @@ test("draft: JA→EN sample terms, with drift visible in renderings", () => {
   assert.equal(entry("書庫"), undefined, "substring with the same rows is dropped");
   assert.ok(d.notes.some((n) => n.includes("Magic Stone")));
   assert.deepEqual(d.glossary.terms.find((t) => t.source === "魔導石")?.forbidden, undefined);
-  const rows = d.entries.map((e) => e.rows);
+  const rows = d.entries.filter((e) => e.target).map((e) => e.rows);
   assert.deepEqual(rows, [...rows].sort((a, b) => b - a));
 });
 

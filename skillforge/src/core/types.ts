@@ -12,7 +12,8 @@ export type Category =
   | "placeholder"
   | "tag"
   | "ruby"
-  | "length";
+  | "length"
+  | "untranslated";
 
 /** One translatable string. `line` is the 1-based line in the original file where the record starts. */
 export interface Row {
@@ -25,6 +26,8 @@ export interface Row {
   addressee?: string;
   context?: string;
   maxLength?: number;
+  /** PO `#, fuzzy`: a draft translation gettext ignores at runtime. Reported as untranslated.fuzzy. */
+  fuzzy?: boolean;
 }
 
 /** Concrete format a table was parsed as. */
@@ -52,6 +55,8 @@ export interface GlossaryTerm {
   /** Known-wrong renderings that should be flagged wherever they appear. */
   forbidden?: string[];
   note?: string;
+  /** Proposed by `kotomark draft` and not yet reviewed: its term.missing findings are reported as info. */
+  draft?: boolean;
 }
 
 export interface VoiceProfile {

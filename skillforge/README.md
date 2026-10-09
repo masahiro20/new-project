@@ -12,7 +12,7 @@ It checks **the whole script at once** and reports what drifts between lines, wi
 | **Character-name drift** キャラ名の揺れ | "Lizette" (forbidden), "Lisete" (near-miss), speaker label `MINA` vs `ミナ` | partly |
 | **Honorific drift** 敬称の揺れ | ミナ's リゼット様 → "Lady Lisette" ×2, "Lisette" ×1, "Lisette-sama" ×1 (policy: localize) | partly |
 | **Voice drift** 口調の揺れ | Tobias (俺) says 僕; Lisette (polite, no contractions) says "We're gonna be fine" | profiles help |
-| Bonus rules | placeholders `{0}` `%s` `[PLAYER]`, tags, ruby (`{漢字|かんじ}`, `｜漢字《かんじ》`, `<ruby>`), length limits | no |
+| Bonus rules | placeholders `{0}` `%s` `$var` `[PLAYER]`, tags, ruby (`{漢字|かんじ}`, `｜漢字《かんじ》`, `<ruby>`), length limits, untranslated rows (empty, PO fuzzy, English copied into a JA target) | no |
 
 Lines the rules can't judge — "does this still sound like her?", recurring terms missing from the glossary — come back as **review packets**. The user's own assistant (Claude Code etc.) judges them. Our server does not need to call a model.
 
@@ -44,6 +44,8 @@ docs/data-policy.md  data handling policy draft
 docs/pilot-guide.md  pilot instructions for testers + false-positive measurement procedure
 docs/ci.md        running `kotomark check` in GitHub Actions / GitLab CI (formats, exit codes)
 scripts/build-cli.mjs  bundles the CLI into dist/kotomark.mjs (the package bin)
+action/           GitHub Action (composite; runs the committed bundle action/dist/kotomark.mjs; `npm run build:action`)
+.github-example/  sample workflow using the action (copy into your repo's .github/workflows/)
 ```
 
 ## Run it
@@ -96,6 +98,8 @@ kotomark check <file|dir>... [options]
 - **Formats:** `json` = the full result plus `summary {errors, warnings, infos, byCategory}`; `junit` = one
   `<testsuite>` per category, one `<testcase>` per finding (`file:line rule`); `github` = `::error file=…,line=…::`
   annotations. CI setup for GitHub Actions and GitLab: [`docs/ci.md`](docs/ci.md).
+- **GitHub Action:** `uses: masahiro20/new-project/skillforge/action@<ref>` with `paths`/`glossary`/`fail-on` —
+  annotations, job summary, JUnit/JSON files and count outputs, no npm install. See [`action/README.md`](action/README.md).
 - **Changed:** `--format` used to pick the *input* format. It now picks the report format; `--format csv|tsv|xliff|xlsx|po`
   still works as an input format (with a note), but `--format json` now means JSON output — use `--input-format json`.
 

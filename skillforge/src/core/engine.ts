@@ -5,7 +5,7 @@ import { checkNotation, checkTerms, glossaryDirection, unglossariedTermPackets }
 import { EMPTY_GLOSSARY } from "./glossary.js";
 import type { Category, CheckOptions, CheckResult, Finding, Glossary, Severity, Table } from "./types.js";
 
-export const CATEGORY_ORDER: Category[] = ["term", "notation", "name", "honorific", "voice", "placeholder", "tag", "ruby", "length"];
+export const CATEGORY_ORDER: Category[] = ["term", "notation", "name", "honorific", "voice", "placeholder", "tag", "ruby", "length", "untranslated"];
 const SEVERITY_ORDER: Severity[] = ["error", "warning", "info"];
 
 export function runChecks(tables: Table[], glossary: Glossary = EMPTY_GLOSSARY, opts: CheckOptions = {}): CheckResult {

@@ -1,12 +1,13 @@
 import { findCharacter } from "./names.js";
-import { countBy, escapeRegExp, ref, visibleText } from "../text.js";
+import { countBy, escapeRegExp, normalizeApostrophes, ref, visibleText } from "../text.js";
 import { messages } from "../i18n.js";
 import type { Finding, Glossary, Locale, ReviewPacket, Row, Side, Table, UsageSummary, VoiceProfile } from "../types.js";
 
 // ---------- honorifics ----------
 
-// Longer forms first so 殿下 (a title, not a suffix to romanize) wins over 殿.
-const JA_HONORIFICS = ["殿下", "陛下", "様", "さま", "さん", "くん", "君", "ちゃん", "先輩", "せんぱい", "殿", "先生", "氏", "たん"];
+// Longer forms first so 殿下 (a title, not a suffix to romanize) wins over 殿. Title nouns (王子, 師匠…) count too:
+// an EN→JA translation that keeps Latin names writes "Konrad 王子".
+const JA_HONORIFICS = ["殿下", "陛下", "閣下", "王子", "王女", "師匠", "様", "さま", "さん", "くん", "君", "ちゃん", "先輩", "せんぱい", "殿", "先生", "氏", "たん", "姫", "卿"];
 const SUFFIX_FOR: Record<string, string> = {
   様: "-sama", さま: "-sama", さん: "-san", くん: "-kun", 君: "-kun", ちゃん: "-chan",
   先輩: "-senpai", せんぱい: "-senpai", 殿: "-dono", 先生: "-sensei", たん: "-tan",
@@ -20,7 +21,7 @@ const speakerKey = (g: Glossary, r: Row) => findCharacter(g, r.speaker)?.id ?? r
 
 /** How a character's name is dressed in English, e.g. "Lady {name}", "{name}-sama", "{name}". */
 function enRendering(en: string, names: string[]): string | undefined {
-  for (const n of names) {
+  for (const n of names.map(normalizeApostrophes)) {
     const m = new RegExp(`(?:\\b(${EN_TITLES})\\s+)?\\b${escapeRegExp(n)}(${EN_SUFFIX})?(?![A-Za-z])`).exec(en);
     if (m) {
       const title = m[1] ? m[1][0]!.toUpperCase() + m[1].slice(1) : "";
@@ -34,13 +35,14 @@ export function checkHonorifics(tables: Table[], g: Glossary, locale: Locale = "
   const msg = messages(locale);
   const findings: Finding[] = [];
   const usage: UsageSummary[] = [];
-  type Hit = { row: Row; enSide: Side; jaSide: Side; speaker: string; char: string; jaHon: string; rendering?: string };
+  type Hit = { row: Row; enSide: Side; jaSide: Side; speaker: string; char: string; jaHon: string; rendering?: string; enToJa: boolean };
   const hits: Hit[] = [];
   const policy = g.honorificPolicy;
 
   const nameRes = g.characters.map((c) => {
-    const jaNames = [c.ja, ...(c.aliases?.ja ?? [])].sort((a, b) => b.length - a.length);
-    return { c, re: new RegExp(`(${jaNames.map(escapeRegExp).join("|")})(${JA_HONORIFICS.map(escapeRegExp).join("|")})?`) };
+    const jaNames = [c.ja, ...(c.aliases?.ja ?? [])].map(normalizeApostrophes).sort((a, b) => b.length - a.length);
+    // The honorific may follow a space ("Kalenz 様") when the name is kept in Latin script.
+    return { c, re: new RegExp(`(${jaNames.map(escapeRegExp).join("|")})(?:[ 　]?(${JA_HONORIFICS.map(escapeRegExp).join("|")}))?`) };
   });
   for (const t of tables) {
     if (t.sourceLang === t.targetLang) continue;
@@ -55,7 +57,7 @@ export function checkHonorifics(tables: Table[], g: Glossary, locale: Locale = "
         if (!m) continue;
         const jaHon = m[2] ?? "(呼び捨て)";
         const rendering = enRendering(en, [c.en, ...(c.aliases?.en ?? [])]);
-        hits.push({ row, enSide, jaSide, speaker: speakerKey(g, row), char: c.en, jaHon, rendering });
+        hits.push({ row, enSide, jaSide, speaker: speakerKey(g, row), char: c.en, jaHon, rendering, enToJa: t.sourceLang === "en" });
 
         if (rendering && (policy === "drop" || policy === "localize") && /-\w+$/.test(rendering)) {
           findings.push({
@@ -77,8 +79,31 @@ export function checkHonorifics(tables: Table[], g: Glossary, locale: Locale = "
     }
   }
 
+  // EN→JA: the English is the given text, so variation there is not an error. The same English form, said by the
+  // same speaker, should get the same Japanese honorific.
+  for (const [, group] of countBy(hits.filter((h) => h.enToJa && h.rendering), (h) => `${h.speaker}\u0000${h.char}\u0000${h.rendering}`)) {
+    const first = group[0]!;
+    const enForm = first.rendering!.replace("{name}", first.char);
+    const label = `${first.row.speaker ?? "?"} → ${enForm}`;
+    const forms = countBy(group, (h) => h.jaHon);
+    const ranked = [...forms.entries()].sort((a, b) => b[1].length - a[1].length);
+    usage.push({ category: "honorific", group: label, counts: Object.fromEntries(ranked.map(([k, v]) => [k, v.length])) });
+    if (forms.size < 2 || ranked[0]![1].length < 2 || ranked[0]![1].length === ranked[1]![1].length) continue;
+    const majority = ranked[0]![0];
+    for (const [hon, list] of ranked.slice(1)) {
+      for (const h of list) {
+        findings.push({
+          category: "honorific", severity: "warning", rule: "honorific.drift", group: label,
+          file: h.row.file, line: h.row.line, id: h.row.id, side: h.jaSide,
+          message: msg.honorificTargetDrift(hon, enForm, majority, ranked[0]![1].length),
+          found: hon, expected: majority,
+        });
+      }
+    }
+  }
+
   // Same speaker, same addressee, same Japanese honorific → the English should be dressed the same way.
-  for (const [, group] of countBy(hits.filter((h) => h.rendering), (h) => `${h.speaker}\u0000${h.char}\u0000${h.jaHon}`)) {
+  for (const [, group] of countBy(hits.filter((h) => !h.enToJa && h.rendering), (h) => `${h.speaker}\u0000${h.char}\u0000${h.jaHon}`)) {
     const first = group[0]!;
     const label = `${first.row.speaker ?? "?"} → ${first.char} (${first.jaHon})`;
     const forms = countBy(group, (h) => h.rendering!);
@@ -98,8 +123,8 @@ export function checkHonorifics(tables: Table[], g: Glossary, locale: Locale = "
     }
   }
 
-  // Japanese side: a speaker switching how they address someone (様 → さん). Often intentional, so info only.
-  for (const [, group] of countBy(hits, (h) => `${h.speaker}\u0000${h.char}`)) {
+  // Japanese source: a speaker switching how they address someone (様 → さん). Often intentional, so info only.
+  for (const [, group] of countBy(hits.filter((h) => !h.enToJa), (h) => `${h.speaker}\u0000${h.char}`)) {
     const forms = countBy(group, (h) => h.jaHon);
     if (forms.size < 2) continue;
     const ranked = [...forms.entries()].sort((a, b) => b[1].length - a[1].length);

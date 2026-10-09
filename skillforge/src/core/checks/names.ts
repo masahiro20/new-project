@@ -1,9 +1,10 @@
-import { containsPhrase, countBy, damerauLevenshtein, katakanaKey, visibleText } from "../text.js";
+import { containsPhrase, countBy, damerauLevenshtein, katakanaKey, normalizeApostrophes, visibleText } from "../text.js";
 import { messages } from "../i18n.js";
 import type { Finding, Glossary, GlossaryCharacter, Locale, Table, UsageSummary } from "../types.js";
 
-const enNames = (c: GlossaryCharacter) => [c.en, ...(c.aliases?.en ?? [])];
-const jaNames = (c: GlossaryCharacter) => [c.ja, ...(c.aliases?.ja ?? [])];
+// Names are compared with apostrophes folded (Li’sar = Li'sar), the same way visibleText folds the script text.
+const enNames = (c: GlossaryCharacter) => [c.en, ...(c.aliases?.en ?? [])].map(normalizeApostrophes);
+const jaNames = (c: GlossaryCharacter) => [c.ja, ...(c.aliases?.ja ?? [])].map(normalizeApostrophes);
 
 /** Words a near-miss scan should never flag: approved names, glossary targets, explicit ignore list. */
 function knownWords(g: Glossary): Set<string> {
@@ -79,17 +80,26 @@ export function checkNames(tables: Table[], g: Glossary, locale: Locale = "en"):
     const enSide = t.targetLang === "en" ? "target" : t.sourceLang === "en" ? "source" : undefined;
     if (enSide) for (const row of t.rows) for (const m of visibleText(row[enSide]).matchAll(/\b[a-z]+\b/g)) lowercaseWords.add(m[0]);
   }
+  // A Japanese translation that keeps names in Latin script (Konrad 王子) can misspell them too; scan its Latin tokens
+  // for the characters it is seen to keep verbatim, skipping tokens copied from the row's own English.
+  const keptInJa = (t: Table, jaSide: "source" | "target") =>
+    g.characters.filter((c) => t.rows.some((r) => enNames(c).some((n) => containsPhrase(visibleText(r[jaSide]), n, "en", true))));
   for (const t of tables) {
     const enSide = t.targetLang === "en" ? "target" : t.sourceLang === "en" ? "source" : undefined;
-    if (!enSide) continue;
-    for (const row of t.rows) {
+    const jaSide = t.targetLang === "ja" ? "target" : t.sourceLang === "ja" ? "source" : undefined;
+    const scans: { side: "source" | "target"; chars: GlossaryCharacter[] }[] = [];
+    if (enSide) scans.push({ side: enSide, chars: g.characters });
+    if (jaSide && enSide && g.characters.length) scans.push({ side: jaSide, chars: keptInJa(t, jaSide) });
+    for (const { side, chars } of scans) for (const row of t.rows) {
       const seen = new Set<string>();
-      for (const m of visibleText(row[enSide]).matchAll(/\b[A-Z][a-z]+(?:-[a-z]+)?\b/g)) {
+      const en = side === jaSide && enSide ? visibleText(row[enSide]) : undefined;
+      for (const m of visibleText(row[side]).matchAll(/(?<![A-Za-z])[A-Z][a-z]+(?:-[a-z]+)?(?![A-Za-z])/g)) {
         const token = m[0].replace(HONORIFIC_SUFFIX, "");
         const lower = token.toLowerCase();
         if (seen.has(lower) || known.has(lower) || forbiddenAll.has(lower) || lowercaseWords.has(lower)) continue;
+        if (en && containsPhrase(en, token, "en", true)) continue;
         seen.add(lower);
-        for (const c of g.characters) {
+        for (const c of chars) {
           const close = enNames(c).find((n) => {
             if (n.length < 4 || /\s/.test(n)) return false;
             const d = damerauLevenshtein(lower, n.toLowerCase());
@@ -98,7 +108,7 @@ export function checkNames(tables: Table[], g: Glossary, locale: Locale = "en"):
           if (close) {
             findings.push({
               category: "name", severity: "warning", rule: "name.near-miss", group: `${c.ja} → ${c.en}`,
-              file: row.file, line: row.line, id: row.id, side: enSide,
+              file: row.file, line: row.line, id: row.id, side,
               message: msg.nameNearMiss(token, close),
               found: token, expected: close,
             });

@@ -31,7 +31,7 @@ check options:
   --junit-fail-on error|warning|info|never  severities that become <failure> in JUnit
                                (default: same as --fail-on, or warning when --fail-on never)
   --locale en|ja               language of messages and labels (default en)
-  --no-rules                   skip placeholder/tag/ruby/length rules
+  --no-rules                   skip placeholder/tag/ruby/length/untranslated rules
   --no-info                    same as --min-severity warning
   --wide                       count East Asian wide characters as 2 for length limits
   -o, --out <file>             write the report to a file instead of stdout

@@ -28,19 +28,29 @@ function unquote(lit: string, file: string, line: number): string {
   });
 }
 
-/** Speaker from an extracted comment: "Speaker: X", "話者: X", Unreal InfoMetaData `"Speaker" : "X"`. */
+/** Values of Wesnoth's `speaker=` that name a role, not a character. */
+const GENERIC_SPEAKERS = new Set(["unit", "second_unit", "narrator"]);
+
+/**
+ * Speaker from an extracted comment: "Speaker: X", "話者: X", Unreal InfoMetaData `"Speaker" : "X"`,
+ * Wesnoth `[message]: speaker=X` (generic roles and `$variables` are ignored).
+ */
 function speakerFrom(comments: string[]): string | undefined {
   for (const c of comments) {
     const m = /(?:^|\s|")(?:speaker|character|話者)"?\s*[:：]\s*"?([^"\n]+?)"?\s*$/i.exec(c);
     if (m) return m[1]!.trim();
+    const w = /(?:^|[\s:])speaker=([^\n]+?)\s*$/.exec(c);
+    if (w && !w[1]!.startsWith("$") && !GENERIC_SPEAKERS.has(w[1]!)) return w[1]!;
   }
   return undefined;
 }
 
 /**
  * msgctxt → id (fallback msgid), msgid → source, msgstr / msgstr[0] → target. Extracted (`#.`), translator (`# `)
- * comments, references (`#:`), the fuzzy flag and other plural forms go into `context`. The header entry and
- * obsolete (`#~`) entries are skipped. `line` is the line of msgctxt (or msgid when there is no context).
+ * comments, references (`#:`), the fuzzy flag and other plural forms go into `context`; `#, fuzzy` also sets
+ * `row.fuzzy`. The header entry and obsolete (`#~`) entries are skipped. When the target language has a single
+ * plural form (`nplurals=1`, e.g. Japanese) or only `msgstr[0]` exists, that row's source is `msgid_plural`
+ * ("{num} colors"), the form whose placeholders the translation carries. `line` is the line of msgctxt (or msgid when there is no context).
  */
 export function parsePo(text: string, file: string, opts: { langs?: { source?: Lang; target?: Lang } } = {}): Table {
   const lines = text.split(/\r\n|\r|\n/);
@@ -114,22 +124,27 @@ export function parsePo(text: string, file: string, opts: { langs?: { source?: L
 
   if (!entries.length) throw new Error(`${file}: no PO entries found (only a header, or not a gettext file)`);
 
+  const nplurals = Number(/^Plural-Forms:[^\n]*?nplurals\s*=\s*(\d+)/m.exec(header ?? "")?.[1] ?? NaN);
   const rows: Row[] = [];
   for (const e of entries) {
     const id = e.ctxt !== undefined && e.ctxt !== "" ? e.ctxt : e.id!;
     const ctx: string[] = [...e.extracted, ...e.translator];
     if (e.refs.length) ctx.push(`ref: ${e.refs.join(" ")}`);
-    if (e.flags.includes("fuzzy")) ctx.push("fuzzy");
-    if (e.plural !== undefined) ctx.push(`plural: ${e.plural}`);
+    const fuzzy = e.flags.includes("fuzzy");
+    if (fuzzy) ctx.push("fuzzy");
+    // One plural form: msgstr[0] translates every count, so compare it with the plural source.
+    const singleForm = e.plural !== undefined && (nplurals === 1 || e.str.length <= 1);
+    if (e.plural !== undefined) ctx.push(singleForm ? `singular: ${e.id}` : `plural: ${e.plural}`);
     const base: Row = {
       file,
       line: e.line,
       id,
-      source: e.id!,
+      source: singleForm ? e.plural! : e.id!,
       target: e.str[0] ?? "",
       speaker: speakerFrom(e.extracted),
       context: ctx.join(" | ") || undefined,
     };
+    if (fuzzy) base.fuzzy = true;
     rows.push(base);
     // Further plural forms are checked as their own rows (msgid_plural ↔ msgstr[n]).
     if (e.plural !== undefined) {

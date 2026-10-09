@@ -22,8 +22,22 @@ export function ref(row: Row): string {
   return `${row.file}:${row.line}`;
 }
 
-/** Placeholder syntaxes: {0} {name}, printf (%s %5d %.2f %1$s), ${var}, [PLAYER], Ren'Py [player_name]. */
-export const PLACEHOLDER = /\{[A-Za-z0-9_.$:]*\}|%(?:\d+\$)?[-+ 0#]*\d*(?:\.\d+)?[sdifxXu@]|\$\{[^}]+\}|\[[A-Z][A-Z0-9_]+\]|\[[a-z_][a-z0-9_.]*\]/g;
+/** Typographic apostrophes and look-alikes (’ ‘ ʼ ′) → ASCII '. Shared by every check that compares English text or names. */
+export function normalizeApostrophes(s: string): string {
+  return s.replace(/[\u2018\u2019\u02bc\u2032]/g, "'");
+}
+
+/**
+ * Placeholder syntaxes: {0} {name}, printf (%s %5d %.2f %1$s), ${var}, Wesnoth $var / $var|, [PLAYER],
+ * Ren'Py [player_name]. A lowercase bracket token only counts when it looks like a variable (has `_`, `.` or a
+ * digit), so display labels such as [none] / [empty] are not placeholders; see BRACKET_WORD for bare [word]s.
+ * The printf branch has no space flag: "40% defense" is text, not `% d`.
+ */
+export const PLACEHOLDER =
+  /\{[A-Za-z0-9_.$:]*\}|%(?:\d+\$)?[-+0#]*\d*(?:\.\d+)?[sdifxXu@]|\$\{[^}]+\}|\$[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*\|?|\[[A-Z][A-Z0-9_]+\]|\[(?=[a-z0-9_.]*[_.0-9])[a-z_][a-z0-9_.]*\]/g;
+
+/** A bare lowercase bracket word ([name], [none]): a Ren'Py variable or a display label. rules.ts decides which. */
+export const BRACKET_WORD = /\[[a-z][a-z]*\]/g;
 
 const visibleCache = new Map<string, string>();
 
@@ -38,7 +52,7 @@ export function visibleText(s: string): string {
 }
 
 function stripMarkup(s: string): string {
-  return s
+  return normalizeApostrophes(s)
     .replace(/<rt>.*?<\/rt>/g, "")
     .replace(/<\/?[A-Za-z][^<>]*>/g, "")
     .replace(/\{([^{}|]+)\|[^{}]+\}/g, "$1")
@@ -48,7 +62,9 @@ function stripMarkup(s: string): string {
 
 /**
  * Key used to group katakana spellings that differ only in notation:
- * middle dots, long-vowel marks, ヴ-row vs バ-row, small vs. large vowels after a consonant.
+ * middle dots, long-vowel marks, ヴ-row vs バ-row, small vs. large vowels after a consonant,
+ * イ vs ー after an e-row kana (プレイヤー / プレーヤー, フェイズ / フェーズ) and a word-final ウ vs ー after an
+ * o-row kana (ウィンドウ / ウィンドー). The ウ fold is final-only so ボウル (bowl) and ボール (ball) stay apart.
  */
 export function katakanaKey(s: string): string {
   return s
@@ -58,7 +74,20 @@ export function katakanaKey(s: string): string {
     .replace(/ヴェ/g, "ベ")
     .replace(/ヴォ/g, "ボ")
     .replace(/ヴ/g, "ブ")
+    // Folds run before small kana are enlarged, so ティ / ドゥ (アンドゥ ≠ アンド) are never folded.
+    .replace(/([エケセテネヘメレゲゼデベペェ])イ/g, "$1")
+    .replace(/([オコソトノホモヨロゴゾドボポョォ])ウ$/, "$1")
     .replace(/[ァィゥェォ]/g, (c) => String.fromCharCode(c.charCodeAt(0) + 1));
+}
+
+/**
+ * Interjections and sound effects (アアァ, ハハハ, グオオオォ, ドーーン, ギャッ): their spelling varies on purpose,
+ * so notation drift skips them. A run counts when it has the same kana three times in a row (small kana folded),
+ * a doubled long-vowel mark, or ends in ッ.
+ */
+export function isInterjection(s: string): boolean {
+  const big = s.replace(/[ァィゥェォ]/g, (c) => String.fromCharCode(c.charCodeAt(0) + 1));
+  return /([ァ-ヶ])\1\1/.test(big) || /ーー/.test(s) || /ッ$/.test(s);
 }
 
 export const KATAKANA_RUN = /[ァ-ヴー・＝]{3,}/g;
@@ -99,22 +128,81 @@ export function enPhraseRegex(phrase: string, caseSensitive = false): RegExp {
   const key = `${caseSensitive ? 1 : 0}\u0000${phrase}`;
   let re = phraseCache.get(key);
   if (!re) {
-    const words = phrase.trim().split(/\s+/).map(escapeRegExp);
+    // Apostrophes match in any typographic form (Li'sar = Li’sar).
+    const words = normalizeApostrophes(phrase).trim().split(/\s+/).map((w) => escapeRegExp(w).replace(/'/g, "['\u2018\u2019\u02bc]"));
     const last = words.pop()!;
     const tail = /y$/i.test(last) && !/[aeiou]y$/i.test(last)
       ? `${last.slice(0, -1)}(?:y|ies)`
       : /fe?$/i.test(last)
         ? `${last.replace(/fe?$/i, "")}(?:fe?s?|ves)`
         : `${last}(?:e?s)?`;
-    re = new RegExp(`(?<![A-Za-z])${[...words, tail].join("[\\s\\u00a0]+")}(?:['’]s)?(?![A-Za-z])`, caseSensitive ? "" : "i");
+    re = new RegExp(`(?<![A-Za-z])${[...words, tail].join("[\\s\\u00a0]+")}(?:['\u2018\u2019\u02bc]s)?(?![A-Za-z])`, caseSensitive ? "" : "i");
     phraseCache.set(key, re);
   }
   return re;
 }
 
-export function containsPhrase(text: string, phrase: string, lang: Lang, caseSensitive = false): boolean {
+/**
+ * Does `text` contain `phrase`? English: whole words via enPhraseRegex. Japanese: a substring, or with `loose`,
+ * the same words with grammar around them (see jaLooseRegex). Apostrophes are compared in ASCII form.
+ */
+export function containsPhrase(text: string, phrase: string, lang: Lang, caseSensitive = false, loose = false): boolean {
   if (!phrase) return false;
-  return lang === "ja" ? text.includes(phrase) : enPhraseRegex(phrase, caseSensitive).test(text);
+  if (lang !== "ja") return enPhraseRegex(phrase, caseSensitive).test(text);
+  const t = normalizeApostrophes(text);
+  const p = normalizeApostrophes(phrase);
+  return t.includes(p) || (loose && jaLooseRegex(p).test(t));
+}
+
+const JA_INFLECTION = /(?:中|する|します|しています|している|しました|した|して|される|されます|された)$/;
+const jaClass = (c: string) => (/[一-鿿々〆]/.test(c) ? "K" : /[ァ-ヴー]/.test(c) ? "A" : /[ぁ-ゖ]/.test(c) ? "H" : "O");
+
+/**
+ * Loose Japanese matcher for glossary renderings, deliberately conservative:
+ * - a trailing 中 / する-form is optional (準備中 matches 準備しています and の準備);
+ * - one particle may sit between two words of a compound (選択解除 ⇔ 選択を解除, ジョイスティックボタン ⇔
+ *   ジョイスティックのボタン); a word is a kanji run of ≥ 2, a katakana run of ≥ 2, or a script change;
+ * - okurigana may be present or absent (取消 ⇔ 取り消し), and a particle written in the term may be dropped
+ *   (名前を変更 ⇔ 名前変更).
+ */
+export function jaLooseRegex(phrase: string): RegExp {
+  const key = `ja\u0000${phrase}`;
+  let re = phraseCache.get(key);
+  if (re) return re;
+  let p = phrase;
+  const stem = p.replace(JA_INFLECTION, "");
+  if (stem !== p && stem.length >= 2 && /[一-鿿々〆ァ-ヴー]$/.test(stem)) p = stem;
+  const ch = [...p];
+  const cls = ch.map(jaClass);
+  // Length of the same-class run ending at i (left) and starting at i (right).
+  const left = cls.map(() => 0);
+  const right = cls.map(() => 0);
+  cls.forEach((c, i) => (left[i] = i > 0 && cls[i - 1] === c ? left[i - 1]! + 1 : 1));
+  for (let i = cls.length - 1; i >= 0; i--) right[i] = i < cls.length - 1 && cls[i + 1] === cls[i] ? right[i + 1]! + 1 : 1;
+  const OKURI = "[りきしちみびいえけげせてねべめれっ]";
+  let out = "";
+  for (let i = 0; i < ch.length; i++) {
+    const c = cls[i]!;
+    const prev = cls[i - 1];
+    const next = cls[i + 1];
+    let piece = escapeRegExp(ch[i]!);
+    // A single hiragana between kanji (okurigana り in 取り消し, particle を in 名前を変更) may be absent,
+    // as may trailing okurigana after a kanji (取り消し → 取り消).
+    if (c === "H" && prev === "K" && (next === "K" || (next === undefined && ch.length >= 3))) piece += "?";
+    out += piece;
+    if (next === undefined) break;
+    if (c === "K" && next === "K") {
+      if (left[i]! >= 2 && right[i + 1]! >= 2) out += "[のをがにでとへ]?";
+      else out += `${OKURI}?`;
+    } else if ((c === "K" && next === "A") || (c === "A" && next === "K")) {
+      out += "[のをがにで]?";
+    } else if (c === "A" && next === "A" && left[i]! >= 2 && right[i + 1]! >= 2) {
+      out += "の?";
+    }
+  }
+  re = new RegExp(out);
+  phraseCache.set(key, re);
+  return re;
 }
 
 export function countBy<T>(items: T[], key: (t: T) => string): Map<string, T[]> {
