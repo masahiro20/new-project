@@ -18,8 +18,8 @@ const bundle = built.outputFiles[0]!.text;
 
 const sandbox: Record<string, unknown> = {};
 vm.createContext(sandbox);
-vm.runInContext(bundle, sandbox, { filename: "yuragi-engine.js" });
-const browser = sandbox.Yuragi as Engine;
+vm.runInContext(bundle, sandbox, { filename: "kotomark-engine.js" });
+const browser = sandbox.Kotomark as Engine;
 
 interface Input {
   name: string;
@@ -54,7 +54,7 @@ const sets: { label: string; scripts: Input[]; glossary: Input }[] = [
   },
 ];
 
-test("bundle exposes the engine API as the Yuragi global", () => {
+test("bundle exposes the engine API as the Kotomark global", () => {
   for (const fn of ["parseTable", "detectFormat", "parseGlossary", "runChecks", "renderMarkdown"] as const) {
     assert.equal(typeof browser[fn], "function", fn);
   }

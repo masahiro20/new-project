@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Builds the single-file browser demo: bundles the engine (web/engine-entry.ts) as an IIFE global
-// `Yuragi`, then inlines it plus the sample files into web/demo.template.html.
+// `Kotomark`, then inlines it plus the sample files into web/demo.template.html.
 //
 // Usage: node web/build-demo.mjs [--template <path>] [--out <path>]
 import { build } from "esbuild";
@@ -11,8 +11,8 @@ import { fileURLToPath } from "node:url";
 const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, "..");
 
-const ENGINE_MARKER = "<!--YURAGI_ENGINE-->";
-const SAMPLES_MARKER = "/*YURAGI_SAMPLES*/null";
+const ENGINE_MARKER = "<!--KOTOMARK_ENGINE-->";
+const SAMPLES_MARKER = "/*KOTOMARK_SAMPLES*/null";
 
 function arg(name, fallback) {
   const i = process.argv.indexOf(name);
@@ -23,15 +23,15 @@ function arg(name, fallback) {
 }
 
 const templatePath = arg("--template", resolve(here, "demo.template.html"));
-const outPath = arg("--out", resolve(here, "dist/yuragi-demo.html"));
-const bundlePath = resolve(here, "dist/yuragi-engine.js");
+const outPath = arg("--out", resolve(here, "dist/kotomark-demo.html"));
+const bundlePath = resolve(here, "dist/kotomark-engine.js");
 
 /** Esbuild options shared with test/browser-engine.test.ts. */
 export const ENGINE_BUILD_OPTIONS = {
   entryPoints: [resolve(here, "engine-entry.ts")],
   bundle: true,
   format: "iife",
-  globalName: "Yuragi",
+  globalName: "Kotomark",
   platform: "browser",
   target: "es2020",
   minify: true,

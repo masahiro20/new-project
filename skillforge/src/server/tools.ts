@@ -92,10 +92,10 @@ const ro = { readOnlyHint: true, openWorldHint: false };
 /** Build an MCP server for one request. Scripts are processed in memory only and never stored or logged. */
 export function buildServer(ctx: ServerContext = devContext()): McpServer {
   const server = new McpServer(
-    { name: "yuragi", version: "0.2.0" },
+    { name: "kotomark", version: "0.2.0" },
     {
       instructions:
-        "Yuragi checks a whole JA↔EN game script for consistency: glossary term drift, katakana notation drift, " +
+        "Kotomark checks a whole JA↔EN game script for consistency: glossary term drift, katakana notation drift, " +
         "character-name drift, honorific drift and character-voice drift, with file:line references. " +
         "Call check_script with the string tables and a glossary (inline, or glossaryName for one saved with save_glossary). " +
         "Then call get_review_packets and judge each packet yourself; merge your verdicts with the rule findings into one report. " +

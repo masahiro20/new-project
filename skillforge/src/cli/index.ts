@@ -8,12 +8,12 @@ import { findingsToLabelCsv, renderScore, scoreLabels } from "../core/pilot.js";
 import { PLANS, tokenStoreFromEnv, type Plan } from "../server/auth.js";
 
 const USAGE = `Usage:
-  yuragi check <table>... [--glossary g.json] [--format csv|tsv|json|xliff] [--json] [--no-rules] [--no-info] [--wide] [--locale en|ja] [--out file]
-  yuragi draft <table>... [--glossary existing.json] [--max-terms N] [--out draft.json]
-  yuragi labels <table>... [--glossary g.json] --out labels.csv      export findings as a labeling sheet
-  yuragi score <labels.csv> [--known known.csv] [--out score.md]      precision (and recall) from a labeled sheet
-  yuragi token create <user> [--plan solo|studio] [--label text]       prints the token once
-  yuragi token list | yuragi token revoke <user|token-prefix>
+  kotomark check <table>... [--glossary g.json] [--format csv|tsv|json|xliff] [--json] [--no-rules] [--no-info] [--wide] [--locale en|ja] [--out file]
+  kotomark draft <table>... [--glossary existing.json] [--max-terms N] [--out draft.json]
+  kotomark labels <table>... [--glossary g.json] --out labels.csv      export findings as a labeling sheet
+  kotomark score <labels.csv> [--known known.csv] [--out score.md]      precision (and recall) from a labeled sheet
+  kotomark token create <user> [--plan solo|studio] [--label text]       prints the token once
+  kotomark token list | kotomark token revoke <user|token-prefix>
 
 check exit code: 0 = no errors, 1 = errors found, 2 = bad input.`;
 

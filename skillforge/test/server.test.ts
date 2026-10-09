@@ -10,9 +10,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { TokenStore } from "../src/server/auth.js";
 
-const dataDir = mkdtempSync(join(tmpdir(), "yuragi-srv-"));
-process.env.YURAGI_DATA_DIR = dataDir;
-process.env.YURAGI_API_TOKENS = "test-token";
+const dataDir = mkdtempSync(join(tmpdir(), "kotomark-srv-"));
+process.env.KOTOMARK_DATA_DIR = dataDir;
+process.env.KOTOMARK_API_TOKENS = "test-token";
 const tokenStore = new TokenStore(join(dataDir, "tokens.json"));
 const alice = tokenStore.create("alice", "studio").token;
 const bob = tokenStore.create("bob", "solo").token;

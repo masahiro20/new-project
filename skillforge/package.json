@@ -1,5 +1,5 @@
 {
-  "name": "yuragi",
+  "name": "kotomark",
   "version": "0.1.0",
   "private": true,
   "description": "Whole-script consistency QA for JA<->EN game localization (remote MCP server + CLI). Working name, trademark check pending.",
@@ -8,7 +8,7 @@
     "node": ">=20"
   },
   "bin": {
-    "yuragi": "dist/cli/index.js"
+    "kotomark": "dist/cli/index.js"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",

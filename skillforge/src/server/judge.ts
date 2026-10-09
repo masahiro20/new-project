@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { ReviewPacket } from "../core/types.js";
+import { envVar } from "./env.js";
 
 /**
  * Optional server-side judging of review packets.
@@ -8,11 +9,11 @@ import type { ReviewPacket } from "../core/types.js";
  * (their subscription, their client). We never accept, relay or store a user's API key or OAuth token.
  *
  * This module exists for flows with no user assistant in the loop (e.g. a future CI/batch mode).
- * It only runs when the operator sets YURAGI_ANTHROPIC_API_KEY — our company key, whose cost is
+ * It only runs when the operator sets KOTOMARK_ANTHROPIC_API_KEY — our company key, whose cost is
  * included in the plan price. It is off by default and not exposed as an MCP tool unless enabled.
  */
 export function serverJudgeEnabled(): boolean {
-  return !!process.env.YURAGI_ANTHROPIC_API_KEY;
+  return !!envVar("ANTHROPIC_API_KEY");
 }
 
 const SYSTEM = `You are a Japanese↔English game localization QA reviewer.
@@ -28,11 +29,11 @@ export interface JudgeVerdict {
 }
 
 export async function judgePacket(packet: ReviewPacket): Promise<JudgeVerdict[]> {
-  const apiKey = process.env.YURAGI_ANTHROPIC_API_KEY;
-  if (!apiKey) throw new Error("Server-side judging is disabled (YURAGI_ANTHROPIC_API_KEY not set).");
+  const apiKey = envVar("ANTHROPIC_API_KEY");
+  if (!apiKey) throw new Error("Server-side judging is disabled (KOTOMARK_ANTHROPIC_API_KEY not set).");
   const client = new Anthropic({ apiKey });
   const response = await client.beta.messages.create({
-    model: process.env.YURAGI_JUDGE_MODEL ?? "claude-opus-5-5",
+    model: envVar("JUDGE_MODEL") ?? "claude-opus-5-5",
     max_tokens: 16000,
     betas: ["server-side-fallback-2026-07-01"],
     fallbacks: "default",

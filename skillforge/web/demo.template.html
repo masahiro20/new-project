@@ -1,4 +1,4 @@
-<title>Yuragi 台本チェッカー</title>
+<title>Kotomark 台本チェッカー</title>
 <style>
 @import url("https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap");
 /* Tokens: paper + ink for the page, 藍 (indigo) for interaction, 朱 red-pen / ochre / slate for severity only. */
@@ -213,7 +213,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
 <div class="wrap">
   <header class="mast">
     <div>
-      <h1>Yuragi<small>（仮称）台本の揺れチェッカー</small></h1>
+      <h1>Kotomark<small>（仮称）台本の揺れチェッカー</small></h1>
       <p class="lede">日英ゲーム台本の訳揺れ・表記揺れ・キャラ名・敬称・口調をまとめて点検します。<span class="en">JA↔EN script consistency checker</span></p>
     </div>
     <div class="samples">
@@ -289,15 +289,15 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
 
   <footer>
     <p>すべての処理はこのブラウザ内で行われます。台本や用語集はどこにもアップロードされません。<span class="en">Everything runs in your browser; nothing is uploaded.</span></p>
-    <p>Yuragi（仮称） — 作業名です。指摘メッセージと Markdown レポートは日本語・英語を切り替えられます（「指摘の言語」）。<span class="en">Messages and the Markdown report are available in Japanese or English.</span></p>
+    <p>Kotomark（仮称） — 作業名です。指摘メッセージと Markdown レポートは日本語・英語を切り替えられます（「指摘の言語」）。<span class="en">Messages and the Markdown report are available in Japanese or English.</span></p>
   </footer>
 </div>
 
-<!--YURAGI_ENGINE-->
+<!--KOTOMARK_ENGINE-->
 <script>
 (function () {
   "use strict";
-  const SAMPLES = /*YURAGI_SAMPLES*/null;
+  const SAMPLES = /*KOTOMARK_SAMPLES*/null;
   const $ = (id) => document.getElementById(id);
   const ESC = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ESC[c]);
@@ -322,7 +322,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
   const LANG = { ja: "JA", en: "EN" };
   const KIND = { voice: "口調", "unglossaried-term": "未登録用語" };
   const KNOWN_EXT = /\.(csv|tsv|json|xlf|xliff)$/i;
-  const LOCALE_KEY = "yuragi.demo.locale";
+  const LOCALE_KEY = "kotomark.demo.locale";
   function loadLocale() {
     try { const v = localStorage.getItem(LOCALE_KEY); return v === "en" || v === "ja" ? v : "ja"; } catch (_) { return "ja"; }
   }
@@ -383,7 +383,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
     const first = head.split(/\r?\n/, 1)[0] || "";
     if (first.includes("\t") && !first.includes(",")) return "tsv";
     if (first.includes(",") && !first.includes("\t")) return "csv";
-    const byName = Yuragi.detectFormat(name, "");
+    const byName = Kotomark.detectFormat(name, "");
     return byName === "tsv" ? "tsv" : "csv";
   }
 
@@ -400,7 +400,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
 
   function run(opts) {
     const keepFilters = !!(opts && opts.keepFilters);
-    if (typeof Yuragi === "undefined") {
+    if (typeof Kotomark === "undefined") {
       showErrors([{ where: "エンジン", msg: "チェックエンジンが組み込まれていません。web/build-demo.mjs でビルドしたHTMLを開いてください。" }]);
       return;
     }
@@ -422,21 +422,21 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
     for (const inp of inputs) {
       try {
         let format = inp.format;
-        if (format === "auto") format = inp.pasted || !KNOWN_EXT.test(inp.name) ? sniffPasted(inp.name, inp.text) : Yuragi.detectFormat(inp.name, inp.text);
-        const t = Yuragi.parseTable(inp.text, inp.name, { format });
+        if (format === "auto") format = inp.pasted || !KNOWN_EXT.test(inp.name) ? sniffPasted(inp.name, inp.text) : Kotomark.detectFormat(inp.name, inp.text);
+        const t = Kotomark.parseTable(inp.text, inp.name, { format });
         if (!t.rows.length) throw new Error("翻訳行が1行も見つかりませんでした。形式や列名を確認してください。");
         tables.push(t);
       } catch (e) {
         errors.push({ where: inp.name, msg: (e && e.message) || String(e) });
       }
     }
-    let glossary = Yuragi.EMPTY_GLOSSARY;
+    let glossary = Kotomark.EMPTY_GLOSSARY;
     const gtext = $("gloss-text").value;
     let glossError = false;
     if (gtext.trim()) {
       const head = gtext.trimStart();
       const gname = head.startsWith("{") || head.startsWith("[") ? "glossary.json" : "glossary.csv";
-      try { glossary = Yuragi.parseGlossary(gtext, gname); }
+      try { glossary = Kotomark.parseGlossary(gtext, gname); }
       catch (e) { glossError = true; errors.push({ where: "用語集 " + gname, msg: (e && e.message) || String(e) }); }
     }
     if (glossError || !tables.length) {
@@ -447,7 +447,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
     }
     let result;
     try {
-      result = Yuragi.runChecks(tables, glossary, { rules: $("opt-rules").checked, wideAsTwo: $("opt-wide").checked, locale: currentLocale() });
+      result = Kotomark.runChecks(tables, glossary, { rules: $("opt-rules").checked, wideAsTwo: $("opt-wide").checked, locale: currentLocale() });
     } catch (e) {
       errors.push({ where: "チェック", msg: (e && e.message) || String(e) });
       showErrors(errors);
@@ -457,7 +457,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
     }
     showErrors(errors, true);
     state.result = result;
-    state.md = Yuragi.renderMarkdown(result, { locale: currentLocale() });
+    state.md = Kotomark.renderMarkdown(result, { locale: currentLocale() });
     state.rows = new Map();
     state.tableByFile = new Map();
     for (const t of tables) {

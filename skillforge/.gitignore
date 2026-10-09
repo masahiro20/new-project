@@ -2,5 +2,5 @@ node_modules/
 /dist/
 .env
 *.tsbuildinfo
-.yuragi-data/
-web/dist/yuragi-engine.js
+.kotomark-data/
+web/dist/kotomark-engine.js

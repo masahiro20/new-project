@@ -1,6 +1,7 @@
 import { createHash, randomBytes } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
+import { envVar } from "./env.js";
 
 /**
  * Per-user API tokens and usage limits. Works with no external service: tokens live in a local JSON
@@ -116,8 +117,8 @@ export class TokenStore {
 }
 
 export function tokenStoreFromEnv(env = process.env): TokenStore {
-  const file = env.YURAGI_TOKENS_FILE ?? join(env.YURAGI_DATA_DIR ?? ".yuragi-data", "tokens.json");
-  const envTokens = (env.YURAGI_API_TOKENS ?? "").split(",").map((t) => t.trim()).filter(Boolean);
+  const file = envVar("TOKENS_FILE", env) ?? join(envVar("DATA_DIR", env) ?? ".kotomark-data", "tokens.json");
+  const envTokens = (envVar("API_TOKENS", env) ?? "").split(",").map((t) => t.trim()).filter(Boolean);
   return new TokenStore(file, envTokens);
 }
 

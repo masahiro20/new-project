@@ -1,4 +1,4 @@
-# Yuragi（仮称）試用のお願い：協力者向け説明書（草案）
+# Kotomark（仮称）試用のお願い：協力者向け説明書（草案）
 
 > 本部向けのメモは最後の「付録：運営側の手順」にあります。協力者に渡すのは「1」〜「7」です。
 
@@ -47,8 +47,8 @@ npx tsx src/cli/index.ts labels 台本.csv --glossary 用語集.json --out label
 当社から試用トークンとサーバーのURLをお送りします。
 
 ```bash
-export YURAGI_MCP_URL=<お送りするURL>
-export YURAGI_TOKEN=<お送りするトークン>
+export KOTOMARK_MCP_URL=<お送りするURL>
+export KOTOMARK_TOKEN=<お送りするトークン>
 claude --plugin-dir ./plugin
 ```
 
@@ -114,7 +114,7 @@ ch3_120,honorific,様の訳し方が他と違う
 
 1. 協力者ごとにトークンを発行する（プラグイン版の場合）。
    ```bash
-   YURAGI_DATA_DIR=/srv/yuragi npx tsx src/cli/index.ts token create pilot-01 --plan studio --label "pilot: 〇〇さん"
+   KOTOMARK_DATA_DIR=/srv/kotomark npx tsx src/cli/index.ts token create pilot-01 --plan studio --label "pilot: 〇〇さん"
    ```
    - 表示されたトークンは1回しか出ません。安全な経路で渡します。
    - 試用が終わったら `token revoke pilot-01` で失効させ、`delete_glossary all` 相当で用語集も消します。

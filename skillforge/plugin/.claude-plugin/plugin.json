@@ -1,7 +1,7 @@
 {
-  "name": "yuragi",
+  "name": "kotomark",
   "version": "0.1.0",
-  "description": "Whole-script consistency QA for Japanese↔English game localization (terms, character names, honorifics, voice). Thin client for the Yuragi remote MCP server. Working name.",
+  "description": "Whole-script consistency QA for Japanese↔English game localization (terms, character names, honorifics, voice). Thin client for the Kotomark remote MCP server. Working name.",
   "author": { "name": "SkillForge (P1)" },
   "keywords": ["localization", "lqa", "japanese", "game", "xliff", "glossary"]
 }

@@ -6,12 +6,13 @@ import { join } from "node:path";
 import { randomBytes } from "node:crypto";
 import { FileGlossaryStore, storeFromEnv } from "../src/server/store.js";
 import { Limiter, QuotaError, TokenStore } from "../src/server/auth.js";
+import { envVar } from "../src/server/env.js";
 import { parseGlossary } from "../src/core/index.js";
 import { findingsToLabelCsv, scoreLabels } from "../src/core/pilot.js";
 import { read, runSample } from "./helpers.js";
 import { parseTable } from "../src/core/index.js";
 
-const tmp = () => mkdtempSync(join(tmpdir(), "yuragi-"));
+const tmp = () => mkdtempSync(join(tmpdir(), "kotomark-"));
 const glossary = parseGlossary(read("samples/ja-en/glossary.json"));
 
 test("file store: encrypted at rest, names hidden, per-owner isolation, delete", async () => {
@@ -41,9 +42,9 @@ test("file store: wrong key or moved file fails to decrypt", async () => {
 });
 
 test("store from env: production without a key refuses; dev generates a key file", () => {
-  assert.throws(() => storeFromEnv({ NODE_ENV: "production", YURAGI_DATA_DIR: tmp() }), /YURAGI_ENCRYPTION_KEY/);
+  assert.throws(() => storeFromEnv({ NODE_ENV: "production", KOTOMARK_DATA_DIR: tmp() }), /KOTOMARK_ENCRYPTION_KEY/);
   const dir = tmp();
-  storeFromEnv({ YURAGI_DATA_DIR: dir });
+  storeFromEnv({ KOTOMARK_DATA_DIR: dir });
   assert.equal(Buffer.from(readFileSync(join(dir, "dev.key"), "utf8"), "base64").length, 32);
 });
 
@@ -101,4 +102,11 @@ test("pilot: label export round-trips and scores precision and recall", () => {
   assert.equal(term.tp, term.tp + term.fp - 1);
   assert.ok(term.precision! > 0 && term.precision! < 1);
   assert.deepEqual(r.recall && [r.recall.known, r.recall.found], [2, 1]);
+});
+
+test("env: KOTOMARK_* is read, legacy YURAGI_* is a fallback, KOTOMARK_* wins", () => {
+  assert.equal(envVar("DATA_DIR", { KOTOMARK_DATA_DIR: "new" }), "new");
+  assert.equal(envVar("DATA_DIR", { YURAGI_DATA_DIR: "old" }), "old");
+  assert.equal(envVar("DATA_DIR", { KOTOMARK_DATA_DIR: "new", YURAGI_DATA_DIR: "old" }), "new");
+  assert.equal(envVar("DATA_DIR", {}), undefined);
 });

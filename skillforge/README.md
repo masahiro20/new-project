@@ -1,6 +1,6 @@
-# Yuragi（仮称）— JA↔EN game script consistency QA
+# Kotomark（仮称）— JA↔EN game script consistency QA
 
-> P1 SkillForge, stage 2 prototype. **Internal only — not published.** "Yuragi" (揺らぎ) is a working name; the trademark check is still pending.
+> P1 SkillForge, stage 2 prototype. **Internal only — not published.** "Kotomark" is a working name; the trademark check is still pending.
 > This directory is a standalone project. It has nothing to do with the Next.js app at the repo root.
 
 It checks **the whole script at once** and reports what drifts between lines, with `file:line` references:
@@ -23,10 +23,10 @@ user's Claude Code ──(plugin: skill + /lqa-check + .mcp.json)──► remot
    │ reads files, judges review packets,                           │ deterministic engine (src/core)
    │ writes the final report                                       │ stateless: nothing stored, content never logged
    └── reasoning runs on the user's own subscription               └── optional server-side judge: OFF by default,
-                                                                       uses OUR API key only (YURAGI_ANTHROPIC_API_KEY)
+                                                                       uses OUR API key only (KOTOMARK_ANTHROPIC_API_KEY)
 ```
 
-- **Inference stays with the user.** The server never accepts or relays a user's model credentials. If we ever judge on the server (batch/CI mode), it uses the company key from `YURAGI_ANTHROPIC_API_KEY` and that cost goes into the plan price. The tool `judge_review_packets_server_side` only exists when that key is set.
+- **Inference stays with the user.** The server never accepts or relays a user's model credentials. If we ever judge on the server (batch/CI mode), it uses the company key from `KOTOMARK_ANTHROPIC_API_KEY` and that cost goes into the plan price. The tool `judge_review_packets_server_side` only exists when that key is set.
 - **Value lives on the server** (rule engine, Japanese-specific heuristics, later: hosted shared glossaries), not in a copyable skill file.
 - The product name doesn't use "Claude". Claude Code is mentioned only as a compatible client.
 
@@ -54,7 +54,7 @@ npm run check:sample           # CLI report for samples/ja-en
 npx tsx src/cli/index.ts check samples/en-ja/ui.xlf --glossary samples/en-ja/glossary.json
 
 npm run serve                  # MCP on http://localhost:8787/mcp (no auth in dev)
-YURAGI_API_TOKENS=secret1 NODE_ENV=production npm run build && npm start
+KOTOMARK_API_TOKENS=secret1 NODE_ENV=production npm run build && npm start
 ```
 
 Use it from Claude Code (local test):
@@ -78,9 +78,10 @@ npx tsx src/cli/index.ts token list | token revoke <user|prefix>
 
 ## Accounts, storage and limits
 
-- **Tokens:** per-user bearer tokens in `$YURAGI_DATA_DIR/tokens.json` (SHA-256 hashes only; new tokens are picked up without a restart). Legacy `YURAGI_API_TOKENS` still works. With no tokens at all the server runs open, and refuses to start that way in production.
-- **Saved glossaries:** `GlossaryStore` interface, local backend `FileGlossaryStore` (AES-256-GCM per file, names encrypted too, key `YURAGI_ENCRYPTION_KEY`). Swap the backend without touching the tools.
+- **Tokens:** per-user bearer tokens in `$KOTOMARK_DATA_DIR/tokens.json` (SHA-256 hashes only; new tokens are picked up without a restart). Legacy `KOTOMARK_API_TOKENS` still works. With no tokens at all the server runs open, and refuses to start that way in production.
+- **Saved glossaries:** `GlossaryStore` interface, local backend `FileGlossaryStore` (AES-256-GCM per file, names encrypted too, key `KOTOMARK_ENCRYPTION_KEY`). Swap the backend without touching the tools.
 - **Limits (in memory, no external service):** Solo 30 req/min · 200k rows/day · 10 glossaries; Studio 120 · 1M · 50. HTTP 429 + `Retry-After` when exceeded.
+- **Env var rename:** all settings are `KOTOMARK_*`. The pre-rename `YURAGI_*` names are still read as a fallback (`KOTOMARK_*` wins), see `src/server/env.ts`. The default data dir is now `./.kotomark-data`.
 - Scripts are never stored; caches are cleared after every request; logs carry only method/path/status/user/time (tested). See `docs/data-policy.md`.
 
 ## Input formats

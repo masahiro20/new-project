@@ -11,8 +11,8 @@ import { clearTextCaches } from "../core/text.js";
  *
  * Privacy: request bodies are parsed in memory and dropped; only method, path, status, user id and
  * timing are logged — never script or glossary content. See docs/data-policy.md.
- * Auth: per-user bearer tokens (tokens.json, hashes only; create with `yuragi token create`), plus
- * legacy YURAGI_API_TOKENS. With no tokens configured the server runs open, but only outside production.
+ * Auth: per-user bearer tokens (tokens.json, hashes only; create with `kotomark token create`), plus
+ * legacy KOTOMARK_API_TOKENS. With no tokens configured the server runs open, but only outside production.
  */
 const PORT = Number(process.env.PORT ?? 8787);
 const MAX_BODY = 25_000_000;
@@ -21,7 +21,7 @@ const store = storeFromEnv();
 const limiter = new Limiter();
 
 if (tokens.open && process.env.NODE_ENV === "production") {
-  console.error("No API tokens configured: create one with `yuragi token create <user>` or set YURAGI_API_TOKENS");
+  console.error("No API tokens configured: create one with `kotomark token create <user>` or set KOTOMARK_API_TOKENS");
   process.exit(1);
 }
 
@@ -56,7 +56,7 @@ export const httpServer = createServer(async (req, res) => {
     if (url.pathname !== "/mcp") return send(res, 404, { error: "not found" });
     const principal = authenticate(req);
     if (!principal) {
-      res.setHeader("www-authenticate", 'Bearer realm="yuragi"');
+      res.setHeader("www-authenticate", 'Bearer realm="kotomark"');
       return send(res, 401, { error: "unauthorized" });
     }
     user = principal.user;
@@ -86,5 +86,5 @@ export const httpServer = createServer(async (req, res) => {
 });
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  httpServer.listen(PORT, () => console.log(`yuragi MCP listening on :${PORT}/mcp${tokens.open ? " (no tokens configured: open dev mode)" : ""}`));
+  httpServer.listen(PORT, () => console.log(`kotomark MCP listening on :${PORT}/mcp${tokens.open ? " (no tokens configured: open dev mode)" : ""}`));
 }

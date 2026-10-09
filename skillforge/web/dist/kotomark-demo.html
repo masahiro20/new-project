@@ -1,4 +1,4 @@
-<title>Yuragi 台本チェッカー</title>
+<title>Kotomark 台本チェッカー</title>
 <style>
 @import url("https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap");
 /* Tokens: paper + ink for the page, 藍 (indigo) for interaction, 朱 red-pen / ochre / slate for severity only. */
@@ -213,7 +213,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
 <div class="wrap">
   <header class="mast">
     <div>
-      <h1>Yuragi<small>（仮称）台本の揺れチェッカー</small></h1>
+      <h1>Kotomark<small>（仮称）台本の揺れチェッカー</small></h1>
       <p class="lede">日英ゲーム台本の訳揺れ・表記揺れ・キャラ名・敬称・口調をまとめて点検します。<span class="en">JA↔EN script consistency checker</span></p>
     </div>
     <div class="samples">
@@ -289,11 +289,11 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
 
   <footer>
     <p>すべての処理はこのブラウザ内で行われます。台本や用語集はどこにもアップロードされません。<span class="en">Everything runs in your browser; nothing is uploaded.</span></p>
-    <p>Yuragi（仮称） — 作業名です。指摘メッセージと Markdown レポートは日本語・英語を切り替えられます（「指摘の言語」）。<span class="en">Messages and the Markdown report are available in Japanese or English.</span></p>
+    <p>Kotomark（仮称） — 作業名です。指摘メッセージと Markdown レポートは日本語・英語を切り替えられます（「指摘の言語」）。<span class="en">Messages and the Markdown report are available in Japanese or English.</span></p>
   </footer>
 </div>
 
-<script>"use strict";var Yuragi=(()=>{var zo=Object.defineProperty;var Tg=Object.getOwnPropertyDescriptor;var Lg=Object.getOwnPropertyNames;var Zg=Object.prototype.hasOwnProperty;var _e=(e,n)=>{for(var i in n)zo(e,i,{get:n[i],enumerable:!0})},Eg=(e,n,i,o)=>{if(n&&typeof n=="object"||typeof n=="function")for(let t of Lg(n))!Zg.call(e,t)&&t!==i&&zo(e,t,{get:()=>n[t],enumerable:!(o=Tg(n,t))||o.enumerable});return e};var Cg=e=>Eg(zo({},"__esModule",{value:!0}),e);var d_={};_e(d_,{EMPTY_GLOSSARY:()=>tn,detectFormat:()=>gr,parseGlossary:()=>rd,parseTable:()=>No,renderMarkdown:()=>cd,runChecks:()=>ad});var Rg=/[぀-ヿ㐀-鿿ｦ-ﾟ]/g;function an(e){let n=e.match(Rg);return!!n&&n.length>=Math.max(1,e.replace(/\s/g,"").length*.2)}function ud(e){let n=e.filter(o=>o.trim()).slice(0,50);return n.filter(an).length>n.length/2?"ja":"en"}function ld(e,n){return n==="source"?e.source:e.target}function cn(e){return`${e.file}:${e.line}`}var lr=/\{[A-Za-z0-9_.$:]*\}|%(?:\d+\$)?[-+ 0#]*\d*(?:\.\d+)?[sdifxXu@]|\$\{[^}]+\}|\[[A-Z][A-Z0-9_]+\]|\[[a-z_][a-z0-9_.]*\]/g,ur=new Map;function B(e){let n=ur.get(e);if(n!==void 0)return n;let i=Vg(e);return ur.size>2e5&&ur.clear(),ur.set(e,i),i}function Vg(e){return e.replace(/<rt>.*?<\/rt>/g,"").replace(/<\/?[A-Za-z][^<>]*>/g,"").replace(/\{([^{}|]+)\|[^{}]+\}/g,"$1").replace(/[|｜]([^《|｜]+)《[^》]+》/g,"$1").replace(lr,"")}function sn(e){return e.replace(/[・＝=ー\-‐]/g,"").replace(/ヴァ/g,"バ").replace(/ヴィ/g,"ビ").replace(/ヴェ/g,"ベ").replace(/ヴォ/g,"ボ").replace(/ヴ/g,"ブ").replace(/[ァィゥェォ]/g,n=>String.fromCharCode(n.charCodeAt(0)+1))}var dd=/[ァ-ヴー・＝]{3,}/g;function jo(e,n){let i=[];for(let o=0;o<=e.length;o++)i.push([o,...Array(n.length).fill(0)]);for(let o=0;o<=n.length;o++)i[0][o]=o;for(let o=1;o<=e.length;o++)for(let t=1;t<=n.length;t++){let r=e[o-1]===n[t-1]?0:1,a=Math.min(i[o-1][t]+1,i[o][t-1]+1,i[o-1][t-1]+r);o>1&&t>1&&e[o-1]===n[t-2]&&e[o-2]===n[t-1]&&(a=Math.min(a,i[o-2][t-2]+1)),i[o][t]=a}return i[e.length][n.length]}function pt(e){return e.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")}var sd=new Map;function Mg(e,n=!1){let i=`${n?1:0}\0${e}`,o=sd.get(i);if(!o){let t=e.trim().split(/\s+/).map(pt),r=t.pop(),a=/y$/i.test(r)&&!/[aeiou]y$/i.test(r)?`${r.slice(0,-1)}(?:y|ies)`:/fe?$/i.test(r)?`${r.replace(/fe?$/i,"")}(?:fe?s?|ves)`:`${r}(?:e?s)?`;o=new RegExp(`(?<![A-Za-z])${[...t,a].join("[\\s\\u00a0]+")}(?:['’]s)?(?![A-Za-z])`,n?"":"i"),sd.set(i,o)}return o}function Ne(e,n,i,o=!1){return n?i==="ja"?e.includes(n):Mg(n,o).test(e):!1}function ee(e,n){let i=new Map;for(let o of e){let t=n(o),r=i.get(t);r?r.push(o):i.set(t,[o])}return i}function fd(e,n){let i=0;for(let o of e){let t=o.codePointAt(0),r=t>=4352&&t<=4447||t>=11904&&t<=42191||t>=44032&&t<=55203||t>=63744&&t<=64255||t>=65072&&t<=65103||t>=65280&&t<=65376||t>=65504&&t<=65510||t>=131072;i+=r&&n?2:1}return i}var md={id:["id","key","string_id","stringid","label","キー"],source:["source","src","original","ja","jp","japanese","ja-jp","原文","日本語"],target:["target","tgt","translation","en","english","en-us","訳文","翻訳","英語"],speaker:["speaker","character","char","name","名前","話者","キャラ","キャラクター"],addressee:["addressee","listener","to","相手"],context:["context","note","notes","comment","comments","備考"],maxLength:["max_length","maxlength","max_len","maxlen","limit","char_limit","文字数","文字数制限"]},Po={ja:"ja",jp:"ja",japanese:"ja","ja-jp":"ja",日本語:"ja",en:"en",english:"en","en-us":"en",英語:"en"},dr=e=>e.trim().toLowerCase().replace(/\s+/g,"_");function fr(e,n={}){let i={};for(let o of Object.keys(md)){let t=n[o]??e.find(r=>md[o].includes(dr(r)));t&&(i[o]=t)}if(i.source&&i.target&&!n.source&&!n.target&&Po[dr(i.source)]&&Po[dr(i.target)]&&e.indexOf(i.target)<e.indexOf(i.source)&&([i.source,i.target]=[i.target,i.source]),!i.source||!i.target)throw new Error(`Could not find source/target columns in [${e.join(", ")}]. Name them e.g. "ja"/"en" or "source"/"target", or pass a column map.`);return i}function mr(e,n,i,o,t){let r=u=>u&&e[u]!=null?String(e[u]):void 0,a=r(n.maxLength),c=a?Number.parseInt(a,10):NaN;return{file:i,line:o,id:r(n.id)??t,source:r(n.source)??"",target:r(n.target)??"",speaker:r(n.speaker)||void 0,addressee:r(n.addressee)||void 0,context:r(n.context)||void 0,maxLength:Number.isFinite(c)&&c>0?c:void 0}}function gt(e,n,i,o,t){let r=u=>u?Po[dr(u)]:void 0,a=t?.source??r(o?.source)??ud(i.map(u=>u.source)),c=t?.target??r(o?.target)??(a==="ja"?"en":"ja");return{file:e,format:n,sourceLang:a,targetLang:c,rows:i}}function pr(e,n=","){let i=[],o=1,t=0;for(e.charCodeAt(0)===65279&&(t=1);t<e.length;){let r=o,a=[],c="",u=!1,s=!1;for(;t<e.length&&!s;){let l=e[t];if(u){if(l==='"'){if(e[t+1]==='"'){c+='"',t+=2;continue}u=!1}else(l===`
+<script>"use strict";var Kotomark=(()=>{var zo=Object.defineProperty;var Tg=Object.getOwnPropertyDescriptor;var Lg=Object.getOwnPropertyNames;var Zg=Object.prototype.hasOwnProperty;var _e=(e,n)=>{for(var i in n)zo(e,i,{get:n[i],enumerable:!0})},Eg=(e,n,i,o)=>{if(n&&typeof n=="object"||typeof n=="function")for(let t of Lg(n))!Zg.call(e,t)&&t!==i&&zo(e,t,{get:()=>n[t],enumerable:!(o=Tg(n,t))||o.enumerable});return e};var Cg=e=>Eg(zo({},"__esModule",{value:!0}),e);var d_={};_e(d_,{EMPTY_GLOSSARY:()=>tn,detectFormat:()=>gr,parseGlossary:()=>rd,parseTable:()=>No,renderMarkdown:()=>cd,runChecks:()=>ad});var Rg=/[぀-ヿ㐀-鿿ｦ-ﾟ]/g;function an(e){let n=e.match(Rg);return!!n&&n.length>=Math.max(1,e.replace(/\s/g,"").length*.2)}function ud(e){let n=e.filter(o=>o.trim()).slice(0,50);return n.filter(an).length>n.length/2?"ja":"en"}function ld(e,n){return n==="source"?e.source:e.target}function cn(e){return`${e.file}:${e.line}`}var lr=/\{[A-Za-z0-9_.$:]*\}|%(?:\d+\$)?[-+ 0#]*\d*(?:\.\d+)?[sdifxXu@]|\$\{[^}]+\}|\[[A-Z][A-Z0-9_]+\]|\[[a-z_][a-z0-9_.]*\]/g,ur=new Map;function B(e){let n=ur.get(e);if(n!==void 0)return n;let i=Vg(e);return ur.size>2e5&&ur.clear(),ur.set(e,i),i}function Vg(e){return e.replace(/<rt>.*?<\/rt>/g,"").replace(/<\/?[A-Za-z][^<>]*>/g,"").replace(/\{([^{}|]+)\|[^{}]+\}/g,"$1").replace(/[|｜]([^《|｜]+)《[^》]+》/g,"$1").replace(lr,"")}function sn(e){return e.replace(/[・＝=ー\-‐]/g,"").replace(/ヴァ/g,"バ").replace(/ヴィ/g,"ビ").replace(/ヴェ/g,"ベ").replace(/ヴォ/g,"ボ").replace(/ヴ/g,"ブ").replace(/[ァィゥェォ]/g,n=>String.fromCharCode(n.charCodeAt(0)+1))}var dd=/[ァ-ヴー・＝]{3,}/g;function jo(e,n){let i=[];for(let o=0;o<=e.length;o++)i.push([o,...Array(n.length).fill(0)]);for(let o=0;o<=n.length;o++)i[0][o]=o;for(let o=1;o<=e.length;o++)for(let t=1;t<=n.length;t++){let r=e[o-1]===n[t-1]?0:1,a=Math.min(i[o-1][t]+1,i[o][t-1]+1,i[o-1][t-1]+r);o>1&&t>1&&e[o-1]===n[t-2]&&e[o-2]===n[t-1]&&(a=Math.min(a,i[o-2][t-2]+1)),i[o][t]=a}return i[e.length][n.length]}function pt(e){return e.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")}var sd=new Map;function Mg(e,n=!1){let i=`${n?1:0}\0${e}`,o=sd.get(i);if(!o){let t=e.trim().split(/\s+/).map(pt),r=t.pop(),a=/y$/i.test(r)&&!/[aeiou]y$/i.test(r)?`${r.slice(0,-1)}(?:y|ies)`:/fe?$/i.test(r)?`${r.replace(/fe?$/i,"")}(?:fe?s?|ves)`:`${r}(?:e?s)?`;o=new RegExp(`(?<![A-Za-z])${[...t,a].join("[\\s\\u00a0]+")}(?:['’]s)?(?![A-Za-z])`,n?"":"i"),sd.set(i,o)}return o}function Ne(e,n,i,o=!1){return n?i==="ja"?e.includes(n):Mg(n,o).test(e):!1}function ee(e,n){let i=new Map;for(let o of e){let t=n(o),r=i.get(t);r?r.push(o):i.set(t,[o])}return i}function fd(e,n){let i=0;for(let o of e){let t=o.codePointAt(0),r=t>=4352&&t<=4447||t>=11904&&t<=42191||t>=44032&&t<=55203||t>=63744&&t<=64255||t>=65072&&t<=65103||t>=65280&&t<=65376||t>=65504&&t<=65510||t>=131072;i+=r&&n?2:1}return i}var md={id:["id","key","string_id","stringid","label","キー"],source:["source","src","original","ja","jp","japanese","ja-jp","原文","日本語"],target:["target","tgt","translation","en","english","en-us","訳文","翻訳","英語"],speaker:["speaker","character","char","name","名前","話者","キャラ","キャラクター"],addressee:["addressee","listener","to","相手"],context:["context","note","notes","comment","comments","備考"],maxLength:["max_length","maxlength","max_len","maxlen","limit","char_limit","文字数","文字数制限"]},Po={ja:"ja",jp:"ja",japanese:"ja","ja-jp":"ja",日本語:"ja",en:"en",english:"en","en-us":"en",英語:"en"},dr=e=>e.trim().toLowerCase().replace(/\s+/g,"_");function fr(e,n={}){let i={};for(let o of Object.keys(md)){let t=n[o]??e.find(r=>md[o].includes(dr(r)));t&&(i[o]=t)}if(i.source&&i.target&&!n.source&&!n.target&&Po[dr(i.source)]&&Po[dr(i.target)]&&e.indexOf(i.target)<e.indexOf(i.source)&&([i.source,i.target]=[i.target,i.source]),!i.source||!i.target)throw new Error(`Could not find source/target columns in [${e.join(", ")}]. Name them e.g. "ja"/"en" or "source"/"target", or pass a column map.`);return i}function mr(e,n,i,o,t){let r=u=>u&&e[u]!=null?String(e[u]):void 0,a=r(n.maxLength),c=a?Number.parseInt(a,10):NaN;return{file:i,line:o,id:r(n.id)??t,source:r(n.source)??"",target:r(n.target)??"",speaker:r(n.speaker)||void 0,addressee:r(n.addressee)||void 0,context:r(n.context)||void 0,maxLength:Number.isFinite(c)&&c>0?c:void 0}}function gt(e,n,i,o,t){let r=u=>u?Po[dr(u)]:void 0,a=t?.source??r(o?.source)??ud(i.map(u=>u.source)),c=t?.target??r(o?.target)??(a==="ja"?"en":"ja");return{file:e,format:n,sourceLang:a,targetLang:c,rows:i}}function pr(e,n=","){let i=[],o=1,t=0;for(e.charCodeAt(0)===65279&&(t=1);t<e.length;){let r=o,a=[],c="",u=!1,s=!1;for(;t<e.length&&!s;){let l=e[t];if(u){if(l==='"'){if(e[t+1]==='"'){c+='"',t+=2;continue}u=!1}else(l===`
 `||l==="\r"&&e[t+1]!==`
 `)&&o++,c+=l;t++}else l==='"'&&c===""?(u=!0,t++):l===n?(a.push(c),c="",t++):l==="\r"||l===`
 `?(l==="\r"&&e[t+1]===`
@@ -390,7 +390,7 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
   const LANG = { ja: "JA", en: "EN" };
   const KIND = { voice: "口調", "unglossaried-term": "未登録用語" };
   const KNOWN_EXT = /\.(csv|tsv|json|xlf|xliff)$/i;
-  const LOCALE_KEY = "yuragi.demo.locale";
+  const LOCALE_KEY = "kotomark.demo.locale";
   function loadLocale() {
     try { const v = localStorage.getItem(LOCALE_KEY); return v === "en" || v === "ja" ? v : "ja"; } catch (_) { return "ja"; }
   }
@@ -451,7 +451,7 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
     const first = head.split(/\r?\n/, 1)[0] || "";
     if (first.includes("\t") && !first.includes(",")) return "tsv";
     if (first.includes(",") && !first.includes("\t")) return "csv";
-    const byName = Yuragi.detectFormat(name, "");
+    const byName = Kotomark.detectFormat(name, "");
     return byName === "tsv" ? "tsv" : "csv";
   }
 
@@ -468,7 +468,7 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
 
   function run(opts) {
     const keepFilters = !!(opts && opts.keepFilters);
-    if (typeof Yuragi === "undefined") {
+    if (typeof Kotomark === "undefined") {
       showErrors([{ where: "エンジン", msg: "チェックエンジンが組み込まれていません。web/build-demo.mjs でビルドしたHTMLを開いてください。" }]);
       return;
     }
@@ -490,21 +490,21 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
     for (const inp of inputs) {
       try {
         let format = inp.format;
-        if (format === "auto") format = inp.pasted || !KNOWN_EXT.test(inp.name) ? sniffPasted(inp.name, inp.text) : Yuragi.detectFormat(inp.name, inp.text);
-        const t = Yuragi.parseTable(inp.text, inp.name, { format });
+        if (format === "auto") format = inp.pasted || !KNOWN_EXT.test(inp.name) ? sniffPasted(inp.name, inp.text) : Kotomark.detectFormat(inp.name, inp.text);
+        const t = Kotomark.parseTable(inp.text, inp.name, { format });
         if (!t.rows.length) throw new Error("翻訳行が1行も見つかりませんでした。形式や列名を確認してください。");
         tables.push(t);
       } catch (e) {
         errors.push({ where: inp.name, msg: (e && e.message) || String(e) });
       }
     }
-    let glossary = Yuragi.EMPTY_GLOSSARY;
+    let glossary = Kotomark.EMPTY_GLOSSARY;
     const gtext = $("gloss-text").value;
     let glossError = false;
     if (gtext.trim()) {
       const head = gtext.trimStart();
       const gname = head.startsWith("{") || head.startsWith("[") ? "glossary.json" : "glossary.csv";
-      try { glossary = Yuragi.parseGlossary(gtext, gname); }
+      try { glossary = Kotomark.parseGlossary(gtext, gname); }
       catch (e) { glossError = true; errors.push({ where: "用語集 " + gname, msg: (e && e.message) || String(e) }); }
     }
     if (glossError || !tables.length) {
@@ -515,7 +515,7 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
     }
     let result;
     try {
-      result = Yuragi.runChecks(tables, glossary, { rules: $("opt-rules").checked, wideAsTwo: $("opt-wide").checked, locale: currentLocale() });
+      result = Kotomark.runChecks(tables, glossary, { rules: $("opt-rules").checked, wideAsTwo: $("opt-wide").checked, locale: currentLocale() });
     } catch (e) {
       errors.push({ where: "チェック", msg: (e && e.message) || String(e) });
       showErrors(errors);
@@ -525,7 +525,7 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
     }
     showErrors(errors, true);
     state.result = result;
-    state.md = Yuragi.renderMarkdown(result, { locale: currentLocale() });
+    state.md = Kotomark.renderMarkdown(result, { locale: currentLocale() });
     state.rows = new Map();
     state.tableByFile = new Map();
     for (const t of tables) {

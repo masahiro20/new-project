@@ -1,10 +1,10 @@
-# Yuragi plugin (thin client)
+# Kotomark plugin (thin client)
 
-Adds the `script-consistency` skill, the `/lqa-check` command and the `yuragi` remote MCP server to Claude Code.
+Adds the `script-consistency` skill, the `/lqa-check` command and the `kotomark` remote MCP server to Claude Code.
 
 ```bash
-export YURAGI_MCP_URL=https://<your-endpoint>/mcp   # default: http://localhost:8787/mcp
-export YURAGI_TOKEN=<your token>
+export KOTOMARK_MCP_URL=https://<your-endpoint>/mcp   # default: http://localhost:8787/mcp
+export KOTOMARK_TOKEN=<your token>
 claude --plugin-dir ./plugin        # local testing
 ```
 

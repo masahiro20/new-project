@@ -3,6 +3,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { mkdir, readdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import type { Glossary } from "../core/types.js";
+import { envVar } from "./env.js";
 
 /**
  * Hosted glossaries. Scripts are never stored; glossaries are, because sharing one glossary across a
@@ -164,16 +165,17 @@ export class FileGlossaryStore implements GlossaryStore {
 
 /**
  * Pick the backend from the environment:
- *  - YURAGI_ENCRYPTION_KEY (base64, 32 bytes) → file store in YURAGI_DATA_DIR (default ./.yuragi-data)
+ *  - KOTOMARK_ENCRYPTION_KEY (base64, 32 bytes) → file store in KOTOMARK_DATA_DIR (default ./.kotomark-data)
  *  - no key, development → file store with a generated key saved next to the data (never in production)
  *  - no key, production → refuse to start
  */
 export function storeFromEnv(env = process.env): GlossaryStore {
-  const dir = join(env.YURAGI_DATA_DIR ?? ".yuragi-data", "glossaries");
-  let key = env.YURAGI_ENCRYPTION_KEY ? Buffer.from(env.YURAGI_ENCRYPTION_KEY, "base64") : undefined;
+  const dir = join(envVar("DATA_DIR", env) ?? ".kotomark-data", "glossaries");
+  const keyB64 = envVar("ENCRYPTION_KEY", env);
+  let key = keyB64 ? Buffer.from(keyB64, "base64") : undefined;
   if (!key) {
-    if (env.NODE_ENV === "production") throw new Error("YURAGI_ENCRYPTION_KEY must be set in production");
-    const keyFile = join(env.YURAGI_DATA_DIR ?? ".yuragi-data", "dev.key");
+    if (env.NODE_ENV === "production") throw new Error("KOTOMARK_ENCRYPTION_KEY must be set in production");
+    const keyFile = join(envVar("DATA_DIR", env) ?? ".kotomark-data", "dev.key");
     mkdirSync(join(keyFile, ".."), { recursive: true, mode: 0o700 });
     if (!existsSync(keyFile)) writeFileSync(keyFile, randomBytes(32).toString("base64"), { mode: 0o600 });
     key = Buffer.from(readFileSync(keyFile, "utf8").trim(), "base64");
