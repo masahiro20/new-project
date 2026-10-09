@@ -1,6 +1,13 @@
 <!-- Chrome Web Store "Privacy practices" tab draft + privacy policy text. NOT submitted. -->
 # Privacy practices — Tanuki Scout (provisional)
 
+> **オーナー向けの説明（日本語）：** Chrome Web Store の「プライバシーへの取り組み」欄への回答案と、プライバシーポリシーの本文案です（未提出）。ストアの入力欄とポリシーは英語で出すため、本文は英語のままです。
+> - **単一目的：** 開いている出品ページの日本語の状態・ランク・返品の表記を英語で解説し、危険な表記に印を付けること。
+> - **権限：** Chrome API の権限は求めない。読み取るのは対応する4サイトだけ（理由を表に記載）。外部のコードは読み込まない。
+> - **データ：** 個人情報・閲覧履歴などは一切集めない。出品の文字は画面上で読むだけで、外部に送らず保存もしない。
+> - **プライバシーポリシー：** 何も収集・保存・送信しないことを明記した本文。公開 URL に置く必要がある（オーナー作業）。
+> - **提出前にオーナーがすること：** 名前の最終決定と商標確認、開発者アカウント（$5）と連絡先メール、ポリシーの公開、ヤフオク規約8.3の弁護士確認。
+
 ## Single purpose
 Explain the Japanese condition, grade and return wording on the marketplace listing the user is viewing, in English, and flag risky terms.
 

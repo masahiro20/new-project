@@ -1,6 +1,11 @@
 <!-- Chrome Web Store listing draft. NOT submitted. Provisional name — see docs/naming.md. -->
 # Store listing draft — Tanuki Scout (provisional)
 
+> **オーナー向けの説明（日本語）：** Chrome Web Store の掲載情報の下書きです（未提出）。ストアの本文はお客様向けなので英語のままです。
+> - 貼り付け用の本文は `store/description-en.txt`。下の「Detailed description」は以前の下書きで、レビュー用に残しています。
+> - 表の内容：拡張の名前、短い説明（132文字以内）、カテゴリ（ツール）、言語（英語）、提出用 zip、アイコン、スクリーンショット、小プロモタイル。ホームページ・サポートの URL はオーナーが用意する必要があります。
+> - 名前は仮（Tanuki Scout）。商標の確認状況は `docs/naming.md`。
+
 | Field | Value |
 |---|---|
 | Name (manifest) | Tanuki Scout — Japan Listing Decoder |
