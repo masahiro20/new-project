@@ -36,6 +36,9 @@ import { guide as hijouSaigaiKeikaku } from "./hijou-saigai-keikaku";
 import { guide as kujouKaiketsu } from "./kujou-kaiketsu";
 import { guide as jikoHoukoku } from "./jiko-houkoku";
 import { guide as sougeiAnzenSouchi } from "./sougei-anzen-souchi";
+import { guide as monitoringKakikata } from "./monitoring-kakikata";
+import { guide as shienKirokuKakikata } from "./shien-kiroku-kakikata";
+import { guide as assessmentKakikata } from "./assessment-kakikata";
 
 /** One guide per service type, in the same order as SERVICE_TYPES in lib/form.ts. */
 export const SERVICE_GUIDES: Guide[] = [
@@ -80,4 +83,7 @@ export const EXTRA_TOPIC_GUIDES: Guide[] = [
   kujouKaiketsu,
   jikoHoukoku,
   sougeiAnzenSouchi,
+  assessmentKakikata,
+  monitoringKakikata,
+  shienKirokuKakikata,
 ];

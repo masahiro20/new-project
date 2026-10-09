@@ -197,5 +197,5 @@ export const guide: Guide = {
       url: "https://www.cfa.go.jp/assets/contents/node/basic_page/field_ref_resources/253aba4f-3ce0-4aa1-a777-3d42440f1ca2/6b53e02b/20240712_policies_shougaijishien_shisaku_hoshukaitei_117.pdf",
     },
   ],
-  related: ["unei-shidou-shiteki-jidou", "jidou-hyouka-kouhyou", "houkago-day-shintai-kousoku-rei", "gensan-kasan-hayamihyo", "reiwa9-kaitei-jidou"],
+  related: ["assessment-kakikata", "monitoring-kakikata", "shien-kiroku-kakikata", "unei-shidou-shiteki-jidou", "jidou-hyouka-kouhyou", "houkago-day-shintai-kousoku-rei", "gensan-kasan-hayamihyo", "reiwa9-kaitei-jidou"],
 };
