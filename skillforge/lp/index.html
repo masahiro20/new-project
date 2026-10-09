@@ -457,22 +457,22 @@ section { scroll-margin-top: 72px; }
     <div class="sec-head">
       <span class="sec-num">02</span>
       <h2 id="results-title"><span class="t" lang="ja">実績：実際の翻訳ファイルで検証</span><span class="t" lang="en">Tested on real translations</span></h2>
-      <p class="t" lang="ja">オープンソースのゲーム・アプリが公開している英→日の翻訳ファイル6本（合計 約12,600エントリ）に Kotomark をかけ、指摘を1件ずつ確認しました。</p>
-      <p class="t" lang="en">We ran Kotomark on 6 public English→Japanese translation files from open-source games and apps (about 12,600 entries in total) and checked the findings one by one.</p>
+      <p class="t" lang="ja">オープンソースのゲーム・アプリが公開している英→日の翻訳ファイルに Kotomark をかけ、指摘を1件ずつ確認しました。</p>
+      <p class="t" lang="en">We ran Kotomark on public English→Japanese translation files from open-source games and apps and checked the findings one by one.</p>
     </div>
 
     <div class="proof">
       <div class="proof-main">
-        <div class="proof-fig" aria-hidden="true">190<small>/ 190</small></div>
-        <p class="t" lang="ja">CI で止める警告・エラーは、抜き取り確認した<strong>190件すべてが実際の問題</strong>でした。ただしこれは、同じ6本の結果を見てエンジンを調整した後の値です（調整に使用）。調整前の初回は、同じ基準で約70%でした。</p>
-        <p class="t" lang="en">Of the warnings and errors that fail a CI check, <strong>all 190 sampled findings were real issues</strong>. Note: this is after we tuned the engine on these same six files (tuning data). On the first, untuned run the same measure was about 70%.</p>
-        <p class="meta t" lang="ja">2026年10月、自社調べ。抜き取った指摘にラベルを付けて判定。</p>
-        <p class="meta t" lang="en">October 2026, in-house evaluation of a labeled sample of findings.</p>
+        <div class="proof-fig" aria-hidden="true">187<small>/ 245</small></div>
+        <p class="t" lang="ja">調整に一度も使っていない5つの OSS プロジェクトで測ると、CI で止める警告・エラーの<strong>約76%（245件中187件）が実際の問題</strong>でした。誤検知の大半は、片方の言語にしかないキーをプレースホルダーやタグの誤りとして報告したもので、現在修正中です。</p>
+        <p class="t" lang="en">On five open-source projects never used for tuning, <strong>about 76% of the warnings and errors that fail a CI check (187 of 245) were real issues</strong>. Most false positives came from keys present in only one language being reported as placeholder or tag errors; we are fixing this.</p>
+        <p class="meta t" lang="ja">2026年10月、自社調べ（評価者1名による抜き取り判定）。調整に使った別の6本では、調整後に190件中190件でした（調整前は約70%）。</p>
+        <p class="meta t" lang="en">October 2026, in-house evaluation (one evaluator, sampled findings). On six other files that we did use for tuning, the figure after tuning was 190 of 190 (about 70% before tuning).</p>
       </div>
       <ul class="proof-facts">
-        <li><span class="n">97 / 97</span><span class="t" lang="ja"><b>カタカナ表記揺れ</b>は、確認した97件すべてが本物でした。例：ユーザ／ユーザー、プレイヤー／プレーヤー。</span><span class="t" lang="en"><b>Katakana notation drift:</b> all 97 checked findings were real, e.g. ユーザ / ユーザー and プレイヤー / プレーヤー.</span></li>
-        <li><span class="n">156 / 156</span><span class="t" lang="ja"><b>未翻訳・要確認（fuzzy）の行</b>を、行番号付きで1件ずつ報告します。確認した156件すべてが本物でした。</span><span class="t" lang="en"><b>Untranslated and fuzzy lines</b> are reported one by one, with line numbers. All 156 checked were real.</span></li>
-        <li><span class="n">6</span><span class="t" lang="ja"><b>公開翻訳ファイル</b>（約12,600エントリ）。改善前の誤検知の多くはプレースホルダーやタグの誤判定で、エンジン側で直してテストを追加しました。</span><span class="t" lang="en"><b>Public translation files</b> (~12,600 entries). Most earlier false positives came from misreading placeholders and tags; we fixed them in the engine and added tests.</span></li>
+        <li><span class="n">18 / 18</span><span class="t" lang="ja"><b>カタカナ表記揺れ</b>は、調整に使っていないデータで判定できた18件すべてが本物でした。例：ユーザ／ユーザー、プレイヤー／プレーヤー。</span><span class="t" lang="en"><b>Katakana notation drift:</b> all 18 judged findings on the untuned data were real, e.g. ユーザ / ユーザー and プレイヤー / プレーヤー.</span></li>
+        <li><span class="n">159 / 159</span><span class="t" lang="ja"><b>未翻訳・要確認（fuzzy）の行</b>を、行番号付きで1件ずつ報告します。調整に使っていないデータで確認した159件すべてが本物でした。</span><span class="t" lang="en"><b>Untranslated and fuzzy lines</b> are reported one by one, with line numbers. All 159 checked on the untuned data were real.</span></li>
+        <li><span class="n">11</span><span class="t" lang="ja"><b>公開プロジェクト</b>で検証（調整に使用6本、未使用5本）。</span><span class="t" lang="en"><b>Open-source projects</b> tested (6 used for tuning, 5 held out).</span></li>
       </ul>
     </div>
 
@@ -485,8 +485,16 @@ section { scroll-margin-top: 72px; }
         <li><a href="https://github.com/godotengine/godot">Godot Engine</a> <span class="t" lang="ja">（エディタ）</span><span class="t" lang="en">(editor)</span></li>
         <li><a href="https://github.com/wesnoth/wesnoth">Battle for Wesnoth</a> <span class="t" lang="ja">（キャンペーン・UI）</span><span class="t" lang="en">(campaign, UI)</span></li>
       </ul>
-      <p class="note t" lang="ja">これらのプロジェクトが Kotomark を推奨しているわけではありません。公開されている翻訳ファイルに検査をかけただけです。ライセンス：GPL / LGPL / MIT。</p>
-      <p class="note t" lang="en">These projects did not endorse Kotomark; we only ran it on their public translation files. Licenses: GPL/LGPL/MIT.</p>
+      <span class="t" lang="ja">調整に使っていない検証用：</span><span class="t" lang="en">Held out (never used for tuning):</span>
+      <ul>
+        <li><a href="https://github.com/freeciv/freeciv">Freeciv</a></li>
+        <li><a href="https://github.com/Warzone2100/warzone2100">Warzone 2100</a></li>
+        <li><a href="https://github.com/SuperTux/supertux">SuperTux</a></li>
+        <li><a href="https://github.com/mastodon/mastodon">Mastodon</a></li>
+        <li><a href="https://github.com/excalidraw/excalidraw">Excalidraw</a></li>
+      </ul>
+      <p class="note t" lang="ja">これらのプロジェクトが Kotomark を推奨しているわけではありません。公開されている翻訳ファイルに検査をかけただけです。ライセンス：GPL / LGPL / AGPL / MIT。</p>
+      <p class="note t" lang="en">These projects did not endorse Kotomark; we only ran it on their public translation files. Licenses: GPL/LGPL/AGPL/MIT.</p>
     </div>
 
     <!-- TODO before launch: the repo is private; replace this link with a public one. -->
