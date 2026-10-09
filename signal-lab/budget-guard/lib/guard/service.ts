@@ -37,9 +37,17 @@ import type { GuardState } from "./evaluate";
 
 // Glue between the pure guard logic and the template's KV, mail and entitlements.
 
+/**
+ * Provider calls run under the per-connection lock (CONN_LOCK_SECONDS). Without a timeout a
+ * hung request could outlive the lock, letting a second check run at the same time (double
+ * notices / stops) and the first one's unlock delete the second one's lock.
+ */
+export const PROVIDER_TIMEOUT_MS = 20_000;
+const fetchWithTimeout: FetchLike = (url, init) => fetch(url, { ...init, signal: init.signal ?? AbortSignal.timeout(PROVIDER_TIMEOUT_MS) });
+
 /** Real fetch, or the offline demo for the "demo" token (see demoTokensAllowed). */
 export function fetchFor(token: string): FetchLike {
-  if (!isDemoToken(token)) return fetch;
+  if (!isDemoToken(token)) return fetchWithTimeout;
   if (!demoTokensAllowed()) throw new Error("The demo token is disabled in production");
   return demoFetch();
 }

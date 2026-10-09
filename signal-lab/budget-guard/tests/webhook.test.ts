@@ -44,6 +44,13 @@ describe("stripe webhook", () => {
     expect(onNew).toHaveBeenCalledOnce();
   });
 
+  it("keeps the consent from the session metadata when the webhook fulfils first", async () => {
+    const { kv, deps } = setup();
+    const metadata = { product: config.slug, plan: "monthly", consent_at: "2026-10-09T00:00:00.000Z", consent_privacy: "p1", consent_terms: "t1", consent_via: "checkout" };
+    await processStripeEvent(completed("evt_c", { metadata }), deps);
+    expect((await getEntitlement(kv, "cs_test_abc"))?.consent).toEqual({ at: metadata.consent_at, privacy: "p1", terms: "t1", via: "checkout" });
+  });
+
   it("ignores redelivered events and doesn't re-send the email", async () => {
     const { tasks, deps } = setup();
     await processStripeEvent(completed(), deps);

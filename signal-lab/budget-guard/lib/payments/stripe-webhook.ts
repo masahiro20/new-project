@@ -2,7 +2,7 @@ import type Stripe from "stripe";
 import { config } from "../config";
 import { findByCustomer, findByPaymentIntent, findBySubscription, setStatus } from "../entitlements";
 import { key, type KV } from "../redis";
-import { mapSubscriptionStatus, stripeProvider } from "./stripe";
+import { consentFromMetadata, mapSubscriptionStatus, stripeProvider } from "./stripe";
 import { fulfillCheckout, onNewEntitlement } from "./index";
 
 // Stripe webhook logic, kept free of Next.js so it can be unit-tested.
@@ -53,6 +53,7 @@ async function handle(event: Stripe.Event, { kv, after, onNew = onNewEntitlement
           customerId: idOf(s.customer),
           subscriptionId: idOf(s.subscription),
           paymentIntentId: idOf(s.payment_intent),
+          consent: consentFromMetadata(s.metadata),
         },
         "stripe",
       );

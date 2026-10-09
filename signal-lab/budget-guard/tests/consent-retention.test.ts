@@ -182,6 +182,7 @@ describe("admin manual deletion (requests: within 7 days)", () => {
     expect((await adminDelete(req("/api/admin/accounts/delete", { body: { email: e.email } }))).status).toBe(404);
     vi.stubEnv("ADMIN_TOKEN", "admin-token-for-tests-0123456789");
     expect((await adminDelete(req("/api/admin/accounts/delete", { body: { email: e.email }, auth: "wrong-token-for-tests-0123456789" }))).status).toBe(404);
+    expect((await adminDelete(req("/api/admin/accounts/delete", { body: { email: e.email }, auth: "\u00e9dmin-token-for-tests-0123456789" }))).status).toBe(404); // non-ASCII: no throw
     expect((await adminDelete(req("/api/admin/accounts/delete", { body: {}, auth: "admin-token-for-tests-0123456789" }))).status).toBe(400);
     const res = await adminDelete(req("/api/admin/accounts/delete", { body: { email: e.email }, auth: "admin-token-for-tests-0123456789" }));
     expect(res.status).toBe(200);
@@ -194,13 +195,28 @@ describe("admin manual deletion (requests: within 7 days)", () => {
     expect((await adminDelete(req("/api/admin/accounts/delete", { body: { id: e.id }, auth: "admin-token-for-tests-0123456789" }))).status).toBe(200); // idempotent
   });
 
-  it("deleteAccount costs 6 Upstash commands", async () => {
+  it("deleteAccount keeps indexes that point at another entitlement, and waits for a running check", async () => {
+    const kv = createMemoryKV();
+    const { e, conn } = await account(kv, "cs_test_old", "stripe", T0());
+    const old: Entitlement = { ...e, customerId: "cus_shared" };
+    await kv.set("budget-guard:ent-by-customer:cus_shared", "cs_test_new"); // the customer's newer purchase
+    await kv.set(`budget-guard:bg:lock:${conn.id}`, "1", { ex: 120 }); // a check is running
+    expect(await deleteAccount(kv, old)).toEqual({ deletedKeys: 0, busy: true });
+    expect(await getConnection(kv, e.id, conn.id)).toBeTruthy();
+    await kv.del(`budget-guard:bg:lock:${conn.id}`);
+    expect((await deleteAccount(kv, old)).busy).toBeFalsy();
+    await gone(kv, e, conn.id);
+    expect(await kv.get("budget-guard:ent-by-customer:cus_shared")).toBe("cs_test_new");
+    expect(await kv.get(`budget-guard:bg:lock:${conn.id}`)).toBeNull();
+  });
+
+  it("deleteAccount costs 6 Upstash commands + 1 per connection (its lock)", async () => {
     const raw = createMemoryKV();
     const { e } = await account(raw, "cs_test_cost", "stripe", T0());
     let n = 0;
     const kv = new Proxy(raw, { get: (t, p: keyof KV) => (typeof t[p] === "function" ? (...a: unknown[]) => (n++, (t[p] as (...x: unknown[]) => unknown).apply(t, a)) : t[p]) }) as KV;
     await deleteAccount(kv, e);
-    expect(n).toBe(6);
+    expect(n).toBe(7); // 1 connection
   });
 });
 

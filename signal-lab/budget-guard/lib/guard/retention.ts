@@ -41,23 +41,42 @@ export const deleteAfter = (ended: string) => new Date(Date.parse(ended) + RETEN
  * it to Stripe's own payment records) — no email, no license key. The tombstone also stops a
  * Stripe checkout id from being re-fulfilled into a fresh account. Whether payment records
  * must be kept longer for tax/accounting is an open question (docs/legal-changes.md §2.1).
- * Upstash: MGET (connections + email index) + DEL (all keys, one command) + 3×SREM + SET = 6.
+ *
+ * Takes every connection's check lock first (the same lock the cron, "Check now" and the
+ * Vercel webhook use), so a check that is running right now can't write the state / activity
+ * keys back after they were deleted. If one is busy nothing is deleted: `{ busy: true }`, retry later.
+ * Reverse indexes (license, email, subscription, payment, customer) are deleted only while they
+ * still point at this entitlement — a Stripe customer can own several entitlements.
+ * Upstash: MGET (connections + indexes) + SET NX per connection + DEL (all keys, one command)
+ * + 3×SREM + SET = 6 + connections.
  */
-export async function deleteAccount(kv: KV, e: Entitlement, now = new Date()): Promise<{ deletedKeys: number }> {
+export async function deleteAccount(kv: KV, e: Entitlement, now = new Date()): Promise<{ deletedKeys: number; busy?: false } | { deletedKeys: 0; busy: true }> {
   const ek = entitlementKeys;
-  const [connsRaw, emailOwner] = await kv.mget(storeKeys.conns(e.id), ek.email(e.email));
+  const indexKeys = [
+    e.licenseKey ? ek.license(e.licenseKey) : null,
+    e.email ? ek.email(e.email) : null,
+    e.subscriptionId ? ek.sub(e.subscriptionId) : null,
+    e.paymentIntentId ? ek.pi(e.paymentIntentId) : null,
+    e.customerId ? ek.customer(e.customerId) : null,
+  ].filter((x): x is string => !!x);
+  const [connsRaw, ...owners] = await kv.mget(storeKeys.conns(e.id), ...indexKeys);
   const conns = connsRaw ? (JSON.parse(connsRaw) as StoredConnection[]) : [];
+  const locks: string[] = [];
+  for (const c of conns) {
+    if (!(await kv.set(storeKeys.connLock(c.id), "deleting", { nx: true, ex: 120 }))) {
+      if (locks.length) await kv.del(...locks);
+      return { deletedKeys: 0, busy: true };
+    }
+    locks.push(storeKeys.connLock(c.id));
+  }
   const keys = [
     storeKeys.conns(e.id), // connections incl. sealed tokens and webhook secrets
     storeKeys.settings(e.id), // sealed Slack URL
     storeKeys.activity(e.id), // log + snapshots
     ...conns.flatMap((c) => [storeKeys.state(e.id, c.id), key("bg", "owner", c.id)]),
-    ...(e.licenseKey ? [ek.license(e.licenseKey)] : []),
-    ...(emailOwner === e.id ? [ek.email(e.email)] : []), // only if it still points here
-    ...(e.subscriptionId ? [ek.sub(e.subscriptionId)] : []),
-    ...(e.paymentIntentId ? [ek.pi(e.paymentIntentId)] : []),
-    ...(e.customerId ? [ek.customer(e.customerId)] : []),
+    ...indexKeys.filter((_, i) => owners[i] === e.id), // only if it still points here
     key("demo-checkout", e.id), // demo purchase record (email, last 4 digits)
+    ...locks,
   ];
   const deletedKeys = await kv.del(...keys);
   if (conns.length) await kv.srem(key("bg", "allconns"), ...conns.map((c) => connRef(e.id, c.id)));
@@ -83,7 +102,7 @@ export async function deleteAccount(kv: KV, e: Entitlement, now = new Date()): P
 
 export type SweepResult = { candidates: number; deleted: string[]; pending: number };
 
-/** SMEMBERS retention + MGET entitlements, then up to `maxDeletes` deletions (6 commands each). */
+/** SMEMBERS retention + MGET entitlements, then up to `maxDeletes` deletions (6 + connections commands each). */
 export async function sweepRetention(kv: KV, now = new Date(), maxDeletes = MAX_DELETES_PER_SWEEP): Promise<SweepResult> {
   const ids = await kv.smembers(entitlementKeys.retention());
   const result: SweepResult = { candidates: ids.length, deleted: [], pending: 0 };
@@ -111,7 +130,10 @@ export async function sweepRetention(kv: KV, now = new Date(), maxDeletes = MAX_
       result.pending++;
       continue;
     }
-    await deleteAccount(kv, e, now);
+    if ((await deleteAccount(kv, e, now)).busy) {
+      result.pending++; // a check of one of its connections is running: next sweep
+      continue;
+    }
     result.deleted.push(e.id);
   }
   if (drop.length) await kv.srem(entitlementKeys.retention(), ...drop);

@@ -28,7 +28,9 @@ export async function POST(request: Request) {
   if (!e) return Response.json({ error: "not found" }, { status: 404 });
   if (e.deletedAt) return Response.json({ deleted: true, id: e.id, alreadyDeletedAt: e.deletedAt });
   const stillBilling = e.source === "stripe" && ["active", "trialing", "past_due"].includes(e.status);
-  const { deletedKeys } = await deleteAccount(kv, e);
+  const r = await deleteAccount(kv, e);
+  if (r.busy) return Response.json({ error: "a check of this account is running: retry in a minute" }, { status: 409 });
+  const { deletedKeys } = r;
   return Response.json(
     { deleted: true, id: e.id, deletedKeys, ...(stillBilling && { warning: "The Stripe subscription is still active: cancel it in Stripe." }) },
     { headers: { "Cache-Control": "no-store" } },

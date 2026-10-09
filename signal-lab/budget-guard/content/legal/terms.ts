@@ -15,7 +15,13 @@ export const terms: Record<"ja" | "en", LegalDoc> = {
         ],
       },
       { heading: "ライセンス", body: ["購入者には、本サービスを自ら利用するための非独占的・譲渡不能な権利を付与します。ライセンスキーを第三者と共有・転売することはできません。"] },
-      { heading: "料金と支払い", body: [`料金は料金ページに表示するとおりです。${c.legal.paymentTiming}`] },
+      {
+        heading: "料金と支払い",
+        body: [
+          `料金は料金ページに表示するとおりです。${c.legal.paymentTiming}`,
+          `${R}購入の記録（日時、金額、プラン、請求書番号）は、税法上の帳簿書類の保存のため、アカウントの削除後も7年間保存します。詳しくはプライバシーポリシーの「保存期間と削除」をご覧ください。`,
+        ],
+      },
       { heading: "サブスクリプションの更新と解約", body: ["サブスクリプションは解約しない限り自動で更新されます。", c.legal.cancellationPolicy] },
       { heading: "返金", body: [c.legal.refundPolicy] },
       { heading: "禁止事項", body: ["法令に違反する行為、本サービスの運営を妨げる行為、リバースエンジニアリング、不正アクセスを禁止します。"] },
@@ -68,7 +74,13 @@ export const terms: Record<"ja" | "en", LegalDoc> = {
         ],
       },
       { heading: "License", body: ["You get a non-exclusive, non-transferable right to use the Service yourself. License keys may not be shared or resold."] },
-      { heading: "Pricing and payment", body: [`Prices are as shown on the pricing page. ${c.legal.paymentTiming}`] },
+      {
+        heading: "Pricing and payment",
+        body: [
+          `Prices are as shown on the pricing page. ${c.legal.paymentTiming}`,
+          `${R}Purchase records (date and time, amount, plan, invoice number) are kept for 7 years, even after your account is deleted, to meet the bookkeeping retention rules of tax law. See "Retention and deletion" in the Privacy Policy.`,
+        ],
+      },
       { heading: "Subscriptions", body: ["Subscriptions renew automatically until canceled.", c.legal.cancellationPolicy] },
       { heading: "Refunds", body: [c.legal.refundPolicy] },
       { heading: "Prohibited use", body: ["No unlawful use, disruption of the Service, reverse engineering or unauthorized access."] },

@@ -140,6 +140,32 @@ describe("decided values replace the open questions", () => {
   });
 });
 
+describe("purchase records kept 7 years for tax bookkeeping (decision d28)", () => {
+  it("privacy and terms say 7 years, the four fields only, in both languages, with the review mark", () => {
+    const jaP = privacy.ja(config).sections.find((s) => s.heading === "保存期間と削除")!.body.find((p) => p.includes("購入記録"))!;
+    const enP = privacy.en(config).sections.find((s) => s.heading === "Retention and deletion")!.body.find((p) => p.startsWith(`${REVIEW_MARK}Purchase records`))!;
+    const jaT = section(terms.ja(config), "料金と支払い");
+    const enT = section(terms.en(config), "Pricing and payment");
+    for (const t of [jaP, jaT]) {
+      expect(t).toContain("7年間");
+      expect(t).toContain("日時");
+      expect(t).toContain("金額");
+      expect(t).toContain("プラン");
+      expect(t).toContain("請求書番号");
+      expect(t).toContain(REVIEW_MARK);
+    }
+    for (const t of [enP, enT]) {
+      expect(t).toContain("7 years");
+      expect(t).toContain("amount");
+      expect(t).toContain("plan");
+      expect(t).toContain("invoice number");
+      expect(t).toContain(REVIEW_MARK);
+    }
+    expect(jaP).toContain("最小限");
+    expect(enP).toContain("as little information identifying you as possible");
+  });
+});
+
 describe("review marks and language parity", () => {
   for (const [name, doc] of [["privacy", privacy], ["terms", terms]] as const) {
     it(`${name}: ja and en have the same shape and the same review marks`, () => {

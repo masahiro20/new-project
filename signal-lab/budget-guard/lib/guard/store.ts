@@ -64,6 +64,7 @@ export const storeKeys = {
   state: k.state,
   activity: k.activity,
   settings: k.settings,
+  connLock: k.connLock,
 };
 
 export interface Activity {

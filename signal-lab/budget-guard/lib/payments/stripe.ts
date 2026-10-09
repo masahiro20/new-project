@@ -98,10 +98,15 @@ export async function getCompletedCheckout(sessionId: string): Promise<Completed
     subscriptionId: idOf(s.subscription),
     paymentIntentId: idOf(s.payment_intent),
     licenseKey: s.customer && typeof s.customer === "object" && !s.customer.deleted ? s.customer.metadata[LICENSE_META] : undefined,
-    consent: s.metadata.consent_at
-      ? { at: s.metadata.consent_at, privacy: s.metadata.consent_privacy ?? "", terms: s.metadata.consent_terms ?? "", via: (s.metadata.consent_via ?? "checkout") as ConsentVia }
-      : undefined,
+    consent: consentFromMetadata(s.metadata),
   };
+}
+
+/** The consent createCheckoutUrl stored in the session metadata (also read by the webhook, which may fulfil first). */
+export function consentFromMetadata(m: Stripe.Metadata | null | undefined): ConsentRecord | undefined {
+  return m?.consent_at
+    ? { at: m.consent_at, privacy: m.consent_privacy ?? "", terms: m.consent_terms ?? "", via: (m.consent_via ?? "checkout") as ConsentVia }
+    : undefined;
 }
 
 export const stripeProvider: PaymentProvider = {
