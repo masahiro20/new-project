@@ -33,6 +33,23 @@ const CORPUS_WORDS = new Set(["pattern", "patterns", "regex", "regexes", "regexp
 const isEvalKey = (k) => { const n = String(k).replace(/[_\-\s]/g, "").toLowerCase(); return n.startsWith("expected") || EVAL_KEYS.has(n); };
 const corpusName = (name) => (String(name).match(/[A-Z]?[a-z]+|[A-Z]+(?![a-z])/g) || []).some((w) => CORPUS_WORDS.has(w.toLowerCase()));
 const propName = (p) => (p && p.name && (p.name.text !== undefined ? p.name.text : "")) || "";
+// v1.3: prompt construction (kept in sync with ast_py.PROMPT_KEYS / LLM_CALL / PROMPT_NAME / FUNC_PROMPT)
+const PROMPT_KEYS = new Set(["messages", "system", "prompt", "prompts", "instructions", "content", "systemprompt", "systemmessage",
+  "userprompt", "developerprompt", "systeminstruction", "systeminstructions"]);
+const normKey = (k) => String(k).replace(/[_\-\s]/g, "").toLowerCase();
+const LLM_CALL = /^(a?create|a?chat|a?generate\w*|generateContent\w*|generate_content\w*|a?complete|a?completions?|create_?message|createMessage|a?invoke|streamText|streamObject|chat_?completions?|text_?generation)$/i;
+const PROMPT_NAME = /(prompt|instructions?|system_?message)s?(_?(text|template|tmpl|str|string|msg|base|body|prefix|suffix|header|footer|parts?|lines?|v?\d+))?$/i;
+const FUNC_PROMPT = /prompts?_?(text|template|tmpl|str|string)?$/i;
+const EXAMPLE_WORDS = new Set(["example", "examples", "fewshot", "few", "shot", "shots", "demo", "demos", "demonstration",
+  "demonstrations", "exemplar", "exemplars"]);
+const EXAMPLE_IN_KEYS = new Set(["input", "inputs", "query", "question", "prompt", "user", "text"]);
+const EXAMPLE_OUT_KEYS = new Set(["output", "outputs", "answer", "response", "completion", "assistant", "label", "result", "ideal"]);
+const exampleName = (name) => {
+  const w = (String(name).match(/[A-Z]?[a-z]+|[A-Z]+(?![a-z])/g) || []).map((x) => x.toLowerCase());
+  return w.some((x) => EXAMPLE_WORDS.has(x)) && !(w.length === 1 && (w[0] === "few" || w[0] === "shot"));
+};
+const isExampleRecord = (keys) => { const ks = keys.map(normKey); return ks.some((k) => EXAMPLE_IN_KEYS.has(k)) && ks.some((k) => EXAMPLE_OUT_KEYS.has(k)); };
+const TOOL_DESC_KEYS = new Set(["description", "desc", "title", "summary"]);
 const SEND_SINKS = /^(fetch|post|put|send|write|log|info|debug|warn|error|request|axios|got)$/;
 
 function scriptKind(file) {
@@ -105,6 +122,121 @@ function analyse(file, text) {
     }
     ts.forEachChild(n, findSinks);
   })(sf);
+
+  // v1.3: identifiers whose value reaches a tool / server description proper (not a model prompt)
+  const toolDescSinks = new Set();
+  const collectTool = (n) => { const v = (x) => { if (ts.isIdentifier(x)) toolDescSinks.add(x.text); ts.forEachChild(x, v); }; v(n); };
+  (function findToolSinks(n) {
+    if (ts.isPropertyAssignment(n) && TOOL_DESC_KEYS.has(propName(n))) collectTool(n.initializer);
+    if (ts.isShorthandPropertyAssignment(n) && TOOL_DESC_KEYS.has(n.name.text)) toolDescSinks.add(n.name.text);
+    if (ts.isCallExpression(n) && /^(tool|registerTool|resource)$/.test(calleeName(n.expression)) && n.arguments[1]) collectTool(n.arguments[1]);
+    if (ts.isVariableDeclaration(n) && n.initializer && ts.isIdentifier(n.name) && /desc|description/i.test(n.name.text)) collectTool(n.initializer);
+    ts.forEachChild(n, findToolSinks);
+  })(sf);
+
+  const isLlmCall = (c) => c && (ts.isCallExpression(c) || ts.isNewExpression(c)) && LLM_CALL.test(calleeName(c.expression));
+  const isStmt = (p) => (p.kind >= ts.SyntaxKind.FirstStatement && p.kind <= ts.SyntaxKind.LastStatement) || ts.isBlock(p) ||
+    ts.isSourceFile(p) || ts.isClassLike(p) || ts.isJsxElement(p) || ts.isJsxSelfClosingElement(p) || ts.isJsxFragment(p) ||
+    ts.isJsxAttribute(p) || ts.isJsxExpression(p);
+  function fnName(fn) {
+    if (!fn) return "";
+    if ((ts.isFunctionDeclaration(fn) || ts.isMethodDeclaration(fn) || ts.isFunctionExpression(fn)) && fn.name) return fn.name.text || "";
+    let q = fn.parent;
+    if (q && ts.isVariableDeclaration(q) && ts.isIdentifier(q.name)) return q.name.text;
+    if (q && ts.isPropertyAssignment(q)) return propName(q);
+    return "";
+  }
+  const promptSinks = new Set();
+  function promptStep(cur, p) {
+    if (ts.isPropertyAssignment(p)) return p.initializer === cur && PROMPT_KEYS.has(normKey(propName(p))) ? "prompt" : null;
+    if (ts.isShorthandPropertyAssignment(p)) return PROMPT_KEYS.has(normKey(p.name.text)) ? "prompt" : null;
+    if (ts.isObjectLiteralExpression(p)) {
+      return p.properties.some((q) => ts.isPropertyAssignment(q) && propName(q) === "role" && ts.isStringLiteralLike(q.initializer) &&
+        /^(system|developer)$/.test(q.initializer.text)) ? "prompt" : null;
+    }
+    if (ts.isCallExpression(p) || ts.isNewExpression(p)) return cur !== p.expression && isLlmCall(p) ? "prompt" : null;
+    if (ts.isVariableDeclaration(p)) {
+      if (p.initializer !== cur || !ts.isIdentifier(p.name)) return "stop";
+      const nm = p.name.text;
+      return (PROMPT_NAME.test(nm) && !toolDescSinks.has(nm)) || promptSinks.has(nm) ? "prompt" : "stop";
+    }
+    if (ts.isBinaryExpression(p) && p.operatorToken.kind !== ts.SyntaxKind.PlusToken) {
+      const k = p.operatorToken.kind;
+      if (k === ts.SyntaxKind.EqualsToken || k === ts.SyntaxKind.PlusEqualsToken) {
+        if (p.right !== cur) return "stop";
+        const nm = calleeText(p.left, sf).split(".").pop();
+        return (PROMPT_NAME.test(nm) && !toolDescSinks.has(nm)) || promptSinks.has(nm) ? "prompt" : "stop";
+      }
+      return null;
+    }
+    if (ts.isPropertyDeclaration(p)) {
+      const nm = propName(p);
+      return p.initializer === cur && ((PROMPT_NAME.test(nm) && !toolDescSinks.has(nm)) || promptSinks.has(nm)) ? "prompt" : "stop";
+    }
+    if (ts.isReturnStatement(p)) {
+      let fn = p.parent;
+      while (fn && !ts.isFunctionLike(fn) && !ts.isSourceFile(fn)) fn = fn.parent;
+      return FUNC_PROMPT.test(fnName(fn)) ? "prompt" : "stop";
+    }
+    if (ts.isArrowFunction(p)) return p.body === cur && FUNC_PROMPT.test(fnName(p)) ? "prompt" : "stop";
+    if (ts.isFunctionLike(p) || isStmt(p)) return "stop";
+    return null;
+  }
+  for (let pass = 0; pass < 2; pass++) {
+    (function findPromptSinks(n) {
+      if (ts.isIdentifier(n) && n.parent && !(ts.isVariableDeclaration(n.parent) && n.parent.name === n) &&
+          !(ts.isPropertyAccessExpression(n.parent) && n.parent.name === n) && !(ts.isPropertyAssignment(n.parent) && n.parent.name === n)) {
+        let cur = n;
+        for (let d = 0; d < 30 && cur.parent; d++) {
+          const r = promptStep(cur, cur.parent);
+          if (r === "prompt") { if (!toolDescSinks.has(n.text)) promptSinks.add(n.text); break; }
+          if (r === "stop") break;
+          cur = cur.parent;
+        }
+      }
+      ts.forEachChild(n, findPromptSinks);
+    })(sf);
+  }
+  function promptCtx(node) {
+    let cur = node, example = false;
+    for (let d = 0; d < 40 && cur.parent; d++) {
+      const p = cur.parent;
+      if (ts.isObjectLiteralExpression(p) && isExampleRecord(p.properties.map(propName))) example = true;
+      if (ts.isPropertyAssignment(p) && p.initializer === cur && exampleName(propName(p))) example = true;
+      if (ts.isVariableDeclaration(p) && ts.isIdentifier(p.name) && exampleName(p.name.text)) example = true;
+      const r = promptStep(cur, p);
+      if (r === "prompt") return [true, example];
+      if (r === "stop") return [false, false];
+      cur = p;
+    }
+    return [false, false];
+  }
+  function reachesToolDesc(node) {
+    let cur = node;
+    for (let d = 0; d < 40 && cur.parent; d++) {
+      const p = cur.parent;
+      if (ts.isPropertyAssignment(p) && p.initializer === cur && DESC_KEYS.has(propName(p))) {
+        const k = propName(p);
+        if (TOOL_DESC_KEYS.has(k)) return true;
+        if (k === "instructions") {
+          let c = p.parent && p.parent.parent;
+          return !isLlmCall(c);
+        }
+        return false;
+      }
+      if ((ts.isCallExpression(p) || ts.isNewExpression(p)) && cur !== p.expression) {
+        return /^(tool|registerTool|resource)$/.test(calleeName(p.expression)) && (p.arguments || []).indexOf(cur) === 1;
+      }
+      if (ts.isVariableDeclaration(p)) return ts.isIdentifier(p.name) && (/desc|description/i.test(p.name.text) || toolDescSinks.has(p.name.text));
+      if (ts.isBinaryExpression(p) && p.operatorToken.kind !== ts.SyntaxKind.PlusToken) {
+        const nm = calleeText(p.left, sf);
+        return /desc|description/i.test(nm) || toolDescSinks.has(nm.split(".").pop());
+      }
+      if (ts.isFunctionLike(p) || isStmt(p)) return false;
+      cur = p;
+    }
+    return false;
+  }
 
   const isContainer = (n) => n && (ts.isArrayLiteralExpression(n) || ts.isObjectLiteralExpression(n));
   const isWrapper = (n) => n && (ts.isParenthesizedExpression(n) || ts.isAsExpression(n) || ts.isTypeAssertionExpression(n) ||
@@ -186,6 +318,14 @@ function analyse(file, text) {
         const [inCorpus, outer] = corpusCtx(n);
         if (role === "plain" && inCorpus) role = "corpus";
         else if (role !== "plain" && outer && bindingOf(outer)[1]) role = "desc";  // collection passed on as a description
+      }
+      // v1.3: any string bound to a name later used as a tool description is that description
+      if (["plain", "corpus", "pattern", "patternlist"].includes(role) && reachesToolDesc(n)) role = "desc";
+      // v1.3: prompt construction (a prompt-named "description", or a string placed into a prompt)
+      if (["desc", "plain", "corpus", "patternlist", "pattern"].includes(role) && !(role === "desc" && reachesToolDesc(n))) {
+        const [inPrompt, inExample] = promptCtx(n);
+        if (inPrompt) role = inExample ? "example" : "prompt";
+        else if (role === "desc") role = "plain";  // prompt-like name, but neither a tool description nor sent to a model
       }
       spans.push([n.getStart(sf), n.getEnd(), "string", role]);
     } else if (n.kind === ts.SyntaxKind.RegularExpressionLiteral) {

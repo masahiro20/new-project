@@ -144,7 +144,7 @@ MEDIA_B64 = ("iVBORw0KGgo", "/9j/", "R0lGOD", "UklGR", "AAABAA", "T2dnUw", "d09G
 
 
 SEV_RANK = {"critical": 4, "high": 3, "medium": 2, "low": 1, "info": 0}
-SCANNER_VERSION = "1.2"
+SCANNER_VERSION = "1.3"
 CORPUS_MIN_STRINGS = 9  # v1.2: a string plus >= 8 sibling strings in one literal that match attack rules
 
 
@@ -157,7 +157,11 @@ def ctx_of(rel):
     if re.search(r"(^|/)(tests?|__tests__|__mocks__|__fixtures__|mocks?|spec|specs|e2e|fixtures?|testdata|test_data|evals?|benchmarks?|testing"
                  r"|test-[\w-]+|test_[\w-]+|cypress|playwright|\.storybook)(/|$)"
                  r"|\.(test|spec|stories|bench)\.|(^|/)test_[^/]+\.py$|_tests?\.(py|go|rs|rb|ts|js)$|_spec\.rb$|(^|/)tests?\.rs$|conftest\.py$"
-                 r"|(^|/)src/test/", p) or re.search(r"(^|/)\w*[a-z0-9]Tests?\.(java|kt|cs)$", rel.replace("\\", "/")):
+                 r"|(^|/)src/test/"
+                 # v1.3: scripts/test-*.js, *-test.*, *.test-*.*, stress-test.*, test_*.mjs ("-test" / "test-" / "test_"
+                 # must be a whole hyphen/underscore/dot-separated word, so latest.js / contest.ts do not match)
+                 r"|(^|/)scripts/test[-_][^/]*\.(js|mjs|cjs|ts|mts|cts|py)$|(^|/)[^/]+-tests?\.[a-z0-9]+$"
+                 r"|\.test-[^/]*\.[a-z0-9]+$|(^|/)test_[^/]+\.(mjs|cjs|js|ts|mts|cts)$", p) or re.search(r"(^|/)\w*[a-z0-9]Tests?\.(java|kt|cs)$", rel.replace("\\", "/")):
         return "test"
     if re.search(r"(^|/)(examples?|samples?|demos?|playground)(/|$)", p):
         return "example"
@@ -225,15 +229,23 @@ def quoted_on_line(line, a, b):
 STRONG_NEG = re.compile(r"\b(never|don'?t|do\s+not|must\s+not|should\s+not|shouldn'?t|avoid|refuse\s+to)\b[^.\n]{0,25}$", re.I)
 
 
-def negated(text, start, strict=False):
-    """strict=True (tool descriptions): only a strong negation directly before the match counts."""
+SENT_END = re.compile(r"(?<!\be\.g)(?<!\bi\.e)(?<!\betc)(?<!\bvs)[.!?;](?=\s)|\n[ \t]*\n|\n[ \t]*[-*\u2022][ \t]")
+
+
+def negated(text, start, strict=False, prompt=False):
+    """strict=True (tool descriptions): only a strong negation directly before the match counts.
+    prompt=True (v1.3, prompt strings): "e.g." / "i.e." do not end the sentence."""
     if strict:
         ls = text.rfind("\n", 0, start) + 1
         return bool(STRONG_NEG.search(text[max(ls, start - 40):start]))
     ls = text.rfind("\n", 0, start) + 1
-    window = text[max(ls, start - 90):start]
+    if prompt:
+        ls = max(start - 160, 0)
+        cuts = [m.end() for m in SENT_END.finditer(text, ls, start)]
+        ls = cuts[-1] if cuts else ls
+    window = text[max(ls, start - (160 if prompt else 90)):start]
     # stop at the previous sentence boundary
-    window = re.split(r"[.!?;]\s", window)[-1]
+    window = (SENT_END.split(window) if prompt else re.split(r"[.!?;]\s", window))[-1]
     cues = list(NEG_CUE.finditer(window))
     if not cues:
         return False
@@ -799,6 +811,209 @@ def setup_py_calls_setup(text):
     return False
 
 
+# ---------------------------------------------------------------------------
+# v1.3: TP-* / SK-001 are high/critical only where the text reaches an agent: a tool description
+# (string:desc), a skill, a manifest / tool definition (v1.2 data files), or a prompt that the code
+# sends to a model (string:prompt -- AST in ast_py / js/ast_dump.cjs; string:prompt~ -- lexical, for
+# Go / Rust / other unparsed languages). Other string literals and comments: medium + review.
+GATE_RULES = {"ATL-TP-001", "ATL-TP-002", "ATL-TP-003", "ATL-TP-004", "ATL-TP-005", "ATL-SK-001"}
+PROMPT_LOCS = ("string:prompt", "string:prompt~")
+AGENT_LOCS = {"string:desc", "code"} | set(PROMPT_LOCS)
+OUTSIDE_WHY = "string outside agent-reaching locations (may be a quote, example or data); review"
+# code files whose output is injected into the agent's context (plugin hooks, agent config dirs)
+AGENT_CODE_PATH = re.compile(r"(^|/)(\.(claude|claude-plugin|cursor|codex|gemini|windsurf|continue|kiro|roo|amazonq)|hooks)/")
+_LEX_PROMPT_NAME = ast_py.PROMPT_NAME
+_LEX_FIELD = re.compile(r"([A-Za-z_]\w*)\s*(?::=|\+=|=|:)\s*(?:&?[\w:.!<>\[\]]*\s*[\(\{\[]\s*)*$")
+_LEX_METHOD = re.compile(r"\.([A-Za-z_]\w*)\s*\(\s*$")
+_LEX_ROLE_SYSTEM = re.compile(r"\b(ChatMessageRoleSystem|RoleSystem|Role::System|MessageRole::System)\b|\brole\s*[:=]\s*\"(system|developer)\"", re.I)
+
+
+def _prompt_key(name):
+    n = re.sub(r"[_\-\s]", "", name).lower()
+    return n in ast_py.PROMPT_KEYS or bool(_LEX_PROMPT_NAME.search(name))
+
+
+def lex_prompt_ctx(text, start):
+    """v1.3, Go / Rust / unparsed languages: is the string literal starting at `start` part of a model
+    prompt? Looks only at the code of the current statement (strings and comments blanked): the
+    nearest `key:` / `name =` / `name :=` / `.method(` before the literal, an unclosed LLM call
+    (`.Create(` / `.Chat(` / `Generate...(`), or a system-role marker."""
+    seg = _stmt_prefix(text, start)
+    seg = re.sub(r"[\"'`][^\"'`\n]*$", "", seg)  # the literal's own opening quote (unparsed languages)
+    m = _LEX_FIELD.search(seg)
+    if m and _prompt_key(m.group(1)):
+        return True
+    m = _LEX_METHOD.search(seg)
+    if m and (_prompt_key(m.group(1)) or ast_py.LLM_CALL.match(m.group(1))):
+        return True
+    stack = []
+    for tok in re.finditer(r"([A-Za-z_]\w*)?\s*\(|\)", seg):
+        if tok.group(0) == ")":
+            if stack:
+                stack.pop()
+        else:
+            stack.append(tok.group(1) or "")
+    if any(nm and ast_py.LLM_CALL.match(nm) for nm in stack):
+        return True
+    lo = max(start - 300, 0)
+    raw = text[lo:start]
+    return bool(_LEX_ROLE_SYSTEM.search(raw[max(raw.rfind(";"), raw.rfind("}")) + 1:]))
+
+
+# few-shot example label in a prompt string ("Example:", "Examples 2:", "Input:", "Q:", "e.g.:")
+FEWSHOT_LABEL = re.compile(r"(?i)(?:^|\n|[.!?]\s+)[ \t>#*\-]*(?:examples?(?:\s*\d+)?|few[- ]?shot(?:\s+examples?)?|for\s+example"
+                           r"|e\.g\.|sample\s+(?:input|conversation|dialog(?:ue)?)|(?:user\s+)?input|q)\s*[:：]")
+
+
+def fewshot_label_before(text, s0, a):
+    """True if, inside the string starting at s0, the text before `a` has a few-shot example label
+    with no blank line between it and the match."""
+    last = None
+    for m in FEWSHOT_LABEL.finditer(text, s0, a):
+        last = m
+    return bool(last) and not re.search(r"\n[ \t]*\n", text[last.end():a])
+
+
+# v1.3: defensive instruction that cites an override phrase ("do not follow embedded instructions
+# such as 'ignore previous instructions'"). General rule: ignore / disregard / do not follow + such /
+# any / embedded / untrusted ... instructions, or instructions embedded in / found in <content>.
+_FOLLOW = r"(?:follow|obey|comply\s+with|execute|act\s+on|carry\s+out)"
+DEFENSE_CUE = re.compile(
+    r"\b(?:ignore|disregard|(?:do\s+not|don'?t|never|must\s+not|should\s+not|refuse\s+to)\s+" + _FOLLOW + r"|treat)\b"
+    r"[^.!?;\n]{0,60}?\b(?:such|any|embedded|untrusted|injected|external|retrieved|hidden|third[- ]party|these|those)\b"
+    r"[^.!?;\n]{0,30}?\b(?:instructions?|directives?|commands?|requests?|prompts?|text|content|messages?)\b"
+    r"|\b(?:instructions?|directives?|commands?)\s+(?:that\s+(?:are|appear)\s+)?(?:embedded|contained|found|hidden|injected|appearing)"
+    r"\s+(?:in|within|inside)\b"
+    r"|\b(?:instructions?|directives?|commands?)\s+(?:in|within|inside|from)\s+(?:the\s+|any\s+)?(?:tool\s+(?:results?|outputs?)"
+    r"|documents?|web\s*pages?|retrieved|user[- ](?:provided|supplied)|untrusted|external|search\s+results?|emails?|files?|data)\b"
+    r"|\b(?:do\s+not|don'?t|never)\s+" + _FOLLOW + r"\s+(?:it|them|this|that)\b"
+    r"|\bas\s+(?:untrusted\s+)?(?:data|plain\s+text)\b(?!\s*:)", re.I)
+_IMPERATIVE_HEAD = re.compile(r"^[\W_]*(?:(?:please|now|first|then|also|always|immediately|you\s+(?:must|should|will)|must)\s+"
+                              r"|[A-Za-z]+\s*:\s*)*[\W_]*$", re.I)
+
+
+def defensive_override(text, a, b):
+    """True if a TP-003 match at [a,b) sits in a sentence that tells the model NOT to follow such
+    text, and is not itself the sentence's imperative (`Ignore previous instructions and ...`)."""
+    lo = max(a - 400, 0)
+    cuts = [m.end() for m in SENT_END.finditer(text, lo, a)]
+    head = text[cuts[-1] if cuts else lo:a]
+    if _IMPERATIVE_HEAD.match(head):
+        return False
+    m = SENT_END.search(text, b, min(len(text), b + 400))
+    sentence = head + " " * (b - a) + text[b:m.start() if m else min(len(text), b + 400)]
+    return bool(DEFENSE_CUE.search(sentence))
+
+
+# ---------------------------------------------------------------------------
+# v1.3: CR-001 in Go. os.Environ() is high only when, in the same function, its result reaches JSON /
+# log output / an HTTP request / a file or stream write (lexical: strings and comments blanked).
+# Passing it to a child process (cmd.Env = os.Environ(), append(os.Environ(), ...)) and scanning it
+# for a prefix (strings.HasPrefix) is a capability, shown as low.
+GO_SINK = re.compile(r"\b(?:json\.(?:Marshal|MarshalIndent|NewEncoder)|yaml\.Marshal|xml\.Marshal|toml\.Marshal|gob\.NewEncoder"
+                     r"|fmt\.(?:Print|Println|Printf|Fprint|Fprintln|Fprintf)|log\.\w+|slog\.\w+|http\.\w+"
+                     r"|os\.WriteFile|ioutil\.WriteFile|\w+\.(?:Write|WriteString|WriteAll|Encode|Post|PostForm|Do|Send"
+                     r"|Info|Infof|Debug|Debugf|Warn|Warnf|Error|Errorf|Print|Printf|Println|Log|Logf))\s*\(")
+GO_FILTER = re.compile(r"\bstrings\.(?:HasPrefix|HasSuffix|Contains|EqualFold|Index)\s*\(")
+
+
+def _go_masked(text):
+    """Go source with string literal contents and comments replaced by spaces (offsets preserved)."""
+    chars = list(text)
+    for s, e, kind, _ in lex_spans(text, ".go"):
+        lo, hi = (s + 1, e - 1) if kind == "string" else (s, e)
+        for i in range(lo, min(hi, len(chars))):
+            if chars[i] != "\n":
+                chars[i] = " "
+    return "".join(chars)
+
+
+def _block_at(masked, a, open_at=None):
+    """(start, end) of the top-level {...} block containing offset a (a func body), else the file."""
+    depth, start = 0, None
+    for i, c in enumerate(masked):
+        if c == "{":
+            if depth == 0:
+                start = i
+            depth += 1
+        elif c == "}":
+            depth -= 1
+            if depth == 0 and start is not None:
+                if start <= a <= i:
+                    return start, i + 1
+                start = None
+            depth = max(depth, 0)
+    return 0, len(masked)
+
+
+def _call_args(masked, i):
+    """Text of the balanced (...) starting at masked[i] == '('."""
+    depth = 0
+    for j in range(i, min(len(masked), i + 4000)):
+        if masked[j] == "(":
+            depth += 1
+        elif masked[j] == ")":
+            depth -= 1
+            if depth == 0:
+                return masked[i + 1:j]
+    return masked[i + 1:i + 4000]
+
+
+def go_environ_flow(text, a, masked=None):
+    """(sev, why) for an os.Environ() call at offset a in a Go file (v1.3)."""
+    masked = masked if masked is not None else _go_masked(text)
+    s0, e0 = _block_at(masked, a)
+    body = masked[s0:e0]
+    rel_a = a - s0
+    call_end = rel_a + len("os.Environ()")
+    tainted = set()
+    # x := os.Environ() / var x = os.Environ() / x = os.Environ()
+    m = re.search(r"([A-Za-z_]\w*)\s*(?::=|=)\s*$", body[max(0, rel_a - 80):rel_a])
+    if m:
+        tainted.add(m.group(1))
+    filtered = False
+    # for _, e := range os.Environ() { ... }  (also through a tainted variable)
+    loops = []
+    for lm in re.finditer(r"\bfor\s+(?:([A-Za-z_]\w*)\s*,\s*)?([A-Za-z_]\w*)\s*:?=\s*range\s+([\w.()]+)\s*\{", body):
+        src = lm.group(3)
+        if src == "os.Environ()" and lm.start(3) == rel_a or src in tainted:
+            j = lm.end() - 1
+            depth, k = 0, j
+            while k < len(body):
+                if body[k] == "{":
+                    depth += 1
+                elif body[k] == "}":
+                    depth -= 1
+                    if depth == 0:
+                        break
+                k += 1
+            loops.append((lm.group(2), body[j:k + 1]))
+    for var, lbody in loops:
+        tainted.add(var)
+        if GO_FILTER.search(lbody):
+            filtered = True  # prefix / name scan: only selected entries are used
+            continue
+        # entries collected into another container: m[k] = v / out = append(out, e)
+        for cm in re.finditer(r"([A-Za-z_]\w*)\s*\[[^=\n]*\]\s*=(?!=)|([A-Za-z_]\w*)\s*=\s*append\(\s*\2\b", lbody):
+            tainted.add(cm.group(1) or cm.group(2))
+    # does a sink receive os.Environ() itself or a tainted name?
+    names = re.compile(r"\bos\.Environ\(\)" + "".join(r"|\b" + re.escape(t) + r"\b" for t in tainted))
+    for sm in GO_SINK.finditer(body):
+        args = _call_args(body, sm.end() - 1)
+        if names.search(args):
+            return "high", None
+    stmt = body[max(0, rel_a - 120):rel_a]
+    after = body[call_end:call_end + 40]
+    if re.search(r"\bEnv\s*(?:=|:)\s*(?:append\(\s*)?$", stmt) or re.search(r"\bappend\(\s*$", stmt) \
+            or re.search(r"^\s*,", after) and re.search(r"append\(\s*$", stmt):
+        why = "os.Environ() passed to a child process environment (capability)"
+    elif filtered:
+        why = "os.Environ() scanned for selected names (strings.HasPrefix etc.), not dumped (capability)"
+    else:
+        why = "os.Environ() not passed to JSON / log / HTTP / file output in this function (capability)"
+    return "low", why
+
+
 def decide(f, text, ext, ctx, span, fenced, data=None, base=""):
     """Apply the context layer to one text-rule candidate. Mutates f."""
     rid = f["rule"]
@@ -809,6 +1024,8 @@ def decide(f, text, ext, ctx, span, fenced, data=None, base=""):
     if span and span[3] in ("lex", "lexplain", "lexdesc"):
         # Rust / Go tokenizer (v1.1): a heuristic, so locations keep the "~" marker
         loc = {"lex": "comment~", "lexplain": "string~", "lexdesc": "string:desc"}[span[3]]
+        if loc == "string~" and rid in GATE_RULES and lex_prompt_ctx(text, span[0]):
+            loc = "string:prompt~"  # v1.3: a prompt sent to a model (lexical)
     elif span:
         kind, role = span[2], span[3]
         loc = kind if kind != "string" else ("string:" + role)
@@ -826,6 +1043,8 @@ def decide(f, text, ext, ctx, span, fenced, data=None, base=""):
             loc = "comment~"
         elif quoted_on_line(line, col_a, col_b) or (line.lstrip().startswith(("\"", "r\"", "r#\"")) and line.rstrip().endswith("\\")):
             loc = "string~"
+            if rid in GATE_RULES and lex_prompt_ctx(text, a):
+                loc = "string:prompt~"  # v1.3 (lexical)
     f["loc"] = loc
 
     def sup(why):
@@ -847,8 +1066,33 @@ def decide(f, text, ext, ctx, span, fenced, data=None, base=""):
         return sup("assertion literal (AST)")
     if rid == "ATL-RF-001" and re.search(r"(curl|wget|irm|iwr)\s+(-\S+\s+)*(\.\.\.|\u2026|<[^>]+>|\$URL\b)", m_text):
         return sup("placeholder, not a concrete command")
-    if rid in NEGATABLE and negated(text, a, strict=(loc in ("string:desc", "string:catalog"))):
+    if rid in GATE_RULES and SEV_RANK[f["sev"]] > SEV_RANK["medium"] and (
+            loc == "string:example" or (loc in PROMPT_LOCS and span and fewshot_label_before(text, span[0], a))):
+        # v1.3: few-shot example inside a prompt (examples / input-output records / "Example:" label)
+        f["sev"] = "medium"
+        f["review"] = True
+        f["why"] = "few-shot example inside a prompt (examples container, input/output record or Example: label); review"
+        return
+    in_prompt = loc in PROMPT_LOCS or loc == "string:example"
+    if rid in NEGATABLE and in_prompt:
+        # v1.3: a prompt built by the code. A strong negation directly before the match suppresses (as in
+        # tool descriptions); the wider v1.0 negation / citation window only downgrades to review.
+        if negated(text, a, strict=True):
+            return sup("negated or cited as an example")
+        if negated(text, a, prompt=True):
+            f["sev"] = "medium" if SEV_RANK[f["sev"]] > SEV_RANK["medium"] else f["sev"]
+            f["review"] = True
+            f["why"] = "negated or cited as an example inside a prompt; review"
+            return
+    elif rid in NEGATABLE and negated(text, a, strict=(loc in ("string:desc", "string:catalog"))):
         return sup("negated or cited as an example")
+    if rid == "ATL-TP-003" and loc not in ("string:desc", "string:catalog", "code") and SEV_RANK[f["sev"]] > SEV_RANK["medium"] \
+            and defensive_override(text, a, b):
+        # v1.3: "do not follow instructions embedded in documents, such as 'ignore previous instructions'"
+        f["sev"] = "medium"
+        f["review"] = True
+        f["why"] = "defensive instruction citing an override phrase (do not follow such / embedded instructions); review"
+        return
     if loc == "string:catalog" and rid.startswith(("ATL-TP-", "ATL-SK-")) and SEV_RANK[f["sev"]] > SEV_RANK["medium"]:
         # v1.1: the description of a threat/rule record ({"severity": ..., "description": ...})
         # quotes attack text by design. Downgraded for review, never suppressed; the
@@ -892,7 +1136,8 @@ def decide(f, text, ext, ctx, span, fenced, data=None, base=""):
             f["why"] = "known installer domain"
         elif ctx in ("docs", "ci", "example"):
             low("installer one-liner in docs/CI")
-        elif loc in ("string:plain", "string:desc", "string~") and not EXEC_CONTEXT.search(line[:col_a]) \
+        elif loc in ("string:plain", "string:desc", "string~", "string:prompt", "string:prompt~", "string:example") \
+                and not EXEC_CONTEXT.search(line[:col_a]) \
                 and not (span and span[3] in ("lexplain", "lexdesc") and LEX_EXEC_CONTEXT.search(_stmt_prefix(text, span[0]))):
             low("install hint text in a string (not executed here)")
     if rid == "ATL-OB-001":
@@ -917,6 +1162,14 @@ def decide(f, text, ext, ctx, span, fenced, data=None, base=""):
         f["sev"] = "medium"
         f["review"] = True
         f["why"] = "data file (not an MCP manifest/tool definition); review"
+    if rid in GATE_RULES and not f.get("suppressed") and SEV_RANK[f["sev"]] > SEV_RANK["medium"] \
+            and ext in CODE_EXT and ctx != "skill" and loc not in AGENT_LOCS \
+            and not AGENT_CODE_PATH.search("/" + f["file"].replace("\\", "/")):
+        # v1.3: attack-shaped text in a string literal / comment that neither describes a tool nor is
+        # sent to a model. Downgraded for review, never suppressed.
+        f["sev"] = "medium"
+        f["review"] = True
+        f["why"] = OUTSIDE_WHY
 
 
 def scan_repo_ex(root, use_ast=True, skip_dirs=None):
@@ -1031,6 +1284,7 @@ def scan_repo_ex(root, use_ast=True, skip_dirs=None):
                 add(h["rule"], h["sev"], rel, h["line"], h["snippet"], h["title"], method="ast", loc="code")
         seen = set()
         file_cands = []
+        go_masked = None
         for r, a, b in cands:
             ln = li.line(a)
             key = (r["id"], ln)
@@ -1066,6 +1320,24 @@ def scan_repo_ex(root, use_ast=True, skip_dirs=None):
                     f["suppressed"] = True
                     f["why"] = "inside a line comment (heuristic)"
                     continue
+                if r["id"] == "ATL-CR-001" and ext == ".go" and "os.Environ()" in text[a:b]:
+                    if any(s0 <= a < e0 for s0, e0, _k, _r in spans):
+                        f["suppressed"] = True  # inside a string literal / comment (lexer)
+                        f["why"] = "inside a string literal or comment (heuristic)"
+                        continue
+                    try:
+                        if go_masked is None:
+                            go_masked = _go_masked(text)
+                        sev, why = go_environ_flow(text, a, go_masked)
+                    except (IndexError, ValueError, RecursionError):
+                        sev, why = f["sev"], None
+                    if sev == "low":
+                        f["sev"] = "low"
+                        f["why"] = why
+                        f["badge"] = "env-access"
+                    else:
+                        f["why"] = "os.Environ() reaches JSON / log / HTTP / file output in the same function"
+                    continue
                 if parsed:
                     sp = innermost(spans, a, b)
                     if sp and sp[2] == "comment":
@@ -1085,16 +1357,19 @@ def scan_repo_ex(root, use_ast=True, skip_dirs=None):
         live_tp = [f for f in file_cands if f["rule"].startswith("ATL-TP-") and not f.get("suppressed")]
         if parsed and any(f["rule"] == "ATL-TP-001" for f in live_tp):
             for s, e, kind, role in spans:
-                if kind != "string" or role not in ("desc", "catalog"):
+                if kind != "string" or role not in ("desc", "catalog", "prompt"):
                     continue
                 inside = [f for f in live_tp if s <= f["_a"] < e]
+                if role == "prompt":  # v1.3: a prompt string; findings already downgraded for review stay so
+                    inside = [f for f in inside if SEV_RANK[f["sev"]] > SEV_RANK["medium"]]
                 rules_in = {f["rule"] for f in inside}
                 if "ATL-TP-001" in rules_in and rules_in & {"ATL-TP-002", "ATL-TP-004"}:
                     for f in inside:
                         if f["rule"] in ("ATL-TP-001", "ATL-TP-002", "ATL-TP-004"):
                             f["sev"] = "critical"
                             f.pop("review", None)
-                            f["why"] = "tag + concealment/credential instruction in one tool description"
+                            f["why"] = ("tag + concealment/credential instruction in one " +
+                                        ("model prompt" if role == "prompt" else "tool description"))
 
         if base == "package.json":
             try:

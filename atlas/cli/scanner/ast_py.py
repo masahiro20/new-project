@@ -13,6 +13,13 @@ analyse(text) -> {"ok": bool, "spans": [(start, end, kind, role)], "hits": [find
          names say it is detection data (rules, vectors, corpus, samples, payloads, expected ...),
          or inside a record with an expected-outcome key. Never assigned to a name that is also
          used as a tool description.
+         prompt (v1.3): a string that is part of a prompt sent to a model -- the value of a
+         messages / system / prompt / instructions / content key or keyword, an argument of an
+         LLM call (.create( / .chat( / generate( / invoke( ...), a member of a {"role": "system"}
+         object, a value assigned to system_prompt / SYSTEM_PROMPT / *_PROMPT (or a name later used
+         in such a place), or the return value of a function named *prompt*.
+         example (v1.3): a string inside a few-shot example of a prompt (a container named
+         examples / few_shot / shots / demos, or an input/output pair record).
   groups (v1.2): [(start, end)] of outermost list/tuple/set/dict literals; the scanner counts
          how many strings in one literal match attack rules.
   hits:  semantic detections for code rules (CE-001, CE-002, OB-003, CR-001, NW-001)
@@ -59,6 +66,38 @@ def corpus_name(name):
     """True if an identifier / key (snake, camel, SCREAMING, dotted) contains a corpus word."""
     words = re.findall(r"[A-Z]?[a-z]+|[A-Z]+(?![a-z])", str(name))
     return any(w.lower() in CORPUS_WORDS for w in words)
+
+
+# v1.3: prompt construction. Keys / keyword arguments whose value is sent to a model, LLM call
+# names, and variable / function names that hold a prompt.
+PROMPT_KEYS = {"messages", "system", "prompt", "prompts", "instructions", "content", "systemprompt", "systemmessage",
+               "userprompt", "developerprompt", "systeminstruction", "systeminstructions"}
+LLM_CALL = re.compile(r"^(a?create|a?chat|a?generate\w*|generate_content\w*|a?complete|a?completions?|create_message"
+                      r"|a?invoke|chat_completions?|text_generation)$", re.I)
+# a variable that holds a prompt: SYSTEM_PROMPT, system_prompt, userPrompt, PROMPT_TEMPLATE, instructions,
+# system_message -- the prompt word ends the name (optionally + _TEXT / _TEMPLATE / _V2 ...), so
+# PROMPT_INJECTION_SAMPLE or prompt_count are not prompts
+PROMPT_NAME = re.compile(r"(prompt|instructions?|system_?message)s?(_?(text|template|tmpl|str|string|msg|base|body|prefix|suffix"
+                         r"|header|footer|parts?|lines?|v?\d+))?$", re.I)
+# a function whose return value is a prompt: build_prompt, get_system_prompt, renderPromptTemplate
+# (not prompt_user / promptForPassword, where "prompt" is a verb)
+FUNC_PROMPT = re.compile(r"prompts?_?(text|template|tmpl|str|string)?$", re.I)
+EXAMPLE_WORDS = {"example", "examples", "fewshot", "few", "shot", "shots", "demo", "demos", "demonstration", "demonstrations",
+                 "exemplar", "exemplars"}
+# a record that is one few-shot example: an input-like key next to an output-like key
+EXAMPLE_IN_KEYS = {"input", "inputs", "query", "question", "prompt", "user", "text"}
+EXAMPLE_OUT_KEYS = {"output", "outputs", "answer", "response", "completion", "assistant", "label", "result", "ideal"}
+
+
+def example_name(name):
+    """True if an identifier / key names few-shot examples (EXAMPLES, few_shot, fewShotExamples, demos)."""
+    words = [w.lower() for w in re.findall(r"[A-Z]?[a-z]+|[A-Z]+(?![a-z])", str(name))]
+    return any(w in EXAMPLE_WORDS for w in words) and not (words == ["few"] or words == ["shot"])
+
+
+def is_example_record(keys):
+    ks = {norm_key(k) for k in keys}
+    return bool(ks & EXAMPLE_IN_KEYS) and bool(ks & EXAMPLE_OUT_KEYS)
 
 
 SEND_SINKS = {"post", "put", "send", "sendall", "write", "print", "info", "debug", "warning", "error",
@@ -150,6 +189,152 @@ def analyse(text):
                 vals.append(node.value)
         for v in vals:
             desc_sinks.update(x.id for x in ast.walk(v) if isinstance(x, ast.Name))
+
+    def enclosing_func(node):
+        p = parents.get(node)
+        while p is not None and not isinstance(p, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Lambda, ast.Module)):
+            p = parents.get(p)
+        return p
+
+    # v1.3: names whose value reaches a tool description proper (not a prompt). A description that
+    # is built through a variable keeps the strict tool-description treatment (v1.2 data flow).
+    tool_desc_sinks = set()
+    for node in ast.walk(tree):
+        vals = []
+        if isinstance(node, ast.keyword) and node.arg in DESC_KW and node.arg not in ("prompt", "system_prompt"):
+            vals.append(node.value)
+        elif isinstance(node, ast.Dict):
+            vals += [v for k, v in zip(node.keys, node.values)
+                     if isinstance(k, ast.Constant) and isinstance(k.value, str) and k.value in DESC_KW
+                     and k.value not in ("prompt", "system_prompt")]
+        elif isinstance(node, (ast.Assign, ast.AnnAssign)) and node.value is not None:
+            targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+            if re.search(r"desc|description|__doc__", " ".join(_dotted(t) for t in targets), re.I):
+                vals.append(node.value)
+        elif isinstance(node, ast.Call) and len(node.args) >= 2 and \
+                _dotted(node.func).rsplit(".", 1)[-1] in ("tool", "add_tool", "Tool", "register_tool"):
+            vals.append(node.args[1])
+        for v in vals:
+            tool_desc_sinks.update(x.id for x in ast.walk(v) if isinstance(x, ast.Name))
+
+    def prompt_step(cur, p):
+        """'prompt' if the edge cur -> p puts the value into a prompt, 'stop' at a boundary, else None."""
+        if isinstance(p, ast.keyword):
+            if p.arg and norm_key(p.arg) in PROMPT_KEYS:
+                return "prompt"
+            return None
+        if isinstance(p, ast.Dict):
+            for k, v in zip(p.keys, p.values):
+                if v is cur and isinstance(k, ast.Constant) and isinstance(k.value, str) and norm_key(k.value) in PROMPT_KEYS:
+                    return "prompt"
+            for k, v in zip(p.keys, p.values):
+                if isinstance(k, ast.Constant) and k.value == "role" and isinstance(v, ast.Constant) \
+                        and v.value in ("system", "developer"):
+                    return "prompt"
+            return None
+        if isinstance(p, ast.Call):
+            if cur is not p.func and LLM_CALL.match(_dotted(p.func).rsplit(".", 1)[-1] or ""):
+                return "prompt"
+            return None
+        if isinstance(p, (ast.Assign, ast.AnnAssign, ast.AugAssign)):
+            targets = p.targets if isinstance(p, ast.Assign) else [p.target]
+            for t in targets:
+                nm = _dotted(t).rsplit(".", 1)[-1] if _dotted(t) else ""
+                if (nm and PROMPT_NAME.search(nm) and not (nm in tool_desc_sinks)) or nm in prompt_sinks:
+                    return "prompt"
+            return "stop"
+        if isinstance(p, ast.Return):
+            fn = enclosing_func(p)
+            if isinstance(fn, (ast.FunctionDef, ast.AsyncFunctionDef)) and FUNC_PROMPT.search(fn.name):
+                return "prompt"
+            return "stop"
+        if isinstance(p, (ast.stmt, ast.Lambda, ast.comprehension)):
+            return "stop"
+        return None
+
+    # names used inside a prompt construction (messages=[{"content": guard}], SYSTEM_PROMPT = A + B)
+    prompt_sinks = set()
+    for _ in range(2):  # one level of indirection through another prompt-named variable is enough
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Name) or not isinstance(node.ctx, ast.Load):
+                continue
+            cur = node
+            for _d in range(30):
+                p = parents.get(cur)
+                if p is None:
+                    break
+                r = prompt_step(cur, p)
+                if r == "prompt":
+                    if node.id not in tool_desc_sinks:
+                        prompt_sinks.add(node.id)
+                    break
+                if r == "stop":
+                    break
+                cur = p
+
+    TOOL_DESC_KEYS = DESC_KW - {"prompt", "system_prompt", "instructions"}
+
+    def reaches_tool_desc(node):
+        """True if a 'desc' string is a tool / server description proper (docstring, description=,
+        {"description": ...}, FOO_DESCRIPTION = ..., server instructions=) rather than a model prompt."""
+        if node in docstrings:
+            return True
+        cur = node
+        for _d in range(40):
+            p = parents.get(cur)
+            if p is None:
+                return False
+            if isinstance(p, ast.keyword):
+                if p.arg in TOOL_DESC_KEYS:
+                    return True
+                if p.arg == "instructions":
+                    call = parents.get(p)
+                    return not (isinstance(call, ast.Call) and LLM_CALL.match(_dotted(call.func).rsplit(".", 1)[-1] or ""))
+                if p.arg in ("prompt", "system_prompt"):
+                    return False
+            elif isinstance(p, ast.Dict):
+                for k, v in zip(p.keys, p.values):
+                    if v is cur and isinstance(k, ast.Constant) and isinstance(k.value, str) and k.value in DESC_KW:
+                        return k.value in TOOL_DESC_KEYS
+            elif isinstance(p, ast.Call) and cur is not p.func and len(p.args) >= 2 and cur is p.args[1] \
+                    and _dotted(p.func).rsplit(".", 1)[-1] in ("tool", "add_tool", "Tool", "register_tool"):
+                return True
+            elif isinstance(p, (ast.Assign, ast.AnnAssign, ast.AugAssign)):
+                targets = p.targets if isinstance(p, ast.Assign) else [p.target]
+                return any(re.search(r"desc|description|__doc__", _dotted(t), re.I) or
+                           (isinstance(t, ast.Name) and t.id in tool_desc_sinks) for t in targets)
+            elif isinstance(p, ast.stmt):
+                return False
+            cur = p
+        return False
+
+    def prompt_ctx(node):
+        """(in_prompt, in_example) for a string node (v1.3)."""
+        cur, example = node, False
+        for _d in range(40):
+            p = parents.get(cur)
+            if p is None:
+                return False, False
+            if isinstance(p, ast.Dict):
+                keys = [k.value for k in p.keys if isinstance(k, ast.Constant) and isinstance(k.value, str)]
+                if is_example_record(keys):
+                    example = True
+                for k, v in zip(p.keys, p.values):
+                    if v is cur and isinstance(k, ast.Constant) and isinstance(k.value, str) and example_name(k.value):
+                        example = True
+            if isinstance(p, ast.keyword) and p.arg and example_name(p.arg):
+                example = True
+            if isinstance(p, (ast.Assign, ast.AnnAssign)):
+                targets = p.targets if isinstance(p, ast.Assign) else [p.target]
+                if any(example_name(_dotted(t).rsplit(".", 1)[-1]) for t in targets if _dotted(t)):
+                    example = True
+            r = prompt_step(cur, p)
+            if r == "prompt":
+                return True, example
+            if r == "stop":
+                return False, False
+            cur = p
+        return False, False
 
     CONTAINERS = (ast.List, ast.Tuple, ast.Set, ast.Dict)
 
@@ -261,6 +446,19 @@ def analyse(text):
                     role = "corpus"
                 elif role in ("patternlist", "pattern") and outer is not None and binding_names(outer)[1]:
                     role = "desc"  # v1.2: a list/dict that is passed on as a tool description
+            if role in ("plain", "corpus", "pattern", "patternlist") and node not in docstrings and reaches_tool_desc(node):
+                # v1.3: any string bound to a name that is later used as a tool description
+                # (NOTE = "..."; add_tool(..., description=NOTE)) is that description
+                role = "desc"
+            if role != "desc" or not reaches_tool_desc(node):
+                # v1.3: prompt construction (a description-like name that is really a model prompt,
+                # or a plain / corpus / pattern string that is placed into a prompt)
+                if role in ("desc", "plain", "corpus", "patternlist", "pattern") and node not in docstrings:
+                    in_prompt, in_example = prompt_ctx(node)
+                    if in_prompt:
+                        role = "example" if in_example else "prompt"
+                    elif role == "desc":
+                        role = "plain"  # prompt-like name, but neither a tool description nor sent to a model
             spans.append((s, e, "string", role))
             continue
         if isinstance(node, CONTAINERS) and not isinstance(parents.get(node), CONTAINERS) \

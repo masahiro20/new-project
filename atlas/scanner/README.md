@@ -1,4 +1,4 @@
-# Atlas scanner v1（v1.2）
+# Atlas scanner v1（v1.3）
 
 読み取り専用の静的スキャナー。検査対象の import・実行・インストール・ビルドは一切しない。
 
@@ -60,6 +60,30 @@
 - `#[cfg(test)]` の後ろにある通常の関数
 - JS のツール説明文にあるゼロ幅空白
 - 本物の setuptools の setup.py
+
+## v1.3：high/critical を出す条件を「エージェントに届く場所」に限る
+3つの標本（`../reports/stage3-validation.md` §3・§4）から、公式レジストリの無作為標本には攻撃型パターンがほとんど無く、high/critical の多くが誤った警告になることが分かった。v1.3 では、誤検知の形を1つずつ塞ぐのではなく、**high/critical を出す条件そのもの**を変えた。v1.1・v1.2 と同じく、格下げは medium（`review: true` と `why`）か、明らかに能力表示にすぎないものだけ low にとどめ、検出は消さない。リポジトリ名・所有者・パッケージ名による許可リストは使わない。フィクスチャーはすべて合成（`tests/fixtures/v13/`）で、ホールドアウトと検証用の標本のファイル名・文字列には合わせていない。`scan.SCANNER_VERSION = "1.3"`。
+
+- **(1) TP-001〜005 と SK-001 の high/critical は、エージェントに届く場所に限る。** 届く場所は次のとおり。
+  - ツールの説明文（`string:desc`。docstring、`description=`、`server.tool(name, desc)`、`mcp.WithDescription(...)` など）。**変数経由の説明文**も含む。v1.3 からは、名前が何であっても、`description=`・`{"description": X}`・`server.tool(name, X)`・`add_tool(..., description=X)` に使われる変数に代入した文字列を説明文として扱う（v1.2 ではパターン名・コレクションだけだった）。
+  - SKILL.md と skill の文脈（従来どおり）。マニフェストとツール定義（v1.2 のデータファイルの判定を流用）。
+  - **モデルへ送るプロンプトの組み立て（`string:prompt`）。** AST で判定する（`ast_py.py` の `prompt_ctx`、`js/ast_dump.cjs` の `promptCtx`）。対象は次のとおり。
+    - `messages`・`system`・`prompt`・`instructions`・`content`・`system_prompt`/`systemPrompt` などのキーやキーワード引数の値（`ast_py.PROMPT_KEYS`）。
+    - `role: "system"`（または `"developer"`）を持つオブジェクトの値。
+    - LLM 呼び出し（`.create(`・`.chat(`・`generate*(`・`generateText(`・`.invoke(`・`.complete(`・`create_message(` など、`ast_py.LLM_CALL`）の引数。
+    - `system_prompt`・`SYSTEM_PROMPT`・`*_PROMPT`・`PROMPT_TEMPLATE`・`*_INSTRUCTIONS` など、プロンプトの語で**終わる**名前の変数への代入（`ast_py.PROMPT_NAME`。`PROMPT_INJECTION_SAMPLE` や `promptUser` は対象外）。
+    - 上のどれかで使われる変数への代入（例：`system = "..." + page` を `create(system=system)` に渡す）。名前が `build_prompt`・`get_system_prompt` のような関数の戻り値。
+    - Go・Rust など AST の無い言語では、字句解析で同じ文の直前のコードを見る（`string:prompt~`。`Content:`・`systemPrompt :=`・`.content(` や、閉じていない `.Create(`・`.Chat(` の呼び出し、`ChatMessageRoleSystem`）。
+  - それ以外の文字列リテラルとコメントの中の TP 系（コード系の拡張子のファイルに限る）は medium にする（`why`：「string outside agent-reaching locations (may be a quote, example or data); review」＝エージェントに届く場所の外にある文字列（引用・例・データの可能性））。文字列の外にある一致（`loc: code`。例：`open(... "~/.ssh/id_rsa")` という実際の読み取り）と、`.claude/`・`hooks/` などフックやエージェント設定のディレクトリにあるコードは、出力がエージェントに届くため対象外とした。
+- **(2) プロンプトの中の防御文。**
+  - 否定語の判定：プロンプトの中では、直前の強い否定（v1.0 の strict）なら抑制、v1.0 の広い否定語・引用の判定（`such as`・`e.g.`・`like` など）に当たれば medium にする（`why`：「negated or cited as an example inside a prompt」）。プロンプトの中では `e.g.`・`i.e.` を文の終わりとみなさない。
+  - 一般的な規則を追加した（`defensive_override`、TP-003 のみ）：同じ文に「ignore／disregard／do not follow ＋ such／any／embedded／untrusted … instructions」や「instructions embedded in／found in documents」「treat it as data」があり、かつ一致した句が文頭の命令（`Ignore previous instructions and ...`、`IMPORTANT: ignore ...`、`Please ignore ...`）でなければ medium にする。ツールの説明文には適用しない。
+  - **攻撃文は high のまま：** 取得したデータを `system` プロンプトに連結し、文頭で「Ignore all previous instructions」と命じたり「Do not tell the user about this step」と書いたりするものは high。プロンプトの中で `<IMPORTANT>` ＋ `~/.ssh` などが揃えば critical に上げる（ツールの説明文と同じ。ただし既に格下げされた検出は上げない）。
+- **(3) few-shot の例（`string:example`）は medium。** `examples`・`few_shot`・`shots`・`demos` という名前のコンテナ、`input`/`output`（`query`/`answer` など）の組を持つレコード、プロンプト文字列の中で直前に `Example:`・`Examples:`・`Input:`・`Q:` のラベルがあり、その間に空行が無いもの。**ツールの説明文の中は除く**（説明文に `Example:` と書いても critical のまま）。ラベルから段落が変わった後の命令は high のまま。
+- **(4) CR-001 を Go にも揃えた。** `os.Environ()` は、同じ関数の中で、その結果（代入した変数、`range` のループ変数、ループ内で詰め替えた map／slice）が `json.Marshal`・`fmt.Print*`/`Fprint*`・`log.*`/`slog.*`・`http.*`・`.Write*`・`.Encode`・`os.WriteFile` などに渡るときだけ high にする（字句解析。文字列とコメントは伏せてから調べる）。`cmd.Env = append(os.Environ(), ...)` などの子プロセスへの引き継ぎ、`strings.HasPrefix` などで名前を選ぶ走査、それ以外の使い方は low（`badge: env-access`、能力表示）。文字列やコメントの中の `os.Environ()` は抑制する。
+- **(5) テストのパスを追加：** `scripts/test-*.{js,mjs,cjs,ts,py}`（`scripts/test_*` も）、`*-test.*`（`stress-test.*` を含む）、`*.test-*.*`、`test_*.{mjs,cjs,js,ts}`。`test` が単語として区切られている場合だけで、`latest.js`・`contest.ts`・`attestation.ts`・`testimony.js` は拾わない。
+- **既存テストの変更：** v1.1 の「出力整形タグの近い攻撃形」（`format_tag.py:8`・`format_tag.ts:10`）と v1.2 の「Rust のテスト範囲の外」（`scan.rs:4`・`:30`）は、どれも関数が返すだけのただの文字列なので、v1.3 では medium（上の why）になる。テストは「v1.1 の格下げ規則が働いていない」「ctx が src のまま」「抑制されていない」ことを確かめる形に直した。同じ文字列が説明文やプロンプトにあれば high/critical のまま残ることは `V13Mechanisms` で確かめている。
+- **チューニング用の標本：** 攻撃型 17/17、陽性対照 18/18、誤検知 0 を維持した（v1.2 と同じ24件が範囲内）。この標本では v1.2 の時点で誤検知が0件だったため、v1.3 の効果は4つ目の新しい無作為標本で測る。
 
 ## 使い方
 ```sh
