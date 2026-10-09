@@ -17,6 +17,10 @@ export const DEFAULTS = {
   minStep: 1.2, // semitones; a smaller H/L contrast counts as "flat"
   maxDeclination: 0.6, // semitones per mora of natural downdrift the fit may absorb
   energyFloorDb: -30, // energy span threshold, relative to the loud frames
+  noiseMarginDb: 10, // … and at least this far above the noise floor (10th percentile of frame energies)
+  bridgeGapS: 0.08, // the start may cross one silent gap this short (stop closure after a devoiced mora)
+  tailDropDb: 6, // the utterance ends where the last syllable's energy has fallen this far (reverb tails)
+  onsetRiseDb: 6, // energy rise (within 50 ms) that marks the onset of the last syllable
   segmentation: 'auto', // 'auto' = use energy/voicing cues when available, 'equal' = equal slots
   evidenceWeight: 1.0, // reward for putting a boundary on a cue (vs. the duration prior)
   particle: true, // false = isolated word without が (then flat and tail-high look the same)
@@ -98,23 +102,82 @@ function fitTemplate(values, pattern, maxDecl) {
 }
 
 /**
- * Start/end of the utterance. Voicing alone misses a devoiced first mora
- * (し in した), so extend to where the energy starts, by at most ~one mora.
+ * Start/end of the utterance, as frame indices [i, j].
+ *
+ * 1. Start from the voiced span (first to last voiced frame).
+ * 2. Voicing alone misses a devoiced first mora (し in した), so extend to where
+ *    the energy starts, by at most ~one mora. "Energy" means clearly above both
+ *    the loud frames − 30 dB and the recording's own noise floor (low percentile
+ *    of the frame energies) + noiseMarginDb: otherwise, in a noisy recording every
+ *    frame counts as sound and both ends always run out the full mora.
+ *    Going backwards, a short silent gap (≤ bridgeGapS: the closure of a voiceless
+ *    stop, as in し|た) is crossed when there is sound again before it, because a
+ *    devoiced mora is nearly always followed by a voiceless consonant.
+ * 3. The end is where the last syllable's energy has fallen tailDropDb below its
+ *    own level (see finalDecayEnd), even if the pitch tracker still reports voice
+ *    there: in a room, the reverberant tail keeps the last pitch alive for
+ *    0.1–0.5 s after the voice has stopped.
  */
 function utteranceSpan(track, voicedIdx, slots, o) {
-  let t0 = track.times[voicedIdx[0]];
-  let t1 = track.times[voicedIdx[voicedIdx.length - 1]];
-  if (!track.energyDb) return [t0, t1];
-  const db = track.energyDb;
-  const loud = [...db].filter(Number.isFinite).sort((a, b) => a - b);
-  const ref = loud[Math.floor(loud.length * 0.95)];
-  const on = db.map((d) => d >= ref + o.energyFloorDb);
-  const maxExt = (t1 - t0) / Math.max(1, slots - 1);
-  let i = voicedIdx[0];
-  while (i > 0 && on[i - 1] && t0 - track.times[i - 1] <= maxExt) i--;
-  let j = voicedIdx[voicedIdx.length - 1];
-  while (j < db.length - 1 && on[j + 1] && track.times[j + 1] - t1 <= maxExt) j++;
-  return [track.times[i], track.times[j]];
+  const a = voicedIdx[0], z = voicedIdx[voicedIdx.length - 1];
+  if (!track.energyDb) return [a, z];
+  const T = track.times, db = track.energyDb;
+  const fin = [...db].filter(Number.isFinite).sort((x, y) => x - y);
+  const ref = fin[Math.floor(fin.length * 0.95)];
+  const floor = fin[Math.floor(fin.length * 0.1)];
+  const thr = Math.max(ref + o.energyFloorDb, floor + o.noiseMarginDb);
+  const on = db.map((d) => d >= thr);
+  const maxExt = (T[z] - T[a]) / Math.max(1, slots - 1);
+
+  // Start: extend backwards over sound, crossing at most one short silent gap.
+  let i = a, gap = 0, bridged = 0;
+  for (let x = a - 1; x >= 0; x--) {
+    if (on[x]) {
+      if (T[a] - T[x] > maxExt + bridged + gap) break;
+      bridged += gap; gap = 0; i = x;
+    } else {
+      gap += T[x + 1] - T[x];
+      if (gap > o.bridgeGapS || bridged > 0) break; // one closure at most
+    }
+  }
+  // End: extend over sound (a devoiced final mora; no gap crossing), then cut the final decay.
+  let j = z;
+  while (j < db.length - 1 && on[j + 1] && T[j + 1] - T[z] <= maxExt) j++;
+  j = Math.max(i, finalDecayEnd(db, i, j, ref, o));
+  return [i, j];
+}
+
+/**
+ * Last frame before the final decay: the end of the last syllable.
+ * The last syllable starts at the last onset, i.e. the latest frame whose
+ * energy rose at least onsetRiseDb above the lowest of the 50 ms before it
+ * (が always has one: the g closure or nasal [ŋ] dips 6–20 dB). From there,
+ * follow the running maximum; the end is the frame before the energy first
+ * falls tailDropDb below it. With 32 ms energy frames an abrupt stop reaches
+ * −3 dB right at the offset, so on clean speech this moves the end by a frame
+ * or two at most. In a room the voice stops with a drop of a few dB (the direct
+ * sound ends) and then decays at the room's rate while the pitch tracker still
+ * hears the last pitch for 0.1–0.5 s; that tail is cut off. Only frames within
+ * 25 dB of the loud frames count, so the fluctuations of a deep tail are never
+ * taken for an onset.
+ */
+function finalDecayEnd(db, i0, j, ref, o) {
+  const lowest = ref - 25;
+  let p = j;
+  while (p > i0 && db[p] < lowest) p--;
+  let q = i0;
+  for (let x = p; x > i0; x--) {
+    if (db[x] < lowest) continue;
+    let lo = Infinity;
+    for (let y = Math.max(i0, x - 5); y < x; y++) lo = Math.min(lo, db[y]);
+    if (db[x] - lo >= o.onsetRiseDb) { q = x; break; }
+  }
+  let peak = -Infinity;
+  for (let x = q; x <= p; x++) {
+    peak = Math.max(peak, db[x]);
+    if (db[x] < peak - o.tailDropDb) return x - 1;
+  }
+  return p;
 }
 
 /**
@@ -222,13 +285,11 @@ export function judge(track, word, opts = {}) {
   const voicedIdx = st.flatMap((v, i) => (Number.isNaN(v) ? [] : [i]));
   if (voicedIdx.length < 10) return { error: 'no-voice', st };
 
-  const [t0, t1] = utteranceSpan(track, voicedIdx, slots, o);
+  const [i0, i1] = utteranceSpan(track, voicedIdx, slots, o);
+  const t0 = track.times[i0], t1 = track.times[i1];
   if (t1 - t0 < 0.15 * slots * 0.5) return { error: 'too-short', st };
 
   const labels = o.particle ? [...word.morae, 'が'] : [...word.morae];
-  const i0 = track.times.findIndex((t) => t >= t0);
-  let i1 = i0;
-  while (i1 + 1 < track.times.length && track.times[i1 + 1] <= t1) i1++;
   const bounds = segmentFrames(track, st, i0, i1, labels, o);
   const hop = track.times[1] - track.times[0];
   const segments = [];
