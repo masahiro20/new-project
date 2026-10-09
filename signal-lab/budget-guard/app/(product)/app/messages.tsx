@@ -8,6 +8,7 @@ export const MESSAGES: Record<string, { text: string; error?: boolean }> = {
   armed: { text: "Live mode armed. At 100% of budget the stop action will run automatically." },
   stopped: { text: "Stop action executed. See the activity log for how to undo it." },
   "stop-failed": { text: "Stop action failed. See the activity log.", error: true },
+  "plan-failed": { text: "Could not build the stop plan (see the reason on this page). Nothing was sent.", error: true },
   "mode-test": { text: "Back in test mode. Automatic stops will only be simulated." },
   "mode-off": { text: "Stop action turned off. You will still get emails." },
   "confirm-label-mismatch": { text: "The label you typed did not match. Nothing was changed.", error: true },

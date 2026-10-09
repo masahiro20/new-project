@@ -53,8 +53,10 @@ const DEMO_PREFIX = "~";
  * one is checked within ceil(due / cap) cycles, and lapsed ones are found and dropped (Atlas VERIFY #3).
  */
 export function pickDemo(due: string[], now: Date): string[] {
-  if (due.length <= DEMO_CHECKS_PER_HOUR) return due;
+  // Sorted first, always: SMEMBERS returns the set in no particular order, and the pick must not
+  // depend on it (same input set + same hour → same pick).
   const sorted = [...due].sort();
+  if (sorted.length <= DEMO_CHECKS_PER_HOUR) return sorted;
   const start = (Math.floor(hourIndex(now) / DEMO_INTERVAL_HOURS) * DEMO_CHECKS_PER_HOUR) % sorted.length;
   return Array.from({ length: DEMO_CHECKS_PER_HOUR }, (_, j) => sorted[(start + j) % sorted.length]);
 }

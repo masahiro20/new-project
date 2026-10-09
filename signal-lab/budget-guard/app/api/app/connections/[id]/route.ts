@@ -12,6 +12,8 @@ type Ctx = { params: Promise<{ id: string }> };
 const notFound = () => json({ error: "not found", msg: "not-found" }, 404);
 /** `msg` is a key of app/(product)/app/messages.tsx. */
 const done = (msg: string, status = 200) => json({ ok: status < 400, msg }, status);
+/** The stop plan, or null when it can't be built (provider error, demo token outside demo mode): a 502, not a 500 (Ren QA). */
+const planOrNull = (conn: Parameters<typeof planFor>[0]) => planFor(conn).catch(() => null);
 
 async function load(request: Request, ctx: Ctx, mutation: boolean) {
   const kv = getKV();
@@ -59,7 +61,8 @@ export async function POST(request: Request, ctx: Ctx) {
       return done(`mode-${op.data.mode}`);
 
     case "test-stop": {
-      const plan = await planFor(conn);
+      const plan = await planOrNull(conn);
+      if (!plan) return done("plan-failed", 502);
       const result = await runStop(plan, "test", {});
       await appendLog(kv, account.id, [
         { kind: "stop-test", connectionId: conn.id, message: `Manual test: would send ${result.requests.length} request(s). ${plan.summary}`, at },
@@ -71,7 +74,8 @@ export async function POST(request: Request, ctx: Ctx) {
       // Going live needs consent to the current Privacy Policy / Terms (re-consent after a version bump).
       if (op.data.action === "arm-live" && !consentCurrent(account.entitlement.consent)) return done("consent-required", 403);
       // Arm live / stop now: signed challenge (5 min, bound to the plan) + typed label.
-      const plan = await planFor(conn);
+      const plan = await planOrNull(conn);
+      if (!plan) return done("plan-failed", 502);
       const check = verifyChallenge(
         op.data.challenge,
         { connectionId: conn.id, action: op.data.action, plan, label: conn.label, typed: op.data.typed },
@@ -98,7 +102,8 @@ export async function POST(request: Request, ctx: Ctx) {
         return done("vercel-limit-off");
       }
       if (!consentCurrent(account.entitlement.consent)) return done("consent-required", 403);
-      const plan = await planFor(conn);
+      const plan = await planOrNull(conn);
+      if (!plan) return done("plan-failed", 502);
       const check = verifyChallenge(
         op.data.challenge ?? "",
         { connectionId: conn.id, action: "vercel-limit-on", plan, label: conn.label, typed: op.data.typed ?? "" },

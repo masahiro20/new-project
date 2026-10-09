@@ -17,7 +17,7 @@ vi.mock("@/lib/guard/demo", async (orig) => {
 import { demoFetch } from "@/lib/guard/demo";
 import { setStatus, upsertEntitlement } from "@/lib/entitlements";
 import { FAKE_TOKEN } from "./helpers/providers";
-import { cronBatchSize, DEMO_CHECKS_PER_HOUR, DEMO_INTERVAL_HOURS, MAX_ATTEMPTS, resetCronMemory, runCronSlice } from "@/lib/guard/cron";
+import { cronBatchSize, DEMO_CHECKS_PER_HOUR, DEMO_INTERVAL_HOURS, MAX_ATTEMPTS, pickDemo, resetCronMemory, runCronSlice } from "@/lib/guard/cron";
 import { CHECK_INTERVAL_TIERS, intervalFor, isDue, nextCheckHour, slotOf } from "@/lib/guard/schedule";
 import { dashboardView } from "@/lib/guard/views";
 import { CONN_LOCK_SECONDS } from "@/lib/guard/service";
@@ -351,22 +351,55 @@ describe("R3-02: demo connections and lapsed accounts don't stretch the check in
 
   // Atlas VERIFY #3: with more demo connections due in an hour than the cap, the same first ones
   // (sorted) were picked every time and the rest never checked — nor dropped when their trial ended.
-  it("every demo connection is checked within a few 12-hour cycles (round robin, not always the first ones)", async () => {
+  //
+  // The bound: a demo connection is due in one hour of each 12 (its hash slot), and that hour checks
+  // at most DEMO_CHECKS_PER_HOUR of the connections sharing the slot, in turn. So every connection is
+  // checked within ceil(size of its slot group / cap) cycles. Connection ids are random, so the group
+  // sizes are uneven (60 connections over 12 slots: often 9 or more in one slot) — the bound must use
+  // the largest group, not the average (the earlier version did, and failed ~60% of runs).
+  it("every demo connection is checked within ceil(its slot group / cap) 12-hour cycles (round robin)", async () => {
     const kv = createMemoryKV(() => HOUR);
     const { stats, kv: c } = counted(kv);
     for (let a = 0; a < 20; a++) {
       const { entitlement } = await upsertEntitlement(kv, { id: `cs_test_rr${a}`, email: `rr${a}@example.com`, plan: "monthly", source: "stripe" });
       for (let i = 0; i < 3; i++) await addConnection(kv, entitlement.id, { label: `D${i}`, target, budgetUsd: 100, token: "demo" });
     }
-    const demoRefs = await listDemoConnRefs(kv); // 60 demo connections ≈ 5 per 12-hour slot, 2 checked per hour
-    const cycles = Math.ceil(demoRefs.length / DEMO_INTERVAL_HOURS / DEMO_CHECKS_PER_HOUR) + 1;
+    const ids = (await listDemoConnRefs(kv)).map((r) => r.slice(r.lastIndexOf("|") + 1));
+    const groups = new Map<number, number>();
+    for (const id of ids) groups.set(slotOf(id, DEMO_INTERVAL_HOURS), (groups.get(slotOf(id, DEMO_INTERVAL_HOURS)) ?? 0) + 1);
+    const cycles = Math.ceil(Math.max(...groups.values()) / DEMO_CHECKS_PER_HOUR);
+    const firstCycle = new Map<string, number>();
     for (let h = 0; h < DEMO_INTERVAL_HOURS * cycles; h++) {
       resetCronMemory();
-      await runCronSlice(c, { now: new Date(HOUR + h * 3600_000) });
+      const before = new Map(stats.stateWrites);
+      const r = await runCronSlice(c, { now: new Date(HOUR + h * 3600_000) });
+      expect(r.checked).toBeLessThanOrEqual(DEMO_CHECKS_PER_HOUR);
+      for (const [k, n] of stats.stateWrites) {
+        if (n === before.get(k)) continue;
+        const id = k.slice(k.lastIndexOf(":") + 1);
+        if (!firstCycle.has(id)) firstCycle.set(id, Math.floor(h / DEMO_INTERVAL_HOURS));
+      }
     }
-    const checked = new Set([...stats.stateWrites.keys()].map((k) => k.slice(k.lastIndexOf(":") + 1)));
-    const missed = demoRefs.map((r) => r.slice(r.lastIndexOf("|") + 1)).filter((id) => !checked.has(id));
-    expect(missed).toEqual([]);
+    expect(ids.filter((id) => !firstCycle.has(id))).toEqual([]);
+    // …and each one within the bound of its own group.
+    for (const id of ids) expect(firstCycle.get(id)!).toBeLessThan(Math.ceil(groups.get(slotOf(id, DEMO_INTERVAL_HOURS))! / DEMO_CHECKS_PER_HOUR));
+  });
+
+  it("pickDemo is deterministic and covers any group in ceil(n / cap) cycles, from any starting cycle", () => {
+    for (let n = 1; n <= 40; n++) {
+      const due = Array.from({ length: n }, (_, i) => `acct|conn_${i.toString(16).padStart(16, "0")}`);
+      for (const startCycle of [0, 1, 7, 12345]) {
+        const seen = new Set<string>();
+        for (let k = 0; k < Math.ceil(n / DEMO_CHECKS_PER_HOUR); k++) {
+          const at = new Date((startCycle + k) * DEMO_INTERVAL_HOURS * 3600_000);
+          const picked = pickDemo([...due].reverse(), at); // input order doesn't matter
+          expect(picked).toEqual(pickDemo(due, at));
+          expect(new Set(picked).size).toBe(Math.min(n, DEMO_CHECKS_PER_HOUR));
+          for (const r of picked) seen.add(r);
+        }
+        expect(seen.size, `n=${n} start=${startCycle}`).toBe(n);
+      }
+    }
   });
 });
 

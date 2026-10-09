@@ -90,7 +90,7 @@ You're giving a tool the power to stop production, so here's how we keep it from
   - You type the connection's label exactly.
 - **Backing out is always one click.** Switching back to test mode or turning the stop off needs no confirmation.
 - **Failures are reported.** If a stop fails, we log it, notify you, and retry on the next hourly check.
-- **Encrypted tokens.** Tokens are encrypted with AES-256-GCM and bound to their connection. We keep only the encrypted value and a masked hint (first 4 and last 4 characters). The token is never displayed again. Deleting a connection deletes its token.
+- **Encrypted tokens.** Tokens are encrypted with AES-256-GCM and bound to their connection. We keep only the encrypted value and a masked hint (the provider's public key prefix, such as sk-admin-, and the last 4 characters). The token is never displayed again. Deleting a connection deletes its token.
 - **Least privilege, as far as each provider allows.** The setup screen tells you how to issue the narrowest token each provider allows:
   - **Vercel:** a token scoped to one team, ideally from a Member-role user, with an expiry date.
   - **OpenAI and Anthropic:** a dedicated Admin key just for Budget Guard, which you can revoke at any time.

@@ -3,7 +3,8 @@ import { GET as adminStats } from "@/app/api/admin/stats/route";
 import { upsertEntitlement } from "@/lib/entitlements";
 import { trialMetrics } from "@/lib/guard/admin";
 import { checkConnection, type Connection } from "@/lib/guard/check";
-import { resetCronMemory, runCronSlice } from "@/lib/guard/cron";
+import { DEMO_INTERVAL_HOURS, resetCronMemory, runCronSlice } from "@/lib/guard/cron";
+import { isDue } from "@/lib/guard/schedule";
 import { setSlackUrl } from "@/lib/guard/service";
 import { addConnection, getLog, updateConnection } from "@/lib/guard/store";
 import { devOutbox } from "@/lib/mail";
@@ -132,7 +133,8 @@ describe("GET /api/admin/stats trial metrics", () => {
       connections: { total: 3, byProvider: { openai: 2, vercel: 1, anthropic: 0 }, demoToken: 1 },
       stopMode: { off: 1, test: 2, live: 0 },
       thisMonth: { warned: 1, reachedLimit: 1, testStopRecords: 1, keyInvalid: 0 },
-      neverChecked: 1, // the demo-token connection: checked every 12h (R3-02), not in this hour
+      // the demo-token connection: checked every 12h (R3-02); whether this hour is its slot depends on its random id (Ren QA: failed ~1/12)
+      neverChecked: isDue(v.id, new Date(NOW), DEMO_INTERVAL_HOURS) ? 0 : 1,
     });
     expect(m.lastCheckedAt).toBe(NOW.toISOString());
 

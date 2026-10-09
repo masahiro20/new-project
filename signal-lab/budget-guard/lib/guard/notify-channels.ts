@@ -1,3 +1,4 @@
+import { demoTokensAllowed } from "./demo";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { z } from "zod";
 import type { FetchLike } from "./stop";
@@ -37,6 +38,8 @@ export function isSlackWebhookUrl(url: string): boolean {
 /** Posts to Slack, or logs when the URL is the dev-only "demo" value. */
 export async function postSlack(url: string, text: string, fetchImpl: FetchLike = fetch): Promise<void> {
   if (url === DEMO_SLACK_URL) {
+    // A "demo" URL saved earlier must not report success where demo values are refused (Ren QA).
+    if (!demoTokensAllowed()) throw new Error("The demo Slack URL only works in development or a demo deployment. Save your real Slack webhook URL.");
     console.info(`[slack:dev] ${text}`);
     return;
   }

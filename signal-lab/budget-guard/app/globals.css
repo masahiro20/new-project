@@ -96,7 +96,8 @@ select, input[type="number"], input[type="password"] { font: inherit; padding: 1
 .guard.limit .meter span { background: #b4232c; }
 .badge.mode-live { background: #b4232c; color: #fff; }
 .badge.mode-off { background: var(--line); color: var(--muted); }
-.plan { white-space: pre-wrap; word-break: break-all; font-size: .85rem; background: var(--bg); padding: 12px; border-radius: 8px; overflow-x: auto; }
+pre.plan { white-space: pre-wrap; word-break: break-all; font-size: .85rem; background: var(--bg); padding: 12px; border-radius: 8px; overflow-x: auto; }
+.prose, section.narrow { overflow-wrap: anywhere; }
 .log { list-style: none; padding: 0; font-size: .9rem; }
 .log li { padding: 6px 0; border-bottom: 1px solid var(--line); }
 .log time { color: var(--muted); font-family: ui-monospace, monospace; }

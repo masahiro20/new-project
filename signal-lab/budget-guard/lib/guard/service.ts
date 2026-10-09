@@ -258,15 +258,24 @@ export async function checkConnectionLocked(
     let activityChanged = false;
     let token: string | undefined;
     let fetchImpl: FetchLike | undefined;
+    let opened = false;
     try {
       token = openToken(conn);
+      opened = true;
       if (opts.realOnly && isDemoToken(token)) return { status: "demo" };
       fetchImpl = fetchFor(token);
     } catch (err) {
       const reason = err instanceof Error ? err.message : String(err);
-      // The user can't fix this (missing / rotated TOKEN_ENCRYPTION_KEY): monitoring is off for
-      // this connection, so tell the operator. Only the id and the reason, never the sealed value.
-      console.error(`[guard] cannot open token for ${conn.id}: ${reason}`);
+      if (opened) {
+        // The token opened but can't be used here (the "demo" token outside a demo deployment): the
+        // user's to fix, not a key problem — logged apart from R1-01 so the two aren't confused (Ren QA).
+        console.warn(`[guard] token refused for ${conn.id}: ${reason}`);
+        token = undefined;
+      } else {
+        // The user can't fix this (missing / rotated TOKEN_ENCRYPTION_KEY): monitoring is off for
+        // this connection, so tell the operator. Only the id and the reason, never the sealed value.
+        console.error(`[guard] cannot open token for ${conn.id}: ${reason}`);
+      }
       notices.push({ kind: "error", connectionId: conn.id, message: `${conn.label}: ${reason}` });
     }
     if (token !== undefined && fetchImpl) {
@@ -296,7 +305,7 @@ export async function checkConnectionLocked(
     if (activityChanged) writes[storeKeys.activity(acct)] = JSON.stringify(activity);
     await kv.mset(writes);
     await notify(kv, acct, email, notices, opts.notifyFetch, parse<AccountSettings>(settingsRaw) ?? {});
-    return { status: "checked", notices, ...(token === undefined && { tokenError: true as const }) };
+    return { status: "checked", notices, ...(!opened && { tokenError: true as const }) };
   });
   return r.ok ? r.value : { status: "busy" };
 }

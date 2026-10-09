@@ -16,7 +16,14 @@ export async function POST(request: Request) {
   const body = await readJson(request);
   if (!body) return badRequest();
   const licenseKey = normalizeLicenseKey(String(body.license ?? ""));
-  const entitlement = licenseKey ? await resolveLicense(kv, licenseKey) : null;
+  let entitlement;
+  try {
+    entitlement = licenseKey ? await resolveLicense(kv, licenseKey) : null;
+  } catch (err) {
+    // Stripe unreachable (cache miss → provider lookup): a temporary failure, not a wrong key and not a 500 (Ren QA).
+    console.error("[access] license lookup failed", err instanceof Error ? err.message : err);
+    return json({ error: "Could not check the license right now. Please try again in a minute." }, 503);
+  }
   if (!isActive(entitlement)) return json({ error: t.access.invalidLicense }, 401);
   const res = NextResponse.json({ ok: true, redirect: "/app" }, { headers: { "Cache-Control": "no-store" } });
   res.cookies.set(ACCESS_COOKIE, await signAccessToken({ sub: entitlement.id, plan: entitlement.plan }), accessCookieOptions());

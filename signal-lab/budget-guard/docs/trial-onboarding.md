@@ -123,7 +123,7 @@
 > - If a live stop ran and you want it undone: unpause the Vercel project, delete or raise the OpenAI project limit, or set the Anthropic keys back to active. You do this yourself in the provider's dashboard or API. Budget Guard lists the exact IDs in the activity log.
 >
 > **6. Your data**
-> - We store: your email, your license, and for each connection the encrypted token, a masked hint (first 4 and last 4 characters), your budget and stop settings, spend readings and an activity log (last 50 entries).
+> - We store: your email, your license, and for each connection the encrypted token, a masked hint (the provider's public key prefix, such as sk-admin-, and the last 4 characters), your budget and stop settings, spend readings and an activity log (last 50 entries).
 > - Storage is Upstash, email is Resend, hosting is Cloudflare.
 > - We don't store card numbers. In demo mode only the last 4 digits are kept.
 > - When the trial ends, monitoring stops and we delete your data 30 days later.
@@ -170,7 +170,7 @@
 > - live の停止が実行され、元に戻したい場合：Vercel はプロジェクトの unpause、OpenAI はプロジェクトの上限を削除または引き上げ、Anthropic はキーを active に戻す。プロバイダのダッシュボードか API で、ご自身で行う。対象の ID はアクティビティに出る。
 >
 > **6. データの扱い**
-> - 保存するもの：メールアドレス、ライセンス。接続ごとに、暗号化したトークン、伏せ字（先頭4文字と末尾4文字）、予算と停止の設定、利用額の記録、アクティビティ（最新50件）。
+> - 保存するもの：メールアドレス、ライセンス。接続ごとに、暗号化したトークン、伏せ字（各社の公開の接頭辞（sk-admin- など）と末尾4文字）、予算と停止の設定、利用額の記録、アクティビティ（最新50件）。
 > - 保存先は Upstash、メールは Resend、ホスティングは Cloudflare。
 > - カード番号は保存しない。デモモードでは末尾4桁だけを持つ。
 > - 試用が終わると監視は止まり、データは終了から30日後に削除する。
@@ -206,8 +206,8 @@
 | 購入の開始数 | 同 `checkout_start` | — |
 | LP の閲覧・CTA | 同 `pageview`、`cta_click` | 個人は特定しない。 |
 | 待機リストの人数 | 同 `waitlist` | — |
-| 全体の接続数・プロバイダ別・demo トークンの数 | `GET /api/admin/stats` の `trial.connections`（`total`・`byProvider`・`demoToken`） | 認証は従来どおり `Authorization: Bearer $ADMIN_TOKEN`。索引 `bg:allconns` を使い、Upstash は 3 コマンド（`lib/guard/admin.ts`）。 |
-| 本物の接続か `demo` か | 各アカウントの `budget-guard:bg:{アカウントID}:conns`（JSON）の `tokenHint`。`demo` は `••••`、本物は `先頭4…末尾4` | 試用者のダッシュボード（画面共有）でも「token …」として見える。 |
+| 全体の接続数・プロバイダ別・demo トークンの数 | `GET /api/admin/stats` の `trial.connections`（`total`・`byProvider`・`demoToken`） | 認証は従来どおり `Authorization: Bearer $ADMIN_TOKEN`。索引 `bg:allconns` と demo の索引 `bg:democonns` を使い、Upstash は 4 コマンド（`lib/guard/admin.ts`）。 |
+| 本物の接続か `demo` か | 各アカウントの `budget-guard:bg:{アカウントID}:conns`（JSON）の `tokenHint`。`demo` は `••••`、本物は `公開の接頭辞…末尾4`（78dcf0d より前に追加した接続は `先頭4…末尾4`） | 試用者のダッシュボード（画面共有）でも「token …」として見える。 |
 | テストモード／live の数 | `GET /api/admin/stats` の `trial.stopMode`（`off` / `test` / `live`） | ダッシュボードのバッジ「Stop: test mode」「Stop: LIVE」でも見える。 |
 | live に切り替えた数 | 同上の `live` の数。アクティビティの `Stop action ARMED (live): …` | — |
 | 今月の 80% 通知・100% 到達・テスト停止 | `GET /api/admin/stats` の `trial.thisMonth`（`warned`・`reachedLimit`・`testStopRecords`・`keyInvalid`） | 80%・100% は接続ごとの状態から数える。テスト停止はアクティビティ（`budget-guard:bg:{アカウントID}:activity` の `log`。最新50件だけ残る）の `Manual test:` と `TEST MODE` を数える。 |
