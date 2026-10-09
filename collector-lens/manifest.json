@@ -4,7 +4,9 @@
   "short_name": "Tanuki Scout",
   "version": "0.1.0",
   "description": "Provisional name. Explains Japanese listing condition terms in English and flags risky wording. Reads only the page you have open.",
-  "permissions": [],
+  "permissions": [
+    "storage"
+  ],
   "host_permissions": [
     "https://page.auctions.yahoo.co.jp/*",
     "https://jp.mercari.com/*",
@@ -21,8 +23,13 @@
       ],
       "js": [
         "src/glossary-data.js",
+        "src/rates-data.js",
         "src/analyzer.js",
         "src/sites.js",
+        "src/landed-cost.js",
+        "src/features.js",
+        "src/estimate-settings.js",
+        "src/estimate-section.js",
         "src/overlay.js",
         "src/content.js"
       ],

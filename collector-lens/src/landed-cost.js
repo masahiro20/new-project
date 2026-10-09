@@ -5,7 +5,8 @@
  * tables (data/rates/*.json); this file only knows the four component kinds
  * (fixed / rate / rate_with_min / tiered) and the order of the calculation.
  * Loaded as a classic script (attaches to globalThis.CollectorLens) and as a
- * CommonJS module in Node tests. NOT in the extension's content_scripts yet.
+ * CommonJS module in Node tests. Loaded as a content script for the panel's
+ * "Estimated total" section (src/estimate-section.js).
  */
 (function (root) {
   "use strict";

@@ -69,8 +69,8 @@ It also explains shop grades (S / A / AB / B …) and exporter grades (Mint, Exc
 
 - **Only the page you have open.** It reads the listing in your current tab and nothing else. It never opens other pages or crawls.
 - **Everything happens in your browser.** The glossary ships with the extension. It has no server and makes no network requests.
-- **No account and no data collection.** Nothing is stored or sent anywhere.
-- **Minimal permissions.** It requests no Chrome API permissions. The only access it asks for is to read the four supported marketplace sites, which is what Chrome's install prompt will show.
+- **No account and no data collection.** Nothing is sent anywhere. The only thing it keeps is your estimate settings (destination, shipping method, exchange rate), stored on your device. Never the listing or the page address.
+- **Minimal permissions.** It asks to read the four supported marketplace sites, which is what Chrome's install prompt will show, plus "storage" for your estimate settings.
 - **It doesn't change the page.** It adds its own panel and leaves the listing exactly as the seller published it.
 
 *(The waitlist form on this page is separate from the extension. It will only ask for an email address.)*

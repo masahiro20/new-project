@@ -23,7 +23,10 @@ manifest.version = cfg.version;
 if (manifest.name.length > 75) throw new Error("name > 75 chars");
 if (manifest.short_name.length > 12) throw new Error("short_name > 12 chars");
 if (manifest.description.length > 132) throw new Error("description > 132 chars");
-if (manifest.permissions.length) throw new Error("store build expects no API permissions");
+// Only "storage" (saved Estimated-total settings, chrome.storage.local). Anything
+// else needs an owner decision and a privacy-text update first.
+if (JSON.stringify(manifest.permissions) !== JSON.stringify(["storage"])) throw new Error('store build expects permissions to be exactly ["storage"]');
+if (manifest.optional_permissions || manifest.background) throw new Error("store build expects no optional permissions or background script");
 if (firefox) {
   // Firefox 128+ grants MV3 host_permissions at install, matching Chrome's behaviour.
   delete manifest.minimum_chrome_version;

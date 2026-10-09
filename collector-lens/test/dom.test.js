@@ -99,13 +99,27 @@ test("page text is rendered as text, never as HTML", () => {
   assert.match(shadow.textContent, /onerror/);
 });
 
-test("content scripts make no network or storage calls", () => {
+test("content scripts make no network calls; only the settings helper touches storage", () => {
   const fs = require("node:fs");
   const path = require("node:path");
-  for (const f of ["analyzer.js", "sites.js", "overlay.js", "content.js"]) {
-    const src = fs.readFileSync(path.join(__dirname, "..", "src", f), "utf8");
-    for (const banned of ["fetch(", "XMLHttpRequest", "sendBeacon", "WebSocket", "localStorage", "chrome.storage", "innerHTML", "eval(", "new Function"]) {
+  const m = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "manifest.json"), "utf8"));
+  const files = m.content_scripts.flatMap((c) => c.js);
+  assert.ok(files.includes("src/estimate-settings.js"));
+  for (const f of files) {
+    const src = fs.readFileSync(path.join(__dirname, "..", f), "utf8");
+    for (const banned of ["fetch(", "XMLHttpRequest", "sendBeacon", "WebSocket", "EventSource", "localStorage", "sessionStorage", "indexedDB",
+      "document.cookie", "innerHTML", "outerHTML", "insertAdjacentHTML", "eval(", "new Function", "importScripts", "browser."]) {
       assert.ok(!src.includes(banned), `${f} uses ${banned}`);
+    }
+    const storage = (src.match(/\bchrome\.storage[\w.]*/g) || []).map((u) => u.replace(/\.+$/, ""));
+    if (f === "src/estimate-settings.js") {
+      // Feature detection plus exactly one get and one set on the local area.
+      for (const use of storage) assert.ok(["chrome.storage", "chrome.storage.local", "chrome.storage.local.get", "chrome.storage.local.set"].includes(use), use);
+      assert.equal(storage.filter((u) => u === "chrome.storage.local.get").length, 1);
+      assert.equal(storage.filter((u) => u === "chrome.storage.local.set").length, 1);
+      assert.ok(!/chrome\.storage\.(sync|session|managed)/.test(src));
+    } else {
+      assert.deepEqual(storage, [], `${f} uses chrome.storage`);
     }
   }
 });

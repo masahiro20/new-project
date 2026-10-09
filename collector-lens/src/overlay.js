@@ -2,13 +2,15 @@
  * Tanuki Scout (provisional name) — overlay panel.
  * Rendered inside a closed Shadow DOM so page CSS can't leak in and the page's
  * own layout is untouched. All page-derived text goes through textContent and
- * createTextNode only.
+ * createTextNode only. Key and input events from inside the panel are stopped
+ * at the panel, so typing in it does not trigger the marketplace's shortcuts.
  */
 (function (root) {
   "use strict";
 
   var NS = (root.CollectorLens = root.CollectorLens || {});
   var HOST_ID = "collector-lens-root";
+  var KEEP_INSIDE = ["keydown", "keyup", "keypress", "beforeinput", "input"];
 
   var CSS = [
     ":host{all:initial}",
@@ -19,7 +21,7 @@
     ".badge{font-size:12px;font-weight:600;padding:2px 8px;border-radius:999px}",
     ".lvl-high{background:#fde2e1;color:#a4161a}.lvl-medium{background:#fff1d6;color:#8a5300}.lvl-low{background:#e3f4e8;color:#1e6b34}",
     "button{all:unset;cursor:pointer;padding:2px 6px;border-radius:6px;color:#555}button:hover{background:#f0f0f4}button:focus-visible{outline:2px solid #3a6df0}",
-    ".body{overflow:auto;padding:4px 12px 12px}",
+    ".body{overflow:auto;overscroll-behavior:contain;padding:4px 12px 12px}",
     ".collapsed .body,.collapsed .foot{display:none}",
     "h3{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#6b6b75;margin:12px 0 6px}",
     "ul{list-style:none;margin:0;padding:0}",
@@ -106,6 +108,12 @@
     if (g.terms.length) {
       body.appendChild(section(doc, "Terms on this page", g.terms.map(function (t) { return item(doc, "info", t.ja, t.en, t.explain); })));
     }
+    // v1.1 "Estimated total" (collapsed by default). Absent if the feature
+    // flag is off or the engine/tables are not loaded.
+    if (typeof NS.buildEstimateSection === "function") {
+      var est = NS.buildEstimateSection(doc, (meta && meta.estimate) || {});
+      if (est) body.appendChild(est);
+    }
     panel.appendChild(body);
 
     var foot = el(doc, "div", "foot", "Tanuki Scout (prototype) · " + (meta && meta.siteName ? meta.siteName + " · " : "") +
@@ -121,6 +129,12 @@
     toggle.addEventListener("click", function (ev) { ev.stopPropagation(); setCollapsed(!panel.classList.contains("collapsed")); });
     head.addEventListener("click", function () { setCollapsed(!panel.classList.contains("collapsed")); });
     close.addEventListener("click", function (ev) { ev.stopPropagation(); remove(doc); });
+    // Keyboard/input events are composed and would bubble out of the shadow
+    // root to the page (e.g. a site shortcut on "/" or "j"). Stop them here.
+    // The default action (typing) still happens.
+    KEEP_INSIDE.forEach(function (type) {
+      panel.addEventListener(type, function (ev) { ev.stopPropagation(); });
+    });
     setCollapsed(!!(meta && meta.collapsed));
     return panel;
   }
@@ -137,7 +151,7 @@
     host.id = HOST_ID;
     var shadow = host.attachShadow({ mode: meta && meta.openShadow ? "open" : "closed" });
     var style = doc.createElement("style");
-    style.textContent = CSS;
+    style.textContent = CSS + (NS.ESTIMATE_CSS || "");
     shadow.appendChild(style);
     shadow.appendChild(buildPanel(doc, result, meta));
     (doc.body || doc.documentElement).appendChild(host);

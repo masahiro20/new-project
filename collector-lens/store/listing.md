@@ -42,7 +42,8 @@ Yahoo! Auctions Japan, Mercari, Rakuma and Mandarake item pages. Use it alongsid
 Privacy
 • Reads only the listing in the tab you have open.
 • Everything runs in your browser. No server, no network requests, no account, no tracking.
-• Requests no Chrome API permissions. It only asks to read the four supported marketplace sites.
+• Stores only your estimate settings on your device (destination, shipping method and exchange rate). It never stores the listing, the page address or your browsing.
+• Requests one Chrome API permission, "storage", for those settings. Otherwise it only asks to read the four supported marketplace sites.
 • Adds its own panel and leaves the listing unchanged.
 
 Limitations

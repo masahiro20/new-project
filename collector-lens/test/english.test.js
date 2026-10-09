@@ -27,7 +27,9 @@ test("Japanese inside an explanation comes with an English gloss", () => {
 });
 
 test("overlay UI strings are English", () => {
-  const src = fs.readFileSync(path.join(__dirname, "..", "src", "overlay.js"), "utf8");
-  const code = src.split("\n").filter((l) => !/^\s*(\/\/|\*|\/\*)/.test(l)).join("\n");
-  assert.ok(!JP.test(code), "overlay.js has Japanese UI text");
+  for (const f of ["overlay.js", "estimate-section.js"]) {
+    const src = fs.readFileSync(path.join(__dirname, "..", "src", f), "utf8");
+    const code = src.split("\n").filter((l) => !/^\s*(\/\/|\*|\/\*)/.test(l)).join("\n");
+    assert.ok(!JP.test(code), f + " has Japanese UI text");
+  }
 });

@@ -1,8 +1,9 @@
 /*
  * Tanuki Scout (provisional name) — content script entry point.
  * Runs only on the listing domains declared in manifest.json, reads the
- * current page's DOM, and draws an overlay. No network, no storage, no
- * messages to any server, no visits to other pages.
+ * current page's DOM, and draws an overlay. No network, no messages to any
+ * server, no visits to other pages. The only storage is the "Estimated total"
+ * settings (src/estimate-settings.js); nothing from the listing is saved.
  */
 (function (root) {
   "use strict";
@@ -26,7 +27,20 @@
     if (key === lastKey && document.getElementById(CL.OVERLAY_HOST_ID)) return;
     lastKey = key;
     var result = CL.analyze(listing, null, index);
-    CL.renderOverlay(document, result, { siteName: hit.site.name, collapsed: collapsed });
+    CL.renderOverlay(document, result, {
+      siteName: hit.site.name,
+      collapsed: collapsed,
+      estimate: {
+        // The price is used for the estimate only and never saved. sites.js
+        // does not read prices yet, so the user types a max bid or price.
+        listing: {
+          price_jpy: typeof listing.price_jpy === "number" ? listing.price_jpy : null,
+          is_auction: hit.site.id === "yahoo_auctions",
+          genre: result.genre,
+          subgenre: result.subgenre
+        }
+      }
+    });
   }
 
   function schedule() {
