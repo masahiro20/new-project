@@ -157,7 +157,7 @@ The LEDGERBREAKER setting book: the city, the Seven Lenders, the DEFAULT power d
 PDF · A5 · 30 pages · $4
 {KOFI_URL}
 
-Text, art and layout all made with generative AI; reviewed by the creator.
+All text, art & layout made with AI; creator-reviewed.
 ```
 
 - `{BOOTH_URL}`・`{KOFI_URL}` は、商品ページを公開した後に置き換える。
