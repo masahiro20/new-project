@@ -19,7 +19,7 @@ export const privacy: Record<"ja" | "en", LegalDoc> = {
         heading: "取得する情報",
         body: [
           `${c.name}（以下「本サービス」）は、待機リストへの登録時のメールアドレス、購入時に決済代行事業者から提供されるメールアドレスと購入情報、ライセンスキーを取り扱います。`,
-          `${R}監視の機能を使う場合、次の情報も取り扱います。①利用者が接続した各社（Vercel、OpenAI、Anthropic）の API トークン（暗号化して保存し、画面には先頭4文字と末尾4文字の伏せ字だけを表示します）、②利用者が登録した Slack の incoming webhook の URL、③利用者が登録した Vercel の Spend Management webhook の秘密（シークレット）、④利用額のデータ（接続ごとの最新の利用額のスナップショットと、通知・停止などの記録であるアクティビティログ）。あわせて、接続ごとのラベル、対象のチーム・プロジェクト・ワークスペースの ID、予算額、停止の設定を保存します。`,
+          `${R}監視の機能を使う場合、次の情報も取り扱います。①利用者が接続した各社（Vercel、OpenAI、Anthropic）の API トークン（暗号化して保存し、画面には、各社が公開している接頭辞（例：sk-ant-admin）と末尾4文字だけの伏せ字を表示します。短いトークンは伏せ字だけです）、②利用者が登録した Slack の incoming webhook の URL、③利用者が登録した Vercel の Spend Management webhook の秘密（シークレット）、④利用額のデータ（接続ごとの最新の利用額のスナップショットと、通知・停止などの記録であるアクティビティログ）。あわせて、接続ごとのラベル、対象のチーム・プロジェクト・ワークスペースの ID、予算額、停止の設定を保存します。`,
         ],
       },
       {
@@ -36,12 +36,12 @@ export const privacy: Record<"ja" | "en", LegalDoc> = {
           `${R}Vercel webhook の秘密：利用者が登録を解除するか、その接続を削除するまで保存します。`,
           `${R}Slack の webhook URL：利用者が登録を解除するまで保存します。接続を削除しても、この URL は削除されません。`,
           `${R}利用額のスナップショット：接続ごとに最新の1件だけを保存し、確認のたびに上書きします。接続を削除すると削除します。`,
-          `${R}アクティビティログ：アカウントごとに最新の50件だけを保存し、古いものから順に消えます。削除した接続についての記録も、新しい記録に押し出されるまで残ります。`,
+          `${R}アクティビティログ：アカウントごとに最新の50件だけを保存し、古いものから順に消えます。接続を削除すると、その接続についての記録も一緒に削除します。`,
           `${R}サブスクリプションまたは試用（30日間）が終了すると、監視を止めます。当方が保存している上記の情報は、終了から30日間保存し、その後に削除します。`,
           `${R}アカウント全体の削除は、下記の窓口からいつでもご依頼いただけます。ご依頼から7日以内に削除し、完了をお知らせします。`,
           `${R}購入記録：税法上の帳簿書類の保存に合わせて、本物の課金による購入の記録は、上記の削除（終了後30日の削除、ご依頼による削除）の後も7年間保存します（期間の起算日は税法の定めによります）。保存するのは購入の日時、金額、プラン、請求書番号だけで、個人を識別する情報は最小限にとどめます。期間を過ぎたら削除します。デモの購入（請求のないもの）は対象外です。`,
           `${R}最小限の権利の記録：終了後30日の削除（ご依頼による削除を含みます）の後も、購入ごとの権利について、ID、状態、プラン、日付（作成・更新・終了・削除の日時）、同意の記録だけを残します。目的は、同じ購入から権利が作り直されるのを防ぐことと、同意の記録を残すことです。メールアドレスとライセンスキーは残しません。保存期間は、本物の課金による購入では、その購入の年度の購入記録と同じ期限（上記の7年間）、デモの購入では90日間で、過ぎたら自動的に削除します。`,
-          `${R}不正利用を防ぐため、IP アドレスを回数制限の目的でのみ一時的に保存し、最長10分で自動的に削除します。デモの購入記録（メールアドレスとカード番号の末尾4桁）は、支払い前のものは1時間、支払い済みのものは90日で自動的に削除します。`,
+          `${R}不正利用を防ぐため、IP アドレスと、ログインリンクの送り先のメールアドレスのハッシュ値（メールアドレスそのものは保存しません）を、回数制限の目的でのみ一時的に保存し、最長10分で自動的に削除します。デモの購入記録（メールアドレスとカード番号の末尾4桁）は、支払い前のものは1時間、支払い済みのものは90日で自動的に削除します。`,
         ],
       },
       {
@@ -96,7 +96,7 @@ export const privacy: Record<"ja" | "en", LegalDoc> = {
         heading: "What we collect",
         body: [
           `${c.name} ("the Service") handles the email you give when joining the waitlist, the email and purchase details provided by our payment processor, and your license key.`,
-          `${R}If you use monitoring, we also handle: (1) API tokens for the providers you connect (Vercel, OpenAI, Anthropic), stored encrypted and shown only as a masked hint of the first 4 and last 4 characters; (2) the Slack incoming webhook URL you register; (3) the Vercel Spend Management webhook secret you register; (4) spend data: the latest spend snapshot for each connection and an activity log of alerts, stops and other events. We also store each connection's label, the team, project or workspace IDs it targets, its budget and its stop settings.`,
+          `${R}If you use monitoring, we also handle: (1) API tokens for the providers you connect (Vercel, OpenAI, Anthropic), stored encrypted and shown only as a masked hint made of the provider's public prefix (for example, sk-ant-admin) and the last 4 characters; short tokens are fully masked; (2) the Slack incoming webhook URL you register; (3) the Vercel Spend Management webhook secret you register; (4) spend data: the latest spend snapshot for each connection and an activity log of alerts, stops and other events. We also store each connection's label, the team, project or workspace IDs it targets, its budget and its stop settings.`,
         ],
       },
       {
@@ -113,12 +113,12 @@ export const privacy: Record<"ja" | "en", LegalDoc> = {
           `${R}Vercel webhook secret: kept until you remove it or delete the connection.`,
           `${R}Slack webhook URL: kept until you remove it. Deleting a connection does not delete it.`,
           `${R}Spend snapshots: only the latest one per connection, overwritten at every check and deleted with the connection.`,
-          `${R}Activity log: only the latest 50 entries per account; older ones drop off. Entries about a deleted connection stay until newer entries push them out.`,
+          `${R}Activity log: only the latest 50 entries per account; older ones drop off. Deleting a connection also deletes its entries.`,
           `${R}When a subscription or trial (30 days) ends, monitoring stops. We keep the data above for 30 days after the end and then delete it.`,
           `${R}You can ask us to delete your whole account at any time at the contact below. We delete it within 7 days of your request and let you know when it is done.`,
           `${R}Purchase records: to meet the bookkeeping retention rules of Japanese tax law, records of real (paid) purchases are kept for 7 years, even after the deletions above (30 days after the end, or on your request); the period starts as tax law provides. We keep only the date and time, amount, plan and invoice number of each purchase, with as little information identifying you as possible, and delete them when the period is over. Demo purchases (with no charge) are not included.`,
           `${R}Minimal entitlement record: even after the deletion 30 days after the end (or on your request), we keep, for each purchase's entitlement, only its ID, status, plan, dates (created, updated, ended, deleted) and consent record. This is to prevent an entitlement from being created again from the same purchase, and to keep the record of your consent. Your email address and license key are not kept. For real (paid) purchases it is kept until the purchase records of the same fiscal year are deleted (the 7 years above); for demo purchases, for 90 days. It is then deleted automatically.`,
-          `${R}To prevent abuse, we keep IP addresses briefly for rate limiting only; they are deleted automatically within 10 minutes. Demo purchase records (email and the last 4 digits of the card) are deleted automatically after 1 hour if unpaid, or after 90 days if paid.`,
+          `${R}To prevent abuse, we keep IP addresses, and a hash of the email address a sign-in link is sent to (not the address itself), briefly for rate limiting only; they are deleted automatically within 10 minutes. Demo purchase records (email and the last 4 digits of the card) are deleted automatically after 1 hour if unpaid, or after 90 days if paid.`,
         ],
       },
       {
