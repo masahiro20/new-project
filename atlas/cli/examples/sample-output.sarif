@@ -280,6 +280,10 @@
       "severity": "critical",
       "ctx": "skill",
       "loc": "fenced",
+      "reach": "agent",
+      "tags": [
+       "reach:agent"
+      ],
       "suppressed": false
      }
     },
@@ -310,6 +314,10 @@
       "severity": "critical",
       "ctx": "src",
       "loc": "string:desc",
+      "reach": "agent",
+      "tags": [
+       "reach:agent"
+      ],
       "suppressed": false
      }
     },
@@ -340,6 +348,10 @@
       "severity": "critical",
       "ctx": "src",
       "loc": "string:desc",
+      "reach": "agent",
+      "tags": [
+       "reach:agent"
+      ],
       "suppressed": false
      }
     },
@@ -370,6 +382,10 @@
       "severity": "critical",
       "ctx": "src",
       "loc": "string:desc",
+      "reach": "agent",
+      "tags": [
+       "reach:agent"
+      ],
       "suppressed": false
      }
     },
@@ -400,6 +416,10 @@
       "severity": "critical",
       "ctx": "src",
       "loc": "string:desc",
+      "reach": "agent",
+      "tags": [
+       "reach:agent"
+      ],
       "suppressed": false
      }
     },
@@ -430,6 +450,10 @@
       "severity": "critical",
       "ctx": "src",
       "loc": "string:desc",
+      "reach": "agent",
+      "tags": [
+       "reach:agent"
+      ],
       "suppressed": false
      }
     },
@@ -460,6 +484,10 @@
       "severity": "critical",
       "ctx": "src",
       "loc": "string:desc",
+      "reach": "agent",
+      "tags": [
+       "reach:agent"
+      ],
       "suppressed": false
      }
     },
@@ -490,6 +518,10 @@
       "severity": "critical",
       "ctx": "src",
       "loc": "string:desc",
+      "reach": "agent",
+      "tags": [
+       "reach:agent"
+      ],
       "suppressed": false
      }
     },
@@ -520,6 +552,10 @@
       "severity": "high",
       "ctx": "skill",
       "loc": "prose",
+      "reach": "agent",
+      "tags": [
+       "reach:agent"
+      ],
       "suppressed": false
      }
     },
@@ -550,6 +586,10 @@
       "severity": "high",
       "ctx": "src",
       "loc": "code",
+      "reach": "exec",
+      "tags": [
+       "reach:exec"
+      ],
       "suppressed": false
      }
     },
@@ -580,6 +620,10 @@
       "severity": "high",
       "ctx": "src",
       "loc": "code",
+      "reach": "exec",
+      "tags": [
+       "reach:exec"
+      ],
       "suppressed": false
      }
     },
@@ -610,6 +654,10 @@
       "severity": "high",
       "ctx": "src",
       "loc": "string:desc",
+      "reach": "agent",
+      "tags": [
+       "reach:agent"
+      ],
       "suppressed": false
      }
     },
@@ -640,6 +688,10 @@
       "severity": "high",
       "ctx": "src",
       "loc": "code",
+      "reach": "exec",
+      "tags": [
+       "reach:exec"
+      ],
       "suppressed": false
      }
     },
@@ -670,6 +722,10 @@
       "severity": "high",
       "ctx": "src",
       "loc": "code",
+      "reach": "exec",
+      "tags": [
+       "reach:exec"
+      ],
       "suppressed": false
      }
     },
@@ -700,6 +756,10 @@
       "severity": "medium",
       "ctx": "src",
       "loc": "string:desc",
+      "reach": "agent",
+      "tags": [
+       "reach:agent"
+      ],
       "suppressed": false
      }
     },
@@ -730,6 +790,10 @@
       "severity": "medium",
       "ctx": "src",
       "loc": "code",
+      "reach": "exec",
+      "tags": [
+       "reach:exec"
+      ],
       "suppressed": false
      }
     },
@@ -760,6 +824,10 @@
       "severity": "medium",
       "ctx": "src",
       "loc": "code",
+      "reach": "exec",
+      "tags": [
+       "reach:exec"
+      ],
       "suppressed": false
      }
     },
@@ -790,6 +858,10 @@
       "severity": "medium",
       "ctx": "src",
       "loc": "code",
+      "reach": "exec",
+      "tags": [
+       "reach:exec"
+      ],
       "suppressed": false
      }
     },
@@ -820,6 +892,10 @@
       "severity": "medium",
       "ctx": "src",
       "loc": "code",
+      "reach": "exec",
+      "tags": [
+       "reach:exec"
+      ],
       "suppressed": false
      }
     },
@@ -850,6 +926,10 @@
       "severity": "medium",
       "ctx": "src",
       "loc": "code",
+      "reach": "exec",
+      "tags": [
+       "reach:exec"
+      ],
       "suppressed": false
      }
     },
@@ -880,6 +960,10 @@
       "severity": "medium",
       "ctx": "src",
       "loc": "code",
+      "reach": "exec",
+      "tags": [
+       "reach:exec"
+      ],
       "suppressed": false
      }
     },
@@ -909,6 +993,10 @@
      "properties": {
       "severity": "low",
       "ctx": "src",
+      "reach": "exec",
+      "tags": [
+       "reach:exec"
+      ],
       "suppressed": false
      }
     },
@@ -938,6 +1026,10 @@
      "properties": {
       "severity": "low",
       "ctx": "src",
+      "reach": "exec",
+      "tags": [
+       "reach:exec"
+      ],
       "suppressed": false
      }
     },
@@ -967,6 +1059,10 @@
      "properties": {
       "severity": "low",
       "ctx": "src",
+      "reach": "exec",
+      "tags": [
+       "reach:exec"
+      ],
       "suppressed": false
      }
     },
@@ -997,6 +1093,10 @@
       "severity": "low",
       "ctx": "src",
       "loc": "comment",
+      "reach": "other",
+      "tags": [
+       "reach:other"
+      ],
       "suppressed": false
      }
     },
@@ -1027,6 +1127,10 @@
       "severity": "low",
       "ctx": "docs",
       "loc": "prose",
+      "reach": "other",
+      "tags": [
+       "reach:other"
+      ],
       "suppressed": false
      }
     }
@@ -1038,21 +1142,36 @@
       "grade": "F",
       "trust": 4,
       "files": 3,
-      "high_or_critical_src_skill": 14
+      "high_or_critical_src_skill": 14,
+      "high_or_critical_src_skill_by_reach": {
+       "agent": 10,
+       "exec": 4,
+       "other": 0
+      }
      },
      {
       "uri": "atlas/scanner/tests/fixtures/neg/",
       "grade": "C",
       "trust": 61,
       "files": 3,
-      "high_or_critical_src_skill": 0
+      "high_or_critical_src_skill": 0,
+      "high_or_critical_src_skill_by_reach": {
+       "agent": 0,
+       "exec": 0,
+       "other": 0
+      }
      }
     ],
     "filters": {
      "min_severity": "info",
      "show_suppressed": false,
      "ast": true,
-     "fail_on": "high"
+     "fail_on": "high",
+     "fail_on_reach": [
+      "agent",
+      "exec",
+      "other"
+     ]
     },
     "note": "Static analysis only — nothing was executed. Findings are patterns, not a verdict of intent."
    }

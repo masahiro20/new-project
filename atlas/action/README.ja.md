@@ -35,6 +35,7 @@ jobs:
         with:
           path: .
           fail-on: high          # critical | high | none
+          # fail-on-reach: agent,exec   # 任意：ほかの場所での引用やデータでは失敗させない（code scanning でレビューする）
           # min-severity: low    # info の検出をレポート／SARIF から隠す
           # sarif-file: atlas-scan.sarif
           # upload-sarif: "true"
@@ -54,6 +55,7 @@ jobs:
 | `path` | `.` | 検査するディレクトリ。ワークスペースからの相対パス。 |
 | `min-severity` | `info` | `info`／`low`／`medium`／`high`／`critical` のうち、指定より下の検出をレポートと SARIF で隠す。終了コードは変わらない。 |
 | `fail-on` | `high` | `src`／`skill` のコードで、この重大度以上のパターンを検出したら失敗させる：`high`（high か critical）、`critical`、`none`（検出では失敗させない）。 |
+| `fail-on-reach` | 空 | 失敗させるかの判定に数える [reach](../cli/README.ja.md#reach検出の場所) をカンマ区切りで指定する：`agent`（エージェントに届く文章）、`exec`（実行されるコード）、`other`（それ以外の文字列・コメント・ドキュメント・データ。要レビュー）。例：`agent,exec`。空なら、今までどおりすべての reach を数える。 |
 | `sarif-file` | `atlas-scan.sarif` | SARIF 2.1.0 のレポートの書き出し先（ワークスペースからの相対パス）。 |
 | `upload-sarif` | `true` | `github/codeql-action/upload-sarif`（category は `atlas-scan`）で SARIF をアップロードする。`security-events: write` が必要。 |
 
@@ -68,11 +70,11 @@ jobs:
 
 1. `actions/setup-node`（Node 22）と `actions/setup-python`（Python 3.12）。どちらもコミット SHA に固定。
 2. `atlas/cli` で `npm ci --ignore-scripts`。入るのは `typescript`（パーサーとして使う）だけで、インストールスクリプトは動かない。
-3. ワークスペースから `node atlas/cli/bin/atlas-scan.js --sarif <sarif-file> --fail-on <fail-on> -- <path>` を実行する。SARIF の URI はリポジトリのルートからの相対（`%SRCROOT%`）になる。このステップ自体は失敗しないので、パターンを検出してもアップロードは行われる。
+3. ワークスペースから `node atlas/cli/bin/atlas-scan.js --sarif <sarif-file> --fail-on <fail-on> [--fail-on-reach <fail-on-reach>] -- <path>` を実行する。SARIF の URI はリポジトリのルートからの相対（`%SRCROOT%`）になる。このステップ自体は失敗しないので、パターンを検出してもアップロードは行われる。
 4. SARIF ファイルをアップロードする（`upload-sarif` が `true` でない場合と、検査がエラーになった場合は除く）。
 5. スキャナーの終了コードが `1`（`fail-on` による）か `2` なら、その終了コードでジョブを失敗させる。
 
-入力はすべて環境変数経由でだけシェルに渡す（`run:` の中で `${{ }}` は使わない）。`min-severity`／`fail-on` は決まった一覧と照合するので、入力値からシェルコマンドを注入することはできない。スキャナーはネットワークにリクエストしない。ダウンロードするのは、固定した action と、npm レジストリからの `typescript` だけ。
+入力はすべて環境変数経由でだけシェルに渡す（`run:` の中で `${{ }}` は使わない）。`min-severity`／`fail-on`／`fail-on-reach` は決まった一覧と照合するので、入力値からシェルコマンドを注入することはできない。スキャナーはネットワークにリクエストしない。ダウンロードするのは、固定した action と、npm レジストリからの `typescript` だけ。
 
 ## SARIF の詳細
 

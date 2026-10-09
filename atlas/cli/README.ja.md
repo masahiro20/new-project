@@ -60,6 +60,7 @@ atlas-scan PATH [PATH ...] [options]
 | `--json FILE` | JSON のレポートを `FILE` にも書き出す |
 | `--sarif FILE` | SARIF 2.1.0 のレポートを `FILE` にも書き出す（GitHub code scanning 用） |
 | `--fail-on high\|critical\|none` | `src`／`skill` のコードでどの重大度が出たら終了コードを 1 にするか（既定の `high` は high か critical。`none` なら 1 にしない） |
+| `--fail-on-reach REACH[,REACH]` | 終了コード 1 の判定に数える [reach](#reach検出の場所) をカンマ区切りで指定する：`agent`、`exec`、`other`（既定は3つすべて＝今までどおり）。例：`--fail-on-reach agent,exec` |
 | `--findings FILE` | 抑制した候補も含め、全検出を JSON Lines で書き出す |
 | `--min-severity LEVEL` | `info`／`low`／`medium`／`high`／`critical` のうち、指定より下の検出をレポートで隠す（終了コードと `--findings` には影響しない） |
 | `--show-suppressed` | 文脈層が抑制した候補も、理由付きで表示する |
@@ -68,7 +69,7 @@ atlas-scan PATH [PATH ...] [options]
 | `--version` | バージョンを表示する |
 | `--help` | ヘルプを表示する |
 
-text 出力の中身（対象ごと）：グレードと信頼スコア、ファイル数とスキル数、スコアの上限があればその内容、能力の表示（例：`shell-exec`）、そして重大度ごとにまとめた検出。各検出には、ルール ID、`file:line`、文脈（`src`、`skill`、`docs`、`test` など）、一致した場所（ツール説明文、コメント、コードなど）、短いスニペット、文脈層が判定を変えた場合はその `why` が付く。レポートの最後には必ず次の1行が出る（CLI の出力なので英語のまま）：
+text 出力の中身（対象ごと）：グレードと信頼スコア、ファイル数とスキル数、`src`／`skill` のコードでの high/critical の件数の reach 別の内訳（例：`agent 2 · exec 1 · other 5 (review)`）、スコアの上限があればその内容、能力の表示（例：`shell-exec`）、そして reach 別の見出し（`REACHES THE AGENT`、`RUNS AS CODE`、最後に要レビューの `OTHER STRINGS, COMMENTS, DOCS AND DATA`）の下に、重大度ごとにまとめた検出。各検出には、ルール ID、`file:line`、文脈（`src`、`skill`、`docs`、`test` など）、一致した場所（ツール説明文、コメント、コードなど）、reach、短いスニペット、文脈層が判定を変えた場合はその `why` が付く。`Result:` の行は、`agent` と `exec` の high/critical があるかで決まる。`other` にだけある high/critical は、要レビューとしてその行に件数を出す。レポートの最後には必ず次の1行が出る（CLI の出力なので英語のまま）：
 
 > Static analysis only — nothing was executed. Findings are patterns, not a verdict of intent.
 
@@ -87,6 +88,34 @@ node atlas/cli/bin/atlas-scan.js atlas/scanner/tests/fixtures/pos atlas/scanner/
 node atlas/cli/bin/atlas-scan.js atlas/scanner/tests/fixtures/pos atlas/scanner/tests/fixtures/neg -q --sarif atlas/cli/examples/sample-output.sarif
 ```
 
+## reach：検出の場所
+
+各検出には `reach` が付く。文脈層が決めた一致の場所（`loc`）、`why`、ルール、パスから決める。reach が変えるのは表示と、`--fail-on-reach` を指定したときに終了コードの判定に数える検出だけで、重大度・抑制・信頼スコアは変わらない。
+
+- **`agent`**：エージェントに届く文章。ツールの説明文、コードがモデルに送るプロンプト、skill、MCP のマニフェストやツール定義、`.claude/`（と同種のエージェント設定ディレクトリ）や `hooks/` の中のファイル。
+- **`exec`**：実行されるコード。AST によるコードの検出、インストール時のスクリプト、シェルの実行、動的な評価、環境変数の一括出力、実行文脈での pipe-to-shell、コード中の送信先（コールバック用のエンドポイント）。
+- **`other`**：それ以外の文字列リテラル、コメント、ドキュメント、データファイル、例。引用やデータ（たとえばセキュリティツール自身のルールやテスト用コーパス）であることが多いので、**レビューしてから**判断する。
+
+対応表（上から順に調べ、最初に当てはまったものを使う）：
+
+| # | 条件 | reach |
+| --- | --- | --- |
+| 1 | ルール `ATL-CE-*`、`ATL-CR-*`、`ATL-IN-*`、`ATL-OB-003`、`ATL-NW-001` | `exec` |
+| 2 | ルール `ATL-PL-001`（hooks／settings のコマンド）か `ATL-SK-002`（skill に同梱のスクリプト）。文脈が `skill`（`SKILL.md` の本文やコードブロック）。パスが `.claude/`、`.claude-plugin/`、`.cursor/`、`.codex/`、`.gemini/`、`.vscode/`、`.windsurf/`、`.continue/`、`.kiro/`、`.roo/`、`.amazonq/`、`hooks/` の下。ファイル名が `server.json`、`mcp.json`、`manifest.json`、`plugin.json` など（MCP のマニフェスト名） | `agent` |
+| 3 | `why` が「data file (not an MCP manifest/tool definition)」 | `other` |
+| 4 | データファイル（`.json`、`.jsonc`、`.jsonl`、`.ndjson`、`.yaml`、`.yml`、`.toml`）：一致した位置についてのスキャナーのデータファイル判定で決める。マニフェスト／ツール定義 → `agent`、コマンドのキー（`command`、`run`、`script` など）→ `exec`、ただのデータやコメント → `other` | 左のとおり |
+| 5 | `loc` が `string:desc`、`string:prompt`、`string:prompt~` | `agent` |
+| 6 | `loc` が `code` | `exec` |
+| 7 | 文字列（`string:plain`、`string~`、`string:prompt`、`string:prompt~`）の中の `ATL-RF-001` で、スキャナーが medium 以上のままにし、`why` がないもの（`exec(`／`spawn(`／`$(` などの実行文脈にある） | `exec` |
+| 8 | コードファイルの文字列（`string:plain`、`string~`）の中の `ATL-NW-002`（コールバック用のエンドポイント）で、`why` がないもの | `exec` |
+| 9 | `loc` が `string:plain`、`string~`、`string:example`（プロンプト内の few-shot の例）、`string:catalog`、`string:corpus`、`string:pattern`、`string:patternlist`、`string:test`、`regex`、`comment`、`comment~`、`fenced`、`prose` | `other` |
+| 10 | `loc` がない（`--no-ast`、または文脈層の外で決まるルール）：対象がコードのルール（`ATL-FS-001`、`ATL-OB-004` など）→ `exec`、ドキュメントやデータのファイル → `other`、それ以外 → `agent`（場所が分からないので、`other` に埋もれさせない） | 左のとおり |
+| 11 | 上のどれにも当てはまらない | `other` |
+
+JSON のレポートでは、すべての検出に `reach` が付き、対象ごとに `high_or_critical_src_skill_by_reach`（`{"agent": n, "exec": n, "other": n}`）が付く。`--findings` の各行にも `reach` が付く。SARIF の各結果には `properties.reach` と、`properties.tags` の `reach:agent`／`reach:exec`／`reach:other` が付くので、code scanning で絞り込める。
+
+`--fail-on-reach agent,exec` を指定すると、エージェントに届くか実行される場所の high/critical では今までどおり終了コード 1 になり、`other`（レビュー待ちの引用やデータ）ではビルドを失敗させない。既定ではすべての reach を数えるので、既存のパイプラインの動きは変わらない。
+
 ## SARIF
 
 `--format sarif`／`--sarif FILE` は、SARIF 2.1.0 の run を1つ書き出す（`tool.driver.name` は `atlas-scan`）。
@@ -102,9 +131,9 @@ node atlas/cli/bin/atlas-scan.js atlas/scanner/tests/fixtures/pos atlas/scanner/
 | --- | --- |
 | `0` | `src`／`skill` のコードで high・critical のパターンを検出しなかった（docs／tests／examples／CI の検出や、より低い重大度の検出は表示されることがある） |
 | `1` | `src`／`skill` のコードで high または critical のパターンを1件以上検出した |
-| `2` | 使い方または実行時のエラー：不正なオプション、パスがない、Python が見つからない、スキャナーの異常終了 |
+| `2` | 使い方または実行時のエラー：不正なオプション（`--fail-on-reach` の不正な値を含む）、パスがない、Python が見つからない、スキャナーの異常終了 |
 
-`--fail-on critical` なら critical のパターンでだけ 1 で終わる。`--fail-on none` なら 1 で終わることはない。
+`--fail-on critical` なら critical のパターンでだけ 1 で終わる。`--fail-on none` なら 1 で終わることはない。`--fail-on-reach agent,exec` なら、指定した reach の検出でだけ 1 で終わる（`--fail-on` と組み合わせて効く）。既定（すべての reach）なら終了コードは今までと同じ。
 
 ## CI の例（GitHub Actions）
 

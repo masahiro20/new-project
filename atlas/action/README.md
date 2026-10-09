@@ -41,6 +41,7 @@ jobs:
         with:
           path: .
           fail-on: high          # critical | high | none
+          # fail-on-reach: agent,exec   # optional: do not fail on quotes/data elsewhere (review them in code scanning)
           # min-severity: low    # hide info findings from the report / SARIF
           # sarif-file: atlas-scan.sarif
           # upload-sarif: "true"
@@ -62,6 +63,7 @@ there. For such workflows set `upload-sarif: "false"` (and keep the job's pass/f
 | `path` | `.` | Directory to scan, relative to the workspace. |
 | `min-severity` | `info` | Hide findings below `info`/`low`/`medium`/`high`/`critical` in the report and SARIF. Does not change the exit code. |
 | `fail-on` | `high` | Fail when a pattern of this severity or higher is detected in `src`/`skill` code: `high` (high or critical), `critical`, or `none` (never fail on findings). |
+| `fail-on-reach` | empty | Only count findings of these [reaches](../cli/README.md#reach-where-a-finding-sits) when deciding whether to fail: a comma-separated list of `agent` (text that reaches the agent), `exec` (code that runs) and `other` (other strings, comments, docs and data; review), e.g. `agent,exec`. Empty = every reach counts, as before. |
 | `sarif-file` | `atlas-scan.sarif` | Where the SARIF 2.1.0 report is written (relative to the workspace). |
 | `upload-sarif` | `true` | Upload the SARIF file with `github/codeql-action/upload-sarif` (category `atlas-scan`). Needs `security-events: write`. |
 
@@ -76,14 +78,14 @@ there. For such workflows set `upload-sarif: "false"` (and keep the job's pass/f
 
 1. `actions/setup-node` (Node 22) and `actions/setup-python` (Python 3.12), pinned to commit SHAs.
 2. `npm ci --ignore-scripts` in `atlas/cli` — installs only `typescript` (used as a parser), with no install scripts.
-3. Runs `node atlas/cli/bin/atlas-scan.js --sarif <sarif-file> --fail-on <fail-on> -- <path>`
+3. Runs `node atlas/cli/bin/atlas-scan.js --sarif <sarif-file> --fail-on <fail-on> [--fail-on-reach <fail-on-reach>] -- <path>`
    from the workspace, so SARIF URIs are relative to the repository root (`%SRCROOT%`).
    This step never fails by itself, so the upload still happens when patterns are found.
 4. Uploads the SARIF file (unless `upload-sarif` is not `true` or the scan errored).
 5. Fails the job with the scanner's exit code if it was `1` (per `fail-on`) or `2`.
 
 Inputs reach the shell only through environment variables (never `${{ }}` inside `run:`),
-and `min-severity` / `fail-on` are checked against fixed lists, so input values cannot
+and `min-severity` / `fail-on` / `fail-on-reach` are checked against fixed lists, so input values cannot
 inject shell commands. The scanner makes no network requests; the only downloads are the
 pinned actions and `typescript` from the npm registry.
 

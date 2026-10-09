@@ -7,12 +7,21 @@ the TypeScript parser (ts.createSourceFile) on file contents.
 
     python3 -I cli.py <path> [<path> ...] [--format text|json|sarif] [--json FILE]
                       [--sarif FILE] [--findings FILE] [--min-severity LEVEL]
-                      [--fail-on high|critical|none] [--show-suppressed]
+                      [--fail-on high|critical|none] [--fail-on-reach agent,exec,other]
+                      [--show-suppressed]
                       [--no-ast] [--quiet] [--version]
 
 Exit codes: 0 = no high/critical pattern in src/skill code, 1 = high/critical pattern
 detected in src/skill code, 2 = usage or runtime error. `--fail-on critical` only fails
-on critical patterns; `--fail-on none` never exits 1.
+on critical patterns; `--fail-on none` never exits 1. `--fail-on-reach agent,exec` only
+counts findings whose reach is listed (default: all three, i.e. unchanged).
+
+Reach (display only; the detection logic in scan.py is unchanged): every finding is labelled
+"agent" (text that reaches the agent: tool descriptions, model prompts, skills, manifests /
+tool definitions, files under .claude/ or hooks/), "exec" (code that runs: AST code hits,
+install scripts, shell / eval, env dumps, pipe-to-shell in an execution context, endpoints in
+code), or "other" (other strings, comments, docs, data and examples: possibly a quote or data;
+review). See reach_of() and the README for the table.
 
 SARIF 2.1.0 output (--format sarif / --sarif FILE) is for GitHub code scanning and other
 SARIF consumers: one run, artifact URIs relative to the current directory (%SRCROOT%).
@@ -47,6 +56,9 @@ FAIL_CTX = ("src", "skill")
 CTX_ORDER = {"skill": 0, "src": 1, "docs": 2, "ci": 3, "example": 4, "test": 5}
 FOOTER = "Static analysis only — nothing was executed. Findings are patterns, not a verdict of intent."
 EXIT_OK, EXIT_FINDINGS, EXIT_ERROR = 0, 1, 2
+REACHES = ("agent", "exec", "other")
+REACH_LABEL = {"agent": "REACHES THE AGENT", "exec": "RUNS AS CODE",
+               "other": "OTHER STRINGS, COMMENTS, DOCS AND DATA (possibly a quote or data; review)"}
 SNIPPET_MAX = 140
 
 
@@ -67,8 +79,10 @@ def build_parser():
                     "Nothing in the scanned tree is executed, installed or imported, and nothing is sent "
                     "over the network.",
         epilog="Exit codes: 0 = no high/critical pattern in src/skill code; 1 = high/critical pattern "
-               "detected in src/skill code (independent of --min-severity; see --fail-on); "
-               "2 = usage or runtime error. " + FOOTER,
+               "detected in src/skill code (independent of --min-severity; see --fail-on and --fail-on-reach); "
+               "2 = usage or runtime error. Reach: agent = reaches the agent (tool description, prompt, skill, "
+               "manifest, .claude/ or hooks/); exec = runs as code; other = other strings, comments, docs, data "
+               "and examples (possibly a quote or data; review). " + FOOTER,
     )
     p.add_argument("paths", nargs="*", metavar="PATH", help="directory to scan (one or more)")
     p.add_argument("--format", choices=("text", "json", "sarif"), default="text",
@@ -85,6 +99,10 @@ def build_parser():
     p.add_argument("--fail-on", choices=tuple(FAIL_ON), default="high",
                    help="exit 1 when a pattern of this severity or higher is detected in src/skill code: "
                         "high (default: high or critical), critical, or none (never exit 1)")
+    p.add_argument("--fail-on-reach", metavar="REACH[,REACH]", default=",".join(REACHES),
+                   help="only count findings of these reaches for exit code 1: comma-separated list of "
+                        "agent, exec, other (default: all three, i.e. every reach counts). "
+                        "e.g. --fail-on-reach agent,exec")
     p.add_argument("--show-suppressed", action="store_true",
                    help="also list candidates the context layer suppressed, with the reason")
     p.add_argument("--no-ast", action="store_true",
@@ -111,8 +129,109 @@ def clean(s, limit=SNIPPET_MAX):
     return s if len(s) <= limit else s[:limit - 1] + "…"
 
 
-def is_fail(f, sevs=FAIL_SEVS):
-    return not f.get("suppressed") and f.get("sev") in sevs and f.get("ctx") in FAIL_CTX
+def is_fail(f, sevs=FAIL_SEVS, reaches=REACHES):
+    return not f.get("suppressed") and f.get("sev") in sevs and f.get("ctx") in FAIL_CTX \
+        and f.get("reach", "agent") in reaches
+
+
+def parse_reaches(value):
+    parts = [p.strip().lower() for p in str(value).split(",")]
+    if not value or any(p not in REACHES + ("all",) for p in parts):
+        raise UsageError(f"invalid --fail-on-reach {value!r} (expected a comma-separated list of "
+                         f"{', '.join(REACHES)}, or all)")
+    return REACHES if "all" in parts else tuple(r for r in REACHES if r in parts)
+
+
+# ---------------------------------------------------------------------------
+# Reach (display only). Derived from what scan.py already records: rule, loc, why, ctx, file.
+# Nothing here changes a severity or a suppression.
+EXEC_RULE_PREFIX = ("ATL-CE-", "ATL-CR-", "ATL-IN-")
+EXEC_RULES = {"ATL-OB-003", "ATL-NW-001"}
+AGENT_RULES = {"ATL-PL-001", "ATL-SK-002"}  # hooks / settings commands, scripts bundled with a skill
+AGENT_LOCS = {"string:desc", "string:prompt", "string:prompt~"}
+OTHER_LOCS = {"string:plain", "string~", "string:example", "string:catalog", "string:corpus", "string:pattern",
+              "string:patternlist", "string:test", "regex", "comment", "comment~", "fenced", "prose"}
+CODE_SCOPE_RULES = {r["id"] for r in scan.R if r["scope"] == "code"}
+_RULE_RE = {r["id"]: r["re"] for r in scan.R}
+
+
+def _agent_path(rel):
+    p = "/" + rel.replace("\\", "/")
+    base = p.rsplit("/", 1)[-1].lower()
+    return bool(scan.AGENT_CODE_PATH.search(p) or scan.AGENT_CONFIG_DIRS.search(p.lower())
+                or base in scan.MANIFEST_NAMES)
+
+
+class _DataKinds:
+    """manifest / exec / data kind of a finding in a data file (scan.DataCtx), recomputed from the
+    file text because scan.py does not keep the offset. Cached per file."""
+
+    def __init__(self, root):
+        self.root, self.cache = root, {}
+
+    def kind(self, f):
+        rel = f["file"]
+        if rel not in self.cache:
+            try:
+                with open(os.path.join(self.root, rel), "rb") as fh:
+                    text = fh.read().decode("utf-8", "replace")
+                self.cache[rel] = (text, scan.DataCtx(text, os.path.splitext(rel)[1].lower(), rel))
+            except OSError:
+                self.cache[rel] = None
+        got = self.cache[rel]
+        if not got:
+            return None
+        text, data = got
+        ln = int(f.get("line") or 0)
+        if ln < 1:
+            return None
+        start = 0
+        for _ in range(ln - 1):
+            start = text.find("\n", start) + 1
+            if start == 0:
+                return None
+        end = text.find("\n", start)
+        end = len(text) if end == -1 else end
+        rx = _RULE_RE.get(f.get("rule"))
+        m = rx.search(text, start, end) if rx else None
+        try:
+            return data.kind(m.start() if m else start)
+        except Exception:  # display only: never fail the scan over it
+            return None
+
+
+def reach_of(f, data_kinds=None):
+    """'agent' | 'exec' | 'other' for one finding. See the README table."""
+    rid, loc, why = f.get("rule", ""), f.get("loc"), f.get("why") or ""
+    rel = f.get("file", "")
+    ext = os.path.splitext(rel)[1].lower()
+    if rid.startswith(EXEC_RULE_PREFIX) or rid in EXEC_RULES:
+        return "exec"
+    if rid in AGENT_RULES or f.get("ctx") == "skill" or _agent_path(rel):
+        return "agent"
+    if why.startswith("data file"):
+        return "other"
+    if ext in scan.DATA_EXT and loc not in ("comment~",):
+        kind = data_kinds.kind(f) if data_kinds else None
+        return {"manifest": "agent", "exec": "exec", "data": "other"}.get(kind, "other")
+    if loc in AGENT_LOCS:
+        return "agent"
+    if loc == "code":
+        return "exec"
+    if rid == "ATL-RF-001" and loc in ("string:plain", "string~", "string:prompt", "string:prompt~") \
+            and not why and scan.SEV_RANK.get(f.get("sev"), 0) > scan.SEV_RANK["low"]:
+        return "exec"  # kept critical by scan.py: the string sits in an execution context (exec / spawn / $(...))
+    if rid == "ATL-NW-002" and loc in ("string:plain", "string~") and ext in scan.CODE_EXT and not why:
+        return "exec"  # an exfiltration / callback endpoint in a code string: where the code sends
+    if loc in OTHER_LOCS:
+        return "other"
+    if loc is None:  # --no-ast (no context layer) or a rule decided outside it
+        if rid in CODE_SCOPE_RULES:
+            return "exec"
+        if ext in scan.DOC_EXT or ext in scan.DATA_EXT:
+            return "other"
+        return "agent"  # location unknown: counted with the agent-reaching findings, not hidden
+    return "other"
 
 
 def sort_key(f):
@@ -122,8 +241,11 @@ def sort_key(f):
 
 def scan_target(path, use_ast):
     f, nfiles, nskills, stats = scan.scan_repo_ex(path, use_ast=use_ast)
+    t = trust_mod.trust(f)  # before "reach" is added: the trust score never sees it
+    dk = _DataKinds(path)
+    for x in f:
+        x["reach"] = reach_of(x, dk)
     live = [x for x in f if not x.get("suppressed")]
-    t = trust_mod.trust(f)
     return {
         "path": path,
         "files": nfiles,
@@ -136,6 +258,8 @@ def scan_target(path, use_ast):
         "hits": dict(Counter(x["rule"] for x in live)),
         "stats": stats,
         "high_or_critical_src_skill": sum(1 for x in f if is_fail(x)),
+        "high_or_critical_src_skill_by_reach": {rc: sum(1 for x in f if is_fail(x, FAIL_SEVS, (rc,)))
+                                                for rc in REACHES},
         "_all": f,
     }
 
@@ -173,9 +297,11 @@ def render_text(results, args, out):
         c = r["counts"]
         live_total = sum(c.values())
         counts = ", ".join(f"{c[s]} {s}" for s in SEVERITIES if c[s]) or "none"
+        br = r["high_or_critical_src_skill_by_reach"]
+        reach_line = f"agent {br['agent']} · exec {br['exec']} · other {br['other']} (review)"
         if args.quiet:
             w(f"{r['path']}: grade {t['grade']} ({t['trust']}/100), findings: {counts}; "
-              f"high/critical in src/skill: {r['high_or_critical_src_skill']}\n")
+              f"high/critical in src/skill: {r['high_or_critical_src_skill']} — {reach_line}\n")
             continue
         w("\n" + st.bold(f"== {r['path']}") + "\n")
         w(f"   Grade {st.bold(t['grade'])}  trust {t['trust']}/100  "
@@ -183,6 +309,7 @@ def render_text(results, args, out):
           f"maintenance {t['maintenance']} [neutral])\n")
         w(f"   Files {r['files']}, skills {r['skills']}; findings {live_total} ({counts}); "
           f"suppressed {r['suppressed']}\n")
+        w(f"   High/critical in src/skill by reach: {reach_line}\n")
         for cap in t["caps"]:
             w(f"   Cap: {cap['reason']}\n")
         if t["badges"]:
@@ -191,28 +318,41 @@ def render_text(results, args, out):
         if not shown:
             note = "No findings" if not live_total else f"No findings at or above {args.min_severity}"
             w(f"\n   {note}.\n")
-        groups = [(sev.upper(), sev, [x for x in shown if x["sev"] == sev and not x.get("suppressed")])
-                  for sev in SEVERITIES]
-        groups.append(("SUPPRESSED (not counted; kept for audit)", "info",
-                       [x for x in shown if x.get("suppressed")]))
-        for label, color, group in groups:
-            if not group:
+        sections = [(REACH_LABEL[rc], [x for x in shown if x.get("reach") == rc and not x.get("suppressed")])
+                    for rc in REACHES]
+        sections.append(("SUPPRESSED (not counted; kept for audit)", [x for x in shown if x.get("suppressed")]))
+        for title, items in sections:
+            if not items:
                 continue
-            w("\n   " + st.sev(color, f"{label} ({len(group)})") + "\n")
-            for x in group:
-                loc = f"{x['file']}:{x['line']}" if x.get("line") else x["file"]
-                ctx = x.get("ctx", "-") + (f" / {x['loc']}" if x.get("loc") else "")
-                sup = x.get("suppressed")
-                tag = f" {x['sev']}" if sup else ""
-                w(f"     {st.sev(x['sev'], x['rule'])}{tag}  {clean(loc, 200)}  [{ctx}]\n")
-                w(f"         {'candidate' if sup else 'pattern detected'}: {clean(x.get('title', ''))}\n")
-                if x.get("snippet"):
-                    w(f"         > {clean(x['snippet'])}\n")
-                if x.get("why"):
-                    w(f"         why: {clean(x['why'])}\n")
-        n = r["high_or_critical_src_skill"]
-        w("\n   Result: " + (st.sev("high", f"high/critical pattern detected in src/skill ({n})") if n
-                             else "no high/critical pattern in src/skill") + "\n")
+            w("\n   " + st.bold(f"## {title} ({len(items)})") + "\n")
+            for sev in SEVERITIES:
+                group = [x for x in items if x["sev"] == sev]
+                if not group:
+                    continue
+                w("\n   " + st.sev(sev, f"{sev.upper()} ({len(group)})") + "\n")
+                for x in group:
+                    loc = f"{x['file']}:{x['line']}" if x.get("line") else x["file"]
+                    ctx = x.get("ctx", "-") + (f" / {x['loc']}" if x.get("loc") else "")
+                    sup = x.get("suppressed")
+                    tag = f" {x['sev']}" if sup else ""
+                    w(f"     {st.sev(x['sev'], x['rule'])}{tag}  {clean(loc, 200)}  [{ctx}] reach: {x.get('reach', '-')}\n")
+                    w(f"         {'candidate' if sup else 'pattern detected'}: {clean(x.get('title', ''))}\n")
+                    if x.get("snippet"):
+                        w(f"         > {clean(x['snippet'])}\n")
+                    if x.get("why"):
+                        w(f"         why: {clean(x['why'])}\n")
+        n_ae = br["agent"] + br["exec"]
+        if n_ae:
+            res = st.sev("high", f"high/critical pattern detected where it reaches the agent or runs ({n_ae}; "
+                                 f"agent {br['agent']}, exec {br['exec']})")
+            if br["other"]:
+                res += f"; {br['other']} more in other strings/data (review)"
+        elif br["other"]:
+            res = (f"no high/critical pattern where it reaches the agent or runs; "
+                   f"{br['other']} high/critical in other strings/data (review)")
+        else:
+            res = "no high/critical pattern in src/skill"
+        w("\n   Result: " + res + "\n")
     w("\n" + FOOTER + "\n")
 
 
@@ -226,7 +366,7 @@ def report_json(results, args, exit_code):
         "tool": PROG,
         "version": os.environ.get("ATLAS_CLI_VERSION") or __version__,
         "filters": {"min_severity": args.min_severity, "show_suppressed": args.show_suppressed,
-                    "ast": not args.no_ast},
+                    "ast": not args.no_ast, "fail_on": args.fail_on, "fail_on_reach": list(args.fail_reaches)},
         "targets": targets,
         "exit_code": exit_code,
         "note": FOOTER,
@@ -264,7 +404,8 @@ def report_sarif(results, args, exit_code):
     for r in results:
         prefix = _uri_prefix(r["path"])
         targets.append({"uri": prefix or "./", "grade": r["trust"]["grade"], "trust": r["trust"]["trust"],
-                        "files": r["files"], "high_or_critical_src_skill": r["high_or_critical_src_skill"]})
+                        "files": r["files"], "high_or_critical_src_skill": r["high_or_critical_src_skill"],
+                        "high_or_critical_src_skill_by_reach": r["high_or_critical_src_skill_by_reach"]})
         for x in visible(r["_all"], args.min_severity, args.show_suppressed):
             rid = x["rule"]
             if rid not in rule_index:
@@ -298,7 +439,8 @@ def report_sarif(results, args, exit_code):
                 }}],
                 "partialFingerprints": {FINGERPRINT_KEY: fp},
                 "properties": {k: v for k, v in (("severity", x.get("sev")), ("ctx", x.get("ctx")),
-                                                 ("loc", x.get("loc")),
+                                                 ("loc", x.get("loc")), ("reach", x.get("reach")),
+                                                 ("tags", ["reach:" + x["reach"]] if x.get("reach") else None),
                                                  ("suppressed", bool(x.get("suppressed")))) if v is not None},
             }
             if x.get("suppressed"):
@@ -316,7 +458,8 @@ def report_sarif(results, args, exit_code):
             "properties": {"targets": targets, "filters": {"min_severity": args.min_severity,
                                                            "show_suppressed": args.show_suppressed,
                                                            "ast": not args.no_ast,
-                                                           "fail_on": args.fail_on},
+                                                           "fail_on": args.fail_on,
+                                                           "fail_on_reach": list(args.fail_reaches)},
                            "note": FOOTER},
         }],
     }
@@ -326,6 +469,7 @@ def run(argv):
     args = build_parser().parse_args(argv)
     if not args.paths:
         raise UsageError("no PATH given (try: atlas-scan ./my-server, or --help)")
+    args.fail_reaches = parse_reaches(args.fail_on_reach)
     paths = []
     for p in args.paths:
         if not os.path.exists(p):
@@ -335,7 +479,7 @@ def run(argv):
         paths.append(os.path.normpath(p))
     results = [scan_target(p, use_ast=not args.no_ast) for p in paths]
     fail_sevs = FAIL_ON[args.fail_on]
-    exit_code = EXIT_FINDINGS if any(is_fail(x, fail_sevs) for r in results for x in r["_all"]) else EXIT_OK
+    exit_code = EXIT_FINDINGS if any(is_fail(x, fail_sevs, args.fail_reaches) for r in results for x in r["_all"]) else EXIT_OK
 
     if args.findings:
         with open(args.findings, "w", encoding="utf-8") as fh:

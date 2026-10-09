@@ -79,6 +79,7 @@ atlas-scan PATH [PATH ...] [options]
 | `--json FILE` | also write the JSON report to `FILE` |
 | `--sarif FILE` | also write a SARIF 2.1.0 report to `FILE` (for GitHub code scanning) |
 | `--fail-on high\|critical\|none` | which severity in `src`/`skill` code makes the exit code 1 (default `high` = high or critical; `none` never exits 1) |
+| `--fail-on-reach REACH[,REACH]` | only findings of these [reaches](#reach-where-a-finding-sits) count for exit code 1: `agent`, `exec`, `other`, comma-separated (default: all three, i.e. unchanged). For example `--fail-on-reach agent,exec` |
 | `--findings FILE` | write every finding, including suppressed candidates, as JSON Lines |
 | `--min-severity LEVEL` | hide findings below `info`/`low`/`medium`/`high`/`critical` in the report (exit code and `--findings` are unaffected) |
 | `--show-suppressed` | also list candidates the context layer suppressed, each with its reason |
@@ -87,11 +88,16 @@ atlas-scan PATH [PATH ...] [options]
 | `--version` | print the version |
 | `--help` | print help |
 
-Text output, per target: the grade and trust score, file/skill counts, any score cap,
-capability badges (e.g. `shell-exec`), then findings grouped by severity. Each finding
-shows the rule id, `file:line`, context (`src`, `skill`, `docs`, `test`, ...) and where
-the match sits (tool description, comment, code, ...), a short snippet and, when the
-context layer changed it, the `why`. Every report ends with:
+Text output, per target: the grade and trust score, file/skill counts, the number of
+high/critical findings in `src`/`skill` code per reach (for example
+`agent 2 · exec 1 · other 5 (review)`), any score cap, capability badges (e.g.
+`shell-exec`), then the findings in reach sections (`REACHES THE AGENT`, `RUNS AS CODE`,
+then `OTHER STRINGS, COMMENTS, DOCS AND DATA` for review), each grouped by severity. Each
+finding shows the rule id, `file:line`, context (`src`, `skill`, `docs`, `test`, ...) and
+where the match sits (tool description, comment, code, ...), its reach, a short snippet
+and, when the context layer changed it, the `why`. The `Result:` line is based on the
+`agent` and `exec` high/critical findings; high/critical findings that are only in
+`other` are reported there as needing review. Every report ends with:
 
 > Static analysis only — nothing was executed. Findings are patterns, not a verdict of intent.
 
@@ -116,6 +122,49 @@ node atlas/cli/bin/atlas-scan.js atlas/scanner/tests/fixtures/pos atlas/scanner/
 node atlas/cli/bin/atlas-scan.js atlas/scanner/tests/fixtures/pos atlas/scanner/tests/fixtures/neg -q --sarif atlas/cli/examples/sample-output.sarif
 ```
 
+## Reach: where a finding sits
+
+Each finding gets a `reach`, derived from where the context layer placed the match
+(`loc`), its `why`, its rule and its path. Reach only changes how findings are shown and,
+with `--fail-on-reach`, which ones count for the exit code; severities, suppression and
+the trust score are unchanged.
+
+- **`agent`** – text that reaches the agent: a tool description, a prompt the code
+  sends to a model, a skill, an MCP manifest / tool definition, or a file under
+  `.claude/` (and similar agent config directories) or `hooks/`.
+- **`exec`** – code that runs: AST code findings, install-time scripts, shell execution,
+  dynamic evaluation, environment dumps, pipe-to-shell in an execution context, and
+  callback endpoints in code.
+- **`other`** – other string literals, comments, docs, data files and examples. These
+  are often quotes or data (for example a security tool's own rules or test corpus):
+  **review** them before acting.
+
+Mapping, checked in this order (first match wins):
+
+| # | Condition | Reach |
+| --- | --- | --- |
+| 1 | Rule `ATL-CE-*`, `ATL-CR-*`, `ATL-IN-*`, `ATL-OB-003`, `ATL-NW-001` | `exec` |
+| 2 | Rule `ATL-PL-001` (hook / settings command) or `ATL-SK-002` (script bundled with a skill); context `skill` (`SKILL.md`, prose or fenced); path under `.claude/`, `.claude-plugin/`, `.cursor/`, `.codex/`, `.gemini/`, `.vscode/`, `.windsurf/`, `.continue/`, `.kiro/`, `.roo/`, `.amazonq/` or `hooks/`; file name `server.json`, `mcp.json`, `manifest.json`, `plugin.json`, ... (MCP manifest names) | `agent` |
+| 3 | `why` = "data file (not an MCP manifest/tool definition)" | `other` |
+| 4 | Data file (`.json`, `.jsonc`, `.jsonl`, `.ndjson`, `.yaml`, `.yml`, `.toml`): the scanner's data-file kind at the match — manifest / tool definition → `agent`; a command key (`command`, `run`, `script`, ...) → `exec`; plain data or a comment → `other` | as stated |
+| 5 | `loc` = `string:desc`, `string:prompt`, `string:prompt~` | `agent` |
+| 6 | `loc` = `code` | `exec` |
+| 7 | `ATL-RF-001` in a string (`string:plain`, `string~`, `string:prompt`, `string:prompt~`) that the scanner kept at medium or above with no `why` (it sits in an execution context such as `exec(` / `spawn(` / `$(`) | `exec` |
+| 8 | `ATL-NW-002` (callback endpoint) in a code-file string (`string:plain`, `string~`) with no `why` | `exec` |
+| 9 | `loc` = `string:plain`, `string~`, `string:example` (few-shot example in a prompt), `string:catalog`, `string:corpus`, `string:pattern`, `string:patternlist`, `string:test`, `regex`, `comment`, `comment~`, `fenced`, `prose` | `other` |
+| 10 | No `loc` (`--no-ast`, or a rule decided outside the context layer): code-scope rules (e.g. `ATL-FS-001`, `ATL-OB-004`) → `exec`; doc or data files → `other`; anything else → `agent` (location unknown, so it is not hidden among `other`) | as stated |
+| 11 | Anything else | `other` |
+
+JSON reports carry `reach` on every finding and
+`high_or_critical_src_skill_by_reach` (`{"agent": n, "exec": n, "other": n}`) per target;
+`--findings` lines carry `reach` too. SARIF results carry `properties.reach` and a
+`properties.tags` entry `reach:agent`, `reach:exec` or `reach:other`, so code scanning
+can filter on it.
+
+`--fail-on-reach agent,exec` keeps exit code 1 for high/critical findings that reach the
+agent or run, and stops `other` findings (quotes and data, pending review) from failing
+the build. The default counts every reach, so existing pipelines behave as before.
+
 ## SARIF
 
 `--format sarif` / `--sarif FILE` write one SARIF 2.1.0 run (`tool.driver.name` =
@@ -133,9 +182,11 @@ Each result has a stable `partialFingerprints["atlasFindingHash/v1"]`.
 | --- | --- |
 | `0` | No high or critical pattern detected in `src` or `skill` code (findings in docs/tests/examples/CI, or lower severities, may still be listed) |
 | `1` | At least one high or critical pattern detected in `src` or `skill` code |
+| `2` | Usage or runtime error: bad option (including an invalid `--fail-on-reach` value), missing path, Python not found, scanner crash |
 
 `--fail-on critical` exits 1 only for critical patterns; `--fail-on none` never exits 1.
-| `2` | Usage or runtime error: bad option, missing path, Python not found, scanner crash |
+`--fail-on-reach agent,exec` exits 1 only for findings whose reach is listed; it combines
+with `--fail-on`. The default (every reach) keeps the exit code unchanged.
 
 ## CI example (GitHub Actions)
 

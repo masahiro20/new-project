@@ -20,6 +20,10 @@ inputs:
     description: "Fail the step when a pattern of this severity or higher is detected in src/skill code (critical, high or none)."
     required: false
     default: high
+  fail-on-reach:
+    description: "Only count findings of these reaches for failing the step: a comma-separated list of agent (text that reaches the agent), exec (code that runs) and other (other strings, comments, docs and data; review), e.g. agent,exec. Empty (default) = every reach counts, as before."
+    required: false
+    default: ""
   sarif-file:
     description: "Where to write the SARIF 2.1.0 report (relative to the workspace)."
     required: false
@@ -34,7 +38,7 @@ outputs:
     description: "Number of findings in the report (not suppressed, at or above min-severity, all contexts)."
     value: ${{ steps.scan.outputs.findings }}
   exit-code:
-    description: "Scanner exit code (0 = below the fail-on threshold, 1 = pattern at or above fail-on in src/skill code, 2 = usage or runtime error)."
+    description: "Scanner exit code (0 = below the fail-on threshold, 1 = pattern at or above fail-on in src/skill code (limited to fail-on-reach when set), 2 = usage or runtime error)."
     value: ${{ steps.scan.outputs.exit-code }}
 
 runs:
@@ -69,6 +73,7 @@ runs:
         INPUT_PATH: ${{ inputs.path }}
         INPUT_MIN_SEVERITY: ${{ inputs.min-severity }}
         INPUT_FAIL_ON: ${{ inputs.fail-on }}
+        INPUT_FAIL_ON_REACH: ${{ inputs.fail-on-reach }}
         INPUT_SARIF_FILE: ${{ inputs.sarif-file }}
       run: |
         set -uo pipefail
@@ -80,10 +85,18 @@ runs:
           echo "::error title=atlas-scan::invalid fail-on (expected critical, high or none)"
           echo "exit-code=2" >> "$GITHUB_OUTPUT"; echo "findings=0" >> "$GITHUB_OUTPUT"; exit 0 ;;
         esac
+        reach_args=()
+        if [ -n "$INPUT_FAIL_ON_REACH" ]; then
+          if [[ ! "$INPUT_FAIL_ON_REACH" =~ ^(agent|exec|other)(,(agent|exec|other))*$ ]]; then
+            echo "::error title=atlas-scan::invalid fail-on-reach (expected a comma-separated list of agent, exec and other, e.g. agent,exec)"
+            echo "exit-code=2" >> "$GITHUB_OUTPUT"; echo "findings=0" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          reach_args=(--fail-on-reach "$INPUT_FAIL_ON_REACH")
+        fi
         report="$RUNNER_TEMP/atlas-scan-report.json"
         rm -f "$report"
         node "$ATLAS_ACTION_PATH/../cli/bin/atlas-scan.js" \
-          --min-severity "$INPUT_MIN_SEVERITY" --fail-on "$INPUT_FAIL_ON" \
+          --min-severity "$INPUT_MIN_SEVERITY" --fail-on "$INPUT_FAIL_ON" ${reach_args[@]+"${reach_args[@]}"} \
           --sarif "$INPUT_SARIF_FILE" --json "$report" -- "$INPUT_PATH"
         code=$?
         findings=0
