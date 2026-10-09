@@ -1,4 +1,5 @@
-import { finishTable, recordToRow, resolveColumns, type ColumnMap } from "./columns.js";
+import type { ColumnMap } from "./columns.js";
+import { tableFromGrid } from "./grid.js";
 import type { Lang, Table } from "../types.js";
 
 /** RFC 4180 CSV (also TSV) parser that remembers the physical line each record starts on. */
@@ -52,17 +53,9 @@ export function parseCsvRecords(text: string, delimiter = ","): { line: number; 
   return out;
 }
 
-export function parseCsv(text: string, file: string, opts: { columns?: ColumnMap; langs?: { source?: Lang; target?: Lang }; delimiter?: string } = {}): Table {
+export function parseCsv(text: string, file: string, opts: { columns?: ColumnMap; langs?: { source?: Lang; target?: Lang }; delimiter?: string; format?: string } = {}): Table {
   const delimiter = opts.delimiter ?? (file.toLowerCase().endsWith(".tsv") ? "\t" : ",");
   const records = parseCsvRecords(text, delimiter);
-  const header = records.shift();
-  if (!header) throw new Error(`${file}: empty CSV`);
-  const headers = header.cells.map((h) => h.trim());
-  const cols = resolveColumns(headers, opts.columns);
-  const rows = records.map((r, idx) => {
-    const rec: Record<string, string> = {};
-    headers.forEach((h, j) => (rec[h] = r.cells[j] ?? ""));
-    return recordToRow(rec, cols, file, r.line, `row${idx + 1}`);
-  });
-  return finishTable(file, delimiter === "\t" ? "tsv" : "csv", rows, cols, opts.langs);
+  if (!records.length) throw new Error(`${file}: empty CSV`);
+  return tableFromGrid(records, file, delimiter === "\t" ? "tsv" : "csv", opts);
 }

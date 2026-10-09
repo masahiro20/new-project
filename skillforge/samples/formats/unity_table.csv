@@ -1,0 +1,7 @@
+Key,Id,Shared Comments,Japanese(ja),English(en)
+TITLE_ARCHIVE,1001,Location name,灰の書庫,Ashen Archive
+HUD_STONES,1002,{0} = count,魔導石：{0}個,Mana Stones: {0}
+HUD_STONE_LOW,1003,,魔導石が足りません。,Not enough Magic Stones.
+TIP_GATE,1004,Loading screen tip,ルーンゲートは夜にだけ開く。,The Rune Gate opens only at night.
+TIP_GATE2,1005,Loading screen tip,ルーン・ゲートの前で待て。,Wait before the Runegate.
+TIP_ARCHIVE,1006,Loading screen tip,灰の書庫には星詠みの記録が眠る。,The Ash Archive holds the Stargazer's records.

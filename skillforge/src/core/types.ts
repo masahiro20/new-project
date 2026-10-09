@@ -27,12 +27,21 @@ export interface Row {
   maxLength?: number;
 }
 
+/** Concrete format a table was parsed as. */
+export type TableFormat = "csv" | "tsv" | "json" | "xliff" | "xlsx" | "po" | "i18n-json" | "unity-csv" | "unreal-csv";
+
 export interface Table {
   file: string;
-  format: "csv" | "tsv" | "json" | "xliff";
+  format: TableFormat;
   sourceLang: Lang;
   targetLang: Lang;
   rows: Row[];
+  /**
+   * Set on single-language tables (a locale JSON, a CSV/XLSX with one text column, an Unreal string table):
+   * the text is in `Row.source` and `Row.target` is empty. `loadInputs` pairs a ja table with an en table by key;
+   * an unpaired one is still checked on its own (source-side rules only).
+   */
+  singleLang?: Lang;
 }
 
 export interface GlossaryTerm {

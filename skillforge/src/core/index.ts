@@ -1,5 +1,8 @@
 export * from "./types.js";
-export { parseTable, detectFormat, type Format, type ColumnMap } from "./parsers/index.js";
+export { parseTable, detectFormat, type Format, type ColumnMap, type ParseOptions } from "./parsers/index.js";
+export { loadInputs, pairTables, type InputFile, type LoadOptions, type LoadResult } from "./inputs.js";
+export { parseXlsx } from "./parsers/xlsx.js";
+export { parsePo } from "./parsers/po.js";
 export { parseGlossary, EMPTY_GLOSSARY } from "./glossary.js";
 export { runChecks } from "./engine.js";
 export { renderMarkdown } from "./report.js";

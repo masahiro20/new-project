@@ -8,21 +8,29 @@
     "node": ">=20"
   },
   "bin": {
-    "kotomark": "dist/cli/index.js"
+    "kotomark": "dist/kotomark.mjs"
   },
+  "files": [
+    "dist/kotomark.mjs",
+    "README.md",
+    "docs/ci.md"
+  ],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && npm run build:cli",
+    "build:cli": "node scripts/build-cli.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "node --import tsx --test test/*.test.ts",
     "check:sample": "tsx src/cli/index.ts check samples/ja-en/script.csv --glossary samples/ja-en/glossary.json",
     "serve": "tsx src/server/index.ts",
     "start": "node dist/server/index.js",
-    "build:demo": "node web/build-demo.mjs"
+    "build:demo": "node web/build-demo.mjs",
+    "kotomark": "tsx src/cli/index.ts"
   },
   "license": "UNLICENSED",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.132.1",
     "@modelcontextprotocol/sdk": "^1.32.1",
+    "fflate": "^0.8.2",
     "zod": "^4.6.5"
   },
   "devDependencies": {

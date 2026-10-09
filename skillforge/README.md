@@ -42,6 +42,8 @@ test/             node:test suites (parsers, checks, MCP over HTTP)
 docs/lp.md        landing-page copy draft (NOT published)
 docs/data-policy.md  data handling policy draft
 docs/pilot-guide.md  pilot instructions for testers + false-positive measurement procedure
+docs/ci.md        running `kotomark check` in GitHub Actions / GitLab CI (formats, exit codes)
+scripts/build-cli.mjs  bundles the CLI into dist/kotomark.mjs (the package bin)
 ```
 
 ## Run it
@@ -49,7 +51,7 @@ docs/pilot-guide.md  pilot instructions for testers + false-positive measurement
 ```bash
 cd skillforge
 npm install
-npm test                       # 56 tests: parsers, checks, regressions, draft, store/auth, MCP end-to-end
+npm test                       # node:test: parsers, checks, regressions, draft, store/auth, CLI, MCP end-to-end
 npm run check:sample           # CLI report for samples/ja-en
 npx tsx src/cli/index.ts check samples/en-ja/ui.xlf --glossary samples/en-ja/glossary.json
 
@@ -64,16 +66,47 @@ npm run serve &
 claude --plugin-dir ./plugin   # then: /lqa-check samples/ja-en/script.csv --glossary samples/ja-en/glossary.json
 ```
 
-CLI exit codes for `check`: `0` no errors, `1` errors found, `2` bad input (CI-friendly).
+## CLI
 
-Other CLI commands:
+One command, CI-ready. Build the single-file bin (`dist/kotomark.mjs`, Node 20+, dependencies bundled in) or run from source:
 
 ```bash
-npx tsx src/cli/index.ts draft <tables...> [--glossary existing.json] --out draft.json   # glossary draft from the script
-npx tsx src/cli/index.ts labels <tables...> --glossary g.json --out labels.csv            # labeling sheet for the pilot
-npx tsx src/cli/index.ts score labels.csv [--known known.csv]                             # precision / recall
-npx tsx src/cli/index.ts token create <user> --plan solo|studio                           # per-user API token (shown once)
-npx tsx src/cli/index.ts token list | token revoke <user|prefix>
+npm run build:cli && node dist/kotomark.mjs check samples/ja-en/script.csv --glossary samples/ja-en/glossary.json
+npm run kotomark -- check samples/          # from source via tsx
+npm pack                                    # kotomark-0.1.0.tgz → npm i ./kotomark-0.1.0.tgz → npx kotomark …
+```
+
+```bash
+kotomark check <file|dir>... [options]
+  -g, --glossary <file>          JSON or CSV glossary. Default: ./kotomark.glossary.json, ./glossary.json or
+                                 ./kotomark.glossary.csv if present (noted on stderr); --no-glossary disables it
+  --format md|json|junit|github  report format (default md); --json = --format json
+  --input-format <fmt>           force the input parser (csv|tsv|json|xliff|xlsx|po|i18n-json|unity-csv|unreal-csv); default: detected
+  --columns source=原文,target=訳文  column override for tables;  --sheet <name|1-based number> for .xlsx
+  --fail-on error|warning|never  exit 1 at/above this severity (default error)
+  --min-severity info|warning|error  hide lower findings in the report (gating still sees them); --no-info = warning
+  --junit-fail-on <sev|never>    which severities become JUnit <failure> (default: follows --fail-on)
+  --locale en|ja  --no-rules  --wide  -o, --out <file>
+```
+
+- Arguments can be files or directories (recursive: `.csv .tsv .json .xlf .xliff .xlsx .po .pot`; skips
+  `node_modules`, `.git`, `*glossary*` files and `package.json`/`tsconfig.json`). File names in reports are
+  paths relative to the working directory, so CI annotations point at real files.
+- **Exit codes:** `0` passed · `1` findings at/above `--fail-on` · `2` bad input or usage.
+- **Formats:** `json` = the full result plus `summary {errors, warnings, infos, byCategory}`; `junit` = one
+  `<testsuite>` per category, one `<testcase>` per finding (`file:line rule`); `github` = `::error file=…,line=…::`
+  annotations. CI setup for GitHub Actions and GitLab: [`docs/ci.md`](docs/ci.md).
+- **Changed:** `--format` used to pick the *input* format. It now picks the report format; `--format csv|tsv|xliff|xlsx|po`
+  still works as an input format (with a note), but `--format json` now means JSON output — use `--input-format json`.
+
+Other commands:
+
+```bash
+kotomark draft <files|dirs...> [--glossary existing.json] --out draft.json   # glossary draft from the script
+kotomark labels <files|dirs...> --glossary g.json --out labels.csv            # labeling sheet for the pilot
+kotomark score labels.csv [--known known.csv]                                 # precision / recall
+kotomark token create <user> --plan solo|studio                               # per-user API token (shown once)
+kotomark token list | token revoke <user|prefix>
 ```
 
 ## Accounts, storage and limits

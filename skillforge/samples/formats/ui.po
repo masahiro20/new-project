@@ -1,0 +1,55 @@
+# Invented sample in the style of an Unreal Engine localization export (Game/en/Game.po).
+msgid ""
+msgstr ""
+"Project-Id-Version: Sample\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. Key:	MainMenu_Start
+#. SourceLocation:	/Game/UI/WBP_MainMenu.WBP_MainMenu_C:StartButton.Text
+#: /Game/UI/WBP_MainMenu.WBP_MainMenu_C:StartButton.Text
+msgctxt "UI,MainMenu_Start"
+msgid "冒険を始める"
+msgstr "Start Adventure"
+
+#. Key:	Item_ManaStone_Desc
+#. SourceLocation:	/Game/Data/DT_Items.DT_Items:ManaStone.Description
+#: /Game/Data/DT_Items.DT_Items:ManaStone.Description
+msgctxt "Items,Item_ManaStone_Desc"
+msgid ""
+"星詠みの力を宿した魔導石。\n"
+"{Count}個まで持てる。"
+msgstr ""
+"A Mana Stone holding the power of a Star Reader.\n"
+"You can carry up to {Count}."
+
+#. Key:	Npc_Lisette_Name
+#. SourceLocation:	/Game/Data/DT_Npcs.DT_Npcs:Lisette.DisplayName
+#: /Game/Data/DT_Npcs.DT_Npcs:Lisette.DisplayName
+msgctxt "Npcs,Npc_Lisette_Name"
+msgid "リゼット"
+msgstr "Lizette"
+
+#. Key:	Quest_Gate_Title
+#. SourceLocation:	/Game/Data/DT_Quests.DT_Quests:Gate.Title
+#: /Game/Data/DT_Quests.DT_Quests:Gate.Title
+#, fuzzy
+msgctxt "Quests,Quest_Gate_Title"
+msgid "ルーン・ゲートを越えて"
+msgstr "Beyond the Rune Gate"
+
+#. Key:	Quest_Gate_Desc
+#. SourceLocation:	/Game/Data/DT_Quests.DT_Quests:Gate.Description
+#: /Game/Data/DT_Quests.DT_Quests:Gate.Description
+msgctxt "Quests,Quest_Gate_Desc"
+msgid "ルーンゲートの先で暁の騎士団が待つ。"
+msgstr "The Order of Dawn awaits beyond the Rune Gate."
+
+#. Key:	Hud_Saved
+#. SourceLocation:	/Game/UI/WBP_Hud.WBP_Hud_C:Saved.Text
+#: /Game/UI/WBP_Hud.WBP_Hud_C:Saved.Text
+msgctxt "UI,Hud_Saved"
+msgid "\"{Slot}\"にセーブしました。"
+msgstr ""

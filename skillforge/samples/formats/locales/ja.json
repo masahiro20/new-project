@@ -1,0 +1,19 @@
+{
+  "menu": {
+    "start": "冒険を始める",
+    "continue": "続きから",
+    "options": "設定"
+  },
+  "item": {
+    "mana_stone": "魔導石",
+    "mana_stone_desc": "星詠みの力を宿した魔導石。",
+    "rune_gate": "ルーンゲート"
+  },
+  "faction": {
+    "order": "暁の騎士団",
+    "order_desc": "暁の騎士団はルーン・ゲートを守っている。"
+  },
+  "dialog": {
+    "save_done": "{0}にセーブしました。"
+  }
+}

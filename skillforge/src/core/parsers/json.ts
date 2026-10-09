@@ -1,9 +1,13 @@
-import { finishTable, recordToRow, resolveColumns, type ColumnMap } from "./columns.js";
+import { finishTable, recordToRow, resolveColumns, singleTable, type ColumnMap } from "./columns.js";
+import { langFromName, langOfCode } from "./lang.js";
+import { detectLang, looksJapanese } from "../text.js";
 import type { Lang, Row, Table } from "../types.js";
 
 /** Plain object plus the line its opening brace was on. */
 type LinedObject = { line: number; value: Record<string, unknown> };
 const LINE = Symbol("line");
+/** Per object: line of each key. Per array: line where each element starts. */
+const KEY_LINES = Symbol("keyLines");
 
 /** Small JSON parser that tags every object with the line of its opening brace. */
 function parseWithLines(text: string): unknown {
@@ -23,16 +27,23 @@ function parseWithLines(text: string): unknown {
     i++;
     while (i < text.length && text[i] !== '"') {
       if (text[i] === "\\") i++;
+      else if (text[i] === "\n") fail("unescaped newline in string");
       i++;
     }
+    if (i >= text.length) fail("unterminated string");
     i++;
-    return JSON.parse(text.slice(start, i)) as string;
+    try {
+      return JSON.parse(text.slice(start, i)) as string;
+    } catch {
+      return fail("invalid string escape");
+    }
   };
   const value = (): unknown => {
     ws();
     const ch = text[i];
     if (ch === "{") {
-      const obj: Record<string | symbol, unknown> = { [LINE]: line };
+      const keyLines: Record<string, number> = {};
+      const obj: Record<string | symbol, unknown> = { [LINE]: line, [KEY_LINES]: keyLines };
       i++;
       ws();
       if (text[i] === "}") {
@@ -42,11 +53,14 @@ function parseWithLines(text: string): unknown {
       for (;;) {
         ws();
         if (text[i] !== '"') fail("expected key");
+        const keyLine = line;
         const k = str();
+        if (!(k in keyLines)) keyLines[k] = keyLine;
         ws();
         if (text[i] !== ":") fail("expected ':'");
         i++;
-        obj[k] = value();
+        // defineProperty: a "__proto__" key stays an ordinary property.
+        Object.defineProperty(obj, k, { value: value(), enumerable: true, writable: true, configurable: true });
         ws();
         if (text[i] === ",") {
           i++;
@@ -60,7 +74,8 @@ function parseWithLines(text: string): unknown {
       }
     }
     if (ch === "[") {
-      const arr: unknown[] = [];
+      const elemLines: number[] = [];
+      const arr: unknown[] & { [KEY_LINES]?: number[] } = Object.assign([], { [KEY_LINES]: elemLines });
       i++;
       ws();
       if (text[i] === "]") {
@@ -68,6 +83,8 @@ function parseWithLines(text: string): unknown {
         return arr;
       }
       for (;;) {
+        ws();
+        elemLines.push(line);
         arr.push(value());
         ws();
         if (text[i] === ",") {
@@ -103,8 +120,14 @@ const lined = (v: Record<string | symbol, unknown>): LinedObject => ({ line: (v[
  *  - an object wrapping such an array: {"strings": [...]}
  *  - a keyed map: {"ch1_001": {"ja": "...", "en": "..."}}
  */
-export function parseJson(text: string, file: string, opts: { columns?: ColumnMap; langs?: { source?: Lang; target?: Lang } } = {}): Table {
-  const root = parseWithLines(text);
+export function parseJson(text: string, file: string, opts: { columns?: ColumnMap; langs?: { source?: Lang; target?: Lang }; format?: string } = {}): Table {
+  let root: unknown;
+  try {
+    root = parseWithLines(text);
+  } catch (e) {
+    throw new Error(`${file}: ${(e as Error).message}`);
+  }
+  if (opts.format === "i18n-json" || (opts.format !== "json-records" && isLocaleFile(root, opts.columns))) return localeTable(root, file);
   let records: { rec: LinedObject; key?: string }[];
   if (Array.isArray(root)) {
     records = root.filter(isObj).map((o) => ({ rec: lined(o) }));
@@ -123,4 +146,69 @@ export function parseJson(text: string, file: string, opts: { columns?: ColumnMa
   const cols = resolveColumns(headers, opts.columns);
   const rows: Row[] = records.map((r, idx) => recordToRow(r.rec.value, cols, file, r.rec.line, r.key ?? `row${idx + 1}`));
   return finishTable(file, "json", rows, cols, opts.langs);
+}
+
+type Leaf = { key: string; line: number; value: string };
+
+function flatten(v: unknown, prefix: string, line: number, out: Leaf[]): void {
+  if (typeof v === "string") {
+    out.push({ key: prefix, line, value: v });
+  } else if (Array.isArray(v)) {
+    const lines = (v as unknown as { [KEY_LINES]?: number[] })[KEY_LINES] ?? [];
+    v.forEach((x, i) => flatten(x, prefix ? `${prefix}.${i}` : String(i), lines[i] ?? line, out));
+  } else if (isObj(v)) {
+    const lines = (v[KEY_LINES] as Record<string, number> | undefined) ?? {};
+    for (const [k, x] of Object.entries(v)) flatten(x, prefix ? `${prefix}.${k}` : k, lines[k] ?? line, out);
+  }
+  // numbers, booleans and null are not translatable text
+}
+
+/** `{"ja": {...}}` (Rails/vue-i18n style) → the inner object plus its language. */
+function unwrapLocale(root: unknown): { obj: unknown; lang?: Lang } {
+  if (isObj(root)) {
+    const keys = Object.keys(root);
+    if (keys.length === 1 && isObj(root[keys[0]!]) && langOfCode(keys[0])) return { obj: root[keys[0]!], lang: langOfCode(keys[0]) };
+  }
+  return { obj: root };
+}
+
+/**
+ * A per-locale i18n file (`{"menu": {"start": "開始"}}`): an object whose string leaves are in one language.
+ * Record shapes (`[{...}]`, `{"strings": [...]}`) and bilingual keyed maps (`{"k": {"ja": "…", "en": "…"}}`) are not.
+ */
+function isLocaleFile(root: unknown, columns?: ColumnMap): boolean {
+  if (!isObj(root)) return false;
+  const top = Object.values(root);
+  if (top.some((v) => Array.isArray(v) && v.some(isObj))) return false;
+  const leaves: Leaf[] = [];
+  flatten(unwrapLocale(root).obj, "", 1, leaves);
+  if (!leaves.length) return false;
+  const flatRecords = top.length > 0 && top.every((v) => isObj(v) && Object.values(v).every((x) => !isObj(x) && !Array.isArray(x)));
+  if (!flatRecords) return true;
+  const headers = [...new Set(top.flatMap((v) => Object.keys(v as object)))];
+  let cols: ReturnType<typeof resolveColumns>;
+  try {
+    cols = resolveColumns(headers, columns);
+  } catch {
+    return true;
+  }
+  if (columns && Object.keys(columns).length) return false;
+  // Both ja and en text present, or an empty source/target cell (an untranslated bilingual map): bilingual.
+  const texts = leaves.map((l) => l.value).filter((v) => v.trim());
+  const ja = texts.filter(looksJapanese).length;
+  if (ja > 0 && ja < texts.length) return false;
+  const records = top as Record<string, unknown>[];
+  if (records.some((r) => r[cols.source] === "" || r[cols.target] === "" || r[cols.target] == null)) return false;
+  return true;
+}
+
+function localeTable(root: unknown, file: string): Table {
+  const { obj, lang: wrapped } = unwrapLocale(root);
+  if (!isObj(obj)) throw new Error(`${file}: expected a JSON object of translation keys`);
+  const leaves: Leaf[] = [];
+  flatten(obj, "", (obj[LINE] as number) ?? 1, leaves);
+  if (!leaves.length) throw new Error(`${file}: no string values found`);
+  const rows: Row[] = leaves.map((l) => ({ file, line: l.line, id: l.key, source: l.value, target: "" }));
+  const lang = wrapped ?? langFromName(file) ?? detectLang(rows.map((r) => r.source));
+  return singleTable(file, "i18n-json", rows, lang);
 }
