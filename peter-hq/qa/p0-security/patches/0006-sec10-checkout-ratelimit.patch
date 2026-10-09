@@ -1,0 +1,27 @@
+# SEC-10: /api/checkout に IP ごとの上限（1時間 20回）
+
+統合元：A-09（a-5 をそのまま採用）。
+1回ごとに Stripe の Checkout Session を作るため、スクリプトでアカウントの API レート制限を
+使い切られないようにする。お金の裏付けのない AI 費用ではないので failClosed にはしない。
+回帰テスト：SEC-10。
+
+適用：作業ツリーのルートで git apply（番号順）。
+---
+ lib/api/handlers.ts | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/lib/api/handlers.ts b/lib/api/handlers.ts
+index 2fe5638..368af18 100644
+--- a/lib/api/handlers.ts
++++ b/lib/api/handlers.ts
+@@ -50,6 +50,10 @@ export async function handleCheckout(request: Request): Promise<Response> {
+   if (!salesEnabled()) return Response.json({ error: COMING_SOON.paid }, { status: 503 });
+   const parsed = facilitySchema.safeParse(await request.json().catch(() => null));
+   if (!parsed.success) return Response.json({ error: "入力内容を確認してください。" }, { status: 400 });
++  // Each call creates a Stripe Checkout Session; cap it so a script can't burn the account's API rate limit.
++  if (!(await allow(`checkout:${ipKey(request)}`, 20, 60 * 60 * 1000))) {
++    return Response.json({ error: "短時間に操作が多すぎます。時間をおいて再度お試しください。" }, { status: 429 });
++  }
+   try {
+     return Response.json({ url: await createCheckout(hashInput(parsed.data)) });
+   } catch (error) {

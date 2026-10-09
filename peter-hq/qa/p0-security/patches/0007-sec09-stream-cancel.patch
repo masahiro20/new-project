@@ -1,0 +1,73 @@
+# SEC-09: 利用者が切断したら Anthropic へのストリームを明示的に止める、お試しの max_tokens を 4000 に
+
+統合元：B-05（b-04 をそのまま採用）。
+検証では、修正前も Node では切断後の controller.enqueue が例外になり、SDK がその時点で
+上流を中断していた（次の text の差分が届いたとき）。修正は、cancel() で即座に stream.abort() し、
+切断後の enqueue/close とエラーログを止める。思考中（text が来ない間）でも止まる。
+お試しの max_tokens 8000→4000 は B 案の値。表1つには足りる見込みだが、公開前に本物の出力で
+stop_reason=max_tokens にならないことを確かめること。
+回帰テスト：SEC-09（修正前も通る。切断で上流が止まることの回帰防止）。
+
+適用：作業ツリーのルートで git apply（番号順）。
+---
+ lib/claude.ts | 18 +++++++++++++++---
+ 1 file changed, 15 insertions(+), 3 deletions(-)
+
+diff --git a/lib/claude.ts b/lib/claude.ts
+index 6822a87..87d6a04 100644
+--- a/lib/claude.ts
++++ b/lib/claude.ts
+@@ -15,6 +15,8 @@ const MODEL = "claude-opus-5-5";
+ export function streamDocuments(part: Part | "preview", input: FacilityInput): ReadableStream<Uint8Array> {
+   const encoder = new TextEncoder();
+   const isPreview = part === "preview";
++  let upstream: { abort(): void } | null = null;
++  let cancelled = false;
+ 
+   return new ReadableStream({
+     async start(controller) {
+@@ -22,15 +24,19 @@ export function streamDocuments(part: Part | "preview", input: FacilityInput): R
+         client ??= new Anthropic();
+         const stream = client.beta.messages.stream({
+           model: MODEL,
+-          max_tokens: isPreview ? 8000 : 32000,
++          // The preview is one table; a small cap bounds what a free (or prompt-injected) call can cost.
++          max_tokens: isPreview ? 4000 : 32000,
+           betas: ["server-side-fallback-2026-07-01"],
+           fallbacks: "default",
+           output_config: { effort: isPreview ? "low" : "medium" },
+           system: SYSTEM_PROMPT,
+           messages: [{ role: "user", content: buildUserPrompt(part, input) }],
+         });
++        upstream = stream;
+ 
+-        stream.on("text", (delta) => controller.enqueue(encoder.encode(delta)));
++        stream.on("text", (delta) => {
++          if (!cancelled) controller.enqueue(encoder.encode(delta));
++        });
+         const final = await stream.finalMessage();
+ 
+         if (final.stop_reason === "refusal") {
+@@ -39,6 +45,7 @@ export function streamDocuments(part: Part | "preview", input: FacilityInput): R
+           controller.enqueue(encoder.encode(`\n\n> ${NOTICES.maxTokens}`));
+         }
+       } catch (error) {
++        if (cancelled) return;
+         console.error("generation failed", error);
+         const message =
+           error instanceof Anthropic.RateLimitError
+@@ -46,8 +53,13 @@ export function streamDocuments(part: Part | "preview", input: FacilityInput): R
+             : NOTICES.error;
+         controller.enqueue(encoder.encode(`\n\n> ${message}`));
+       } finally {
+-        controller.close();
++        if (!cancelled) controller.close();
+       }
+     },
++    // The client went away (closed tab, aborted fetch): stop the upstream request so we stop paying for it.
++    cancel() {
++      cancelled = true;
++      upstream?.abort();
++    },
+   });
+ }

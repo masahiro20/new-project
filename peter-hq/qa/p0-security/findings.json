@@ -1,0 +1,356 @@
+{
+  "target": "peter/p0-genzan-zero 9ac55da（有料版 API Worker）",
+  "verified_by": "Atlas（セキュリティ）",
+  "date": "2026-10-09",
+  "verdict_legend": {
+    "CONFIRMED": "PoC で再現、またはコードから確定的に言える",
+    "PLAUSIBLE": "コード上の経路はあるが、外部サービス・実機・設定の未確認の前提に依存する（一部反証を含む）",
+    "REJECTED": "指摘が誤り",
+    "NO_ISSUE": "問題が無いことの確認"
+  },
+  "patch_series": "patches/0001〜0010（README.md）",
+  "findings": [
+    {
+      "id": "SEC-01",
+      "merged_from": [
+        "A-01",
+        "B-01"
+      ],
+      "severity": "high",
+      "reviewer_severity": "high/high",
+      "verdict": "CONFIRMED",
+      "title": "デモ決済のまま ANTHROPIC_API_KEY を入れると、curl だけで（カード・Turnstile・Origin なしで）無料の Opus 生成を回せる",
+      "location": "lib/api/handlers.ts:84-92、lib/payments/demo.ts:57-63",
+      "patch": "0001",
+      "verification": "PoC（Anthropic は 127.0.0.1 のスタブ）：PAYMENTS_MODE=demo＋キーで、Origin なしの checkout → demo pay（トークンだけ）→ generate が 200、スタブに 1 回到達。同じ pending トークンを再度 pay すると別の session_id になり、session ごとの上限も新しくなる。修正後はモック出力（スタブ到達 0）。",
+      "fix": "デモ購入の生成はモック。本物の AI は DEMO_ALLOW_REAL_AI=1 の明示時だけ（フラグ名を統一）。docs でキー投入を stripe への切り替えと同時に。"
+    },
+    {
+      "id": "SEC-02",
+      "merged_from": [
+        "B-02"
+      ],
+      "severity": "high",
+      "reviewer_severity": "-/high",
+      "verdict": "CONFIRMED",
+      "title": "TURNSTILE_SECRET_KEY が未設定だと無料お試しのロボット対策が素通し（turnstileToken: null を受け付ける）",
+      "location": "lib/turnstile.ts:8-11、docs/paid-launch.md:52-56",
+      "patch": "0002",
+      "verification": "PoC：キーあり・Turnstile 未設定で POST /api/preview {turnstileToken:null} が 200、スタブに到達。修正後 403（スタブ到達 0）。",
+      "fix": "本物の AI キーがあるのに Secret が無ければ 403（fail-closed）。docs で Turnstile を必須に。"
+    },
+    {
+      "id": "SEC-03",
+      "merged_from": [
+        "A-02",
+        "A-03",
+        "B-03"
+      ],
+      "severity": "high",
+      "reviewer_severity": "A: medium/medium、B: high",
+      "verdict": "CONFIRMED",
+      "title": "レート制限が実質 fail-open：Upstash 未設定・障害時は isolate ごとのメモリ、IPv6 はアドレス単位、サイト全体の上限なし",
+      "location": "lib/ratelimit.ts:44-67、lib/api/handlers.ts:32,85",
+      "patch": "0003",
+      "verification": "PoC：同じ /64 内でアドレスを変えた preview 10回がすべて 200（上限は 3回/時）。Upstash を 127.0.0.1:9（到達不能）にすると preview が 200（メモリに戻る）。修正後：/64 で 3回、Redis 失敗時 429。Workers で isolate ごとのメモリがどれだけ効かないかは実機未確認だが、Map の共有が無いことはコードから確定。",
+      "fix": "IPv6 は /64 に丸める。本物の AI キーがあるとき、無料の AI 経路（preview、本物の AI を使うデモ購入）は Redis が無い・失敗したら拒否（RATE_LIMIT_ALLOW_MEMORY=1 で緩和）。preview:global（PREVIEW_PER_DAY、既定 300）。Anthropic の月額上限を最後の砦に。"
+    },
+    {
+      "id": "SEC-04",
+      "merged_from": [
+        "A-07"
+      ],
+      "severity": "medium",
+      "reviewer_severity": "medium/-",
+      "verdict": "CONFIRMED",
+      "title": "PAYMENTS_MODE が未設定で Stripe キーも無いと demo（無料の購入）になる。mode.ts のコメントは未設定のまま運用することを勧めている",
+      "location": "lib/payments/mode.ts:13,26、worker/src/index.ts",
+      "patch": "0005",
+      "verification": "PoC：Worker の env と process.env から PAYMENTS_MODE を消し、キーなしで /api/checkout → 200 で demo の URL。修正後 503。前提：運用者が var を消すかキーを失う（wrangler.jsonc には demo が明示されているので既定では起きない）。",
+      "fix": "Worker は PAYMENTS_MODE が無ければ全リクエスト 503。mode.ts のコメントを『デプロイでは必ず明示』に。"
+    },
+    {
+      "id": "SEC-05",
+      "merged_from": [
+        "A-05",
+        "A-06"
+      ],
+      "severity": "low",
+      "reviewer_severity": "low,low/-",
+      "verdict": "CONFIRMED",
+      "title": "DEMO_SIGNING_SECRET が無いとき、NODE_ENV が production 以外なら公開の固定鍵で署名する（wrangler はビルド時の NODE_ENV を埋め込む）。HMAC の比較が定数時間でない",
+      "location": "lib/payments/demo.ts:15-20,40",
+      "patch": "0004",
+      "verification": "wrangler-dist/cli.js 184225-184269 で NODE_ENV の置き換え（未設定なら deploy で production）を確認。PoC：NODE_ENV=staging・Secret なしで checkout 200。修正後 502。比較のタイミング攻撃はネットワーク越しでは現実的でない（A の評価どおり）。",
+      "fix": "フォールバックは development/test のときだけ。crypto.subtle.verify で検証。"
+    },
+    {
+      "id": "SEC-06",
+      "merged_from": [
+        "A-04",
+        "B-10"
+      ],
+      "severity": "low",
+      "reviewer_severity": "low/low",
+      "verdict": "PLAUSIBLE",
+      "title": "Upstash の pipeline は非アトミックで、SET NX PX と INCR の間にキーが切れると TTL なしのカウンターが残り、そのキーが永久に 429 になり得る",
+      "location": "lib/ratelimit.ts:30-36",
+      "patch": "0003",
+      "verification": "コード上の経路は確か（pipeline はトランザクションではない）。競合は実機で再現していない（Upstash に接続しない方針）。",
+      "fix": "multi-exec で送り、PTTL が -1 なら PEXPIRE で直す（二重の対策）。"
+    },
+    {
+      "id": "SEC-07",
+      "merged_from": [
+        "A-10",
+        "B-04"
+      ],
+      "severity": "medium",
+      "reviewer_severity": "medium/medium",
+      "verdict": "CONFIRMED",
+      "title": "1回の購入（2,980円）で最大 105回（3部 × 5回/日 × 7日）の Opus・max_tokens 32000 の生成ができる",
+      "location": "lib/purchase.ts:5、lib/api/handlers.ts:88-91、lib/claude.ts:25、lib/stripe.ts:6",
+      "patch": null,
+      "verification": "コードから確定：generate:<session>:<part> の窓は 24時間で、セッションの有効期間は 7日。上限到達前は Anthropic のエラーでも回数を消費する。最大出力は 105 × 32,000 = 336万トークン。金額の換算（B：約 $67）は料金表を確認していないので未検証。",
+      "fix": "パッチなし（数値は商品判断）。方針は報告の『パッチの無いもの』を参照。"
+    },
+    {
+      "id": "SEC-08",
+      "merged_from": [
+        "B-06"
+      ],
+      "severity": "medium",
+      "reviewer_severity": "-/medium",
+      "verdict": "PLAUSIBLE",
+      "title": "プロンプトインジェクションで無料お試しを汎用チャット・長文生成に流用できる（入力が区切りなしでプロンプトに連結）",
+      "location": "lib/prompts.ts:26-40",
+      "patch": "0008",
+      "verification": "連結とデータ扱いの指示の欠如はコードから確定。モデルが実際に従うかは外部 API に接続しない方針のため未検証。b-05 の除去はタグ名だけで、'<facility_<facility_input>input>' や '< /facility_input>' で回避できたため、< > の全角化に変更。",
+      "fix": "<facility_input> で囲み、システムプロンプトに入力をデータとして扱う指示。効き目の検証方針は報告を参照。"
+    },
+    {
+      "id": "SEC-09",
+      "merged_from": [
+        "B-05"
+      ],
+      "severity": "low",
+      "reviewer_severity": "-/medium",
+      "verdict": "PLAUSIBLE",
+      "title": "クライアントが切断しても Anthropic へのストリームを止めない／お試しの max_tokens 8000 が大きい",
+      "location": "lib/claude.ts:19-51",
+      "patch": "0007",
+      "verification": "一部反証：Node での PoC では、切断後の controller.enqueue が例外になり、SDK が次の text の差分の時点で上流を中断した（スタブで接続の切断を確認）。ただし思考中など text が来ない間は止まらず、エラーログも出る。Workers での挙動は未確認。重大度を low に下げた。",
+      "fix": "cancel() で stream.abort()。お試しの max_tokens を 4000（公開前に実出力で要確認）。"
+    },
+    {
+      "id": "SEC-10",
+      "merged_from": [
+        "A-09"
+      ],
+      "severity": "low",
+      "reviewer_severity": "low/-",
+      "verdict": "CONFIRMED",
+      "title": "/api/checkout にレート制限が無く、1回ごとに Stripe の Checkout Session を作る",
+      "location": "lib/api/handlers.ts:38-48",
+      "patch": "0006",
+      "verification": "PoC：同じ IP から 25回すべて 200（demo モード）。修正後 20回で 429。Stripe 側の影響（API の 429）は未確認。",
+      "fix": "IP ごと 20回/時。"
+    },
+    {
+      "id": "SEC-11",
+      "merged_from": [
+        "A-08"
+      ],
+      "severity": "low",
+      "reviewer_severity": "low/-",
+      "verdict": "PLAUSIBLE",
+      "title": "ハンドラーが例外を投げると Cloudflare のエラーページ（1101）になり CORS ヘッダーが付かない",
+      "location": "worker/src/index.ts:43",
+      "patch": "0005",
+      "verification": "今のハンドラーで例外を投げる経路は見つからなかった（各所で catch 済み）。防御的な修正として採用。",
+      "fix": "try/catch で JSON 500＋CORS。"
+    },
+    {
+      "id": "SEC-12",
+      "merged_from": [
+        "A-11"
+      ],
+      "severity": "low",
+      "reviewer_severity": "low/-",
+      "verdict": "CONFIRMED",
+      "title": "Pages の NEXT_PUBLIC_PAYMENTS_MODE と Worker の PAYMENTS_MODE がずれると、デモ表示のまま本物の Stripe 決済に進む",
+      "location": "lib/launch.ts:35-38、app/generate/GenerateClient.tsx:183-188",
+      "patch": null,
+      "verification": "コードから確定：クライアントは /api/checkout の url にそのまま遷移し、表示モードはビルド時に固定。",
+      "fix": "パッチなし。方針は報告を参照。"
+    },
+    {
+      "id": "SEC-13",
+      "merged_from": [
+        "A-12"
+      ],
+      "severity": "low",
+      "reviewer_severity": "low/-",
+      "verdict": "CONFIRMED",
+      "title": "ALLOWED_ORIGINS の https://masahiro20.github.io は、そのユーザーの全リポジトリの Pages と共通の origin",
+      "location": "worker/wrangler.jsonc:17",
+      "patch": null,
+      "verification": "GitHub Pages の origin の仕様どおり。Origin なしの curl は通す設計なので、CORS は費用の防御ではない。完全一致の比較は正しい（PoC：evil.example、null、github.io.evil.example は 403）。",
+      "fix": "独自ドメインに移したらそれだけに。費用の防御は Turnstile とレート制限で。"
+    },
+    {
+      "id": "SEC-14",
+      "merged_from": [
+        "B-08"
+      ],
+      "severity": "low",
+      "reviewer_severity": "-/low",
+      "verdict": "PLAUSIBLE",
+      "title": "Turnstile の hostname・action を確認していない",
+      "location": "lib/turnstile.ts:22",
+      "patch": "0002",
+      "verification": "同じ sitekey を別ホストに許可した場合に限る。テストで偽の応答（hostname=evil.example）を拒否することを確認。",
+      "fix": "TURNSTILE_EXPECTED_HOSTNAMES と照合（wrangler.jsonc に masahiro20.github.io）。action の確認は未対応。"
+    },
+    {
+      "id": "SEC-15",
+      "merged_from": [
+        "A-13"
+      ],
+      "severity": "low",
+      "reviewer_severity": "low/-",
+      "verdict": "PLAUSIBLE",
+      "title": "返金済みの Stripe セッションでも 7日間は生成できる",
+      "location": "lib/stripe.ts:44-50",
+      "patch": null,
+      "verification": "isPaidFor は payment_status だけを見る。返金後の payment_status の値は Stripe に接続しないため未確認。",
+      "fix": "パッチなし。payment_intent.latest_charge の refunded を確認、または charge.refunded の webhook で拒否リスト。"
+    },
+    {
+      "id": "SEC-16",
+      "merged_from": [
+        "B-07"
+      ],
+      "severity": "low",
+      "reviewer_severity": "-/low",
+      "verdict": "PLAUSIBLE",
+      "title": "clientIp がホスト環境を問わず cf-connecting-ip → x-real-ip → x-forwarded-for を信頼",
+      "location": "lib/ratelimit.ts:55-62",
+      "patch": null,
+      "verification": "Cloudflare（Worker、OpenNext）では cf-connecting-ip が上書きされるので問題なし。Cloudflare 以外で app/api を動かした場合だけ成立。",
+      "fix": "パッチなし。TRUSTED_IP_HEADER で1つに固定。"
+    },
+    {
+      "id": "SEC-17",
+      "merged_from": [
+        "B-09"
+      ],
+      "severity": "low",
+      "reviewer_severity": "-/low",
+      "verdict": "PLAUSIBLE",
+      "title": "リクエスト本文のサイズを確認せずに request.json()",
+      "location": "lib/api/handlers.ts:27,40,56,73",
+      "patch": null,
+      "verification": "大きな本文で CPU 時間を使う経路はある。AI の費用は発生しない。実測はしていない。",
+      "fix": "パッチなし。Content-Length が 16KB を超えたら 413、本文は上限付きで読む。"
+    },
+    {
+      "id": "SEC-18",
+      "merged_from": [
+        "B-11"
+      ],
+      "severity": "low",
+      "reviewer_severity": "-/low",
+      "verdict": "CONFIRMED",
+      "title": "stripe モードで AI_MOCK=1 かつキー未設定だと、代金を払った購入者にモック出力が返る",
+      "location": "lib/launch.ts:56-58",
+      "patch": null,
+      "verification": "コードから確定（aiMock は支払いモードを見ない）。費用の悪用ではなく、設定ミス時の購入者への不利益。",
+      "fix": "パッチなし。handleGenerate で !demoPurchase() && aiMock() なら 503。"
+    },
+    {
+      "id": "SEC-19",
+      "merged_from": [
+        "B-12"
+      ],
+      "severity": "low",
+      "reviewer_severity": "-/low",
+      "verdict": "CONFIRMED",
+      "title": "npm audit --omit=dev で high 4件（wrangler → miniflare → sharp・undici）",
+      "location": "package.json:38、package-lock.json",
+      "patch": null,
+      "verification": "npm audit --omit=dev で high 4件（miniflare、sharp、undici、wrangler）、修正は wrangler 4.149.0（semver major ではない）。Worker のバンドルには入らない（api:check の圧縮後 339.56 KiB は修正前とほぼ同じ）。",
+      "fix": "パッチなし（lockfile の更新は別作業）。wrangler を 4.149.0 以上へ。"
+    },
+    {
+      "id": "SEC-20",
+      "merged_from": [
+        "A-14"
+      ],
+      "severity": "info",
+      "reviewer_severity": "info/-",
+      "verdict": "CONFIRMED",
+      "title": "購入の権利が URL の session_id（または demo トークン）と入力内容だけで決まる bearer 方式",
+      "location": "lib/api/handlers.ts:65,77",
+      "patch": null,
+      "verification": "設計上の性質。他人の購入を別の入力で使うことは inputHash の一致で防げている。",
+      "fix": "現状のままでよい（任意で history.replaceState）。"
+    },
+    {
+      "id": "SEC-21",
+      "merged_from": [
+        "A-15"
+      ],
+      "severity": "info",
+      "reviewer_severity": "info/-",
+      "verdict": "PLAUSIBLE",
+      "title": "同じ入力の二重購入を防いでいない",
+      "location": "lib/api/handlers.ts:38-48",
+      "patch": null,
+      "verification": "コード上は防いでいない。返金対応の問題。",
+      "fix": "Checkout 作成に idempotencyKey、または購入前に既存の購入を案内。"
+    },
+    {
+      "id": "SEC-22",
+      "merged_from": [
+        "A-16"
+      ],
+      "severity": "info",
+      "reviewer_severity": "info/-",
+      "verdict": "NO_ISSUE",
+      "title": "価格・数量・戻り先・Stripe の確認・秘密の分け方",
+      "location": "lib/stripe.ts:22-50",
+      "patch": null,
+      "verification": "lib/stripe.ts を読み、金額・数量・通貨・success/cancel URL がサーバーの値だけで決まり、cs_ の形式・paid・7日・inputHash を確認していることを確かめた。",
+      "fix": "対応不要。"
+    },
+    {
+      "id": "SEC-23",
+      "merged_from": [
+        "B-13"
+      ],
+      "severity": "info",
+      "reviewer_severity": "-/info",
+      "verdict": "NO_ISSUE",
+      "title": "ログに秘密・入力内容は出ない。Workers Logs に IP などのメタデータが残る",
+      "location": "worker/wrangler.jsonc:10",
+      "patch": null,
+      "verification": "console.error の6か所はどれもエラーオブジェクトだけを渡す（入力・鍵は渡さない）。",
+      "fix": "プライバシーポリシーに Workers Logs の保存を記載。"
+    },
+    {
+      "id": "SEC-24",
+      "merged_from": [
+        "B-14"
+      ],
+      "severity": "info",
+      "reviewer_severity": "-/info",
+      "verdict": "NO_ISSUE",
+      "title": "出力の表示と Word に XSS・注入は無い",
+      "location": "app/MarkdownView.tsx、lib/docx-export.ts",
+      "patch": null,
+      "verification": "dangerouslySetInnerHTML とリンクの描画が無いことを確認。",
+      "fix": "対応不要。"
+    }
+  ]
+}

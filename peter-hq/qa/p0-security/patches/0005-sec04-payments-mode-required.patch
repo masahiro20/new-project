@@ -1,0 +1,66 @@
+# SEC-04/SEC-11: Worker は PAYMENTS_MODE が未設定なら全リクエストを 503、ハンドラーの例外は CORS 付きの JSON 500
+
+統合元：A-07、A-08（a-6 に lib/payments/mode.ts のコメント修正を追加）。
+lib/payments/mode.ts は PAYMENTS_MODE 未設定かつ STRIPE_SECRET_KEY 無しを demo（無料の購入）と
+解釈する。本番でキーを入れ替える途中などに demo へ落ちるのを防ぐため、Worker では明示を必須にした。
+mode.ts の「PAYMENTS_MODE は未設定のままでよい」というコメントを「デプロイでは必ず明示」に直した
+（getPaymentsMode の表そのものは Next のローカル開発と既存テストのため変えていない）。
+回帰テスト：SEC-04、SEC-11。
+
+適用：作業ツリーのルートで git apply（番号順）。
+---
+ lib/payments/mode.ts |  4 +++-
+ worker/src/index.ts  | 17 +++++++++++++++--
+ 2 files changed, 18 insertions(+), 3 deletions(-)
+
+diff --git a/lib/payments/mode.ts b/lib/payments/mode.ts
+index 6206b8f..d367f0c 100644
+--- a/lib/payments/mode.ts
++++ b/lib/payments/mode.ts
+@@ -10,7 +10,9 @@
+ //   stripe          (unset)                error    (PaymentsConfigError)
+ //   anything else   any                    error
+ //
+-// Going live is: put the Stripe key into env and leave PAYMENTS_MODE unset (or "stripe").
++// Always set PAYMENTS_MODE explicitly in a deployment ("stripe" in production). The unset rows
++// exist for local dev only: losing the Stripe key would otherwise silently turn purchases free
++// (demo). The Worker (worker/src/index.ts) refuses every request while PAYMENTS_MODE is unset.
+ 
+ export type PaymentsMode = "demo" | "stripe";
+ type Env = Record<string, string | undefined>;
+diff --git a/worker/src/index.ts b/worker/src/index.ts
+index 13f52ec..1e33418 100644
+--- a/worker/src/index.ts
++++ b/worker/src/index.ts
+@@ -24,7 +24,7 @@ function corsHeaders(request: Request, env: Env): Record<string, string> {
+   };
+ }
+ 
+-type Env = { ALLOWED_ORIGINS?: string };
++type Env = { ALLOWED_ORIGINS?: string; PAYMENTS_MODE?: string };
+ 
+ const worker = {
+   async fetch(request: Request, env: Env): Promise<Response> {
+@@ -39,8 +39,21 @@ const worker = {
+     if (request.headers.get("Origin") && !cors["Access-Control-Allow-Origin"]) {
+       return Response.json({ error: "Origin not allowed" }, { status: 403 });
+     }
++    // Fail closed: lib/payments/mode.ts treats an unset PAYMENTS_MODE without a Stripe key as demo
++    // (free purchases). The deployed API must always say which mode it is in.
++    if (!env.PAYMENTS_MODE?.trim()) {
++      console.error("PAYMENTS_MODE is not set on the Worker; refusing requests");
++      return Response.json({ error: "Service unavailable" }, { status: 503, headers: cors });
++    }
+ 
+-    const response = await handler(request);
++    let response: Response;
++    try {
++      response = await handler(request);
++    } catch (error) {
++      // Without this, an exception becomes Cloudflare's error page with no CORS headers.
++      console.error("unhandled API error", error instanceof Error ? error.name : "unknown");
++      return Response.json({ error: "Internal error" }, { status: 500, headers: cors });
++    }
+     // Re-wrap to add CORS headers; the body (possibly a stream) passes through unchanged.
+     const headers = new Headers(response.headers);
+     for (const [k, v] of Object.entries(cors)) headers.set(k, v);

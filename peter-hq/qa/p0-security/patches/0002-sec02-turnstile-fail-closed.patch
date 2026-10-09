@@ -1,0 +1,54 @@
+# SEC-02/SEC-14: 本物の AI キーがあるのに Turnstile が未設定なら無料お試しを拒否、ホスト名も確認
+
+統合元：B-02、B-08（b-02 をそのまま採用）。
+TURNSTILE_SECRET_KEY が無いと verifyTurnstile が常に true を返し、turnstileToken: null の
+POST /api/preview がそのまま AI に届いていた。ANTHROPIC_API_KEY があるときは fail-closed（403）。
+キーが無い（ローカル、AI_MOCK）ときは従来どおり省略できる。
+siteverify の応答の hostname を TURNSTILE_EXPECTED_HOSTNAMES（カンマ区切り、空なら確認しない）と照合。
+回帰テスト：SEC-02、SEC-14。
+
+適用：作業ツリーのルートで git apply（番号順）。
+---
+ lib/turnstile.ts | 18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
+
+diff --git a/lib/turnstile.ts b/lib/turnstile.ts
+index 4803375..1fe5b9d 100644
+--- a/lib/turnstile.ts
++++ b/lib/turnstile.ts
+@@ -1,5 +1,7 @@
+-// Cloudflare Turnstile (bot check) for the free preview. Without
+-// TURNSTILE_SECRET_KEY the check is skipped, so local dev works with no keys.
++// Cloudflare Turnstile (bot check) for the free preview. Without TURNSTILE_SECRET_KEY the
++// check is skipped only while no real AI is configured (local dev, AI_MOCK); once
++// ANTHROPIC_API_KEY is set the free preview spends real money, so a missing secret fails closed.
++// Use Cloudflare's always-pass test keys for local dev with a real Anthropic key.
+ 
+ export function turnstileEnabled(): boolean {
+   return Boolean(process.env.TURNSTILE_SECRET_KEY);
+@@ -7,7 +9,10 @@ export function turnstileEnabled(): boolean {
+ 
+ export async function verifyTurnstile(token: string | undefined, ip: string): Promise<boolean> {
+   const secret = process.env.TURNSTILE_SECRET_KEY;
+-  if (!secret) return true;
++  if (!secret) {
++    if (process.env.ANTHROPIC_API_KEY) console.error("TURNSTILE_SECRET_KEY is not set; refusing the free preview");
++    return !process.env.ANTHROPIC_API_KEY;
++  }
+   if (!token) return false;
+ 
+   const form = new URLSearchParams({ secret, response: token });
+@@ -19,8 +24,11 @@ export async function verifyTurnstile(token: string | undefined, ip: string): Pr
+       cache: "no-store",
+       signal: AbortSignal.timeout(5000),
+     });
+-    const data = (await res.json()) as { success?: boolean };
+-    return data.success === true;
++    const data = (await res.json()) as { success?: boolean; hostname?: string };
++    if (data.success !== true) return false;
++    // A token solved on another site that shares the sitekey (or a test hostname) is not ours.
++    const expected = (process.env.TURNSTILE_EXPECTED_HOSTNAMES ?? "").split(",").map((h) => h.trim()).filter(Boolean);
++    return expected.length === 0 || (!!data.hostname && expected.includes(data.hostname));
+   } catch (error) {
+     console.error("turnstile verification failed", error);
+     return false;

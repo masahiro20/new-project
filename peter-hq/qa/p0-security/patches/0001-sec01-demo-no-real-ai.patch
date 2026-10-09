@@ -1,0 +1,53 @@
+# SEC-01: デモ購入の生成では本物の AI を使わない（DEMO_ALLOW_REAL_AI=1 のときだけ）
+
+統合元：A-01（a-1）、B-01（b-01）。
+デモ決済はサーバー側でカードを確認しないため、curl だけで
+/api/checkout → /api/checkout/demo → /api/generate と進めて「購入済み」になれる。
+このとき ANTHROPIC_API_KEY が入っていると Opus（max_tokens 32000）が無料で動いていた。
+修正：デモ購入の生成はモック出力（lib/ai-mock.ts）にする。本物の AI はオプトイン
+DEMO_ALLOW_REAL_AI=1 のときだけ。フラグ名は A 案 DEMO_ALLOW_REAL_AI と B 案 DEMO_REAL_AI を
+DEMO_ALLOW_REAL_AI に統一。方式は B 案（モックを返す）を採用：A 案の 503 だと、キーを入れた
+状態でデモの通し確認（docs の本部手順2）ができなくなるため。
+回帰テスト：tests/security.test.mjs（SEC-01）。
+
+適用：作業ツリーのルートで git apply（番号順）。
+---
+ lib/api/handlers.ts | 13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
+
+diff --git a/lib/api/handlers.ts b/lib/api/handlers.ts
+index 555b905..11e3d84 100644
+--- a/lib/api/handlers.ts
++++ b/lib/api/handlers.ts
+@@ -19,6 +19,13 @@ const textStream = (stream: ReadableStream<Uint8Array>) =>
+ 
+ const generator = () => (aiMock() ? streamMock : streamDocuments);
+ 
++/**
++ * A demo purchase is free and fully scriptable (POST /api/checkout → /api/checkout/demo → /api/generate,
++ * no card ever reaches the server), so it must never spend the Anthropic key. Real AI for demo
++ * purchases needs an explicit opt-in: DEMO_ALLOW_REAL_AI=1 (then Turnstile and Upstash are a must).
++ */
++const demoAllowsRealAi = () => process.env.DEMO_ALLOW_REAL_AI === "1";
++
+ // The page sends null when Turnstile is not configured, so accept null as "no token".
+ const previewSchema = z.object({ input: facilitySchema, turnstileToken: z.string().max(4096).nullish() });
+ 
+@@ -81,13 +88,15 @@ export async function handleGenerate(request: Request): Promise<Response> {
+   if (!paid) {
+     return Response.json({ error: "お支払いを確認できませんでした。購入時と同じ入力内容でお試しください。" }, { status: 402 });
+   }
++  const demo = demoPurchase();
++  const realAi = !aiMock() && (!demo || demoAllowsRealAi());
+   // Demo purchases cost nothing to make, so cap them per IP as well (each purchase runs 3 sets).
+-  if (demoPurchase() && !(await allow(`demo-generate:${ipKey(request)}`, 6, 60 * 60 * 1000))) {
++  if (demo && !(await allow(`demo-generate:${ipKey(request)}`, 6, 60 * 60 * 1000))) {
+     return Response.json({ error: "デモの作成は1時間に2セットまでです。" }, { status: 429 });
+   }
+   // A paid session may regenerate for 7 days; cap it so one payment can't run up unbounded API cost.
+   if (!(await allow(`generate:${sessionId}:${part}`, REGENERATE_PER_DAY, 24 * 60 * 60 * 1000))) {
+     return Response.json({ error: "再作成の上限に達しました。時間をおいて再度お試しください。" }, { status: 429 });
+   }
+-  return textStream(generator()(part, input));
++  return textStream((realAi ? streamDocuments : streamMock)(part, input));
+ }
