@@ -91,6 +91,13 @@ test("every ja message template is Japanese and free of English template words",
     untranslatedEmpty: (m) => m.untranslatedEmpty(),
     untranslatedCopy: (m) => m.untranslatedCopy(),
     untranslatedFuzzy: (m) => m.untranslatedFuzzy(),
+    untranslatedJapanese: (m) => m.untranslatedJapanese(),
+    untranslatedDuplicate: (m) => m.untranslatedDuplicate(12, "l7"),
+    voicePolitenessToSuperior: (m) => m.voicePolitenessToSuperior("トビアス / Tobias", "先生"),
+    termMissingCompound: (m) => m.termMissingCompound("部屋", "room", "部屋番号"),
+    notationGlossary: (m) => m.notationGlossary("サーバ", "サーバー"),
+    notationKanaMix: (m) => m.notationKanaMix("ケーぶル", "ぶ", "ケーブル"),
+    rubyBroken: (m) => m.rubyBroken("unclosed", "{魔法|まほう"),
   };
   assert.deepEqual(Object.keys(calls).sort(), Object.keys(ja).sort());
   for (const [key, call] of Object.entries(calls)) {

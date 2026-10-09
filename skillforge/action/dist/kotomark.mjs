@@ -22651,6 +22651,7 @@ var GlossarySchema = external_exports.object({
       id: external_exports.string().min(1),
       ja: external_exports.string().min(1),
       en: external_exports.string().min(1),
+      reading: external_exports.string().optional(),
       aliases: external_exports.object({ ja: list2, en: list2 }).optional(),
       forbidden: external_exports.object({ ja: list2, en: list2 }).optional(),
       voice: external_exports.object({
@@ -22698,6 +22699,20 @@ function glossaryToJson(g) {
 }
 
 // src/core/i18n.ts
+var RUBY_PROBLEM_EN = {
+  unclosed: "the bracket is not closed",
+  "empty-reading": "the reading is empty",
+  "empty-base": "the base text is empty",
+  "fullwidth-bar": "full-width ｜ inside {base|reading} (use ASCII |)",
+  "stray-separator": "a ｜ separator with no 《reading》 after it"
+};
+var RUBY_PROBLEM_JA = {
+  unclosed: "括弧が閉じていません",
+  "empty-reading": "読みが空です",
+  "empty-base": "親文字が空です",
+  "fullwidth-bar": "{親文字|読み} の区切りが全角の ｜ です（半角の | を使ってください）",
+  "stray-separator": "区切りの ｜ の後に《読み》がありません"
+};
 var en = {
   termForbidden: (s, f, t) => `"${s}" is rendered as forbidden variant "${f}"; glossary says "${t}".`,
   termMissing: (s, t) => `Source contains "${s}" but the translation does not use "${t}".`,
@@ -22731,7 +22746,14 @@ var en = {
   lengthLimit: (n, max2, wide) => `Length ${n} exceeds the limit of ${max2}${wide ? " (wide chars count 2)" : ""}.`,
   untranslatedEmpty: () => "The translation is empty.",
   untranslatedCopy: () => "The translation is identical to the source text (left untranslated?).",
-  untranslatedFuzzy: () => "Fuzzy (draft) translation: gettext ignores it until it is reviewed and the fuzzy flag is removed."
+  untranslatedFuzzy: () => "Fuzzy (draft) translation: gettext ignores it until it is reviewed and the fuzzy flag is removed.",
+  untranslatedJapanese: () => "The English translation is Japanese text (left untranslated?).",
+  untranslatedDuplicate: (l, id) => `The translation is identical to the previous row's (line ${l}, ${id}) although the sources differ (copied from the neighbouring row?).`,
+  voicePolitenessToSuperior: (name, t) => `${name} is written plain but this line is polite. It addresses "${t}", and a switch to keigo toward a teacher or senior is often intended; confirm it.`,
+  termMissingCompound: (s, t, c) => `Source contains "${s}" only inside the longer word "${c}", which the glossary does not list; the translation does not use "${t}". Fine if "${c}" is a different word.`,
+  notationGlossary: (s, e) => `Katakana spelling "${s}" differs from the glossary spelling "${e}".`,
+  notationKanaMix: (s, h, e) => `"${s}" has the hiragana "${h}" inside a katakana word (did you mean "${e}"?).`,
+  rubyBroken: (k, x2) => `Broken ruby markup "${x2}": ${RUBY_PROBLEM_EN[k]}.`
 };
 var POLITENESS_JA = { polite: "丁寧体", plain: "常体" };
 var POLICY_JA = { keep: "「keep」（ローマ字で残す）", drop: "「drop」（敬称を訳さない）", localize: "「localize」（英語の敬称に置き換える）" };
@@ -22769,7 +22791,14 @@ var ja = {
   lengthLimit: (n, max2, wide) => `文字数${n}が上限${max2}を超えています${wide ? "（全角は2文字として計算）" : ""}。`,
   untranslatedEmpty: () => "訳文が空です。",
   untranslatedCopy: () => "訳文が原文と同じです（未翻訳の可能性があります）。",
-  untranslatedFuzzy: () => "fuzzy（仮訳）です。fuzzy フラグを外すまで gettext はこの訳を使いません。"
+  untranslatedFuzzy: () => "fuzzy（仮訳）です。fuzzy フラグを外すまで gettext はこの訳を使いません。",
+  untranslatedJapanese: () => "英語の訳文が日本語のままです（未翻訳の可能性があります）。",
+  untranslatedDuplicate: (l, id) => `原文が異なるのに、訳文が直前の行（${l}行目、${id}）と同じです（隣の行の訳をコピーした可能性があります）。`,
+  voicePolitenessToSuperior: (name, t) => `${name} は常体で話すキャラですが、この行は丁寧体です。「${t}」への呼びかけがあり、先生や先輩にだけ敬語を使うのは自然な場合が多いので、意図どおりか確認してください。`,
+  termMissingCompound: (s, t, c) => `原文の「${s}」は、用語集にない長い語「${c}」の一部としてだけ出てきます。訳文に「${t}」がありません（「${c}」が別の語なら問題ありません）。`,
+  notationGlossary: (s, e) => `カタカナ表記「${s}」が、用語集の表記「${e}」と異なります。`,
+  notationKanaMix: (s, h, e) => `「${s}」のカタカナ語の中にひらがなの「${h}」が混じっています（「${e}」の誤りでは？）。`,
+  rubyBroken: (k, x2) => `ルビの記法「${x2}」が壊れています（${RUBY_PROBLEM_JA[k]}）。`
 };
 var MESSAGES = { en, ja };
 function messages(locale = "en") {
@@ -22832,6 +22861,7 @@ function reportLabels(locale = "en") {
 // src/core/checks/names.ts
 var enNames = (c) => [c.en, ...c.aliases?.en ?? []].map(normalizeApostrophes);
 var jaNames = (c) => [c.ja, ...c.aliases?.ja ?? []].map(normalizeApostrophes);
+var labelNames = (c) => [c.id, ...jaNames(c), ...enNames(c), ...c.reading ? [c.reading] : []];
 function knownWords(g) {
   const s = /* @__PURE__ */ new Set();
   const add = (phrase) => phrase.split(/[\s\-–—]+/).forEach((w) => w && s.add(w.toLowerCase()));
@@ -22987,7 +23017,7 @@ function checkNames(tables, g, locale = "en") {
     }
   }
   if (g.characters.length) {
-    const labels = new Set(g.characters.flatMap((c) => [c.id, ...jaNames(c), ...enNames(c)].map(normSpeaker)));
+    const labels = new Set(g.characters.flatMap((c) => labelNames(c).map(normSpeaker)));
     for (const [label, rows] of countBy(speakerRows, (r) => r.speaker)) {
       if (findCharacter(g, label)) continue;
       const key = normSpeaker(stripSpeakerTitle(label));
@@ -23023,7 +23053,7 @@ function findCharacter(g, label) {
   if (!label) return void 0;
   const exact = label.trim().toLowerCase();
   const loose = hiraganaToKatakana(stripSpeakerTitle(label).toLowerCase());
-  const names = (c) => [c.id, ...jaNames(c), ...enNames(c)].map((n) => n.toLowerCase());
+  const names = (c) => labelNames(c).map((n) => n.toLowerCase());
   return g.characters.find((c) => names(c).some((n) => n === exact)) ?? g.characters.find((c) => names(c).some((n) => hiraganaToKatakana(n) === loose));
 }
 
@@ -23139,7 +23169,8 @@ function checkHonorifics(tables, g, locale = "en") {
       }
     }
   }
-  const violates = (form) => (policy === "drop" || policy === "localize") && /-\w+$/.test(form);
+  const policyForm = (jaHon) => policy === "keep" && SUFFIX_FOR[jaHon] ? `{name}${SUFFIX_FOR[jaHon]}` : void 0;
+  const violates = (form, jaHon) => (policy === "drop" || policy === "localize") && /-\w+$/.test(form) || policy === "keep" && !!SUFFIX_FOR[jaHon] && !form.endsWith(SUFFIX_FOR[jaHon]);
   const jaToEn = hits.filter((h) => !h.enToJa);
   const majorityOf = /* @__PURE__ */ new Map();
   for (const [key, group2] of countBy(jaToEn.filter((h) => h.rendering), (h) => `${h.speaker}\0${h.char}\0${h.jaHon}`)) {
@@ -23149,13 +23180,17 @@ function checkHonorifics(tables, g, locale = "en") {
     const forms = countBy(group2, (h) => h.rendering);
     const ranked = [...forms.entries()].sort((a, b) => b[1].length - a[1].length);
     usage.push({ category: "honorific", group: label, counts: Object.fromEntries(ranked.map(([k, v]) => [name(k), v.length])) });
-    const ok = ranked.filter(([f]) => !violates(f));
-    const tie = ok.length >= 2 && ok[0][1].length === ok[1][1].length;
+    const ok = ranked.filter(([f]) => !violates(f, first.jaHon));
+    const expectedForm = policyForm(first.jaHon);
+    const pi = ok.findIndex(([f]) => f === expectedForm);
+    if (pi > 0 && ok[pi][1].length === ok[0][1].length) ok.unshift(...ok.splice(pi, 1));
+    const tie = ok.length >= 2 && ok[0][1].length === ok[1][1].length && ok[0][0] !== expectedForm;
     if (ok.length && !tie) majorityOf.set(key, { form: name(ok[0][0]), n: ok[0][1].length });
     if (!ok.length || ok.length < 2 && ranked.length < 2) continue;
     if (tie) {
       const split = ok.map(([f, l]) => `${name(f)} ×${l.length}`).join(" / ");
       for (const [form, list3] of ok) {
+        if (form === expectedForm) continue;
         for (const h of list3) {
           findings.push({
             category: "honorific",
@@ -23174,7 +23209,7 @@ function checkHonorifics(tables, g, locale = "en") {
       continue;
     }
     const majority = name(ok[0][0]);
-    for (const [form, list3] of ranked.filter(([f]) => f !== ok[0][0])) {
+    for (const [form, list3] of ranked.filter(([f]) => f !== ok[0][0] && f !== expectedForm)) {
       for (const h of list3) {
         findings.push({
           category: "honorific",
@@ -23245,9 +23280,45 @@ var KANJI_PRONOUN = new RegExp(
   "g"
 );
 var KANA_PRONOUN = new RegExp(
-  `(?:(?<![ぁ-ゖ])|(?<=[をはがにもとらてでどねよさ]))(わたくし|わたし|あたし|あたい|ぼく|おれ|わらわ|それがし|オレ|ボク|ワタシ|ウチ)${AFTER}|(?<=[るたいなだのう])(わたくし|わたし|あたし)${AFTER}|(?<![ぁ-ゖ])(わし|うち)(?=[はがもの、]|ら)`,
+  `(?:(?<![ぁ-ゖ])|(?<=[をはがにもとらてでどねよさ]))(わたくし|わたし|あたし|あたい|ぼく|おれ|わらわ|それがし|オレ|ボク|ワタシ|ウチ)${AFTER}|(?<=[るたいなだのう])(わたくし|わたし|あたし)${AFTER}|(?<![ぁ-ゖ])(わし)(?=[はがもの、]|ら)|(?<![ぁ-ゖ])(うち)(?=[はがも、]|ら)`,
   "g"
 );
+var QUOTE_CLOSE = { "「": "」", "『": "』", "“": "”" };
+function withoutQuotations(ja2) {
+  const spans = [];
+  const stack = [];
+  for (let i2 = 0; i2 < ja2.length; i2++) {
+    const c = ja2[i2];
+    if (QUOTE_CLOSE[c]) {
+      stack.push({ ch: c, i: i2 });
+      continue;
+    }
+    const at = stack.map((o) => QUOTE_CLOSE[o.ch]).lastIndexOf(c);
+    if (at < 0) continue;
+    const open2 = stack[at];
+    stack.length = at;
+    if (!stack.length) spans.push([open2.i, i2]);
+  }
+  if (!spans.length) return ja2;
+  const [s0, e0] = spans[0];
+  const prefix = ja2.slice(0, s0).trim();
+  if (spans.length === 1 && /^[。！？!?…\s]*$/.test(ja2.slice(e0 + 1)) && prefix.length <= 10 && !/[。、！？!?]/.test(prefix)) {
+    return `${prefix}${prefix ? " " : ""}${withoutQuotations(ja2.slice(s0 + 1, e0))}`;
+  }
+  let out = "";
+  let last = 0;
+  for (const [s, e] of spans) {
+    out += `${ja2.slice(last, s)}〓`;
+    last = e + 1;
+  }
+  return out + ja2.slice(last);
+}
+var SUPERIOR_TITLE = "先生|せんせい|センセイ|先輩|せんぱい|センパイ|様|さま|殿|会長|部長|社長|師匠|隊長|団長|監督|教授|殿下|陛下|閣下";
+var SUPERIOR_VOCATIVE = new RegExp(`(${SUPERIOR_TITLE})(?:方|がた)?(?=[、。！？!?…〜ー」』）)\\s]|$)`);
+var SUPERIOR_WORD = new RegExp(`(${SUPERIOR_TITLE})`);
+function superiorAddressed(ja2, addressee) {
+  return SUPERIOR_VOCATIVE.exec(ja2)?.[1] ?? (addressee ? SUPERIOR_WORD.exec(addressee)?.[1] : void 0);
+}
 var POLITE = /(です|(?<!ます)ます(?!ます)|でした|ました|ません|ましょう|ください|でしょう|ございま)/;
 var PLAIN_END = /(だ|だろ|だろう|じゃねえ|じゃない|ぞ|ぜ|んだ|かよ|ねえか|よな|よ|ね|わ|な|か|かい|だい|さ|ろ|しろ|てやる|てろ)[。、！？!?…」』\s]*$/;
 var PLAIN_VERB_END = /(?:る|ない|[っしいきちりみびにぎじえけげせぜてでねべめれん]た|[いあわ]う|ろう|(?<!おは)よう|こう)[。、！？!?…」』\s]*$/;
@@ -23255,7 +23326,7 @@ var extraPronounCache = /* @__PURE__ */ new Map();
 function extraPronounRegex(words) {
   const key = words.join("\0");
   if (extraPronounCache.has(key)) return extraPronounCache.get(key);
-  const extra = words.filter((w) => w && ![...w.matchAll(KANJI_PRONOUN), ...w.matchAll(KANA_PRONOUN)].some((m) => m[0] === w));
+  const extra = words.filter((w) => w && ![...`${w}は`.matchAll(KANJI_PRONOUN), ...`${w}は`.matchAll(KANA_PRONOUN)].some((m) => m[0] === w));
   const kanji = extra.filter((w) => !/^[ぁ-ゖ]/.test(w)).map(escapeRegExp);
   const kana = extra.filter((w) => /^[ぁ-ゖ]/.test(w)).map(escapeRegExp);
   const alts = [
@@ -23298,7 +23369,8 @@ function checkVoice(tables, g, minLines = 3, locale = "en") {
       findings.push(f);
       flagged.set(row, [...flagged.get(row) ?? [], f.message]);
     };
-    const pron = group2.filter((l) => l.jaSide).map((l) => ({ l, p: firstPersonPronouns(visibleText(l.row[l.jaSide]), profilePronouns) })).filter((x2) => x2.p.length);
+    const own2 = (l) => withoutQuotations(visibleText(l.row[l.jaSide]));
+    const pron = group2.filter((l) => l.jaSide).map((l) => ({ l, p: firstPersonPronouns(own2(l), profilePronouns) })).filter((x2) => x2.p.length);
     if (pron.length) {
       const tally3 = {};
       pron.forEach((x2) => x2.p.forEach((p) => tally3[p] = (tally3[p] ?? 0) + 1));
@@ -23329,7 +23401,7 @@ function checkVoice(tables, g, minLines = 3, locale = "en") {
         );
       }
     }
-    const pol = group2.filter((l) => l.jaSide).map((l) => ({ l, p: politeness(visibleText(l.row[l.jaSide]), !!profile.ja?.politeness) })).filter((x2) => x2.p);
+    const pol = group2.filter((l) => l.jaSide).map((l) => ({ l, p: politeness(own2(l), !!profile.ja?.politeness) })).filter((x2) => x2.p);
     if (pol.length) {
       const polite = pol.filter((x2) => x2.p === "polite").length;
       usage.push({ category: "voice", group: `${name}: politeness`, counts: { polite, plain: pol.length - polite } });
@@ -23338,17 +23410,18 @@ function checkVoice(tables, g, minLines = 3, locale = "en") {
       if (want) {
         for (const { l, p } of pol) {
           if (p === want) continue;
+          const title = want === "plain" ? superiorAddressed(visibleText(l.row[l.jaSide]), l.row.addressee) : void 0;
           flag(
             {
               category: "voice",
-              severity: expected ? "warning" : "info",
+              severity: expected && !title ? "warning" : "info",
               rule: "voice.politeness",
               group: name,
               file: l.row.file,
               line: l.row.line,
               id: l.row.id,
               side: l.jaSide,
-              message: expected ? msg.voicePolitenessProfile(name, expected, p) : msg.voicePolitenessMajority(name, p, want, want === "polite" ? polite : pol.length - polite, pol.length),
+              message: title ? msg.voicePolitenessToSuperior(name, title) : expected ? msg.voicePolitenessProfile(name, expected, p) : msg.voicePolitenessMajority(name, p, want, want === "polite" ? polite : pol.length - polite, pol.length),
               found: p,
               expected: want
             },
@@ -23582,6 +23655,63 @@ function looksUntranslatedCopy(source, kept) {
   if ((v.match(/[A-Za-z'\s-]/g) ?? []).length < v.length * 0.75) return false;
   return !words.every((w) => kept.has(w) || /^[A-Z0-9]+$/.test(w));
 }
+var JA_LETTER = /[ぁ-ゖァ-ヺ㐀-鿿ｦ-ﾟ]/g;
+function mostlyJapanese(target) {
+  const v = visibleText(target);
+  const ja2 = (v.match(JA_LETTER) ?? []).length;
+  return ja2 > 0 && ja2 > (v.match(/[A-Za-z]/g) ?? []).length;
+}
+function similarity(a, b) {
+  const grams = (s) => {
+    const t = s.toLowerCase().replace(/[\s\p{P}\p{S}]/gu, "");
+    const m = /* @__PURE__ */ new Map();
+    for (let i2 = 0; i2 < t.length - 1; i2++) m.set(t.slice(i2, i2 + 2), (m.get(t.slice(i2, i2 + 2)) ?? 0) + 1);
+    return m;
+  };
+  const ga = grams(a);
+  const gb = grams(b);
+  let common = 0;
+  let total = 0;
+  for (const [k, n] of ga) {
+    common += Math.min(n, gb.get(k) ?? 0);
+    total += n;
+  }
+  for (const n of gb.values()) total += n;
+  return total ? 2 * common / total : a === b ? 1 : 0;
+}
+function isNeighbourCopy(prev, row, targetLang) {
+  const a = visibleText(row.target).trim();
+  if (!a || a !== visibleText(prev.target).trim()) return false;
+  const long = targetLang === "ja" ? (a.match(JA_LETTER) ?? []).length + (a.match(/[A-Za-z]+/g) ?? []).length >= 8 : (a.match(/[A-Za-z0-9]+(?:['’-][A-Za-z]+)*/g) ?? []).length > 3;
+  if (!long) return false;
+  const sa = visibleText(row.source).trim();
+  const sb = visibleText(prev.source).trim();
+  return !!sa && !!sb && sa !== sb && similarity(sa, sb) < 0.5;
+}
+function rubyProblems(ja2) {
+  const out = [];
+  const s = hideRenpyEscapes(ja2);
+  for (const m of s.matchAll(/\{([^{}|｜\n]*)([|｜])([^{}\n]*?)(\}|(?=\{)|$)/g)) {
+    const [whole, baseText, bar, reading, close] = m;
+    if (!close) out.push(["unclosed", whole.slice(0, 20)]);
+    else if (bar === "｜") out.push(["fullwidth-bar", whole]);
+    else if (!reading.trim()) out.push(["empty-reading", whole]);
+    else if (!baseText.trim()) out.push(["empty-base", whole]);
+  }
+  const opens = (s.match(/《/g) ?? []).length;
+  const aozoraUnclosed = opens !== (s.match(/》/g) ?? []).length;
+  if (aozoraUnclosed) out.push(["unclosed", /《[^》]{0,10}/.exec(s)?.[0] ?? "》"]);
+  for (const m of s.matchAll(/《\s*》/g)) out.push(["empty-reading", m[0]]);
+  for (const m of s.matchAll(/[|｜]《[^》]*》/g)) out.push(["empty-base", m[0]]);
+  if (/[《》]/.test(s) && !aozoraUnclosed) {
+    for (const m of s.matchAll(/｜[一-鿿々〆ぁ-ゖァ-ヺー]+/g)) {
+      const next = s.charAt(m.index + m[0].length);
+      if (!"《（(}".includes(next) || next === "") out.push(["stray-separator", m[0]]);
+    }
+  }
+  for (const m of s.matchAll(/<rt(?:\s[^>]*)?>\s*<\/rt>|\{rt\}\s*\{\/rt\}/g)) out.push(["empty-reading", m[0]]);
+  return out;
+}
 function checkRules(tables, opts = {}) {
   const msg = messages(opts.locale);
   const out = [];
@@ -23589,7 +23719,7 @@ function checkRules(tables, opts = {}) {
     const jaSide = t.sourceLang === "ja" ? "source" : t.targetLang === "ja" ? "target" : void 0;
     const bilingual = !t.singleLang && t.rows.some((r) => r.target.trim());
     const kept = bilingual && t.targetLang === "ja" && t.sourceLang === "en" ? keptLatinWords(t) : void 0;
-    for (const row of t.rows) {
+    for (const [ri, row] of t.rows.entries()) {
       if (!row.target.trim()) {
         if (bilingual && row.source.trim()) {
           out.push({ category: "untranslated", severity: "warning", rule: "untranslated.empty", ...base(row, "target"), message: msg.untranslatedEmpty() });
@@ -23601,6 +23731,22 @@ function checkRules(tables, opts = {}) {
       }
       if (kept && row.target.trim() === row.source.trim() && looksUntranslatedCopy(row.source, kept)) {
         out.push({ category: "untranslated", severity: "info", rule: "untranslated.copy", ...base(row, "target"), message: msg.untranslatedCopy() });
+      }
+      if (bilingual && t.sourceLang === "ja" && t.targetLang === "en" && mostlyJapanese(row.target)) {
+        const same = row.target.trim() === row.source.trim();
+        out.push({ category: "untranslated", severity: "warning", rule: "untranslated.copy", ...base(row, "target"), message: same ? msg.untranslatedCopy() : msg.untranslatedJapanese() });
+      }
+      if (bilingual && ri > 0) {
+        const prev = t.rows[ri - 1];
+        if (isNeighbourCopy(prev, row, t.targetLang)) {
+          out.push({
+            category: "untranslated",
+            severity: "warning",
+            rule: "untranslated.duplicate",
+            ...base(row, "target"),
+            message: msg.untranslatedDuplicate(prev.line, prev.id)
+          });
+        }
       }
       const pair = `${row.source}
 ${row.target}`;
@@ -23642,10 +23788,14 @@ ${row.target}`;
             out.push({ category: "ruby", severity: "warning", rule: "ruby.reading", ...base(row, jaSide), message: msg.rubyReading(reading, m[1] ?? "") });
           }
         }
+        for (const [kind, snippet] of rubyProblems(ja2)) {
+          out.push({ category: "ruby", severity: "error", rule: "ruby.malformed", ...base(row, jaSide), message: msg.rubyBroken(kind, snippet), found: snippet });
+        }
         const opens = (ja2.match(/<ruby(?:\s[^>]*)?>/g) ?? []).length;
         const count = (re) => (ja2.match(re) ?? []).length;
         const renpyRubyBad = count(/\{rt\}/g) !== count(/\{\/rt\}/g) || count(/\{rb\}/g) !== count(/\{\/rb\}/g) || count(/\{rb\}/g) > count(/\{rt\}/g);
-        if (opens !== (ja2.match(/<\/ruby>/g) ?? []).length || opens !== (ja2.match(/<rt(?:\s[^>]*)?>/g) ?? []).length || renpyRubyBad) {
+        const rts = (ja2.match(/<rt(?:\s[^>]*)?>/g) ?? []).length;
+        if (opens !== (ja2.match(/<\/ruby>/g) ?? []).length || opens !== rts || rts !== count(/<\/rt>/g) || renpyRubyBad) {
           out.push({ category: "ruby", severity: "error", rule: "ruby.malformed", ...base(row, jaSide), message: msg.rubyMalformed() });
         }
         const enSide = jaSide === "source" ? "target" : "source";
@@ -23733,16 +23883,17 @@ function checkTerms(tables, g, locale = "en") {
           } else if (longer.some((oi) => rowHits[ri][oi])) {
           } else {
             counts["(not found)"] = (counts["(not found)"] ?? 0) + 1;
+            const compound = t.sourceLang === "ja" ? compoundOnly(visibleText(row.source), term.source) : void 0;
             findings.push({
               category: "term",
-              severity: term.draft ? "info" : "warning",
+              severity: term.draft || compound ? "info" : "warning",
               rule: "term.missing",
               group: group2,
               file: row.file,
               line: row.line,
               id: row.id,
               side: "target",
-              message: msg.termMissing(term.source, term.target),
+              message: compound ? msg.termMissingCompound(term.source, term.target, compound) : msg.termMissing(term.source, term.target),
               expected: term.target
             });
           }
@@ -23767,6 +23918,17 @@ function checkTerms(tables, g, locale = "en") {
   });
   return { findings, usage };
 }
+var KANJI = /[\u4e00-\u9fff々〆]/;
+function compoundOnly(src, term) {
+  if (!KANJI.test(term.slice(-1))) return void 0;
+  let compound;
+  for (let i2 = src.indexOf(term); i2 >= 0; i2 = src.indexOf(term, i2 + 1)) {
+    const tail = /^[\u4e00-\u9fff々〆]+/.exec(src.slice(i2 + term.length));
+    if (!tail) return void 0;
+    compound ??= term + tail[0];
+  }
+  return compound;
+}
 function glossaryDirection(tables, g, locale = "en") {
   if (!g.terms.length) return [];
   const glossaryJa = g.terms.filter((t) => looksJapanese(t.source)).length >= g.terms.length / 2;
@@ -23782,23 +23944,84 @@ function glossaryDirection(tables, g, locale = "en") {
     message: messages(locale).termDirection(t.sourceLang, t.targetLang, glossaryJa ? "ja→en" : "en→ja")
   }));
 }
-function checkNotation(tables, locale = "en") {
+function glossaryKatakana(g) {
+  const out = /* @__PURE__ */ new Map();
+  const add = (text) => {
+    for (const m of text.matchAll(KATAKANA_RUN)) {
+      const surface = m[0].replace(/^[・＝]+|[・＝]+$/g, "");
+      if (surface.length < 3 || isInterjection(surface)) continue;
+      const key = katakanaKey(surface);
+      const list3 = out.get(key) ?? [];
+      if (!list3.includes(surface)) list3.push(surface);
+      out.set(key, list3);
+    }
+  };
+  for (const term of g.terms) {
+    if (looksJapanese(term.source)) add(term.source);
+    else [term.target, ...term.allowed ?? []].filter(looksJapanese).forEach(add);
+  }
+  for (const c of g.characters) [c.ja, ...c.aliases?.ja ?? []].forEach(add);
+  return out;
+}
+var KANA_MIX_PARTICLES = /* @__PURE__ */ new Set([..."のをへとやがにでもかはなよねっ"]);
+var KANA_MIX_FINAL = /* @__PURE__ */ new Set([..."ぱぴぷぺぽべ"]);
+var KATA = /[ァ-ヴヷ-ヺー]/;
+function kanaMix(text) {
+  const out = [];
+  for (let i2 = 1; i2 < text.length; i2++) {
+    const h = text[i2];
+    if (!/[ぁ-ゖ]/.test(h) || !KATA.test(text[i2 - 1])) continue;
+    let a = i2;
+    while (a > 0 && KATA.test(text[a - 1])) a--;
+    let b = i2 + 1;
+    while (b < text.length && KATA.test(text[b])) b++;
+    const before = text.slice(a, i2);
+    const after = text.slice(i2 + 1, b);
+    if (!/[ァ-ヴヷ-ヺ]/.test(before)) continue;
+    const sandwiched = /[ァ-ヴヷ-ヺ]/.test(after);
+    if (sandwiched ? KANA_MIX_PARTICLES.has(h) : !(KANA_MIX_FINAL.has(h) && before.length >= 2)) continue;
+    const surface = before + h + after;
+    out.push([surface, h, before + hiraganaToKatakana(h) + after]);
+  }
+  return out;
+}
+function checkNotation(tables, locale = "en", g) {
+  const msg = messages(locale);
   const hits = [];
+  const findings = [];
   for (const t of tables) {
     const side = t.sourceLang === "ja" ? "source" : t.targetLang === "ja" ? "target" : void 0;
     if (!side) continue;
     for (const row of t.rows) {
       const seen = /* @__PURE__ */ new Set();
-      for (const m of visibleText(textOf(row, side)).matchAll(KATAKANA_RUN)) {
+      const text = visibleText(textOf(row, side));
+      for (const m of text.matchAll(KATAKANA_RUN)) {
         const surface = m[0].replace(/^[・＝]+|[・＝]+$/g, "");
         if (surface.length < 3 || seen.has(surface) || isInterjection(surface)) continue;
         seen.add(surface);
         hits.push({ surface, file: row.file, line: row.line, id: row.id, side });
       }
+      for (const [surface, h, fixed] of kanaMix(text)) {
+        if (seen.has(`mix\0${surface}`)) continue;
+        seen.add(`mix\0${surface}`);
+        findings.push({
+          category: "notation",
+          severity: "warning",
+          rule: "notation.kana-mix",
+          group: fixed,
+          file: row.file,
+          line: row.line,
+          id: row.id,
+          side,
+          message: msg.notationKanaMix(surface, h, fixed),
+          found: surface,
+          expected: fixed
+        });
+      }
     }
   }
-  const findings = [];
   const usage = [];
+  const glossaryForms = g ? glossaryKatakana(g) : /* @__PURE__ */ new Map();
   const groups = countBy(hits, (h) => katakanaKey(h.surface));
   const settled = [];
   for (const [key, group2] of groups) {
@@ -23807,13 +24030,37 @@ function checkNotation(tables, locale = "en") {
   }
   for (const [key, group2] of groups) {
     const forms = countBy(group2, (h) => h.surface);
-    if (forms.size < 2) continue;
     const ranked = [...forms.entries()].sort((a, b) => b[1].length - a[1].length);
-    const bases = settled.filter((b) => b.key !== key && b.key.length >= 2 && key.includes(b.key) && b.total >= group2.length);
+    const label = ranked.map(([s]) => s).join(" / ");
+    const approved = glossaryForms.get(key);
+    if (approved) {
+      if (forms.size >= 2) usage.push({ category: "notation", group: label, counts: Object.fromEntries(ranked.map(([s, h]) => [s, h.length])) });
+      for (const [surface, list3] of ranked) {
+        if (approved.includes(surface)) continue;
+        for (const h of list3) {
+          findings.push({
+            category: "notation",
+            severity: "warning",
+            rule: "notation.katakana",
+            group: label,
+            file: h.file,
+            line: h.line,
+            id: h.id,
+            side: h.side,
+            message: msg.notationGlossary(surface, approved[0]),
+            found: surface,
+            expected: approved[0]
+          });
+        }
+      }
+      continue;
+    }
+    if (forms.size < 2) continue;
+    const tie = ranked[0][1].length === ranked[1][1].length;
+    const bases = settled.filter((b) => b.key !== key && b.key.length >= 2 && key.includes(b.key) && (tie || b.total >= group2.length));
     const score = (form) => bases.filter((b) => containsWord(form, b.form)).length;
     const best = bases.length ? Math.max(...ranked.map(([f]) => score(f))) : 0;
     const majority = best > 0 ? ranked.find(([f]) => score(f) === best)[0] : ranked[0][0];
-    const label = ranked.map(([s]) => s).join(" / ");
     usage.push({ category: "notation", group: label, counts: Object.fromEntries(ranked.map(([s, h]) => [s, h.length])) });
     for (const [surface, list3] of ranked) {
       if (surface === majority) continue;
@@ -23827,7 +24074,7 @@ function checkNotation(tables, locale = "en") {
           line: h.line,
           id: h.id,
           side: h.side,
-          message: messages(locale).notationKatakana(surface, majority, forms.get(majority).length),
+          message: msg.notationKatakana(surface, majority, forms.get(majority).length),
           found: surface,
           expected: majority
         });
@@ -23874,7 +24121,7 @@ var SEVERITY_ORDER = ["error", "warning", "info"];
 function runChecks(tables, glossary = EMPTY_GLOSSARY, opts = {}) {
   const locale = opts.locale ?? "en";
   const terms = checkTerms(tables, glossary, locale);
-  const notation = checkNotation(tables, locale);
+  const notation = checkNotation(tables, locale, glossary);
   const names = checkNames(tables, glossary, locale);
   const honorifics = checkHonorifics(tables, glossary, locale);
   const voice = checkVoice(tables, glossary, opts.minLinesForVoice ?? 3, locale);

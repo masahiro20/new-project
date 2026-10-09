@@ -11,7 +11,7 @@ const SEVERITY_ORDER: Severity[] = ["error", "warning", "info"];
 export function runChecks(tables: Table[], glossary: Glossary = EMPTY_GLOSSARY, opts: CheckOptions = {}): CheckResult {
   const locale = opts.locale ?? "en";
   const terms = checkTerms(tables, glossary, locale);
-  const notation = checkNotation(tables, locale);
+  const notation = checkNotation(tables, locale, glossary);
   const names = checkNames(tables, glossary, locale);
   const honorifics = checkHonorifics(tables, glossary, locale);
   const voice = checkVoice(tables, glossary, opts.minLinesForVoice ?? 3, locale);

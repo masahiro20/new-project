@@ -42,7 +42,38 @@ export interface Messages {
   untranslatedEmpty(): string;
   untranslatedCopy(): string;
   untranslatedFuzzy(): string;
+  /** JA→EN: the English column holds Japanese text (copied source or never translated). */
+  untranslatedJapanese(): string;
+  /** The translation repeats the previous row's translation although the sources differ. */
+  untranslatedDuplicate(prevLine: number, prevId: string): string;
+  /** A plain-speech character uses polite forms in a line addressed to a teacher / senior. */
+  voicePolitenessToSuperior(name: string, title: string): string;
+  /** A Japanese glossary term only occurs inside a longer kanji compound the glossary does not list. */
+  termMissingCompound(source: string, target: string, compound: string): string;
+  /** Katakana spelling that differs from the glossary's spelling of the same word. */
+  notationGlossary(surface: string, expected: string): string;
+  /** A hiragana character inside or at the end of a katakana word (ルーぺ for ルーペ). */
+  notationKanaMix(surface: string, hiragana: string, expected: string): string;
+  /** Broken ruby markup other than <ruby>/<rt> tag counts: unclosed brackets, empty reading, stray separators. */
+  rubyBroken(kind: RubyProblem, snippet: string): string;
 }
+
+/** What is wrong with a ruby annotation (ruby.malformed). */
+export type RubyProblem = "unclosed" | "empty-reading" | "empty-base" | "fullwidth-bar" | "stray-separator";
+const RUBY_PROBLEM_EN: Record<RubyProblem, string> = {
+  unclosed: "the bracket is not closed",
+  "empty-reading": "the reading is empty",
+  "empty-base": "the base text is empty",
+  "fullwidth-bar": "full-width ｜ inside {base|reading} (use ASCII |)",
+  "stray-separator": "a ｜ separator with no 《reading》 after it",
+};
+const RUBY_PROBLEM_JA: Record<RubyProblem, string> = {
+  unclosed: "括弧が閉じていません",
+  "empty-reading": "読みが空です",
+  "empty-base": "親文字が空です",
+  "fullwidth-bar": "{親文字|読み} の区切りが全角の ｜ です（半角の | を使ってください）",
+  "stray-separator": "区切りの ｜ の後に《読み》がありません",
+};
 
 const en: Messages = {
   termForbidden: (s, f, t) => `"${s}" is rendered as forbidden variant "${f}"; glossary says "${t}".`,
@@ -82,6 +113,15 @@ const en: Messages = {
   untranslatedEmpty: () => "The translation is empty.",
   untranslatedCopy: () => "The translation is identical to the source text (left untranslated?).",
   untranslatedFuzzy: () => "Fuzzy (draft) translation: gettext ignores it until it is reviewed and the fuzzy flag is removed.",
+  untranslatedJapanese: () => "The English translation is Japanese text (left untranslated?).",
+  untranslatedDuplicate: (l, id) => `The translation is identical to the previous row's (line ${l}, ${id}) although the sources differ (copied from the neighbouring row?).`,
+  voicePolitenessToSuperior: (name, t) =>
+    `${name} is written plain but this line is polite. It addresses "${t}", and a switch to keigo toward a teacher or senior is often intended; confirm it.`,
+  termMissingCompound: (s, t, c) =>
+    `Source contains "${s}" only inside the longer word "${c}", which the glossary does not list; the translation does not use "${t}". Fine if "${c}" is a different word.`,
+  notationGlossary: (s, e) => `Katakana spelling "${s}" differs from the glossary spelling "${e}".`,
+  notationKanaMix: (s, h, e) => `"${s}" has the hiragana "${h}" inside a katakana word (did you mean "${e}"?).`,
+  rubyBroken: (k, x) => `Broken ruby markup "${x}": ${RUBY_PROBLEM_EN[k]}.`,
 };
 
 const POLITENESS_JA = { polite: "丁寧体", plain: "常体" } as const;
@@ -127,6 +167,15 @@ const ja: Messages = {
   untranslatedEmpty: () => "訳文が空です。",
   untranslatedCopy: () => "訳文が原文と同じです（未翻訳の可能性があります）。",
   untranslatedFuzzy: () => "fuzzy（仮訳）です。fuzzy フラグを外すまで gettext はこの訳を使いません。",
+  untranslatedJapanese: () => "英語の訳文が日本語のままです（未翻訳の可能性があります）。",
+  untranslatedDuplicate: (l, id) => `原文が異なるのに、訳文が直前の行（${l}行目、${id}）と同じです（隣の行の訳をコピーした可能性があります）。`,
+  voicePolitenessToSuperior: (name, t) =>
+    `${name} は常体で話すキャラですが、この行は丁寧体です。「${t}」への呼びかけがあり、先生や先輩にだけ敬語を使うのは自然な場合が多いので、意図どおりか確認してください。`,
+  termMissingCompound: (s, t, c) =>
+    `原文の「${s}」は、用語集にない長い語「${c}」の一部としてだけ出てきます。訳文に「${t}」がありません（「${c}」が別の語なら問題ありません）。`,
+  notationGlossary: (s, e) => `カタカナ表記「${s}」が、用語集の表記「${e}」と異なります。`,
+  notationKanaMix: (s, h, e) => `「${s}」のカタカナ語の中にひらがなの「${h}」が混じっています（「${e}」の誤りでは？）。`,
+  rubyBroken: (k, x) => `ルビの記法「${x}」が壊れています（${RUBY_PROBLEM_JA[k]}）。`,
 };
 
 const MESSAGES: Record<Locale, Messages> = { en, ja };

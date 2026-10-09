@@ -5,6 +5,8 @@ import type { Finding, Glossary, GlossaryCharacter, Locale, Table, UsageSummary 
 // Names are compared with apostrophes folded (Li’sar = Li'sar), the same way visibleText folds the script text.
 const enNames = (c: GlossaryCharacter) => [c.en, ...(c.aliases?.en ?? [])].map(normalizeApostrophes);
 const jaNames = (c: GlossaryCharacter) => [c.ja, ...(c.aliases?.ja ?? [])].map(normalizeApostrophes);
+/** Names a speaker label may use: id, Japanese and English names and aliases, and the kana reading. */
+const labelNames = (c: GlossaryCharacter) => [c.id, ...jaNames(c), ...enNames(c), ...(c.reading ? [c.reading] : [])];
 
 /** Words a near-miss scan should never flag: approved names, glossary targets, explicit ignore list. */
 function knownWords(g: Glossary): Set<string> {
@@ -139,7 +141,7 @@ export function checkNames(tables: Table[], g: Glossary, locale: Locale = "en"):
     }
   }
   if (g.characters.length) {
-    const labels = new Set(g.characters.flatMap((c) => [c.id, ...jaNames(c), ...enNames(c)].map(normSpeaker)));
+    const labels = new Set(g.characters.flatMap((c) => labelNames(c).map(normSpeaker)));
     for (const [label, rows] of countBy(speakerRows, (r) => r.speaker!)) {
       // A label that resolves to a character (ガルド（騎士長）, りん) is reported as name.speaker-label, not unknown.
       if (findCharacter(g, label)) continue;
@@ -173,13 +175,14 @@ export function stripSpeakerTitle(label: string): string {
 
 /**
  * Resolve a speaker label to a glossary character (by id, ja/en name or alias), case-insensitively. A trailing
- * bracketed title is ignored and hiragana matches katakana, so ガルド（騎士長） and りん resolve to ガルド and リン.
+ * bracketed title is ignored and hiragana matches katakana, so ガルド（騎士長） and りん resolve to ガルド and リン. A kana
+ * label for a kanji name (しおり for 詩織) resolves through the character's `reading` (or a kana alias).
  */
 export function findCharacter(g: Glossary, label?: string): GlossaryCharacter | undefined {
   if (!label) return undefined;
   const exact = label.trim().toLowerCase();
   const loose = hiraganaToKatakana(stripSpeakerTitle(label).toLowerCase());
-  const names = (c: GlossaryCharacter) => [c.id, ...jaNames(c), ...enNames(c)].map((n) => n.toLowerCase());
+  const names = (c: GlossaryCharacter) => labelNames(c).map((n) => n.toLowerCase());
   return g.characters.find((c) => names(c).some((n) => n === exact)) ??
     g.characters.find((c) => names(c).some((n) => hiraganaToKatakana(n) === loose));
 }

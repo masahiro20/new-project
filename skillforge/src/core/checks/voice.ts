@@ -106,7 +106,13 @@ export function checkHonorifics(tables: Table[], g: Glossary, locale: Locale = "
   // Forms that break the honorific policy (Gald-dono under "localize") never set the majority; they are still
   // pointed at the majority when there is one. On a tie among the remaining forms there is no majority: those
   // lines get an info finding that the group is split, and policy-breaking lines keep only honorific.policy.
-  const violates = (form: string) => (policy === "drop" || policy === "localize") && /-\w+$/.test(form);
+  // Under "keep", a form without the romanized suffix for this honorific (Mr. Narumi for 鳴海先生) breaks the policy
+  // the same way, and the bare policy form ({name}-sensei) is the expected one: it wins a tie and is never reported
+  // as drift.
+  const policyForm = (jaHon: string) => (policy === "keep" && SUFFIX_FOR[jaHon] ? `{name}${SUFFIX_FOR[jaHon]}` : undefined);
+  const violates = (form: string, jaHon: string) =>
+    ((policy === "drop" || policy === "localize") && /-\w+$/.test(form)) ||
+    (policy === "keep" && !!SUFFIX_FOR[jaHon] && !form.endsWith(SUFFIX_FOR[jaHon]!));
   const jaToEn = hits.filter((h) => !h.enToJa);
   const majorityOf = new Map<string, { form: string; n: number }>();
   for (const [key, group] of countBy(jaToEn.filter((h) => h.rendering), (h) => `${h.speaker}\u0000${h.char}\u0000${h.jaHon}`)) {
@@ -116,13 +122,17 @@ export function checkHonorifics(tables: Table[], g: Glossary, locale: Locale = "
     const forms = countBy(group, (h) => h.rendering!);
     const ranked = [...forms.entries()].sort((a, b) => b[1].length - a[1].length);
     usage.push({ category: "honorific", group: label, counts: Object.fromEntries(ranked.map(([k, v]) => [name(k), v.length])) });
-    const ok = ranked.filter(([f]) => !violates(f));
-    const tie = ok.length >= 2 && ok[0]![1].length === ok[1]![1].length;
+    const ok = ranked.filter(([f]) => !violates(f, first.jaHon));
+    const expectedForm = policyForm(first.jaHon);
+    const pi = ok.findIndex(([f]) => f === expectedForm);
+    if (pi > 0 && ok[pi]![1].length === ok[0]![1].length) ok.unshift(...ok.splice(pi, 1));
+    const tie = ok.length >= 2 && ok[0]![1].length === ok[1]![1].length && ok[0]![0] !== expectedForm;
     if (ok.length && !tie) majorityOf.set(key, { form: name(ok[0]![0]), n: ok[0]![1].length });
     if (!ok.length || (ok.length < 2 && ranked.length < 2)) continue;
     if (tie) {
       const split = ok.map(([f, l]) => `${name(f)} ×${l.length}`).join(" / ");
       for (const [form, list] of ok) {
+        if (form === expectedForm) continue;
         for (const h of list) {
           findings.push({
             category: "honorific", severity: "info", rule: "honorific.drift", group: label,
@@ -135,7 +145,7 @@ export function checkHonorifics(tables: Table[], g: Glossary, locale: Locale = "
       continue;
     }
     const majority = name(ok[0]![0]);
-    for (const [form, list] of ranked.filter(([f]) => f !== ok[0]![0])) {
+    for (const [form, list] of ranked.filter(([f]) => f !== ok[0]![0] && f !== expectedForm)) {
       for (const h of list) {
         findings.push({
           category: "honorific", severity: "warning", rule: "honorific.drift", group: label,
@@ -200,10 +210,62 @@ const KANJI_PRONOUN = new RegExp(
 );
 // Multi-mora kana pronouns may follow a particle (だからぼくは); short/ambiguous ones (わし, うち) must not follow kana (こわし, まわし).
 // わたくし / わたし / あたし may also follow an attributive ending (巫女であるわたくし, 戦うあたし).
+// うち counts only before は/が/も/、 or as うちら: うちの部 / うちのクラス ("our club", said by anyone) and うちに来る
+// ("come to my house") are possessive or locative. A Kansai speaker's うちの… ("my …") is lost as evidence, but their
+// うちは / うちが lines still count, so their profile check keeps working.
 const KANA_PRONOUN = new RegExp(
-  `(?:(?<![ぁ-ゖ])|(?<=[をはがにもとらてでどねよさ]))(わたくし|わたし|あたし|あたい|ぼく|おれ|わらわ|それがし|オレ|ボク|ワタシ|ウチ)${AFTER}|(?<=[るたいなだのう])(わたくし|わたし|あたし)${AFTER}|(?<![ぁ-ゖ])(わし|うち)(?=[はがもの、]|ら)`,
+  `(?:(?<![ぁ-ゖ])|(?<=[をはがにもとらてでどねよさ]))(わたくし|わたし|あたし|あたい|ぼく|おれ|わらわ|それがし|オレ|ボク|ワタシ|ウチ)${AFTER}|(?<=[るたいなだのう])(わたくし|わたし|あたし)${AFTER}|(?<![ぁ-ゖ])(わし)(?=[はがもの、]|ら)|(?<![ぁ-ゖ])(うち)(?=[はがも、]|ら)`,
   "g",
 );
+
+const QUOTE_CLOSE: Record<string, string> = { "「": "」", "『": "』", "“": "”" };
+
+/**
+ * A Japanese line with the quotations inside it removed (「…」, 『…』, “…”, nested or not), so the speaker's voice is
+ * judged on their own words: 『僕は約束を守る』 quoted from a letter, or 『俺』 mentioned as a word, is not the speaker's
+ * pronoun. A line that is one quotation as a whole (「俺が行く」, or 湊「俺が行く」 with the name in front) is the
+ * speaker's own words and is unwrapped instead. Unbalanced brackets (a quote continued on the next row) are left alone.
+ */
+export function withoutQuotations(ja: string): string {
+  const spans: [number, number][] = [];
+  const stack: { ch: string; i: number }[] = [];
+  for (let i = 0; i < ja.length; i++) {
+    const c = ja[i]!;
+    if (QUOTE_CLOSE[c]) {
+      stack.push({ ch: c, i });
+      continue;
+    }
+    const at = stack.map((o) => QUOTE_CLOSE[o.ch]).lastIndexOf(c);
+    if (at < 0) continue;
+    const open = stack[at]!;
+    stack.length = at;
+    if (!stack.length) spans.push([open.i, i]);
+  }
+  if (!spans.length) return ja;
+  const [s0, e0] = spans[0]!;
+  const prefix = ja.slice(0, s0).trim();
+  if (spans.length === 1 && /^[。！？!?…\s]*$/.test(ja.slice(e0 + 1)) && prefix.length <= 10 && !/[。、！？!?]/.test(prefix)) {
+    return `${prefix}${prefix ? " " : ""}${withoutQuotations(ja.slice(s0 + 1, e0))}`;
+  }
+  let out = "";
+  let last = 0;
+  for (const [s, e] of spans) {
+    out += `${ja.slice(last, s)}〓`;
+    last = e + 1;
+  }
+  return out + ja.slice(last);
+}
+
+// A vocative to a teacher, senior or superior: the title followed by punctuation or the end of the line
+// (わかってますよ、先生。 / 先輩方、よろしく). 先生の / 先輩が (talking about them) do not count.
+const SUPERIOR_TITLE = "先生|せんせい|センセイ|先輩|せんぱい|センパイ|様|さま|殿|会長|部長|社長|師匠|隊長|団長|監督|教授|殿下|陛下|閣下";
+const SUPERIOR_VOCATIVE = new RegExp(`(${SUPERIOR_TITLE})(?:方|がた)?(?=[、。！？!?…〜ー」』）)\\s]|$)`);
+const SUPERIOR_WORD = new RegExp(`(${SUPERIOR_TITLE})`);
+
+/** The superior's title this line addresses (vocative in the text, or a title in the addressee column), if any. */
+export function superiorAddressed(ja: string, addressee?: string): string | undefined {
+  return SUPERIOR_VOCATIVE.exec(ja)?.[1] ?? (addressee ? SUPERIOR_WORD.exec(addressee)?.[1] : undefined);
+}
 const POLITE = /(です|(?<!ます)ます(?!ます)|でした|ました|ません|ましょう|ください|でしょう|ございま)/;
 const PLAIN_END = /(だ|だろ|だろう|じゃねえ|じゃない|ぞ|ぜ|んだ|かよ|ねえか|よな|よ|ね|わ|な|か|かい|だい|さ|ろ|しろ|てやる|てろ)[。、！？!?…」』\s]*$/;
 // Plain verb/adjective endings (dictionary, past, negative, volitional, ている), used only for characters whose
@@ -217,7 +279,8 @@ const extraPronounCache = new Map<string, RegExp | undefined>();
 function extraPronounRegex(words: string[]): RegExp | undefined {
   const key = words.join("\u0000");
   if (extraPronounCache.has(key)) return extraPronounCache.get(key);
-  const extra = words.filter((w) => w && ![...w.matchAll(KANJI_PRONOUN), ...w.matchAll(KANA_PRONOUN)].some((m) => m[0] === w));
+  // Tested with a particle after it, so built-in words with a narrow context (うち, わし) keep their own rule.
+  const extra = words.filter((w) => w && ![...`${w}は`.matchAll(KANJI_PRONOUN), ...`${w}は`.matchAll(KANA_PRONOUN)].some((m) => m[0] === w));
   const kanji = extra.filter((w) => !/^[ぁ-ゖ]/.test(w)).map(escapeRegExp);
   const kana = extra.filter((w) => /^[ぁ-ゖ]/.test(w)).map(escapeRegExp);
   const alts = [
@@ -277,7 +340,8 @@ export function checkVoice(tables: Table[], g: Glossary, minLines = 3, locale: L
     };
 
     // First-person pronoun
-    const pron = group.filter((l) => l.jaSide).map((l) => ({ l, p: firstPersonPronouns(visibleText(l.row[l.jaSide!]), profilePronouns) })).filter((x) => x.p.length);
+    const own = (l: L) => withoutQuotations(visibleText(l.row[l.jaSide!]));
+    const pron = group.filter((l) => l.jaSide).map((l) => ({ l, p: firstPersonPronouns(own(l), profilePronouns) })).filter((x) => x.p.length);
     if (pron.length) {
       const tally: Record<string, number> = {};
       pron.forEach((x) => x.p.forEach((p) => (tally[p] = (tally[p] ?? 0) + 1)));
@@ -305,7 +369,7 @@ export function checkVoice(tables: Table[], g: Glossary, minLines = 3, locale: L
     }
 
     // Politeness level
-    const pol = group.filter((l) => l.jaSide).map((l) => ({ l, p: politeness(visibleText(l.row[l.jaSide!]), !!profile.ja?.politeness) })).filter((x) => x.p);
+    const pol = group.filter((l) => l.jaSide).map((l) => ({ l, p: politeness(own(l), !!profile.ja?.politeness) })).filter((x) => x.p);
     if (pol.length) {
       const polite = pol.filter((x) => x.p === "polite").length;
       usage.push({ category: "voice", group: `${name}: politeness`, counts: { polite, plain: pol.length - polite } });
@@ -317,13 +381,18 @@ export function checkVoice(tables: Table[], g: Glossary, minLines = 3, locale: L
       if (want) {
         for (const { l, p } of pol) {
           if (p === want) continue;
+          // A plain-speech character switching to keigo toward a teacher or senior is a natural register shift
+          // (わかってますよ、先生): reported as info so the reviewer can still see it.
+          const title = want === "plain" ? superiorAddressed(visibleText(l.row[l.jaSide!]), l.row.addressee) : undefined;
           flag(
             {
-              category: "voice", severity: expected ? "warning" : "info", rule: "voice.politeness", group: name,
+              category: "voice", severity: expected && !title ? "warning" : "info", rule: "voice.politeness", group: name,
               file: l.row.file, line: l.row.line, id: l.row.id, side: l.jaSide!,
-              message: expected
-                ? msg.voicePolitenessProfile(name, expected, p!)
-                : msg.voicePolitenessMajority(name, p!, want, want === "polite" ? polite : pol.length - polite, pol.length),
+              message: title
+                ? msg.voicePolitenessToSuperior(name, title)
+                : expected
+                  ? msg.voicePolitenessProfile(name, expected, p!)
+                  : msg.voicePolitenessMajority(name, p!, want, want === "polite" ? polite : pol.length - polite, pol.length),
               found: p, expected: want,
             },
             l.row,

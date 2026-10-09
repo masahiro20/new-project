@@ -3,7 +3,9 @@
 //
 //   node eval/synthetic-jaen-2/score.mjs --truth truth.csv \
 //        --clean-G clean.G.json --drifted-G drifted.G.json --clean-A clean.A.json --drifted-A drifted.A.json \
-//        --out results.json
+//        --out results.json [--before old-results.json]
+//
+// --before embeds the configs of an earlier results.json under "before" (kept for the fixes.md comparison).
 //
 // Matching: a finding matches a truth row when it is on the same line (±0) and its rule falls under the
 // category mapping CATEGORY_RULES below (fixed from the rule *names* in the JSON output; the evaluator did
@@ -19,7 +21,9 @@ const opt = (n) => { const i = args.indexOf(`--${n}`); return i >= 0 ? args[i + 
 // Which rules count as catching which injected category. Prefix match on the rule id.
 const CATEGORY_RULES = {
   term: ["term."],
-  katakana: ["notation.katakana", "term."], // EN-side transliteration variants surface as term deviations
+  // EN-side transliteration variants surface as term deviations. "notation.kana-mix" was added by the fixer
+  // (2026-10-09, fixes.md) for the rule created then; the blind mapping had only the first two.
+  katakana: ["notation.katakana", "term.", "notation.kana-mix"],
   name: ["name."],
   speaker: ["name.speaker"],
   honorific: ["honorific."],
@@ -124,6 +128,10 @@ const result = {
     A: { description: "--no-glossary", ...score(load(opt("drifted-A")), load(opt("clean-A"))) },
   },
 };
+if (opt("before")) {
+  const old = JSON.parse(readFileSync(opt("before"), "utf8"));
+  result.before = old.before ?? { note: "engine before the fixes in fixes.md (2026-10-09)", configs: old.configs };
+}
 writeFileSync(opt("out"), JSON.stringify(result, null, 1) + "\n");
 for (const [k, c] of Object.entries(result.configs)) {
   console.error(`${k}: recall ${c.recall.found}/${c.recall.injected} (warn+ ${c.recall.foundCi}); precision ${c.precision.all.precision} (TP ${c.precision.all.tp}, FP ${c.precision.all.fp}, unjudged ${c.precision.all.unjudged}); tricky flagged ${c.tricky.flagged}/${c.tricky.lines} (warn+ ${c.tricky.flaggedCi}); clean findings ${c.cleanFindings.total}`);

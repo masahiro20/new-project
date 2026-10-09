@@ -1,5 +1,6 @@
 import { containsPhrase, countBy, enPhraseRegex, isInterjection, KATAKANA_RUN, katakanaKey, looksJapanese, ref, singularOf, textOf, visibleText } from "../text.js";
 import { messages } from "../i18n.js";
+import { hiraganaToKatakana } from "./names.js";
 import type { Finding, Glossary, Locale, ReviewPacket, Side, Table, UsageSummary } from "../types.js";
 
 const isAllCaps = (s: string) => /[A-Z].*[A-Z]/.test(s) && !/[a-z]/.test(s);
@@ -82,10 +83,11 @@ export function checkTerms(tables: Table[], g: Glossary, locale: Locale = "en"):
             // The longer term owns this span and reports on it.
           } else {
             counts["(not found)"] = (counts["(not found)"] ?? 0) + 1;
+            const compound = t.sourceLang === "ja" ? compoundOnly(visibleText(row.source), term.source) : undefined;
             findings.push({
-              category: "term", severity: term.draft ? "info" : "warning", rule: "term.missing", group,
+              category: "term", severity: term.draft || compound ? "info" : "warning", rule: "term.missing", group,
               file: row.file, line: row.line, id: row.id, side: "target",
-              message: msg.termMissing(term.source, term.target),
+              message: compound ? msg.termMissingCompound(term.source, term.target, compound) : msg.termMissing(term.source, term.target),
               expected: term.target,
             });
           }
@@ -104,6 +106,25 @@ export function checkTerms(tables: Table[], g: Glossary, locale: Locale = "en"):
   return { findings, usage };
 }
 
+const KANJI = /[\u4e00-\u9fff々〆]/;
+
+/**
+ * When every occurrence of a kanji-final Japanese term is followed by another kanji (部室 in 部室棟, 選択 in 選択肢,
+ * 更新 in 更新間隔), the term may be part of a different, longer word. Returns that compound (the term plus the kanji
+ * run after it) so term.missing can drop to info; undefined when the term also occurs on its own. Longer glossary
+ * terms are handled before this (they own the span), so the compound here is one the glossary does not list.
+ */
+function compoundOnly(src: string, term: string): string | undefined {
+  if (!KANJI.test(term.slice(-1))) return undefined;
+  let compound: string | undefined;
+  for (let i = src.indexOf(term); i >= 0; i = src.indexOf(term, i + 1)) {
+    const tail = /^[\u4e00-\u9fff々〆]+/.exec(src.slice(i + term.length));
+    if (!tail) return undefined;
+    compound ??= term + tail[0];
+  }
+  return compound;
+}
+
 /** Warn once per table whose direction does not match the glossary terms, so silence is never mistaken for a pass. */
 export function glossaryDirection(tables: Table[], g: Glossary, locale: Locale = "en"): Finding[] {
   if (!g.terms.length) return [];
@@ -117,30 +138,98 @@ export function glossaryDirection(tables: Table[], g: Glossary, locale: Locale =
     }));
 }
 
+/** Katakana spellings the glossary approves, by katakanaKey: the Japanese side of each term (and its allowed variants when Japanese) and character names. */
+function glossaryKatakana(g: Glossary): Map<string, string[]> {
+  const out = new Map<string, string[]>();
+  const add = (text: string) => {
+    for (const m of text.matchAll(KATAKANA_RUN)) {
+      const surface = m[0].replace(/^[・＝]+|[・＝]+$/g, "");
+      if (surface.length < 3 || isInterjection(surface)) continue;
+      const key = katakanaKey(surface);
+      const list = out.get(key) ?? [];
+      if (!list.includes(surface)) list.push(surface);
+      out.set(key, list);
+    }
+  };
+  for (const term of g.terms) {
+    if (looksJapanese(term.source)) add(term.source);
+    else [term.target, ...(term.allowed ?? [])].filter(looksJapanese).forEach(add);
+  }
+  for (const c of g.characters) [c.ja, ...(c.aliases?.ja ?? [])].forEach(add);
+  return out;
+}
+
+// Hiragana that may sit between two katakana words as a particle (ゲームとアニメ, アイテムをゲット).
+const KANA_MIX_PARTICLES = new Set([..."のをへとやがにでもかはなよねっ"]);
+// Hiragana that never follows a katakana word as grammar, so at the end of a katakana run it is a slip (ルーぺ for ルーペ;
+// ぺ / べ look the same as ペ / ベ).
+const KANA_MIX_FINAL = new Set([..."ぱぴぷぺぽべ"]);
+const KATA = /[ァ-ヴヷ-ヺー]/;
+
+/**
+ * Single hiragana characters mixed into a katakana word: sandwiched between katakana (ゲーぶル) unless it is a particle,
+ * or at the end of a katakana run when it is a handakuten kana or べ (ルーぺです). Returns [surface, hiragana, fixed].
+ */
+export function kanaMix(text: string): [string, string, string][] {
+  const out: [string, string, string][] = [];
+  for (let i = 1; i < text.length; i++) {
+    const h = text[i]!;
+    if (!/[ぁ-ゖ]/.test(h) || !KATA.test(text[i - 1]!)) continue;
+    let a = i;
+    while (a > 0 && KATA.test(text[a - 1]!)) a--;
+    let b = i + 1;
+    while (b < text.length && KATA.test(text[b]!)) b++;
+    const before = text.slice(a, i);
+    const after = text.slice(i + 1, b);
+    if (!/[ァ-ヴヷ-ヺ]/.test(before)) continue;
+    const sandwiched = /[ァ-ヴヷ-ヺ]/.test(after);
+    if (sandwiched ? KANA_MIX_PARTICLES.has(h) : !(KANA_MIX_FINAL.has(h) && before.length >= 2)) continue;
+    const surface = before + h + after;
+    out.push([surface, h, before + hiraganaToKatakana(h) + after]);
+  }
+  return out;
+}
+
 /**
  * Japanese katakana notation drift (表記揺れ): spellings that differ only by ・, ー, ヴ/バ, small kana or イ/ウ vs ー,
  * e.g. マナ・ストーン / マナストーン, サーバー / サーバ. Runs on whichever side is Japanese. Interjections (アアァ) are
  * skipped. A compound (データフォルダー) is steered towards the house style of the words it
- * contains (フォルダ ×25), so it never gets advice that contradicts the standalone word's group.
+ * contains (フォルダ ×25), so it never gets advice that contradicts the standalone word's group; on a 1-vs-1 tie the
+ * standalone words decide even when they are rarer than the compound (フィルム settles フィルムカメラ / フイルムカメラ).
+ * With a glossary, a word the glossary spells in katakana must use that spelling (notation.katakana against the glossary
+ * form, even when the script has only the variant). notation.kana-mix reports a hiragana slipped into a katakana word.
  */
-export function checkNotation(tables: Table[], locale: Locale = "en"): { findings: Finding[]; usage: UsageSummary[] } {
+export function checkNotation(tables: Table[], locale: Locale = "en", g?: Glossary): { findings: Finding[]; usage: UsageSummary[] } {
   type Hit = { surface: string; file: string; line: number; id: string; side: Side };
+  const msg = messages(locale);
   const hits: Hit[] = [];
+  const findings: Finding[] = [];
   for (const t of tables) {
     const side: Side | undefined = t.sourceLang === "ja" ? "source" : t.targetLang === "ja" ? "target" : undefined;
     if (!side) continue;
     for (const row of t.rows) {
       const seen = new Set<string>();
-      for (const m of visibleText(textOf(row, side)).matchAll(KATAKANA_RUN)) {
+      const text = visibleText(textOf(row, side));
+      for (const m of text.matchAll(KATAKANA_RUN)) {
         const surface = m[0].replace(/^[・＝]+|[・＝]+$/g, "");
         if (surface.length < 3 || seen.has(surface) || isInterjection(surface)) continue;
         seen.add(surface);
         hits.push({ surface, file: row.file, line: row.line, id: row.id, side });
       }
+      for (const [surface, h, fixed] of kanaMix(text)) {
+        if (seen.has(`mix\u0000${surface}`)) continue;
+        seen.add(`mix\u0000${surface}`);
+        findings.push({
+          category: "notation", severity: "warning", rule: "notation.kana-mix", group: fixed,
+          file: row.file, line: row.line, id: row.id, side,
+          message: msg.notationKanaMix(surface, h, fixed),
+          found: surface, expected: fixed,
+        });
+      }
     }
   }
-  const findings: Finding[] = [];
   const usage: UsageSummary[] = [];
+  const glossaryForms = g ? glossaryKatakana(g) : new Map<string, string[]>();
   const groups = countBy(hits, (h) => katakanaKey(h.surface));
   // Words whose spelling is settled: a single form, or a form used more often than any other.
   const settled: { key: string; form: string; total: number }[] = [];
@@ -150,14 +239,31 @@ export function checkNotation(tables: Table[], locale: Locale = "en"): { finding
   }
   for (const [key, group] of groups) {
     const forms = countBy(group, (h) => h.surface);
-    if (forms.size < 2) continue;
     const ranked = [...forms.entries()].sort((a, b) => b[1].length - a[1].length);
-    // Settled words contained in this compound, used at least as often as the compound itself.
-    const bases = settled.filter((b) => b.key !== key && b.key.length >= 2 && key.includes(b.key) && b.total >= group.length);
+    const label = ranked.map(([s]) => s).join(" / ");
+    const approved = glossaryForms.get(key);
+    if (approved) {
+      if (forms.size >= 2) usage.push({ category: "notation", group: label, counts: Object.fromEntries(ranked.map(([s, h]) => [s, h.length])) });
+      for (const [surface, list] of ranked) {
+        if (approved.includes(surface)) continue;
+        for (const h of list) {
+          findings.push({
+            category: "notation", severity: "warning", rule: "notation.katakana", group: label,
+            file: h.file, line: h.line, id: h.id, side: h.side,
+            message: msg.notationGlossary(surface, approved[0]!),
+            found: surface, expected: approved[0]!,
+          });
+        }
+      }
+      continue;
+    }
+    if (forms.size < 2) continue;
+    const tie = ranked[0]![1].length === ranked[1]![1].length;
+    // Settled words contained in this compound, used at least as often as the compound itself (any count on a tie).
+    const bases = settled.filter((b) => b.key !== key && b.key.length >= 2 && key.includes(b.key) && (tie || b.total >= group.length));
     const score = (form: string) => bases.filter((b) => containsWord(form, b.form)).length;
     const best = bases.length ? Math.max(...ranked.map(([f]) => score(f))) : 0;
     const majority = best > 0 ? ranked.find(([f]) => score(f) === best)![0] : ranked[0]![0];
-    const label = ranked.map(([s]) => s).join(" / ");
     usage.push({ category: "notation", group: label, counts: Object.fromEntries(ranked.map(([s, h]) => [s, h.length])) });
     for (const [surface, list] of ranked) {
       if (surface === majority) continue;
@@ -165,7 +271,7 @@ export function checkNotation(tables: Table[], locale: Locale = "en"): { finding
         findings.push({
           category: "notation", severity: "warning", rule: "notation.katakana", group: label,
           file: h.file, line: h.line, id: h.id, side: h.side,
-          message: messages(locale).notationKatakana(surface, majority, forms.get(majority)!.length),
+          message: msg.notationKatakana(surface, majority, forms.get(majority)!.length),
           found: surface, expected: majority,
         });
       }

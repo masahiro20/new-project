@@ -26,6 +26,7 @@ const GlossarySchema = z.object({
         id: z.string().min(1),
         ja: z.string().min(1),
         en: z.string().min(1),
+        reading: z.string().optional(),
         aliases: z.object({ ja: list, en: list }).optional(),
         forbidden: z.object({ ja: list, en: list }).optional(),
         voice: z

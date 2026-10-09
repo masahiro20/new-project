@@ -1,5 +1,5 @@
 import { BRACKET_WORD, displayLength, isRenpyText, PLACEHOLDER, placeholderText, RENPY_PACING_TAGS, RENPY_TAG, RENPY_TAG_NAMES, hideRenpyEscapes, visibleText } from "../text.js";
-import { messages } from "../i18n.js";
+import { messages, type RubyProblem } from "../i18n.js";
 import type { Finding, Locale, Row, Side, Table } from "../types.js";
 
 // Bonus rule checks. Xbench/Verifika already cover this ground, so they are kept simple.
@@ -128,6 +128,81 @@ function looksUntranslatedCopy(source: string, kept: Set<string>): boolean {
   return !words.every((w) => kept.has(w) || /^[A-Z0-9]+$/.test(w));
 }
 
+const JA_LETTER = /[ぁ-ゖァ-ヺ㐀-鿿ｦ-ﾟ]/g;
+
+/** An English translation that is Japanese text: more kana/kanji than Latin letters (女子……？, バックログ). */
+function mostlyJapanese(target: string): boolean {
+  const v = visibleText(target);
+  const ja = (v.match(JA_LETTER) ?? []).length;
+  return ja > 0 && ja > (v.match(/[A-Za-z]/g) ?? []).length;
+}
+
+/** Character-bigram Dice similarity (0..1) of two strings, whitespace and punctuation ignored. */
+function similarity(a: string, b: string): number {
+  const grams = (s: string) => {
+    const t = s.toLowerCase().replace(/[\s\p{P}\p{S}]/gu, "");
+    const m = new Map<string, number>();
+    for (let i = 0; i < t.length - 1; i++) m.set(t.slice(i, i + 2), (m.get(t.slice(i, i + 2)) ?? 0) + 1);
+    return m;
+  };
+  const ga = grams(a);
+  const gb = grams(b);
+  let common = 0;
+  let total = 0;
+  for (const [k, n] of ga) { common += Math.min(n, gb.get(k) ?? 0); total += n; }
+  for (const n of gb.values()) total += n;
+  return total ? (2 * common) / total : a === b ? 1 : 0;
+}
+
+/**
+ * The row's translation repeats the previous row's although the sources differ substantially (bigram similarity
+ * < 0.5): a paste into the wrong row. Short strings are skipped (≤ 3 English words, < 8 Japanese letters), so stock
+ * lines such as "Yes." / "OK" / "……" / "Bong..." never count; so are rows whose sources are the same or empty.
+ */
+function isNeighbourCopy(prev: Row, row: Row, targetLang: Table["targetLang"]): boolean {
+  const a = visibleText(row.target).trim();
+  if (!a || a !== visibleText(prev.target).trim()) return false;
+  const long = targetLang === "ja"
+    ? (a.match(JA_LETTER) ?? []).length + (a.match(/[A-Za-z]+/g) ?? []).length >= 8
+    : (a.match(/[A-Za-z0-9]+(?:['’-][A-Za-z]+)*/g) ?? []).length > 3;
+  if (!long) return false;
+  const sa = visibleText(row.source).trim();
+  const sb = visibleText(prev.source).trim();
+  return !!sa && !!sb && sa !== sb && similarity(sa, sb) < 0.5;
+}
+
+/** Ruby problems the tag counts below cannot see, for every syntax ({base|reading}, ｜base《reading》, <ruby>, Ren'Py {rb}{rt}). */
+export function rubyProblems(ja: string): [RubyProblem, string][] {
+  const out: [RubyProblem, string][] = [];
+  const s = hideRenpyEscapes(ja);
+  // {base|reading}: a brace with a separator inside that is never closed, a full-width bar, or an empty side.
+  for (const m of s.matchAll(/\{([^{}|｜\n]*)([|｜])([^{}\n]*?)(\}|(?=\{)|$)/g)) {
+    const [whole, baseText, bar, reading, close] = m;
+    if (!close) out.push(["unclosed", whole!.slice(0, 20)]);
+    else if (bar === "｜") out.push(["fullwidth-bar", whole!]);
+    else if (!reading!.trim()) out.push(["empty-reading", whole!]);
+    else if (!baseText!.trim()) out.push(["empty-base", whole!]);
+  }
+  // ｜base《reading》 (Aozora / Narou): 《 never closed, empty 《》, a separator with no base, or a ｜ before a word with no
+  // 《reading》 after it. A 《 without ｜ is legal (漢字《かんじ》); an ASCII | is too common in other text to judge.
+  const opens = (s.match(/《/g) ?? []).length;
+  const aozoraUnclosed = opens !== (s.match(/》/g) ?? []).length;
+  if (aozoraUnclosed) out.push(["unclosed", /《[^》]{0,10}/.exec(s)?.[0] ?? "》"]);
+  for (const m of s.matchAll(/《\s*》/g)) out.push(["empty-reading", m[0]]);
+  for (const m of s.matchAll(/[|｜]《[^》]*》/g)) out.push(["empty-base", m[0]]);
+  // A ｜ only reads as a ruby separator on a line that uses 《》 (elsewhere it can be a UI divider); Narou also allows
+  // ｜base（reading）, and a ｜ inside braces is the {base|reading} check's business.
+  if (/[《》]/.test(s) && !aozoraUnclosed) {
+    for (const m of s.matchAll(/｜[一-鿿々〆ぁ-ゖァ-ヺー]+/g)) {
+      const next = s.charAt(m.index! + m[0].length);
+      if (!"《（(}".includes(next) || next === "") out.push(["stray-separator", m[0]]);
+    }
+  }
+  // <ruby>…<rt></rt> and Ren'Py {rt}{/rt} with nothing in the reading.
+  for (const m of s.matchAll(/<rt(?:\s[^>]*)?>\s*<\/rt>|\{rt\}\s*\{\/rt\}/g)) out.push(["empty-reading", m[0]]);
+  return out;
+}
+
 export function checkRules(tables: Table[], opts: { wideAsTwo?: boolean; locale?: Locale } = {}): Finding[] {
   const msg = messages(opts.locale);
   const out: Finding[] = [];
@@ -136,7 +211,7 @@ export function checkRules(tables: Table[], opts: { wideAsTwo?: boolean; locale?
     // Untranslated rows: only for bilingual tables that are at least partly translated (a fresh export is not news).
     const bilingual = !t.singleLang && t.rows.some((r) => r.target.trim());
     const kept = bilingual && t.targetLang === "ja" && t.sourceLang === "en" ? keptLatinWords(t) : undefined;
-    for (const row of t.rows) {
+    for (const [ri, row] of t.rows.entries()) {
       if (!row.target.trim()) {
         if (bilingual && row.source.trim()) {
           out.push({ category: "untranslated", severity: "warning", rule: "untranslated.empty", ...base(row, "target"), message: msg.untranslatedEmpty() });
@@ -148,6 +223,19 @@ export function checkRules(tables: Table[], opts: { wideAsTwo?: boolean; locale?
       }
       if (kept && row.target.trim() === row.source.trim() && looksUntranslatedCopy(row.source, kept)) {
         out.push({ category: "untranslated", severity: "info", rule: "untranslated.copy", ...base(row, "target"), message: msg.untranslatedCopy() });
+      }
+      if (bilingual && t.sourceLang === "ja" && t.targetLang === "en" && mostlyJapanese(row.target)) {
+        const same = row.target.trim() === row.source.trim();
+        out.push({ category: "untranslated", severity: "warning", rule: "untranslated.copy", ...base(row, "target"), message: same ? msg.untranslatedCopy() : msg.untranslatedJapanese() });
+      }
+      if (bilingual && ri > 0) {
+        const prev = t.rows[ri - 1]!;
+        if (isNeighbourCopy(prev, row, t.targetLang)) {
+          out.push({
+            category: "untranslated", severity: "warning", rule: "untranslated.duplicate", ...base(row, "target"),
+            message: msg.untranslatedDuplicate(prev.line, prev.id),
+          });
+        }
       }
 
       const pair = `${row.source}\n${row.target}`;
@@ -186,10 +274,14 @@ export function checkRules(tables: Table[], opts: { wideAsTwo?: boolean; locale?
             out.push({ category: "ruby", severity: "warning", rule: "ruby.reading", ...base(row, jaSide), message: msg.rubyReading(reading, m[1] ?? "") });
           }
         }
+        for (const [kind, snippet] of rubyProblems(ja)) {
+          out.push({ category: "ruby", severity: "error", rule: "ruby.malformed", ...base(row, jaSide), message: msg.rubyBroken(kind, snippet), found: snippet });
+        }
         const opens = (ja.match(/<ruby(?:\s[^>]*)?>/g) ?? []).length;
         const count = (re: RegExp) => (ja.match(re) ?? []).length;
         const renpyRubyBad = count(/\{rt\}/g) !== count(/\{\/rt\}/g) || count(/\{rb\}/g) !== count(/\{\/rb\}/g) || count(/\{rb\}/g) > count(/\{rt\}/g);
-        if (opens !== (ja.match(/<\/ruby>/g) ?? []).length || opens !== (ja.match(/<rt(?:\s[^>]*)?>/g) ?? []).length || renpyRubyBad) {
+        const rts = (ja.match(/<rt(?:\s[^>]*)?>/g) ?? []).length;
+        if (opens !== (ja.match(/<\/ruby>/g) ?? []).length || opens !== rts || rts !== count(/<\/rt>/g) || renpyRubyBad) {
           out.push({ category: "ruby", severity: "error", rule: "ruby.malformed", ...base(row, jaSide), message: msg.rubyMalformed() });
         }
         const enSide: Side = jaSide === "source" ? "target" : "source";

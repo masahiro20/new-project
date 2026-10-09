@@ -78,6 +78,11 @@ export interface GlossaryCharacter {
   id: string;
   ja: string;
   en: string;
+  /**
+   * Kana reading of the Japanese name (しおり for 詩織). Optional: a speaker label written in kana (しおり / シオリ)
+   * resolves to this character only through it or a kana alias, since the engine has no dictionary.
+   */
+  reading?: string;
   aliases?: { ja?: string[]; en?: string[] };
   forbidden?: { ja?: string[]; en?: string[] };
   voice?: VoiceProfile;
