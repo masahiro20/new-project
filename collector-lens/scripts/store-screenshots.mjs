@@ -54,7 +54,7 @@ const SHOTS = [
 ];
 
 const SRC = ["src/glossary-data.js", "src/analyzer.js", "src/sites.js", "src/overlay.js", "src/content.js"];
-const FOOTER_OLD = "Collector Lens (prototype) · ";
+const FOOTER_OLD = "Tanuki Scout (prototype) · ";
 const sources = SRC.map((f) => {
   let s = read(f);
   if (f.endsWith("overlay.js")) {

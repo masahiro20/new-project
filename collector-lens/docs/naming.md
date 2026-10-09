@@ -17,6 +17,10 @@
 
 ステージ1で出した Mekiki Scout は、日本に「mekiki」を使う事業があるため外しました。Kitsune Lens は「Lens」を含み、ドメインも登録済みのため外しました。
 
-## 推奨：Tanuki Scout（仮）
-- ストア用パッケージ（`store/`）はこの名前で作りました。リポジトリの開発用 manifest は「Collector Lens (prototype)」のまま残し、ストア用ビルドでのみ名前を差し替えます。
+## 決定：Tanuki Scout（仮の名前、2026-10-09 本部決定）
+
+本部（ピーター）が仮の名前として Tanuki Scout に決定しました。開発用 manifest は「Tanuki Scout (prototype)」、拡張のパネル・デモ・ストア用素材も Tanuki Scout に差し替え済みです。正式名称にするには、下の商標の自己チェックに加えて専門家の確認とオーナーの承認が必要です。
+
+### 推奨した理由と提出前の条件
+- ストア用パッケージ（`store/`）はこの名前で作りました。開発用 manifest は「Tanuki Scout (prototype)」で、ストア用ビルドでは「(prototype)」を外します。
 - 提出の前に必要なこと（オーナー）：USPTO・J-PlatPat の9類・42類の検索、ドメイン（tanukiscout.com など）の空き確認、名前の最終承認。

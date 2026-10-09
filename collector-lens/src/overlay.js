@@ -1,5 +1,5 @@
 /*
- * Collector Lens (working title) — overlay panel.
+ * Tanuki Scout (provisional name) — overlay panel.
  * Rendered inside a closed Shadow DOM so page CSS can't leak in and the page's
  * own layout is untouched. All page-derived text goes through textContent and
  * createTextNode only.
@@ -64,10 +64,10 @@
   function buildPanel(doc, result, meta) {
     var panel = el(doc, "div", "panel");
     panel.setAttribute("role", "complementary");
-    panel.setAttribute("aria-label", "Collector Lens listing notes");
+    panel.setAttribute("aria-label", "Tanuki Scout listing notes");
 
     var head = el(doc, "div", "head");
-    head.appendChild(el(doc, "span", "title", "Listing Decoder"));
+    head.appendChild(el(doc, "span", "title", "Tanuki Scout"));
     var badge = el(doc, "span", "badge lvl-" + result.score.level, result.score.label);
     head.appendChild(badge);
     var toggle = el(doc, "button", "toggle", "–");
@@ -108,7 +108,7 @@
     }
     panel.appendChild(body);
 
-    var foot = el(doc, "div", "foot", "Collector Lens (prototype) · " + (meta && meta.siteName ? meta.siteName + " · " : "") +
+    var foot = el(doc, "div", "foot", "Tanuki Scout (prototype) · " + (meta && meta.siteName ? meta.siteName + " · " : "") +
       "Rule-based notes from this page only — not an appraisal or authenticity check.");
     panel.appendChild(foot);
 

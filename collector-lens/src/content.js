@@ -1,5 +1,5 @@
 /*
- * Collector Lens (working title) — content script entry point.
+ * Tanuki Scout (provisional name) — content script entry point.
  * Runs only on the listing domains declared in manifest.json, reads the
  * current page's DOM, and draws an overlay. No network, no storage, no
  * messages to any server, no visits to other pages.

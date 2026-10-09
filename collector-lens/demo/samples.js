@@ -1,4 +1,4 @@
-/* Fictional sample listings written for the Collector Lens demo. Not copied from any real listing. */
+/* Fictional sample listings written for the Tanuki Scout demo. Not copied from any real listing. */
 (function (root) {
   root.DEMO_SAMPLES = [
     {

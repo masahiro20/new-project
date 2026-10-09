@@ -1,5 +1,5 @@
 /*
- * Collector Lens (working title) — site detection and listing extraction.
+ * Tanuki Scout (provisional name) — site detection and listing extraction.
  * Reads ONLY the DOM of the page the user has open. Never fetches anything.
  *
  * Selectors for real sites are best-effort and unverified (we do not copy or

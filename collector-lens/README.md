@@ -1,4 +1,6 @@
-# Collector Lens（仮称）— Listing Decoder 試作
+# Tanuki Scout（仮の名前）— Listing Decoder 試作
+
+> 2026-10-09 本部決定で仮の名前を「Collector Lens」から「Tanuki Scout」に変更（`docs/naming.md`）。ディレクトリ名 `collector-lens/` と内部の名前空間 `CollectorLens` はそのまま。
 
 > **仮称です。** 商標調査（USPTO・J-PlatPat の9類・42類）が済むまで正式名称を決めません。
 > **外部非公開の試作です。** Chrome Web Store への公開、LP、告知はしていません。

@@ -1,7 +1,7 @@
 <!-- DRAFT — not published. Publishing requires owner approval. -->
-<!-- Name pending trademark search (USPTO / J-PlatPat, classes 9 and 42). "Collector Lens" is a working title only; do not use as a final name. -->
+<!-- Name pending trademark search (USPTO / J-PlatPat, classes 9 and 42). "Tanuki Scout" is the provisional name (HQ decision 2026-10-09); do not use as a final name until cleared. -->
 
-# Collector Lens (working title)
+# Tanuki Scout (working title)
 
 ## Read the Japanese fine print before you bid.
 
@@ -31,10 +31,10 @@ A wrong guess is expensive: after proxy fees, shipping and duties, returns are r
 2. **A panel appears in the corner.** It reads the listing on your screen and sorts what it finds into Condition, Grade, Returns, Warnings and Seller states.
 3. **Decide with the full picture.** High-risk terms are flagged first. If the seller writes something reassuring, such as "no fungus or haze," it's listed under Seller states and not raised as a warning.
 
-![Collector Lens panel on a camera auction listing](screenshot-mock-yahoo-camera.png)
+![Tanuki Scout panel on a camera auction listing](../store/screenshots/01-yahoo-camera-junk.png)
 *Shown on a mock listing page*
 
-![Collector Lens panel on a marketplace item listing](screenshot-mock-mercari-lens.png)
+![Tanuki Scout panel on a watch shop listing](../store/screenshots/03-yahoo-watch-shop.png)
 *Shown on a mock listing page*
 
 ---
@@ -100,4 +100,4 @@ It isn't publicly available yet. Join the waitlist to hear when testing opens.
 
 ---
 
-<sub>Collector Lens (working title) is independent. Marketplace names are trademarks of their owners, used only to describe compatibility. Not an appraisal or authentication service. Screenshots show mock pages.</sub>
+<sub>Tanuki Scout (working title) is independent. Marketplace names are trademarks of their owners, used only to describe compatibility. Not an appraisal or authentication service. Screenshots show mock pages.</sub>

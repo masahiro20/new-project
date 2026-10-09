@@ -23,14 +23,14 @@ if (manifest.description.length > 132) throw new Error("description > 132 chars"
 if (manifest.permissions.length) throw new Error("store build expects no API permissions");
 writeFileSync(join(out, "manifest.json"), JSON.stringify(manifest, null, 2) + "\n");
 
-const FOOTER_FROM = '"Collector Lens (prototype) · "';
+const FOOTER_FROM = '"Tanuki Scout (prototype) · "';
 const FOOTER_TO = JSON.stringify(cfg.short_name + " · ");
 for (const f of manifest.content_scripts.flatMap((c) => c.js)) {
   mkdirSync(dirname(join(out, f)), { recursive: true });
   let src = readFileSync(join(root, f), "utf8");
   if (f === "src/overlay.js") {
     if (!src.includes(FOOTER_FROM)) throw new Error("overlay footer text not found");
-    src = src.replace(FOOTER_FROM, FOOTER_TO).replace('"Collector Lens listing notes"', JSON.stringify(cfg.short_name + " listing notes"));
+    src = src.replace(FOOTER_FROM, FOOTER_TO);
   }
   writeFileSync(join(out, f), src);
 }
