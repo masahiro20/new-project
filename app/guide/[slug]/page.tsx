@@ -4,8 +4,10 @@ import { notFound } from "next/navigation";
 import ChecklistDownload from "@/app/ChecklistDownload";
 import { CHECKLIST, CHECKLIST_GUIDES } from "@/lib/checklist";
 import MarkdownView from "@/app/MarkdownView";
+import TrackedLink from "@/app/TrackedLink";
 import { GUIDES, SERVICE_GUIDES, TOPIC_GUIDES, getGuide } from "@/lib/guides";
 import { categoryOf } from "@/lib/guide-categories";
+import { SERVICE_TYPES } from "@/lib/form";
 import { breadcrumbList, jsonLdHtml } from "@/lib/jsonld";
 import { aiEnabled } from "@/lib/launch";
 import { guideOgImage } from "@/lib/og";
@@ -42,6 +44,11 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
   const guide = getGuide((await params).slug);
   if (!guide) notFound();
 
+  // Service guides open the free templates with the same service preselected (#s=…, read in TemplateClient).
+  const templatesHref =
+    guide.serviceType && (SERVICE_TYPES as readonly string[]).includes(guide.serviceType)
+      ? `/templates#s=${encodeURIComponent(guide.serviceType)}`
+      : "/templates";
   const base = siteUrl();
   const url = pageUrl(`/guide/${guide.slug}`);
   const org = { "@type": "Organization", name: SITE_NAME, url: base };
@@ -106,11 +113,11 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
         <div className="card cta-inline">
           <p>
             <strong>まず1分で確認：</strong>
-            あなたの事業所に減算のリスクがあるか、チェックリストで無料診断できます。
+            あなたの事業所に減算のリスクがあるかを無料で診断し、必要な書類の雛形をその場で作れます（登録不要）。
           </p>
           <div className="actions">
-            <Link href="/check" className="btn">減算リスクを無料診断</Link>
-            <Link href="/samples" className="btn secondary">書類サンプルを見る</Link>
+            <TrackedLink href="/check" className="btn" event="cta-check">減算リスクを無料診断</TrackedLink>
+            <TrackedLink href={templatesHref} className="btn secondary" event="cta-templates">書類テンプレートを無料で作る</TrackedLink>
           </div>
         </div>
 
@@ -158,8 +165,9 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
             まずは無料の減算リスク診断と、完成イメージがわかる書類サンプルをご覧ください。
           </p>
           <div className="actions">
-            <Link href="/check" className="btn">減算リスクを無料診断</Link>
-            <Link href="/samples" className="btn secondary">書類サンプル（無料）</Link>
+            <TrackedLink href="/check" className="btn" event="cta-check">減算リスクを無料診断</TrackedLink>
+            <TrackedLink href={templatesHref} className="btn secondary" event="cta-templates">書類テンプレート（無料）</TrackedLink>
+            <TrackedLink href="/samples" className="btn secondary" event="cta-samples">書類サンプル</TrackedLink>
             {aiEnabled() && <Link href="/generate" className="btn secondary">無料で年間計画を作る</Link>}
           </div>
         </div>

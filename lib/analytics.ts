@@ -13,7 +13,18 @@ export type AnalyticsEvent =
   | "checklist-download-docx"
   | "template-download-committee"
   | "template-download-training"
-  | "template-download-restraint";
+  | "template-download-restraint"
+  // Funnel to the paid version (docs/funnel.md)
+  | "cta-check"
+  | "cta-templates"
+  | "cta-samples"
+  | "preview-start"
+  | "preview-complete"
+  | "checkout-start"
+  | "purchase-complete"
+  | "set-generated-committee"
+  | "set-generated-training"
+  | "set-generated-restraint";
 
 type GoatCounter = { count: (vars: { path: string; title?: string; event?: boolean }) => void };
 const gc = () => (window as unknown as { goatcounter?: Partial<GoatCounter> }).goatcounter;

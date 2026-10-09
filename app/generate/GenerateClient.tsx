@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import MarkdownView from "@/app/MarkdownView";
 import { SERVICE_TYPES, type FacilityInput } from "@/lib/form";
+import { trackEvent } from "@/lib/analytics";
 import { endsWithNotice } from "@/lib/notices";
 import { PART_LABELS, PARTS, type Part } from "@/lib/parts";
 import PurchaseSummary from "./PurchaseSummary";
@@ -129,7 +130,10 @@ export default function GenerateClient({
 
   async function generatePart(id: string, part: Part, data: FacilityInput) {
     const text = await run(part, `${apiBase}/api/generate`, { sessionId: id, part, input: data });
-    if (text) saveOutput(id, part, text);
+    if (text) {
+      saveOutput(id, part, text);
+      trackEvent(`set-generated-${part}`);
+    }
   }
 
   async function generatePaid(id: string, data: FacilityInput, parts: readonly Part[]) {
@@ -160,6 +164,8 @@ export default function GenerateClient({
       const cached = loadOutputs(sessionId);
       setOutputs(Object.fromEntries(Object.entries(cached).map(([part, text]) => [part, { text, done: true }])));
       const missing = PARTS.filter((part) => !cached[part]);
+      // First arrival back from checkout (nothing generated yet for this session) = a completed purchase.
+      if (missing.length === PARTS.length) trackEvent("purchase-complete");
       if (missing.length) generatePaid(sessionId, saved, missing);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -170,7 +176,9 @@ export default function GenerateClient({
     setMessage(null);
     save(input);
     setBusy(true);
-    await run("preview", `${apiBase}/api/preview`, { input, turnstileToken });
+    trackEvent("preview-start");
+    const plan = await run("preview", `${apiBase}/api/preview`, { input, turnstileToken });
+    if (plan) trackEvent("preview-complete");
     if (turnstileSiteKey) setTurnstileReset((n) => n + 1);
     setBusy(false);
   }
@@ -180,6 +188,7 @@ export default function GenerateClient({
     setMessage(null);
     save(input);
     setBusy(true);
+    trackEvent("checkout-start");
     const res = await fetch(`${apiBase}/api/checkout`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(input) });
     const data = await res.json().catch(() => ({}));
     if (data.url) {
