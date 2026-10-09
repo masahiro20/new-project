@@ -122,6 +122,7 @@ export const guide: Guide = {
       a: "感染症の予防・まん延防止の指針と非常災害対策計画があれば減算しないという経過措置は、令和7年3月31日で終了しています。現在は業務継続計画を策定し、計画に従って必要な措置を講じていないと所定単位数の1%が減算されます。研修・訓練は運営基準上の義務ですが、減算の算定要件ではありません（令和6年度報酬改定Q&A VOL.1 問14）。",
     },
   ],
+  related: ["gyakutai-iinkai-gijiroku", "gyakutai-kenshu-shiryou", "shintai-kousoku-shishin", "houkago-day-shintai-kousoku-rei", "bcp-gensan-jidou", "unei-shidou-shiteki-jidou"],
   sources: [
     {
       label: "こども家庭庁「令和6年度障害福祉サービス等報酬改定について」（障害児支援関係の告示・通知・Q&A掲載ページ）",

@@ -122,6 +122,7 @@ export const guide: Guide = {
       a: "事業所内で行う研修で差し支えないとされています。虐待防止研修の中で身体拘束の適正化を扱うなど、一体的に実施することもできます。実施内容の記録は残しておきましょう。",
     },
   ],
+  related: ["gyakutai-iinkai-gijiroku", "gyakutai-kenshu-shiryou", "shintai-kousoku-shishin", "houkago-day-shintai-kousoku-rei", "bcp-gensan-jidou", "unei-shidou-shiteki-jidou"],
   sources: [
     {
       label: "こども家庭庁「令和6年度障害福祉サービス等報酬改定について」（障害児支援関係の告示・通知・Q&A掲載ページ）",
