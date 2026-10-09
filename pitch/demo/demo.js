@@ -2,16 +2,16 @@
 // Pipeline per analysis: decode → pickUtterance → normalize → extractF0 (pitchy) → judge.
 // Everything runs in the page; nothing is fetched or sent anywhere.
 
-import { PitchDetector } from '../vendor/pitchy.js';
-import { extractF0, normalize } from '../src/f0.js';
-import { judge, DEFAULTS as JUDGE_DEFAULTS } from '../src/judge.js';
+import { DEFAULTS as JUDGE_DEFAULTS } from '../src/judge.js';
 import { pitchPattern, accentType, TYPE_NAMES } from '../src/accent.js';
 import { synthesizeWord } from '../src/synth.js';
-import { decodeAudioFile, pickUtterance } from './decode.js';
 import { decodeLexicon, fold, wrongK, sampleSeed } from './lexicon.js';
+import { mountShare } from './share.js'; // 結果の共有カード画像
+import { mountAnki } from './anki.js'; // Anki への書き出し
+import { SR, loadUtterance, judgeSamples, play } from './pipeline.js'; // shared with practice.js
+import { initPractice } from './practice.js'; // 最小対で練習
 
 const $ = (id) => document.getElementById(id);
-const SR = 16000;
 const DEFAULT_SURFACE = '橋';
 
 // ---------- lexicon ----------
@@ -29,7 +29,6 @@ const QUICK_PICKS = ['はし', 'あめ', 'はな', 'かみ', 'かき'];
 
 let current = words.find((w) => w.surface === DEFAULT_SURFACE) ?? words[0];
 let lastAudio = null; // { samples, rate }
-let audioCtx = null;
 let runId = 0;
 
 // ---------- text helpers ----------
@@ -366,11 +365,11 @@ async function analyze(samples, rate, w, source, offset = 0) {
   const id = ++runId;
   lastAudio = { samples, rate };
   $('play-last').disabled = false;
-  const tr = extractF0(PitchDetector, normalize(samples), rate);
+  const { tr, r } = judgeSamples(samples, rate, w);
   if (id !== runId) return;
-  const r = judge(tr, w);
   showResult(r, w, tr, offset);
   window.__pitchLast = { result: r, word: w, source };
+  afterJudge({ result: r, word: w, track: tr, source }); // share card + Anki session list
 }
 
 async function runSample(kind) {
@@ -393,10 +392,9 @@ async function runFile(file) {
   $('verdict').textContent = '解析中…';
   await nextFrame();
   try {
-    const buf = await file.arrayBuffer();
-    const { samples, rate, duration, decoder } = await decodeAudioFile(buf);
+    const u = await loadUtterance(file);
+    const { rate, duration, decoder } = u;
     if (id !== runId) return;
-    const u = pickUtterance(samples, rate, { maxSec: 4 });
     // decoder 'js-aac' / 'js-alac': the browser could not decode the m4a; the built-in decoder did.
     const via = decoder && decoder !== 'native' ? '・内蔵デコーダで読み込み' : '';
     $('source').textContent = `${file.name}（全体 ${duration.toFixed(1)} 秒のうち ${u.start.toFixed(1)}–${u.end.toFixed(1)} 秒を判定${via}）`;
@@ -410,19 +408,7 @@ async function runFile(file) {
   }
 }
 
-// ---------- playback (click-started only) ----------
-function play(samples, rate) {
-  const Ctx = window.AudioContext || window.webkitAudioContext;
-  if (!Ctx) return;
-  audioCtx ??= new Ctx();
-  audioCtx.resume?.();
-  const b = audioCtx.createBuffer(1, samples.length, rate);
-  b.getChannelData(0).set(samples);
-  const src = audioCtx.createBufferSource();
-  src.buffer = b;
-  src.connect(audioCtx.destination);
-  src.start();
-}
+// ---------- playback: play() from ./pipeline.js (click-started only) ----------
 
 // ---------- wiring ----------
 $('word-search').addEventListener('input', onSearch);
@@ -457,7 +443,18 @@ drop.addEventListener('drop', (e) => {
 window.addEventListener('dragover', (e) => e.preventDefault());
 window.addEventListener('drop', (e) => e.preventDefault());
 
+// ---------- share card + Anki export (demo/share.js, demo/anki.js) ----------
+const shareCard = mountShare();
+const ankiExport = mountAnki({ words, byId, getCurrent: () => current });
+function afterJudge(e) {
+  shareCard.judged(e);
+  ankiExport.judged(e);
+}
+
 renderPicks();
 renderSelect();
 selectWord(current);
 runSample('correct');
+
+// ---------- 最小対で練習 (demo/practice.js) ----------
+initPractice({ words, loadUtterance, judgeSamples, play, synthesizeWord, sampleRate: SR, sampleSeed });

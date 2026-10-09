@@ -3,3 +3,4 @@ node_modules/
 # ONNX Runtime Web build (~14 MB) — regenerate with `npm run vendor`
 vendor/ort/*.mjs
 vendor/ort/*.wasm
+.qa-out/

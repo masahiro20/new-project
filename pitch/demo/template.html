@@ -123,6 +123,55 @@ details[open] summary { margin-bottom: 8px; }
 .lic h3 { font-size: .85rem; margin: 6px 0 0; }
 .lic pre { white-space: pre-wrap; overflow-wrap: anywhere; font: .75rem/1.5 var(--mono); background: var(--surface-2); padding: 8px; border-radius: 6px; max-height: 18rem; overflow: auto; }
 footer { font-size: .8rem; color: var(--muted); display: flex; flex-direction: column; gap: 2px; }
+/* ---- share card + Anki export (demo/share.js, demo/anki.js) ---- */
+.share { display: flex; flex-direction: column; gap: 8px; padding-top: 10px; border-top: 1px solid var(--line); }
+.share[hidden], .share-out[hidden], #anki-text-wrap[hidden] { display: none; }
+.share-out { display: flex; flex-direction: column; gap: 8px; }
+#share-img { display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: 8px; background: #f3f6f8; }
+.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+#anki-scope { width: 100%; }
+#anki-text { width: 100%; box-sizing: border-box; min-height: 9rem; font: .75rem/1.5 var(--mono); color: var(--ink); background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 8px; resize: vertical; }
+#share-status, #anki-status { min-height: 0; }
+#share-status:empty, #anki-status:empty { display: none; }
+/* ---- 最小対で練習 (demo/practice.js) ---- */
+.jump { align-self: flex-start; font-size: .9rem; font-weight: 600; color: var(--accent); }
+#pair-search { flex: 1 1 12rem; }
+#pair-select { width: 100%; }
+.pair-target { border: 0; margin: 0; padding: 0; min-width: 0; }
+.pair-target legend { padding: 0; margin-bottom: 6px; }
+.pair-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 8px; }
+.pair-card { display: flex; align-items: stretch; min-width: 0; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+.pair-card.is-target { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.pair-opt { flex: 1; min-width: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; align-items: center; padding: 10px 0 10px 12px; cursor: pointer; }
+.pair-opt input { grid-row: span 3; align-self: start; width: 20px; height: 20px; margin: 6px 0 0; accent-color: var(--accent); }
+.pair-head { display: flex; flex-wrap: wrap; gap: 0 8px; align-items: baseline; min-width: 0; }
+.pair-surface { font-size: 1.35rem; line-height: 1.3; }
+.pair-type { color: var(--muted); }
+.pair-play { flex: none; align-self: center; min-width: 44px; margin: 0 8px; padding: 8px; }
+.practice-modes { display: grid; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); gap: 12px; }
+.sub { display: flex; flex-direction: column; gap: 10px; padding-top: 12px; border-top: 1px solid var(--line); min-width: 0; }
+.sub h3 { font-size: 1rem; margin: 0; }
+.drop.compact { padding: 14px; }
+#pair-source { font-size: .85rem; color: var(--muted); overflow-wrap: anywhere; }
+#pair-source:empty { display: none; }
+#pair-result { display: flex; flex-direction: column; gap: 8px; }
+#pair-result[data-state="busy"] .verdict-box { opacity: .55; }
+#pair-verdict { font-size: 1.25rem; font-weight: 800; line-height: 1.3; }
+#pair-verdict[data-pass="true"] { color: var(--ok); }
+#pair-verdict[data-pass="false"] { color: var(--ng); }
+#pair-result[data-state="done"] .verdict-box:has(#pair-verdict[data-pass="true"]) { background: var(--ok-soft); }
+#pair-result[data-state="done"] .verdict-box:has(#pair-verdict[data-pass="false"]), #pair-result[data-state="error"] .verdict-box { background: var(--ng-soft); }
+#pair-detected { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
+#pair-detected[hidden] { display: none; }
+.drill-answers { display: flex; flex-wrap: wrap; gap: 8px; }
+.drill-answer { flex: 1 1 6rem; font-size: 1.2rem; font-weight: 700; }
+.drill-answer[data-mark="right"] { opacity: 1; background: var(--ok-soft); border-color: var(--ok); color: var(--ok); }
+.drill-answer[data-mark="wrong"] { opacity: 1; background: var(--ng-soft); border-color: var(--ng); color: var(--ng); }
+#drill-feedback { font-weight: 600; }
+#drill-feedback[data-state="right"] { color: var(--ok); }
+#drill-feedback[data-state="wrong"] { color: var(--ng); }
+#drill-score { font-size: .85rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+#drill-reset { align-self: flex-start; min-height: 36px; padding: 4px 12px; font-size: .85rem; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; scroll-behavior: auto !important; } }
 </style>
 
@@ -131,6 +180,7 @@ footer { font-size: .8rem; color: var(--muted); display: flex; flex-direction: c
     <h1>Pitch アクセント判定 <small>Japanese pitch-accent check</small></h1>
     <p>単語に「が」を付けて言った録音から声の高さを測り、下がり目（アクセント核）の位置が辞書と同じかを判定します。</p>
     <p class="privacy">音声はこの端末のブラウザ内だけで処理され、外部に送信されません。</p>
+    <a class="jump" id="jump-practice" href="#practice">最小対（箸・橋・端 など）で練習する ↓</a>
   </header>
 
   <section class="panel" aria-labelledby="h-word">
@@ -218,6 +268,97 @@ footer { font-size: .8rem; color: var(--muted); display: flex; flex-direction: c
     <div class="row">
       <button type="button" id="play-last" disabled>▶ 判定した音声を再生</button>
       <button type="button" id="play-model">▶ お手本（合成音声）</button>
+    </div>
+    <div class="share" id="share">
+      <div class="row">
+        <button type="button" id="share-make" disabled>カード画像を作る</button>
+        <span class="muted small">判定結果を 1200×630 の画像に（音声・ファイル名は入りません）</span>
+      </div>
+      <div class="share-out" id="share-out" hidden>
+        <img id="share-img" width="1200" height="630" alt="">
+        <p class="muted small" id="share-note">画像を長押し（右クリック）で保存できます</p>
+        <div class="row">
+          <button type="button" id="share-share" class="primary" hidden>共有</button>
+          <button type="button" id="share-download" hidden>画像をダウンロード</button>
+        </div>
+        <p class="small" id="share-status" role="status"></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="anki" aria-labelledby="h-anki">
+    <h2 id="h-anki">Anki に書き出す</h2>
+    <p class="small">単語カード（表: 単語とかな／裏: 高低パターン・アクセント型・下がり目・英訳）を、Anki の「ファイル → 読み込む」で使えるテキストにします。</p>
+    <label class="muted small" for="anki-scope">書き出す単語</label>
+    <select id="anki-scope">
+      <option value="current">この単語</option>
+      <option value="results">検索結果</option>
+      <option value="pairs">同音で型が違う語</option>
+      <option value="failed">この回で不合格だった単語</option>
+    </select>
+    <div class="row">
+      <button type="button" id="anki-download" class="primary" hidden>Pitch-anki.txt をダウンロード</button>
+      <button type="button" id="anki-copy">テキストをコピー</button>
+    </div>
+    <p class="small" id="anki-status" role="status"></p>
+    <div id="anki-text-wrap" hidden>
+      <label class="visually-hidden" for="anki-text">Anki 用テキスト</label>
+      <textarea id="anki-text" readonly spellcheck="false" wrap="off"></textarea>
+    </div>
+    <p class="muted small">アクセントデータ: UniDic（国立国語研究所）BSD ライセンス — 書き出したファイルにも記載します。</p>
+  </section>
+
+  <!-- 最小対で練習 (demo/practice.js) -->
+  <section class="panel" id="practice" aria-labelledby="h-practice">
+    <h2 id="h-practice">最小対で練習</h2>
+    <p class="small">読みが同じでアクセントだけが違う語（最小対）で、言い分けと聞き分けを練習します。下がり目の位置を見比べてください。</p>
+    <div class="row">
+      <label class="visually-hidden" for="pair-search">最小対を検索</label>
+      <input id="pair-search" type="search" placeholder="検索: はし・雨・candy" autocomplete="off" enterkeyhint="search" aria-describedby="pair-count">
+      <button type="button" id="pair-random">ランダム</button>
+    </div>
+    <label class="visually-hidden" for="pair-select">最小対</label>
+    <select id="pair-select"></select>
+    <p id="pair-count" class="muted small" aria-live="polite"></p>
+    <fieldset class="pair-target" id="pair-target">
+      <legend class="muted small">練習する語（ターゲット）を選ぶ・<span id="pair-n"></span></legend>
+      <div class="pair-list" id="pair-contrast"></div>
+    </fieldset>
+    <p class="muted small" id="pair-note" hidden></p>
+    <div class="practice-modes">
+      <div class="sub" id="practice-say">
+        <h3>言い分け（録音で判定）</h3>
+        <p class="small">ボイスメモで<b id="pair-say">「はしが」</b>を <b id="pair-say-word"></b> の型で1回録音し、ファイルを選んでください。</p>
+        <label class="drop compact" id="pair-drop" for="pair-file">
+          <span class="big">録音ファイルを選ぶ</span>
+          <span class="muted small">m4a・wav・webm・mp3 など</span>
+          <input class="visually-hidden" type="file" id="pair-file" accept="audio/*,.m4a,audio/mp4,audio/x-m4a,audio/m4a,.mp4,.wav,.webm,.mp3,.aac,.caf">
+        </label>
+        <div class="row">
+          <button type="button" id="pair-sample">合成音声（ターゲットの型）で試す</button>
+          <button type="button" id="pair-replay" disabled>▶ 判定した音声</button>
+        </div>
+        <div id="pair-result" data-state="idle" aria-live="polite">
+          <p id="pair-source"></p>
+          <div class="verdict-box">
+            <div id="pair-verdict" data-pass="false">—</div>
+            <p id="pair-reason"></p>
+            <div id="pair-detected" hidden></div>
+          </div>
+        </div>
+      </div>
+      <div class="sub" id="practice-listen">
+        <h3>聞き分けドリル</h3>
+        <p class="small">合成音声でこの組のどれか1語を「〜が」の形で再生します。どの語だったかを選んでください。</p>
+        <div class="row">
+          <button type="button" id="drill-play">▶ 問題を再生</button>
+          <button type="button" id="drill-replay" disabled>もう一度聞く</button>
+        </div>
+        <div class="drill-answers" id="drill-answers" role="group" aria-label="どの語に聞こえましたか"></div>
+        <p id="drill-feedback" aria-live="polite"></p>
+        <p id="drill-score" aria-live="polite"></p>
+        <button type="button" id="drill-reset" disabled>スコアをリセット</button>
+      </div>
     </div>
   </section>
 
