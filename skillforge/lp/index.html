@@ -464,8 +464,8 @@ section { scroll-margin-top: 72px; }
     <div class="proof">
       <div class="proof-main">
         <div class="proof-fig" aria-hidden="true">287<small>/ 297</small></div>
-        <p class="t" lang="ja">調整に一度も使っていない6つのオープンソース（ゲーム3・アプリ3、.po / YAML / JSON / Ren'Py）の日本語訳で、警告・エラーを無作為に抜き出して確認したところ、判断が分かれた6件を除く<strong>297件中287件（約97%）が実際に直すべき問題</strong>でした。指摘の大半は未翻訳の検出で、それ以外の指摘に限ると24件中22件です。</p>
-        <p class="t" lang="en">On six open-source projects never used for tuning (3 games, 3 apps; .po, YAML, JSON, Ren'Py), we sampled the warnings and errors at random: excluding 6 unclear cases, <strong>287 of 297 (about 97%) were real issues to fix</strong>. Most findings are untranslated strings; for all other findings the figure is 22 of 24.</p>
+        <p class="t" lang="ja">調整に一度も使っていない6つのオープンソース（ゲーム3・アプリ3）の日本語訳ファイル（主に UI 文字列。.po / YAML / JSON / Ren'Py）で、警告・エラーを無作為に抜き出して確認したところ、判断が分かれた6件を除く<strong>297件中287件（約97%）が実際に直すべき問題</strong>でした。指摘の大半は未翻訳の検出で、それ以外の指摘に限ると24件中22件です。</p>
+        <p class="t" lang="en">On the Japanese translation files of six open-source projects never used for tuning (3 games, 3 apps; mostly UI strings in .po, YAML, JSON and Ren'Py), we sampled the warnings and errors at random: excluding 6 unclear cases, <strong>287 of 297 (about 97%) were real issues to fix</strong>. Most findings are untranslated strings; for all other findings the figure is 22 of 24.</p>
         <p class="meta t" lang="ja">2026年10月、自社調べ。判定は評価者1名（AI）によるもので、第三者の確認はまだです。この前に別の未使用5本で測ったときは約76%で、その結果を見て直したため、その5本は「調整に使用」に移しました。</p>
         <p class="meta t" lang="en">October 2026, in-house evaluation. Findings were judged by one evaluator (an AI), not yet checked by a third party. An earlier held-out run on five other projects gave about 76%; we fixed the causes, so those five now count as tuning data.</p>
       </div>
@@ -500,8 +500,8 @@ section { scroll-margin-top: 72px; }
     </div>
 
     <!-- TODO before launch: the repo is private; replace this link with a public one. -->
-    <p class="limits t" lang="ja">限界：ラベル付けは評価者1名によるものです。対象は主に英→日の UI・ゲーム文字列です。日→英は UI 文字列（Misskey）で確認済みで、ゲーム台本での検証は協力者の方と行う予定です。用語集を使う指摘の精度は、用語集の質に左右されます。<a href="https://github.com/masahiro20/new-project/blob/peter/p1-skillforge/skillforge/docs/real-world-eval.md">評価の詳細</a></p>
-    <p class="limits t" lang="en">Limits: one evaluator labeled the findings. The files are mostly English→Japanese UI and game strings. Japanese→English was checked on UI strings (Misskey); evaluation on Japanese→English game scripts with pilot partners is still pending. Glossary-based term checks are only as good as the glossary. <a href="https://github.com/masahiro20/new-project/blob/peter/p1-skillforge/skillforge/docs/real-world-eval.md">Full evaluation</a></p>
+    <p class="limits t" lang="ja">限界：判定は自社の評価者1名（AI）によるもので、人による確認はまだです。対象は主に英→日の UI・ゲーム文字列です。日→英は UI 文字列（Misskey）で確認済みで、ゲーム台本での検証は協力者の方と行う予定です。用語集を使う指摘の精度は、用語集の質に左右されます。<a href="https://github.com/masahiro20/new-project/blob/peter/p1-skillforge/skillforge/docs/real-world-eval.md">評価の詳細</a></p>
+    <p class="limits t" lang="en">Limits: one in-house evaluator (an AI) judged the findings; no human review yet. The files are mostly English→Japanese UI and game strings. Japanese→English was checked on UI strings (Misskey); evaluation on Japanese→English game scripts with pilot partners is still pending. Glossary-based term checks are only as good as the glossary. <a href="https://github.com/masahiro20/new-project/blob/peter/p1-skillforge/skillforge/docs/real-world-eval.md">Full evaluation</a></p>
   </div>
 </section>
 
