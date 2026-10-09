@@ -150,6 +150,13 @@ td a{color:var(--accent)}
 .prod .pd{font-size:.84rem;color:#c9d1e6}
 .prod .pl{display:flex;gap:10px;flex-wrap:wrap;font-size:.84rem}
 .prod a{color:var(--accent)}
+.nums{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr))}
+.num{display:grid;gap:4px;align-content:start;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--panel);min-width:0}
+.num .nv{font-family:var(--display);font-weight:400;font-size:1.9rem;line-height:1.1;color:var(--gold);font-variant-numeric:tabular-nums}
+.num .nv small{font-size:.9rem;color:var(--ink);margin-left:4px;font-family:var(--sans);font-weight:700}
+.num .nk{font-size:.86rem;font-weight:700}
+.num .nd{font-size:.8rem;color:#c9d1e6;overflow-wrap:anywhere}
+.num .ns{font-family:var(--mono);font-size:.72rem;color:var(--muted);overflow-wrap:anywhere}
 .wins{display:grid;gap:8px}
 .win{padding:12px 14px;border:1px solid var(--line);border-radius:8px;background:var(--panel);display:grid;gap:4px;min-width:0}
 .win b{font-size:.95rem}
@@ -206,6 +213,18 @@ td a{color:var(--accent)}
       <div class="prod" style="--tc:#39c6f0"><div class="th"><img src="shots/p2.webp" alt="AI料金の比較計算機" loading="lazy" width="640" height="400"></div><div class="pn">AI料金の比較計算機<span class="live">公開中</span></div><div class="pd">AIの利用ログを貼ると、別のモデルに乗り換えたときの月額を比べられる（英語）</div><div class="pl"><a href="https://masahiro20.github.io/new-project/calc/" target="_blank" rel="noopener">計算機を開く ↗</a></div></div>
       <div class="prod" style="--tc:#ff7a45"><div class="th"><img src="shots/p1.webp" alt="Kotomark のデモ" loading="lazy" width="640" height="400"></div><div class="pn">Kotomark<span class="live">公開中</span></div><div class="pd">日英ゲーム台本の訳揺れ・キャラ名・敬称のぶれを見つける（日英の紹介ページとデモ）</div><div class="pl"><a href="https://masahiro20.github.io/new-project/kotomark/" target="_blank" rel="noopener">紹介ページ ↗</a><a href="https://masahiro20.github.io/new-project/kotomark/demo/" target="_blank" rel="noopener">デモ ↗</a></div></div>
       <div class="prod" style="--tc:#ff5fa2"><div class="th"><img src="shots/p3.webp" alt="Pitch の練習アプリ" loading="lazy" width="640" height="400"></div><div class="pn">Pitch<span class="live">公開中・無料ベータ</span></div><div class="pd">日本語の高低アクセントを、録音した声から判定する練習アプリ（英語）</div><div class="pl"><a href="https://masahiro20.github.io/new-project/pitch/" target="_blank" rel="noopener">紹介ページ ↗</a><a href="https://masahiro20.github.io/new-project/pitch/app/" target="_blank" rel="noopener">アプリ ↗</a></div></div>
+    </div>
+  </section>
+
+  <section style="display:grid;gap:10px" aria-labelledby="numH">
+    <div class="ihead"><h2 id="numH">数字で見る成果</h2><span class="note">2026年10月9日 15時（東京）時点。数字はすべて出典のとおりで、見込みは入れていません</span></div>
+    <div class="nums">
+      <div class="num"><span class="nv">4<small>サイト</small></span><span class="nk">いま公開中</span><span class="nd">減算ゼロ、AI料金の比較計算機、Kotomark、Pitch</span><span class="ns">出典：gh-pages ブランチ（最新 aa13206）</span></div>
+      <div class="num"><span class="nv">40<small>本</small></span><span class="nk">減算ゼロの解説ページ</span><span class="nd">障害福祉の減算と運営指導の解説。公開サイトのサイトマップで数えた本数</span><span class="ns">出典：公開サイトの sitemap.xml（gh-pages 3379885）</span></div>
+      <div class="num"><span class="nv">4<small>製品・99件</small></span><span class="nk">今日のセキュリティレビュー</span><span class="nd">別チーム（Atlas）が4製品を確認。指摘99件のうち重大度「高」7件、「致命的」0件</span><span class="ns">出典：f7716b7（減算ゼロ 24件）、9c486f5（Budget Guard 37件）、1cbac60（Kotomark 23件）、603829f（Pitch 15件）</span></div>
+      <div class="num"><span class="nv">26<small>件</small></span><span class="nk">レビュー後に修正した指摘（Budget Guard）</span><span class="nd">指摘37件のうち26件を修正。減算ゼロも修正パッチ10本を適用しました</span><span class="ns">出典：eceabab（減算ゼロ）、78dcf0d（Budget Guard）</span></div>
+      <div class="num"><span class="nv">269<small>件合格</small></span><span class="nk">いちばん多いテスト（Budget Guard）</span><span class="nd">ほかに、減算ゼロ27件合格、Pitch の公開版の確認24/24合格。コミットに件数が書かれたものだけを載せています</span><span class="ns">出典：675548b（Budget Guard、Atlas の再確認）、d66dcff（減算ゼロ）、c435c1c（Pitch）</span></div>
+      <div class="num"><span class="nv">33<small>件</small></span><span class="nk">記録した決定</span><span class="nd">価格、公開の順番、データの保存期間などを、決めるたびに番号を付けて残しています</span><span class="ns">出典：本部の決定記録 d01〜d33</span></div>
     </div>
   </section>
 
