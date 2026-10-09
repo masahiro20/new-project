@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+<title>C1a 黒画面・心音のような鐘</title>
+<style>g *{vector-effect:non-scaling-stroke}</style>
+<rect width="1600" height="900" fill="#FFFFFF"/>
+<rect x="0" y="0" width="1600" height="900" fill="#2A2A2A" stroke="none" stroke-width="0" /><circle cx="800" cy="450" r="60" fill="none" stroke="#8A8A8A" stroke-width="4.0" stroke-opacity="0.90" stroke-dasharray="4 10"/><circle cx="800" cy="450" r="130" fill="none" stroke="#8A8A8A" stroke-width="3.3" stroke-opacity="0.70" stroke-dasharray="10 16"/><circle cx="800" cy="450" r="220" fill="none" stroke="#8A8A8A" stroke-width="2.6" stroke-opacity="0.50" stroke-dasharray="16 22"/><circle cx="800" cy="450" r="330" fill="none" stroke="#8A8A8A" stroke-width="1.9000000000000004" stroke-opacity="0.30" stroke-dasharray="22 28"/><text x="1560" y="860" font-family="Zen Kaku Gothic New, IBM Plex Mono, IPAGothic, sans-serif" font-size="28" fill="#2E6BD6" text-anchor="end" font-weight="700" letter-spacing="1">BLACK（2+0）→ F.I.</text>
+<rect x="2" y="2" width="1596" height="896" fill="none" stroke="#2A2A2A" stroke-width="4"/>
+</svg>

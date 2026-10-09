@@ -1,0 +1,280 @@
+{
+  "seq": "S2",
+  "range": [
+    "01:00",
+    "03:10"
+  ],
+  "scene_titles": [
+    "底帳・夜市・屋台街・夜",
+    "底帳・袋小路・夜",
+    "タイトルカード"
+  ],
+  "cuts": [
+    {
+      "cut": 1,
+      "scene": "底帳・夜市・屋台街・夜",
+      "sec": 6,
+      "frames": [
+        "s2-c01a.svg",
+        "s2-c01b.svg"
+      ],
+      "camera": "FIX→SHAKE",
+      "shot": "LS",
+      "picture": "広場の無音を引きずった屋台街。客は固まったまま。右手中景の天幕が内側から膨らみ、陶器の破片が弾ける。",
+      "action": "(a)無音1秒→破砕音で画面ブレ。(b)天幕を突き破ってジンが空中へ、カメラ前に飛び込む。破片・布が四散、客がしゃがむ。",
+      "dialogue": "ジン（OFF）「どいてどいてどいて！ 熱いの通りまーす！！」",
+      "dialogue_en": "Jin (OFF): \"Move, move, move! Hot noodles coming through!!\"",
+      "sound": "SE：陶器が派手に割れる→天幕が裂ける／BGM：軽快なブレイクビーツ IN（破砕音の頭で）"
+    },
+    {
+      "cut": 2,
+      "scene": "底帳・夜市・屋台街・夜",
+      "sec": 8,
+      "frames": [
+        "s2-c02a.svg"
+      ],
+      "camera": "FOLLOW（後退移動）",
+      "shot": "FS 正面",
+      "picture": "ジン正面走り。右手にどんぶり五段、左腕は手首から肘まで赤い印。左右の客が飛びのく。奥に見習い二人。",
+      "action": "ジンは軽いステップで客の間を縫う。どんぶりは揺れない。奥の見習いが小さく追ってくる。",
+      "dialogue": "",
+      "dialogue_en": "",
+      "sound": "BGM続く／SE：足音・客の悲鳴・屋台の皿の音"
+    },
+    {
+      "cut": 3,
+      "scene": "底帳・夜市・屋台街・夜",
+      "sec": 9,
+      "frames": [
+        "s2-c03a.svg",
+        "s2-c03b.svg"
+      ],
+      "camera": "PAN FOLLOW（背景流し）",
+      "shot": "MS→BS",
+      "picture": "(a)灰色の作業服の見習いA・B、手首に携帯スキャナー。Aがジンを指さして怒鳴る。(b)ジンBS、振り返ってアカンベー。",
+      "action": "(a)見習い二人が画面右へ全力疾走。(b)ジンは前を向かずに後ろ走り気味、ウインク＋舌。",
+      "dialogue": "見習いA「止まれ！ 印を照会させろ！」／ジン「やだね！ 配達中だっつってんだろ！」",
+      "dialogue_en": "Apprentice A: \"Stop! Let us scan your mark!\" / Jin: \"No way! I'm on a delivery, can't you see?!\"",
+      "sound": "SE：見習いの靴音・息切れ"
+    },
+    {
+      "cut": 4,
+      "scene": "底帳・夜市・屋台街・夜",
+      "sec": 10,
+      "frames": [
+        "s2-c04a.svg",
+        "s2-c04b.svg"
+      ],
+      "camera": "O.S.→CU（インサート）",
+      "shot": "MS／CU",
+      "picture": "(a)見習いB越し、スキャナーの照準光がジンの赤い左手首を捉える。(b)スキャナー画面のCU「ERROR」「残高：計測不能」、煙と火花、Bの驚き顔。",
+      "action": "(a)照準ブラケットが赤い手首にロック。(b)画面がグリッチ、筐体から煙。Bの目が点。",
+      "dialogue": "スキャナー「ピピピ——エラー。エラー。残高：計測不能」／見習いB「またコイツだ！ 照会機が壊れる！」",
+      "dialogue_en": "Scanner: \"Beep-beep — Error. Error. Balance: unmeasurable.\" / Apprentice B: \"Him again! He breaks the scanner!\"",
+      "sound": "SE：電子音ピピピ→エラーブザー→ボフッ（煙）"
+    },
+    {
+      "cut": 5,
+      "scene": "底帳・夜市・屋台街・夜",
+      "sec": 8,
+      "frames": [
+        "s2-c05a.svg",
+        "s2-c05b.svg"
+      ],
+      "camera": "PAN →（右上へ）／あおり",
+      "shot": "LS→FS",
+      "picture": "(a)横位置の大ロング。段々の屋台屋根をジンが三段跳び、下で見習いが見上げる。(b)あおり、屋上から洗濯ロープへ跳び、首の手ぬぐいを引っかける。",
+      "action": "(a)ホップ・ステップ・ジャンプで一段ずつ上がる（点線で軌跡）。(b)空中で手ぬぐいをロープに回す。",
+      "dialogue": "",
+      "dialogue_en": "",
+      "sound": "SE：トタン屋根を踏む音×3／BGM：ブレイク"
+    },
+    {
+      "cut": 6,
+      "scene": "底帳・夜市・屋台街・夜",
+      "sec": 12,
+      "frames": [
+        "s2-c06a.svg",
+        "s2-c06b.svg"
+      ],
+      "camera": "FIX／BS",
+      "shot": "FS→BS",
+      "picture": "(a)ロープを滑り降りるジン、窓辺の老人へ一番上のどんぶりを滑らせる。(b)老人BS、真顔でどんぶりを受け取る。ジンは右へフレームアウト。",
+      "action": "(a)滑りながら一杯だけ正確にパス。(b)老人は眉一つ動かさない。ジン「だよな！」で笑って抜ける。",
+      "dialogue": "ジン「じいさん、ネギ多め！ 代金はツケでいい！」／老人「お前にツケる奴がいるか」／ジン「だよな！」",
+      "dialogue_en": "Jin: \"Gramps, extra scallions! Put it on my tab!\" / Old man: \"Who'd ever give YOU a tab?\" / Jin: \"Fair!\"",
+      "sound": "SE：ロープの擦れる音シュルル、どんぶりを置くコトン"
+    },
+    {
+      "cut": 7,
+      "scene": "底帳・夜市・屋台街・夜",
+      "sec": 12,
+      "frames": [
+        "s2-c07a.svg",
+        "s2-c07b.svg"
+      ],
+      "camera": "STOP MOTION（止め）→POP",
+      "shot": "FS",
+      "picture": "(a)空中で逆さまのジンが静止（画面全体をモノトーン寄りに、太い黒枠）。(b)格付けカードがポップアップ「赤羽ジン 16歳／AKABA JIN, 16／格付け RATING：ZERO」。ジンはピース。",
+      "action": "止めは完全静止。カードは画面右からスライドイン＋バウンド。モノローグの間、背景の見習いも空中で固まったまま。",
+      "dialogue": "テロップ「赤羽ジン　16歳　格付け：ZERO」／ジン（モノローグ）「どうも。この街でいちばん“価値のない”男です」",
+      "dialogue_en": "On-screen: AKABA JIN, 16. RATING: ZERO / Jin (V.O.): \"Hi. I'm the least valuable person in this city.\"",
+      "sound": "SE：レコードスクラッチでBGM一時停止→カードのポップ音／モノローグ後にBGM再開"
+    },
+    {
+      "cut": 8,
+      "scene": "底帳・夜市・屋台街・夜",
+      "sec": 10,
+      "frames": [
+        "s2-c08a.svg",
+        "s2-c08b.svg"
+      ],
+      "camera": "FIX／FS",
+      "shot": "FS",
+      "picture": "(a)ストップ解除、ジンが見習いAの頭（帽子）を踏み台にして跳ぶ。Bは口あんぐり。(b)袋小路の入口に片膝着地、どんぶりを高々と掲げる。一滴もこぼれていない。",
+      "action": "(a)Aの帽子がへこむ。(b)着地の土ぼこり、どんぶりにキラリ。ジンはドヤ顔。",
+      "dialogue": "ジン「よっしゃ、汁ゼロ！」",
+      "dialogue_en": "Jin: \"Yes! Zero spillage!\"",
+      "sound": "SE：踏みつけ音ギュム、見習いA「ぶっ」、着地音タン"
+    },
+    {
+      "cut": 9,
+      "scene": "底帳・袋小路・夜",
+      "sec": 7,
+      "frames": [
+        "s2-c09a.svg",
+        "s2-c09b.svg"
+      ],
+      "camera": "FIX→切り返し",
+      "shot": "LS→O.S.",
+      "picture": "(a)背中のジン、正面は高い壁の行き止まり。(b)切り返し、ジン肩越しに路地の入口。見習い二人が立ち止まり、一歩下がる。",
+      "action": "(a)ジンが壁を見上げて振り返る。(b)見習いは追ってこない。むしろ後ずさり。",
+      "dialogue": "ジン「……なんだよ。急に遠慮して」",
+      "dialogue_en": "Jin: \"...What? Suddenly shy?\"",
+      "sound": "BGM：カットアウト（無音に近い路地の環境音のみ）"
+    },
+    {
+      "cut": 10,
+      "scene": "底帳・袋小路・夜",
+      "sec": 4,
+      "frames": [
+        "s2-c10a.svg"
+      ],
+      "camera": "FIX",
+      "shot": "CU",
+      "picture": "見習いAの顔CU。汗、震え、目はジンの頭上（壁の上）を見ている。",
+      "action": "口がわなわな震える。目線は上に固定。",
+      "dialogue": "見習いA「……ニ、ニルさん」",
+      "dialogue_en": "Apprentice A: \"...M-Mister Nil.\"",
+      "sound": "SE：遠くの鐘の余韻"
+    },
+    {
+      "cut": 11,
+      "scene": "底帳・袋小路・夜",
+      "sec": 6,
+      "frames": [
+        "s2-c11a.svg"
+      ],
+      "camera": "T.U.（ゆっくり）",
+      "shot": "極端なあおり LS→FS",
+      "picture": "ジンの後頭部越し、行き止まりの壁の上に取立人ニル。平たいつばの制帽、刈り込んだ灰色の髪、高い立ち襟の黒いフロックコート。長方形の象牙色の仮面（閉じた帳簿の表紙、横一本のスリット、片側に綴じ目）。腕に灰色の鎖が巻かれている（使わない）。",
+      "action": "ニルは動かない。T.U.で壁上へ寄る。コートの裾だけがわずかに揺れる。",
+      "dialogue": "",
+      "dialogue_en": "",
+      "sound": "SE：空気の圧が変わる低いうなり（ここから持続）"
+    },
+    {
+      "cut": 12,
+      "scene": "底帳・袋小路・夜",
+      "sec": 5,
+      "frames": [
+        "s2-c12a.svg"
+      ],
+      "camera": "FIX",
+      "shot": "FS",
+      "picture": "ニルが音もなく壁から降りる。コートが翼のように広がる。手前でジンが振り向き、目を見開く。",
+      "action": "落下は着地音なし（土ぼこりだけ）。ジンの振り向きと着地を同時に。",
+      "dialogue": "",
+      "dialogue_en": "",
+      "sound": "SE：なし（低いうなりのみ）"
+    },
+    {
+      "cut": 13,
+      "scene": "底帳・袋小路・夜",
+      "sec": 8,
+      "frames": [
+        "s2-c13a.svg",
+        "s2-c13b.svg"
+      ],
+      "camera": "FIX（切り返し）",
+      "shot": "BS",
+      "picture": "(a)ニルBS、あおり。仮面が少し傾き、ジンの左腕を見下ろす。長い指の手袋。(b)ジンBS、左腕をさっと背中に隠し、目をそらして真顔で嘘をつく。",
+      "action": "(a)スリットの奥は見えない。(b)ジンの汗、目線を外す。コメディの最後の一拍。",
+      "dialogue": "ニル「赤い腕。……赤羽の息子か」／ジン「……人違いです。俺、青羽です」",
+      "dialogue_en": "Nil: \"A red arm... Akaba's son.\" / Jin: \"...Wrong guy. I'm Aoba.\"",
+      "sound": "SE：低いうなり"
+    },
+    {
+      "cut": 14,
+      "scene": "底帳・袋小路・夜",
+      "sec": 6,
+      "frames": [
+        "s2-c14a.svg",
+        "s2-c14b.svg"
+      ],
+      "camera": "FIX／ECU",
+      "shot": "地面すれすれ／ECU",
+      "picture": "(a)ニルのブーツが一歩、手前に大きく。奥でジンの足が後ずさり。(b)ジンの左前腕ECU、赤い印に「−∞」、印がドクンと脈打つ（赤い波紋）。",
+      "action": "(a)一歩だけ。(b)赤い印が2回脈打ち、光が強まる。",
+      "dialogue": "",
+      "dialogue_en": "",
+      "sound": "SE：ブーツの音コツ→心音ドクン、ドクン"
+    },
+    {
+      "cut": 15,
+      "scene": "底帳・袋小路・夜",
+      "sec": 4,
+      "frames": [
+        "s2-c15a.svg"
+      ],
+      "camera": "FIX（BG白抜き）",
+      "shot": "CU",
+      "picture": "ジンの顔CU。背景が白く抜け、帳簿の罫線だけが残る。宙に赤いインクが一滴。",
+      "action": "ジンの目が見開かれる。周囲の音が全部消え、声だけが聞こえる演出。",
+      "dialogue": "？？？（子どもの声）「……みぃつけた」／ジン「……え？」",
+      "dialogue_en": "??? (child's voice): \"...Found you.\" / Jin: \"...Huh?\"",
+      "sound": "MA：環境音OFF、子どものささやき（ジンの耳元・ドライ）"
+    },
+    {
+      "cut": 16,
+      "scene": "底帳・袋小路・夜",
+      "sec": 5,
+      "frames": [
+        "s2-c16a.svg",
+        "s2-c16b.svg"
+      ],
+      "camera": "O.S.→ECU",
+      "shot": "O.S.／ECU",
+      "picture": "(a)ジン越し、ニルの手袋の長い指が喉へ伸びる。(b)ジンの瞳のECUに迫る指先が映る。下段、赤い印が肘から肩へ一瞬“這い上がる”。",
+      "action": "(b)赤い光が肩に届いた瞬間、無音のままSMASH CUT。力はまだ見せない。",
+      "dialogue": "",
+      "dialogue_en": "",
+      "sound": "SE：すべての音が吸い込まれるように消える→完全無音"
+    },
+    {
+      "cut": 17,
+      "scene": "タイトルカード",
+      "sec": 10,
+      "frames": [
+        "s2-c17a.svg"
+      ],
+      "camera": "FIX",
+      "shot": "—",
+      "picture": "黒地に帳簿の罫線。赤いインクが罫線を伝って広がり、文字になる「RED LEDGER／赤い帳簿」。右下に赤い判子。",
+      "action": "インクが罫線をにじみながら走り、ロゴが完成（約6秒）→判子が押される（8秒目）→黒みのまま本編へ。",
+      "dialogue": "",
+      "dialogue_en": "On-screen: RED LEDGER",
+      "sound": "SE：インクがにじむ音→判子を押す音、一発／第1話はOPなし"
+    }
+  ]
+}
