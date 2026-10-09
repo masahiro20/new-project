@@ -1,0 +1,78 @@
+--- a/skillforge/scripts/release-action.mjs
++++ b/skillforge/scripts/release-action.mjs
+@@ -11,9 +11,9 @@
+ //
+ // Usage: node scripts/release-action.mjs [--repo <owner>/kotomark-action] [--version 1.0.0] [--no-build]
+ import { execSync, spawnSync } from "node:child_process";
+-import { chmodSync, copyFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+-import { tmpdir } from "node:os";
+-import { dirname, join, resolve } from "node:path";
++import { chmodSync, copyFileSync, cpSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
++import { homedir, tmpdir } from "node:os";
++import { dirname, join, relative, resolve, sep } from "node:path";
+ import { fileURLToPath } from "node:url";
+ 
+ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+@@ -46,6 +46,9 @@
+ if (!existsSync(bundle)) fail(`bundle missing: ${bundle} (run npm run build:action)`);
+ 
+ // --- 2. assemble ----------------------------------------------------------------------------------
++// Allowlist: every source copied into the public folder. Symlinks are refused (copyFileSync would follow them).
++const SOURCES = ["action/action.yml", "action/run.sh", "action/README.md", "action/dist/kotomark.mjs", "samples/ja-en/script.csv", "samples/ja-en/glossary.json", ".github-example/kotomark.yml"];
++for (const s of SOURCES) if (lstatSync(join(root, s)).isSymbolicLink()) fail(`refusing to publish a symlink: ${s}`);
+ step(`assemble ${out}`);
+ rmSync(out, { recursive: true, force: true });
+ mkdirSync(join(out, "dist"), { recursive: true });
+@@ -58,13 +61,18 @@
+ chmodSync(join(out, "dist", "kotomark.mjs"), 0o755);
+ copyFileSync(join(root, "samples", "ja-en", "script.csv"), join(out, "example", "script.csv"));
+ copyFileSync(join(root, "samples", "ja-en", "glossary.json"), join(out, "example", "glossary.json"));
++writeFileSync(
++  join(out, "example", "workflow.yml"),
++  readFileSync(join(root, ".github-example", "kotomark.yml"), "utf8").replace(/masahiro20\/new-project\/skillforge\/action@\S+/g, `${repo}@${major}`),
++);
+ 
+ // README: point `uses:` at the dedicated repo and drop the "where it lives" notes about the monorepo.
+ let readme = readFileSync(join(root, "action", "README.md"), "utf8");
+ readme = readme
+   .replaceAll("masahiro20/new-project/skillforge/action@<ref>", `${repo}@${major}`)
+   .replace(/^> \*\*置き場所について。\*\*[\s\S]*?\n(?=\n)/m, `> 固定したい場合は、タグではなくコミット SHA を指定してください：\`uses: ${repo}@<commit-sha> # ${major}\`\n`)
+-  .replace(/^> \*\*Where it lives\.\*\*[\s\S]*?\n(?=\n)/m, `> To pin exactly, use a commit SHA instead of the tag: \`uses: ${repo}@<commit-sha> # ${major}\`\n`);
++  .replace(/^> \*\*Where it lives\.\*\*[\s\S]*?\n(?=\n)/m, `> To pin exactly, use a commit SHA instead of the tag: \`uses: ${repo}@<commit-sha> # ${major}\`\n`)
++  .replaceAll("../.github-example/kotomark.yml", "example/workflow.yml");
+ if (readme.includes("masahiro20/new-project")) console.warn("  warning: README.md still mentions masahiro20/new-project — review it by hand.");
+ writeFileSync(join(out, "README.md"), readme);
+ 
+@@ -84,6 +92,32 @@
+ `,
+ );
+ 
++// --- 2b. guard: exact file list + content scan (fails closed) ----------------------------------------
++step("guard: file allowlist and content scan");
++const EXPECTED = ["LICENSE.TODO", "README.md", "action.yml", "dist/kotomark.mjs", "example/glossary.json", "example/script.csv", "example/workflow.yml", "run.sh"];
++const listFiles = (dir) =>
++  readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
++    const p = join(dir, e.name);
++    if (e.isSymbolicLink()) fail(`symlink in release folder: ${relative(out, p)}`);
++    return e.isDirectory() ? listFiles(p) : [relative(out, p).split(sep).join("/")];
++  });
++const actual = listFiles(out).sort();
++if (actual.join("\n") !== [...EXPECTED].sort().join("\n")) fail(`unexpected file list in ${out}:\n  ${actual.join("\n  ")}`);
++const FORBIDDEN = [
++  [/sourceMappingURL|"sourcesContent"/, "source map"],
++  [/^\/\/ \.\.\//m, "bundle module path outside the project (build machine layout)"],
++  [/\]\(\.\.\//, "relative link outside the release folder"],
++  [/masahiro20\/new-project|peter-hq|docs\/(?:outreach|pilot-targets|decisions|real-world-eval)|\beval\//, "reference to the private monorepo"],
++  [/(?:sk-ant-|gh[pousr]_|github_pat_|xox[abprs]-|[rs]k_live_|whsec_)[A-Za-z0-9_-]{8,}|AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----|[a-z0-9-]+\.upstash\.io/, "secret-like value"],
++];
++const localPaths = [root, homedir() + sep].filter((p) => p.length > 2); // build machine paths
++for (const f of actual) {
++  const text = readFileSync(join(out, f), "utf8");
++  for (const [re, what] of FORBIDDEN) if (re.test(text)) fail(`${f}: ${what} (${re})`);
++  for (const p of localPaths) if (text.includes(p)) fail(`${f}: contains a local absolute path (${p})`);
++}
++console.log(`  ${actual.length} files, all expected; no forbidden content`);
++
+ // --- 3. verify ------------------------------------------------------------------------------------
+ function run(cwd, cliArgs, okCodes = [0]) {
+   const r = spawnSync(process.execPath, ["dist/kotomark.mjs", ...cliArgs], { cwd, encoding: "utf8" });

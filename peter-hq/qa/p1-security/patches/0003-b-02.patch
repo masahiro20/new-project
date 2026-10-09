@@ -1,0 +1,33 @@
+diff --git a/skillforge/src/server/index.ts b/skillforge/src/server/index.ts
+--- a/skillforge/src/server/index.ts
++++ b/skillforge/src/server/index.ts
+@@ -69,6 +69,9 @@
+     }
+     limiter.hit(principal);
+     const body = await readJson(req);
++    // One HTTP request carries one JSON-RPC message: a batch (removed in MCP 2025-06-18) would run up to
++    // 100 tool calls for a single rate-limit token, and in parallel.
++    if (Array.isArray(body)) return send(res, 400, { jsonrpc: "2.0", error: { code: -32600, message: "Batch requests are not supported" }, id: null });
+     const server = buildServer({ principal, store, limiter });
+     const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: true });
+     res.on("close", () => {
+diff --git a/skillforge/test/server.test.ts b/skillforge/test/server.test.ts
+--- a/skillforge/test/server.test.ts
++++ b/skillforge/test/server.test.ts
+@@ -137,6 +137,16 @@
+   await a.close();
+ });
+ 
++test("JSON-RPC batches are refused, so one rate-limit token buys one tool call", async () => {
++  const res = await fetch(`${base}/mcp`, {
++    method: "POST",
++    headers: { "content-type": "application/json", accept: "application/json, text/event-stream", authorization: "Bearer test-token" },
++    body: JSON.stringify(Array.from({ length: 3 }, (_, i) => ({ jsonrpc: "2.0", id: i, method: "tools/call", params: { name: "get_usage", arguments: {} } }))),
++  });
++  assert.equal(res.status, 400);
++  assert.match(JSON.stringify(await res.json()), /Batch requests are not supported/);
++});
++
+ test("rate limit returns 429 with Retry-After (solo plan: 30/min)", async () => {
+   let last = 0;
+   let retry: string | null = null;

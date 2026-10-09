@@ -1,0 +1,105 @@
+diff --git a/skillforge/src/server/tools.ts b/skillforge/src/server/tools.ts
+--- a/skillforge/src/server/tools.ts
++++ b/skillforge/src/server/tools.ts
+@@ -17,10 +17,14 @@
+ 
+ export const devContext = (): ServerContext => ({ principal: { user: "dev", plan: "dev" }, store: new MemoryGlossaryStore(), limiter: new Limiter() });
+ 
++/** Bounds for the small string / array arguments (file contents are bounded by LIMITS.maxBytesPerTable). */
++const ARG_LIMITS = { filename: 512, name: 64, subjects: 100 };
++
+ const TableInput = z.object({
+-  filename: z.string().describe("Original file name, e.g. ch1.csv or locales/ja.json — used for line references, format detection and pairing single-language files (ja.json + en.json) by key."),
++  filename: z.string().max(ARG_LIMITS.filename).describe("Original file name, e.g. ch1.csv or locales/ja.json — used for line references, format detection and pairing single-language files (ja.json + en.json) by key."),
+   content: z
+     .string()
++    .max(LIMITS.maxBytesPerTable)
+     .describe("Full file text: CSV/TSV, JSON, XLIFF 1.2/2.0, gettext PO, a locale JSON/YAML, a Unity/Unreal string table CSV, a Ren'Py tl/*.rpy file, or a KAG/TyranoScript scenario (.ks; one file per language, e.g. scenario/ja/first.ks + scenario/en/first.ks, paired by label)."),
+   format: z
+     .enum(["csv", "tsv", "json", "xliff", "po", "i18n-json", "unity-csv", "unreal-csv", "yaml", "renpy", "ks"])
+@@ -30,13 +34,13 @@
+ 
+ const GlossarySource = {
+   glossary: z
+-    .object({ filename: z.string().optional(), content: z.string() })
++    .object({ filename: z.string().max(ARG_LIMITS.filename).optional(), content: z.string().max(LIMITS.maxBytesPerTable) })
+     .optional()
+     .describe(
+       "Glossary JSON (terms + characters + voice profiles), a CSV/TSV term list (Kotomark columns or a Crowdin/Phrase-style termbase export) " +
+         "or TBX. Give the filename (e.g. terms.tbx) so the format is detected; TBX and ja/en-column CSVs are read in the script's direction.",
+     ),
+-  glossaryName: z.string().optional().describe("Name of a glossary saved with save_glossary (used when `glossary` is not given)."),
++  glossaryName: z.string().max(ARG_LIMITS.name).optional().describe("Name of a glossary saved with save_glossary (used when `glossary` is not given)."),
+ };
+ 
+ const SourceLangArg = z
+@@ -172,7 +176,7 @@
+       description:
+         "Return the lines the rule engine cannot judge alone (character voice, recurring terms missing from the glossary), " +
+         "grouped into packets with instructions. Judge them yourself and report drift with the given refs.",
+-      inputSchema: { ...CheckInput, subjects: z.array(z.string()).optional().describe("Only return packets whose subject contains one of these strings.") },
++      inputSchema: { ...CheckInput, subjects: z.array(z.string().max(ARG_LIMITS.name * 4)).max(ARG_LIMITS.subjects).optional().describe("Only return packets whose subject contains one of these strings.") },
+       annotations: ro,
+     },
+     async (args) => {
+@@ -227,8 +231,8 @@
+       description: "Save (or replace) a glossary under a name for this account. Stored encrypted; can be deleted at any time with delete_glossary.",
+       inputSchema: {
+         name: z.string().min(1).max(64),
+-        content: z.string().describe("Glossary JSON, CSV/TSV (Kotomark columns or a Crowdin/Phrase termbase export) or TBX."),
+-        filename: z.string().optional().describe("Original file name, e.g. terms.tbx or glossary.csv — used for format detection."),
++        content: z.string().max(LIMITS.maxBytesPerTable).describe("Glossary JSON, CSV/TSV (Kotomark columns or a Crowdin/Phrase termbase export) or TBX."),
++        filename: z.string().max(ARG_LIMITS.filename).optional().describe("Original file name, e.g. terms.tbx or glossary.csv — used for format detection."),
+         sourceLang: SourceLangArg,
+       },
+       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+@@ -261,7 +265,7 @@
+ 
+   server.registerTool(
+     "get_glossary",
+-    { title: "Get saved glossary", description: "Return a saved glossary as JSON.", inputSchema: { name: z.string() }, annotations: ro },
++    { title: "Get saved glossary", description: "Return a saved glossary as JSON.", inputSchema: { name: z.string().max(ARG_LIMITS.name) }, annotations: ro },
+     async ({ name }) => {
+       try {
+         const g = await loadGlossary(ctx, { glossaryName: name });
+@@ -277,7 +281,7 @@
+     {
+       title: "Delete glossary",
+       description: "Permanently delete one saved glossary, or all of this account's glossaries with all=true. Confirm with the user first.",
+-      inputSchema: { name: z.string().optional(), all: z.boolean().optional() },
++      inputSchema: { name: z.string().max(ARG_LIMITS.name).optional(), all: z.boolean().optional() },
+       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+     },
+     async ({ name, all }) => {
+@@ -301,8 +305,8 @@
+       title: "Validate glossary",
+       description: "Parse a glossary and report what was understood (term and character counts, honorific policy) or the validation errors.",
+       inputSchema: {
+-        content: z.string().describe("Glossary JSON, CSV/TSV (Kotomark columns or a Crowdin/Phrase termbase export) or TBX."),
+-        filename: z.string().optional().describe("Original file name, e.g. terms.tbx — used for format detection."),
++        content: z.string().max(LIMITS.maxBytesPerTable).describe("Glossary JSON, CSV/TSV (Kotomark columns or a Crowdin/Phrase termbase export) or TBX."),
++        filename: z.string().max(ARG_LIMITS.filename).optional().describe("Original file name, e.g. terms.tbx — used for format detection."),
+         sourceLang: SourceLangArg,
+       },
+       annotations: ro,
+diff --git a/skillforge/test/server.test.ts b/skillforge/test/server.test.ts
+--- a/skillforge/test/server.test.ts
++++ b/skillforge/test/server.test.ts
+@@ -171,3 +171,17 @@
+     assert.ok(!logged.some((l) => l.includes(needle)), `log leaked "${needle}"`);
+   }
+ });
++
++test("over-long strings and arrays are rejected by the input schema", async () => {
++  const client = await connect();
++  const tooLong = [
++    { name: "check_script", arguments: { ...input, tables: [{ filename: "x".repeat(600), content: "id,ja,en\n" }] } },
++    { name: "get_review_packets", arguments: { ...input, subjects: Array.from({ length: 101 }, () => "a") } },
++    { name: "get_glossary", arguments: { name: "n".repeat(65) } },
++  ];
++  for (const call of tooLong) {
++    const res = await client.callTool(call).catch((e: Error) => ({ isError: true, content: [{ type: "text", text: e.message }] }));
++    assert.ok(res.isError, call.name);
++  }
++  await client.close();
++});

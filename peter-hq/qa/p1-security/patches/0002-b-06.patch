@@ -1,0 +1,89 @@
+diff --git a/skillforge/test/server-open-mode.test.ts b/skillforge/test/server-open-mode.test.ts
+new file mode 100644
+--- /dev/null
++++ b/skillforge/test/server-open-mode.test.ts
+@@ -0,0 +1,59 @@
++import { test } from "node:test";
++import assert from "node:assert/strict";
++import { spawn } from "node:child_process";
++import { request } from "node:http";
++import { mkdtempSync } from "node:fs";
++import { createServer } from "node:net";
++import { tmpdir } from "node:os";
++import { join } from "node:path";
++
++// Boots the real entry point with no tokens outside production (open dev mode).
++const entry = new URL("../src/server/index.ts", import.meta.url).pathname;
++
++const freePort = () =>
++  new Promise<number>((resolve) => {
++    const s = createServer().listen(0, "127.0.0.1", () => {
++      const { port } = s.address() as { port: number };
++      s.close(() => resolve(port));
++    });
++  });
++
++function boot(env: Record<string, string>) {
++  const child = spawn(process.execPath, ["--import", "tsx", entry], {
++    env: { PATH: process.env.PATH ?? "", KOTOMARK_DATA_DIR: mkdtempSync(join(tmpdir(), "kotomark-open-")), ...env },
++    stdio: ["ignore", "pipe", "pipe"],
++  });
++  let out = "";
++  child.stdout.on("data", (d) => (out += d));
++  child.stderr.on("data", (d) => (out += d));
++  const exited = new Promise<number | null>((r) => child.on("exit", (code) => r(code)));
++  const listening = new Promise<void>((resolve, reject) => {
++    child.stdout.on("data", () => out.includes("listening") && resolve());
++    void exited.then(() => reject(new Error(`exited early: ${out}`)));
++  });
++  return { child, exited, listening, output: () => out };
++}
++
++test("open dev mode listens on loopback and refuses a non-loopback Host (DNS rebinding)", async () => {
++  const port = await freePort();
++  const s = boot({ PORT: String(port), NODE_ENV: "development" });
++  try {
++    await s.listening;
++    assert.match(s.output(), /listening on 127\.0\.0\.1:/);
++    const call = (host: string) =>
++      new Promise<number>((resolve, reject) => {
++        const body = JSON.stringify({ jsonrpc: "2.0", id: 1, method: "ping" });
++        const req = request(
++          { host: "127.0.0.1", port, path: "/mcp", method: "POST", headers: { host, "content-type": "application/json", accept: "application/json, text/event-stream", "content-length": Buffer.byteLength(body) } },
++          (res) => (res.resume(), resolve(res.statusCode ?? 0)),
++        );
++        req.on("error", reject);
++        req.end(body);
++      });
++    assert.equal(await call(`attacker.example:${port}`), 403);
++    assert.notEqual(await call(`localhost:${port}`), 403);
++  } finally {
++    s.child.kill();
++    await s.exited;
++  }
++});
+diff --git a/skillforge/src/server/index.ts b/skillforge/src/server/index.ts
+--- a/skillforge/src/server/index.ts
++++ b/skillforge/src/server/index.ts
+@@ -15,8 +15,11 @@
+  * legacy KOTOMARK_API_TOKENS. With no tokens configured the server runs open, but only outside production.
+  */
+ const PORT = Number(process.env.PORT ?? 8787);
+-/** Bind address: HOST if set; all interfaces in production (container behind the host's proxy); Node's default otherwise. */
+-export const HOST = process.env.HOST || (process.env.NODE_ENV === "production" ? "0.0.0.0" : undefined);
++/** Bind address: HOST if set; all interfaces in production (container behind the host's proxy); loopback otherwise. */
++export const HOST = process.env.HOST || (process.env.NODE_ENV === "production" ? "0.0.0.0" : "127.0.0.1");
++/** Open (no-token) mode answers only requests addressed to this machine by a loopback name (DNS rebinding). */
++const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
++export const loopbackHost = (host: string | undefined) => LOOPBACK_HOSTS.has((host ?? "").toLowerCase().replace(/:\d+$/, ""));
+ const MAX_BODY = 25_000_000;
+ const tokens = tokenStoreFromEnv();
+ const store = storeFromEnv();
+@@ -57,6 +60,7 @@
+   res.on("finish", () => console.log(`${req.method} ${url.pathname} ${res.statusCode} user=${user} ${Date.now() - started}ms`));
+   try {
+     if (url.pathname !== "/mcp") return send(res, 404, { error: "not found" });
++    if (tokens.open && !loopbackHost(req.headers.host)) return send(res, 403, { error: "open dev mode accepts only localhost requests" });
+     const principal = authenticate(req);
+     if (!principal) {
+       res.setHeader("www-authenticate", 'Bearer realm="kotomark"');
