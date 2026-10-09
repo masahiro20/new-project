@@ -1,0 +1,177 @@
+config,file_line,id,rule,severity,verdict,cause,note
+A,httt/ja.po:9100,510fbbd6dd,notation.katakana,warning,FP,interjection/onomatopoeia spelling variant,"dying groan アアァ vs アアア; stylistic, not notation drift"
+A,httt/ja.po:1633,fcec143a14,notation.katakana,warning,TP,,"パーティー vs majority パーティ (13x), same sense"
+A,httt/ja.po:8755,15c5f6e37a,tag.mismatch,error,FP,emphasis markup legitimately dropped in JA,"<i> emphasis dropped; harmless in JA, at most info"
+A,httt/ja.po:8764,4d90c8151b,tag.mismatch,error,FP,emphasis markup legitimately dropped in JA,"<i> emphasis dropped; harmless in JA, at most info"
+B,httt/ja.po:2843,8d3faadcb4,term.missing,warning,FP,"auto-draft term is a co-occurring fragment, not the rendering",name kept in Latin; draft mapped name to 浅瀬
+B,httt/ja.po:692,90a2d59fb7,term.missing,warning,FP,"auto-draft term is a co-occurring fragment, not the rendering",name kept in Latin; draft mapped name to 島
+B,httt/ja.po:867,81338259af,term.missing,warning,FP,"auto-draft term is a co-occurring fragment, not the rendering",name kept in Latin; draft mapped name to 島
+B,httt/ja.po:929,9247a649e5,term.missing,warning,FP,"auto-draft term is a co-occurring fragment, not the rendering",name kept in Latin; draft mapped name to 島
+B,httt/ja.po:3024,912995e28f,term.missing,warning,FP,"auto-draft term is a co-occurring fragment, not the rendering",name kept in Latin; draft mapped name to 島
+B,httt/ja.po:5993,5e19d753fe,term.missing,warning,FP,"auto-draft term is a co-occurring fragment, not the rendering",name kept in Latin; draft mapped name to 島
+B,httt/ja.po:7886,9b6449c9d6,term.missing,warning,TP,,Dark Queen -> 邪悪な女王 vs 闇の女王 elsewhere
+B,httt/ja.po:4129,10619a5e5f,term.missing,warning,FP,"auto-draft term is a co-occurring fragment, not the rendering",name kept in Latin; draft mapped name to 世
+B,httt/ja.po:9371,7b36fdbaca,term.missing,warning,FP,"auto-draft term is a co-occurring fragment, not the rendering",name kept in Latin; draft mapped name to 世
+B,httt/ja.po:9384,a11c2b0ce5,term.missing,warning,FP,"auto-draft term is a co-occurring fragment, not the rendering",name kept in Latin; draft mapped name to 世
+B,httt/ja.po:9404,682e918541,term.missing,warning,FP,"auto-draft term is a co-occurring fragment, not the rendering",name kept in Latin; draft mapped name to 世
+B,httt/ja.po:9457,504c367d15,term.missing,warning,FP,"auto-draft term is a co-occurring fragment, not the rendering",name kept in Latin; draft mapped name to 世
+B,httt/ja.po:8378,8534d5a6b3,term.missing,warning,FP,"auto-draft term is a co-occurring fragment, not the rendering",Knights of the Clans; draft took 死の騎士
+B,httt/ja.po:6110,7c92f3888d,term.missing,warning,unsure,honorific context-dependent,Lord Kalenz without 様; speaker choice?
+B,httt/ja.po:6187,cf1acde8ff,term.missing,warning,unsure,honorific context-dependent,Lord Kalenz without 様; speaker choice?
+B,httt/ja.po:4642,0a53554b45,term.missing,warning,FP,case-insensitive match on common phrase,"lowercase ""lost general"" is not the title"
+B,httt/ja.po:7376,a8fd65fa03,term.missing,warning,FP,"auto-draft term is a co-occurring fragment, not the rendering",name kept in Latin; draft mapped name to 頭
+B,httt/ja.po:7498,86f9c36716,term.missing,warning,FP,"auto-draft term is a co-occurring fragment, not the rendering",name kept in Latin; draft mapped name to 号令
+B,httt/ja.po:7823,5456eaf0d7,term.missing,warning,FP,"auto-draft term is a co-occurring fragment, not the rendering",name kept in Latin; draft mapped name to 号令
+B,httt/ja.po:9100,510fbbd6dd,notation.katakana,warning,FP,interjection/onomatopoeia spelling variant,"dying groan アアァ vs アアア; stylistic, not notation drift"
+B,httt/ja.po:1633,fcec143a14,notation.katakana,warning,TP,,"パーティー vs majority パーティ (13x), same sense"
+B,httt/ja.po:8755,15c5f6e37a,tag.mismatch,error,FP,emphasis markup legitimately dropped in JA,"<i> emphasis dropped; harmless in JA, at most info"
+B,httt/ja.po:8764,4d90c8151b,tag.mismatch,error,FP,emphasis markup legitimately dropped in JA,"<i> emphasis dropped; harmless in JA, at most info"
+C,httt/ja.po:9100,510fbbd6dd,notation.katakana,warning,FP,interjection/onomatopoeia spelling variant,"dying groan アアァ vs アアア; stylistic, not notation drift"
+C,httt/ja.po:1633,fcec143a14,notation.katakana,warning,TP,,"パーティー vs majority パーティ (13x), same sense"
+C,httt/ja.po:8744,78cc3b553f,name.missing,info,FP,name added in JA for clarity,JA inserts speaker name; harmless
+C,httt/ja.po:2526,0791657526,name.missing,info,FP,typographic apostrophe ’ vs ASCII ' not normalized,"source Li’sar, glossary Li'sar; name is present"
+C,httt/ja.po:2599,ba8d180120,name.missing,info,FP,typographic apostrophe ’ vs ASCII ' not normalized,"source Li’sar, glossary Li'sar; name is present"
+C,httt/ja.po:4779,91b2bcc741,name.missing,info,FP,typographic apostrophe ’ vs ASCII ' not normalized,"source Li’sar, glossary Li'sar; name is present"
+C,httt/ja.po:4888,879fcec1d3,name.missing,info,FP,typographic apostrophe ’ vs ASCII ' not normalized,"source Li’sar, glossary Li'sar; name is present"
+C,httt/ja.po:4983,22bcb056e2,name.missing,info,FP,typographic apostrophe ’ vs ASCII ' not normalized,"source Li’sar, glossary Li'sar; name is present"
+C,httt/ja.po:6251,2d63cd4f88,name.missing,info,FP,typographic apostrophe ’ vs ASCII ' not normalized,"source Li’sar, glossary Li'sar; name is present"
+C,httt/ja.po:6260,8df8335600,name.missing,info,FP,typographic apostrophe ’ vs ASCII ' not normalized,"source Li’sar, glossary Li'sar; name is present"
+C,httt/ja.po:6418,b7750a01cb,name.missing,info,FP,typographic apostrophe ’ vs ASCII ' not normalized,"source Li’sar, glossary Li'sar; name is present"
+C,httt/ja.po:6463,7e1a15f35d,name.missing,info,FP,typographic apostrophe ’ vs ASCII ' not normalized,"source Li’sar, glossary Li'sar; name is present"
+C,httt/ja.po:6468,6837b273dc,name.missing,info,FP,typographic apostrophe ’ vs ASCII ' not normalized,"source Li’sar, glossary Li'sar; name is present"
+C,httt/ja.po:6491,e15e7749d8,name.missing,info,FP,typographic apostrophe ’ vs ASCII ' not normalized,"source Li’sar, glossary Li'sar; name is present"
+C,httt/ja.po:6500,04dd3972ec,name.missing,info,FP,typographic apostrophe ’ vs ASCII ' not normalized,"source Li’sar, glossary Li'sar; name is present"
+C,httt/ja.po:7713,9e74f19fdd,name.missing,info,FP,typographic apostrophe ’ vs ASCII ' not normalized,"source Li’sar, glossary Li'sar; name is present"
+C,httt/ja.po:7765,f889e629c4,name.missing,info,FP,typographic apostrophe ’ vs ASCII ' not normalized,"source Li’sar, glossary Li'sar; name is present"
+C,httt/ja.po:7784,55e52e2a4b,name.missing,info,FP,typographic apostrophe ’ vs ASCII ' not normalized,"source Li’sar, glossary Li'sar; name is present"
+C,httt/ja.po:7814,07fc82329a,name.missing,info,FP,typographic apostrophe ’ vs ASCII ' not normalized,"source Li’sar, glossary Li'sar; name is present"
+C,httt/ja.po:7828,bcc504a4d5,name.missing,info,FP,typographic apostrophe ’ vs ASCII ' not normalized,"source Li’sar, glossary Li'sar; name is present"
+C,httt/ja.po:8072,640b0dad9d,name.missing,info,FP,typographic apostrophe ’ vs ASCII ' not normalized,"source Li’sar, glossary Li'sar; name is present"
+C,httt/ja.po:8428,66fc75a8bf,name.missing,info,FP,typographic apostrophe ’ vs ASCII ' not normalized,"source Li’sar, glossary Li'sar; name is present"
+C,httt/ja.po:8548,ca1c90c1e6,name.missing,info,FP,typographic apostrophe ’ vs ASCII ' not normalized,"source Li’sar, glossary Li'sar; name is present"
+C,httt/ja.po:8676,8e6acdf215,name.missing,info,FP,typographic apostrophe ’ vs ASCII ' not normalized,"source Li’sar, glossary Li'sar; name is present"
+C,httt/ja.po:8794,52f012d5de,name.missing,info,FP,typographic apostrophe ’ vs ASCII ' not normalized,"source Li’sar, glossary Li'sar; name is present"
+C,httt/ja.po:8832,5a136b9f63,name.missing,info,FP,typographic apostrophe ’ vs ASCII ' not normalized,"source Li’sar, glossary Li'sar; name is present"
+C,httt/ja.po:8848,cb2fb8e8c4,name.missing,info,FP,typographic apostrophe ’ vs ASCII ' not normalized,"source Li’sar, glossary Li'sar; name is present"
+C,httt/ja.po:8866,0d13c17ee4,name.missing,info,FP,typographic apostrophe ’ vs ASCII ' not normalized,"source Li’sar, glossary Li'sar; name is present"
+C,httt/ja.po:9310,e15cdbbdbc,name.missing,info,FP,typographic apostrophe ’ vs ASCII ' not normalized,"source Li’sar, glossary Li'sar; name is present"
+C,httt/ja.po:362,bd18bc50af,honorific.drift,warning,FP,honorific check on EN source in EN->JA; JA suffix after space not detected,Master Delfador consistently 師匠; EN title variation
+C,httt/ja.po:1043,ec5f694b3a,honorific.drift,warning,FP,honorific check on EN source in EN->JA; JA suffix after space not detected,Master Delfador consistently 師匠; EN title variation
+C,httt/ja.po:7327,610985a299,honorific.drift,warning,FP,honorific check on EN source in EN->JA; JA suffix after space not detected,Master Delfador consistently 師匠; EN title variation
+C,httt/ja.po:7033,5085b7c35a,honorific.source-shift,info,FP,honorific check on EN source in EN->JA; JA suffix after space not detected,"Kalenz様 vs Kalenz 様: spacing only, both 様"
+C,httt/ja.po:6110,7c92f3888d,honorific.drift,warning,unsure,honorific context-dependent,Lord Kalenz -> Kalenz/さん by Li'sar vs 様 elsewhere
+C,httt/ja.po:6187,cf1acde8ff,honorific.drift,warning,unsure,honorific context-dependent,Lord Kalenz -> Kalenz/さん by Li'sar vs 様 elsewhere
+C,httt/ja.po:6917,f65797dba7,honorific.drift,warning,FP,honorific check on EN source in EN->JA; JA suffix after space not detected,Lord X rendered X 様 consistently
+C,httt/ja.po:849,66e257f10c,honorific.drift,warning,FP,honorific check on EN source in EN->JA; JA suffix after space not detected,Prince Konrad consistently Konrad 王子; EN title variation
+C,httt/ja.po:4210,7101e6fcad,honorific.drift,warning,FP,honorific check on EN source in EN->JA; JA suffix after space not detected,Prince Konrad consistently Konrad 王子; EN title variation
+C,httt/ja.po:5120,d25571e033,honorific.drift,warning,unsure,honorific context-dependent,Lord Konrad -> さん (dialect speaker) vs 様 elsewhere
+C,httt/ja.po:5136,ce16af5a78,honorific.drift,warning,FP,honorific check on EN source in EN->JA; JA suffix after space not detected,Prince Konrad consistently Konrad 王子; EN title variation
+C,httt/ja.po:5451,4fcca34176,honorific.drift,warning,FP,honorific check on EN source in EN->JA; JA suffix after space not detected,Prince Konrad consistently Konrad 王子; EN title variation
+C,httt/ja.po:5605,56e55982db,honorific.drift,warning,FP,honorific check on EN source in EN->JA; JA suffix after space not detected,Prince Konrad consistently Konrad 王子; EN title variation
+C,httt/ja.po:6242,3c485c0c89,honorific.drift,warning,FP,honorific check on EN source in EN->JA; JA suffix after space not detected,Prince Konrad consistently Konrad 王子; EN title variation
+C,httt/ja.po:6917,f65797dba7,honorific.drift,warning,FP,honorific check on EN source in EN->JA; JA suffix after space not detected,Lord X rendered X 様 consistently
+C,httt/ja.po:8493,7da16acd50,honorific.drift,warning,FP,honorific check on EN source in EN->JA; JA suffix after space not detected,Prince Konrad consistently Konrad 王子; EN title variation
+C,httt/ja.po:8699,f29975945a,honorific.drift,warning,FP,honorific check on EN source in EN->JA; JA suffix after space not detected,Prince Konrad consistently Konrad 王子; EN title variation
+C,httt/ja.po:8875,550fd9909b,honorific.drift,warning,FP,honorific check on EN source in EN->JA; JA suffix after space not detected,Prince Konrad consistently Konrad 王子; EN title variation
+C,httt/ja.po:8755,15c5f6e37a,tag.mismatch,error,FP,emphasis markup legitimately dropped in JA,"<i> emphasis dropped; harmless in JA, at most info"
+C,httt/ja.po:8764,4d90c8151b,tag.mismatch,error,FP,emphasis markup legitimately dropped in JA,"<i> emphasis dropped; harmless in JA, at most info"
+A,lib/ja.po:2486,bfd58ee3a2,notation.katakana,warning,TP,,コミュニティ vs コミュニティー
+A,lib/ja.po:3778,870fe3a16f,notation.katakana,warning,TP,,ファイルマネージャー vs ファイルマネージャ
+A,lib/ja.po:3631,1bce7aa7f9,notation.katakana,warning,TP,,ユーザ vs majority ユーザー
+A,lib/ja.po:3636,b02d1e9f82,notation.katakana,warning,TP,,ユーザ vs majority ユーザー
+A,lib/ja.po:5832,44e44dc91c,notation.katakana,warning,TP,,ユーザ vs majority ユーザー
+A,lib/ja.po:5920,df2032b8e9,notation.katakana,warning,TP,,ユーザ vs majority ユーザー
+A,lib/ja.po:6772,f009bb1aa8,notation.katakana,warning,TP,,ユーザ vs majority ユーザー
+A,lib/ja.po:6781,b37e03cc81,notation.katakana,warning,TP,,ユーザ vs majority ユーザー
+A,lib/ja.po:8558,46b6c7ff24,notation.katakana,warning,TP,,ユーザ vs majority ユーザー
+A,lib/ja.po:7266,fcd06355aa,notation.katakana,warning,TP,,ユーザーデータ vs ユーザデータ path label drift
+A,lib/ja.po:327,381aaf8ff8,placeholder.mismatch,error,FP,"percent sign + space parsed as printf ""% d""","""40% defense"" read as printf; no real placeholder"
+A,lib/ja.po:864,7e21314eb1,placeholder.mismatch,error,FP,"percent sign + space parsed as printf ""% d""","""40% defense"" read as printf; no real placeholder"
+A,lib/ja.po:1389,047cc6c0f3,placeholder.mismatch,error,FP,"percent sign + space parsed as printf ""% d""","""40% defense"" read as printf; no real placeholder"
+A,lib/ja.po:1919,6450e92235,placeholder.mismatch,error,FP,"percent sign + space parsed as printf ""% d""","""40% defense"" read as printf; no real placeholder"
+A,lib/ja.po:1942,303e7a18ad,placeholder.mismatch,error,FP,"percent sign + space parsed as printf ""% d""","""40% defense"" read as printf; no real placeholder"
+A,lib/ja.po:1977,b09404b518,placeholder.mismatch,error,FP,"percent sign + space parsed as printf ""% d""","""40% defense"" read as printf; no real placeholder"
+A,lib/ja.po:1995,aaba0e566f,placeholder.mismatch,error,FP,"percent sign + space parsed as printf ""% d""","""40% defense"" read as printf; no real placeholder"
+A,lib/ja.po:2016,a381b68074,placeholder.mismatch,error,FP,"percent sign + space parsed as printf ""% d""","""40% defense"" read as printf; no real placeholder"
+A,lib/ja.po:2037,54caa8f125,placeholder.mismatch,error,FP,"percent sign + space parsed as printf ""% d""","""40% defense"" read as printf; no real placeholder"
+A,lib/ja.po:2059,96a9bc9c2c,placeholder.mismatch,error,FP,"percent sign + space parsed as printf ""% d""","""40% defense"" read as printf; no real placeholder"
+A,lib/ja.po:2080,18efe8fb90,placeholder.mismatch,error,FP,"percent sign + space parsed as printf ""% d""","""40% defense"" read as printf; no real placeholder"
+A,lib/ja.po:2105,90850095cb,placeholder.mismatch,error,FP,"percent sign + space parsed as printf ""% d""","""40% defense"" read as printf; no real placeholder"
+A,lib/ja.po:2147,1e81b69b89,placeholder.mismatch,error,FP,"percent sign + space parsed as printf ""% d""","""40% defense"" read as printf; no real placeholder"
+A,lib/ja.po:2181,eebf4394f4,placeholder.mismatch,error,FP,"percent sign + space parsed as printf ""% d""","""40% defense"" read as printf; no real placeholder"
+A,lib/ja.po:2199,4ea51dd28f,placeholder.mismatch,error,FP,"percent sign + space parsed as printf ""% d""","""40% defense"" read as printf; no real placeholder"
+A,lib/ja.po:4132,525fa8d8d7,tag.mismatch,error,TP,,translator added <b> not in source
+A,lib/ja.po:7250,64368b086f,tag.mismatch,error,FP,literal <word> text treated as tag,"""<unknown>"" is visible text, correctly translated <不明>"
+A,lib/ja.po:7282,c442819c9e,tag.mismatch,error,FP,literal <word> text treated as tag,"""<unknown>"" is visible text, correctly translated <不明>"
+B,lib/ja.po:6109,aa5bb41606,term.missing,warning,FP,"auto-draft term is a co-occurring fragment, not the rendering",draft target 提供 is not the rendering of this word
+B,lib/ja.po:1561,a74f89cf89,term.missing,warning,FP,"auto-draft term is a co-occurring fragment, not the rendering",draft target 水の野営地 is not the rendering of this word
+B,lib/ja.po:1715,6bbe3da698,term.missing,warning,FP,"auto-draft term is a co-occurring fragment, not the rendering",draft target 水の野営地 is not the rendering of this word
+B,lib/ja.po:2080,18efe8fb90,term.missing,warning,FP,"auto-draft term is a co-occurring fragment, not the rendering",draft target 水の野営地 is not the rendering of this word
+B,lib/ja.po:3479,6e6d26e5ce,term.missing,warning,FP,draft term is a generic word; context-dependent rendering legit,"generic word, rendering legit in context (ブラウズ)"
+B,lib/ja.po:278,b2230e9e46,term.missing,warning,TP,,Icy Cobbles 氷畳 vs 石畳 elsewhere
+B,lib/ja.po:9318,7ac1fc4373,term.missing,warning,FP,"auto-draft term is a co-occurring fragment, not the rendering",draft target 大木 is not the rendering of this word
+B,lib/ja.po:890,0098e34a19,term.missing,warning,FP,"auto-draft term is a co-occurring fragment, not the rendering",draft target 土色の洞窟 is not the rendering of this word
+B,lib/ja.po:942,f852389a9b,term.missing,warning,FP,"auto-draft term is a co-occurring fragment, not the rendering",draft target 土色の洞窟 is not the rendering of this word
+B,lib/ja.po:1582,b6f14e444c,term.missing,warning,FP,modifier inserted inside compound,Tall Encampment Keep -> 野営地の高主塔 legit
+B,lib/ja.po:6757,49413dacc9,term.missing,warning,FP,draft term is a generic word; context-dependent rendering legit,"generic word, rendering legit in context (探索)"
+B,lib/ja.po:9760,1bdeace557,term.missing,warning,FP,draft term is a generic word; context-dependent rendering legit,"generic word, rendering legit in context (探索)"
+B,lib/ja.po:9644,97dbd98ed9,term.missing,warning,FP,"auto-draft term is a co-occurring fragment, not the rendering",draft target 内容 is not the rendering of this word
+B,lib/ja.po:263,1903ff0e64,term.missing,warning,TP,,"""Gray"" dropped: 綺麗な石畳; variant indistinguishable"
+B,lib/ja.po:2985,7bdc62c692,term.missing,warning,TP,,fuzzy stale msgstr: unrelated translation (select version)
+B,lib/ja.po:4035,cf496a9bb1,term.missing,warning,FP,draft term is a generic word; context-dependent rendering legit,"generic word, rendering legit in context (非表示)"
+B,lib/ja.po:9081,e60a5d139f,term.missing,warning,FP,"auto-draft term is a co-occurring fragment, not the rendering",draft target マウス is not the rendering of this word
+B,lib/ja.po:983,070730bdc8,term.missing,warning,TP,,通れない vs 通行不能 in sibling terrain names
+B,lib/ja.po:993,65ff9c4947,term.missing,warning,TP,,通れない vs 通行不能 in sibling terrain names
+B,lib/ja.po:998,002aa13347,term.missing,warning,TP,,通れない vs 通行不能 in sibling terrain names
+B,lib/ja.po:3297,85e7365fc3,term.missing,warning,FP,"auto-draft term is a co-occurring fragment, not the rendering",draft target 予測可能 is not the rendering of this word
+B,lib/ja.po:7546,f6373fdda2,term.missing,warning,FP,"auto-draft term is a co-occurring fragment, not the rendering",draft target 予測可能 is not the rendering of this word
+B,lib/ja.po:7886,7db4bb7c8a,term.missing,warning,FP,"auto-draft term is a co-occurring fragment, not the rendering",draft target 予測可能 is not the rendering of this word
+B,lib/ja.po:1641,6fa7564e83,term.missing,warning,unsure,context-dependent translation legit,Ruin 廃墟 vs 荒城; translator splits by castle/non-castle
+B,lib/ja.po:1661,a194dbcb10,term.missing,warning,unsure,context-dependent translation legit,Ruin 廃墟 vs 荒城; translator splits by castle/non-castle
+B,lib/ja.po:1244,b7cb7a5f2d,term.missing,warning,FP,draft term is a generic word; context-dependent rendering legit,"generic word, rendering legit in context (廃墟)"
+B,lib/ja.po:1289,583b04c1fa,term.missing,warning,FP,draft term is a generic word; context-dependent rendering legit,"generic word, rendering legit in context (廃墟)"
+B,lib/ja.po:1309,4550669593,term.missing,warning,FP,draft term is a generic word; context-dependent rendering legit,"generic word, rendering legit in context (廃墟)"
+B,lib/ja.po:1324,4f7f6c0a74,term.missing,warning,FP,draft term is a generic word; context-dependent rendering legit,"generic word, rendering legit in context (廃墟)"
+B,lib/ja.po:1521,b81d6a99f7,term.missing,warning,FP,draft term is a generic word; context-dependent rendering legit,"generic word, rendering legit in context (廃墟)"
+B,lib/ja.po:1526,bc9d193a0d,term.missing,warning,FP,draft term is a generic word; context-dependent rendering legit,"generic word, rendering legit in context (廃墟)"
+B,lib/ja.po:1546,ae746ee2e9,term.missing,warning,FP,draft term is a generic word; context-dependent rendering legit,"generic word, rendering legit in context (廃墟)"
+B,lib/ja.po:1680,587c4320d0,term.missing,warning,FP,draft term is a generic word; context-dependent rendering legit,"generic word, rendering legit in context (廃墟)"
+B,lib/ja.po:1309,4550669593,term.missing,warning,FP,"auto-draft term is a co-occurring fragment, not the rendering",draft target 人間の荒城 is not the rendering of this word
+B,lib/ja.po:6189,70bca9369a,term.missing,warning,FP,"auto-draft term is a co-occurring fragment, not the rendering",draft target マウス is not the rendering of this word
+B,lib/ja.po:6405,855b3b4d21,term.missing,warning,FP,"auto-draft term is a co-occurring fragment, not the rendering",draft target ミニマップ is not the rendering of this word
+B,lib/ja.po:9113,5b4cafc671,term.missing,warning,FP,"auto-draft term is a co-occurring fragment, not the rendering",draft target ミニマップ is not the rendering of this word
+B,lib/ja.po:9121,4924e8ee70,term.missing,warning,FP,"auto-draft term is a co-occurring fragment, not the rendering",draft target ミニマップ is not the rendering of this word
+B,lib/ja.po:9165,6424739e73,term.missing,warning,FP,"auto-draft term is a co-occurring fragment, not the rendering",draft target ミニマップ is not the rendering of this word
+B,lib/ja.po:9169,605a6e91fb,term.missing,warning,FP,"auto-draft term is a co-occurring fragment, not the rendering",draft target ミニマップ is not the rendering of this word
+B,lib/ja.po:9517,20e130d618,term.missing,warning,FP,"auto-draft term is a co-occurring fragment, not the rendering",draft target ミニマップ is not the rendering of this word
+B,lib/ja.po:9525,ba8d2c4b52,term.missing,warning,FP,"auto-draft term is a co-occurring fragment, not the rendering",draft target ミニマップ is not the rendering of this word
+B,lib/ja.po:9672,67786d826f,term.missing,warning,FP,"auto-draft term is a co-occurring fragment, not the rendering",draft target ミニマップ is not the rendering of this word
+B,lib/ja.po:5377,b8a316626c,term.missing,warning,unsure,identifier kept in English,"log level name ""Warning"" left untranslated, probably intentional"
+B,lib/ja.po:2486,bfd58ee3a2,notation.katakana,warning,TP,,コミュニティ vs コミュニティー
+B,lib/ja.po:3778,870fe3a16f,notation.katakana,warning,TP,,ファイルマネージャー vs ファイルマネージャ
+B,lib/ja.po:3631,1bce7aa7f9,notation.katakana,warning,TP,,ユーザ vs majority ユーザー
+B,lib/ja.po:3636,b02d1e9f82,notation.katakana,warning,TP,,ユーザ vs majority ユーザー
+B,lib/ja.po:5832,44e44dc91c,notation.katakana,warning,TP,,ユーザ vs majority ユーザー
+B,lib/ja.po:5920,df2032b8e9,notation.katakana,warning,TP,,ユーザ vs majority ユーザー
+B,lib/ja.po:6772,f009bb1aa8,notation.katakana,warning,TP,,ユーザ vs majority ユーザー
+B,lib/ja.po:6781,b37e03cc81,notation.katakana,warning,TP,,ユーザ vs majority ユーザー
+B,lib/ja.po:8558,46b6c7ff24,notation.katakana,warning,TP,,ユーザ vs majority ユーザー
+B,lib/ja.po:7266,fcd06355aa,notation.katakana,warning,TP,,ユーザーデータ vs ユーザデータ path label drift
+B,lib/ja.po:327,381aaf8ff8,placeholder.mismatch,error,FP,"percent sign + space parsed as printf ""% d""","""40% defense"" read as printf; no real placeholder"
+B,lib/ja.po:864,7e21314eb1,placeholder.mismatch,error,FP,"percent sign + space parsed as printf ""% d""","""40% defense"" read as printf; no real placeholder"
+B,lib/ja.po:1389,047cc6c0f3,placeholder.mismatch,error,FP,"percent sign + space parsed as printf ""% d""","""40% defense"" read as printf; no real placeholder"
+B,lib/ja.po:1919,6450e92235,placeholder.mismatch,error,FP,"percent sign + space parsed as printf ""% d""","""40% defense"" read as printf; no real placeholder"
+B,lib/ja.po:1942,303e7a18ad,placeholder.mismatch,error,FP,"percent sign + space parsed as printf ""% d""","""40% defense"" read as printf; no real placeholder"
+B,lib/ja.po:1977,b09404b518,placeholder.mismatch,error,FP,"percent sign + space parsed as printf ""% d""","""40% defense"" read as printf; no real placeholder"
+B,lib/ja.po:1995,aaba0e566f,placeholder.mismatch,error,FP,"percent sign + space parsed as printf ""% d""","""40% defense"" read as printf; no real placeholder"
+B,lib/ja.po:2016,a381b68074,placeholder.mismatch,error,FP,"percent sign + space parsed as printf ""% d""","""40% defense"" read as printf; no real placeholder"
+B,lib/ja.po:2037,54caa8f125,placeholder.mismatch,error,FP,"percent sign + space parsed as printf ""% d""","""40% defense"" read as printf; no real placeholder"
+B,lib/ja.po:2059,96a9bc9c2c,placeholder.mismatch,error,FP,"percent sign + space parsed as printf ""% d""","""40% defense"" read as printf; no real placeholder"
+B,lib/ja.po:2080,18efe8fb90,placeholder.mismatch,error,FP,"percent sign + space parsed as printf ""% d""","""40% defense"" read as printf; no real placeholder"
+B,lib/ja.po:2105,90850095cb,placeholder.mismatch,error,FP,"percent sign + space parsed as printf ""% d""","""40% defense"" read as printf; no real placeholder"
+B,lib/ja.po:2147,1e81b69b89,placeholder.mismatch,error,FP,"percent sign + space parsed as printf ""% d""","""40% defense"" read as printf; no real placeholder"
+B,lib/ja.po:2181,eebf4394f4,placeholder.mismatch,error,FP,"percent sign + space parsed as printf ""% d""","""40% defense"" read as printf; no real placeholder"
+B,lib/ja.po:2199,4ea51dd28f,placeholder.mismatch,error,FP,"percent sign + space parsed as printf ""% d""","""40% defense"" read as printf; no real placeholder"
+B,lib/ja.po:4132,525fa8d8d7,tag.mismatch,error,TP,,translator added <b> not in source
+B,lib/ja.po:7250,64368b086f,tag.mismatch,error,FP,literal <word> text treated as tag,"""<unknown>"" is visible text, correctly translated <不明>"
+B,lib/ja.po:7282,c442819c9e,tag.mismatch,error,FP,literal <word> text treated as tag,"""<unknown>"" is visible text, correctly translated <不明>"

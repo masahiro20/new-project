@@ -1,0 +1,215 @@
+{
+ "project": "Battle for Wesnoth (wesnoth/wesnoth @ 9ec35a2f4cbaf036dedf9e96272a03387d7bc03a, GPL-2.0-or-later)",
+ "evaluator": "Evaluator 2",
+ "date": "2026-10-09",
+ "configs": {
+  "A": "--no-glossary",
+  "B": "auto-drafted glossary (kotomark draft -> check --glossary)",
+  "C": "hand glossary eval/wesnoth/httt.hand-glossary.json (5 characters, Delfador voice わし, honorificPolicy localize); httt only"
+ },
+ "sampling": "all findings labeled (every config <= 80 findings); no sampling seed needed",
+ "precisionDefinition": "tp/(tp+fp); unsure excluded",
+ "files": [
+  {
+   "path": "po/wesnoth-httt/ja.po",
+   "entries": 1230,
+   "entriesNote": "non-header, non-obsolete msgids; 5 fuzzy, 5 empty msgstr; 2 msgid_plural",
+   "configs": {
+    "A": {
+     "findings": 4,
+     "sampled": 4,
+     "tp": 1,
+     "fp": 3,
+     "unsure": 0,
+     "precision": 0.25,
+     "byRule": {
+      "notation.katakana": {
+       "n": 2,
+       "tp": 1,
+       "fp": 1,
+       "unsure": 0
+      },
+      "tag.mismatch": {
+       "n": 2,
+       "tp": 0,
+       "fp": 2,
+       "unsure": 0
+      }
+     }
+    },
+    "B": {
+     "findings": 23,
+     "sampled": 23,
+     "tp": 2,
+     "fp": 19,
+     "unsure": 2,
+     "precision": 0.095,
+     "byRule": {
+      "term.missing": {
+       "n": 19,
+       "tp": 1,
+       "fp": 16,
+       "unsure": 2
+      },
+      "notation.katakana": {
+       "n": 2,
+       "tp": 1,
+       "fp": 1,
+       "unsure": 0
+      },
+      "tag.mismatch": {
+       "n": 2,
+       "tp": 0,
+       "fp": 2,
+       "unsure": 0
+      }
+     }
+    },
+    "C": {
+     "findings": 49,
+     "sampled": 49,
+     "tp": 1,
+     "fp": 45,
+     "unsure": 3,
+     "precision": 0.022,
+     "byRule": {
+      "notation.katakana": {
+       "n": 2,
+       "tp": 1,
+       "fp": 1,
+       "unsure": 0
+      },
+      "name.missing": {
+       "n": 27,
+       "tp": 0,
+       "fp": 27,
+       "unsure": 0
+      },
+      "honorific.drift": {
+       "n": 17,
+       "tp": 0,
+       "fp": 14,
+       "unsure": 3
+      },
+      "honorific.source-shift": {
+       "n": 1,
+       "tp": 0,
+       "fp": 1,
+       "unsure": 0
+      },
+      "tag.mismatch": {
+       "n": 2,
+       "tp": 0,
+       "fp": 2,
+       "unsure": 0
+      }
+     }
+    }
+   }
+  },
+  {
+   "path": "po/wesnoth-lib/ja.po",
+   "entries": 1691,
+   "entriesNote": "non-header, non-obsolete msgids; 98 fuzzy, 94 empty msgstr; 9 msgid_plural",
+   "configs": {
+    "A": {
+     "findings": 28,
+     "sampled": 28,
+     "tp": 11,
+     "fp": 17,
+     "unsure": 0,
+     "precision": 0.393,
+     "byRule": {
+      "notation.katakana": {
+       "n": 10,
+       "tp": 10,
+       "fp": 0,
+       "unsure": 0
+      },
+      "placeholder.mismatch": {
+       "n": 15,
+       "tp": 0,
+       "fp": 15,
+       "unsure": 0
+      },
+      "tag.mismatch": {
+       "n": 3,
+       "tp": 1,
+       "fp": 2,
+       "unsure": 0
+      }
+     }
+    },
+    "B": {
+     "findings": 72,
+     "sampled": 72,
+     "tp": 17,
+     "fp": 52,
+     "unsure": 3,
+     "precision": 0.246,
+     "byRule": {
+      "term.missing": {
+       "n": 44,
+       "tp": 6,
+       "fp": 35,
+       "unsure": 3
+      },
+      "notation.katakana": {
+       "n": 10,
+       "tp": 10,
+       "fp": 0,
+       "unsure": 0
+      },
+      "placeholder.mismatch": {
+       "n": 15,
+       "tp": 0,
+       "fp": 15,
+       "unsure": 0
+      },
+      "tag.mismatch": {
+       "n": 3,
+       "tp": 1,
+       "fp": 2,
+       "unsure": 0
+      }
+     }
+    }
+   }
+  }
+ ],
+ "misses": {
+  "method": "seeded random sample of 60 entries per file (Python random.Random(20261009).sample over parsed entries), manual review in Kotomark categories; plus targeted Latin-name scan (reported separately)",
+  "seed": 20261009,
+  "perFile": {
+   "po/wesnoth-httt/ja.po": {
+    "sampled": 60,
+    "misses": 4,
+    "byCategory": {
+     "name": 2,
+     "notation": 2
+    }
+   },
+   "po/wesnoth-lib/ja.po": {
+    "sampled": 60,
+    "misses": 9,
+    "byCategory": {
+     "untranslated": 8,
+     "notation": 1
+    },
+    "note": "4 empty msgstr (aggregate stderr note only) + 4 fuzzy entries (never reported)"
+   }
+  },
+  "sampleTotal": 13,
+  "targetedExtra": {
+   "count": 2,
+   "note": "httt Garald (L2306), Welgyn (L8478): Latin-script name misspellings in JA target"
+  },
+  "coverageGaps": [
+   "Wesnoth speaker comments \"[message]: speaker=X\" not parsed (0 of 1230 rows get a speaker) -> voice/honorific per-speaker checks inert",
+   "Wesnoth $variable / $var| placeholders not in PLACEHOLDER regex (64 entries use them; none broken in this data)",
+   "fuzzy entries treated as translated (lib: 98)",
+   "kanji/kana notation drift (事/こと, 為に/ために, 下さい/ください, 全て/すべて) not checked",
+   "near-miss name scan only runs on EN side; Latin names kept in JA target are never scanned"
+  ]
+ }
+}

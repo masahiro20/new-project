@@ -1,0 +1,10 @@
+{
+  "honorificPolicy": "localize",
+  "characters": [
+    { "id": "konrad", "ja": "Konrad", "en": "Konrad" },
+    { "id": "lisar", "ja": "Li'sar", "en": "Li'sar" },
+    { "id": "delfador", "ja": "Delfador", "en": "Delfador", "voice": { "ja": { "firstPerson": ["わし"] } } },
+    { "id": "kalenz", "ja": "Kalenz", "en": "Kalenz" },
+    { "id": "asheviere", "ja": "Asheviere", "en": "Asheviere" }
+  ]
+}

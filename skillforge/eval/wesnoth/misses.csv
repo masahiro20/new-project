@@ -1,0 +1,16 @@
+file_line,id,category,note
+httt/ja.po:7591,1a298c4274,name,Asheviere misspelled Ashaviere in target; unflagged even with glossary C
+httt/ja.po:5282,c9a4642a5c,name,"target writes Li’sar here, Li'sar in 27 other lines"
+httt/ja.po:8396,12b0e14464,notation,ことができる vs majority 事ができる (64x); kanji/kana drift unchecked
+httt/ja.po:8533,94270573db,notation,彼の事 and ことにした mixed; kanji/kana notation drift unchecked
+lib/ja.po:2971,af9ee5d274,untranslated,"empty msgstr; only aggregate stderr note, no per-line finding"
+lib/ja.po:2995,8d9685b07d,untranslated,"empty msgstr; only aggregate stderr note, no per-line finding"
+lib/ja.po:3074,c0dd28f1e7,untranslated,empty msgstr (long campaign blurb); aggregate note only
+lib/ja.po:3101,0b64447e2a,untranslated,empty msgstr; aggregate note only
+lib/ja.po:7409,2ba176d28a,untranslated,fuzzy stale msgstr with wrong meaning; fuzzy flag ignored
+lib/ja.po:8385,8037dca7d0,untranslated,"fuzzy entry, shown in English at runtime; not reported"
+lib/ja.po:8446,a1e827e20d,untranslated,fuzzy stale msgstr (シナリオエディタ) for Scenario not found; not reported
+lib/ja.po:9896,2472e5ae74,untranslated,"fuzzy entry, shown in English at runtime; not reported"
+lib/ja.po:5080,bafac0888d,notation,押して下さい vs majority ください (15x); kanji/kana drift unchecked
+httt/ja.po:2306,a8ce17a0df,name,[targeted] Garard misspelled Garald in target
+httt/ja.po:8478,c6d06a5235,name,[targeted] Weldyn misspelled Welgyn in target
