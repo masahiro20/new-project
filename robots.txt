@@ -1,5 +1,5 @@
 User-Agent: *
-Allow: /
-Disallow: /api/
+Allow: /new-project/
+Disallow: /new-project/api/
 
 Sitemap: https://masahiro20.github.io/new-project/sitemap.xml
