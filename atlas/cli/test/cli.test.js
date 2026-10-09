@@ -34,7 +34,7 @@ test("--version prints the package version", () => {
 test("--help documents options and exit codes", () => {
   const r = run(["--help"]);
   assert.equal(r.code, 0, r.err);
-  for (const opt of ["--json", "--findings", "--format", "--min-severity", "--show-suppressed", "--no-ast", "--quiet", "--version"]) {
+  for (const opt of ["--json", "--sarif", "--fail-on", "--findings", "--format", "--min-severity", "--show-suppressed", "--no-ast", "--quiet", "--version"]) {
     assert.ok(r.out.includes(opt), `missing ${opt}`);
   }
   assert.match(r.out, /Exit codes/);
@@ -124,6 +124,110 @@ test("output never uses the words malware/malicious", () => {
   for (const args of [[POS], [NEG, "--show-suppressed"], [POS, "--format", "json"], ["--help"]]) {
     const r = run(args);
     assert.doesNotMatch(r.out + r.err, FORBIDDEN, args.join(" "));
+  }
+});
+
+// ---------------------------------------------------------------------------
+// SARIF 2.1.0 and --fail-on
+const SARIF_LEVEL = { critical: "error", high: "error", medium: "warning", low: "note", info: "note" };
+
+function sarifOf(args, opts) {
+  const r = run([...args, "--format", "sarif"], opts);
+  return { ...r, d: JSON.parse(r.out) };
+}
+
+test("--format sarif emits a SARIF 2.1.0 log GitHub code scanning accepts", () => {
+  const { code, err, d } = sarifOf([path.relative(FX, POS), path.relative(FX, NEG)], { cwd: FX });
+  assert.equal(code, 1, err);
+  assert.equal(d.version, "2.1.0");
+  assert.match(d.$schema, /^https:\/\/.*sarif-2\.1\.0\.json$/);
+  assert.equal(d.runs.length, 1);
+  const run0 = d.runs[0];
+  const drv = run0.tool.driver;
+  assert.equal(drv.name, "atlas-scan");
+  assert.equal(drv.version, PKG.version);
+  assert.ok(!("informationUri" in drv));
+  const ids = drv.rules.map((r) => r.id);
+  assert.equal(new Set(ids).size, ids.length, "rule ids unique");
+  for (const rule of drv.rules) {
+    assert.ok(rule.shortDescription.text);
+    assert.ok(rule.properties.tags.includes("security"));
+    assert.ok(["error", "warning", "note"].includes(rule.defaultConfiguration.level));
+  }
+  assert.ok(run0.results.length > 0);
+  const fps = new Set();
+  for (const res of run0.results) {
+    assert.ok(ids.includes(res.ruleId), `ruleId ${res.ruleId} not in rules`);
+    assert.equal(drv.rules[res.ruleIndex].id, res.ruleId);
+    assert.equal(res.level, SARIF_LEVEL[res.properties.severity]);
+    assert.match(res.message.text, /^Pattern detected: /);
+    const loc = res.locations[0].physicalLocation;
+    assert.equal(loc.artifactLocation.uriBaseId, "%SRCROOT%");
+    const uri = loc.artifactLocation.uri;
+    assert.match(uri, /^(pos|neg)\//, uri);
+    assert.ok(!uri.startsWith("/") && !/^[a-z]+:/i.test(uri) && !uri.includes(".."), `not relative: ${uri}`);
+    assert.ok(Number.isInteger(loc.region.startLine) && loc.region.startLine >= 1);
+    const fp = res.partialFingerprints["atlasFindingHash/v1"];
+    assert.ok(fp && !fps.has(fp), "fingerprints present and unique");
+    fps.add(fp);
+    assert.equal(res.properties.suppressed, false);
+    assert.ok(!("suppressions" in res));
+  }
+  for (const [sev, level] of Object.entries({ critical: "error", high: "error", medium: "warning", low: "note" })) {
+    assert.ok(run0.results.some((x) => x.properties.severity === sev && x.level === level), `${sev} -> ${level}`);
+  }
+  assert.ok(!JSON.stringify(d).includes(FX), "absolute fixture path leaked into SARIF");
+});
+
+test("SARIF fingerprints are stable across runs and --sarif FILE matches stdout", () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "atlas-scan-test-"));
+  try {
+    const f = path.join(tmp, "out.sarif");
+    const a = sarifOf([POS, "--sarif", f]);
+    const b = JSON.parse(fs.readFileSync(f, "utf8"));
+    assert.deepEqual(a.d, b);
+    const fp = (d) => d.runs[0].results.map((x) => x.partialFingerprints["atlasFindingHash/v1"]);
+    assert.deepEqual(fp(a.d), fp(sarifOf([POS]).d));
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
+test("SARIF lists suppressed candidates only with --show-suppressed, as external suppressions", () => {
+  assert.equal(sarifOf([NEG]).d.runs[0].results.filter((x) => x.suppressions).length, 0);
+  const { code, d } = sarifOf([NEG, "--show-suppressed"]);
+  assert.equal(code, 0);
+  const sup = d.runs[0].results.filter((x) => x.properties.suppressed);
+  assert.ok(sup.length > 0);
+  for (const x of sup) {
+    assert.equal(x.suppressions[0].kind, "external");
+    assert.ok(x.suppressions[0].justification);
+  }
+});
+
+test("SARIF output never uses the words malware/malicious", () => {
+  const r = run([POS, NEG, "--show-suppressed", "--format", "sarif"]);
+  assert.doesNotMatch(r.out + r.err, FORBIDDEN);
+});
+
+test("--fail-on none exits 0 on the positive control; --fail-on critical fails on critical only", () => {
+  assert.equal(run([POS, "--fail-on", "none", "-q"]).code, 0);
+  assert.equal(run([POS, "--fail-on", "critical", "-q"]).code, 1);
+  assert.equal(run([POS, "--fail-on", "high", "-q"]).code, 1);
+  assert.equal(run([POS, "--fail-on", "bogus"]).code, 2);
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "atlas-scan-test-"));
+  try { // a high (not critical) pattern in src code
+    fs.writeFileSync(path.join(tmp, "app.py"), "import base64\nPAYLOAD = 'eA=='\nexec(base64.b64decode(PAYLOAD))\n");
+    const d = JSON.parse(run([tmp, "--format", "json"]).out);
+    assert.equal(d.targets[0].counts_src_skill.critical, 0);
+    assert.ok(d.targets[0].counts_src_skill.high > 0);
+    assert.equal(run([tmp, "-q"]).code, 1, "default --fail-on high");
+    assert.equal(run([tmp, "-q", "--fail-on", "critical"]).code, 0);
+    const s = sarifOf([tmp, "--fail-on", "critical"]);
+    assert.equal(s.code, 0);
+    assert.equal(s.d.runs[0].invocations[0].exitCode, 0);
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
   }
 });
 

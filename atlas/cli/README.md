@@ -73,8 +73,10 @@ atlas-scan PATH [PATH ...] [options]
 
 | Option | Meaning |
 | --- | --- |
-| `--format text\|json` | stdout format (default `text`) |
+| `--format text\|json\|sarif` | stdout format (default `text`; `sarif` = SARIF 2.1.0) |
 | `--json FILE` | also write the JSON report to `FILE` |
+| `--sarif FILE` | also write a SARIF 2.1.0 report to `FILE` (for GitHub code scanning) |
+| `--fail-on high\|critical\|none` | which severity in `src`/`skill` code makes the exit code 1 (default `high` = high or critical; `none` never exits 1) |
 | `--findings FILE` | write every finding, including suppressed candidates, as JSON Lines |
 | `--min-severity LEVEL` | hide findings below `info`/`low`/`medium`/`high`/`critical` in the report (exit code and `--findings` are unaffected) |
 | `--show-suppressed` | also list candidates the context layer suppressed, each with its reason |
@@ -102,13 +104,26 @@ share the report.
 
 See [`examples/`](examples/) for real output on the scanner's positive-control fixture
 (`pos`) and its clean negative-control fixture (`neg`):
-[`sample-output.txt`](examples/sample-output.txt), [`sample-output.json`](examples/sample-output.json).
+[`sample-output.txt`](examples/sample-output.txt), [`sample-output.json`](examples/sample-output.json),
+[`sample-output.sarif`](examples/sample-output.sarif).
 They were produced from the repository root with:
 
 ```sh
 node atlas/cli/bin/atlas-scan.js atlas/scanner/tests/fixtures/pos atlas/scanner/tests/fixtures/neg
 node atlas/cli/bin/atlas-scan.js atlas/scanner/tests/fixtures/pos atlas/scanner/tests/fixtures/neg --format json
+node atlas/cli/bin/atlas-scan.js atlas/scanner/tests/fixtures/pos atlas/scanner/tests/fixtures/neg -q --sarif atlas/cli/examples/sample-output.sarif
 ```
+
+## SARIF
+
+`--format sarif` / `--sarif FILE` write one SARIF 2.1.0 run (`tool.driver.name` =
+`atlas-scan`). Artifact URIs are relative to the **current directory** (`uriBaseId`
+`%SRCROOT%`), prefixed with each target's relative path, so run the CLI from the
+repository root for GitHub code scanning. A target outside the current directory gets
+URIs relative to the target instead; absolute paths are never written. Levels: critical/high
+→ `error`, medium → `warning`, low/info → `note`. `--min-severity` and `--show-suppressed`
+apply; suppressed candidates carry `suppressions: [{kind: "external", justification}]`.
+Each result has a stable `partialFingerprints["atlasFindingHash/v1"]`.
 
 ## Exit codes
 
@@ -116,6 +131,8 @@ node atlas/cli/bin/atlas-scan.js atlas/scanner/tests/fixtures/pos atlas/scanner/
 | --- | --- |
 | `0` | No high or critical pattern detected in `src` or `skill` code (findings in docs/tests/examples/CI, or lower severities, may still be listed) |
 | `1` | At least one high or critical pattern detected in `src` or `skill` code |
+
+`--fail-on critical` exits 1 only for critical patterns; `--fail-on none` never exits 1.
 | `2` | Usage or runtime error: bad option, missing path, Python not found, scanner crash |
 
 ## CI example (GitHub Actions)
@@ -147,6 +164,9 @@ jobs:
 
 Until the package is published, replace the `npx` line with a path to the packed
 tarball or to `bin/atlas-scan.js` in a checkout of this repository.
+
+For SARIF upload to GitHub code scanning, see the composite action in
+[`atlas/action`](../action/README.md).
 
 ## Rules
 

@@ -10,6 +10,7 @@
 // Exit codes: 0 = no high/critical pattern in src/skill code,
 //             1 = high/critical pattern detected in src/skill code,
 //             2 = usage or runtime error (including "Python not found").
+//             (--fail-on critical|none narrows or disables exit code 1.)
 "use strict";
 
 const { spawnSync } = require("node:child_process");

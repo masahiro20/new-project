@@ -1,0 +1,1061 @@
+{
+ "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+ "version": "2.1.0",
+ "runs": [
+  {
+   "tool": {
+    "driver": {
+     "name": "atlas-scan",
+     "version": "0.1.0",
+     "semanticVersion": "0.1.0",
+     "rules": [
+      {
+       "id": "ATL-RF-001",
+       "name": "ATL-RF-001",
+       "shortDescription": {
+        "text": "Pipe-to-shell remote script (curl | sh)"
+       },
+       "defaultConfiguration": {
+        "level": "error"
+       },
+       "properties": {
+        "tags": [
+         "security",
+         "atlas"
+        ],
+        "precision": "medium",
+        "security-severity": "9.5"
+       }
+      },
+      {
+       "id": "ATL-TP-001",
+       "name": "ATL-TP-001",
+       "shortDescription": {
+        "text": "Pseudo-XML instruction tag (<IMPORTANT>, <SYSTEM> ...) typical of tool poisoning"
+       },
+       "defaultConfiguration": {
+        "level": "error"
+       },
+       "properties": {
+        "tags": [
+         "security",
+         "atlas"
+        ],
+        "precision": "medium",
+        "security-severity": "8.0"
+       }
+      },
+      {
+       "id": "ATL-TP-004",
+       "name": "ATL-TP-004",
+       "shortDescription": {
+        "text": "Instruction/code that reads or passes a credential / agent-config file"
+       },
+       "defaultConfiguration": {
+        "level": "error"
+       },
+       "properties": {
+        "tags": [
+         "security",
+         "atlas"
+        ],
+        "precision": "medium",
+        "security-severity": "8.0"
+       }
+      },
+      {
+       "id": "ATL-TP-002",
+       "name": "ATL-TP-002",
+       "shortDescription": {
+        "text": "Concealment instruction (hide behaviour from the user)"
+       },
+       "defaultConfiguration": {
+        "level": "error"
+       },
+       "properties": {
+        "tags": [
+         "security",
+         "atlas"
+        ],
+        "precision": "medium",
+        "security-severity": "8.0"
+       }
+      },
+      {
+       "id": "ATL-SK-001",
+       "name": "ATL-SK-001",
+       "shortDescription": {
+        "text": "Instruction to disable agent safety / permissions"
+       },
+       "defaultConfiguration": {
+        "level": "error"
+       },
+       "properties": {
+        "tags": [
+         "security",
+         "atlas"
+        ],
+        "precision": "medium",
+        "security-severity": "8.0"
+       }
+      },
+      {
+       "id": "ATL-OB-003",
+       "name": "ATL-OB-003",
+       "shortDescription": {
+        "text": "Decode-then-execute"
+       },
+       "defaultConfiguration": {
+        "level": "error"
+       },
+       "properties": {
+        "tags": [
+         "security",
+         "atlas"
+        ],
+        "precision": "medium",
+        "security-severity": "8.0"
+       }
+      },
+      {
+       "id": "ATL-CR-001",
+       "name": "ATL-CR-001",
+       "shortDescription": {
+        "text": "Bulk environment dump"
+       },
+       "defaultConfiguration": {
+        "level": "error"
+       },
+       "properties": {
+        "tags": [
+         "security",
+         "atlas"
+        ],
+        "precision": "medium",
+        "security-severity": "8.0"
+       }
+      },
+      {
+       "id": "ATL-TP-003",
+       "name": "ATL-TP-003",
+       "shortDescription": {
+        "text": "Instruction-override phrase"
+       },
+       "defaultConfiguration": {
+        "level": "error"
+       },
+       "properties": {
+        "tags": [
+         "security",
+         "atlas"
+        ],
+        "precision": "medium",
+        "security-severity": "8.0"
+       }
+      },
+      {
+       "id": "ATL-TP-005",
+       "name": "ATL-TP-005",
+       "shortDescription": {
+        "text": "Coercive tool-ordering instruction (shadowing pattern)"
+       },
+       "defaultConfiguration": {
+        "level": "warning"
+       },
+       "properties": {
+        "tags": [
+         "security",
+         "atlas"
+        ],
+        "precision": "medium",
+        "security-severity": "5.5"
+       }
+      },
+      {
+       "id": "ATL-CE-001",
+       "name": "ATL-CE-001",
+       "shortDescription": {
+        "text": "Shell command execution (shell=True / os.system / child_process.exec)"
+       },
+       "defaultConfiguration": {
+        "level": "warning"
+       },
+       "properties": {
+        "tags": [
+         "security",
+         "atlas"
+        ],
+        "precision": "medium",
+        "security-severity": "5.5"
+       }
+      },
+      {
+       "id": "ATL-CE-002",
+       "name": "ATL-CE-002",
+       "shortDescription": {
+        "text": "Dynamic code evaluation (eval / new Function / vm)"
+       },
+       "defaultConfiguration": {
+        "level": "warning"
+       },
+       "properties": {
+        "tags": [
+         "security",
+         "atlas"
+        ],
+        "precision": "medium",
+        "security-severity": "5.5"
+       }
+      },
+      {
+       "id": "ATL-NW-001",
+       "name": "ATL-NW-001",
+       "shortDescription": {
+        "text": "Server binds to all interfaces (0.0.0.0)"
+       },
+       "defaultConfiguration": {
+        "level": "warning"
+       },
+       "properties": {
+        "tags": [
+         "security",
+         "atlas"
+        ],
+        "precision": "medium",
+        "security-severity": "5.5"
+       }
+      },
+      {
+       "id": "ATL-FS-001",
+       "name": "ATL-FS-001",
+       "shortDescription": {
+        "text": "Code references a credential / agent-config path"
+       },
+       "defaultConfiguration": {
+        "level": "note"
+       },
+       "properties": {
+        "tags": [
+         "security",
+         "atlas"
+        ],
+        "precision": "medium",
+        "security-severity": "3.0"
+       }
+      }
+     ]
+    }
+   },
+   "invocations": [
+    {
+     "executionSuccessful": true,
+     "exitCode": 1
+    }
+   ],
+   "results": [
+    {
+     "ruleId": "ATL-RF-001",
+     "ruleIndex": 0,
+     "level": "error",
+     "message": {
+      "text": "Pattern detected: Pipe-to-shell remote script (curl | sh)"
+     },
+     "locations": [
+      {
+       "physicalLocation": {
+        "artifactLocation": {
+         "uri": "atlas/scanner/tests/fixtures/pos/skill/SKILL.md",
+         "uriBaseId": "%SRCROOT%"
+        },
+        "region": {
+         "startLine": 8
+        }
+       }
+      }
+     ],
+     "partialFingerprints": {
+      "atlasFindingHash/v1": "6e8f17994f47393da8b0dcdf99254601"
+     },
+     "properties": {
+      "severity": "critical",
+      "ctx": "skill",
+      "loc": "fenced",
+      "suppressed": false
+     }
+    },
+    {
+     "ruleId": "ATL-TP-001",
+     "ruleIndex": 1,
+     "level": "error",
+     "message": {
+      "text": "Pattern detected: Pseudo-XML instruction tag (<IMPORTANT>, <SYSTEM> ...) typical of tool poisoning (tag + concealment/credential instruction in one tool description)"
+     },
+     "locations": [
+      {
+       "physicalLocation": {
+        "artifactLocation": {
+         "uri": "atlas/scanner/tests/fixtures/pos/poison_tool.py",
+         "uriBaseId": "%SRCROOT%"
+        },
+        "region": {
+         "startLine": 8
+        }
+       }
+      }
+     ],
+     "partialFingerprints": {
+      "atlasFindingHash/v1": "8ba8b88d16d34275b7117dd8772403d9"
+     },
+     "properties": {
+      "severity": "critical",
+      "ctx": "src",
+      "loc": "string:desc",
+      "suppressed": false
+     }
+    },
+    {
+     "ruleId": "ATL-TP-004",
+     "ruleIndex": 2,
+     "level": "error",
+     "message": {
+      "text": "Pattern detected: Instruction/code that reads or passes a credential / agent-config file (tag + concealment/credential instruction in one tool description)"
+     },
+     "locations": [
+      {
+       "physicalLocation": {
+        "artifactLocation": {
+         "uri": "atlas/scanner/tests/fixtures/pos/poison_tool.py",
+         "uriBaseId": "%SRCROOT%"
+        },
+        "region": {
+         "startLine": 9
+        }
+       }
+      }
+     ],
+     "partialFingerprints": {
+      "atlasFindingHash/v1": "72ac31fc1d5b2d9a2ba9170b1ab9bf83"
+     },
+     "properties": {
+      "severity": "critical",
+      "ctx": "src",
+      "loc": "string:desc",
+      "suppressed": false
+     }
+    },
+    {
+     "ruleId": "ATL-TP-002",
+     "ruleIndex": 3,
+     "level": "error",
+     "message": {
+      "text": "Pattern detected: Concealment instruction (hide behaviour from the user) (tag + concealment/credential instruction in one tool description)"
+     },
+     "locations": [
+      {
+       "physicalLocation": {
+        "artifactLocation": {
+         "uri": "atlas/scanner/tests/fixtures/pos/poison_tool.py",
+         "uriBaseId": "%SRCROOT%"
+        },
+        "region": {
+         "startLine": 10
+        }
+       }
+      }
+     ],
+     "partialFingerprints": {
+      "atlasFindingHash/v1": "ecaa2b54562e4e72daacc65227108839"
+     },
+     "properties": {
+      "severity": "critical",
+      "ctx": "src",
+      "loc": "string:desc",
+      "suppressed": false
+     }
+    },
+    {
+     "ruleId": "ATL-TP-004",
+     "ruleIndex": 2,
+     "level": "error",
+     "message": {
+      "text": "Pattern detected: Instruction/code that reads or passes a credential / agent-config file (tag + concealment/credential instruction in one tool description)"
+     },
+     "locations": [
+      {
+       "physicalLocation": {
+        "artifactLocation": {
+         "uri": "atlas/scanner/tests/fixtures/pos/poison_tool.py",
+         "uriBaseId": "%SRCROOT%"
+        },
+        "region": {
+         "startLine": 11
+        }
+       }
+      }
+     ],
+     "partialFingerprints": {
+      "atlasFindingHash/v1": "4c63aa1b59798b70d9fdc2952a303a51"
+     },
+     "properties": {
+      "severity": "critical",
+      "ctx": "src",
+      "loc": "string:desc",
+      "suppressed": false
+     }
+    },
+    {
+     "ruleId": "ATL-TP-001",
+     "ruleIndex": 1,
+     "level": "error",
+     "message": {
+      "text": "Pattern detected: Pseudo-XML instruction tag (<IMPORTANT>, <SYSTEM> ...) typical of tool poisoning (tag + concealment/credential instruction in one tool description)"
+     },
+     "locations": [
+      {
+       "physicalLocation": {
+        "artifactLocation": {
+         "uri": "atlas/scanner/tests/fixtures/pos/poison_tool.py",
+         "uriBaseId": "%SRCROOT%"
+        },
+        "region": {
+         "startLine": 12
+        }
+       }
+      }
+     ],
+     "partialFingerprints": {
+      "atlasFindingHash/v1": "3e81b244f79e0a228cbff218acf8b466"
+     },
+     "properties": {
+      "severity": "critical",
+      "ctx": "src",
+      "loc": "string:desc",
+      "suppressed": false
+     }
+    },
+    {
+     "ruleId": "ATL-TP-001",
+     "ruleIndex": 1,
+     "level": "error",
+     "message": {
+      "text": "Pattern detected: Pseudo-XML instruction tag (<IMPORTANT>, <SYSTEM> ...) typical of tool poisoning (tag + concealment/credential instruction in one tool description)"
+     },
+     "locations": [
+      {
+       "physicalLocation": {
+        "artifactLocation": {
+         "uri": "atlas/scanner/tests/fixtures/pos/server.ts",
+         "uriBaseId": "%SRCROOT%"
+        },
+        "region": {
+         "startLine": 3
+        }
+       }
+      }
+     ],
+     "partialFingerprints": {
+      "atlasFindingHash/v1": "4699cd93d533a9a24ccde51d0239c0b1"
+     },
+     "properties": {
+      "severity": "critical",
+      "ctx": "src",
+      "loc": "string:desc",
+      "suppressed": false
+     }
+    },
+    {
+     "ruleId": "ATL-TP-004",
+     "ruleIndex": 2,
+     "level": "error",
+     "message": {
+      "text": "Pattern detected: Instruction/code that reads or passes a credential / agent-config file (tag + concealment/credential instruction in one tool description)"
+     },
+     "locations": [
+      {
+       "physicalLocation": {
+        "artifactLocation": {
+         "uri": "atlas/scanner/tests/fixtures/pos/server.ts",
+         "uriBaseId": "%SRCROOT%"
+        },
+        "region": {
+         "startLine": 3
+        }
+       }
+      }
+     ],
+     "partialFingerprints": {
+      "atlasFindingHash/v1": "b58898d5e15b3843fc76a1ec5720da4c"
+     },
+     "properties": {
+      "severity": "critical",
+      "ctx": "src",
+      "loc": "string:desc",
+      "suppressed": false
+     }
+    },
+    {
+     "ruleId": "ATL-SK-001",
+     "ruleIndex": 4,
+     "level": "error",
+     "message": {
+      "text": "Pattern detected: Instruction to disable agent safety / permissions"
+     },
+     "locations": [
+      {
+       "physicalLocation": {
+        "artifactLocation": {
+         "uri": "atlas/scanner/tests/fixtures/pos/skill/SKILL.md",
+         "uriBaseId": "%SRCROOT%"
+        },
+        "region": {
+         "startLine": 11
+        }
+       }
+      }
+     ],
+     "partialFingerprints": {
+      "atlasFindingHash/v1": "6adde347994242b9afa7da7c8126aea6"
+     },
+     "properties": {
+      "severity": "high",
+      "ctx": "skill",
+      "loc": "prose",
+      "suppressed": false
+     }
+    },
+    {
+     "ruleId": "ATL-OB-003",
+     "ruleIndex": 5,
+     "level": "error",
+     "message": {
+      "text": "Pattern detected: Decode-then-execute (AST)"
+     },
+     "locations": [
+      {
+       "physicalLocation": {
+        "artifactLocation": {
+         "uri": "atlas/scanner/tests/fixtures/pos/poison_tool.py",
+         "uriBaseId": "%SRCROOT%"
+        },
+        "region": {
+         "startLine": 21
+        }
+       }
+      }
+     ],
+     "partialFingerprints": {
+      "atlasFindingHash/v1": "ad02f9b1a847e5ff004601e9c85b26c6"
+     },
+     "properties": {
+      "severity": "high",
+      "ctx": "src",
+      "loc": "code",
+      "suppressed": false
+     }
+    },
+    {
+     "ruleId": "ATL-CR-001",
+     "ruleIndex": 6,
+     "level": "error",
+     "message": {
+      "text": "Pattern detected: Bulk environment dump into serializer/sink (AST)"
+     },
+     "locations": [
+      {
+       "physicalLocation": {
+        "artifactLocation": {
+         "uri": "atlas/scanner/tests/fixtures/pos/poison_tool.py",
+         "uriBaseId": "%SRCROOT%"
+        },
+        "region": {
+         "startLine": 22
+        }
+       }
+      }
+     ],
+     "partialFingerprints": {
+      "atlasFindingHash/v1": "b243b306ff8b3bc9ac73af3482f34249"
+     },
+     "properties": {
+      "severity": "high",
+      "ctx": "src",
+      "loc": "code",
+      "suppressed": false
+     }
+    },
+    {
+     "ruleId": "ATL-TP-003",
+     "ruleIndex": 7,
+     "level": "error",
+     "message": {
+      "text": "Pattern detected: Instruction-override phrase"
+     },
+     "locations": [
+      {
+       "physicalLocation": {
+        "artifactLocation": {
+         "uri": "atlas/scanner/tests/fixtures/pos/server.ts",
+         "uriBaseId": "%SRCROOT%"
+        },
+        "region": {
+         "startLine": 3
+        }
+       }
+      }
+     ],
+     "partialFingerprints": {
+      "atlasFindingHash/v1": "c5f1d652fa30f44409e2d851584b45de"
+     },
+     "properties": {
+      "severity": "high",
+      "ctx": "src",
+      "loc": "string:desc",
+      "suppressed": false
+     }
+    },
+    {
+     "ruleId": "ATL-OB-003",
+     "ruleIndex": 5,
+     "level": "error",
+     "message": {
+      "text": "Pattern detected: Decode-then-execute (AST)"
+     },
+     "locations": [
+      {
+       "physicalLocation": {
+        "artifactLocation": {
+         "uri": "atlas/scanner/tests/fixtures/pos/server.ts",
+         "uriBaseId": "%SRCROOT%"
+        },
+        "region": {
+         "startLine": 5
+        }
+       }
+      }
+     ],
+     "partialFingerprints": {
+      "atlasFindingHash/v1": "51412f60fdc5b9255b7e9797274b4b10"
+     },
+     "properties": {
+      "severity": "high",
+      "ctx": "src",
+      "loc": "code",
+      "suppressed": false
+     }
+    },
+    {
+     "ruleId": "ATL-CR-001",
+     "ruleIndex": 6,
+     "level": "error",
+     "message": {
+      "text": "Pattern detected: Bulk environment dump into serializer/sink (AST)"
+     },
+     "locations": [
+      {
+       "physicalLocation": {
+        "artifactLocation": {
+         "uri": "atlas/scanner/tests/fixtures/pos/server.ts",
+         "uriBaseId": "%SRCROOT%"
+        },
+        "region": {
+         "startLine": 6
+        }
+       }
+      }
+     ],
+     "partialFingerprints": {
+      "atlasFindingHash/v1": "fcec237d0cf01cd342fef7eb68b972cf"
+     },
+     "properties": {
+      "severity": "high",
+      "ctx": "src",
+      "loc": "code",
+      "suppressed": false
+     }
+    },
+    {
+     "ruleId": "ATL-TP-005",
+     "ruleIndex": 8,
+     "level": "warning",
+     "message": {
+      "text": "Pattern detected: Coercive tool-ordering instruction (shadowing pattern)"
+     },
+     "locations": [
+      {
+       "physicalLocation": {
+        "artifactLocation": {
+         "uri": "atlas/scanner/tests/fixtures/pos/poison_tool.py",
+         "uriBaseId": "%SRCROOT%"
+        },
+        "region": {
+         "startLine": 9
+        }
+       }
+      }
+     ],
+     "partialFingerprints": {
+      "atlasFindingHash/v1": "8ea54570add5d4556a640be94f50eb0d"
+     },
+     "properties": {
+      "severity": "medium",
+      "ctx": "src",
+      "loc": "string:desc",
+      "suppressed": false
+     }
+    },
+    {
+     "ruleId": "ATL-CE-001",
+     "ruleIndex": 9,
+     "level": "warning",
+     "message": {
+      "text": "Pattern detected: Shell command execution (AST: subprocess shell=True)"
+     },
+     "locations": [
+      {
+       "physicalLocation": {
+        "artifactLocation": {
+         "uri": "atlas/scanner/tests/fixtures/pos/poison_tool.py",
+         "uriBaseId": "%SRCROOT%"
+        },
+        "region": {
+         "startLine": 17
+        }
+       }
+      }
+     ],
+     "partialFingerprints": {
+      "atlasFindingHash/v1": "acf44e00394438b2300551874246f720"
+     },
+     "properties": {
+      "severity": "medium",
+      "ctx": "src",
+      "loc": "code",
+      "suppressed": false
+     }
+    },
+    {
+     "ruleId": "ATL-CE-002",
+     "ruleIndex": 10,
+     "level": "warning",
+     "message": {
+      "text": "Pattern detected: Dynamic code evaluation (AST: builtin eval/exec)"
+     },
+     "locations": [
+      {
+       "physicalLocation": {
+        "artifactLocation": {
+         "uri": "atlas/scanner/tests/fixtures/pos/poison_tool.py",
+         "uriBaseId": "%SRCROOT%"
+        },
+        "region": {
+         "startLine": 21
+        }
+       }
+      }
+     ],
+     "partialFingerprints": {
+      "atlasFindingHash/v1": "5b88ea509f0f8e2c2691fd3463de43db"
+     },
+     "properties": {
+      "severity": "medium",
+      "ctx": "src",
+      "loc": "code",
+      "suppressed": false
+     }
+    },
+    {
+     "ruleId": "ATL-NW-001",
+     "ruleIndex": 11,
+     "level": "warning",
+     "message": {
+      "text": "Pattern detected: Server binds to all interfaces (AST)"
+     },
+     "locations": [
+      {
+       "physicalLocation": {
+        "artifactLocation": {
+         "uri": "atlas/scanner/tests/fixtures/pos/poison_tool.py",
+         "uriBaseId": "%SRCROOT%"
+        },
+        "region": {
+         "startLine": 24
+        }
+       }
+      }
+     ],
+     "partialFingerprints": {
+      "atlasFindingHash/v1": "1dca8b8ab8039d8911d22f2a6506aff2"
+     },
+     "properties": {
+      "severity": "medium",
+      "ctx": "src",
+      "loc": "code",
+      "suppressed": false
+     }
+    },
+    {
+     "ruleId": "ATL-CE-001",
+     "ruleIndex": 9,
+     "level": "warning",
+     "message": {
+      "text": "Pattern detected: Shell command execution (AST: child_process.exec)"
+     },
+     "locations": [
+      {
+       "physicalLocation": {
+        "artifactLocation": {
+         "uri": "atlas/scanner/tests/fixtures/pos/server.ts",
+         "uriBaseId": "%SRCROOT%"
+        },
+        "region": {
+         "startLine": 4
+        }
+       }
+      }
+     ],
+     "partialFingerprints": {
+      "atlasFindingHash/v1": "ed43f26b1019b4dd0fbc13a90ae9c5b8"
+     },
+     "properties": {
+      "severity": "medium",
+      "ctx": "src",
+      "loc": "code",
+      "suppressed": false
+     }
+    },
+    {
+     "ruleId": "ATL-CE-002",
+     "ruleIndex": 10,
+     "level": "warning",
+     "message": {
+      "text": "Pattern detected: Dynamic code evaluation (AST: eval / new Function / vm)"
+     },
+     "locations": [
+      {
+       "physicalLocation": {
+        "artifactLocation": {
+         "uri": "atlas/scanner/tests/fixtures/pos/server.ts",
+         "uriBaseId": "%SRCROOT%"
+        },
+        "region": {
+         "startLine": 5
+        }
+       }
+      }
+     ],
+     "partialFingerprints": {
+      "atlasFindingHash/v1": "103ad470bf6bab76381453f9d58890c1"
+     },
+     "properties": {
+      "severity": "medium",
+      "ctx": "src",
+      "loc": "code",
+      "suppressed": false
+     }
+    },
+    {
+     "ruleId": "ATL-NW-001",
+     "ruleIndex": 11,
+     "level": "warning",
+     "message": {
+      "text": "Pattern detected: Server binds to all interfaces (AST)"
+     },
+     "locations": [
+      {
+       "physicalLocation": {
+        "artifactLocation": {
+         "uri": "atlas/scanner/tests/fixtures/pos/server.ts",
+         "uriBaseId": "%SRCROOT%"
+        },
+        "region": {
+         "startLine": 7
+        }
+       }
+      }
+     ],
+     "partialFingerprints": {
+      "atlasFindingHash/v1": "f0548dc1f519407c787728df619328e8"
+     },
+     "properties": {
+      "severity": "medium",
+      "ctx": "src",
+      "loc": "code",
+      "suppressed": false
+     }
+    },
+    {
+     "ruleId": "ATL-FS-001",
+     "ruleIndex": 12,
+     "level": "note",
+     "message": {
+      "text": "Pattern detected: Code references a credential / agent-config path"
+     },
+     "locations": [
+      {
+       "physicalLocation": {
+        "artifactLocation": {
+         "uri": "atlas/scanner/tests/fixtures/pos/poison_tool.py",
+         "uriBaseId": "%SRCROOT%"
+        },
+        "region": {
+         "startLine": 9
+        }
+       }
+      }
+     ],
+     "partialFingerprints": {
+      "atlasFindingHash/v1": "c8f5380eeb278e90d3c693a3f2806371"
+     },
+     "properties": {
+      "severity": "low",
+      "ctx": "src",
+      "suppressed": false
+     }
+    },
+    {
+     "ruleId": "ATL-FS-001",
+     "ruleIndex": 12,
+     "level": "note",
+     "message": {
+      "text": "Pattern detected: Code references a credential / agent-config path"
+     },
+     "locations": [
+      {
+       "physicalLocation": {
+        "artifactLocation": {
+         "uri": "atlas/scanner/tests/fixtures/pos/poison_tool.py",
+         "uriBaseId": "%SRCROOT%"
+        },
+        "region": {
+         "startLine": 11
+        }
+       }
+      }
+     ],
+     "partialFingerprints": {
+      "atlasFindingHash/v1": "3cc59c68fb3e809507ffdd28995e5c12"
+     },
+     "properties": {
+      "severity": "low",
+      "ctx": "src",
+      "suppressed": false
+     }
+    },
+    {
+     "ruleId": "ATL-FS-001",
+     "ruleIndex": 12,
+     "level": "note",
+     "message": {
+      "text": "Pattern detected: Code references a credential / agent-config path"
+     },
+     "locations": [
+      {
+       "physicalLocation": {
+        "artifactLocation": {
+         "uri": "atlas/scanner/tests/fixtures/pos/server.ts",
+         "uriBaseId": "%SRCROOT%"
+        },
+        "region": {
+         "startLine": 3
+        }
+       }
+      }
+     ],
+     "partialFingerprints": {
+      "atlasFindingHash/v1": "9950c3c7e38dd2f65df2c14469a1fa78"
+     },
+     "properties": {
+      "severity": "low",
+      "ctx": "src",
+      "suppressed": false
+     }
+    },
+    {
+     "ruleId": "ATL-RF-001",
+     "ruleIndex": 0,
+     "level": "note",
+     "message": {
+      "text": "Pattern detected: Pipe-to-shell remote script (curl | sh) (usage text in a comment (not executed))"
+     },
+     "locations": [
+      {
+       "physicalLocation": {
+        "artifactLocation": {
+         "uri": "atlas/scanner/tests/fixtures/neg/rules.ts",
+         "uriBaseId": "%SRCROOT%"
+        },
+        "region": {
+         "startLine": 1
+        }
+       }
+      }
+     ],
+     "partialFingerprints": {
+      "atlasFindingHash/v1": "c8b39ad3fe62b0fe3302f2645b053a0a"
+     },
+     "properties": {
+      "severity": "low",
+      "ctx": "src",
+      "loc": "comment",
+      "suppressed": false
+     }
+    },
+    {
+     "ruleId": "ATL-RF-001",
+     "ruleIndex": 0,
+     "level": "note",
+     "message": {
+      "text": "Pattern detected: Pipe-to-shell remote script (curl | sh) (known installer domain)"
+     },
+     "locations": [
+      {
+       "physicalLocation": {
+        "artifactLocation": {
+         "uri": "atlas/scanner/tests/fixtures/neg/README.md",
+         "uriBaseId": "%SRCROOT%"
+        },
+        "region": {
+         "startLine": 5
+        }
+       }
+      }
+     ],
+     "partialFingerprints": {
+      "atlasFindingHash/v1": "ebecd4b960a056bb53d10b213e11c433"
+     },
+     "properties": {
+      "severity": "low",
+      "ctx": "docs",
+      "loc": "prose",
+      "suppressed": false
+     }
+    }
+   ],
+   "properties": {
+    "targets": [
+     {
+      "uri": "atlas/scanner/tests/fixtures/pos/",
+      "grade": "F",
+      "trust": 4,
+      "files": 3,
+      "high_or_critical_src_skill": 14
+     },
+     {
+      "uri": "atlas/scanner/tests/fixtures/neg/",
+      "grade": "C",
+      "trust": 61,
+      "files": 3,
+      "high_or_critical_src_skill": 0
+     }
+    ],
+    "filters": {
+     "min_severity": "info",
+     "show_suppressed": false,
+     "ast": true,
+     "fail_on": "high"
+    },
+    "note": "Static analysis only — nothing was executed. Findings are patterns, not a verdict of intent."
+   }
+  }
+ ]
+}

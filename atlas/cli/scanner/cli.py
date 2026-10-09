@@ -5,12 +5,17 @@ Nothing in the scanned tree is executed, imported, installed or built, and nothi
 sent over the network: files are read as text, and the optional JS/TS helper only calls
 the TypeScript parser (ts.createSourceFile) on file contents.
 
-    python3 -I cli.py <path> [<path> ...] [--format text|json] [--json FILE]
-                      [--findings FILE] [--min-severity LEVEL] [--show-suppressed]
+    python3 -I cli.py <path> [<path> ...] [--format text|json|sarif] [--json FILE]
+                      [--sarif FILE] [--findings FILE] [--min-severity LEVEL]
+                      [--fail-on high|critical|none] [--show-suppressed]
                       [--no-ast] [--quiet] [--version]
 
 Exit codes: 0 = no high/critical pattern in src/skill code, 1 = high/critical pattern
-detected in src/skill code, 2 = usage or runtime error.
+detected in src/skill code, 2 = usage or runtime error. `--fail-on critical` only fails
+on critical patterns; `--fail-on none` never exits 1.
+
+SARIF 2.1.0 output (--format sarif / --sarif FILE) is for GitHub code scanning and other
+SARIF consumers: one run, artifact URIs relative to the current directory (%SRCROOT%).
 
 Wording rule (see trust.py): output says "pattern detected"; it never calls code
 malware or malicious.
@@ -19,11 +24,13 @@ The packaged npm CLI (atlas/cli) runs this file via bin/atlas-scan.js; `scan.py`
 usage is unchanged.
 """
 import argparse
+import hashlib
 import json
 import os
 import sys
 import unicodedata
 from collections import Counter
+from urllib.parse import quote
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
@@ -34,7 +41,8 @@ __version__ = "0.1.0"
 PROG = "atlas-scan"
 SEVERITIES = ["critical", "high", "medium", "low", "info"]
 SEV_RANK = {s: i for i, s in enumerate(reversed(SEVERITIES))}  # info=0 .. critical=4
-FAIL_SEVS = ("high", "critical")
+FAIL_SEVS = ("high", "critical")  # what high_or_critical_src_skill counts (report field)
+FAIL_ON = {"critical": ("critical",), "high": ("high", "critical"), "none": ()}
 FAIL_CTX = ("src", "skill")
 CTX_ORDER = {"skill": 0, "src": 1, "docs": 2, "ci": 3, "example": 4, "test": 5}
 FOOTER = "Static analysis only — nothing was executed. Findings are patterns, not a verdict of intent."
@@ -59,19 +67,24 @@ def build_parser():
                     "Nothing in the scanned tree is executed, installed or imported, and nothing is sent "
                     "over the network.",
         epilog="Exit codes: 0 = no high/critical pattern in src/skill code; 1 = high/critical pattern "
-               "detected in src/skill code (independent of --min-severity); 2 = usage or runtime error. "
-               + FOOTER,
+               "detected in src/skill code (independent of --min-severity; see --fail-on); "
+               "2 = usage or runtime error. " + FOOTER,
     )
     p.add_argument("paths", nargs="*", metavar="PATH", help="directory to scan (one or more)")
-    p.add_argument("--format", choices=("text", "json"), default="text",
-                   help="stdout format (default: text)")
+    p.add_argument("--format", choices=("text", "json", "sarif"), default="text",
+                   help="stdout format (default: text); sarif = SARIF 2.1.0 for code scanning")
     p.add_argument("--json", metavar="FILE", dest="json_out",
                    help="also write the JSON report to FILE")
+    p.add_argument("--sarif", metavar="FILE", dest="sarif_out",
+                   help="also write a SARIF 2.1.0 report to FILE (e.g. for GitHub code scanning)")
     p.add_argument("--findings", metavar="FILE",
                    help="write every finding (including suppressed ones) as JSON Lines to FILE")
     p.add_argument("--min-severity", choices=list(reversed(SEVERITIES)), default="info",
                    help="hide findings below this severity in the text/JSON report (default: info). "
                         "Does not change the exit code or --findings")
+    p.add_argument("--fail-on", choices=tuple(FAIL_ON), default="high",
+                   help="exit 1 when a pattern of this severity or higher is detected in src/skill code: "
+                        "high (default: high or critical), critical, or none (never exit 1)")
     p.add_argument("--show-suppressed", action="store_true",
                    help="also list candidates the context layer suppressed, with the reason")
     p.add_argument("--no-ast", action="store_true",
@@ -98,8 +111,8 @@ def clean(s, limit=SNIPPET_MAX):
     return s if len(s) <= limit else s[:limit - 1] + "…"
 
 
-def is_fail(f):
-    return not f.get("suppressed") and f.get("sev") in FAIL_SEVS and f.get("ctx") in FAIL_CTX
+def is_fail(f, sevs=FAIL_SEVS):
+    return not f.get("suppressed") and f.get("sev") in sevs and f.get("ctx") in FAIL_CTX
 
 
 def sort_key(f):
@@ -220,6 +233,95 @@ def report_json(results, args, exit_code):
     }
 
 
+# ---------------------------------------------------------------------------
+# SARIF 2.1.0
+SARIF_SCHEMA = "https://json.schemastore.org/sarif-2.1.0.json"
+SARIF_LEVEL = {"critical": "error", "high": "error", "medium": "warning", "low": "note", "info": "note"}
+# GitHub code scanning reads properties["security-severity"] (CVSS-like 0.0-10.0) on rules.
+SECURITY_SEVERITY = {"critical": "9.5", "high": "8.0", "medium": "5.5", "low": "3.0", "info": "1.0"}
+FINGERPRINT_KEY = "atlasFindingHash/v1"
+
+
+def _uri_prefix(target):
+    """Target path relative to the current directory, POSIX style ('' for '.'). Never absolute:
+    a target outside the current directory gets no prefix (URIs are then relative to the target)."""
+    rel = os.path.relpath(os.path.abspath(target), os.getcwd())
+    if rel == os.curdir or rel == os.pardir or rel.startswith(os.pardir + os.sep) or os.path.isabs(rel):
+        return ""
+    return rel.replace(os.sep, "/").strip("/") + "/"
+
+
+def _rule_meta():
+    meta = {}
+    for r in scan.R:
+        meta.setdefault(r["id"], {"sev": r["sev"], "title": r["title"]})
+    return meta
+
+
+def report_sarif(results, args, exit_code):
+    meta = _rule_meta()
+    rules, rule_index, sarif_results, seen_fp, targets = [], {}, [], Counter(), []
+    for r in results:
+        prefix = _uri_prefix(r["path"])
+        targets.append({"uri": prefix or "./", "grade": r["trust"]["grade"], "trust": r["trust"]["trust"],
+                        "files": r["files"], "high_or_critical_src_skill": r["high_or_critical_src_skill"]})
+        for x in visible(r["_all"], args.min_severity, args.show_suppressed):
+            rid = x["rule"]
+            if rid not in rule_index:
+                m = meta.get(rid, {"sev": x.get("sev", "info"), "title": x.get("title", rid)})
+                rule_index[rid] = len(rules)
+                rules.append({
+                    "id": rid,
+                    "name": rid,
+                    "shortDescription": {"text": clean(m["title"] or rid, 1000)},
+                    "defaultConfiguration": {"level": SARIF_LEVEL.get(m["sev"], "note")},
+                    "properties": {"tags": ["security", "atlas"], "precision": "medium",
+                                   "security-severity": SECURITY_SEVERITY.get(m["sev"], "1.0")},
+                })
+            uri_path = prefix + x["file"].replace(os.sep, "/")
+            uri = quote(uri_path, safe="/")
+            msg = f"Pattern detected: {clean(x.get('title') or rid, 1000)}"
+            if x.get("why"):
+                msg += f" ({clean(x['why'], 1000)})"
+            snippet = " ".join(str(x.get("snippet") or "").split())
+            h = hashlib.sha256("\0".join((rid, uri_path, snippet)).encode("utf-8", "backslashreplace")).hexdigest()[:32]
+            seen_fp[h] += 1
+            fp = h if seen_fp[h] == 1 else f"{h}:{seen_fp[h]}"
+            res = {
+                "ruleId": rid,
+                "ruleIndex": rule_index[rid],
+                "level": SARIF_LEVEL.get(x.get("sev"), "note"),
+                "message": {"text": msg},
+                "locations": [{"physicalLocation": {
+                    "artifactLocation": {"uri": uri, "uriBaseId": "%SRCROOT%"},
+                    "region": {"startLine": max(1, int(x.get("line") or 1))},
+                }}],
+                "partialFingerprints": {FINGERPRINT_KEY: fp},
+                "properties": {k: v for k, v in (("severity", x.get("sev")), ("ctx", x.get("ctx")),
+                                                 ("loc", x.get("loc")),
+                                                 ("suppressed", bool(x.get("suppressed")))) if v is not None},
+            }
+            if x.get("suppressed"):
+                res["suppressions"] = [{"kind": "external",
+                                        "justification": clean(x.get("why") or "suppressed by the context layer", 1000)}]
+            sarif_results.append(res)
+    version = os.environ.get("ATLAS_CLI_VERSION") or __version__
+    return {
+        "$schema": SARIF_SCHEMA,
+        "version": "2.1.0",
+        "runs": [{
+            "tool": {"driver": {"name": PROG, "version": version, "semanticVersion": version, "rules": rules}},
+            "invocations": [{"executionSuccessful": True, "exitCode": exit_code}],
+            "results": sarif_results,
+            "properties": {"targets": targets, "filters": {"min_severity": args.min_severity,
+                                                           "show_suppressed": args.show_suppressed,
+                                                           "ast": not args.no_ast,
+                                                           "fail_on": args.fail_on},
+                           "note": FOOTER},
+        }],
+    }
+
+
 def run(argv):
     args = build_parser().parse_args(argv)
     if not args.paths:
@@ -232,7 +334,8 @@ def run(argv):
             raise UsageError(f"not a directory: {p} (pass the directory that contains it)")
         paths.append(os.path.normpath(p))
     results = [scan_target(p, use_ast=not args.no_ast) for p in paths]
-    exit_code = EXIT_FINDINGS if any(r["high_or_critical_src_skill"] for r in results) else EXIT_OK
+    fail_sevs = FAIL_ON[args.fail_on]
+    exit_code = EXIT_FINDINGS if any(is_fail(x, fail_sevs) for r in results for x in r["_all"]) else EXIT_OK
 
     if args.findings:
         with open(args.findings, "w", encoding="utf-8") as fh:
@@ -246,8 +349,17 @@ def run(argv):
         with open(args.json_out, "w", encoding="utf-8") as fh:
             json.dump(rep, fh, indent=1, ensure_ascii=False)
             fh.write("\n")
+    sarif = None
+    if args.sarif_out or args.format == "sarif":
+        sarif = report_sarif(results, args, exit_code)
+    if args.sarif_out:
+        with open(args.sarif_out, "w", encoding="utf-8") as fh:
+            json.dump(sarif, fh, indent=1, ensure_ascii=False)
+            fh.write("\n")
     if args.format == "json":
         sys.stdout.write(json.dumps(rep, indent=1, ensure_ascii=False) + "\n")
+    elif args.format == "sarif":
+        sys.stdout.write(json.dumps(sarif, indent=1, ensure_ascii=False) + "\n")
     else:
         render_text(results, args, sys.stdout)
     return exit_code

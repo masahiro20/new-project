@@ -1,0 +1,118 @@
+name: atlas-scan
+description: >-
+  Static, read-only pattern scan of MCP servers, Claude skills and plugins. Writes SARIF for
+  GitHub code scanning. Nothing in the scanned tree is executed, installed or imported.
+author: Atlas
+branding:
+  icon: shield
+  color: gray-dark
+
+inputs:
+  path:
+    description: "Directory to scan, relative to the workspace (default the repository root)."
+    required: false
+    default: "."
+  min-severity:
+    description: "Hide findings below this severity in the report and SARIF (info, low, medium, high, critical). Does not change the exit code."
+    required: false
+    default: info
+  fail-on:
+    description: "Fail the step when a pattern of this severity or higher is detected in src/skill code (critical, high or none)."
+    required: false
+    default: high
+  sarif-file:
+    description: "Where to write the SARIF 2.1.0 report (relative to the workspace)."
+    required: false
+    default: atlas-scan.sarif
+  upload-sarif:
+    description: "Upload the SARIF file to GitHub code scanning (needs `security-events: write`)."
+    required: false
+    default: "true"
+
+outputs:
+  findings:
+    description: "Number of findings in the report (not suppressed, at or above min-severity, all contexts)."
+    value: ${{ steps.scan.outputs.findings }}
+  exit-code:
+    description: "Scanner exit code (0 = below the fail-on threshold, 1 = pattern at or above fail-on in src/skill code, 2 = usage or runtime error)."
+    value: ${{ steps.scan.outputs.exit-code }}
+
+runs:
+  using: composite
+  steps:
+    # Pinned to full commit SHAs (resolved with `git ls-remote` on 2026-10-09).
+    - name: Set up Node.js
+      uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      with:
+        node-version: "22"
+
+    - name: Set up Python
+      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      with:
+        python-version: "3.12"
+
+    - name: Install atlas-scan dependencies (typescript parser only, no install scripts)
+      shell: bash
+      env:
+        ATLAS_ACTION_PATH: ${{ github.action_path }}
+      run: |
+        set -euo pipefail
+        cd "$ATLAS_ACTION_PATH/../cli"
+        npm ci --ignore-scripts --no-audit --no-fund
+
+    - name: Run atlas-scan
+      id: scan
+      shell: bash
+      # Untrusted inputs reach the script only through environment variables.
+      env:
+        ATLAS_ACTION_PATH: ${{ github.action_path }}
+        INPUT_PATH: ${{ inputs.path }}
+        INPUT_MIN_SEVERITY: ${{ inputs.min-severity }}
+        INPUT_FAIL_ON: ${{ inputs.fail-on }}
+        INPUT_SARIF_FILE: ${{ inputs.sarif-file }}
+      run: |
+        set -uo pipefail
+        case "$INPUT_MIN_SEVERITY" in info|low|medium|high|critical) ;; *)
+          echo "::error title=atlas-scan::invalid min-severity (expected info, low, medium, high or critical)"
+          echo "exit-code=2" >> "$GITHUB_OUTPUT"; echo "findings=0" >> "$GITHUB_OUTPUT"; exit 0 ;;
+        esac
+        case "$INPUT_FAIL_ON" in critical|high|none) ;; *)
+          echo "::error title=atlas-scan::invalid fail-on (expected critical, high or none)"
+          echo "exit-code=2" >> "$GITHUB_OUTPUT"; echo "findings=0" >> "$GITHUB_OUTPUT"; exit 0 ;;
+        esac
+        report="$RUNNER_TEMP/atlas-scan-report.json"
+        rm -f "$report"
+        node "$ATLAS_ACTION_PATH/../cli/bin/atlas-scan.js" \
+          --min-severity "$INPUT_MIN_SEVERITY" --fail-on "$INPUT_FAIL_ON" \
+          --sarif "$INPUT_SARIF_FILE" --json "$report" -- "$INPUT_PATH"
+        code=$?
+        findings=0
+        if [ -f "$report" ]; then
+          findings=$(python3 -I -c 'import json, sys; print(sum(len(t["findings"]) for t in json.load(open(sys.argv[1], encoding="utf-8"))["targets"]))' "$report") || findings=0
+        fi
+        echo "exit-code=$code" >> "$GITHUB_OUTPUT"
+        echo "findings=$findings" >> "$GITHUB_OUTPUT"
+        # never fail here, so the SARIF upload below still runs; the last step applies fail-on
+        exit 0
+
+    - name: Upload SARIF to code scanning
+      if: ${{ inputs.upload-sarif == 'true' && steps.scan.outputs.exit-code != '2' }}
+      uses: github/codeql-action/upload-sarif@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
+      with:
+        sarif_file: ${{ inputs.sarif-file }}
+        category: atlas-scan
+
+    - name: Apply fail-on
+      shell: bash
+      env:
+        ATLAS_EXIT_CODE: ${{ steps.scan.outputs.exit-code }}
+        ATLAS_FINDINGS: ${{ steps.scan.outputs.findings }}
+      run: |
+        set -u
+        case "$ATLAS_EXIT_CODE" in
+          0) echo "atlas-scan: no pattern at or above fail-on in src/skill code ($ATLAS_FINDINGS findings listed)." ;;
+          1) echo "::error title=atlas-scan::pattern at or above fail-on detected in src/skill code (static analysis only; see the SARIF report / code scanning alerts)"
+             exit 1 ;;
+          *) echo "::error title=atlas-scan::scanner usage or runtime error (exit code ${ATLAS_EXIT_CODE:-unknown})"
+             exit 2 ;;
+        esac
