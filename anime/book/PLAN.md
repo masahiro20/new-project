@@ -21,7 +21,7 @@
 ## ページ構成（30p）
 | p | 内容 | 使うアート |
 |---|---|---|
-| 1 | 表紙（`page bleed dark`）：タイトル RED LEDGER／赤い帳簿／帳簿の書 Vol.0 | cover.svg |
+| 1 | 表紙（`page bleed dark`）：タイトル LEDGERBREAKER（LEDGER／BREAKER の2段）／帳簿破り／帳簿の書 Vol.0（旧題 RED LEDGER、2026-10-09 改題） | cover.svg |
 | 2 | 本書について（読み方、ネタバレ範囲＝第1話まで、注意書き） | — |
 | 3 | 目次 | — |
 | 4 | 序章：ログライン、作品紹介、決め台詞 | — |

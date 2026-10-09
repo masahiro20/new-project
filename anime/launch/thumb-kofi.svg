@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1200" width="1200" height="1200" role="img" aria-labelledby="t d">
-  <title id="t">RED LEDGER — Book of the Ledger Vol.0 — Ko-fi thumbnail</title>
-  <desc id="d">Square product thumbnail. Top: the city under a red sun. Middle band (safe for a 2:1 or 5:4 crop): RED LEDGER, 赤い帳簿, Book of the Ledger Vol.0, setting book PDF, $4. Bottom: the eight main characters in silhouette lineup.</desc>
+  <title id="t">LEDGERBREAKER — Book of the Ledger Vol.0 — Ko-fi thumbnail</title>
+  <desc id="d">Square product thumbnail. Top: the city under a red sun. Middle band (safe for a 2:1 or 5:4 crop): LEDGERBREAKER (LEDGER / BREAKER), 帳簿破り, Book of the Ledger Vol.0, setting book PDF, $4. Bottom: the eight main characters in silhouette lineup.</desc>
   <defs>
     <linearGradient id="topfade" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#0E0B10" stop-opacity="0.15"/>
@@ -43,9 +43,9 @@
     <rect y="352" width="310" height="58" fill="#E5172F"/>
     <text x="155" y="392" text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-weight="700" font-size="28" fill="#F5EEDD" textLength="270" lengthAdjust="spacingAndGlyphs">SETTING BOOK PDF</text>
 
-    <text x="-2" y="560" font-family="'Dela Gothic One',sans-serif" font-size="150" fill="#E5172F" filter="url(#glow)" textLength="990" lengthAdjust="spacingAndGlyphs">RED LEDGER</text>
-    <rect x="2" y="590" width="560" height="4" fill="#E5172F"/>
-    <text x="590" y="610" font-family="'Zen Kaku Gothic New',sans-serif" font-weight="700" font-size="46" fill="#F5EEDD" letter-spacing="22">赤い帳簿</text>
+    <text x="-2" y="524" font-family="'Dela Gothic One',sans-serif" font-size="120" fill="#E5172F" filter="url(#glow)">LEDGER</text>
+    <text x="-2" y="640" font-family="'Dela Gothic One',sans-serif" font-size="120" fill="#E5172F" filter="url(#glow)">BREAKER</text>
+    <text x="770" y="640" font-family="'Zen Kaku Gothic New',sans-serif" font-weight="700" font-size="46" fill="#F5EEDD" letter-spacing="22">帳簿破り</text>
 
     <text x="0" y="712" font-family="'Dela Gothic One',sans-serif" font-size="66" fill="#F5EEDD">Book of the Ledger <tspan fill="#E5172F">Vol.0</tspan></text>
     <text x="2" y="770" font-family="'Zen Kaku Gothic New',sans-serif" font-weight="700" font-size="32" fill="#E9E1CF">帳簿の書 Vol.0</text>

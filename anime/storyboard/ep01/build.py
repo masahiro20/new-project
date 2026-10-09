@@ -46,11 +46,11 @@ def main():
         seqs.append({"key": key, "label": LABELS[key], "range": seq.get("range"), "start": round(start, 2),
                      "end": round(t, 2), "first": n0 + 1, "last": len(cuts), "drawn": key.startswith("s")})
 
-    data = {"title": "RED LEDGER 第1話「払わねえよ。」絵コンテ", "total": round(t, 2), "seqs": seqs, "cuts": cuts}
+    data = {"title": "LEDGERBREAKER 第1話「払わねえよ。」絵コンテ", "total": round(t, 2), "seqs": seqs, "cuts": cuts}
     with open(os.path.join(HERE, "data.js"), "w", encoding="utf-8") as f:
         f.write("window.EP01 = " + json.dumps(data, ensure_ascii=False) + ";\n")
 
-    lines = ["# RED LEDGER 第1話「払わねえよ。」絵コンテ（カット表）", "",
+    lines = ["# LEDGERBREAKER 第1話「払わねえよ。」絵コンテ（カット表）", "",
              f"総尺 {tc(t)}／{len(cuts)}カット／作画フレーム {sum(len(c['frames']) for c in cuts)}枚", ""]
     for s in seqs:
         lines += [f"## {s['label']}（{tc(s['start'])}–{tc(s['end'])}）", "",

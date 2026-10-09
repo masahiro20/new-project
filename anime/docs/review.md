@@ -1,5 +1,7 @@
 # RED LEDGER レビュー（第1回）
 
+> 注：2026-10-09 にシリーズ題を LEDGERBREAKER（帳簿破り）に変更（旧題 RED LEDGER）。本レビューは当時の記録のため、旧題のまま残す。
+
 レビュー：P7 Anime レビュー担当／2026-10-08
 対象：`docs/01-concept-selection.md`（正典）、`bible/series-bible.md`、`scripts/ep01-script.md`、`docs/monetization.md`、`docs/market-and-comps.md`
 （`visuals/` は対象外・未変更）

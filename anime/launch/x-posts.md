@@ -43,10 +43,10 @@
 力は、ぜんぶ神からの借り物。
 返せなければ、声も、視力も、記憶も取り立てられる。
 
-オリジナル作品『RED LEDGER／赤い帳簿』の設定資料集
+オリジナル作品『LEDGERBREAKER／帳簿破り』の設定資料集
 『帳簿の書 Vol.0』を{日付}にBOOTHで公開します。
 
-#創作 #設定資料集
+#LEDGERBREAKER #創作
 ```
 
 ### JP-2｜Day −1｜中身紹介｜画像：`thumb-x.png`
@@ -61,12 +61,12 @@
 
 A5／30ページ／PDF。明日公開です。
 
-#創作
+#LEDGERBREAKER #創作
 ```
 
 ### JP-3｜Day 0｜発売（固定ポスト）｜画像：`thumb-x.png`＋サンプル p1・p13
 ```
-【公開】RED LEDGER 帳簿の書 Vol.0
+【公開】LEDGERBREAKER 帳簿の書 Vol.0
 設定資料集PDF（A5・30p・日本語）
 通常版500円／応援版1,000円（内容は同じ）
 
@@ -111,10 +111,10 @@ A5／30ページ／PDF。明日公開です。
 In this city, every power is a loan from the gods.
 Miss a payment and they collect: your voice, your sight, your memories.
 
-RED LEDGER is an original battle series.
+LEDGERBREAKER is an original battle series.
 Its setting book, Book of the Ledger Vol.0, drops {date}.
 
-#worldbuilding #originalcharacter
+#LEDGERBREAKER #worldbuilding
 ```
 
 ### EN-2 | Day −1 | Cast | image: `visuals/characters-lineup.png`
@@ -125,14 +125,14 @@ A broker who reads your odds. A rival who has never missed a payment. A collecto
 
 Each gets a full page in Book of the Ledger Vol.0. Out tomorrow.
 
-#worldbuilding
+#LEDGERBREAKER #worldbuilding
 ```
 
 ### EN-3 | Day 0 | Launch (pin) | image: `thumb-x.png` + sample p1, p13
 ```
 Book of the Ledger Vol.0 is out.
 
-The RED LEDGER setting book: the city, the Seven Lenders, the DEFAULT power diagrammed, 8 characters, and the first 3 minutes of Episode 1.
+The LEDGERBREAKER setting book: the city, the Seven Lenders, the DEFAULT power diagrammed, 8 characters, and the first 3 minutes of Episode 1.
 
 PDF · A5 · 30 pages · $4
 {KOFI_URL}
@@ -173,27 +173,28 @@ Reply below. The answers shape Vol.1.
 
 | 用途 | 日本語 | English |
 |---|---|---|
+| 作品タグ（予告〜発売前の投稿に。リンクつき投稿は文字数に余裕があるときだけ） | #LEDGERBREAKER | #LEDGERBREAKER |
 | 毎回どれか1つ | #創作 | #worldbuilding |
 | 設定資料系 | #設定資料集 | #originalcharacter |
 | 発売日のみ | #BOOTH | — |
-| 使わない | 他作品名、無関係なトレンドタグ | other series' names, unrelated trending tags |
+| 使わない | 他作品名、無関係なトレンドタグ、旧題 #REDLEDGER、#レジャーブレイカー（「レジャー」が leisure と読まれる） | other series' names, unrelated trending tags, the old title #RedLedger |
 
 ※ #AIイラスト／#AIart タグを付けるかはオーナー判断。付けると AI 作品を探す層に届き、避けたい層は自分でミュートできる＝正直さの面では好ましい。付けない場合も、本文・プロフィールでの AI 表示は必ず行う。
 
 ## 5. 計測値（重みづけ文字数 / 上限280、URL=23）
 
-日付は「10月20日」／"Oct 20" を入れた想定。URL は23で計算。全ポストが上限280以内。英語の `−∞` の「−」（マイナス記号）は2として数えている。
+2026-10-09 改題（LEDGERBREAKER）後に再計測。日付は「10月20日」／"Oct 20" を入れた想定。URL は23で計算。全ポストが上限280以内。英語の `−∞` の「−」（マイナス記号）は2として数えている。
 
 | ポスト | 重みづけ文字数 |
 |---|---|
-| JP-1 | 200 / 280 |
-| JP-2 | 194 / 280 |
-| JP-3 | 263 / 280 |
+| JP-1 | 206 / 280 |
+| JP-2 | 209 / 280 |
+| JP-3 | 266 / 280 |
 | JP-4 | 230 / 280 |
 | JP-5 | 223 / 280 |
-| EN-1 | 257 / 280 |
-| EN-2 | 249 / 280 |
-| EN-3 | 272 / 280 |
+| EN-1 | 256 / 280 |
+| EN-2 | 264 / 280 |
+| EN-3 | 275 / 280 |
 | EN-4 | 256 / 280 |
 | EN-5 | 270 / 280 |
 

@@ -1,4 +1,6 @@
-# P7 Anime — RED LEDGER（赤い帳簿）
+# P7 Anime — LEDGERBREAKER（帳簿破り）
+
+旧題 RED LEDGER（2026-10-09 改題）── 経緯は [docs/title-alternatives.md](docs/title-alternatives.md)
 
 リーダー：Hikaru（ショーランナー）／統括PM：ピーター
 

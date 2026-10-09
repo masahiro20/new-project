@@ -1,4 +1,4 @@
-# RED LEDGER — Character & Key-Visual Prompts（画像生成プロンプト集）
+# LEDGERBREAKER — Character & Key-Visual Prompts（画像生成プロンプト集）
 
 作成：P7 Anime キャラクターデザイン／美術監督　2026-10-08（シリーズ・バイブル準拠版）
 正典は `bible/series-bible.md` §2-2・§4。色の基準値は `palette.md`、シルエット基準は `characters-lineup.svg`、構図基準は `key-visual.svg`。
@@ -209,7 +209,7 @@ Leave the top 15% and bottom 20% clear for title and tagline.
 
 **Negative**: 共通ネガ + `text, title lettering, daytime, blue sky, crowd, multiple boys, right arm raised, both sleeves intact`
 
-> 構図メモ：主人公を下1/3に大きく、腕と肋骨の曲線で視線を「赤い月→頂のバース」へ導く。タイトル「RED LEDGER / 赤い帳簿」、タグライン *Everything is borrowed. He's not paying.*
+> 構図メモ：主人公を下1/3に大きく、腕と肋骨の曲線で視線を「赤い月→頂のバース」へ導く。タイトル「LEDGERBREAKER / 帳簿破り」、タグライン *Everything is borrowed. He's not paying.*
 
 ## KV2 — Cast Ensemble
 

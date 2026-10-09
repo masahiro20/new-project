@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" role="img" aria-labelledby="kt kd">
-  <title id="kt">RED LEDGER — Key Visual</title>
-  <desc id="kd">Kanegura, a vertical city stacked on the ribcage of a dead god, under a red moon and a sky ruled like ledger paper. In the foreground Akaba Jin raises his red-marked left arm. Title RED LEDGER / 赤い帳簿. Tagline: Everything is borrowed. He's not paying.</desc>
+  <title id="kt">LEDGERBREAKER — Key Visual</title>
+  <desc id="kd">Kanegura, a vertical city stacked on the ribcage of a dead god, under a red moon and a sky ruled like ledger paper. In the foreground Akaba Jin raises his red-marked left arm. Title LEDGERBREAKER / 帳簿破り. Tagline: Everything is borrowed. He's not paying.</desc>
   <defs>
     <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#0E0B10"/>
@@ -1269,10 +1269,10 @@
   <!-- ============== TITLE BLOCK ============== -->
   <rect x="0" y="640" width="1600" height="260" fill="url(#bottomShade)"/>
   <g font-family="'Noto Sans JP','Hiragino Sans','Yu Gothic','Helvetica Neue','Arial Black',Arial,sans-serif" text-anchor="end">
-    <text x="1548" y="790" font-size="112" font-weight="900" letter-spacing="6" fill="#E5172F" stroke="#0E0B10" stroke-width="3" paint-order="stroke" filter="url(#titleGlow)">RED LEDGER</text>
+    <text x="1548" y="790" font-size="92" font-weight="900" letter-spacing="4" fill="#E5172F" stroke="#0E0B10" stroke-width="3" paint-order="stroke" filter="url(#titleGlow)">LEDGERBREAKER</text>
     <g fill="#F5EEDD">
       <path d="M908 812 H1270" stroke="#E5172F" stroke-width="2"/>
-      <text x="1548" y="826" font-size="34" font-weight="700" letter-spacing="18">赤い帳簿</text>
+      <text x="1548" y="826" font-size="34" font-weight="700" letter-spacing="18">帳簿破り</text>
     </g>
     <text x="1548" y="868" font-size="22" font-style="italic" fill="#E9E1CF" letter-spacing="1.5">Everything is borrowed. <tspan fill="#E5172F" font-weight="800">He's not paying.</tspan></text>
   </g>

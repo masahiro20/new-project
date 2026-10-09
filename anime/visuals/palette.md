@@ -1,4 +1,4 @@
-# RED LEDGER — Master Palette（マスターパレット）
+# LEDGERBREAKER — Master Palette（マスターパレット）
 
 作成：P7 Anime キャラクターデザイン／美術監督　2026-10-08（シリーズ・バイブル準拠版）
 正典：`bible/series-bible.md` §2-2（貸主と印の色）・§4（キャラクター外見）。ここに定義した HEX が全部署（作画・色彩設計・撮影・宣伝・グッズ）の基準値。

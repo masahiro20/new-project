@@ -270,10 +270,10 @@
       ],
       "camera": "FIX",
       "shot": "—",
-      "picture": "黒地に帳簿の罫線。赤いインクが罫線を伝って広がり、文字になる「RED LEDGER／赤い帳簿」。右下に赤い判子。",
+      "picture": "黒地に帳簿の罫線。赤いインクが罫線を伝って広がり、文字になる「LEDGERBREAKER／帳簿破り」。右下に赤い判子。",
       "action": "インクが罫線をにじみながら走り、ロゴが完成（約6秒）→判子が押される（8秒目）→黒みのまま本編へ。",
       "dialogue": "",
-      "dialogue_en": "On-screen: RED LEDGER",
+      "dialogue_en": "On-screen: LEDGERBREAKER",
       "sound": "SE：インクがにじむ音→判子を押す音、一発／第1話はOPなし"
     }
   ]

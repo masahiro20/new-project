@@ -1,7 +1,7 @@
 # 縦型ショート台本 5本 ── YouTube Shorts / TikTok / Instagram Reels
 
 作成：P7 Anime マーケティング　2026-10-08
-対象商品：『RED LEDGER 帳簿の書 Vol.0』（JP：BOOTH ¥500／EN：Ko-fi $4）
+対象商品：『LEDGERBREAKER 帳簿の書 Vol.0』（JP：BOOTH ¥500／EN：Ko-fi $4）
 **撮影・編集・投稿はオーナー本人。** チームはアカウントを作らない・投稿しない・広告費を払わない。
 
 ## 共通仕様
@@ -34,7 +34,7 @@
 | 18–21 | `ledger-mark` PNG、赤く脈打つ | One kid refuses to pay.／ひとりだけ、払わない少年がいる。 | 心拍 |
 | 21–25 | `thumb-kofi.png`（EN）または `thumb-booth.png`（JP） | **The setting book → link in bio**／設定資料集PDF → プロフィールのリンクから | 余韻 |
 
-キャプション（EN）：`A city where every power is a loan from the gods. RED LEDGER — original series. Setting book in bio. #worldbuilding #originalcharacter`
+キャプション（EN）：`A city where every power is a loan from the gods. LEDGERBREAKER — original series. Setting book in bio. #LEDGERBREAKER #worldbuilding`
 キャプション（JP）：`力はぜんぶ神からの借り物。払えなければ取り立てられる街の話。設定資料集はプロフィールから。#創作 #設定資料集`
 
 ---
@@ -77,8 +77,8 @@
 
 **ネタバレ注意**：九条を「黒幕」、ニルの正体、ケイの過去は**言わない**（本書の範囲は第1話まで）。
 
-キャプション（EN）：`Which debt would you carry? Main cast of RED LEDGER. #originalcharacter #characterdesign`
-キャプション（JP）：`推しの借金はどれ？ RED LEDGER 主要8人。#創作 #キャラクターデザイン`
+キャプション（EN）：`Which debt would you carry? Main cast of LEDGERBREAKER. #LEDGERBREAKER #characterdesign`
+キャプション（JP）：`推しの借金はどれ？『帳簿破り』主要8人。#LEDGERBREAKER #創作`
 
 ---
 
@@ -112,8 +112,8 @@
 
 **注意**：p25–27 の脚本抜粋は**読めない速さ・ぼかし**で見せる（買う理由を残す）。
 
-キャプション（EN）：`Book of the Ledger Vol.0 — the RED LEDGER setting book. PDF, 30 pages, $4. Link in bio. Made with AI assistance.`
-キャプション（JP）：`『帳簿の書 Vol.0』設定資料集PDF・30ページ・500円。リンクはプロフィールから。AI使用・作者監修。`
+キャプション（EN）：`Book of the Ledger Vol.0 — the LEDGERBREAKER setting book. PDF, 30 pages, $4. Link in bio. Made with AI assistance.`
+キャプション（JP）：`『LEDGERBREAKER 帳簿の書 Vol.0』設定資料集PDF・30ページ・500円。リンクはプロフィールから。AI使用・作者監修。`
 
 ---
 

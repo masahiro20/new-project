@@ -1,7 +1,7 @@
-# RED LEDGER 市場分析と比較作品
+# LEDGERBREAKER 市場分析と比較作品
 
 作成：P7 Anime マーケティング／ビジネス担当　2026-10-08
-対象：『RED LEDGER（レッドレジャー／赤い帳簿）』── 借金で戦うバトル少年漫画／アニメ企画
+対象：『LEDGERBREAKER／帳簿破り』（旧題 RED LEDGER、2026-10-09 改題）── 借金で戦うバトル少年漫画／アニメ企画
 
 ---
 
@@ -48,7 +48,7 @@
 
 以下は**ジャンル・市場の位置を測るための比較**であり、内容・設定・キャラクターは一切借用しない。
 
-| 比較作品（市場の参考） | 共通する市場要素 | RED LEDGER との違い |
+| 比較作品（市場の参考） | 共通する市場要素 | LEDGERBREAKER との違い |
 |---|---|---|
 | **『チェンソーマン』** | 借金を背負った貧しい少年主人公／ダークで暴力的だが笑う主人公／北米での大きな人気 | 本作の借金は「力そのものが神からの融資」という**経済システム**。悪魔との契約ではなく、**公開格付け社会での成り上がり**が主軸。主人公の力は「契約を無効化する（踏み倒す）」能力で、敵の力のルールそのものを壊す |
 | **『俺だけレベルアップな件』（Solo Leveling）** | 最下位からの成り上がり／ランク（格付け）が可視化される／Webtoon 発の世界的ヒットでアニメ化 | 本作は転生・ゲームシステムではなく、**都市の金融制度**としての格付け。強くなるほど借金と代償（記憶の喪失）も増える＝「最強と代償が同時に育つ」 |
@@ -58,7 +58,7 @@
 | **『神之塔』** | 塔（縦構造）を登る成り上がり／Crunchyroll×WEBTOON 共同製作の前例 | 本作の縦構造は「頂＝取引所、底帳＝スラム」という**経済格差の比喩**。登る理由は試練ではなく「父の借金をゼロにし、帳簿を燃やす」こと |
 
 ### 比較から分かること
-- 「借金を背負う少年」「見える格付け」「契約で決まる力」は**それぞれ単体では実績のある市場要素**。RED LEDGER はこれらを「**神からの融資で動く金融都市**」という1つの設定にまとめ、主人公にだけ「踏み倒す」力を与えることで、既存作のどれとも違う一文フックを作っている。
+- 「借金を背負う少年」「見える格付け」「契約で決まる力」は**それぞれ単体では実績のある市場要素**。LEDGERBREAKER はこれらを「**神からの融資で動く金融都市**」という1つの設定にまとめ、主人公にだけ「踏み倒す」力を与えることで、既存作のどれとも違う一文フックを作っている。
 - 宣伝・企画書では「〇〇のような」と既存作名を使うのは**市場規模の説明に限る**。ビジュアル・キャラデザインを既存作に寄せない（AI 生成時に作品名・作家名をプロンプトに入れない）。
 
 ---
@@ -77,10 +77,10 @@
 ## 5. ポジショニング・ステートメント
 
 **日本語**
-> 借金と格差に疲れた16〜34歳の世界のアニメファンに向けて、『RED LEDGER』は「力がすべて神からの借り物」という金融都市を舞台にしたバトル少年アニメである。ほかのダークバトル作品と違い、主人公の武器は「払わない」こと──あらゆる契約を踏み倒す力で、貸す側の神々から取り立てる側へ成り上がる。
+> 借金と格差に疲れた16〜34歳の世界のアニメファンに向けて、『帳簿破り』（LEDGERBREAKER）は「力がすべて神からの借り物」という金融都市を舞台にしたバトル少年アニメである。ほかのダークバトル作品と違い、主人公の武器は「払わない」こと──あらゆる契約を踏み倒す力で、貸す側の神々から取り立てる側へ成り上がる。
 
 **English**
-> For 16–34-year-old anime fans worldwide who feel crushed by debt and rankings, RED LEDGER is a battle shonen set in a city where every power is a loan from the gods. Unlike other dark battle series, its hero's weapon is refusal: he can default on any contract — and he's coming to collect from the gods themselves.
+> For 16–34-year-old anime fans worldwide who feel crushed by debt and rankings, LEDGERBREAKER is a battle shonen set in a city where every power is a loan from the gods. Unlike other dark battle series, its hero's weapon is refusal: he can default on any contract — and he's coming to collect from the gods themselves.
 
 ---
 

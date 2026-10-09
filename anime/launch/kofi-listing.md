@@ -1,6 +1,6 @@
-# Ko-fi Shop listing — "RED LEDGER — Book of the Ledger Vol.0" (English edition)
+# Ko-fi Shop listing — "LEDGERBREAKER — Book of the Ledger Vol.0" (English edition)
 
-Prepared by: P7 Anime marketing, 2026-10-08
+Prepared by: P7 Anime marketing, 2026-10-08 (retitled 2026-10-09: formerly RED LEDGER)
 How to use: the owner pastes these blocks into Ko-fi (Shop → Add item). Fill in anything in `{ }`.
 **The team does not create accounts, list, post, or pay.** The owner creates the item, sets the price and publishes it.
 
@@ -11,10 +11,12 @@ How to use: the owner pastes these blocks into Ko-fi (Shop → Add item). Fill i
 ## 1. Item name (copy-paste)
 
 ```
-RED LEDGER — Book of the Ledger Vol.0 (Worldbook PDF, English)
+LEDGERBREAKER — Book of the Ledger Vol.0 (Worldbook PDF, English)
 ```
 
-Short alternative: `RED LEDGER: Book of the Ledger Vol.0 — Digital Setting Book`
+Short alternative: `LEDGERBREAKER: Book of the Ledger Vol.0 — Digital Setting Book`
+
+Transition alternative (for existing buyers): `LEDGERBREAKER (formerly Red Ledger) — Book of the Ledger Vol.0`
 
 ## 2. Tagline
 
@@ -32,7 +34,7 @@ Alternatives:
 Every power in this city is a loan from the gods.
 Miss a payment, and they collect — your voice, your sight, your memories.
 
-RED LEDGER is an original battle-series project set in Kanegura,
+LEDGERBREAKER (formerly Red Ledger) is an original battle-series project set in Kanegura,
 a vertical city built on the ribs of a dead god, where your rank
 is public and your balance glows on your wrist.
 
@@ -52,7 +54,7 @@ SPECS
 • Format: PDF (digital download)
 • Size: A5 (148 × 210 mm), 30 pages, full color
 • Language: English (a Japanese edition is sold separately on BOOTH)
-• File: {RED_LEDGER_Vol0_EN.pdf} (~{ } MB)
+• File: {LEDGERBREAKER_Vol0_EN.pdf} (~{ } MB)
 • Spoilers: up to Episode 1 only
 
 HOW THIS WAS MADE
@@ -61,7 +63,7 @@ and were structured, edited and supervised by the creator ({owner name}).
 Nothing was generated with the aim of imitating a specific artist's style or an existing work's characters.
 
 PLEASE NOTE
-• RED LEDGER is an original project. There is no anime, manga or publishing deal (yet).
+• LEDGERBREAKER is an original project. There is no anime, manga or publishing deal (yet).
 • Digital product: no refunds after download. If the file is broken or won't open,
   message me on Ko-fi and I'll send a fixed copy.
 • Personal use only. Please don't redistribute, resell, or use the files for AI training.
@@ -96,7 +98,7 @@ Add a small `SAMPLE / © 2026 masahiro20 / P7 Anime` in the corner of sample pag
 Use where the Ko-fi item form offers tags or a category (if it doesn't, the words already appear in the description):
 
 ```
-original story, worldbuilding, setting book, artbook PDF, battle shonen, character design, anime-style, digital download, AI-assisted
+LEDGERBREAKER, original story, worldbuilding, setting book, artbook PDF, battle shonen, character design, anime-style, digital download, AI-assisted
 ```
 
 Don't use: other series' titles or character names, "official", "anime adaptation", "hand-drawn".
@@ -104,7 +106,7 @@ Don't use: other series' titles or character names, "official", "anime adaptatio
 ## 7. "About the project" blurb (Ko-fi page About / shop header)
 
 ```
-RED LEDGER (赤い帳簿) is an original battle-series project:
+LEDGERBREAKER (帳簿破り) is an original battle-series project:
 a city where every power is a loan from the gods, a public ranking from ZERO to AAA,
 and a broke kid who inherited an infinite debt — and refuses to pay.
 
@@ -117,7 +119,7 @@ and edited by me. Your support goes straight into Vol.1.
 
 Title:
 ```
-Book of the Ledger Vol.0 is out — the RED LEDGER setting book (PDF, $4)
+Book of the Ledger Vol.0 is out — the LEDGERBREAKER setting book (PDF, $4)
 ```
 
 Body:
@@ -156,6 +158,12 @@ Thank you for reading — tell me which collateral you'd give up. 👇
 
 ### Don't claim
 - Anime/manga adaptation, streaming deals, "official", "hand-drawn", "limited", comparisons to existing series ("for fans of …"), "full Episode 1 script" (it's a 3-minute excerpt), or post-Episode-1 spoilers (Kujo's role, Nil's identity, Kei's past, S2 hook).
+
+### Title / naming rule (retitled 2026-10-09)
+- Use the **full name "LEDGERBREAKER — Book of the Ledger Vol.0"** in the item name, description and posts. Don't shorten it to "Book of the Ledger" or "Ledger" alone.
+- Write the title as one word, all caps: LEDGERBREAKER (not "Ledger Breaker"). The Japanese title is 帳簿破り; never transliterate it as レジャーブレイカー in Japanese text.
+- "Red Ledger" is no longer the series title — it survives only as the Episode 12 title and Hazama's in-story ledger.
+- During the transition, add "(formerly Red Ledger)" once per listing/post so existing buyers recognise the book.
 
 ### Pre-publish checklist
 - [ ] EN PDF built with no overflow (`node build.mjs vol0-en.html`)

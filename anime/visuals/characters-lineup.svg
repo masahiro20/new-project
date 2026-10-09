@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 700" width="1600" height="700" role="img" aria-labelledby="lt ld">
-  <title id="lt">RED LEDGER — Main Cast Silhouette Lineup</title>
+  <title id="lt">LEDGERBREAKER — Main Cast Silhouette Lineup</title>
   <desc id="ld">Eight original characters as flat silhouettes on a height chart, each with a glowing ledger mark on the left wrist in their lender color.</desc>
   <defs>
     <linearGradient id="bgG" x1="0" y1="0" x2="0" y2="1">
@@ -48,8 +48,8 @@
 
   <!-- title -->
   <g font-family="'Noto Sans JP','Hiragino Sans','Helvetica Neue',Arial,sans-serif">
-    <text x="800" y="46" text-anchor="middle" font-size="26" font-weight="800" letter-spacing="6" fill="#F5EEDD">RED LEDGER <tspan fill="#E5172F">MAIN CAST</tspan></text>
-    <text x="800" y="70" text-anchor="middle" font-size="14" fill="#9A958C" letter-spacing="3">赤い帳簿　メインキャスト　シルエット設定 ／ ledger mark = LEFT wrist</text>
+    <text x="800" y="46" text-anchor="middle" font-size="26" font-weight="800" letter-spacing="6" fill="#F5EEDD">LEDGERBREAKER <tspan fill="#E5172F">MAIN CAST</tspan></text>
+    <text x="800" y="70" text-anchor="middle" font-size="14" fill="#9A958C" letter-spacing="3">帳簿破り　メインキャスト　シルエット設定 ／ ledger mark = LEFT wrist</text>
   </g>
 
   <!-- spotlights + floor plates -->

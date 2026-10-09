@@ -1,5 +1,7 @@
 # 『帳簿の書 Vol.0』独自性・知的財産レビュー
 
+> 注：T-1 を受けて 2026-10-09 にシリーズ題を LEDGERBREAKER（帳簿破り）に変更（旧題 RED LEDGER、`docs/title-alternatives.md`）。ストア表記のルールは `launch/booth-listing.md` §7-5／`launch/kofi-listing.md` §9 に移した。本レビューは当時の記録のため旧題のまま残す。
+
 レビュー：P7 Anime 独自性／IP担当　2026-10-08
 対象：`book/vol0-ja.html`・`book/vol0-en.html`（PDF 全30ページの画像も確認。表紙 p1、貸主の紋章 p7、〈デフォルト〉図解 p13、人物ページ p16〜23）、`bible/series-bible.md`、`docs/review.md`（前回レビューとショーランナーの決定）、`launch/*.md` とサムネイル SVG
 方法：本文・図版を目で確認し、既存作品は記憶と Web 検索（2026-10-08）で照合。**法的な判断ではない。** 商標の最終確認はオーナーが公式データベースで行うこと。

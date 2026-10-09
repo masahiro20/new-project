@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1200 1200" width="1200" height="1200" role="img" aria-labelledby="t d">
-  <title id="t">RED LEDGER 帳簿の書 Vol.0 — BOOTH thumbnail</title>
-  <desc id="d">Square product thumbnail: the vertical city of Kanegura under a red sun, with the title RED LEDGER, 赤い帳簿, 帳簿の書 Vol.0, 設定資料集 PDF and the price ¥500.</desc>
+  <title id="t">LEDGERBREAKER 帳簿の書 Vol.0 — BOOTH thumbnail</title>
+  <desc id="d">Square product thumbnail: the vertical city of Kanegura under a red sun, with the title LEDGERBREAKER (two lines, LEDGER / BREAKER), 帳簿破り, 帳簿の書 Vol.0, 設定資料集 PDF and the price ¥500.</desc>
   <defs>
     <linearGradient id="fade" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#0E0B10" stop-opacity="0"/>
@@ -36,10 +36,11 @@
 
   <!-- title block -->
   <g font-family="'Dela Gothic One',sans-serif">
-    <text x="108" y="790" font-size="150" fill="#E5172F" filter="url(#glow)" textLength="990" lengthAdjust="spacingAndGlyphs">RED LEDGER</text>
+    <text x="108" y="664" font-size="140" fill="#E5172F" filter="url(#glow)">LEDGER</text>
+    <text x="108" y="796" font-size="140" fill="#E5172F" filter="url(#glow)">BREAKER</text>
   </g>
-  <rect x="112" y="822" width="560" height="4" fill="#E5172F"/>
-  <text x="700" y="842" font-family="'Zen Kaku Gothic New',sans-serif" font-weight="700" font-size="46" fill="#F5EEDD" letter-spacing="22">赤い帳簿</text>
+  <rect x="112" y="826" width="560" height="4" fill="#E5172F"/>
+  <text x="700" y="868" font-family="'Zen Kaku Gothic New',sans-serif" font-weight="700" font-size="46" fill="#F5EEDD" letter-spacing="22">帳簿破り</text>
 
   <text x="110" y="960" font-family="'Dela Gothic One',sans-serif" font-size="92" fill="#F5EEDD">帳簿の書 <tspan fill="#E5172F">Vol.0</tspan></text>
 
