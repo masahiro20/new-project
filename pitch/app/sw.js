@@ -3,13 +3,13 @@
 // cache-first. Only same-origin GETs for those files and navigations within the app folder
 // are handled; everything else (cross-origin, other paths) goes straight to the network and is
 // never cached. Audio never passes through here: files are decoded in the page.
-const VERSION = 'bea7745977ee';
+const VERSION = '5ec7cb79bb13';
 const SCOPE = self.registration.scope;
 const PREFIX = 'pitch-app:' + SCOPE + ':';
 const CACHE = PREFIX + VERSION;
 const PRECACHE = ["index.html","manifest.webmanifest","icons/icon-192.png","icons/icon-512.png","icons/icon-maskable-192.png","icons/icon-maskable-512.png","icons/apple-touch-icon.png"].map((p) => new URL(p, SCOPE).href);
 const INDEX = PRECACHE[0];
-const SHA256 = ["901789a4714adb6306a1f460326bb46ce507934351df81375b8ab98208210677","8fd1d85733f119abdc37a87c7b92d81d7c5d14aba38be3fd0d838d1b9de7e461","74cf065916d6e80f95d603e6f7d739463e57eac8aa2936399c408b224578333e","8fd008887fc0db7ba5db70d5cf5d0fae98e003c01caedace798e5f0f49a9eac3","e172816c90f0feb56c725fff82cdedbb30191622b281bf6481659e6ff4753091","b3d898a80f2684c712d3201b51f86f6045290895684f9f9a9cea270d3e1f7c7c","273e4e3aca6c29c726f313c5aa8575b47dc08c3bdabe7ae12d19cbd6654f7f7d"];
+const SHA256 = ["e266631192cb08c83b67e4f094a563eb63c5164e4f3d6468a674f03366a4e585","8fd1d85733f119abdc37a87c7b92d81d7c5d14aba38be3fd0d838d1b9de7e461","74cf065916d6e80f95d603e6f7d739463e57eac8aa2936399c408b224578333e","8fd008887fc0db7ba5db70d5cf5d0fae98e003c01caedace798e5f0f49a9eac3","e172816c90f0feb56c725fff82cdedbb30191622b281bf6481659e6ff4753091","b3d898a80f2684c712d3201b51f86f6045290895684f9f9a9cea270d3e1f7c7c","273e4e3aca6c29c726f313c5aa8575b47dc08c3bdabe7ae12d19cbd6654f7f7d"];
 
 const hex = (buf) => Array.from(new Uint8Array(buf), (b) => b.toString(16).padStart(2, '0')).join('');
 const matches = async (res, i) => !!res && hex(await crypto.subtle.digest('SHA-256', await res.clone().arrayBuffer())) === SHA256[i];
