@@ -765,8 +765,9 @@ function initWorld(){
   // ---- desk with floating holo screen ----
   const deskTopMat=new THREE.MeshPhysicalMaterial({color:0x141c33,metalness:.3,roughness:.1,transparent:true,opacity:.88,clearcoat:1,envMapIntensity:.35});
   const chairMat=std(0x1c2236,{metalness:.5,roughness:.4,envMapIntensity:.3});
-  // Screens of the public sites (published with the page as shots/*.webp; public pages only)
-  const PROD_SHOTS={P0:["shots/p0.webp","shots/p0check.webp"],P1:["shots/p1.webp"],P2:["shots/p2.webp"],P3:["shots/p3.webp"]};
+  // Each team's real output on its desk monitors (shots/*.webp published with the page): P0-P3 public sites,
+  // P4 store screenshot, P5 product site, P7 cover and character art, P8 game screenshot, HQ Midas's P0 checklist.
+  const PROD_SHOTS={HQ:["shots/hq.webp"],P0:["shots/p0.webp","shots/p0check.webp"],P1:["shots/p1.webp"],P2:["shots/p2.webp"],P3:["shots/p3.webp"],P4:["shots/p4.webp"],P5:["shots/p5.webp"],P7:["shots/p7.webp"],P8:["shots/p8.webp"]};
   const PROD_IMG={};for(const c in PROD_SHOTS)PROD_IMG[c]=PROD_SHOTS[c].map(u=>{const im=new Image();im.onload=()=>{for(const q of people)if(q.team.code===c)q.desk.userData.drawn="";};im.src=u;return im;});
   function makeDesk(color){
     const g=new THREE.Group();
