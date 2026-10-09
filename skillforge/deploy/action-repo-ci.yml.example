@@ -1,0 +1,75 @@
+# Example CI for the future dedicated action repository (OWNER/kotomark-action, option B in docs/repo-migration.md).
+# NOT active here: copy it to .github/workflows/ci.yml in that repository.
+#
+# It runs the action from the repository itself (`uses: ./`) on the bundled example (example/script.csv +
+# example/glossary.json, copied in by scripts/release-action.mjs) and checks the outputs. The example has known
+# errors, so the run uses fail-on: never and asserts on the counts instead.
+#
+# Caveat: GitHub's Marketplace publishing docs have listed "the repository must not contain workflow files"
+# among the requirements. Check the current docs before publishing; if it still applies, keep this CI in the
+# source repository instead (run it against out/kotomark-action/ after `npm run release:action`).
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  self-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4 # pin to a commit SHA in the real repository
+
+      - name: Bundle runs standalone
+        run: node dist/kotomark.mjs --help
+
+      - id: kotomark
+        uses: ./
+        with:
+          paths: example/script.csv
+          glossary: example/glossary.json
+          fail-on: never
+          junit-path: reports/kotomark.xml
+          json-path: reports/kotomark.json
+
+      - name: Check outputs
+        shell: bash
+        env:
+          ERRORS: ${{ steps.kotomark.outputs.errors }}
+          WARNINGS: ${{ steps.kotomark.outputs.warnings }}
+          EXIT_CODE: ${{ steps.kotomark.outputs.exit-code }}
+        run: |
+          set -euo pipefail
+          echo "errors=$ERRORS warnings=$WARNINGS exit-code=$EXIT_CODE"
+          [[ "$EXIT_CODE" == "0" ]]
+          (( ERRORS > 0 ))     # the example contains known errors
+          (( WARNINGS > 0 ))
+          test -s reports/kotomark.xml
+          test -s reports/kotomark.json
+
+      - id: gate
+        name: fail-on error must fail on the example
+        uses: ./
+        continue-on-error: true
+        with:
+          paths: example/script.csv
+          glossary: example/glossary.json
+          annotations: "false"
+          summary: "false"
+
+      - name: Check gating
+        shell: bash
+        env:
+          OUTCOME: ${{ steps.gate.outcome }}
+          EXIT_CODE: ${{ steps.gate.outputs.exit-code }}
+        run: |
+          [[ "$OUTCOME" == "failure" && "$EXIT_CODE" == "1" ]]

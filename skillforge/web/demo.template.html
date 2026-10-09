@@ -60,7 +60,9 @@ h1, h2, h3, h4 { margin: 0; line-height: 1.3; }
 .mast h1 { font-size: 26px; font-weight: 700; letter-spacing: 0.02em; }
 .mast h1 small { font-size: 13px; font-weight: 400; color: var(--ink-3); margin-left: 6px; }
 .mast .lede { color: var(--ink-2); font-size: 14px; margin-top: 4px; }
-.samples { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.samples { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: flex-end; }
+.mast-side { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; min-width: 0; }
+.seg-ui legend { font-size: 13px; color: var(--ink-2); }
 
 /* Buttons */
 button, .btn { font: inherit; font-size: 14px; cursor: pointer; border-radius: var(--radius); border: 1px solid var(--rule); background: var(--surface); color: var(--ink); padding: 7px 12px; line-height: 1.3; }
@@ -245,93 +247,104 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
 @media (max-width: 520px) {
   .mast h1 { font-size: 22px; }
   .lines > div { grid-template-columns: 1fr; gap: 0; }
+  .mast-side { align-items: flex-start; }
+  .samples { justify-content: flex-start; }
 }
 </style>
 
-<div class="wrap">
+<div class="wrap" id="app" lang="ja">
   <header class="mast">
     <div>
-      <h1>Kotomark<small>（仮称）台本の揺れチェッカー</small></h1>
-      <p class="lede">日英ゲーム台本の訳揺れ・表記揺れ・キャラ名・敬称・口調をまとめて点検します。<span class="en">JA↔EN script consistency checker</span></p>
+      <h1>Kotomark<small data-i18n="mast.sub">（仮称）台本の揺れチェッカー</small></h1>
+      <p class="lede" data-i18n="mast.lede">日英ゲーム台本の訳揺れ・表記揺れ・キャラ名・敬称・口調をまとめて点検します。<span class="en">JA↔EN script consistency checker</span></p>
     </div>
-    <div class="samples">
-      <button type="button" id="btn-sample-jaen" class="btn-primary">サンプル台本で試す（日→英）</button>
-      <button type="button" id="btn-sample-enja" class="btn-small">英→日 XLIFF サンプル</button>
+    <div class="mast-side">
+      <fieldset class="seg seg-ui" id="ui-lang">
+        <legend data-i18n="ui.legend">画面</legend>
+        <span class="seg-track">
+          <input type="radio" name="ui-lang" id="ui-lang-ja" value="ja" checked><label for="ui-lang-ja" lang="ja">日本語</label>
+          <input type="radio" name="ui-lang" id="ui-lang-en" value="en"><label for="ui-lang-en" lang="en">English</label>
+        </span>
+      </fieldset>
+      <div class="samples">
+        <button type="button" id="btn-sample-jaen" class="btn-primary" data-i18n="sample.jaen">サンプル台本で試す（日→英）</button>
+        <button type="button" id="btn-sample-enja" class="btn-small" data-i18n="sample.enja">英→日 XLIFF サンプル</button>
+      </div>
     </div>
   </header>
 
-  <section class="inputs" aria-label="入力">
+  <section class="inputs" aria-label="入力" data-i18n-attr="aria-label:inputs.aria">
     <div class="panel" id="panel-script">
-      <h2>台本 <span class="en">Script</span></h2>
-      <p class="hint">CSV / TSV / Excel (.xlsx) / JSON / XLIFF / gettext (.po)。Unity・Unreal の文字列テーブルにも対応。ファイルは複数選択・ドラッグ＆ドロップ可。表は ja / en（または source / target）列が必要です。ja.json と en.json のような言語別ファイルはキーで自動的に対にします。</p>
+      <h2 data-i18n="script.h">台本 <span class="en">Script</span></h2>
+      <p class="hint" data-i18n="script.hint">CSV / TSV / Excel (.xlsx) / JSON / XLIFF / gettext (.po)。Unity・Unreal の文字列テーブルにも対応。ファイルは複数選択・ドラッグ＆ドロップ可。表は ja / en（または source / target）列が必要です。ja.json と en.json のような言語別ファイルはキーで自動的に対にします。</p>
       <div class="field">
-        <label for="script-files">ファイルを追加 <span class="en">Add files</span></label>
+        <label for="script-files" data-i18n="script.files">ファイルを追加 <span class="en">Add files</span></label>
         <input type="file" id="script-files" multiple accept=".csv,.tsv,.json,.xlf,.xliff,.xlsx,.po,.pot,.yml,.yaml,.rpy,.ks">
       </div>
-      <ul class="files" id="file-list" aria-label="読み込み済みファイル"></ul>
+      <ul class="files" id="file-list" aria-label="読み込み済みファイル" data-i18n-attr="aria-label:script.list"></ul>
       <div class="field">
-        <label for="script-text">または貼り付け <span class="en">or paste</span></label>
-        <textarea id="script-text" spellcheck="false" placeholder="id,speaker,ja,en&#10;ch1_001,リゼット,ようこそ。,Welcome."></textarea>
+        <label for="script-text" data-i18n="script.paste">または貼り付け <span class="en">or paste</span></label>
+        <textarea id="script-text" spellcheck="false" placeholder="id,speaker,ja,en&#10;ch1_001,リゼット,ようこそ。,Welcome." data-i18n-attr="placeholder:script.placeholder"></textarea>
       </div>
       <div class="field-row">
         <div class="field">
-          <label for="script-name">ファイル名（結果の表示用）</label>
+          <label for="script-name" data-i18n="script.name">ファイル名（結果の表示用）</label>
           <input type="text" id="script-name" value="script.csv" spellcheck="false" autocomplete="off">
         </div>
         <div class="field">
-          <label for="script-format">形式 <span class="en">Format</span></label>
+          <label for="script-format" data-i18n="script.format">形式 <span class="en">Format</span></label>
           <select id="script-format">
-            <option value="auto">自動判定 (auto)</option>
+            <option value="auto" data-i18n="fmt.auto">自動判定 (auto)</option>
             <option value="csv">CSV</option>
             <option value="tsv">TSV</option>
             <option value="json">JSON</option>
             <option value="xliff">XLIFF</option>
             <option value="po">gettext PO</option>
-            <option value="yaml">YAML（ロケール）</option>
-            <option value="renpy">Ren'Py（tl/*.rpy）</option>
-            <option value="ks">KAG / TyranoScript（.ks）</option>
+            <option value="yaml" data-i18n="fmt.yaml">YAML（ロケール）</option>
+            <option value="renpy" data-i18n="fmt.renpy">Ren'Py（tl/*.rpy）</option>
+            <option value="ks" data-i18n="fmt.ks">KAG / TyranoScript（.ks）</option>
           </select>
         </div>
       </div>
     </div>
 
     <div class="panel" id="panel-gloss">
-      <h2>用語集・キャラ設定 <span class="en">Glossary (optional)</span></h2>
-      <p class="hint">JSON・CSV/TSV（Crowdin・Phrase などの用語集エクスポートも可）・TBX。省略しても表記揺れ・話者名・タグ等は検出できますが、訳揺れ・敬称・口調のチェックには用語集が必要です。</p>
+      <h2 data-i18n="gloss.h">用語集・キャラ設定 <span class="en">Glossary (optional)</span></h2>
+      <p class="hint" data-i18n="gloss.hint">JSON・CSV/TSV（Crowdin・Phrase などの用語集エクスポートも可）・TBX。省略しても表記揺れ・話者名・タグ等は検出できますが、訳揺れ・敬称・口調のチェックには用語集が必要です。</p>
       <div class="field">
-        <label for="gloss-file">ファイルを読み込む <span class="en">Load file</span></label>
+        <label for="gloss-file" data-i18n="gloss.file">ファイルを読み込む <span class="en">Load file</span></label>
         <input type="file" id="gloss-file" accept=".json,.csv,.tsv,.txt,.tbx,.xml">
       </div>
       <div class="field">
-        <label for="gloss-text">内容 <span class="en">Contents</span></label>
+        <label for="gloss-text" data-i18n="gloss.text">内容 <span class="en">Contents</span></label>
         <textarea id="gloss-text" spellcheck="false" placeholder='{ "terms": [ { "source": "魔導石", "target": "Mana Stone" } ], "characters": [] }'></textarea>
       </div>
     </div>
   </section>
 
   <div class="runbar">
-    <div class="opts" role="group" aria-label="オプション">
-      <label class="check" for="opt-rules"><input type="checkbox" id="opt-rules" checked><span>追加ルール（プレースホルダー・タグ・ルビ・文字数）<span class="en"> bonus rules</span></span></label>
-      <label class="check" for="opt-wide"><input type="checkbox" id="opt-wide"><span>全角を2文字として数える<span class="en"> wide = 2</span></span></label>
+    <div class="opts" role="group" aria-label="オプション" data-i18n-attr="aria-label:opts.aria">
+      <label class="check" for="opt-rules"><input type="checkbox" id="opt-rules" checked><span data-i18n="opt.rules">追加ルール（プレースホルダー・タグ・ルビ・文字数）<span class="en"> bonus rules</span></span></label>
+      <label class="check" for="opt-wide"><input type="checkbox" id="opt-wide"><span data-i18n="opt.wide">全角を2文字として数える<span class="en"> wide = 2</span></span></label>
       <fieldset class="seg" id="opt-locale">
-        <legend>指摘の言語<span class="en"> messages</span>：</legend>
+        <legend data-i18n="opt.locale">指摘の言語<span class="en"> messages</span>：</legend>
         <span class="seg-track">
-          <input type="radio" name="opt-locale" id="opt-locale-ja" value="ja" checked><label for="opt-locale-ja" lang="ja">日本語</label>
+          <input type="radio" name="opt-locale" id="opt-locale-ja" value="ja" checked><label for="opt-locale-ja" id="opt-locale-ja-label" lang="ja" data-i18n="opt.locale.ja">日本語</label>
           <input type="radio" name="opt-locale" id="opt-locale-en" value="en"><label for="opt-locale-en" lang="en">English</label>
         </span>
       </fieldset>
     </div>
     <p class="run-status" id="run-status" role="status"></p>
-    <button type="button" id="btn-run" class="btn-primary">チェック実行 <span class="sr-only">Run checks</span></button>
+    <button type="button" id="btn-run" class="btn-primary" data-i18n="run">チェック実行 <span class="sr-only">Run checks</span></button>
   </div>
 
   <div class="errors" id="errors" role="alert" hidden></div>
 
-  <section class="results" id="results" tabindex="-1" aria-label="チェック結果"></section>
+  <section class="results" id="results" tabindex="-1" aria-label="チェック結果" data-i18n-attr="aria-label:results.aria"></section>
 
   <footer>
-    <p>すべての処理はこのブラウザ内で行われます。台本や用語集はどこにもアップロードされません。<span class="en">Everything runs in your browser; nothing is uploaded.</span></p>
-    <p>Kotomark（仮称） — 作業名です。指摘メッセージと Markdown レポートは日本語・英語を切り替えられます（「指摘の言語」）。<span class="en">Messages and the Markdown report are available in Japanese or English.</span></p>
+    <p data-i18n="footer.1">すべての処理はこのブラウザ内で行われます。台本や用語集はどこにもアップロードされません。<span class="en">Everything runs in your browser; nothing is uploaded.</span></p>
+    <p data-i18n="footer.2">Kotomark（仮称） — 作業名です。指摘メッセージと Markdown レポートは日本語・英語を切り替えられます（「指摘の言語」）。<span class="en">Messages and the Markdown report are available in Japanese or English.</span></p>
   </footer>
 </div>
 
@@ -343,6 +356,232 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
   const $ = (id) => document.getElementById(id);
   const ESC = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ESC[c]);
+
+  // ---------- UI language (画面の言語) ----------
+  // 画面の文言はここに集約。値は文字列か関数（引数は呼び出し側でエスケープ済み）。日本語版は従来どおり英語の小見出し（.en）付き。
+  // 「指摘の言語」（エンジンの locale）とは別の設定。
+  const EN_ = (s) => `<span class="en">${s}</span>`;
+  const I18N = {
+    ja: {
+      "title": "Kotomark 台本チェッカー",
+      "mast.sub": "（仮称）台本の揺れチェッカー",
+      "mast.lede": `日英ゲーム台本の訳揺れ・表記揺れ・キャラ名・敬称・口調をまとめて点検します。${EN_("JA↔EN script consistency checker")}`,
+      "ui.legend": "画面",
+      "sample.jaen": "サンプル台本で試す（日→英）",
+      "sample.enja": "英→日 XLIFF サンプル",
+      "inputs.aria": "入力",
+      "script.h": `台本 ${EN_("Script")}`,
+      "script.hint": "CSV / TSV / Excel (.xlsx) / JSON / XLIFF / gettext (.po)。Unity・Unreal の文字列テーブルにも対応。ファイルは複数選択・ドラッグ＆ドロップ可。表は ja / en（または source / target）列が必要です。ja.json と en.json のような言語別ファイルはキーで自動的に対にします。",
+      "script.files": `ファイルを追加 ${EN_("Add files")}`,
+      "script.list": "読み込み済みファイル",
+      "script.paste": `または貼り付け ${EN_("or paste")}`,
+      "script.placeholder": "id,speaker,ja,en\nch1_001,リゼット,ようこそ。,Welcome.",
+      "script.name": "ファイル名（結果の表示用）",
+      "script.format": `形式 ${EN_("Format")}`,
+      "fmt.auto": "自動判定 (auto)", "fmt.yaml": "YAML（ロケール）", "fmt.renpy": "Ren'Py（tl/*.rpy）", "fmt.ks": "KAG / TyranoScript（.ks）",
+      "gloss.h": `用語集・キャラ設定 ${EN_("Glossary (optional)")}`,
+      "gloss.hint": "JSON・CSV/TSV（Crowdin・Phrase などの用語集エクスポートも可）・TBX。省略しても表記揺れ・話者名・タグ等は検出できますが、訳揺れ・敬称・口調のチェックには用語集が必要です。",
+      "gloss.file": `ファイルを読み込む ${EN_("Load file")}`,
+      "gloss.text": `内容 ${EN_("Contents")}`,
+      "opts.aria": "オプション",
+      "opt.rules": `追加ルール（プレースホルダー・タグ・ルビ・文字数）${EN_(" bonus rules")}`,
+      "opt.wide": `全角を2文字として数える${EN_(" wide = 2")}`,
+      "opt.locale": `指摘の言語${EN_(" messages")}：`,
+      "opt.locale.ja": "日本語",
+      "run": `チェック実行 <span class="sr-only">Run checks</span>`,
+      "results.aria": "チェック結果",
+      "footer.1": `すべての処理はこのブラウザ内で行われます。台本や用語集はどこにもアップロードされません。${EN_("Everything runs in your browser; nothing is uploaded.")}`,
+      "footer.2": `Kotomark（仮称） — 作業名です。指摘メッセージと Markdown レポートは日本語・英語を切り替えられます（「指摘の言語」）。${EN_("Messages and the Markdown report are available in Japanese or English.")}`,
+      // file list
+      "file.edit": "編集", "file.remove": "外す", "file.removeAria": (n) => `${n} を外す`,
+      "size.chars": (n) => `${n} 文字`, "size.kchars": (k) => `${k}k 文字`,
+      // errors / run
+      "err.softH": "一部の入力を読み込めませんでした（他のファイルでチェックを続行）", "err.hardH": "入力を確認してください", "err.sep": "：",
+      "where.engine": "エンジン", "msg.noEngine": "チェックエンジンが組み込まれていません。web/build-demo.mjs でビルドしたHTMLを開いてください。",
+      "where.script": "台本", "msg.emptyScript": "台本が空です。テキストを貼り付けるか、ファイルを追加してください。",
+      "where.load": "読み込み", "msg.noRows": "翻訳行が1行も見つかりませんでした。形式や列名を確認してください。",
+      "where.gloss": (n) => `用語集 ${n}`, "note.gloss": (n) => `用語集 ${n}`,
+      "where.check": "チェック", "where.sample": "サンプル", "msg.noSample": "サンプルが組み込まれていません。web/build-demo.mjs でビルドしたHTMLを開いてください。",
+      "paste.prefix": "(貼り付け) ",
+      "status": (sample, n) => `${sample ? "サンプルを実行しました：" : "チェック完了："}<span class="num">${n}</span>件の指摘 · <a href="#results" id="jump-results">結果を見る ↓</a>`,
+      // results
+      "usage": (sfx) => `使用状況${sfx ? "（" + sfx + "）" : ""}`,
+      "fix.found": "検出", "fix.expected": "期待", "line.source": "原文", "line.target": "訳文", "side.source": "原文側", "side.target": "訳文側",
+      "meta.table": (file, fmt, n, sl, tl) => `${file} ${fmt} <span class="num">${n}</span>行 ${sl}→${tl}`,
+      "meta.sep": " ／ ",
+      "meta.gloss": (t, c) => `用語集 <span class="num">${t}</span>語・キャラ <span class="num">${c}</span>人`,
+      "res.h": `チェック結果 ${EN_("Results")}`,
+      "badge.sample": (k) => `サンプル${k === "ja-en" ? "（日→英）" : "（英→日）"}`,
+      "pilot.btn": `試用モード（指摘に印を付ける）${EN_("pilot")}`,
+      "copy.mdBtn": "Markdown をコピー", "notes.aria": "読み込みメモ", "md.aria": "Markdown レポート",
+      "sev.label": (n) => `重要度 ${EN_(`severity · 合計 ${n}件`)}`,
+      "cat.label": `分類 ${EN_("category")}`,
+      "sev.error": "エラー", "sev.warning": "警告", "sev.info": "参考",
+      "empty.none": `揺れは見つかりませんでした。 ${EN_("No issues found.")}`,
+      "empty.filter": "この絞り込みに該当する指摘はありません。",
+      "count": (n) => `${n}件`,
+      "pk.summary": `要判断パケット ${EN_("Review packets")}`,
+      "pk.intro": "ルールだけでは判断できない行（口調・用語集にない頻出語）をまとめたものです。AIアシスタントや校正担当に渡して確認してください。",
+      "pk.copy": "パケットを JSON でコピー",
+      "kind.voice": "口調", "kind.unglossaried-term": "未登録用語",
+      "pk.lines": (n) => `${n}行`,
+      // copy
+      "copy.done": (l) => `${l}をコピーしました。`,
+      "copy.fail": "自動コピーできませんでした。下のテキストを選択済みです（Ctrl+C / ⌘C でコピー）。",
+      "copy.md": "Markdown レポート", "copy.packets": "レビューパケット",
+      "copy.labels": (a, b) => `ラベル CSV（${a} / ${b}件に印）`, "copy.known": (n) => `見逃し CSV（${n}件）`,
+      "csv.fail": "CSV を作れませんでした：",
+      // pilot / feedback
+      "fb.labeled": `印を付けた指摘 ${EN_("labeled")}`, "fb.precision": `適合率 ${EN_("precision TP/(TP+FP)")}`,
+      "fb.caption": "分類ごとの内訳", "fb.thCat": `分類 ${EN_("category")}`, "fb.thLabeled": "印 / 件数",
+      "fb.tp": "正しい指摘", "fb.fp": "誤検知", "fb.unsure": "保留", "fb.thPrec": "適合率",
+      "known.empty": `<li class="en">まだありません。 No missed issues logged.</li>`,
+      "known.del": "外す", "known.delAria": (id) => `${id} を一覧から外す`,
+      "fb.h": `フィードバック ${EN_("Pilot feedback")}`,
+      "fb.s1": `各指摘の下で「正しい指摘 / 誤検知 / 保留」を選ぶ ${EN_("mark each finding TP / FP / unsure")}`,
+      "fb.s2": `誤検知には「コメント」で理由を一言 ${EN_("a short reason helps most")}`,
+      "fb.s3": `「ラベルをコピー（CSV）」→ メールやチャットに貼り付けて送る ${EN_("copy, paste, send")}`,
+      "fb.s4": `人のチェックで見つけた問題が指摘に無ければ「見逃しを追加」 ${EN_("log misses below")}`,
+      "fb.hint": `印はこのブラウザにだけ保存され、同じ入力で開き直すと復元されます。カテゴリごとに30件ほど見れば十分です。${EN_("Saved in this browser only.")}`,
+      "fb.blank": `原文・訳文の列を空にする（推奨）${EN_(" omit script text")}`,
+      "fb.copyLabels": "ラベルをコピー（CSV）", "fb.labelsAria": "ラベル CSV",
+      "known.h": `見逃しを追加 ${EN_("Add a missed issue (known.csv)")}`,
+      "known.ref": `文字列ID か ファイル名:行 ${EN_("id or file:line")}`,
+      "known.cat": `分類 ${EN_("category")}`, "known.memo": `メモ ${EN_("note")}`,
+      "known.memoPh": "魔導石の訳が Magic Stone",
+      "known.add": `追加 ${EN_("add")}`, "known.copy": "見逃しをコピー（CSV）",
+      "known.csvAria": "見逃し CSV", "known.listAria": "追加した見逃し",
+      "known.needRef": "文字列ID か「ファイル名:行」を入力してください。",
+      "known.notFound": (r) => `「${r}」の行が見つかりません。ファイル名と行番号（または文字列ID）を確認してください。`,
+      "known.added": (id, cat) => `${id}（${cat}）を追加しました。`,
+      "known.removed": "一覧から外しました。",
+      "v.aria": (ref, rule) => `判定 ${ref} ${rule}`,
+      "v.tp": `正しい指摘 ${EN_("TP")}`, "v.fp": `誤検知 ${EN_("FP")}`, "v.unsure": `保留 ${EN_("unsure")}`,
+      "v.comment": "コメント", "v.ph": "理由など一言（任意）", "v.commentAria": (ref) => `コメント ${ref}`,
+    },
+    en: {
+      "title": "Kotomark Script Checker",
+      "mast.sub": " (working name) script consistency checker",
+      "mast.lede": "Checks JA↔EN game scripts for translation drift, katakana notation variants, character names, honorifics and voice — all in one pass.",
+      "ui.legend": "Interface",
+      "sample.jaen": "Try the sample script (JA→EN)",
+      "sample.enja": "EN→JA XLIFF sample",
+      "inputs.aria": "Inputs",
+      "script.h": "Script",
+      "script.hint": "CSV / TSV / Excel (.xlsx) / JSON / XLIFF / gettext (.po), plus Unity and Unreal string tables. Select several files or drag and drop them. Tables need ja / en (or source / target) columns. Per-language files such as ja.json and en.json are paired by key automatically.",
+      "script.files": "Add files",
+      "script.list": "Loaded files",
+      "script.paste": "Or paste",
+      "script.placeholder": "id,speaker,ja,en\nch1_001,Lisette,ようこそ。,Welcome.",
+      "script.name": "File name (shown in results)",
+      "script.format": "Format",
+      "fmt.auto": "Auto-detect", "fmt.yaml": "YAML (locale)", "fmt.renpy": "Ren'Py (tl/*.rpy)", "fmt.ks": "KAG / TyranoScript (.ks)",
+      "gloss.h": "Glossary and characters (optional)",
+      "gloss.hint": "JSON, CSV/TSV (including glossary exports from Crowdin, Phrase and others) or TBX. Without a glossary, notation variants, speaker names, tags and similar issues are still found; term drift, honorific and voice checks need one.",
+      "gloss.file": "Load file",
+      "gloss.text": "Contents",
+      "opts.aria": "Options",
+      "opt.rules": "Extra rules (placeholders, tags, ruby, length)",
+      "opt.wide": "Count full-width characters as 2",
+      "opt.locale": "Finding messages:",
+      "opt.locale.ja": "Japanese",
+      "run": "Run checks",
+      "results.aria": "Check results",
+      "footer.1": "Everything runs in this browser. Your script and glossary are never uploaded anywhere.",
+      "footer.2": "Kotomark is a working name. Finding messages and the Markdown report can be switched between Japanese and English (“Finding messages”).",
+      "file.edit": "Edit", "file.remove": "Remove", "file.removeAria": (n) => `Remove ${n}`,
+      "size.chars": (n) => `${n} chars`, "size.kchars": (k) => `${k}k chars`,
+      "err.softH": "Some inputs could not be read (checking continues with the other files)", "err.hardH": "Please check your input", "err.sep": ": ",
+      "where.engine": "Engine", "msg.noEngine": "The check engine is not embedded. Open the HTML built by web/build-demo.mjs.",
+      "where.script": "Script", "msg.emptyScript": "The script is empty. Paste some text or add a file.",
+      "where.load": "Loading", "msg.noRows": "No translation rows were found. Check the format and the column names.",
+      "where.gloss": (n) => `Glossary ${n}`, "note.gloss": (n) => `Glossary ${n}`,
+      "where.check": "Check", "where.sample": "Sample", "msg.noSample": "The samples are not embedded. Open the HTML built by web/build-demo.mjs.",
+      "paste.prefix": "(pasted) ",
+      "status": (sample, n) => `${sample ? "Sample checked: " : "Check complete: "}<span class="num">${n}</span> ${n === 1 ? "finding" : "findings"} · <a href="#results" id="jump-results">View results ↓</a>`,
+      "usage": (sfx) => `Usage${sfx ? " (" + sfx + ")" : ""}`,
+      "fix.found": "Found", "fix.expected": "Expected", "line.source": "Source", "line.target": "Target", "side.source": "source side", "side.target": "target side",
+      "meta.table": (file, fmt, n, sl, tl) => `${file} ${fmt} <span class="num">${n}</span> rows ${sl}→${tl}`,
+      "meta.sep": " / ",
+      "meta.gloss": (t, c) => `glossary <span class="num">${t}</span> ${t === 1 ? "term" : "terms"} · <span class="num">${c}</span> ${c === 1 ? "character" : "characters"}`,
+      "res.h": "Results",
+      "badge.sample": (k) => `SAMPLE ${k === "ja-en" ? "(JA→EN)" : "(EN→JA)"}`,
+      "pilot.btn": "Trial mode (label findings)",
+      "copy.mdBtn": "Copy Markdown", "notes.aria": "Loading notes", "md.aria": "Markdown report",
+      "sev.label": (n) => `Severity ${EN_(`· ${n} total`)}`,
+      "cat.label": "Category",
+      "sev.error": "Error", "sev.warning": "Warning", "sev.info": "Info",
+      "empty.none": "No issues found.",
+      "empty.filter": "No findings match this filter.",
+      "count": (n) => `${n}`,
+      "pk.summary": "Review packets",
+      "pk.intro": "Lines that rules alone cannot judge (voice, frequent terms missing from the glossary), grouped for review. Hand them to an AI assistant or a proofreader.",
+      "pk.copy": "Copy packets as JSON",
+      "kind.voice": "Voice", "kind.unglossaried-term": "Unglossaried term",
+      "pk.lines": (n) => `${n} ${n === 1 ? "line" : "lines"}`,
+      "copy.done": (l) => `Copied ${l}.`,
+      "copy.fail": "Automatic copy failed. The text below is selected (press Ctrl+C / ⌘C to copy).",
+      "copy.md": "the Markdown report", "copy.packets": "the review packets",
+      "copy.labels": (a, b) => `the label CSV (${a} of ${b} labeled)`, "copy.known": (n) => `the missed-issues CSV (${n})`,
+      "csv.fail": "Could not build the CSV: ",
+      "fb.labeled": "Labeled", "fb.precision": `Precision ${EN_("TP/(TP+FP)")}`,
+      "fb.caption": "Breakdown by category", "fb.thCat": "Category", "fb.thLabeled": "Labeled / total",
+      "fb.tp": "Correct", "fb.fp": "False positive", "fb.unsure": "Unsure", "fb.thPrec": "Precision",
+      "known.empty": `<li class="en">No missed issues logged yet.</li>`,
+      "known.del": "Remove", "known.delAria": (id) => `Remove ${id} from the list`,
+      "fb.h": "Trial feedback",
+      "fb.s1": "Under each finding, choose Correct / False positive / Unsure",
+      "fb.s2": "For false positives, a one-line reason under “Comment” helps most",
+      "fb.s3": "Click “Copy labels (CSV)”, then paste it into an email or chat and send it",
+      "fb.s4": "If your own review found a problem that is not listed, use “Add a missed issue”",
+      "fb.hint": "Labels are saved in this browser only and come back when you reopen the same input. About 30 findings per category is plenty.",
+      "fb.blank": "Leave the source / target columns empty (recommended)",
+      "fb.copyLabels": "Copy labels (CSV)", "fb.labelsAria": "Label CSV",
+      "known.h": `Add a missed issue ${EN_("(known.csv)")}`,
+      "known.ref": "String ID or file:line",
+      "known.cat": "Category", "known.memo": "Note",
+      "known.memoPh": "Mana Stone rendered as Magic Stone",
+      "known.add": "Add", "known.copy": "Copy missed issues (CSV)",
+      "known.csvAria": "Missed-issues CSV", "known.listAria": "Missed issues added",
+      "known.needRef": "Enter a string ID or “file:line”.",
+      "known.notFound": (r) => `No line found for “${r}”. Check the file name and line number (or the string ID).`,
+      "known.added": (id, cat) => `Added ${id} (${cat}).`,
+      "known.removed": "Removed from the list.",
+      "v.aria": (ref, rule) => `Verdict ${ref} ${rule}`,
+      "v.tp": `Correct ${EN_("TP")}`, "v.fp": `False positive ${EN_("FP")}`, "v.unsure": "Unsure",
+      "v.comment": "Comment", "v.ph": "Short reason (optional)", "v.commentAria": (ref) => `Comment ${ref}`,
+    },
+  };
+  const UI_KEY = "kotomark.demo.ui";
+  function loadUi() {
+    try { const v = localStorage.getItem(UI_KEY); if (v === "ja" || v === "en") return v; } catch (_) { /* storage unavailable */ }
+    const nav = (navigator.languages && navigator.languages[0]) || navigator.language || "";
+    return /^ja\b/i.test(nav) ? "ja" : "en";
+  }
+  function saveUi(v) { try { localStorage.setItem(UI_KEY, v); } catch (_) { /* storage unavailable: choice lasts this visit only */ } }
+  let ui = loadUi();
+  function t(key, ...args) {
+    let v = I18N[ui][key];
+    if (v === undefined) v = I18N.ja[key];
+    if (v === undefined) return key;
+    return typeof v === "function" ? v(...args) : v;
+  }
+  // Static chrome: data-i18n → innerHTML (trusted dictionary), data-i18n-attr="attr:key;attr:key".
+  function applyStaticI18n() {
+    const root = $("app");
+    root.setAttribute("lang", ui);
+    document.documentElement.setAttribute("lang", ui);
+    document.title = t("title");
+    for (const el of root.querySelectorAll("[data-i18n]")) el.innerHTML = t(el.dataset.i18n);
+    for (const el of root.querySelectorAll("[data-i18n-attr]")) {
+      for (const pair of el.dataset.i18nAttr.split(";")) {
+        const [attr, key] = pair.split(":");
+        el.setAttribute(attr, t(key));
+      }
+    }
+    $("opt-locale-ja-label").setAttribute("lang", ui);
+    $(ui === "en" ? "ui-lang-en" : "ui-lang-ja").checked = true;
+  }
 
   const CAT_ORDER = ["term", "notation", "name", "honorific", "voice", "placeholder", "tag", "ruby", "length", "untranslated"];
   const CAT_TITLE = {
