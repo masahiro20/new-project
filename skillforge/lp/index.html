@@ -118,6 +118,8 @@ code, .mono { font-family: var(--font-mono); font-size: .9em; }
 }
 .lang button + button { border-left: 1px solid var(--rule-strong); }
 .lang button[aria-pressed="true"] { background: var(--ink); color: var(--bg); font-weight: 700; }
+.lang button { white-space: nowrap; }
+@media (max-width: 420px) { .brand small { display: none; } }
 .lang button:focus-visible { outline-offset: -3px; }
 
 /* Buttons */
@@ -196,6 +198,26 @@ section { scroll-margin-top: 72px; }
 @media (max-width: 700px) { .bonus { grid-template-columns: minmax(0, 1fr); } }
 .fineprint { margin-top: 16px; font-size: 13px; color: var(--ink-3); }
 .packets { margin-top: 20px; padding: 18px 22px; border-left: 3px solid var(--accent); background: var(--accent-soft); border-radius: 0 var(--radius) var(--radius) 0; font-size: 15px; color: var(--ink); }
+
+/* Tested on real translations */
+.proof { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 16px; align-items: stretch; }
+@media (max-width: 860px) { .proof { grid-template-columns: minmax(0, 1fr); } }
+.proof-main { background: var(--surface); border: 1px solid var(--rule); border-top: 3px solid var(--ok); border-radius: var(--radius); padding: 24px; display: flex; flex-direction: column; gap: 12px; }
+.proof-fig { font-family: var(--font-mono); font-weight: 500; font-size: clamp(40px, 6vw, 56px); line-height: 1; color: var(--ok); letter-spacing: -.02em; }
+.proof-fig small { font-size: .4em; color: var(--ink-3); letter-spacing: 0; margin-left: 6px; }
+.proof-main p { font-size: 16px; color: var(--ink); }
+.proof-main .meta { font-size: 13px; color: var(--ink-3); }
+.proof-facts { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; }
+.proof-facts li { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); padding: 16px 20px; display: grid; grid-template-columns: 6.6em minmax(0, 1fr); gap: 4px 16px; align-items: baseline; font-size: 15px; color: var(--ink-2); }
+.proof-facts .n { font-family: var(--font-mono); font-size: 18px; font-weight: 500; color: var(--ink); white-space: nowrap; }
+.proof-facts b { color: var(--ink); }
+@media (max-width: 480px) { .proof-facts li { grid-template-columns: minmax(0, 1fr); } }
+.projects { margin-top: 20px; padding: 18px 22px; border: 1px solid var(--rule); border-radius: var(--radius); font-size: 14px; color: var(--ink-2); }
+.projects ul { margin: 8px 0 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px 20px; font-size: 15px; }
+.projects ul li { white-space: nowrap; }
+.projects .note { margin-top: 10px; font-size: 13px; color: var(--ink-3); }
+.limits { margin-top: 16px; font-size: 13px; color: var(--ink-3); }
+.limits a { font-weight: 500; }
 
 /* How it works */
 .ways { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; counter-reset: way; }
@@ -289,6 +311,7 @@ section { scroll-margin-top: 72px; }
     </a>
     <nav class="head-nav" aria-label="Page">
       <a class="navlink" href="#catch"><span class="t" lang="ja">検出できること</span><span class="t" lang="en">What it catches</span></a>
+      <a class="navlink" href="#results"><span class="t" lang="ja">実績</span><span class="t" lang="en">Results</span></a>
       <a class="navlink" href="#how"><span class="t" lang="ja">使い方</span><span class="t" lang="en">How it works</span></a>
       <a class="navlink" href="#data"><span class="t" lang="ja">データの扱い</span><span class="t" lang="en">Data</span></a>
       <a class="navlink" href="#pilot"><span class="t" lang="ja">試用協力</span><span class="t" lang="en">Pilot</span></a>
@@ -429,11 +452,55 @@ section { scroll-margin-top: 72px; }
   </div>
 </section>
 
-<!-- ===== How it works ===== -->
-<section id="how" class="band alt" aria-labelledby="how-title">
+<!-- ===== Tested on real translations (source: docs/real-world-eval.md) ===== -->
+<section id="results" class="band alt" aria-labelledby="results-title">
   <div class="wrap">
     <div class="sec-head">
       <span class="sec-num">02</span>
+      <h2 id="results-title"><span class="t" lang="ja">実績：実際の翻訳ファイルで検証</span><span class="t" lang="en">Tested on real translations</span></h2>
+      <p class="t" lang="ja">オープンソースのゲーム・アプリが公開している英→日の翻訳ファイル6本（合計 約12,600エントリ）に Kotomark をかけ、指摘を1件ずつ確認しました。</p>
+      <p class="t" lang="en">We ran Kotomark on 6 public English→Japanese translation files from open-source games and apps (about 12,600 entries in total) and checked the findings one by one.</p>
+    </div>
+
+    <div class="proof">
+      <div class="proof-main">
+        <div class="proof-fig" aria-hidden="true">190<small>/ 190</small></div>
+        <p class="t" lang="ja">CI で止める警告・エラーは、抜き取り確認した<strong>190件すべてが実際の問題</strong>でした（改善後）。改善前は同じ基準で約70%でした。</p>
+        <p class="t" lang="en">Of the warnings and errors that fail a CI check, <strong>all 190 sampled findings were real issues</strong> (after improvements). Before the improvements, the same measure was about 70%.</p>
+        <p class="meta t" lang="ja">2026年10月、自社調べ。抜き取った指摘にラベルを付けて判定。</p>
+        <p class="meta t" lang="en">October 2026, in-house evaluation of a labeled sample of findings.</p>
+      </div>
+      <ul class="proof-facts">
+        <li><span class="n">97 / 97</span><span class="t" lang="ja"><b>カタカナ表記揺れ</b>は、確認した97件すべてが本物でした。例：ユーザ／ユーザー、プレイヤー／プレーヤー。</span><span class="t" lang="en"><b>Katakana notation drift:</b> all 97 checked findings were real, e.g. ユーザ / ユーザー and プレイヤー / プレーヤー.</span></li>
+        <li><span class="n">156 / 156</span><span class="t" lang="ja"><b>未翻訳・要確認（fuzzy）の行</b>を、行番号付きで1件ずつ報告します。確認した156件すべてが本物でした。</span><span class="t" lang="en"><b>Untranslated and fuzzy lines</b> are reported one by one, with line numbers. All 156 checked were real.</span></li>
+        <li><span class="n">6</span><span class="t" lang="ja"><b>公開翻訳ファイル</b>（約12,600エントリ）。改善前の誤検知の多くはプレースホルダーやタグの誤判定で、エンジン側で直してテストを追加しました。</span><span class="t" lang="en"><b>Public translation files</b> (~12,600 entries). Most earlier false positives came from misreading placeholders and tags; we fixed them in the engine and added tests.</span></li>
+      </ul>
+    </div>
+
+    <div class="projects">
+      <span class="t" lang="ja">検証に使った公開翻訳ファイル：</span><span class="t" lang="en">Public translation files we used:</span>
+      <ul>
+        <li><a href="https://github.com/supertuxkart/stk-code">SuperTuxKart</a></li>
+        <li><a href="https://github.com/Orama-Interactive/Pixelorama">Pixelorama</a></li>
+        <li><a href="https://github.com/luanti-org/luanti">Luanti</a></li>
+        <li><a href="https://github.com/godotengine/godot">Godot Engine</a> <span class="t" lang="ja">（エディタ）</span><span class="t" lang="en">(editor)</span></li>
+        <li><a href="https://github.com/wesnoth/wesnoth">Battle for Wesnoth</a> <span class="t" lang="ja">（キャンペーン・UI）</span><span class="t" lang="en">(campaign, UI)</span></li>
+      </ul>
+      <p class="note t" lang="ja">これらのプロジェクトが Kotomark を推奨しているわけではありません。公開されている翻訳ファイルに検査をかけただけです。ライセンス：GPL / LGPL / MIT。</p>
+      <p class="note t" lang="en">These projects did not endorse Kotomark; we only ran it on their public translation files. Licenses: GPL/LGPL/MIT.</p>
+    </div>
+
+    <!-- TODO before launch: the repo is private; replace this link with a public one. -->
+    <p class="limits t" lang="ja">限界：ラベル付けは評価者1名によるものです。対象は英→日の UI・ゲーム文字列で、日→英の台本での検証は協力者の方と行う予定です（未実施）。用語集を使う指摘の精度は、用語集の質に左右されます。<a href="https://github.com/masahiro20/new-project/blob/peter/p1-skillforge/skillforge/docs/real-world-eval.md">評価の詳細</a></p>
+    <p class="limits t" lang="en">Limits: one evaluator labeled the findings. The files are English→Japanese UI and game strings; evaluation on Japanese→English scripts with pilot partners is still pending. Glossary-based term checks are only as good as the glossary. <a href="https://github.com/masahiro20/new-project/blob/peter/p1-skillforge/skillforge/docs/real-world-eval.md">Full evaluation</a></p>
+  </div>
+</section>
+
+<!-- ===== How it works ===== -->
+<section id="how" class="band" aria-labelledby="how-title">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">03</span>
       <h2 id="how-title"><span class="t" lang="ja">使い方は3通り</span><span class="t" lang="en">Three ways to run it</span></h2>
       <p class="t" lang="ja">どれも同じ検査エンジンです。結果はすべて <code>ファイル名:行番号</code> 付きで返ります。</p>
       <p class="t" lang="en">All three use the same engine, and every finding comes back with <code>file:line</code>.</p>
@@ -478,10 +545,10 @@ section { scroll-margin-top: 72px; }
 </section>
 
 <!-- ===== Data handling ===== -->
-<section id="data" class="band" aria-labelledby="data-title">
+<section id="data" class="band alt" aria-labelledby="data-title">
   <div class="wrap">
     <div class="sec-head">
-      <span class="sec-num">03</span>
+      <span class="sec-num">04</span>
       <h2 id="data-title"><span class="t" lang="ja">台本は保存しません</span><span class="t" lang="en">Your script is not stored</span></h2>
       <p class="t" lang="ja">NDA のかかった台本を扱う前提で設計しています。</p>
       <p class="t" lang="en">Designed on the assumption that your script is under NDA.</p>
@@ -514,10 +581,10 @@ section { scroll-margin-top: 72px; }
 </section>
 
 <!-- ===== Audience ===== -->
-<section id="who" class="band alt" aria-labelledby="who-title">
+<section id="who" class="band" aria-labelledby="who-title">
   <div class="wrap">
     <div class="sec-head">
-      <span class="sec-num">04</span>
+      <span class="sec-num">05</span>
       <h2 id="who-title"><span class="t" lang="ja">誰のためのツールか</span><span class="t" lang="en">Who it's for</span></h2>
     </div>
     <div class="aud">
@@ -552,10 +619,10 @@ section { scroll-margin-top: 72px; }
 </section>
 
 <!-- ===== Pilot ===== -->
-<section id="pilot" class="band" aria-labelledby="pilot-title">
+<section id="pilot" class="band alt" aria-labelledby="pilot-title">
   <div class="wrap pilot">
     <div>
-      <span class="sec-num">05</span>
+      <span class="sec-num">06</span>
       <h2 id="pilot-title"><span class="t" lang="ja">試用協力者を募集中</span><span class="t" lang="en">Looking for pilot partners</span></h2>
       <p class="lede t" lang="ja">実際の日英台本で試し、指摘が当たりか外れかを教えてくださる方を探しています。結果は誤検出と見逃しを減らすために使います。</p>
       <p class="lede t" lang="en">We're looking for teams who will run it on a real JA↔EN script and tell us which findings were right and which were wrong. We use the results to cut false positives and misses.</p>
@@ -579,10 +646,10 @@ section { scroll-margin-top: 72px; }
 </section>
 
 <!-- ===== FAQ ===== -->
-<section id="faq" class="band alt" aria-labelledby="faq-title">
+<section id="faq" class="band" aria-labelledby="faq-title">
   <div class="wrap">
     <div class="sec-head">
-      <span class="sec-num">06</span>
+      <span class="sec-num">07</span>
       <h2 id="faq-title"><span class="t" lang="ja">よくある質問</span><span class="t" lang="en">FAQ</span></h2>
     </div>
     <div class="faq">
@@ -645,8 +712,8 @@ section { scroll-margin-top: 72px; }
     <span class="brand">Kotomark</span>
     <p class="t" lang="ja">「Kotomark」は仮称です。商標の確認が済んでいないため、名称は変わる可能性があります。</p>
     <p class="t" lang="en">“Kotomark” is a working name (仮称). The trademark check is not finished, so the name may change.</p>
-    <p class="t" lang="ja">このページの台本・キャラ名・用語はすべて説明用の架空のものです。Kotomark は独立した製品で、Anthropic を含むAI提供元とは提携していません。Claude Code は対応クライアントの一例として記載しています。</p>
-    <p class="t" lang="en">All script lines, character names and terms on this page are invented for illustration. Kotomark is an independent product, not affiliated with or endorsed by Anthropic or any other AI provider. Claude Code is named only as a compatible client.</p>
+    <p class="t" lang="ja">このページの台本・キャラ名・用語は、「実績」欄の公開プロジェクト名を除き、すべて説明用の架空のものです。Kotomark は独立した製品で、Anthropic を含むAI提供元とは提携していません。Claude Code は対応クライアントの一例として記載しています。</p>
+    <p class="t" lang="en">Apart from the open-source project names in the results section, all script lines, character names and terms on this page are invented for illustration. Kotomark is an independent product, not affiliated with or endorsed by Anthropic or any other AI provider. Claude Code is named only as a compatible client.</p>
   </div>
 </footer>
 

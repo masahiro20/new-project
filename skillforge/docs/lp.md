@@ -7,14 +7,14 @@
 > `npx tsx src/cli/index.ts check samples/ja-en/script.csv samples/ja-en/ch2.json --glossary samples/ja-en/glossary.json`
 
 Audience: game localization vendors (LSP / LQA teams) and indie developers / publishers shipping JA↔EN.
-Tone: factual, no testimonials, no customer logos, no invented metrics, no prices.
+Tone: factual, no testimonials, no customer logos, no invented metrics, no prices. The only metrics on the page come from `docs/real-world-eval.md`.
 
 ---
 
 ## 0. Header
 
 - Brand: **Kotomark**（仮称）/ Kotomark (working name)
-- Nav: 検出できること / What it catches · 使い方 / How it works · データの扱い / Data · 試用協力 / Pilot
+- Nav: 検出できること / What it catches · 実績 / Results · 使い方 / How it works · データの扱い / Data · 試用協力 / Pilot
 - Language toggle: **日本語 / English** (default from `navigator.language`: `ja*` → 日本語, else English; choice saved in localStorage, ignored if storage is unavailable)
 
 ## 1. Hero
@@ -49,6 +49,34 @@ EN: Lines the rules can't judge become review packets. "Does this still sound li
 
 **Limits note (keep on page)** — JA: 日本語の解析は正規表現ベースのヒューリスティックです（形態素解析は使っていません）。見逃しや誤検出があり得るため、口調の指摘は「警告」「情報」にとどめています。
 EN: Japanese analysis is heuristic and regex-based (no morphological analyzer). It will miss or misread some lines, which is why voice findings stay at warning or info level.
+
+## 2b. 実績：実際の翻訳ファイルで検証 / Tested on real translations
+
+Source: `docs/real-world-eval.md` (2026-10-09). Placed right after "What it catches" (section 02 on the page; later sections renumbered 03–07). Nav: 実績 / Results.
+
+Intro — JA: オープンソースのゲーム・アプリが公開している英→日の翻訳ファイル6本（合計 約12,600エントリ）に Kotomark をかけ、指摘を1件ずつ確認しました。
+EN: We ran Kotomark on 6 public English→Japanese translation files from open-source games and apps (about 12,600 entries in total) and checked the findings one by one.
+
+**Headline figure: 190 / 190**
+- JA: CI で止める警告・エラーは、抜き取り確認した**190件すべてが実際の問題**でした（改善後）。改善前は同じ基準で約70%でした。
+- EN: Of the warnings and errors that fail a CI check, **all 190 sampled findings were real issues** (after improvements). Before the improvements, the same measure was about 70%.
+- Meta — JA: 2026年10月、自社調べ。抜き取った指摘にラベルを付けて判定。 / EN: October 2026, in-house evaluation of a labeled sample of findings.
+
+**Supporting facts**
+- **97 / 97** — JA: **カタカナ表記揺れ**は、確認した97件すべてが本物でした。例：ユーザ／ユーザー、プレイヤー／プレーヤー。 / EN: **Katakana notation drift:** all 97 checked findings were real, e.g. ユーザ / ユーザー and プレイヤー / プレーヤー.
+- **156 / 156** — JA: **未翻訳・要確認（fuzzy）の行**を、行番号付きで1件ずつ報告します。確認した156件すべてが本物でした。 / EN: **Untranslated and fuzzy lines** are reported one by one, with line numbers. All 156 checked were real.
+- **6** — JA: **公開翻訳ファイル**（約12,600エントリ）。改善前の誤検知の多くはプレースホルダーやタグの誤判定で、エンジン側で直してテストを追加しました。 / EN: **Public translation files** (~12,600 entries). Most earlier false positives came from misreading placeholders and tags; we fixed them in the engine and added tests.
+
+**Projects** (text links to the public repos; names only, no logos): [SuperTuxKart](https://github.com/supertuxkart/stk-code) · [Pixelorama](https://github.com/Orama-Interactive/Pixelorama) · [Luanti](https://github.com/luanti-org/luanti) · [Godot Engine](https://github.com/godotengine/godot)（エディタ / editor） · [Battle for Wesnoth](https://github.com/wesnoth/wesnoth)（キャンペーン・UI / campaign, UI）
+- JA: これらのプロジェクトが Kotomark を推奨しているわけではありません。公開されている翻訳ファイルに検査をかけただけです。ライセンス：GPL / LGPL / MIT。
+- EN: These projects did not endorse Kotomark; we only ran it on their public translation files. Licenses: GPL/LGPL/MIT.
+
+**Limits (keep on page)**
+- JA: 限界：ラベル付けは評価者1名によるものです。対象は英→日の UI・ゲーム文字列で、日→英の台本での検証は協力者の方と行う予定です（未実施）。用語集を使う指摘の精度は、用語集の質に左右されます。[評価の詳細](https://github.com/masahiro20/new-project/blob/peter/p1-skillforge/skillforge/docs/real-world-eval.md)
+- EN: Limits: one evaluator labeled the findings. The files are English→Japanese UI and game strings; evaluation on Japanese→English scripts with pilot partners is still pending. Glossary-based term checks are only as good as the glossary. [Full evaluation](https://github.com/masahiro20/new-project/blob/peter/p1-skillforge/skillforge/docs/real-world-eval.md)
+- **TODO before launch:** the repo is private, so the "Full evaluation" link 404s for visitors. Replace it with a public link (HTML comment marks it too).
+
+Footer adjusted: "all … invented for illustration" now excepts the open-source project names in this section.
 
 ## 3. 使い方は3通り / Three ways to run it
 
@@ -108,7 +136,7 @@ Ask for: file format, language direction, rough line count.
 ## 8. Footer
 
 - 「Kotomark」は仮称です。商標の確認が済んでいないため、名称は変わる可能性があります。 / "Kotomark" is a working name (仮称). The trademark check is not finished, so the name may change.
-- All script lines, character names and terms on this page are invented for illustration. Kotomark is an independent product, not affiliated with or endorsed by Anthropic or any other AI provider. Claude Code is named only as a compatible client.
+- Apart from the open-source project names in the results section, all script lines, character names and terms on this page are invented for illustration. (JA: このページの台本・キャラ名・用語は、「実績」欄の公開プロジェクト名を除き、すべて説明用の架空のものです。) Kotomark is an independent product, not affiliated with or endorsed by Anthropic or any other AI provider. Claude Code is named only as a compatible client.
 
 ---
 
@@ -127,6 +155,8 @@ Ask for: file format, language direction, rough line count.
 9. **Invented names** (Lisette, Mina, Tobias, 魔導石, ルーンゲート): confirm no collision with a real game before publishing.
 10. **ToS:** the "reasoning runs on your own subscription" model must comply with the AI provider's terms; server-side judging must use our own API key only.
 11. Removed from the earlier draft until re-approved: prices ($49 / $29 / $99), the AMTA 2026 F1 ≈ 0.77 citation, competitor comparisons, enterprise promises (dedicated instance, no-retention mode), "works with any MCP client", Claude Desktop.
+12. **"190 / 190" precision figure** (`docs/real-world-eval.md`). Single evaluator; sample-based (labeled sample of up to 50 findings per file × setting, not every finding); EN→JA .po UI/game strings only. Note: the evaluator was an AI subagent, not a human LQA reviewer. The page deliberately says only "one evaluator" / "in-house evaluation" and does not say "human-reviewed"; decide before launch whether to have a human LQA reviewer re-check the labels or disclose the AI labeling explicitly. The round-2 QA itself was 190 TP / 2 FP (0.99); the 2 FPs (italics dropped in Japanese) were then downgraded to info, so they no longer count at the CI level. "100%" must always appear with "sampled" and "warnings + errors". Re-verify if rules or severities change. The "~70% before" figure is setting A (no glossary); setting B was 0.34.
+13. **Use of project names** (SuperTuxKart, Pixelorama, Luanti, Godot Engine, Battle for Wesnoth). Nominative use only: plain-text names with links to their repos, no logos or screenshots, the non-endorsement line next to them, and no wording that suggests partnership or customer status. Check each project's trademark policy (Godot, for one, publishes one) before launch. Translation text is not reproduced on the page; the examples (ユーザ／ユーザー, プレイヤー／プレーヤー) are generic words.
 
 ### 公開前チェックリスト / Pre-launch checklist
 
@@ -135,5 +165,6 @@ Ask for: file format, language direction, rough line count.
 - [ ] **Privacy policy for the waitlist / pilot contact** — required before collecting any email (APPI; GDPR if EU visitors). No form until it exists.
 - [ ] **Trademark check** — registry search for "Kotomark" (JP + US at minimum), then drop or keep 仮称.
 - [ ] **Owner approval** — of the final copy, the domain/hosting, and publishing itself (no posting, accounts or outreach without it).
+- [ ] **Public link for the evaluation** — replace the private GitHub "評価の詳細 / Full evaluation" URL.
 - [ ] Claims list above reviewed and each item either confirmed or reworded.
 - [ ] Remove `<meta name="robots" content="noindex">` only when approved to go public.
