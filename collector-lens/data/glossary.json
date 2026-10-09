@@ -179,7 +179,7 @@
         "極美品"
       ],
       "en": "Excellent+ (near mint)",
-      "explain": "Rank above 美品: near mint with minimal wear. Shops use it fairly consistently; private sellers may be generous.",
+      "explain": "Rank above 美品 (bihin, \"fine\"): near mint with minimal wear. Shops use it fairly consistently; private sellers may be generous.",
       "genre": [
         "general"
       ],
@@ -193,7 +193,7 @@
         "超美品"
       ],
       "en": "Excellent (very fine)",
-      "explain": "'Super fine' – roughly between 美品 and 極美品. Not standardised; compare with the photos.",
+      "explain": "'Super fine' – roughly between 美品 (\"fine\") and 極美品 (\"near mint\"). Not standardised; compare with the photos.",
       "genre": [
         "general"
       ],
@@ -207,7 +207,7 @@
         "良品"
       ],
       "en": "Good (normal wear)",
-      "explain": "Shop rank below 美品: normal signs of use. Also used loosely to mean simply 'a good item'.",
+      "explain": "Shop rank below 美品 (\"fine\"): normal signs of use. Also used loosely to mean simply 'a good item'.",
       "genre": [
         "general"
       ],
@@ -221,7 +221,7 @@
         "並品"
       ],
       "en": "Average (noticeable wear)",
-      "explain": "Camera-shop rank below 良品: clearly used with visible wear. Usually still functional when sold by a shop, but check the notes.",
+      "explain": "Camera-shop rank below 良品 (\"good\"): clearly used with visible wear. Usually still functional when sold by a shop, but check the notes.",
       "genre": [
         "general"
       ],
@@ -1623,7 +1623,7 @@
         "外観"
       ],
       "en": "Exterior / cosmetics",
-      "explain": "Refers to the outside condition only (e.g. 外観美品). Says nothing about optics or function.",
+      "explain": "Refers to the outside condition only (e.g. 外観美品, \"body looks fine\"). Says nothing about optics or function.",
       "genre": [
         "camera"
       ],
@@ -2381,7 +2381,7 @@
         "マウント"
       ],
       "en": "Lens mount",
-      "explain": "Lens mount system (e.g. Mマウント, Fマウント). Check compatibility with your camera.",
+      "explain": "Lens mount system (e.g. Mマウント = Leica M mount, Fマウント = Nikon F mount). Check compatibility with your camera.",
       "genre": [
         "camera"
       ],
@@ -3560,7 +3560,7 @@
         "貼り合わせレンズ"
       ],
       "en": "Cemented elements",
-      "explain": "Two glass elements glued together. When the glue fails it is called balsam separation (バルサム切れ) — look for that word nearby.",
+      "explain": "Two glass elements glued together. When the glue fails it is called balsam separation (バルサム切れ, \"balsam separation\") — look for that word nearby.",
       "genre": [
         "camera",
         "lens"
@@ -4124,7 +4124,7 @@
         "スローガバナー"
       ],
       "en": "Slow-speed governor",
-      "explain": "The clockwork that times slow shutter speeds (1/30s and slower). If it sticks, slow speeds hang or run long — read alongside 'スロー粘り'.",
+      "explain": "The clockwork that times slow shutter speeds (1/30s and slower). If it sticks, slow speeds hang or run long — read alongside 'スロー粘り' (sticky slow speeds).",
       "genre": [
         "camera",
         "film_camera"
@@ -4157,7 +4157,7 @@
         "メカニカルシャッター"
       ],
       "en": "Mechanical shutter",
-      "explain": "Spring-driven shutter that fires without a battery. On digital bodies, 'メカシャッター' is the physical shutter (its count matters for wear).",
+      "explain": "Spring-driven shutter that fires without a battery. On digital bodies, 'メカシャッター' (mechanical shutter) is the physical shutter (its count matters for wear).",
       "genre": [
         "camera",
         "film_camera"
@@ -4276,7 +4276,7 @@
         "光漏れ"
       ],
       "en": "Light leak",
-      "explain": "Stray light reaches the film, leaving streaks or fogging — usually from rotten seals or a damaged back. On a digital screen, 光漏れ means backlight bleed.",
+      "explain": "Stray light reaches the film, leaving streaks or fogging — usually from rotten seals or a damaged back. On a digital screen, 光漏れ (\"light leak\") means backlight bleed.",
       "genre": [
         "camera",
         "film_camera"
