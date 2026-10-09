@@ -1,0 +1,178 @@
+diff --git a/app/check/CheckClient.tsx b/app/check/CheckClient.tsx
+index e4423eb..89223d1 100644
+--- a/app/check/CheckClient.tsx
++++ b/app/check/CheckClient.tsx
+@@ -57,7 +57,7 @@ export default function CheckClient({ ai }: { ai: boolean }) {
+       </div>
+ 
+       {showResult && (
+-        <div style={{ marginTop: 32 }}>
++        <div style={{ marginTop: 32 }} role="status">
+           {missing.length === 0 ? (
+             <p className="ok">すべての項目が整っています。来年度に向けて、年間計画と指針の見直しを続けましょう。</p>
+           ) : (
+diff --git a/app/generate/page.tsx b/app/generate/page.tsx
+index 57a08b1..c090d57 100644
+--- a/app/generate/page.tsx
++++ b/app/generate/page.tsx
+@@ -21,15 +21,15 @@ export default function GeneratePage() {
+           <p>それまでのあいだ、次の機能を無料でお使いいただけます。</p>
+           <div className="grid" style={{ marginTop: 16 }}>
+             <div className="card">
+-              <h3><Link href="/check">減算リスク診断</Link></h3>
++              <h2 className="h3"><Link href="/check">減算リスク診断</Link></h2>
+               <p>虐待防止・身体拘束・BCPの体制を、チェックリストで1分で確認できます。</p>
+             </div>
+             <div className="card">
+-              <h3><Link href="/samples">書類サンプル</Link></h3>
++              <h2 className="h3"><Link href="/samples">書類サンプル</Link></h2>
+               <p>委員会の議事録、研修資料と理解度テスト、身体拘束等適正化の指針の見本です。Wordで保存できます。</p>
+             </div>
+             <div className="card">
+-              <h3><Link href="/guide">サービス種別ごとの解説</Link></h3>
++              <h2 className="h3"><Link href="/guide">サービス種別ごとの解説</Link></h2>
+               <p>減算の要件、必要な書類、運営指導でよくある指摘をまとめています。</p>
+             </div>
+           </div>
+diff --git a/app/globals.css b/app/globals.css
+index 91df6f0..103cf2d 100644
+--- a/app/globals.css
++++ b/app/globals.css
+@@ -39,7 +39,7 @@ a { color: var(--accent); }
+ section { padding: 56px 0; }
+ h1 { font-size: clamp(1.7rem, 4.5vw, 2.5rem); line-height: 1.35; margin: 0 0 16px; }
+ h2 { font-size: clamp(1.3rem, 3vw, 1.7rem); line-height: 1.4; margin: 0 0 16px; }
+-h3 { font-size: 1.1rem; margin: 0 0 8px; }
++h3, .h3 { font-size: 1.1rem; margin: 0 0 8px; }
+ .lead { font-size: 1.1rem; color: var(--muted); }
+ .eyebrow { color: var(--accent); font-weight: 700; font-size: .9rem; letter-spacing: .06em; margin-bottom: 8px; }
+ 
+diff --git a/app/layout.tsx b/app/layout.tsx
+index c3c68d2..030b6e3 100644
+--- a/app/layout.tsx
++++ b/app/layout.tsx
+@@ -31,7 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode })
+         <header className="site-header">
+           <div className="wrap header-inner">
+             <Link href="/" className="logo">減算ゼロ</Link>
+-            <nav>
++            <nav aria-label="メインメニュー">
+               {ai && <Link href="/check">無料診断</Link>}
+               <Link href="/guide">解説</Link>
+               <Link href="/samples">サンプル</Link>
+@@ -46,11 +46,12 @@ export default function RootLayout({ children }: { children: React.ReactNode })
+         <main>{children}</main>
+         <footer className="site-footer">
+           <div className="wrap">
+-            <nav>
++            <nav aria-label="フッターメニュー">
+               <Link href="/terms">利用規約</Link>
+               {liveBilling() && <Link href="/legal">特定商取引法に基づく表記</Link>}
+               <Link href="/privacy">プライバシーポリシー</Link>
+-              <Link href="/llms.txt" prefetch={false}>llms.txt</Link>
++              {/* A plain file, not a page: next/link would try to route it as one. */}
++              <a href={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/llms.txt`}>llms.txt</a>
+             </nav>
+             <p>本サービスは書類作成を支援するツールです。制度の最新の取扱いは、指定権者（都道府県・市町村）の通知をご確認ください。</p>
+           </div>
+diff --git a/docs/qa-report.md b/docs/qa-report.md
+new file mode 100644
+index 0000000..81a37fc
+--- /dev/null
++++ b/docs/qa-report.md
+@@ -0,0 +1,69 @@
++# 減算ゼロ 品質保証（QA）報告 — 2026-10-09
++
++**担当：** Ren（P4 リーダー、本部の依頼で応援）
++**対象：** `peter/p0-genzan-zero` の `ca22df4`。`npm run export:pages` でビルドし、`/new-project/` 配下でローカル配信して確認した（GitHub Pages と同じ構成）。
++**注意：** 制度の記述の確認は、一次資料との照合による事実確認です。法的助言ではありません。
++
++## 結論
++- **重要度「高」の不具合・誤りはありませんでした。**
++- 表示・アクセシビリティ・リンクの小さな問題は、この報告と同じ差分で修正済みです（下の「修正済み」）。修正後は全30ページで axe の違反が0件です。
++- 制度の記述には「中」が6件、「低」が13件あります。本文の書き換えは Mina さんの担当範囲なので、修正案だけを載せ、本文には手を入れていません。
++
++## 1. 確認した内容と結果
++
++| 項目 | 方法 | 結果 |
++|---|---|---|
++| スマホ幅の表示崩れ | 全30ページを 375×812 と 1280×900 で表示。横はみ出し・文字の欠け・固定要素の重なり・タップ領域を検査し、主要ページはスクリーンショットを目視 | 横はみ出し・崩れ0件。24px未満のタップ領域が2種類あるが、間隔の例外で WCAG 2.5.8 は満たす |
++| アクセシビリティ | axe-core（wcag2a/2aa/21aa/best-practice）を全ページと操作後の4状態で実行。/check のスクリーンリーダー読み上げも確認 | 重大（critical/serious）0件。中程度2種・軽微1種 → 修正済み。読み上げ1件 → 修正済み |
++| リンク切れ | 全ページの a/link/img/script と、sitemap.xml・robots.txt・llms.txt・ページ内アンカーを確認。外部リンクは一覧化のみ（アクセスしていない） | 内部40件はすべて200。フッターの llms.txt をクリックすると404 → 修正済み |
++| 診断フローの全分岐 | /check の10項目の全組み合わせ（2^10＝1024通り）をブラウザで操作し、結果の見出し・項目・リンクを期待値と照合 | 1024/1024 一致。コンソールエラー0件。/api や外部への通信0件 |
++| AI 生成・決済（静的版） | /generate、/checkout/demo、/samples の Word 保存 | 「準備中」表示で /api 呼び出しなし。Word 保存は3種とも正常 |
++| 制度の記述と出典 | 解説ページ・診断・サンプルの記述を、留意事項通知・解釈通知・Q&A・報酬改定の概要・運営指導マニュアル・e-Gov・自治体資料と照合 | 減算率・対象・経過措置・Q&A の問番号は一致。引用 URL 26件は有効。「中」6件・「低」13件（下表） |
++
++## 2. 修正済み（この差分に含む、小さな修正のみ）
++
++| # | 重要度 | 内容 | 変更箇所 |
++|---|---|---|---|
++| 1 | 中 | フッターの「llms.txt」をクリックすると404になる（next/link がファイルをページとして扱おうとする） | `app/layout.tsx` を basePath 付きの通常の `<a>` に変更。`next.config.ts` の静的書き出し設定で `NEXT_PUBLIC_BASE_PATH` を渡す |
++| 2 | 中 | /check で「診断結果を見る」を押しても、結果がスクリーンリーダーに読み上げられない（WCAG 4.1.3） | `app/check/CheckClient.tsx` の結果の枠に `role="status"` |
++| 3 | 低 | ヘッダーとフッターの `<nav>` に名前がない（axe landmark-unique、全ページ） | `app/layout.tsx` に `aria-label="メインメニュー"`／`"フッターメニュー"` |
++| 4 | 低 | /generate で見出しが h1 から h3 に飛ぶ（axe heading-order） | `app/generate/page.tsx` を h2 に変更し、`app/globals.css` の `.h3` で見た目を維持 |
++| 5 | 低 | 身体拘束の指針の作り方のページで、表の左上の見出しセルが空（axe empty-table-header） | `lib/guide-pages/shishin-tsukurikata.ts` に「項目」 |
++
++確認：`tsc --noEmit` と eslint は成功。`export:pages` で再ビルドし、全30ページで axe の違反0件、横はみ出し0件、llms.txt のリンクが `/new-project/llms.txt` を開くことを確かめた。
++
++## 3. 制度の記述：要修正（本文は未修正。Mina さんの判断で反映してください）
++
++| 重要度 | ページ | 問題 | 根拠 | 修正案 |
++|---|---|---|---|---|
++| 中 | /check（と生成フォーム） | 身体拘束の項目が未チェックだと、どのサービスでも身体拘束廃止未実施減算の「おそれ」を表示する。計画相談・障害児相談・地域相談・自立生活援助・就労定着支援は対象外 | R6報酬改定の概要(9)、留意事項通知 第二の1⒁① | 最初にサービス種別を選ばせ、対象外の種別では「対象外」と表示する |
++| 中（要確認） | /check | 「今年度、委員会を開催」「今年度、研修を実施」。通知の基準は「1年に1回以上」で、島根県は「年度ではなく直近1年」と明示 | 島根県の案内、留意事項通知⒁③・⒂③ | 「直近1年以内」にするか、指定権者に確認する注記を付ける |
++| 中 | /check、トップ、`unei-shidou-junbi` | 「減算に直結する3つの体制」から情報公表未報告減算（10%/5%）が抜けている。早見表は5つを挙げており食い違う | 留意事項通知⑿ | 情報公表（障害児は支援プログラムの公表も）を加える |
++| 中 | `unei-shidou-junbi` | 出典「令和9年度報酬改定について（報告）」（001702861.pdf）は検討スケジュール等の資料で、本文の根拠にならない | 同PDF | 留意事項通知と運営指導マニュアルに差し替える |
++| 中 | 早見表の FAQ・期間表、`unei-shidou-shiteki-jirei`、各サービスのページ | 虐待防止・身体拘束の減算を「事実が生じた月の翌月から」とし、遡及するように読める。通知は「事実が生じた」を「基準を満たしていない状況が確認されたこと」と定めており、確認月の翌月から（遡及しない） | 留意事項通知⒁③・⒂③、大津市・島根県 | 「虐待防止・身体拘束は確認された月の翌月から（遡及しない）。BCP・情報公表は遡及する」と書き分ける |
++| 中 | `houkago-day-gensan`、`group-home-gensan`（`kyotaku-kaigo-gensan` の FAQ は低） | 新規採用時の虐待防止研修を「望ましい」「求める自治体もある」としている。解釈通知は「新規採用時には必ず…研修を実施することが重要」 | 障発0330第12号(35)③、解釈通知(31)③、尼崎市 | 解釈通知の文言に合わせる |
++| 中（要確認）／低 | `houkago-day-gensan`、`soudan-shien-gensan`（障害児相談） | BCP減算の「その日が月の初日なら当月」の但し書きは障害福祉サービスの通知だけで、障害児の通知にはない | 障発0330第16号(12)③ | 但し書きを削るか、BCPのページと同じ注記にする |
++| 低 | `gyakutai-boushi-gensan` | 減算事由に「結果の周知」が入っている。減算事由は委員会の未開催・研修の未実施・担当者の未配置の3つ | 留意事項通知⒂③ | 書き分け、出典に留意事項通知を加える |
++| 低 | `shintai-kousoku-gensan` | 対象外のサービスが書かれていない。切迫性を「生命・身体」とだけ書いている（手引きは「生命、身体、権利」） | R6概要(9)、手引き | 対象外を1行で示し、文言を手引きにそろえる |
++| 低 | `gensan-kasan-hayamihyo` | 定員超過と人員欠如が重なる場合は大きい方だけ、という例外が抜けている | 留意事項通知⒃ | 1文加える |
++| 低 | `gensan-kasan-hayamihyo` | 「制度の解釈誤りや単純な事務的ミスである場合を除き、不正請求」の除外は、マニュアルにない | マニュアル 4.13.4.1・4.13.4.3 | 断定しない書き方にする |
++| 低 | 早見表、`shuro-a-gensan` | 「障害者支援施設が行う就労継続支援A型」。障害者支援施設が行える昼間のサービスにA型はない（ただし通知の文言自体にもA型が並んでいる） | 施行規則 第1条の2 | A型については削る |
++| 低 | 各ページの根拠欄 | 「留意事項通知（令和7年3月31日改正後）」。R8の期中改定で通知が改正されている（率・対象は変更なし） | mhlw 001705650.pdf | 「R8改定後も変更なし（2026年10月確認）」と追記 |
++| 低 | `unei-shidou-shiteki-jirei` | 書面交付の根拠を行政手続法第35条第3項としている。自治体の行政指導は適用除外で、根拠は各自治体の行政手続条例 | マニュアル p.3 脚注4 | 「（自治体の場合は同旨の行政手続条例）」を加える |
++| 低 | `iinkai-gijiroku-kakikata` | 記入例は放課後等デイなのに、虚偽報告の条文が障害者総合支援法だけ | 児童福祉法 第21条の5の24 | 児童福祉法の条文を併記 |
++| 低 | `soudan-shien-gensan` | 「R6改定で相談支援が身体拘束減算の対象から除かれた」。相談支援は R5.4 の適用開始時から対象外 | 大津市、R6概要 | 「もともと対象外」と書く |
++| 低 | `lib/samples.ts` 研修スライド1 | 年1回以上の研修を「令和6年度報酬改定で求められている」としている。年1回以上は指定基準（R4義務化）。R6改定が加えたのは減算 | 解釈通知(31)③、R6概要(8) | 根拠の書き方を直す |
++
++### 正しいと確認できた主な記述
++減算率（虐待防止1%、身体拘束10%/1%、BCP 3%/1%、情報公表10%/5%、支援プログラム未公表85%算定）、対象サービスの区分、経過措置（R7.3.31終了、就労選択支援は R9.3.31 まで）、Q&A の問番号（14・15・19・21・84）、BCP・情報公表の遡及、身体拘束の指針の7項目、委員会記録の5年保存、運営指導マニュアル（R8.6）の指導区分と改善報告書、自治体資料の数字（福島市・千葉市・尼崎市）。
++
++### 確認できなかった項目
++- R8版の障害児の留意事項通知の変更点（cfa の R8 版を未取得）
++- 障害者支援施設の解釈通知（障発第0126001号）の原文。BCP研修・訓練の年2回は尼崎市資料でのみ確認
++- 障害者支援施設の併設型・空床利用型の短期入所が、R6概要の「障害者支援施設が行う各サービス」に含まれるか
++
++## 4. その他の改善案（低、未修正）
++- /check：チェックの枠を `fieldset`／`legend` にする。「すべてクリア」ボタンを置く。未整備の項目の前に「次の項目が確認できませんでした：」を付ける。
++- sitemap.xml：静的版では /generate（準備中）を外す。/privacy を載せるかを /terms とそろえる。
++- /、/check、/generate、/terms、/privacy に canonical がない。
++- パンくずのリンク（高さ16px）に余白を足す（任意）。
+diff --git a/lib/guide-pages/shishin-tsukurikata.ts b/lib/guide-pages/shishin-tsukurikata.ts
+index 7bdcfb6..cfb18d9 100644
+--- a/lib/guide-pages/shishin-tsukurikata.ts
++++ b/lib/guide-pages/shishin-tsukurikata.ts
+@@ -105,7 +105,7 @@ export const guide: Guide = {
+ 
+ 虐待防止についても、解釈通知に同じ構成の7項目（基本的な考え方、委員会その他の組織、研修、報告方法、発生時の対応、閲覧、その他）が示されています。ただし位置づけが違います。
+ 
+-| | 身体拘束等の適正化のための指針 | 虐待防止のための指針 |
++| 項目 | 身体拘束等の適正化のための指針 | 虐待防止のための指針 |
+ |---|---|---|
+ | 解釈通知の表現 | 「盛り込むこととする」（整備が必要） | 「作成することが望ましい」 |
+ | 減算との関係 | 未整備は身体拘束廃止未実施減算の対象 | 虐待防止措置未実施減算の要件ではない |
+diff --git a/next.config.ts b/next.config.ts
+index 8ed2506..9415fc9 100644
+--- a/next.config.ts
++++ b/next.config.ts
+@@ -10,6 +10,8 @@ const nextConfig: NextConfig = staticExport
+       output: "export",
+       basePath,
+       assetPrefix: basePath,
++      // Plain <a> links to static files (e.g. /llms.txt) need the prefix too.
++      env: { NEXT_PUBLIC_BASE_PATH: basePath },
+       trailingSlash: true,
+       images: { unoptimized: true },
+       poweredByHeader: false,
