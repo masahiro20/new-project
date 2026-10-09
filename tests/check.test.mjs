@@ -29,3 +29,14 @@ test("child day services also check the publication duties", () => {
 test("items use the 1-year rule, not the fiscal year", () => {
   for (const s of CHECK_SERVICES) for (const g of checkGroups(s)) for (const i of g.items) assert.ok(!i.includes("今年度"), i);
 });
+
+test("result link round-trips and rejects junk", async () => {
+  const { encodeResult, decodeResult } = await import("../lib/check.ts");
+  const answers = [true, false, true, true, false, false, false, false, true, false, false, true, true];
+  const hash = "#" + encodeResult(0, answers);
+  const r = decodeResult(hash);
+  assert.equal(r.serviceIndex, 0);
+  answers.forEach((on, i) => assert.equal(r.checked(i), on));
+  assert.equal(decodeResult("#r=999-1"), null);
+  assert.equal(decodeResult("#other"), null);
+});

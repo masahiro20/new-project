@@ -28,7 +28,8 @@ export const CHECK_SERVICES: CheckService[] = [
   { label: "その他の障害福祉サービス", kind: "unknown" },
 ];
 
-export type CheckGroup = { id: string; name: string; risk: string; items: string[] };
+export type NextStep = { label: string; href: string };
+export type CheckGroup = { id: string; name: string; risk: string; items: string[]; next: NextStep[] };
 
 /** The groups that apply to a service. Restraint does not apply to consultation services. */
 export function checkGroups(service: CheckService): CheckGroup[] {
@@ -47,6 +48,12 @@ export function checkGroups(service: CheckService): CheckGroup[] {
         "直近1年以内に虐待防止研修を実施し、記録がある",
         "虐待防止の担当者が決まっている",
       ],
+      next: [
+        { label: "議事録のひな形と例", href: "/guide/gyakutai-iinkai-gijiroku" },
+        { label: "研修資料の作り方", href: "/guide/gyakutai-kenshu-shiryou" },
+        { label: "見本：虐待防止委員会セット", href: "/samples#committee" },
+        { label: "見本：虐待防止研修セット", href: "/samples#training" },
+      ],
     },
   ];
   if (k !== "consultation") {
@@ -60,6 +67,11 @@ export function checkGroups(service: CheckService): CheckGroup[] {
         "直近1年以内に身体拘束等適正化の研修を実施した",
         "やむを得ず拘束する場合の記録様式がある",
       ],
+      next: [
+        { label: "身体拘束の指針ひな形", href: "/guide/shintai-kousoku-shishin" },
+        { label: "委員会の一体開催", href: "/guide/iinkai-ittai-kaisai" },
+        { label: "見本：身体拘束等適正化セット", href: "/samples#restraint" },
+      ],
     });
   }
   groups.push(
@@ -68,12 +80,14 @@ export function checkGroups(service: CheckService): CheckGroup[] {
       name: "業務継続計画（BCP）",
       risk: `業務継続計画未策定減算（所定単位数の${rate("3%", "1%")}）`,
       items: ["感染症の業務継続計画がある", "自然災害の業務継続計画がある"],
+      next: [{ label: "業務継続計画未策定減算とBCPのひな形", href: "/guide/bcp-gensan-jidou" }],
     },
     {
       id: "disclosure",
       name: "情報公表",
       risk: `情報公表未報告減算（所定単位数の${rate("10%", "5%")}）`,
       items: ["障害福祉サービス等情報公表システムに、事業所の情報を報告している"],
+      next: [{ label: "減算の早見表（サービス種別ごと）", href: "/guide/gensan-kasan-hayamihyo" }],
     },
   );
   if (service.child) {
@@ -82,6 +96,7 @@ export function checkGroups(service: CheckService): CheckGroup[] {
       name: "障害児通所支援の公表",
       risk: "支援プログラム未公表減算・自己評価結果等未公表減算（それぞれ所定単位数の85%で算定）",
       items: ["支援プログラムを作成し、公表して届け出ている", "自己評価・保護者評価をおおむね1年に1回以上行い、結果を公表して届け出ている"],
+      next: [{ label: "自己評価・保護者評価の公表と減算", href: "/guide/jidou-hyouka-kouhyou" }],
     });
   }
   return groups;
@@ -93,3 +108,19 @@ export const NOT_APPLICABLE_NOTE: Record<ServiceKind, string | null> = {
   consultation: "このサービスは、身体拘束廃止未実施減算の対象外です（令和6年度報酬改定の概要）。",
   unknown: "サービス種別によって減算率や対象が異なります。率は「施設・居住系／その他」の両方を表示しています。",
 };
+
+// Shareable result in the URL fragment (#r=<service>-<bits>): fragments are never sent to the
+// server, so "入力内容は送信されません" stays true even for a shared link.
+export function encodeResult(serviceIndex: number, checked: boolean[]): string {
+  const bits = checked.reduce((n, on, i) => (on ? n | (1 << i) : n), 0);
+  return `r=${serviceIndex}-${bits.toString(36)}`;
+}
+
+export function decodeResult(hash: string): { serviceIndex: number; checked: (i: number) => boolean } | null {
+  const m = /^#?r=(\d+)-([0-9a-z]+)$/.exec(hash);
+  if (!m) return null;
+  const serviceIndex = Number(m[1]);
+  if (!CHECK_SERVICES[serviceIndex]) return null;
+  const bits = parseInt(m[2], 36);
+  return { serviceIndex, checked: (i) => (bits & (1 << i)) !== 0 };
+}

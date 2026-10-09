@@ -138,3 +138,4 @@ h1, h2 { word-break: auto-phrase; text-wrap: balance; }
 @media (min-width: 860px) { .hero h1 { font-size: clamp(1.8rem, 3vw, 2.3rem); } }
 .check-group { border: 0; padding: 0; margin: 24px 0 0; min-width: 0; }
 .check-group legend { font-size: clamp(1.3rem, 3vw, 1.7rem); font-weight: 700; line-height: 1.4; margin-bottom: 8px; padding: 0; }
+.next-steps { margin: 8px 0 0; font-size: .92rem; color: var(--text); }
