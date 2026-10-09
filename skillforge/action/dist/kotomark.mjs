@@ -21274,7 +21274,7 @@ function parseXml(text) {
       addText(decodeEntities(src.slice(i2, lt), entities));
       advance(lt);
     }
-    if (src.startsWith("<!--", i2)) {
+    if (src.charCodeAt(i2 + 1) === 33 && src.startsWith("--", i2 + 2)) {
       const end = src.indexOf("-->", i2 + 4);
       if (end < 0) fail("unterminated comment");
       advance(end + 3);

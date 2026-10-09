@@ -64,7 +64,8 @@ export function parseXml(text: string): XmlElement {
       addText(decodeEntities(src.slice(i, lt), entities));
       advance(lt);
     }
-    if (src.startsWith("<!--", i)) {
+    // Comment start, spelled out so the demo can inline the bundle in a <script> (it must not contain the literal).
+    if (src.charCodeAt(i + 1) === 0x21 && src.startsWith("--", i + 2)) {
       const end = src.indexOf("-->", i + 4);
       if (end < 0) fail("unterminated comment");
       advance(end + 3);

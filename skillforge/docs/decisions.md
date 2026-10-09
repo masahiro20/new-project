@@ -10,3 +10,4 @@
 | 2026-10-09 | CLI の `--format` は出力形式（md/json/junit/github）、入力形式は `--input-format` | CI 用途で出力形式の指定が主になるため。旧書き方は警告付きで当面動く |
 | 2026-10-09 | 実データ検証は OSS の EN→JA .po（SuperTuxKart、Pixelorama、Luanti、Godot エディタ、Wesnoth）で行い、翻訳本文はリポジトリに入れない（出典・コミット・ライセンスと集計だけを置く） | GPL などのライセンス上の扱いを単純にするため |
 | 2026-10-09 | GitHub Action は skillforge/action/ に composite action として置き、ビルド済み CLI を同梱する | 利用者が npm install せずに使えるようにするため。専用リポジトリができたら移す |
+| 2026-10-09 | 用語集は Kotomark JSON に加え、TBX（v2 martif / v3 tbx）と CSV/TSV の用語ベース書き出し（Crowdin・Phrase 形式、ja,en 列）を読み込む。言語名で列が分かれる形式は台本の方向に合わせて読み、preferred→訳語・admitted→許容・deprecated/superseded→禁止とする。キャラ設定は TBX では表せないため JSON に残す | 翻訳会社・ローカライズ基盤の既存用語集をそのまま使えるようにするため。XML は依存なしの小さな読み取り器で読む（src/core をブラウザ安全に保つため） |

@@ -36,3 +36,5 @@ The rule engine runs on the remote `kotomark` MCP server. Judgement calls (does 
 ```
 
 `honorificPolicy`: `keep` (Lisette-sama), `drop` / `localize` (no romanized suffixes; titles like "Lady" are fine). Without it, only drift between lines is checked.
+
+Termbase files also work as glossaries: TBX (`.tbx`, v2 `<martif>` or v3 `<tbx>`) and CSV/TSV exports (Crowdin `Term [ja],…,Term [en]`, Phrase-style `ja,en,note,status`). Pass the file name (`filename: "terms.tbx"`) so the format is detected. Preferred terms become `target`, admitted ones `allowed`, deprecated/superseded ones `forbidden`. TBX cannot hold characters or voice profiles: suggest keeping those in Kotomark JSON (`kotomark glossary convert terms.tbx --out glossary.json`, then add `characters`). Show the user the import notes that `validate_glossary` returns.
