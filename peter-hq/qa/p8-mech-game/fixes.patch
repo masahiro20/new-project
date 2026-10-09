@@ -1,0 +1,274 @@
+diff --git a/mech-game/docs/game-design.md b/mech-game/docs/game-design.md
+index 4b4910d..8661b1f 100644
+--- a/mech-game/docs/game-design.md
++++ b/mech-game/docs/game-design.md
+@@ -57,7 +57,7 @@
+ | 浮殻（ふかく）★ | 浮遊型・砲撃 | 遠距離から曲射 | 足を止めさせない。旋回を強要し脚圧を消耗させる |
+ | 霧殻（むかく）★ | 浮遊型・妨害 | 灰の霧で計器を乱す | 計器の一部が読めなくなる。鞍座演出の見せ場 |
+ | 錨殻（びょうかく）★ | 大型・地中型 | 地面から脚を掴み拘束 | 1本の脚が固定され、残り3本で戦う |
+-| 殻王 SHELLLORD | 超大型ボス | 各幕の最終戦。弱点の殻を順に剥がす | 全要素の総合試験。鼓動モードの使いどころが勝敗を分ける |
++| 殻王 SHELL LORD | 超大型ボス | 各幕の最終戦。弱点の殻を順に剥がす | 全要素の総合試験。鼓動モードの使いどころが勝敗を分ける |
+ 
+ ## 6. 成長要素
+ 
+@@ -107,7 +107,7 @@
+ | 鼓動モード | OVERBEAT | 共鳴率100%超の約10秒間の強化状態 |
+ | 脚圧 | GRIP (FL/FR/RL/RR) | 各脚の踏ん張り。0で減速・転倒 |
+ | 炉温 | CORE TEMP | 動力炉の温度。過熱で強制冷却 |
+-| 灰殻 / 殻王 | ASHSHELL / SHELLLORD | 敵の自律兵器群 / その超大型個体 |
++| 灰殻 / 殻王 | ASHSHELL / SHELL LORD | 敵の自律兵器群 / その超大型個体 |
+ | 汀都 | SHORE CITY | 舞台。2091年の半ば沈んだ都市 |
+ | 管制 / イツカ | CONTROL | 無線支援 / 管制官 |
+ | 出撃 | LAUNCH | 出撃シーケンス開始 |
+diff --git a/mech-game/src/game.html b/mech-game/src/game.html
+index 4678cf6..c0c3b2f 100644
+--- a/mech-game/src/game.html
++++ b/mech-game/src/game.html
+@@ -1327,7 +1327,9 @@ $('btnToTitle').addEventListener('click', () => { snd('uiClick'); goTitle(); });
+ })();
+ function skipLaunch(){
+   if (G.state !== 'launch') return;
+-  if (launchSeq.t < 0.4) return; // avoid accidental skip from the launch click itself
++  // avoid accidental skip from the launch click itself. Uses the clock directly: launchSeq.t only advances when a
++  // frame runs, so during a long first-launch frame every skip press was ignored.
++  if ((performance.now() - launchSeq.t0) / 1000 < 0.4) return;
+   P.res = Math.max(P.res, 40);
+   beginPlay();
+ }
+@@ -1478,6 +1480,15 @@ function pushOut(pos, r){
+     }
+   }
+ }
++// Chasers walk straight at the player, so a building face between them cancels every step in pushOut and they
++// stay jammed there (out of reach, and holding a spawn slot). After ~0.5s without progress, slide sideways along
++// the face for a while; if the slide is blocked too, try the other side.
++function unstick(e, p, ox, oz, step, dt){
++  if (Math.hypot(p.x - ox, p.z - oz) < step * 0.3){
++    e.stuckT = (e.stuckT || 0) + dt;
++    if (e.stuckT > 0.5){ e.stuckT = 0; if (e.slideT > 0) e.orbit = -e.orbit; e.slideT = 1.4; }
++  } else e.stuckT = 0;
++}
+ function fireEnemyShot(from, to, speed, dmg){
+   const s = eShots.find(x => !x.alive); if (!s) return;
+   s.pos.copy(from); s.vel.subVectors(to, from).normalize().multiplyScalar(speed); s.life = 4; s.alive = true; s.dmg = dmg;
+@@ -1508,13 +1519,16 @@ function updEnemies(dt){
+       if (e.state === 'recoil'){
+         e.st -= dt; p.x -= nx * 16 * dt; p.z -= nz * 16 * dt; if (e.st <= 0) e.state = 'chase';
+       } else {
+-        const sp = d < 50 ? 30 : 19;
+-        e.dir.x = lerp(e.dir.x, nx, Math.min(1, dt * 2.5)); e.dir.z = lerp(e.dir.z, nz, Math.min(1, dt * 2.5));
++        const sp = d < 50 ? 30 : 19, ox = p.x, oz = p.z;
++        if (e.slideT > 0){ e.slideT -= dt; e.dir.set(-nz * e.orbit, 0, nx * e.orbit); }
++        else { e.dir.x = lerp(e.dir.x, nx, Math.min(1, dt * 2.5)); e.dir.z = lerp(e.dir.z, nz, Math.min(1, dt * 2.5)); }
+         const l = Math.hypot(e.dir.x, e.dir.z) || 1;
+         p.x += e.dir.x / l * sp * dt; p.z += e.dir.z / l * sp * dt;
+         if (d < 12 && P.y < 6){ hurt(9, p); e.state = 'recoil'; e.st = 1.5; sparks(V1.set(p.x, 4, p.z), 20); P.v *= 0.6; }
++        pushOut(p, 4.5);
++        if (e.state === 'chase') unstick(e, p, ox, oz, sp * dt, dt);
+       }
+-      pushOut(p, 4.5);
++      if (e.state === 'recoil') pushOut(p, 4.5);
+       p.y = Math.abs(Math.sin(e.t * 14)) * 0.4;
+       e.g.lookAt(px, p.y, pz);
+       for (const L of e.model.legs) L.pivot.rotation.x = Math.sin(e.t * 18 + L.z + (L.s > 0 ? Math.PI : 0)) * 0.5;
+@@ -1535,7 +1549,12 @@ function updEnemies(dt){
+       }
+     } else if (e.type === 'lord'){
+       if (e.state === 'recoil'){ e.st -= dt; p.x -= nx * 10 * dt; p.z -= nz * 10 * dt; if (e.st <= 0) e.state = 'chase'; }
+-      else if (d > 50){ p.x += nx * 8 * dt; p.z += nz * 8 * dt; }
++      else if (d > 50){
++        const ox = p.x, oz = p.z;
++        if (e.slideT > 0){ e.slideT -= dt; p.x += -nz * e.orbit * 8 * dt; p.z += nx * e.orbit * 8 * dt; }
++        else { p.x += nx * 8 * dt; p.z += nz * 8 * dt; }
++        pushOut(p, 12); unstick(e, p, ox, oz, 8 * dt, dt);
++      }
+       else if (d < 24 && P.y < 8){ hurt(16, p); e.state = 'recoil'; e.st = 2; }
+       pushOut(p, 12);
+       e.g.lookAt(px, 0, pz);
+@@ -1599,6 +1618,8 @@ function updSpawns(dt){
+       G.lordSpawned = true;
+       const fx = -Math.sin(P.heading), fz = -Math.cos(P.heading);
+       let x = P.pos.x + fx * 150, z = P.pos.z + fz * 150; const r = Math.hypot(x, z); if (r > ARENA_R - 30){ x *= (ARENA_R - 30) / r; z *= (ARENA_R - 30) / r; }
++      // facing the arena edge, the clamp above can pull the spawn to ~25m (on top of the player); spawn toward the centre instead
++      if (Math.hypot(x - P.pos.x, z - P.pos.z) < 120){ const pr = Math.hypot(P.pos.x, P.pos.z) || 1; x = P.pos.x - P.pos.x / pr * 150; z = P.pos.z - P.pos.z / pr * 150; }
+       const e = spawnEnemy('lord', x, z); e.fireT = 4;
+       P.trauma = 0.7;
+       say('大型反応──殻王（シェルロード）です！ 頭部の発光部が弱点、そこを狙って！', {urgent:true});
+@@ -1791,6 +1812,13 @@ function updCamera(dt){
+ 
+ /* ================= lock-on ================= */
+ const aimDir = new THREE.Vector3();
++// true when a building stands between the cockpit and the target (sampled every ~6m), so lock-on and the homing
++// shots do not pick an enemy that every round would hit the wall in front of
++function occluded(from, to, d){
++  const n = Math.ceil(d / 6);
++  for (let i = 1; i < n; i++){ const k = i / n; if (buildingAt(from.x + (to.x - from.x) * k, from.y + (to.y - from.y) * k, from.z + (to.z - from.z) * k)) return true; }
++  return false;
++}
+ function updLock(){
+   aimDir.set(0,0,-1).applyQuaternion(camera.quaternion);
+   const maxAng = P.overbeat ? 0.16 : 0.1;
+@@ -1801,7 +1829,7 @@ function updLock(){
+     V1.subVectors(c, camera.position); const d = V1.length(); if (d > 260) continue;
+     const a = Math.acos(clamp(V1.dot(aimDir) / d, -1, 1)) - (e.type === 'lord' ? 0.05 : 0);
+     const stick = e === G.lock ? 0.04 : 0;
+-    if (a - stick < bestA){ bestA = a - stick; best = e; }
++    if (a - stick < bestA && !occluded(camera.position, c, d)){ bestA = a - stick; best = e; }
+   }
+   if (best && best !== G.lock) snd('lockOn');
+   G.lock = best;
+diff --git a/mech-game/store/promo/README.md b/mech-game/store/promo/README.md
+index 9b1acf8..92e833b 100644
+--- a/mech-game/store/promo/README.md
++++ b/mech-game/store/promo/README.md
+@@ -7,7 +7,7 @@
+ | `short-titlecard-1080x1920.svg` / `.png` | 縦型ショート動画のタイトルカード。下端約300pxはアプリの字幕やボタンが重なるので静かにしてある | 1080×1920 |
+ | （作り直し用の `build.mjs` は `peter/hq-office` の `peter-hq/design/p8/` にあります） | — | — |
+ 
+-- 見た目は `mech-game/store/`（カバー・スクリーンショット）と `docs/game-design.md` に合わせています。舞台は夜の汀都 SHORE CITY 2091、機体は全高28mの四脚機 HEKATON TYPE-04 です。色はシアン #5ff2e8 と琥珀 #ffb547、書体はゲームと同じ Chakra Petch と Share Tech Mono を使っています。
++- 見た目は `mech-game/store/`（カバー・スクリーンショット）と `docs/game-design.md` に合わせています。舞台は夜の汀都 SHORE CITY 2091、機体は全高28mの四脚機 HEKATON TYPE-04 です。色はシアン #5ff2e8 と琥珀 #ffb547、書体は英字がゲームと同じ Chakra Petch と Share Tech Mono、和文は Zen Kaku Gothic New（無い環境では Noto Sans JP）を指定しています（いずれも SIL OFL 1.1）。
+ - 文言はストア原稿のタグライン（EN: "Ride a 28m quadruped war machine. Feel every step." ／ JA: 「全高28mの四脚戦機に乗り込め。」）から取りました。価格・配信日など、まだ決まっていないことは書いていません。
+-- SVG は Google Fonts を読み込まない環境では代わりの書体で表示されます。投稿にはフォント込みで描画した PNG を使ってください。
++- SVG はフォントを埋め込んでも読み込んでもいないので、これらの書体が入っていない環境では代わりの書体で表示されます。投稿にはフォント込みで描画した PNG を使ってください。
+ - 作り直す: `peter/hq-office` ブランチの `peter-hq/design/p8/build.mjs` を使う（`CHROMIUM_PATH=... node build.mjs --png`）
+diff --git a/mech-game/store/store-page.md b/mech-game/store/store-page.md
+index 86122b5..74e9014 100644
+--- a/mech-game/store/store-page.md
++++ b/mech-game/store/store-page.md
+@@ -18,7 +18,7 @@
+ 
+ | 言語 | 文面 | 文字数 |
+ |---|---|---|
+-| EN | `Ride a 28m quadruped war machine. Feel every step. Match its heartbeat. Fight.` | 79 chars |
++| EN | `Ride a 28m quadruped war machine. Feel every step. Match its heartbeat. Fight.` | 78 chars |
+ | JA | `全高28mの四脚戦機に乗り込め。4本の脚で踏みしめ、鼓動を重ねて灰殻を討つ。ブラウザで今すぐ出撃。` | 49字 |
+ 
+ 予備案（EN）: `First-person cockpit mech action on four legs. Free, in your browser.`（69 chars）
+@@ -31,20 +31,20 @@
+ **You are strapped into the saddle of HEKATON TYPE-04, a 28-meter, four-legged war machine.**
+ **Every step shakes the cockpit. Every shot heats the core. Push resonance to 100% and the machine's heartbeat becomes yours. OVERBEAT.**
+ 
+-GRANDSTRIDE is a first-person cockpit mech action game that runs in your browser. You never leave the saddle. You read the gauges, listen to the warning lights, keep four legs planted, and hold the line.
++GRANDSTRIDE is a first-person cockpit mech action game that runs in your browser. You never leave the saddle. You read the gauges, heed the warning lights, keep four legs planted, and hold the line.
+ 
+ ### Features
+ 
+ - **First-person cockpit, all the way.** The HUD is built into the cockpit: resonance meter, a grip readout for each of the four legs, core temperature gauge, and a warning-light panel.
+-- **Four legs, four grip gauges (FL / FR / RL / RR).** Turning, landing and taking hits wear down each leg separately. Lose a leg's grip and you slow down. Lose two and you go down.
++- **Four legs, four grip gauges (FL / FR / RL / RR).** Turning, landing and taking hits wear down each leg separately. Run a leg down to zero and the machine slows and lists toward it until the grip recovers.
+ - **Resonance.** Walk with a steady rhythm and keep landing shots to raise it. Hit 100% and enter **OVERBEAT**, a short burst where the machine fights at full power.
+-- **Core temperature.** Dash, boost and fire heat the reactor. Push too hard and it forces a cooldown at the worst possible moment.
++- **Core temperature.** Dash, boost and fire heat the reactor. Push too hard and a forced cooldown locks out firing, dashing and boosting at the worst possible moment.
+ - **Launch sequence.** Press LAUNCH and the cockpit boots around you: saddle link, core online, leg grip check, fire control, radar, neural link. The gauges light up one by one, the hangar bay opens, and Control calls it: "HEKATON, LAUNCH."
+ - **Radio from Control.** Itsuka, your mission controller, keeps you alive over the radio with warnings, callouts and the occasional dry remark.
+-- **One focused mission.** 3 minutes. 12 Ashshell. Then the Shelllord. Score and rank (S to D) at the end, and your high score is saved in your browser.
++- **One focused mission.** 3 minutes. 12 Ashshell. Then the Shell Lord. Score and rank (S to C) at the end, and your high score is saved in your browser.
+ - **Every sound is synthesized live.** Footsteps, cannon fire, alarms and engine hum are generated in real time with the Web Audio API. No audio files.
+ - **Plays on PC and phone.** Keyboard and mouse on desktop, virtual stick and buttons on touch screens.
+-- **Quality settings (Low / Medium / High) and an FPS display**, so you can tune it to your machine.
++- **Quality settings (Low / Mid / High) and an FPS display** (toggle with `F`), so you can tune it to your machine.
+ 
+ ### Controls
+ 
+@@ -63,13 +63,14 @@ Tip: click the game screen once to capture the mouse. Press `Esc` to release it.
+ 
+ ### System requirements and known limitations
+ 
+-- **This is a prototype.** One mission, one weapon, no save beyond your high score. Expect rough edges, balance changes and bugs.
++- **This is a prototype.** One mission, one weapon. Only your high score and settings are saved. Expect rough edges, balance changes and bugs.
+ - **Recommended browsers:** latest desktop Chrome or Edge. Firefox should work. Safari (macOS / iOS) works but is less tested.
+ - Requires WebGL. If you see "WEBGL UNAVAILABLE", turn on hardware acceleration in your browser settings.
+ - **Low-spec PC, laptop on battery, or phone?** Set Quality to **Low** in the settings and check the FPS display.
+ - On phones, play in **landscape** and use the fullscreen button. Older phones may run hot.
+ - On iPhone / iPad, sound starts after your first tap (browser rule).
+ - The game pauses automatically if you switch tabs or the window loses focus.
++- Gauges, buttons and the results screen are labelled in English and Japanese, but Itsuka's radio messages and the mission briefing are currently in Japanese only.
+ 
+ ### Development status and roadmap
+ 
+@@ -80,7 +81,7 @@ Next on the list:
+ 1. Hangar and leg swaps (heavy legs, jump legs, anchor legs)
+ 2. New Ashshell types, including ones that jam your gauges and grab your legs
+ 3. Rider skill tree
+-4. A three-mission first act with a full Shelllord fight
++4. A three-mission first act with a full Shell Lord fight
+ 5. **A Steam release.** The goal is a free demo on Steam, then Early Access. Follow this page to hear when the Steam page goes live.
+ 
+ **Feedback wanted.** Please tell me in the comments:
+@@ -97,6 +98,7 @@ GRANDSTRIDE is free to play. If you enjoyed it, a small tip (suggested $3) goes
+ - Mission controller Itsuka: radio text
+ - Sound: all synthesized in real time with the Web Audio API
+ - **three.js r128** — Copyright © 2010–2021 three.js authors. Released under the **MIT License**. https://github.com/mrdoob/three.js/blob/r128/LICENSE
++- Fonts: **Chakra Petch** (© 2018 The Chakra Petch Project Authors) and **Share Tech Mono** (© 2012 Carrois Type Design), SIL Open Font License 1.1
+ - Made with AI assistance (see the disclosure below)
+ 
+ ---
+@@ -107,20 +109,20 @@ GRANDSTRIDE is free to play. If you enjoyed it, a small tip (suggested $3) goes
+ **あなたは全高28mの四脚機「ヘカトン TYPE-04」の鞍座（あんざ）に座る鞍士（あんし）だ。**
+ **一歩ごとに鞍座が揺れ、撃つたびに炉が熱を持つ。共鳴率100%、機体の鼓動があなたの鼓動になる ― 鼓動モード OVERBEAT。**
+ 
+-『鋼脚戦機 GRANDSTRIDE』は、ブラウザで遊べる一人称コックピット視点の四脚メカアクションです。視点は最後まで鞍座の中。計器を読み、警告灯に耳を澄まし、4本の脚で踏みとどまって都市を守ってください。
++『鋼脚戦機 GRANDSTRIDE』は、ブラウザで遊べる一人称コックピット視点の四脚メカアクションです。視点は最後まで鞍座の中。計器を読み、警告灯に気を配り、4本の脚で踏みとどまって都市を守ってください。
+ 
+ ### 特徴
+ 
+ - **最初から最後まで鞍座の中。** 計器は鞍座に組み込まれた形で表示。共鳴率メーター、4本脚それぞれの脚圧、炉温計、警告灯パネル。
+-- **4本の脚、4つの脚圧（FL / FR / RL / RR）。** 旋回・着地・被弾で脚ごとに減る。1本が尽きると足が鈍り、2本で転倒。
++- **4本の脚、4つの脚圧（FL / FR / RL / RR）。** 旋回・着地・被弾で脚ごとに減る。0になった脚があると、回復するまで足が鈍り機体が傾く。
+ - **共鳴率。** 一定のリズムで歩き、撃ち当て続けると上がる。100%で **鼓動モード OVERBEAT** に突入、短い時間だけ機体が全力を出す。
+-- **炉温。** 疾走・跳躍・射撃で上がる。無理をすると強制冷却で動けなくなる。
+-- **出撃演出。** 「出撃」を押すと鞍座が起動する。鞍座接続 → 動力炉 → 脚部 → 火器管制 → 索敵 → 神経接続。計器がひとつずつ灯り、格納庫の扉が開き、「HEKATON, LAUNCH」。
++- **炉温。** 疾走・跳躍・射撃で上がる。無理をすると強制冷却に入り、射撃・疾走・跳躍ができなくなる。
++- **出撃演出。** 「出撃」を押すと鞍座が起動する。鞍座接続 → 動力炉 → 脚部 → 火器管制 → 索敵 → 神経共鳴。計器がひとつずつ灯り、格納庫の扉が開き、「HEKATON, LAUNCH」。
+ - **管制官イツカの無線。** 警告、接敵の知らせ、ときどき皮肉。あなたの脈拍を一番気にしているのは彼女だ。
+-- **1ミッション集中。** 制限時間3分、灰殻12体、そして殻王。終了時にスコアと評価（S〜D）。最高スコアはブラウザに保存。
++- **1ミッション集中。** 制限時間3分、灰殻12体、そして殻王。終了時にスコアと評価（S〜C）。最高スコアはブラウザに保存。
+ - **音はすべてその場で合成。** 足音、砲声、警報、炉のうなりは Web Audio で生成。音声ファイルは使っていません。
+ - **PC でもスマホでも。** PC はキーボード＋マウス、スマホは仮想スティックとボタン。
+-- **品質設定（低・中・高）と FPS 表示。**
++- **品質設定（低・中・高）と FPS 表示（`F` キーで切り替え）。**
+ 
+ ### 操作方法
+ 
+@@ -139,7 +141,7 @@ GRANDSTRIDE is free to play. If you enjoyed it, a small tip (suggested $3) goes
+ 
+ ### 動作環境と既知の制限
+ 
+-- **プロトタイプです。** ミッション1つ、武装1種。最高スコア以外は保存されません。不具合や調整の変更があります。
++- **プロトタイプです。** ミッション1つ、武装1種。保存されるのは最高スコアと設定だけです。不具合や調整の変更があります。
+ - **推奨ブラウザ:** 最新の PC 版 Chrome / Edge。Firefox も動作見込み。Safari（Mac / iPhone）は動きますが確認が少なめです。
+ - WebGL が必要です。「WEBGL UNAVAILABLE」と出たら、ブラウザの設定でハードウェアアクセラレーションを有効にしてください。
+ - **低スペック PC・ノート PC のバッテリー駆動・スマホでは、品質を「低」に**して、FPS 表示を確認してください。
+@@ -173,6 +175,7 @@ GRANDSTRIDE is free to play. If you enjoyed it, a small tip (suggested $3) goes
+ - 管制官イツカ: 無線テキスト
+ - 音: すべて Web Audio API でリアルタイム合成
+ - **three.js r128** — Copyright © 2010–2021 three.js authors. **MIT License** で公開。https://github.com/mrdoob/three.js/blob/r128/LICENSE
++- フォント: **Chakra Petch**（© 2018 The Chakra Petch Project Authors）、**Share Tech Mono**（© 2012 Carrois Type Design）。SIL Open Font License 1.1
+ - AI の支援を受けて制作（下の開示を参照）
+ 
+ ---
+@@ -181,13 +184,13 @@ GRANDSTRIDE is free to play. If you enjoyed it, a small tip (suggested $3) goes
+ 
+ | 欄 | 設定案 | メモ |
+ |---|---|---|
+-| Kind of project | **HTML** | 単一 HTML（`dist/` のビルド）を zip にして index.html をルートに置く |
++| Kind of project | **HTML** | `dist/grandstride-itch.zip`（index.html をルートに、Three.js r128 とフォントを同梱）をそのままアップロード |
+ | Classification | **Games** | |
+ | Release status | **Prototype** | |
+ | Genre | **Action** | |
+ | Tags（10個） | `mechs`, `robots`, `first-person`, `3d`, `singleplayer`, `sci-fi`, `shooter`, `short`, `boss-battle`, `arcade` | 入力時に itch の候補に出るか確認し、出ないものは差し替える（予備: `post-apocalyptic`, `atmospheric`, `fps`） |
+ | Platforms | Playable in browser（HTML5） | |
+-| Languages | English, Japanese | 画面の文字は日英併記 |
++| Languages | English, Japanese | 計器・ボタン・結果画面は日英併記。**イツカの無線、作戦説明、タイトルの操作説明の本文は日本語のみ**（英語版を入れるまでは EN 説明文の制限事項に明記） |
+ | Inputs | Keyboard, Mouse, Touchscreen | |
+ | Accessibility | （該当なしで可） | 字幕的な無線テキストはあるが、専用機能はまだない |
+ | Average session | A few minutes | 1プレイ約3〜5分（出撃演出込み） |
+@@ -263,7 +266,7 @@ itch の編集画面の生成 AI に関する項目では、**「使用してい
+ **Option 1 (launch)**
+ > GRANDSTRIDE prototype is out on itch.io.
+ > Strap into a 28m four-legged war machine. Manage grip on every leg, watch your core temp, and push resonance to 100% for OVERBEAT.
+-> 3 minutes. 12 Ashshell. One Shelllord. Free, in your browser (PC + mobile).
++> 3 minutes. 12 Ashshell. One Shell Lord. Free, in your browser (PC + mobile).
+ > (itch.io URL)
+ > #indiedev #gamedev #mecha
+ 
