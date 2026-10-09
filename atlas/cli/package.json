@@ -1,0 +1,38 @@
+{
+  "name": "atlas-scan",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Static, read-only pattern scanner for MCP servers, skills and plugins. Nothing is executed.",
+  "license": "UNLICENSED",
+  "bin": {
+    "atlas-scan": "bin/atlas-scan.js"
+  },
+  "files": [
+    "bin/atlas-scan.js",
+    "scanner/cli.py",
+    "scanner/scan.py",
+    "scanner/ast_py.py",
+    "scanner/trust.py",
+    "scanner/js/ast_dump.cjs",
+    "README.md"
+  ],
+  "scripts": {
+    "sync": "node scripts/sync.mjs",
+    "sync:check": "node scripts/sync.mjs --check",
+    "prepack": "node scripts/sync.mjs --check",
+    "test": "node --test test/cli.test.js"
+  },
+  "dependencies": {
+    "typescript": "5.9.3"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "mcp",
+    "static-analysis",
+    "security",
+    "scanner",
+    "skills"
+  ]
+}

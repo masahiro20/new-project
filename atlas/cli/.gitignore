@@ -1,0 +1,4 @@
+# never commit packed tarballs; dependencies are installed, not vendored
+node_modules/
+*.tgz
+__pycache__/

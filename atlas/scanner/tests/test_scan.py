@@ -90,6 +90,18 @@ class Regressions(unittest.TestCase):
         rf = [x for x in f if x["rule"] == "ATL-RF-001" and not x.get("suppressed")]
         self.assertTrue(rf and all(x["sev"] == "low" for x in rf), rf)
 
+    def test_relative_root_still_uses_js_ast(self):
+        # the helper runs with cwd=scanner dir; relative roots used to lose JS/TS AST silently
+        cwd = os.getcwd()
+        try:
+            os.chdir(FX)
+            f, _, _ = scan.scan_repo("pos")
+        finally:
+            os.chdir(cwd)
+        if not scan._node_ok:
+            self.skipTest("node/typescript helper not installed")
+        self.assertTrue([x for x in f if x["file"] == "server.ts" and x.get("method") == "ast"])
+
 
 class Wording(unittest.TestCase):
     def test_titles_never_say_malware(self):

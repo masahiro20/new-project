@@ -28,6 +28,8 @@ python3 -I scan.py <dir> [...] [--json summary.json] [--findings findings.jsonl]
 ```
 - `scan.scan_repo(root)` は v0 と互換で、`(findings, n_files, n_skill_dirs)` を返す（Allowlist Builder が使う）。
 - JS/TS の補助プログラムには `js/node_modules/typescript` が必要。`npm install --ignore-scripts` で入れる。入っていなければ、JS/TS は v0 相当の判定になる。
+- 環境変数 `ATLAS_TS_PATH`（typescript パッケージのディレクトリ）と `ATLAS_NODE`（node の実行ファイル）で上書きできる。未設定なら従来どおり。
+- `cli.py` は argparse 版の入口（`--format text|json`、`--min-severity`、`--show-suppressed`、終了コード 0／1／2）。npm パッケージ `atlas/cli`（`atlas-scan`）がこれを同梱して使う。`cli.py`・`scan.py`・`ast_py.py`・`trust.py`・`js/ast_dump.cjs` を変えたら `cd atlas/cli && npm run sync` でコピーを更新する。
 
 ## UP-002：版間の差分（`updiff.py`、`../allowlist/atlas_watch.py`）
 承認した版と新しい版を比べ、「挙動の変化：新しいパターンを検出（behaviour changed: new pattern(s) detected）」を出す。どちらの版もインストール・実行しない（アーカイブはデータとして展開し、`scan_repo` で検査するだけ）。
