@@ -22,9 +22,12 @@
 //   f0Gross  … 有声と判定されたフレームのうち、正解 F0 から 2 半音以上ずれた割合
 //   bErr     … 語の内部のモーラ境界の誤差（中央値）
 //   oracle   … 正解のモーラ境界で区切り直し、同じテンプレート当てはめをした場合の合否
-// 失敗の主因は次の順で決める：切り出し(VAD) → 発話範囲(span) → 区切り（正解の境界なら合格）
-// → 段差不足（正解の境界でも H/L 差が minStep 未満）→ F0 追跡。
-
+// 失敗の主因は次の順で決める：切り出し(VAD)（pickUtterance が発話を 50 ms 超切り落とした）
+// → 判定不能（有声率 < 50% なら F0 追跡）→ 発話範囲(span)（端が 0.5 モーラ超ずれた）
+// → 区切り（正解の境界なら合格）→ F0 追跡（正解の境界でも F0 の残らないモーラがある、
+// 有声率 < 50%、または F0 大誤差 ≥ 10%）→ 段差不足(minStep)（F0 は正しいが H/L 差が閾値未満）
+// → 当てはめ(テンプレート)（F0 も境界も正しいのに型の当てはめが外れる。例：強い下がり傾向）。
+// --from-json で保存した記録から集計だけやり直せる。
 import { readFileSync, writeFileSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir, cpus } from 'node:os';
 import { join } from 'node:path';
@@ -571,10 +574,12 @@ async function runSample(w, k, isRight, cond, seed, lexWords) {
   }
   // 正解の境界での判定（区切りの失敗か、値そのものの失敗かを分ける）
   const ovals = [];
+  let oracleMissing = 0; // 正解では有声なのに、F0 が1フレームも残らなかったモーラの数
   for (let s = 0; s < slots; s++) {
     if (consonantClass(s < w.morae.length ? w.morae[s] : 'が') === 'geminate') { ovals.push(NaN); continue; }
     const vals = [];
     for (let i = 0; i < tr.times.length; i++) if (tr.times[i] >= tb[s] && tr.times[i] < tb[s + 1] && !Number.isNaN(st[i])) vals.push(st[i]);
+    if (!vals.length && !dv.includes(s)) oracleMissing++;
     ovals.push(median(vals));
   }
   const orc = oracleJudge(ovals, w.morae.length, w.accent);
@@ -585,7 +590,7 @@ async function runSample(w, k, isRight, cond, seed, lexWords) {
     vadMiss: +vadMiss.toFixed(3), cut: [+u.start.toFixed(2), +u.end.toFixed(2)],
     voicing: trueV ? +(hitV / trueV).toFixed(3) : 0, f0Gross: cmp ? +(gross / cmp).toFixed(3) : null,
     f0Med: errs.length ? +median(errs).toFixed(2) : null, falseVoicedS: +(falseV * 0.01).toFixed(2),
-    spanS: null, spanE: null, bErr: null, oracle: orc.pass, oracleFlat: orc.flat, oracleK: orc.k,
+    spanS: null, spanE: null, bErr: null, oracle: orc.pass, oracleFlat: orc.flat, oracleK: orc.k, oracleMissing,
   };
   if (!res.error) {
     rec.spanS = +((res.span[0] - tb[0]) / moraLen).toFixed(2);
@@ -607,8 +612,10 @@ function causeOf(r) {
   if (Math.abs(r.spanS) > 0.5 || Math.abs(r.spanE) > 0.5) return '発話範囲(span)';
   const oracleOk = r.right ? r.oracle : !r.oracle;
   if (oracleOk) return '区切り';
-  if (r.oracleFlat && (r.f0Gross ?? 1) < 0.1) return '段差不足(minStep)';
-  return 'F0追跡';
+  // 正解の境界でも外れる → 値そのもの。F0 が欠けた／ずれたなら F0 追跡、そうでなければ判定モデル側。
+  if (r.oracleMissing > 0 || r.voicing < 0.5 || (r.f0Gross ?? 0) >= 0.1) return 'F0追跡';
+  if (r.oracleFlat) return '段差不足(minStep)';
+  return '当てはめ(テンプレート)';
 }
 
 function hashStr(s) { let h = 2166136261; for (const ch of s) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
@@ -702,6 +709,15 @@ async function main() {
   if (!HAS_FFMPEG) { for (const c of conds) if (c.aac) skipped.push(c.id); conds = conds.filter((c) => !c.aac); }
   const lex = loadWords();
   const { list: words, minimalPairs } = selectWords(lex, nWords);
+  if (arg('--from-json')) { // 保存した記録から集計だけやり直す（主因の判定も新しい規則で）
+    const records = JSON.parse(readFileSync(arg('--from-json'), 'utf8'));
+    for (const r of records) r.cause = causeOf(r);
+    const ids = new Set(records.map((r) => r.c));
+    const md = report(records, conds.filter((c) => ids.has(c.id)), { words, minimalPairs, seeds, secs: 0, skipped, nWords, fails: Number(arg('--fails', 0)) });
+    console.log(md);
+    if (arg('--md')) writeFileSync(arg('--md'), md);
+    return;
+  }
   const nWorkers = Math.max(1, Math.min(Number(arg('--workers', cpus().length)), words.length));
 
   const t0 = performance.now();
@@ -724,7 +740,7 @@ async function main() {
   console.log(md);
   if (arg('--md')) writeFileSync(arg('--md'), md);
   if (arg('--csv')) {
-    const cols = ['c', 'id', 'n', 'type', 'k', 'right', 'seed', 'pass', 'error', 'dk', 'flat', 'step', 'verdict', 'cause', 'vadMiss', 'spanS', 'spanE', 'voicing', 'f0Gross', 'f0Med', 'falseVoicedS', 'bErr', 'oracle', 'oracleFlat', 'oracleK'];
+    const cols = ['c', 'id', 'n', 'type', 'k', 'right', 'seed', 'pass', 'error', 'dk', 'flat', 'step', 'verdict', 'cause', 'vadMiss', 'spanS', 'spanE', 'voicing', 'f0Gross', 'f0Med', 'falseVoicedS', 'bErr', 'oracle', 'oracleFlat', 'oracleK', 'oracleMissing'];
     const rows = records.filter((r) => r.cause).map((r) => cols.map((c) => r[c] ?? '').join(','));
     writeFileSync(arg('--csv'), [cols.join(','), ...rows].join('\n') + '\n');
   }
@@ -736,6 +752,7 @@ async function main() {
 // ============================================================================
 const pct = (a, b) => (b ? `${((100 * a) / b).toFixed(1)}%` : '–');
 const f1 = (v) => (v == null || Number.isNaN(v) ? '–' : (100 * v).toFixed(0) + '%');
+const f1d = (v) => (v == null || Number.isNaN(v) ? '–' : (100 * v).toFixed(1));
 
 /** 語ごとのまとまりで再標本化するブートストラップ（同じ語の seed 間は独立でないため）。 */
 function clusterBootstrap(byWord, iters = 1000, seed = 99) {
@@ -776,7 +793,8 @@ function summarize(recs) {
     voicing: median(right.map((r) => r.voicing)), f0Gross: mean(right.map((r) => r.f0Gross ?? NaN)),
     f0GrossFail: mean(rf.map((r) => r.f0Gross ?? NaN)), voicingFail: median(rf.map((r) => r.voicing)),
     bErr: median(right.map((r) => r.bErr ?? NaN)), bErrFail: median(rf.map((r) => r.bErr ?? NaN)),
-    span: median(right.map((r) => (r.spanS == null ? NaN : Math.max(Math.abs(r.spanS), Math.abs(r.spanE))))),
+    spanS: median(right.map((r) => r.spanS ?? NaN)), spanE: median(right.map((r) => r.spanE ?? NaN)),
+    nWords: new Set(right.map((r) => r.id)).size,
     vadMiss: right.filter((r) => r.vadMiss > 0.05).length,
     falseV: median(right.map((r) => r.falseVoicedS)),
     oracleR: right.filter((r) => r.oracle).length,
@@ -808,18 +826,18 @@ function report(records, conds, meta) {
   L.push('');
   L.push('区間は語単位のクラスタ・ブートストラップの 95% 区間（同じ語の seed 違いは独立でないため）。「seed 幅」は seed ごとの合格率の最小–最大。');
   L.push('有声率 = 正解で有声のフレームのうち F0 が残った割合（中央値）、F0 大誤差 = 残ったフレームのうち正解から 2 半音以上ずれた割合（平均）、');
-  L.push('境界誤差 = 語内のモーラ境界の誤差の中央値（正しい読み）、span = judge の発話範囲の端の誤差（モーラ単位、中央値）、');
+  L.push('境界誤差 = 語内のモーラ境界の誤差の中央値（正しい読み）、span = judge の発話範囲の始端 / 終端の誤差（モーラ単位、符号付き中央値。始端の負＝早すぎ、終端の正＝遅すぎ）、');
   L.push('オラクル = 正解のモーラ境界で区切った場合の正しい読みの合格率。主因は正しい読みの不合格の内訳（上位2つ）。');
   L.push('');
   const axes = [...new Set(conds.map((c) => c.axis))];
   for (const axis of axes) {
     L.push(`### ${axis}`);
     L.push('');
-    L.push('| 条件 | 正しい読みの合格率 [95%] | seed 幅 | k 一致 | 判定不能 | 誤合格率 [95%] | 有声率 | F0 大誤差 | 境界誤差 | span | オラクル | 不合格の主因 | 誤合格の主因 |');
-    L.push('|---|---|---|---|---|---|---|---|---|---|---|---|---|');
+    L.push('| 条件 | 正しい読みの合格率 [95%] | 語数 | seed 幅 | k 一致 | 判定不能 | 誤合格率 [95%] | 有声率 | F0 大誤差 | 境界誤差 | span | オラクル | 不合格の主因 | 誤合格の主因 |');
+    L.push('|---|---|---|---|---|---|---|---|---|---|---|---|---|---|');
     for (const c of conds.filter((x) => x.axis === axis)) {
       const s = S.get(c.id);
-      L.push(`| ${c.label} | **${pct(s.passR, s.nR)}** [${f1(s.ciR[0])}–${f1(s.ciR[1])}] | ${f1(s.seedMin)}–${f1(s.seedMax)} | ${pct(s.exact, s.nR)} | ${pct(s.err, s.nR)} | ${pct(s.fpW, s.nW)} [${f1(s.ciW[0])}–${f1(s.ciW[1])}] | ${f1(s.voicing)} | ${f1(s.f0Gross)} | ${Number.isNaN(s.bErr) ? '–' : s.bErr + ' ms'} | ${Number.isNaN(s.span) ? '–' : s.span.toFixed(2)} | ${pct(s.oracleR, s.nR)} | ${topCause(s)} | ${topCauseW(s)} |`);
+      L.push(`| ${c.label} | **${pct(s.passR, s.nR)}** [${f1d(s.ciR[0])}–${f1d(s.ciR[1])}] | ${s.nWords} | ${f1(s.seedMin)}–${f1(s.seedMax)} | ${pct(s.exact, s.nR)} | ${pct(s.err, s.nR)} | ${pct(s.fpW, s.nW)} [${f1d(s.ciW[0])}–${f1d(s.ciW[1])}] | ${f1(s.voicing)} | ${f1(s.f0Gross)} | ${Number.isNaN(s.bErr) ? '–' : s.bErr + ' ms'} | ${Number.isNaN(s.spanS) ? '–' : `${s.spanS.toFixed(2)} / ${s.spanE.toFixed(2)}`} | ${pct(s.oracleR, s.nR)} | ${topCause(s)} | ${topCauseW(s)} |`);
     }
     L.push('');
   }
