@@ -8,7 +8,7 @@
 - `pitch/docs/decisions.md`
 - 本部の `peter-hq/projects/p3-pitch/stage1-report.md`
 
-URL はプレースホルダー：`{{APP_URL}}`（ブラウザ版・PWA）、`{{LP_URL}}`（英語 LP）
+URL：無料ベータは公開済み。告知では説明ページ https://masahiro20.github.io/new-project/pitch/ を使う（ページから「./app/」のアプリへ進む。アプリは https://masahiro20.github.io/new-project/pitch/app/ 。2026-10-09 に開けることを確認）
 
 ## 0. 先に決めておくこと（重要）
 1. **人の声での精度がまだ測れていない。**
@@ -65,7 +65,7 @@ Some details:
 
 I'm a native Japanese speaker, and it's an early beta. The judging is still being tuned, so if it marks you wrong when you're sure you said it right, that's exactly what I want to hear about.
 
-{{APP_URL}}
+https://masahiro20.github.io/new-project/pitch/
 ```
 
 ### 2-2. r/languagelearning 月次スレッド「Share Your Resources」（英語。規則どおり「自作」と明記）
@@ -78,7 +78,7 @@ What it does: you say a word followed by が, and it shows your pitch on each mo
 
 Free, no sign-up. Audio is processed on your device. It's an early beta, and I'm still tuning the judging.
 
-{{APP_URL}}
+https://masahiro20.github.io/new-project/pitch/
 ```
 
 ### 2-3. WaniKani / Bunpro のフォーラム（英語。**投稿前にカテゴリと管理者の了承を確認**）
@@ -93,7 +93,7 @@ It runs in your browser, works offline once installed, and your recordings never
 
 The judging is still being tuned, especially for quiet or creaky voices. If you try it, I'd love to hear which words it judged wrongly.
 
-{{APP_URL}}
+https://masahiro20.github.io/new-project/pitch/
 ```
 
 ### 2-4. Show HN（英語。題名69字、上限80字）
@@ -110,7 +110,7 @@ Everything runs on-device, so recordings never leave the browser, and it works o
 
 It's a beta. On synthetic speech the segmentation works well, but I haven't finished validating on real voices, so I'm not quoting accuracy numbers yet. Reports of wrong judgements are the most useful feedback.
 
-{{APP_URL}}
+https://masahiro20.github.io/new-project/pitch/
 ```
 
 ### 2-5. X（日本語。オーナーのアカウントから。日本の日本語教師・学習者向け）
@@ -120,7 +120,7 @@ It's a beta. On synthetic speech the segmentation works well, but I haven't fini
 「はしが」のように言うと、声の高さをモーラごとに示し、下がる位置が合っているかを判定します。録音は端末の外に出ません。
 
 判定は調整中です。ご意見をお待ちしています。
-{{APP_URL}}
+https://masahiro20.github.io/new-project/pitch/
 ```
 （文字数：X の数え方で280以内を確認。URL は23として計算）
 
