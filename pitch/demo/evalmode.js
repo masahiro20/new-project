@@ -45,12 +45,15 @@ export function crc32(bytes) {
 const enc = new TextEncoder();
 const toBytes = (d) => (typeof d === 'string' ? enc.encode(d) : d instanceof Uint8Array ? d : new Uint8Array(d));
 
-/** Date → MS-DOS の日付・時刻（ローカル時刻、1980 年より前は 1980-01-01 に丸める）。 */
+/**
+ * Date → MS-DOS の日付・時刻（UTC、1980 年より前は 1980 年に丸める）。
+ * ローカル時刻にすると、manifest.json の exportedAt（UTC）との差から書き出した人のタイムゾーンがわかるため、UTC で書く。
+ */
 export function dosDateTime(date) {
-  const y = Math.max(1980, date.getFullYear());
+  const y = Math.max(1980, date.getUTCFullYear());
   return {
-    time: (date.getHours() << 11) | (date.getMinutes() << 5) | (date.getSeconds() >> 1),
-    date: ((y - 1980) << 9) | ((date.getMonth() + 1) << 5) | date.getDate(),
+    time: (date.getUTCHours() << 11) | (date.getUTCMinutes() << 5) | (date.getUTCSeconds() >> 1),
+    date: ((y - 1980) << 9) | ((date.getUTCMonth() + 1) << 5) | date.getUTCDate(),
   };
 }
 
@@ -277,19 +280,30 @@ export const README_TEXT = `P3 Pitch 評価協力データ
      改めてあなたの許可を求めます（断っても構いません）。
   3. 開発者は受け取った録音を受領から90日で削除します。それより前でも、話者本人から依頼があれば7日以内に削除します。
   4. あなたはいつでも、渡した録音の削除を開発者に求めることができます。
+     依頼するときは、manifest.json の exportId（書き出しごとの番号）を伝えてください。
+     開発者はこの番号で、あなたから受け取った録音を探して削除します。
 
 同意しない場合は、このファイルを渡さないでください。
 渡し方（メール、ファイル共有など）は、あなたが選んでください。
 
 ■ 端末内のデータの消し方
+端末内の録音はご自身で削除できます（期限はなく、自動では消えません）。上の90日・7日は、提出いただいた録音（開発者が受け取った分）の期限です。
 アプリの「評価協力モード」の一覧で、1件ずつ、またはすべて削除できます。
 ブラウザのサイトデータ（このサイトの保存データ）を消しても削除されます。
 `;
 
+/** 書き出しごとのランダムな番号（端末や本人とは結びつかない）。削除の依頼で、受け取った録音を探すのに使う。 */
+export function newExportId() {
+  const c = globalThis.crypto;
+  if (c?.randomUUID) return c.randomUUID();
+  const b = c?.getRandomValues ? c.getRandomValues(new Uint8Array(16)) : Uint8Array.from({ length: 16 }, () => Math.floor(Math.random() * 256));
+  return [...b].map((x) => x.toString(16).padStart(2, '0')).join('');
+}
+
 /**
  * 保存済みレコード [{ id, meta, wav }] → zip に入れるファイルの一覧。
  */
-export function buildExportFiles(records, { now = new Date(), build = '' } = {}) {
+export function buildExportFiles(records, { now = new Date(), build = '', exportId = newExportId() } = {}) {
   const files = [];
   const list = [];
   records.forEach((rec, i) => {
@@ -308,6 +322,7 @@ export function buildExportFiles(records, { now = new Date(), build = '' } = {})
   const manifest = {
     schema: SCHEMA,
     app: 'P3 Pitch',
+    exportId: String(exportId),
     exportedAt: now.toISOString(),
     build: String(build),
     count: records.length,

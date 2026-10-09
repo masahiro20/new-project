@@ -7,7 +7,7 @@ import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
-  crc32, makeZip, encodeWav16, toEvalWav, buildRecord, buildExportFiles, buildExportZip, shouldSave,
+  crc32, makeZip, dosDateTime, encodeWav16, toEvalWav, buildRecord, buildExportFiles, buildExportZip, shouldSave,
   createRecorder, exportFileName, intendedFrom, thinF0, README_TEXT, SCHEMA, EVAL_SR,
 } from '../demo/evalmode.js';
 import { readWav } from '../src/wav.js';
@@ -192,6 +192,8 @@ test('書き出し: README・manifest・wav＋JSON、unzip -t で OK', () => {
   assert.equal(manifest.schema, SCHEMA);
   assert.equal(manifest.count, 2);
   assert.equal(manifest.build, 'B1');
+  assert.match(manifest.exportId, /^[0-9a-f-]{32,36}$/, '削除の依頼に使う exportId');
+  assert.notEqual(JSON.parse(buildExportFiles(recs, { now, build: 'B1' })[1].data).exportId, manifest.exportId, '書き出しごとに変わる');
   assert.deepEqual(manifest.audioFormat, { container: 'wav', encoding: 'pcm16', channels: 1, sampleRate: 16000 });
   assert.deepEqual(manifest.records.map((r) => [r.wav, r.json, r.wordId, r.pass, r.detectedK]), [
     ['rec-001-w0001.wav', 'rec-001-w0001.json', 'w0001', true, 2], ['rec-002-w0001.wav', 'rec-002-w0001.json', 'w0001', true, 2],
@@ -203,8 +205,14 @@ test('書き出し: README・manifest・wav＋JSON、unzip -t で OK', () => {
   assert.equal(readme, README_TEXT);
   assert.match(readme, /権利.*話者/);
   assert.match(readme, /同意文/);
+  assert.match(readme, /exportId/);
   assert.match(unzipTest(zip), /No errors detected/);
   assert.match(unzipTest(buildExportZip([], { now })), /No errors detected/);
+});
+
+test('dosDateTime: UTC で書く（タイムゾーンを zip に残さない）', () => {
+  const d = new Date('2026-10-09T05:02:40Z');
+  assert.deepEqual(dosDateTime(d), { time: (5 << 11) | (2 << 5) | 20, date: (46 << 9) | (10 << 5) | 9 });
 });
 
 test('exportFileName: Pitch-eval-YYYYMMDD.zip', () => {

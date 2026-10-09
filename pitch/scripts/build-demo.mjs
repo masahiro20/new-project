@@ -143,11 +143,15 @@ const patterns = [
   /\bnew\s+(?:WebSocket|EventSource|Worker|SharedWorker)\s*\(/g,
   /\bXMLHttpRequest\b/g,
   /\bsendBeacon\s*\(/g,
+  /\bRTCPeerConnection\b/g,
+  /\bimportScripts\s*\(/g,
 ];
 for (const re of patterns) for (const m of html.matchAll(re)) offenders.add(m[0].slice(0, 120));
 if (offenders.size) {
-  console.warn('build-demo: WARNING possible external/network resources in output:');
-  for (const o of offenders) console.warn(`  - ${o}`);
+  // The page promises 「外部に送信されません」: fail the build instead of only warning.
+  console.error('build-demo: ERROR possible external/network resources in output:');
+  for (const o of offenders) console.error(`  - ${o}`);
+  process.exit(1);
 }
 
 await mkdir(dirname(outPath), { recursive: true });
