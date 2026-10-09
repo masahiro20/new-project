@@ -1,4 +1,4 @@
-<title>Peter HQ</title>
+<title>ピーター本部</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
@@ -185,7 +185,7 @@ td a{color:var(--accent)}
 <div class="wrap">
   <header>
     <div class="brand">
-      <h1>Peter <span>HQ</span></h1>
+      <h1>ピーター<span>本部</span></h1>
       <div class="src" id="src">データ：接続中…</div>
     </div>
     <div class="hdr-right">
@@ -213,7 +213,7 @@ td a{color:var(--accent)}
     <div class="hint">ドラッグで回転・ホイールで拡大・人をクリックで詳細・しばらく触らないと自動で巡回</div>
     <div class="drawer" id="drawer" hidden></div>
     <div class="lb t"></div><div class="lb b"></div>
-    <div class="ptitle"><b>Peter <em>HQ</em></b><span id="pclock">LIVE</span></div>
+    <div class="ptitle"><b>ピーター<em>本部</em></b><span id="pclock">実測</span></div>
     <button class="btn pclose" type="button" id="presentClose">終了（Esc）</button>
     <div class="subt" aria-live="polite"><div class="eyebrow" id="subEyebrow"></div><div class="line" id="subLine"></div><div class="bar"><i id="subBar"></i></div></div>
   </div>
@@ -286,8 +286,8 @@ const TRIG={hb:"trig_01JLW6FjHHn6NHxdEqFKGhkV",nb:"trig_017EWz43ykgxRDhvbpRWoY9T
 const TEAMS=[
  {code:"HQ",name:"本部",color:"#f5b942",one:"全チームの統括・判断・オーナーへの報告",sid:"session_01N753Qt9Y7VusZ5kafYqeZ8",members:[
    {name:"Peter",role:"統括PM",does:"1時間ごとに全チームを巡回し、次の任務を出す。承認ボックスを処理する",lead:true},
-   {name:"Iris",role:"INTEL",does:"毎晩、世界のAI・開発ニュースを集めて要約する"},
-   {name:"Otto",role:"HQ Ops",does:"この仮想オフィスと定期巡回の仕組みを保守する（元 P6）",sid:"session_01K8Eqy9VDKh83hbaufG3GpE"},
+   {name:"Iris",role:"情報収集",does:"毎晩、世界のAI・開発ニュースを集めて要約する"},
+   {name:"Otto",role:"本部運用",does:"この仮想オフィスと定期巡回の仕組みを保守する（元 P6）",sid:"session_01K8Eqy9VDKh83hbaufG3GpE"},
    {name:"Midas",role:"収益戦略",does:"どこからお金が入るかを設計する（収益地図と30日計画）",sid:"session_01TLo2RFuUc2jN6aZ3JRyc7o"}]},
  {code:"P0",name:"減算ゼロ",color:"#ffd166",one:"障害福祉の事業所向けに、法定書類をAIで作る",sid:"session_019QzkHuvo1SuxAPiKCHkDhu",members:[
    {name:"Mina",role:"リーダー",does:"公開準備の段取りと品質の最終確認",lead:true},
@@ -301,33 +301,33 @@ const TEAMS=[
    {name:"Leo",role:"ビルダー",does:"判定エンジンをブラウザで動かす"},
    {name:"Mio",role:"ビルダー",does:"デモ画面を作る"},
    {name:"Taku",role:"レビュアー",does:"バグを探して直させる"},
-   {name:"Rin",role:"QA",does:"実際のブラウザで動作を確認する"}]},
+   {name:"Rin",role:"品質確認",does:"実際のブラウザで動作を確認する"}]},
  {code:"P2",name:"Budget Guard",color:"#39c6f0",one:"クラウドとAIの請求に上限をかけ、超えたら自動で止める",sid:"session_015XigFVCQSSHY1yMdRTDpZK",members:[
    {name:"Vega",role:"リーダー",does:"48時間で出す仕組みと各プロダクトの統括",lead:true},
    {name:"Kai",role:"ビルダー",does:"Budget Guard の体験デモを作る"},
    {name:"Noa",role:"ビルダー",does:"AIモデル乗り換えの料金試算ツールを作る"},
    {name:"Sho",role:"ビルダー",does:"各社の公式料金表を確認して反映する"},
    {name:"Emi",role:"レビュアー",does:"計算の誤りとバグを点検する"},
-   {name:"Jun",role:"QA",does:"スマホ幅・ダーク表示まで動作確認する"}]},
+   {name:"Jun",role:"品質確認",does:"スマホ幅・ダーク表示まで動作確認する"}]},
  {code:"P3",name:"Pitch",color:"#ff5fa2",one:"日本語のアクセントを、録音した声から判定して直す",sid:"session_019Z6KhuwmBpJjCfHnF3YVMF",members:[
    {name:"Kana",role:"リーダー",does:"音声解析とデモの全体設計",lead:true},
    {name:"Yuto",role:"ビルダー",does:"声の高さ（ピッチ）を解析する"},
    {name:"Saki",role:"ビルダー",does:"判定結果の画面を作る"},
    {name:"Riku",role:"レビュアー",does:"判定ロジックを点検する"},
-   {name:"Nana",role:"QA",does:"録音ファイルで動作を確認する"}]},
+   {name:"Nana",role:"品質確認",does:"録音ファイルで動作を確認する"}]},
  {code:"P4",name:"Collector Lens",color:"#5ee08a",one:"日本の中古品の出品を、海外コレクター向けに英語で読み解く",sid:"session_01C7QqXQZ6ibhgnM1DXANYZi",members:[
    {name:"Ren",role:"リーダー",does:"拡張機能とデモの統括、規約リスクの管理",lead:true},
    {name:"Daichi",role:"ビルダー",does:"出品文の解析ルールと辞書を作る"},
    {name:"Mei",role:"ビルダー",does:"英語パネルの画面を作る"},
    {name:"Hiro",role:"レビュアー",does:"誤判定と安全面を点検する"},
-   {name:"Asuka",role:"QA",does:"サンプル出品で動作を確認する"}]},
+   {name:"Asuka",role:"品質確認",does:"サンプル出品で動作を確認する"}]},
  {code:"P5",name:"Atlas",color:"#8c7bff",one:"AIツール（MCP・スキル）の安全性を検査し、社内の許可リストを作る",sid:"session_01HsRA6TcDdEV3mNchxr2yLP",members:[
    {name:"Atlas",role:"リーダー",does:"検査ルールと判定方針の統括",lead:true},
    {name:"Ryo",role:"ビルダー",does:"危険パターンの判定エンジンを作る"},
    {name:"Kanon",role:"ビルダー",does:"許可リスト作成の画面を作る"},
    {name:"Sei",role:"レビュアー",does:"秘密情報の漏れなどを点検する"},
-   {name:"Mao",role:"QA",does:"実際のブラウザで動作を確認する"}]},
- {code:"P7",name:"Anime",color:"#e0a3ff",one:"オリジナルアニメIPを作る（企画書・世界観バイブル・第1話・ピッチ）",sid:"session_01D1Y6NZQsbsgg7YkQhtL5rQ",members:[
+   {name:"Mao",role:"品質確認",does:"実際のブラウザで動作を確認する"}]},
+ {code:"P7",name:"アニメ",color:"#e0a3ff",one:"オリジナルアニメIPを作る（企画書・世界観バイブル・第1話・ピッチ）",sid:"session_01D1Y6NZQsbsgg7YkQhtL5rQ",members:[
    {name:"Hikaru",role:"リーダー",does:"企画とシリーズ全体の統括",lead:true},
    {name:"Tsumugi",role:"脚本家",does:"第1話の脚本を書く"},
    {name:"Kaito",role:"脚本家",does:"シリーズ構成と各話のプロットを書く"},
@@ -336,14 +336,14 @@ const TEAMS=[
    {name:"Sota",role:"絵コンテ",does:"第1話の主要カットの絵コンテを切る"},
    {name:"Rui",role:"マーケ",does:"ピッチ資料と発表の段取りを作る"},
    {name:"Mana",role:"レビュアー",does:"設定の矛盾と表現を点検する"}]},
- {code:"P8",name:"Mech Game",color:"#ff3b5c",one:"四足ロボットを操縦するゲームの、遊べる試作を作る",sid:"session_01ETmk7FEb5Vaiay9XiHdHTM",members:[
+ {code:"P8",name:"メカゲーム",color:"#ff3b5c",one:"四足ロボットを操縦するゲームの、遊べる試作を作る",sid:"session_01ETmk7FEb5Vaiay9XiHdHTM",members:[
    {name:"Rook",role:"リーダー",does:"ゲーム全体の設計と統括",lead:true},
    {name:"Gen",role:"ゲームデザイナー",does:"操作感とステージを設計する"},
    {name:"Toma",role:"プログラマー",does:"四足歩行の物理と操作を作る"},
    {name:"Itsuki",role:"プログラマー",does:"ゲームの仕組みと画面を作る"},
-   {name:"Akira",role:"VFX",does:"噴射・爆発・光のエフェクトを作る"},
+   {name:"Akira",role:"映像効果",does:"噴射・爆発・光のエフェクトを作る"},
    {name:"Hibiki",role:"サウンド",does:"機械音と効果音を作る"},
-   {name:"Nagi",role:"QA",does:"実際のブラウザで遊んで不具合を探す"}]},
+   {name:"Nagi",role:"品質確認",does:"実際のブラウザで遊んで不具合を探す"}]},
 ];
 const ST_JA={working:"作業中",blocked:"返事待ち",failed:"エラー",idle:"待機中",sleep:"待機中",none:"未接続"};
 const S={};TEAMS.forEach(t=>S[t.code]={state:"none",src:"none"});
@@ -694,7 +694,7 @@ function initWorld(){
       people.push({p,u:p.userData,desk,team:tm,member:m,lead:!!m.lead,i:people.length,a,rs,seat:seat.clone(),seatYaw:p.rotation.y,pod,center,mode:"sit",next:2+Math.random()*10,until:0,path:null,pi:0,yaw:p.rotation.y,nameS,walkPh:0,visitors:0});
     });
     const lc=document.createElement("canvas");lc.width=256;lc.height=96;{const g=lc.getContext("2d");g.fillStyle="rgba(229,23,47,.92)";g.beginPath();if(g.roundRect)g.roundRect(4,4,248,88,44);else g.rect(4,4,248,88);g.fill();g.strokeStyle="#ffd0d6";g.lineWidth=4;g.stroke();
-      g.fillStyle="#fff";g.beginPath();g.arc(60,48,14,0,7);g.fill();g.font="700 54px 'JetBrains Mono', monospace";g.textBaseline="middle";g.fillText("LIVE",88,52);}
+      g.fillStyle="#fff";g.beginPath();g.arc(60,48,14,0,7);g.fill();g.font="700 54px 'JetBrains Mono', monospace";g.textBaseline="middle";g.font="700 50px 'Zen Kaku Gothic New', sans-serif";g.fillText("公開中",84,52);}
     const liveTex=new THREE.CanvasTexture(lc);liveTex.encoding=THREE.sRGBEncoding;
     const live=new THREE.Sprite(new THREE.SpriteMaterial({map:liveTex,transparent:true,depthWrite:false,toneMapped:false}));live.scale.set(3.6,1.35,1);live.position.y=holo.position.y+hh/2+1.4;live.visible=false;live.userData={live:tm.code};pod.add(live);
     const liveGlow=glowSprite(0xe5172f,6,.0);liveGlow.position.copy(live.position);pod.add(liveGlow);
@@ -966,7 +966,7 @@ function render(){
   for(const tm of TEAMS){const s=S[tm.code];const card=el("article","team");card.style.setProperty("--tc",tm.color);
     const hd=el("div","hd");const row=el("div","row");const dot=el("i");dot.style.cssText="width:10px;height:10px;border-radius:2px;background:"+tm.color;
     row.append(dot,el("b",null,tm.name),el("span","code",tm.code));const st=el("span","st "+s.state,ST_JA[s.state]||"—");row.append(st);hd.append(row);
-    {const L=liveOf(tm.code);if(L){let x;if(L.url){x=el("a","livel","● LIVE 公開中 ↗");x.href=L.url;x.target="_blank";x.rel="noopener";x.title=L.label+"を開く";}else x=el("span","livel","● LIVE 公開中");row.insertBefore(x,st);}}
+    {const L=liveOf(tm.code);if(L){let x;if(L.url){x=el("a","livel","● 公開中 ↗");x.href=L.url;x.target="_blank";x.rel="noopener";x.title=L.label+"を開く";}else x=el("span","livel","● 公開中");row.insertBefore(x,st);}}
     const why=reasonOf(tm);const wr=el("div");wr.style.cssText="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;min-width:0";wr.append(el("span","why "+why.k,why.label));if(why.k!=="work"||why.pend.length)wr.append(el("span","whyd",why.detail));if(why.k==="moving"||why.k==="unknown")wr.lastChild.style.color="var(--muted)";else if(why.k==="stopped")wr.lastChild.style.color="var(--bad)";hd.append(wr);
     const pj=PROJECTS[tm.code.toLowerCase()];hd.append(el("div","one",tm.one+(pj&&pj.stage?" ／ "+pj.stage:"")));card.append(hd);
     const ul=el("ul");for(const m of tm.members){const li=el("li");const d=el("span","dot"+(m.lead?" lead":""));d.style.background=tm.color;d.style.opacity=m.lead?1:.75;
@@ -1013,7 +1013,7 @@ function renderInbox(){
     const ta=document.createElement("textarea");ta.id="note-"+a._id;ta.placeholder="ひとこと（任意）";ta.value=a.note||"";ta.setAttribute("aria-label",a.title+" へのメモ");c.append(ta);
     const sn=stopN(a);if(sn)c.insertBefore(el("div","stopn","このチームが止まっています："+projCodes(a.project).filter(x=>S[x]&&S[x].state!=="working").join("・")),c.children[1]||null);
     const btns=el("div","btns big");const okVal=a.kind==="task"?"done":"approved";
-    for(const [val,label,cls] of [[okVal,"OK","yes"],["later","あとで",""]]){const b=el("button",cls,label);b.type="button";b.disabled=!canWrite;b.addEventListener("click",()=>decide(a,val,ta.value,b));btns.append(b);}
+    for(const [val,label,cls] of [[okVal,a.kind==="task"?"やった":"承認する","yes"],["later","あとで",""]]){const b=el("button",cls,label);b.type="button";b.disabled=!canWrite;b.addEventListener("click",()=>decide(a,val,ta.value,b));btns.append(b);}
     c.append(btns);
     if(a.kind!=="task"){const no=el("button","minor","却下する");no.type="button";no.disabled=!canWrite;no.addEventListener("click",()=>decide(a,"declined",ta.value,no));c.append(no);}const res=el("div","res");res.id="res-"+a._id;c.append(res);open.append(c);}
   for(const a of rest){const c=el("article","ap "+(a.status==="declined"?"no":"done"));const top=el("div","top");top.append(el("span","tt",a.title),el("span","pj",(a.project||"")+" · "+(STATUS_LABEL[a.status]||a.status)));c.append(top);
@@ -1077,9 +1077,9 @@ updateQualityBtn();
 const P={on:false,i:0,t:0,steps:[]};
 const subE=document.getElementById("subEyebrow"),subL=document.getElementById("subLine"),subB=document.getElementById("subBar"),pclock=document.getElementById("pclock");
 function buildSteps(){const out=[];const outerTeams=TEAMS.filter(t=>t.code!=="HQ");let work=0;outerTeams.forEach(t=>{if(S[t.code].state==="working")work++;});
-  out.push({kind:"wide",dur:8,eye:"PETER HQ",text:"オーナー1人と、AIだけで動く開発スタジオ。"+TEAMS.length+"チーム・"+PEOPLE_N+"人のAIが東京時間で働いています。"});
+  out.push({kind:"wide",dur:8,eye:"ピーター本部",text:"オーナー1人と、AIだけで動く開発スタジオ。"+TEAMS.length+"チーム・"+PEOPLE_N+"人のAIが東京時間で働いています。"});
   const hb=T.hb&&T.hb.next?"次の巡回まであと"+Math.max(0,Math.round((Date.parse(T.hb.next)-Date.now())/6e4))+"分。":"";
-  out.push({kind:"core",code:"HQ",dur:8,eye:"HQ · 量子コア",text:"中央は本部。統括PMのピーターが1時間ごとに全チームを巡回し、次の任務を出します。"+hb});
+  out.push({kind:"core",code:"HQ",dur:8,eye:"本部 · 量子コア",text:"中央は本部。統括PMのピーターが1時間ごとに全チームを巡回し、次の任務を出します。"+hb});
   const order=outerTeams.slice().sort((a,b)=>(S[b.code].state==="working")-(S[a.code].state==="working"));
   for(const tm of order){const s=S[tm.code];const lead=tm.members.find(m=>m.lead);
     let tx=tm.name+"："+tm.one+"。リーダーの"+lead.name+"と"+(tm.members.length-1)+"人のメンバー。";
@@ -1087,7 +1087,7 @@ function buildSteps(){const out=[];const outerTeams=TEAMS.filter(t=>t.code!=="HQ
     tx+=why.k==="work"?"いま作業中。光のデータが本部へ流れています。":why.k==="owner"?"いまオーナー待ち。"+why.detail+"。":why.k==="moving"?"いまは次の作業へ移るところです。":why.k==="stopped"?"いまは停止中（"+why.detail+"）。":"";
     if(s.recent)tx+=" 直近："+s.recent;
     out.push({kind:"pod",code:tm.code,dur:Math.min(12,7+tx.length/40),eye:tm.code+" · "+tm.name.toUpperCase(),text:tx});}
-  out.push({kind:"wide",dur:8,eye:"LIVE",text:(work?"いま"+work+"チームが作業中。":"")+"ここに映る状態はすべて Claude Code の実際の作業記録から1分ごとに取得しています。"});
+  out.push({kind:"wide",dur:8,eye:"実測",text:(work?"いま"+work+"チームが作業中。":"")+"ここに映る状態はすべて Claude Code の実際の作業記録から1分ごとに取得しています。"});
   return out;}
 function showStep(){const s=P.steps[P.i];subE.textContent=s.eye;subL.textContent="";P.typed=0;P.full=s.text;}
 function presentStep(dt){if(!P.on)return;P.t+=dt;const s=P.steps[P.i];const u=Math.min(1,P.t/s.dur);
@@ -1095,7 +1095,7 @@ function presentStep(dt){if(!P.on)return;P.t+=dt;const s=P.steps[P.i];const u=Ma
   if(P.typed<P.full.length){P.typed=Math.min(P.full.length,P.typed+dt*(reduce?999:38));subL.textContent=P.full.slice(0,Math.floor(P.typed));}
   subB.style.width=(u*100).toFixed(1)+"%";
   if(P.t>=s.dur){P.i++;P.t=0;if(P.i>=P.steps.length){P.steps=buildSteps();P.i=0;}showStep();}
-  const j=jst();pclock.textContent="LIVE · 東京 "+String(j.h).padStart(2,"0")+":"+String(j.m).padStart(2,"0");}
+  const j=jst();pclock.textContent="実測 · 東京 "+String(j.h).padStart(2,"0")+":"+String(j.m).padStart(2,"0");}
 function startPresent(){if(P.on)return;P.on=true;P.steps=buildSteps();P.i=0;P.t=0;showStep();hideProfile();
   stage.classList.add("present");document.body.classList.add("presenting");
   try{const r=stage.requestFullscreen?stage.requestFullscreen():stage.webkitRequestFullscreen?stage.webkitRequestFullscreen():null;if(r&&r.catch)r.catch(()=>{});}catch(e){}
