@@ -1,4 +1,4 @@
-<title>AI Studio 24/7</title>
+<title>AIスタジオ 24時間</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
@@ -154,8 +154,8 @@ td a{color:var(--accent)}
 <div class="wrap">
   <header>
     <div class="brand">
-      <h1>AI Studio <span>24/7</span></h1>
-      <div class="src"><b class="rep">DEMO</b> デモ用のデータで動いています</div>
+      <h1>AIスタジオ <span>24時間</span></h1>
+      <div class="src"><b class="rep">デモ</b> デモ用のデータで動いています</div>
     </div>
     <div class="hdr-right">
       <div class="stuck" aria-live="polite"><b id="stuckN" class="ok">—</b><span class="lb1">チームが稼働中</span><span class="lb2" id="stuckSub">—</span></div>
@@ -181,7 +181,7 @@ td a{color:var(--accent)}
     <div class="hint">ドラッグで回転・ホイールで拡大・人をクリックで詳細・しばらく触らないと自動で巡回</div>
     <div class="drawer" id="drawer" hidden></div>
     <div class="lb t"></div><div class="lb b"></div>
-    <div class="ptitle"><b>AI Studio <em>24/7</em></b><span id="pclock">DEMO</span></div>
+    <div class="ptitle"><b>AIスタジオ <em>24時間</em></b><span id="pclock">デモ</span></div>
     <button class="btn pclose" type="button" id="presentClose">終了（Esc）</button>
     <div class="subt" aria-live="polite"><div class="eyebrow" id="subEyebrow"></div><div class="line" id="subLine"></div><div class="bar"><i id="subBar"></i></div></div>
   </div>
@@ -229,7 +229,7 @@ const TEAMS=[
  {code:"HQ",name:"本部",color:"#f5b942",one:"全チームの統括・判断・オーナーへの報告",members:[
    {name:"統括PM",role:"AI",does:"1時間ごとに全チームを巡回し、次の任務を出す",lead:true},
    {name:"リサーチ",role:"AI",does:"世界のAI・開発ニュースを毎晩集めて要約する"},
-   {name:"Ops",role:"AI",does:"このオフィスと巡回の仕組みを保守する"},
+   {name:"運用",role:"AI",does:"このオフィスと巡回の仕組みを保守する"},
    {name:"収益戦略",role:"AI",does:"どこから収益を得るかを設計する"}]},
  {code:"P0",name:"減算ゼロ",color:"#ffd166",one:"障害福祉の事業所向けに、法定書類をAIで作る",members:[
    {name:"リーダー",role:"AI",does:"公開準備の段取りと品質の最終確認",lead:true},
@@ -243,33 +243,33 @@ const TEAMS=[
    {name:"ビルダー",role:"AI",does:"判定エンジンをブラウザで動かす"},
    {name:"ビルダー",role:"AI",does:"デモ画面を作る"},
    {name:"レビュアー",role:"AI",does:"バグを探して直させる"},
-   {name:"QA",role:"AI",does:"実際のブラウザで動作を確認する"}]},
+   {name:"品質確認",role:"AI",does:"実際のブラウザで動作を確認する"}]},
  {code:"P2",name:"Budget Guard",color:"#39c6f0",one:"クラウドとAIの請求に上限をかけ、超えたら自動で止める",members:[
    {name:"リーダー",role:"AI",does:"プロダクトの統括",lead:true},
    {name:"ビルダー",role:"AI",does:"Budget Guard の体験デモを作る"},
    {name:"ビルダー",role:"AI",does:"AIモデル乗り換えの料金試算ツールを作る"},
    {name:"ビルダー",role:"AI",does:"各社の公式料金表を確認して反映する"},
    {name:"レビュアー",role:"AI",does:"計算の誤りとバグを点検する"},
-   {name:"QA",role:"AI",does:"スマホ幅まで動作を確認する"}]},
+   {name:"品質確認",role:"AI",does:"スマホ幅まで動作を確認する"}]},
  {code:"P3",name:"Pitch",color:"#ff5fa2",one:"日本語のアクセントを、録音した声から判定して直す",members:[
    {name:"リーダー",role:"AI",does:"音声解析とデモの全体設計",lead:true},
    {name:"ビルダー",role:"AI",does:"声の高さ（ピッチ）を解析する"},
    {name:"ビルダー",role:"AI",does:"判定結果の画面を作る"},
    {name:"レビュアー",role:"AI",does:"判定ロジックを点検する"},
-   {name:"QA",role:"AI",does:"録音ファイルで動作を確認する"}]},
+   {name:"品質確認",role:"AI",does:"録音ファイルで動作を確認する"}]},
  {code:"P4",name:"Collector Lens",color:"#5ee08a",one:"日本の中古品の出品を、海外コレクター向けに英語で読み解く",members:[
    {name:"リーダー",role:"AI",does:"拡張機能とデモの統括",lead:true},
    {name:"ビルダー",role:"AI",does:"出品文の解析ルールと辞書を作る"},
    {name:"ビルダー",role:"AI",does:"英語パネルの画面を作る"},
    {name:"レビュアー",role:"AI",does:"誤判定と安全面を点検する"},
-   {name:"QA",role:"AI",does:"サンプル出品で動作を確認する"}]},
+   {name:"品質確認",role:"AI",does:"サンプル出品で動作を確認する"}]},
  {code:"P5",name:"Atlas",color:"#8c7bff",one:"AIツールの安全性を検査し、社内の許可リストを作る",members:[
    {name:"リーダー",role:"AI",does:"検査ルールと判定方針の統括",lead:true},
    {name:"ビルダー",role:"AI",does:"危険パターンの判定エンジンを作る"},
    {name:"ビルダー",role:"AI",does:"許可リスト作成の画面を作る"},
    {name:"レビュアー",role:"AI",does:"秘密情報の漏れなどを点検する"},
-   {name:"QA",role:"AI",does:"実際のブラウザで動作を確認する"}]},
- {code:"P7",name:"Anime",color:"#e0a3ff",one:"オリジナルアニメIPを作る（企画書・世界観・第1話・ピッチ）",members:[
+   {name:"品質確認",role:"AI",does:"実際のブラウザで動作を確認する"}]},
+ {code:"P7",name:"アニメ",color:"#e0a3ff",one:"オリジナルアニメIPを作る（企画書・世界観・第1話・ピッチ）",members:[
    {name:"リーダー",role:"AI",does:"企画とシリーズ全体の統括",lead:true},
    {name:"脚本家",role:"AI",does:"第1話の脚本を書く"},
    {name:"脚本家",role:"AI",does:"シリーズ構成と各話のプロットを書く"},
@@ -278,14 +278,14 @@ const TEAMS=[
    {name:"絵コンテ",role:"AI",does:"第1話の主要カットの絵コンテを切る"},
    {name:"マーケ",role:"AI",does:"ピッチ資料と発表の段取りを作る"},
    {name:"レビュアー",role:"AI",does:"設定の矛盾と表現を点検する"}]},
- {code:"P8",name:"Mech Game",color:"#ff3b5c",one:"四足ロボットを操縦するゲームの、遊べる試作を作る",members:[
+ {code:"P8",name:"メカゲーム",color:"#ff3b5c",one:"四足ロボットを操縦するゲームの、遊べる試作を作る",members:[
    {name:"リーダー",role:"AI",does:"ゲーム全体の設計と統括",lead:true},
    {name:"ゲームデザイン",role:"AI",does:"操作感とステージを設計する"},
    {name:"プログラマー",role:"AI",does:"四足歩行の物理と操作を作る"},
    {name:"プログラマー",role:"AI",does:"ゲームの仕組みと画面を作る"},
-   {name:"VFX",role:"AI",does:"噴射・爆発・光のエフェクトを作る"},
+   {name:"映像効果",role:"AI",does:"噴射・爆発・光のエフェクトを作る"},
    {name:"サウンド",role:"AI",does:"機械音と効果音を作る"},
-   {name:"QA",role:"AI",does:"実際に遊んで不具合を探す"}]},
+   {name:"品質確認",role:"AI",does:"実際に遊んで不具合を探す"}]},
 ];
 const TASKS={HQ:["全チームを巡回して次の任務を配布","進捗レポートを作成","優先順位を見直し"],
  P0:["サービス別の解説ページを執筆","制度改定との照合チェック","書類サンプルの体裁を調整"],
@@ -488,7 +488,7 @@ function initWorld(){
     drawShot(g,tm.code,34,44,520,330,col);
     g.font="600 15px 'JetBrains Mono', monospace";g.fillStyle="#8d97b2";g.fillText("画面イメージ",40,400);
     const X=584;
-    g.font="600 24px 'JetBrains Mono', monospace";g.fillStyle=col;g.fillText(tm.code+" · AI "+tm.members.length,X,70);
+    g.font="600 24px 'JetBrains Mono', monospace";g.fillStyle=col;g.fillText(tm.code+" · AI "+tm.members.length+"体",X,70);
     g.font="700 46px 'Zen Kaku Gothic New', sans-serif";g.fillStyle="#f2f5ff";g.fillText(wrapLines(g,tm.name,W-X-40,1)[0],X,126);
     const on=st==="working",sc=on?"#3ee08f":"#7aa2ff",label=on?"作業中":"次の任務待ち";g.font="700 26px 'Zen Kaku Gothic New', sans-serif";const pw=g.measureText(label).width+58;
     g.fillStyle=hexA(sc,.18);g.strokeStyle=sc;g.lineWidth=2.5;rr(g,X,150,pw,44,22);g.fill();g.stroke();g.fillStyle=sc;g.beginPath();g.arc(X+22,172,8,0,7);g.fill();g.fillText(label,X+40,181);
@@ -876,7 +876,7 @@ function render(){
   const chips=document.getElementById("chips");chips.textContent="";
   const add=(p,c,t)=>{const s=el("span","chip");const i=el("i");i.style.background=c;s.append(i,document.createTextNode(t));p.append(s);};
   add(chips,"#3ee08f","作業中 "+work);add(chips,"#7aa2ff","次の任務待ち "+(outerN-work));add(chips,"#f5b942","AIエージェント "+PEOPLE_N);add(chips,"#e0a3ff","24時間稼働");
-  const hud=document.getElementById("hud");hud.textContent="";add(hud,"#3ee08f","作業中 "+work);add(hud,"#f5b942","完了 "+DONE);add(hud,"#ffb547","DEMO");
+  const hud=document.getElementById("hud");hud.textContent="";add(hud,"#3ee08f","作業中 "+work);add(hud,"#f5b942","完了 "+DONE);add(hud,"#ffb547","デモ");
   document.querySelectorAll("#teamnav button").forEach(b=>{b.classList.toggle("on",S[b.dataset.code].state==="working");b.querySelector("i").style.color=b.querySelector("i").style.background;});
   const tw=document.getElementById("teams");tw.textContent="";
   for(const tm of TEAMS){const s=S[tm.code];const card=el("article","team");card.style.setProperty("--tc",tm.color);
@@ -903,14 +903,14 @@ updateQualityBtn();
 const P={on:false,i:0,t:0,steps:[]};
 const subE=document.getElementById("subEyebrow"),subL=document.getElementById("subLine"),subB=document.getElementById("subBar"),pclock=document.getElementById("pclock");
 function buildSteps(){const out=[];const outerTeams=TEAMS.filter(t=>t.code!=="HQ");
-  out.push({kind:"wide",dur:8,eye:"AI STUDIO 24/7",text:"AIだけで動く開発スタジオ。"+outerTeams.length+"つのプロダクトチームと本部、あわせて"+PEOPLE_N+"のAIエージェントが24時間開発を続けています。"});
-  out.push({kind:"core",code:"HQ",dur:8,eye:"HQ · CORE",text:"中央は本部。統括AIが1時間ごとに全チームを巡回し、進み具合を確かめて次の任務を出します。"});
+  out.push({kind:"wide",dur:8,eye:"AIスタジオ 24時間",text:"AIだけで動く開発スタジオ。"+outerTeams.length+"つのプロダクトチームと本部、あわせて"+PEOPLE_N+"のAIエージェントが24時間開発を続けています。"});
+  out.push({kind:"core",code:"HQ",dur:8,eye:"本部 · コア",text:"中央は本部。統括AIが1時間ごとに全チームを巡回し、進み具合を確かめて次の任務を出します。"});
   for(const tm of outerTeams){const s=S[tm.code];
     let tx=tm.name+"："+tm.one+"。リーダーのAIと"+(tm.members.length-1)+"の補助AIのチームです。";
     tx+=s.state==="working"?"いま「"+s.recent+"」に取り組んでいます。":"直前に「"+s.recent+"」を終えました。";
     out.push({kind:"pod",code:tm.code,dur:Math.min(12,7+tx.length/40),eye:tm.code+" · "+tm.name.toUpperCase(),text:tx});}
-  out.push({kind:"wide",dur:9,eye:"24/7",text:"人が眠っている間も開発は止まりません。オーナーは、お金や公開が絡む判断を承認するだけです。"});
-  out.push({kind:"core",code:"HQ",dur:6,eye:"DEMO",text:"※ この画面はデモ用のデータで動いています。ホログラムは成果物の画面イメージです。"});
+  out.push({kind:"wide",dur:9,eye:"24時間",text:"人が眠っている間も開発は止まりません。オーナーは、お金や公開が絡む判断を承認するだけです。"});
+  out.push({kind:"core",code:"HQ",dur:6,eye:"デモ",text:"※ この画面はデモ用のデータで動いています。ホログラムは成果物の画面イメージです。"});
   return out;}
 function showStep(){const s=P.steps[P.i];subE.textContent=s.eye;subL.textContent="";P.typed=0;P.full=s.text;}
 function presentStep(dt){if(!P.on)return;P.t+=dt;const s=P.steps[P.i];const u=Math.min(1,P.t/s.dur);
@@ -918,7 +918,7 @@ function presentStep(dt){if(!P.on)return;P.t+=dt;const s=P.steps[P.i];const u=Ma
   if(P.typed<P.full.length){P.typed=Math.min(P.full.length,P.typed+dt*(reduce?999:38));subL.textContent=P.full.slice(0,Math.floor(P.typed));}
   subB.style.width=(u*100).toFixed(1)+"%";
   if(P.t>=s.dur){P.i++;P.t=0;if(P.i>=P.steps.length){P.steps=buildSteps();P.i=0;}showStep();}
-  const j=jst();pclock.textContent="DEMO · 東京 "+String(j.h).padStart(2,"0")+":"+String(j.m).padStart(2,"0");}
+  const j=jst();pclock.textContent="デモ · 東京 "+String(j.h).padStart(2,"0")+":"+String(j.m).padStart(2,"0");}
 function startPresent(full){if(P.on)return;P.on=true;P.steps=buildSteps();P.i=0;P.t=0;showStep();hideProfile();
   stage.classList.add("present");document.body.classList.add("presenting");
   if(full){try{const r=stage.requestFullscreen?stage.requestFullscreen():stage.webkitRequestFullscreen?stage.webkitRequestFullscreen():null;if(r&&r.catch)r.catch(()=>{});}catch(e){}}
