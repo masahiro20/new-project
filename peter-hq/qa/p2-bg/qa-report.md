@@ -43,3 +43,12 @@
 - Atlas の修正の抜き取り確認：cron の認証、admin の比較、Vercel の HMAC と再送防止、Slack の URL 検査とリダイレクト拒否、レート制限、本番のメールログは件名のみ、Upstash のエラーの伏せ字、サインアウトでのセッション失効。
 - Cloudflare 経路の `NODE_ENV=production` はコードで確認（workerd での実行は未確認）。
 - axe：重大な違反なし（nav の名前、見出しの順番、空の表見出しなどの軽微なもののみ）。375px はパッチ後に横スクロール0件。
+
+## 再確認（2026-10-09、`d660cbf`）
+Vega さんの対応（33cd603・6dc35f4・d660cbf）を確認しました。
+- typecheck：OK。
+- `vitest run` を3回続けて実行：3回とも 22ファイル・255件すべて合格。前回不安定だった `tests/key-invalid.test.ts` を単独で5回実行：5回とも合格。
+- R3-03：Vercel の100%通知で limit にするのは、接続が `vercelLimitStops === true`（オプトイン）のときだけ（lib/guard/service.ts:282）。オン・オフの操作は app/api/app/connections/[id]/route.ts:100, 113、テストは security-regressions ほか。
+- R2-05：有効な Stripe の権利があるとき、新しい購入はメールの索引を上書きしない（lib/entitlements.ts:128）。
+- 本番の500：保存済みの demo 接続の test-stop・stop-now は 502 `plan-failed` を返す（route.ts:65, 78）。
+- 外部サービスへの接続はしていません（テストのみ）。
