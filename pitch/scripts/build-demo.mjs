@@ -13,7 +13,8 @@
 // whose CSP blocks anything that isn't inline.
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { execSync } from 'node:child_process';
-import { dirname, resolve } from 'node:path';
+import { realpathSync, existsSync } from 'node:fs';
+import { basename, dirname, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { build } from 'esbuild';
 import { splitMorae } from '../src/mora.js';
@@ -32,7 +33,9 @@ const entry = resolve(process.env.DEMO_ENTRY ?? `${root}/demo/demo.js`); // over
 
 const fail = (msg) => { console.error(`build-demo: ${msg}`); process.exit(1); };
 const testPubkey = process.env.SUPPORTER_PUBKEY ? resolve(process.env.SUPPORTER_PUBKEY) : null;
-if (testPubkey && [`${root}/dist/`, `${root}/site/`].some((d) => `${outPath}/`.startsWith(d) || outPath.startsWith(d))) {
+// 実体のパスで比べる（シンボリックリンク経由・大文字小文字だけ違うパス（macOS の既定）でも dist/・site/ を見抜く）
+const realish = (p) => { let d = p, rest = ''; while (!existsSync(d) && dirname(d) !== d) { rest = `/${basename(d)}${rest}`; d = dirname(d); } return `${realpathSync(d)}${rest}/`.toLowerCase(); };
+if (testPubkey && [`${root}/dist`, `${root}/site`].some((d) => realish(outPath).startsWith(realish(d)))) {
   fail(`SUPPORTER_PUBKEY is set: refusing to write a test-key build into ${outPath} (use a scratch directory)`);
 }
 // 創設サポーターの公開鍵の一覧を確かめる（本番：テスト用の kid なし、テスト：テスト用の kid だけ）。
@@ -41,7 +44,11 @@ const keyModule = await import(pathToFileURL(keyModulePath).href);
 const keyErrs = validateKeyList({ keys: keyModule.SUPPORTER_KEYS, retired: keyModule.RETIRED_KIDS, revoked: keyModule.REVOKED_LIDS }, { test: !!testPubkey });
 if (keyErrs.length) fail(`supporter key list ${keyModulePath}: ${keyErrs.join('; ')}`);
 const keyFpr = await keysFingerprint(keyModule.SUPPORTER_KEYS);
-if (!testPubkey && process.env.SUPPORTER_KEYS_SHA256 && process.env.SUPPORTER_KEYS_SHA256.toLowerCase() !== keyFpr) {
+// 本番の一覧が空でなければ、オーナーから受け取った指紋との照合を必須にする（REPORT §5-8「期待する値と照合」）。
+if (!testPubkey && keyModule.SUPPORTER_KEYS.length && !process.env.SUPPORTER_KEYS_SHA256) {
+  fail(`supporter key list is configured (sha256 ${keyFpr}): set SUPPORTER_KEYS_SHA256=<fingerprint from the owner> (docs/supporter-ops.md §2-2)`);
+}
+if (!testPubkey && process.env.SUPPORTER_KEYS_SHA256 && process.env.SUPPORTER_KEYS_SHA256.trim().toLowerCase() !== keyFpr) {
   fail(`supporter key list fingerprint ${keyFpr} ≠ SUPPORTER_KEYS_SHA256 ${process.env.SUPPORTER_KEYS_SHA256}`);
 }
 // 創設サポーターの公開鍵の差し替え（テスト用）。

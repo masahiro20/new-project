@@ -12,10 +12,11 @@
 // All URLs are relative, so the folder works under any sub-path on any static host.
 // The Artifact build stays SW-free: nothing here touches demo/ or dist/.
 import { readFile, writeFile, mkdir, mkdtemp, rm } from 'node:fs/promises';
+import { realpathSync, existsSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { tmpdir } from 'node:os';
-import { dirname, join, resolve } from 'node:path';
+import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ICONS, renderIcon } from './pwa-icons.mjs';
 
@@ -27,7 +28,8 @@ if (li >= 0) lexArgs.push(...argv.splice(li, 2));
 const outDir = resolve(argv[0] ?? `${root}/site/app`);
 const fail = (msg) => { console.error(`build-pwa: ${msg}`); process.exit(1); };
 // テスト用の公開鍵（SUPPORTER_PUBKEY）で site/ に書かない。
-if (process.env.SUPPORTER_PUBKEY && `${outDir}/`.startsWith(`${root}/site/`)) fail(`SUPPORTER_PUBKEY is set: refusing to write a test-key build into ${outDir}`);
+const realish = (p) => { let d = p, rest = ''; while (!existsSync(d) && dirname(d) !== d) { rest = `/${basename(d)}${rest}`; d = dirname(d); } return `${realpathSync(d)}${rest}/`.toLowerCase(); };
+if (process.env.SUPPORTER_PUBKEY && [`${root}/site`, `${root}/dist`].some((d) => realish(outDir).startsWith(realish(d)))) fail(`SUPPORTER_PUBKEY is set: refusing to write a test-key build into ${outDir}`);
 
 // Page tokens (demo/template.html :root) used outside the page.
 const LIGHT_BG = '#f3f6f8';
