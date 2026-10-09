@@ -2,6 +2,7 @@
 name: script-consistency
 description: Check a Japanese↔English game script (CSV/TSV, JSON or XLIFF string tables plus an optional glossary) for whole-script consistency — glossary term drift, katakana notation drift, character-name drift, honorific drift and character-voice drift — and produce a report with file:line references. Use when the user asks for localization QA, LQA, consistency, 訳揺れ, 表記揺れ, キャラ名, 敬称, 口調 checks on game text.
 ---
+<!-- オーナー向けメモ：これはユーザーの Claude が読むスキル定義（指示文）です。顧客向けのため英語のままにしています。 -->
 
 # Script consistency check (Kotomark)
 

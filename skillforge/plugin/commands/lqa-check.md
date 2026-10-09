@@ -2,6 +2,7 @@
 description: Run a whole-script JA↔EN consistency check (terms, names, honorifics, voice) on string tables
 argument-hint: <table files...> [--glossary path]
 ---
+<!-- オーナー向けメモ：これは /lqa-check コマンドの定義（ユーザーの Claude への指示文）です。顧客向けのため英語のままにしています。 -->
 
 Use the `script-consistency` skill to check these files: $ARGUMENTS
 
