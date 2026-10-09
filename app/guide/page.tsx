@@ -3,7 +3,7 @@ import Link from "next/link";
 import { GUIDES, SERVICE_GUIDES, TOPIC_GUIDES } from "@/lib/guides";
 import { breadcrumbList, jsonLdHtml } from "@/lib/jsonld";
 import { ogImage } from "@/lib/og";
-import { siteUrl, SITE_NAME } from "@/lib/site";
+import { pageUrl, SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "減算と書類の解説",
@@ -23,16 +23,15 @@ export const metadata: Metadata = {
 };
 
 export default function GuideIndex() {
-  const base = siteUrl();
   const jsonLd = [
     breadcrumbList([
-      { name: "ホーム", url: base },
-      { name: "減算と書類の解説", url: `${base}/guide` },
+      { name: "ホーム", url: pageUrl() },
+      { name: "減算と書類の解説", url: pageUrl("/guide") },
     ]),
     {
       "@context": "https://schema.org",
       "@type": "ItemList",
-      itemListElement: GUIDES.map((g, i) => ({ "@type": "ListItem", position: i + 1, url: `${base}/guide/${g.slug}`, name: g.title })),
+      itemListElement: GUIDES.map((g, i) => ({ "@type": "ListItem", position: i + 1, url: pageUrl(`/guide/${g.slug}`), name: g.title })),
     },
   ];
 

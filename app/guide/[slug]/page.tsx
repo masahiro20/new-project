@@ -6,7 +6,7 @@ import { GUIDES, SERVICE_GUIDES, TOPIC_GUIDES, getGuide } from "@/lib/guides";
 import { breadcrumbList, jsonLdHtml } from "@/lib/jsonld";
 import { aiEnabled } from "@/lib/launch";
 import { ogImage } from "@/lib/og";
-import { siteUrl, SITE_NAME } from "@/lib/site";
+import { pageUrl, siteUrl, SITE_NAME } from "@/lib/site";
 
 export function generateStaticParams() {
   return GUIDES.map((g) => ({ slug: g.slug }));
@@ -40,7 +40,7 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
   if (!guide) notFound();
 
   const base = siteUrl();
-  const url = `${base}/guide/${guide.slug}`;
+  const url = pageUrl(`/guide/${guide.slug}`);
   const org = { "@type": "Organization", name: SITE_NAME, url: base };
   const jsonLd: object[] = [
     {
@@ -58,8 +58,8 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
       citation: guide.sources.map((s) => s.url),
     },
     breadcrumbList([
-      { name: "ホーム", url: base },
-      { name: "減算と書類の解説", url: `${base}/guide` },
+      { name: "ホーム", url: pageUrl() },
+      { name: "減算と書類の解説", url: pageUrl("/guide") },
       { name: guide.title, url },
     ]),
   ];

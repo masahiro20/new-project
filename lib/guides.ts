@@ -1,10 +1,10 @@
-import { SERVICE_GUIDES } from "./guide-pages";
+import { EXTRA_TOPIC_GUIDES, SERVICE_GUIDES } from "./guide-pages";
 import type { Guide } from "./guide-pages/types";
 
 export type { Guide };
 
 /** Cross-service explainers (減算の制度・運営指導). */
-export const TOPIC_GUIDES: Guide[] = [
+const CORE_TOPIC_GUIDES: Guide[] = [
   {
     slug: "gyakutai-boushi-gensan",
     title: "虐待防止措置未実施減算とは？3つの要件と必要な書類",
@@ -138,6 +138,8 @@ export const TOPIC_GUIDES: Guide[] = [
     ],
   },
 ];
+
+export const TOPIC_GUIDES: Guide[] = [...CORE_TOPIC_GUIDES, ...EXTRA_TOPIC_GUIDES];
 
 export { SERVICE_GUIDES };
 

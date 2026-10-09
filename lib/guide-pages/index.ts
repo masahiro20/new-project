@@ -10,6 +10,11 @@ import { guide as shisetsuNyusho } from "./shisetsu-nyusho";
 import { guide as kyotakuKaigo } from "./kyotaku-kaigo";
 import { guide as tankiNyusho } from "./tanki-nyusho";
 import { guide as soudanShien } from "./soudan-shien";
+import { guide as shidouShitekiJirei } from "./shidou-shiteki-jirei";
+import { guide as gensanHayamihyo } from "./gensan-hayamihyo";
+import { guide as gijirokuKakikata } from "./gijiroku-kakikata";
+import { guide as shishinTsukurikata } from "./shishin-tsukurikata";
+import { guide as bcpGensan } from "./bcp-gensan";
 
 /** One guide per service type, in the same order as SERVICE_TYPES in lib/form.ts. */
 export const SERVICE_GUIDES: Guide[] = [
@@ -25,3 +30,6 @@ export const SERVICE_GUIDES: Guide[] = [
   tankiNyusho,
   soudanShien,
 ];
+
+/** Long-tail topic guides (運営指導・早見表・書類の書き方), listed after the core explainers in lib/guides.ts. */
+export const EXTRA_TOPIC_GUIDES: Guide[] = [gensanHayamihyo, shidouShitekiJirei, gijirokuKakikata, shishinTsukurikata, bcpGensan];

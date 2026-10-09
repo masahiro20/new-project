@@ -7,7 +7,7 @@ import { aiEnabled } from "@/lib/launch";
 import { PARTS, PART_LABELS } from "@/lib/parts";
 import { SAMPLE_FACILITY, SAMPLE_UPDATED, SAMPLES } from "@/lib/samples";
 import { ogImage } from "@/lib/og";
-import { siteUrl, SITE_NAME } from "@/lib/site";
+import { pageUrl, siteUrl, SITE_NAME } from "@/lib/site";
 
 const TITLE = "虐待防止委員会の議事録・研修資料・身体拘束適正化指針の書類サンプル（無料）";
 const DESCRIPTION =
@@ -41,14 +41,14 @@ export default function SamplesPage() {
       datePublished: SAMPLE_UPDATED,
       dateModified: SAMPLE_UPDATED,
       inLanguage: "ja",
-      mainEntityOfPage: `${base}/samples`,
+      mainEntityOfPage: pageUrl("/samples"),
       author: org,
       publisher: org,
-      hasPart: PARTS.map((p) => ({ "@type": "CreativeWork", name: PART_LABELS[p], url: `${base}/samples#${ANCHORS[p]}` })),
+      hasPart: PARTS.map((p) => ({ "@type": "CreativeWork", name: PART_LABELS[p], url: `${pageUrl("/samples")}#${ANCHORS[p]}` })),
     },
     breadcrumbList([
-      { name: "ホーム", url: base },
-      { name: "書類サンプル", url: `${base}/samples` },
+      { name: "ホーム", url: pageUrl() },
+      { name: "書類サンプル", url: pageUrl("/samples") },
     ]),
   ];
 
