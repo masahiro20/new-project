@@ -34,11 +34,11 @@
 > 2026-10-09 更新：このセクションの正本は `lp/index.html` です。数字は「調整に使っていないデータ・2回目」に差し替え済み。以前の 190/190 を見出しに使った版は廃止しました（調整に使ったデータの値のため）。
 
 **見出しの数字：287 / 297**
-- JA: 調整に一度も使っていない6つのオープンソース（ゲーム3・アプリ3）の日本語訳ファイル（主に UI 文字列。.po / YAML / JSON / Ren'Py）で、警告・エラーを無作為に抜き出して確認したところ、判断が分かれた6件を除く297件中287件（約97%）が実際に直すべき問題でした。指摘の大半は未翻訳の検出で、それ以外の指摘に限ると24件中22件です。
+- JA: 測定時点で調整に一度も使っていなかった6つのオープンソース（ゲーム3・アプリ3）の日本語訳ファイル（主に UI 文字列。.po / YAML / JSON / Ren'Py）で、警告・エラーを無作為に抜き出して確認したところ、判断が分かれた6件を除く297件中287件（約97%）が実際に直すべき問題でした。指摘の大半は未翻訳の検出で、それ以外の指摘に限ると24件中22件です。
 - EN: On the Japanese translation files of six open-source projects never used for tuning (3 games, 3 apps; mostly UI strings in .po, YAML, JSON and Ren'Py), we sampled the warnings and errors at random: excluding 6 unclear cases, 287 of 297 (about 97%) were real issues to fix. Most findings are untranslated strings; for all other findings the figure is 22 of 24.
-- Meta — JA: 2026年10月、自社調べ。判定は評価者1名（AI）によるもので、第三者の確認はまだです。この前に別の未使用5本で測ったときは約76%で、その結果を見て直したため、その5本は「調整に使用」に移しました。
+- Meta — JA: 2026年10月、自社調べ。判定は評価者1名（AI）によるもので、第三者の確認はまだです。用語集なしの設定での測定で、用語・敬称・口調の検査と見逃し（再現率）はこの数字に含まれません。6本は測定時点で未使用で、その後、この測定で見つかった誤検知の修正に使いました。この前に別の未使用5本で測ったときは約76%で、その結果を見て直したため、その5本は「調整に使用」に移しました。
 
-**裏付けの事実**：カタカナ表記揺れ 19/19（未使用データ）、未翻訳 281/290（誤検知は訳す必要のない行）、検証したプロジェクト16本（調整に使用10本、未使用6本）。
+**裏付けの事実**：カタカナ表記揺れ 19/19（未使用データ）、未翻訳 281/290（誤検知は訳す必要のない行）、検証したプロジェクト17本（調整に使用11本〔Misskey を含む〕、測定時点で未使用6本〔その後、修正に使用〕）。
 
 **限界（ページに必ず残す）**
 - JA: 限界：判定は自社の評価者1名（AI）によるもので、人による確認はまだです。対象は主に英→日の UI・ゲーム文字列です。日→英は UI 文字列（Misskey）で確認済みで、ゲーム台本での検証は協力者の方と行う予定です。用語集を使う指摘の精度は、用語集の質に左右されます。
@@ -73,7 +73,7 @@ Designed on the assumption that your script is under NDA.
 **ローカライズ会社・LQAチーム / Localization vendors & LQA teams** — you check scripts that several translators worked on over months, before delivery.
 - Spend review time on judgment, not searching: work from a list of line references.
 - Fits into CI: the CLI returns exit codes.
-- Use what you already have: CSV / TSV / JSON / XLIFF string tables and CSV glossaries.
+- Use what you already have: CSV / TSV / Excel / JSON / XLIFF / gettext (.po) string tables and CSV or TBX glossaries.
 
 **インディー開発者・パブリッシャー / Indie developers & publishers** — you ship a JA↔EN version but can't read every line on the other side.
 - Check what you can't read: "line 17 calls it something else" is a concrete question for your translator.
@@ -94,8 +94,8 @@ Ask for: file format, language direction, rough line count.
 
 ## 7. FAQ
 
-- **Formats?** Scripts: CSV / TSV (header row required), JSON, XLIFF 1.2 / 2.0. Glossaries: JSON or CSV. Several files can be checked together.
-- **Do I need a glossary?** Katakana notation, speaker labels, placeholders, tags, ruby and length work without one. Term, honorific and voice checks need a glossary with character profiles. A heuristic glossary draft can be generated from the script — always review it.
+- **Formats?** Scripts: CSV / TSV (header row required), Excel (.xlsx), JSON (incl. per-language ja.json + en.json), XLIFF 1.2 / 2.0, gettext (.po), YAML locale files, Ren'Py translation files, KAG / TyranoScript (.ks), Unity / Unreal string tables. Glossaries: JSON, CSV / TSV (Crowdin, Phrase exports), TBX. Several files can be checked together.
+- **Do I need a glossary?** Katakana notation, speaker-label spelling (case, hiragana vs. katakana), placeholders, tags, ruby and length work without one; matching labels written differently (MINA / ミナ) needs character entries. Term, honorific and voice checks need a glossary with character profiles. A heuristic glossary draft can be generated from the script — always review it.
 - **Both directions?** Direction is detected per table; Japanese-side checks run on whichever side is Japanese. Honorific and voice checks are built mainly around Japanese source rendered in English.
 - **Does it replace LQA testers?** No. It speeds up finding drift; deciding whether a line is right is a person's job.
 - **Which AI assistant?** Currently tested with a Claude Code plugin. The browser demo and the CLI need no AI assistant. Independent product, not affiliated with any AI provider.

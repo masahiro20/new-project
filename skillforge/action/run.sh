@@ -22,6 +22,8 @@
 #   INPUT_ANNOTATIONS         true | false (default true)
 #   INPUT_SUMMARY             true | false (default true)
 #   INPUT_WORKING_DIRECTORY   directory to run in (default "."); relative paths above resolve against it
+#   INPUT_LICENSE_KEY         license key (optional): masked with ::add-mask:: and handed to the CLI as
+#                             KOTOMARK_LICENSE_KEY; never echoed. Not needed during the preview.
 #   KOTOMARK_BIN              override the CLI bundle (default: dist/kotomark.mjs next to this script)
 #   GITHUB_OUTPUT, GITHUB_STEP_SUMMARY  provided by the runner; skipped when unset
 set -euo pipefail
@@ -40,6 +42,16 @@ json_path="${INPUT_JSON_PATH:-}"
 annotations="${INPUT_ANNOTATIONS:-true}"
 summary="${INPUT_SUMMARY:-true}"
 workdir="${INPUT_WORKING_DIRECTORY:-.}"
+
+# --- license key: mask it before anything else can print it, then pass it only via the environment ---
+license_key="${INPUT_LICENSE_KEY:-}"
+unset INPUT_LICENSE_KEY
+license_key="${license_key//[$'\t\r\n ']/}"
+if [[ -n "$license_key" ]]; then
+  echo "::add-mask::$license_key"
+  export KOTOMARK_LICENSE_KEY="$license_key"
+fi
+unset license_key
 
 fail() { # message, exit code
   echo "::error title=Kotomark::$1"

@@ -126,6 +126,26 @@ test("multi-line paths with spaces; bad input → exit 2", () => {
   assert.equal(runAction({ ...SAMPLE, "fail-on": "bogus" }).code, 2);
 });
 
+test("license-key: masked first, passed to the CLI only via the environment, never echoed", () => {
+  const key = "KOTOMARK-1.eyJ2IjoxfQ.c2lnbmF0dXJl";
+  const r = runAction({ ...SAMPLE, "fail-on": "never", "license-key": `  ${key}\n` });
+  assert.equal(r.code, 0, r.stderr);
+  const lines = r.stdout.split("\n");
+  assert.equal(lines[0], `::add-mask::${key}`, "mask is the very first output line");
+  assert.equal(r.stdout.split(key).length - 1, 1, "key appears only in the mask command");
+  assert.ok(!r.stderr.includes(key) && !r.summary.includes(key) && !Object.values(r.outputs).some((v) => v.includes(key)));
+  assert.match(r.stderr, /invalid license key/, "the CLI saw the key (preview: warning only, same result)");
+
+  const none = runAction({ ...SAMPLE, "fail-on": "never" });
+  assert.doesNotMatch(none.stdout, /add-mask/);
+  assert.doesNotMatch(none.stderr, /licen[cs]e/i);
+  assert.equal(none.outputs.errors, r.outputs.errors);
+
+  const script = readFileSync(join(actionDir, "run.sh"), "utf8");
+  assert.doesNotMatch(script, /--license-key/, "never on a command line (visible in process lists)");
+  assert.ok(script.indexOf("::add-mask::") < script.indexOf("fail() {"), "masked before any other output");
+});
+
 // --- action.yml sanity check -------------------------------------------------------------------------
 
 /** Children of `key` (2-space indented YAML mapping), as name → raw block text. */
@@ -158,7 +178,7 @@ test("action.yml: composite action wiring is consistent with run.sh", () => {
   const outputs = block(lines, "outputs", 0);
   assert.deepEqual(
     [...inputs.keys()].sort(),
-    ["annotations", "fail-on", "glossary", "input-format", "json-path", "junit-path", "locale", "min-severity", "paths", "summary", "working-directory"].sort(),
+    ["annotations", "fail-on", "glossary", "input-format", "json-path", "junit-path", "license-key", "locale", "min-severity", "paths", "summary", "working-directory"].sort(),
   );
   assert.deepEqual([...outputs.keys()].sort(), ["errors", "exit-code", "infos", "warnings"]);
   for (const [name, body] of inputs) assert.ok(body.some((b) => b.startsWith("description:")), `${name} has a description`);

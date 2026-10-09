@@ -5,3 +5,7 @@ node_modules/
 .kotomark-data/
 web/dist/kotomark-engine.js
 /out/
+# License signing keys (private) must never be committed — see docs/licensing.md
+*.pem
+*signing-key*
+.kotomark/

@@ -10,7 +10,7 @@
 | **用語の訳揺れ** | 魔導石 → "Mana Stone" ×6、"Magic Stone" ×2（`script.csv:6`、`:17`） | 必要 |
 | **カタカナの表記揺れ** | ルーンゲート ×2 / ルーン・ゲート ×1、サーバー / サーバ | 不要 |
 | **キャラ名の揺れ** | "Lizette"（禁止表記）、"Lisete"（つづりの近い誤り）、話者ラベル `MINA` と `ミナ` | 一部必要 |
-| **敬称の揺れ** | ミナの「リゼット様」→ "Lady Lisette" ×2、"Lisette" ×1、"Lisette-sama" ×1（方針：英語らしく訳す） | 一部必要 |
+| **敬称の揺れ** | ミナの「リゼット様」→ "Lady Lisette" ×3、"Lisette" ×1、"Lisette-sama" ×1（方針：英語らしく訳す） | 一部必要 |
 | **口調の揺れ** | トビアス（一人称「俺」）が「僕」と言う。リゼット（丁寧、短縮形を使わない）が "We're gonna be fine" と言う | プロフィールがあると精度が上がる |
 | おまけのルール | プレースホルダー `{0}` `%s` `$var` `[PLAYER]`、タグ、ルビ（`{漢字|かんじ}`、`｜漢字《かんじ》`、`<ruby>`。閉じ忘れや空の読みなどの壊れも検出）、文字数制限、未翻訳の行（空欄、PO の fuzzy、日本語訳の欄に英語がそのまま入っている、英訳の欄に日本語が残っている、原文が違うのに直前の行と同じ訳） | 不要 |
 
@@ -154,6 +154,7 @@ kotomark token list | token revoke <user|prefix>
 - `labels`：試用で印を付けるための表を書き出します。
 - `score`：適合率（precision）と再現率（recall）を集計します。
 - `token create`：利用者ごとの API トークンを発行します（表示は1回だけ）。`token list` で一覧、`token revoke` で失効。
+- `license status`：ライセンスキー（`--license-key` / `KOTOMARK_LICENSE_KEY` / `~/.kotomark/license`、通信なしで検証）の状態を表示します。プレビュー期間中はキー不要で全機能が無料です。仕組みと発行方法は [docs/licensing.md](docs/licensing.md)。
 
 ## アカウント・保存・利用制限
 

@@ -8,6 +8,7 @@ import { findingsToLabelCsv, renderScore, scoreLabels } from "../core/pilot.js";
 import { PLANS, tokenStoreFromEnv, type Plan } from "../server/auth.js";
 import { discoverGlossary, expandArgs, readInputs, UsageError } from "./inputs.js";
 import { filterBySeverity, renderGithub, summarize } from "./output.js";
+import { formatLicenseStatus, gateRun, licenseWarnings, loadLicense } from "./license.js";
 
 const USAGE = `Usage:
   kotomark check <file|dir>... [options]                                  consistency check (CI-ready)
@@ -18,6 +19,7 @@ const USAGE = `Usage:
   kotomark score <labels.csv> [--known known.csv] [--out score.md]       precision (and recall) from a labeled sheet
   kotomark token create <user> [--plan solo|studio] [--label text]        prints the token once
   kotomark token list | kotomark token revoke <user|token-prefix>
+  kotomark license status [--license-key KEY]                            offline license key status
 
 check options:
   -g, --glossary <file>        glossary: Kotomark JSON, CSV/TSV (Kotomark columns or a termbase export
@@ -44,6 +46,8 @@ check options:
   --no-info                    same as --min-severity warning
   --wide                       count East Asian wide characters as 2 for length limits
   -o, --out <file>             write the report to a file instead of stdout
+  --license-key <key>          license key (else $KOTOMARK_LICENSE_KEY, else ~/.kotomark/license).
+                               Verified offline. Preview: not needed, every feature is free.
 
 Directories are searched recursively for .csv .tsv .json .xlf .xliff .xlsx .po .pot .yml .yaml .rpy .ks
 (skipping node_modules, .git, .github, files with "glossary" in the name, package.json/tsconfig.json).
@@ -104,6 +108,7 @@ function main(argv: string[]): number {
       label: { type: "string" },
       "max-terms": { type: "string" },
       "source-lang": { type: "string" },
+      "license-key": { type: "string" },
       help: { type: "boolean", short: "h" },
     },
   });
@@ -153,6 +158,11 @@ function main(argv: string[]): number {
     const { tables, notes } = loadInputs(readInputs(files), { format: inputFormat as Format | undefined, columns: parseColumns(values.columns), sheet, pairSource: forcedSourceLang });
     for (const n of notes) console.error(`note: ${n}`);
     if (!tables.length) throw new UsageError("No tables could be read from the inputs.");
+    // Offline license check (no network). Preview: never blocks; only a given-but-bad key is mentioned.
+    const license = loadLicense({ flag: values["license-key"] });
+    for (const w of licenseWarnings(license)) console.error(`kotomark: ${w}`);
+    const gate = gateRun(tables.reduce((n, t) => n + t.rows.length, 0), license);
+    if (!gate.ok) throw new UsageError(gate.message);
     return tables;
   };
 
@@ -218,6 +228,11 @@ function main(argv: string[]): number {
       if (args.length !== 1) break;
       const report = scoreLabels(readFileSync(args[0]!, "utf8"), values.known ? readFileSync(values.known, "utf8") : undefined);
       emit(values.json || outputFormat === "json" ? JSON.stringify(report, null, 2) : renderScore(report), values.out);
+      return 0;
+    }
+    case "license": {
+      if (args[0] !== "status" || args.length !== 1) break;
+      console.log(formatLicenseStatus(loadLicense({ flag: values["license-key"] })));
       return 0;
     }
     case "token": {

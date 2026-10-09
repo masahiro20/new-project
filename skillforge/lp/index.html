@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!--
-  Kotomark（仮称）landing page — DRAFT, NOT PUBLISHED.
+  Kotomark（仮称）landing page. Published copy is built by web/build-site.mjs (served under /new-project/kotomark/).
   Copy source: docs/lp.md (keep both in sync).
   Before going live, see "公開前チェックリスト" in docs/lp.md:
   demo shared publicly, real contact address, privacy policy, trademark check, owner approval.
-  No trackers, no external scripts, no forms. Only Google Fonts (with system fallbacks).
+  No trackers, no external scripts, no forms. Only Google Fonts (with system fallbacks; removed in the published build).
 -->
 <title>Kotomark（仮称）— 日英ゲーム台本の一貫性チェック</title>
 <meta name="description" content="Kotomark（仮称）は日英ゲームローカライズ向けの台本全体の一貫性チェックです。用語・カタカナ表記・キャラ名・敬称・口調の揺れを、ファイル名と行番号付きで指摘します。">
@@ -213,7 +213,7 @@ section { scroll-margin-top: 72px; }
 @media (max-width: 480px) { .proof-facts li { grid-template-columns: minmax(0, 1fr); } }
 .projects { margin-top: 20px; padding: 18px 22px; border: 1px solid var(--rule); border-radius: var(--radius); font-size: 14px; color: var(--ink-2); }
 .projects ul { margin: 8px 0 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px 20px; font-size: 15px; }
-.projects ul li { white-space: nowrap; }
+.projects ul li a { white-space: nowrap; }
 .projects .note { margin-top: 10px; font-size: 13px; color: var(--ink-3); }
 .limits { margin-top: 16px; font-size: 13px; color: var(--ink-3); }
 .limits a { font-weight: 500; }
@@ -464,15 +464,15 @@ section { scroll-margin-top: 72px; }
     <div class="proof">
       <div class="proof-main">
         <div class="proof-fig" aria-hidden="true">287<small>/ 297</small></div>
-        <p class="t" lang="ja">調整に一度も使っていない6つのオープンソース（ゲーム3・アプリ3）の日本語訳ファイル（主に UI 文字列。.po / YAML / JSON / Ren'Py）で、警告・エラーを無作為に抜き出して確認したところ、判断が分かれた6件を除く<strong>297件中287件（約97%）が実際に直すべき問題</strong>でした。指摘の大半は未翻訳の検出で、それ以外の指摘に限ると24件中22件です。</p>
-        <p class="t" lang="en">On the Japanese translation files of six open-source projects never used for tuning (3 games, 3 apps; mostly UI strings in .po, YAML, JSON and Ren'Py), we sampled the warnings and errors at random: excluding 6 unclear cases, <strong>287 of 297 (about 97%) were real issues to fix</strong>. Most findings are untranslated strings; for all other findings the figure is 22 of 24.</p>
-        <p class="meta t" lang="ja">2026年10月、自社調べ。判定は評価者1名（AI）によるもので、第三者の確認はまだです。この前に別の未使用5本で測ったときは約76%で、その結果を見て直したため、その5本は「調整に使用」に移しました。</p>
-        <p class="meta t" lang="en">October 2026, in-house evaluation. Findings were judged by one evaluator (an AI), not yet checked by a third party. An earlier held-out run on five other projects gave about 76%; we fixed the causes, so those five now count as tuning data.</p>
+        <p class="t" lang="ja">測定時点で調整に一度も使っていなかった6つのオープンソース（ゲーム3・アプリ3）の日本語訳ファイル（主に UI 文字列。.po / YAML / JSON / Ren'Py）で、警告・エラーを無作為に抜き出して確認したところ、判断が分かれた6件を除く<strong>297件中287件（約97%）が実際に直すべき問題</strong>でした。指摘の大半は未翻訳の検出で、それ以外の指摘に限ると24件中22件です。</p>
+        <p class="t" lang="en">On the Japanese translation files of six open-source projects not yet used for tuning at the time (3 games, 3 apps; mostly UI strings in .po, YAML, JSON and Ren'Py), we sampled the warnings and errors at random: excluding 6 unclear cases, <strong>287 of 297 (about 97%) were real issues to fix</strong>. Most findings are untranslated strings; for all other findings the figure is 22 of 24.</p>
+        <p class="meta t" lang="ja">2026年10月、自社調べ。判定は評価者1名（AI）によるもので、第三者の確認はまだです。用語集なしの設定での測定で、用語・敬称・口調の検査と見逃し（再現率）はこの数字に含まれません。6本は測定時点で未使用で、その後、この測定で見つかった誤検知の修正に使いました。この前に別の未使用5本で測ったときは約76%で、その結果を見て直したため、その5本は「調整に使用」に移しました。</p>
+        <p class="meta t" lang="en">October 2026, in-house evaluation. Findings were judged by one evaluator (an AI), not yet checked by a third party. Measured without a glossary, so term, honorific and voice checks and misses (recall) are not part of this figure. The six projects were unused at the time of measurement; we have since used them to fix the false positives this run found. An earlier held-out run on five other projects gave about 76%; we fixed the causes, so those five now count as tuning data.</p>
       </div>
       <ul class="proof-facts">
         <li><span class="n">19 / 19</span><span class="t" lang="ja"><b>カタカナ表記揺れ</b>は、調整に使っていないデータで判定できた19件すべてが本物でした。例：ユーザ／ユーザー、プレイヤー／プレーヤー。</span><span class="t" lang="en"><b>Katakana notation drift:</b> all 19 judged findings on the untuned data were real, e.g. ユーザ / ユーザー and プレイヤー / プレーヤー.</span></li>
         <li><span class="n">281 / 290</span><span class="t" lang="ja"><b>未翻訳の行</b>を、行番号付きで1件ずつ報告します。誤検知は、数字だけ・変数だけなど訳す必要のない行でした。</span><span class="t" lang="en"><b>Untranslated lines</b> are reported one by one, with line numbers. The false positives were lines with nothing to translate, such as numbers or a lone variable.</span></li>
-        <li><span class="n">16</span><span class="t" lang="ja"><b>公開プロジェクト</b>で検証（調整に使用10本、未使用6本）。</span><span class="t" lang="en"><b>Open-source projects</b> tested (10 used for tuning, 6 held out).</span></li>
+        <li><span class="n">17</span><span class="t" lang="ja"><b>公開プロジェクト</b>で検証（調整に使用11本、測定時点で未使用6本〔その後、修正に使用〕）。</span><span class="t" lang="en"><b>Open-source projects</b> tested (11 used for tuning, 6 held out at the time of measurement and used for fixes since).</span></li>
       </ul>
     </div>
 
@@ -485,7 +485,7 @@ section { scroll-margin-top: 72px; }
         <li><a href="https://github.com/godotengine/godot">Godot Engine</a> <span class="t" lang="ja">（エディタ）</span><span class="t" lang="en">(editor)</span></li>
         <li><a href="https://github.com/wesnoth/wesnoth">Battle for Wesnoth</a> <span class="t" lang="ja">（キャンペーン・UI）</span><span class="t" lang="en">(campaign, UI)</span></li>
       </ul>
-      <span class="t" lang="ja">調整に使っていない検証用：</span><span class="t" lang="en">Held out (never used for tuning):</span>
+      <span class="t" lang="ja">測定時点で未使用の検証用（その後、修正に使用）：</span><span class="t" lang="en">Held out at the time of measurement (used for fixes since):</span>
       <ul>
         <li><a href="https://github.com/widelands/widelands">Widelands</a></li>
         <li><a href="https://github.com/flareteam/flare-game">Flare: Empyrean Campaign</a></li>
@@ -494,7 +494,7 @@ section { scroll-margin-top: 72px; }
         <li><a href="https://github.com/element-hq/element-web">Element Web</a></li>
         <li><a href="https://github.com/renpy/renpy">The Question</a> <span class="t" lang="ja">（Ren'Py のデモ）</span><span class="t" lang="en">(Ren'Py demo)</span></li>
       </ul>
-      <span class="t" lang="ja">調整に使用（追加分）：Freeciv、Warzone 2100、SuperTux、Mastodon、Excalidraw。</span><span class="t" lang="en">Also used for tuning: Freeciv, Warzone 2100, SuperTux, Mastodon, Excalidraw.</span>
+      <span class="t" lang="ja">調整に使用（追加分）：Misskey（日→英の UI 文字列）、Freeciv、Warzone 2100、SuperTux、Mastodon、Excalidraw。</span><span class="t" lang="en">Also used for tuning: Misskey (Japanese→English UI strings), Freeciv, Warzone 2100, SuperTux, Mastodon, Excalidraw.</span>
       <p class="note t" lang="ja">これらのプロジェクトが Kotomark を推奨しているわけではありません。公開されている翻訳ファイルに検査をかけただけです。ライセンス：GPL / LGPL / AGPL / MIT / Apache / CC BY-SA。</p>
       <p class="note t" lang="en">These projects did not endorse Kotomark; we only ran it on their public translation files. Licenses: GPL/LGPL/AGPL/MIT/Apache/CC BY-SA.</p>
     </div>
@@ -606,8 +606,8 @@ section { scroll-margin-top: 72px; }
           <li class="t" lang="en"><b>Spend review time on judgment, not searching.</b> Work from a list of line references instead of hunting for variants by eye.</li>
           <li class="t" lang="ja"><b>CI に組み込める。</b>CLI は終了コードを返すので、納品パイプラインの関門にできます。</li>
           <li class="t" lang="en"><b>Fits into CI.</b> The CLI returns exit codes, so it can gate a delivery pipeline.</li>
-          <li class="t" lang="ja"><b>既存の資産をそのまま。</b>CSV / TSV / JSON / XLIFF の文字列テーブルと、CSV の用語集を読めます。</li>
-          <li class="t" lang="en"><b>Use what you already have.</b> Reads CSV / TSV / JSON / XLIFF string tables and CSV glossaries.</li>
+          <li class="t" lang="ja"><b>既存の資産をそのまま。</b>CSV / TSV / Excel / JSON / XLIFF / gettext（.po）などの文字列テーブルと、CSV・TBX の用語集を読めます。</li>
+          <li class="t" lang="en"><b>Use what you already have.</b> Reads CSV / TSV / Excel / JSON / XLIFF / gettext (.po) string tables and CSV or TBX glossaries.</li>
         </ul>
       </article>
       <article class="aud-card">
@@ -619,8 +619,8 @@ section { scroll-margin-top: 72px; }
           <li class="t" lang="en"><b>Check what you can't read.</b> A report that says “line 17 calls it something else” gives you a concrete question for your translator.</li>
           <li class="t" lang="ja"><b>インストールなしで試せる。</b>ブラウザのデモにファイルを入れるだけです。</li>
           <li class="t" lang="en"><b>Try it without installing anything.</b> Drop your files into the browser demo.</li>
-          <li class="t" lang="ja"><b>用語集が無くても始められる。</b>表記揺れ・話者名・タグは用語集なしで検出。用語集の下書きを台本から作る機能もあります（要確認・手直し）。</li>
-          <li class="t" lang="en"><b>No glossary yet? Start anyway.</b> Notation, speaker labels and tags are checked without one, and it can draft a glossary from your script for you to review.</li>
+          <li class="t" lang="ja"><b>用語集が無くても始められる。</b>表記揺れ・話者ラベルの書き方・タグは用語集なしで検出。用語集の下書きを台本から作る機能もあります（要確認・手直し）。</li>
+          <li class="t" lang="en"><b>No glossary yet? Start anyway.</b> Notation, speaker-label spelling and tags are checked without one, and it can draft a glossary from your script for you to review.</li>
         </ul>
       </article>
     </div>
@@ -667,15 +667,15 @@ section { scroll-margin-top: 72px; }
       <details>
         <summary><span class="t" lang="ja">どのファイル形式に対応していますか？</span><span class="t" lang="en">Which file formats are supported?</span></summary>
         <div class="ans">
-          <p class="t" lang="ja">台本は CSV / TSV（1行目に列名が必要）、JSON、XLIFF 1.2 / 2.0 です。用語集は JSON か CSV です。複数のファイルをまとめて検査できます。</p>
-          <p class="t" lang="en">Scripts: CSV / TSV (header row required), JSON, and XLIFF 1.2 / 2.0. Glossaries: JSON or CSV. You can check several files together.</p>
+          <p class="t" lang="ja">台本は CSV / TSV（1行目に列名が必要）、Excel（.xlsx）、JSON（ja.json と en.json のような言語別ファイルを含む）、XLIFF 1.2 / 2.0、gettext（.po）、YAML のロケールファイル、Ren'Py の翻訳ファイル、KAG / TyranoScript（.ks）、Unity・Unreal の文字列テーブルです。用語集は JSON、CSV / TSV（Crowdin・Phrase などの書き出し）、TBX です。複数のファイルをまとめて検査できます。</p>
+          <p class="t" lang="en">Scripts: CSV / TSV (header row required), Excel (.xlsx), JSON (including per-language files such as ja.json + en.json), XLIFF 1.2 / 2.0, gettext (.po), YAML locale files, Ren'Py translation files, KAG / TyranoScript (.ks), and Unity / Unreal string tables. Glossaries: JSON, CSV / TSV (e.g. Crowdin or Phrase exports) or TBX. You can check several files together.</p>
         </div>
       </details>
       <details>
         <summary><span class="t" lang="ja">用語集が無くても使えますか？</span><span class="t" lang="en">Do I need a glossary?</span></summary>
         <div class="ans">
-          <p class="t" lang="ja">カタカナの表記揺れ、話者ラベル、プレースホルダー、タグ、ルビ、文字数は用語集なしで検出します。用語の訳揺れ・敬称・口調の検査には用語集（キャラ設定）が必要です。台本から用語集の下書きを作る機能がありますが、推定なので必ず見直してください。</p>
-          <p class="t" lang="en">Katakana notation, speaker labels, placeholders, tags, ruby and length are checked without one. Term, honorific and voice checks need a glossary with character profiles. Kotomark can draft a glossary from your script, but the draft is heuristic, so always review it.</p>
+          <p class="t" lang="ja">カタカナの表記揺れ、話者ラベルの書き方の揺れ（大文字・小文字、ひらがな・カタカナなど）、プレースホルダー、タグ、ルビ、文字数は用語集なしで検出します。「MINA」と「ミナ」のように書き方が別の話者ラベルを同じキャラと見なすには、用語集のキャラ設定が必要です。用語の訳揺れ・敬称・口調の検査には用語集（キャラ設定）が必要です。台本から用語集の下書きを作る機能がありますが、推定なので必ず見直してください。</p>
+          <p class="t" lang="en">Katakana notation, speaker-label spelling (case, hiragana vs. katakana and so on), placeholders, tags, ruby and length are checked without one. Matching labels written differently, such as “MINA” and “ミナ”, needs character entries in the glossary. Term, honorific and voice checks need a glossary with character profiles. Kotomark can draft a glossary from your script, but the draft is heuristic, so always review it.</p>
         </div>
       </details>
       <details>

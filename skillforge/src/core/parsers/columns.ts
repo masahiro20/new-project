@@ -41,6 +41,12 @@ function findColumns(headers: string[], override: ColumnMap): ColumnMap {
   return found;
 }
 
+/** Header names for an error message, cut short: a binary or non-tabular file can yield thousands of characters. */
+export function headerList(headers: string[], max = 200): string {
+  const list = headers.join(", ");
+  return list.length > max ? `${list.slice(0, max)}… (${headers.length} columns)` : list;
+}
+
 export function resolveColumns(headers: string[], override: ColumnMap = {}): Required<Pick<ColumnMap, "source" | "target">> & ColumnMap {
   const found = findColumns(headers, override);
   // Language-named columns ("en","ja") say nothing about direction: the left one is the source.
@@ -49,7 +55,7 @@ export function resolveColumns(headers: string[], override: ColumnMap = {}): Req
   }
   if (!found.source || !found.target) {
     throw new Error(
-      `Could not find source/target columns in [${headers.join(", ")}]. ` +
+      `Could not find source/target columns in [${headerList(headers)}]. ` +
         `Name them e.g. "ja"/"en" or "source"/"target", or pass a column map.`,
     );
   }

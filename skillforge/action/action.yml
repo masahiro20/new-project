@@ -46,6 +46,10 @@ inputs:
     description: Append the Markdown report to the job summary ($GITHUB_STEP_SUMMARY).
     required: false
     default: "true"
+  license-key:
+    description: Kotomark license key (optional). Pass it from a repository secret (for example secrets.KOTOMARK_LICENSE_KEY), never as plain text. Verified offline (no network); masked in logs. Not needed during the preview — every feature is free.
+    required: false
+    default: ""
   working-directory:
     description: Directory to run in. Relative paths in the other inputs resolve against it. Keep it at the repository root so annotations point at the right files.
     required: false
@@ -84,3 +88,4 @@ runs:
         INPUT_ANNOTATIONS: ${{ inputs.annotations }}
         INPUT_SUMMARY: ${{ inputs.summary }}
         INPUT_WORKING_DIRECTORY: ${{ inputs.working-directory }}
+        INPUT_LICENSE_KEY: ${{ inputs.license-key }}

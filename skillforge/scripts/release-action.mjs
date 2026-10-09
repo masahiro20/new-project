@@ -170,6 +170,11 @@ if (!/## Licensing/.test(readFileSync(join(out, "README.md"), "utf8"))) fail("RE
 const tpn = readFileSync(join(out, "THIRD_PARTY_NOTICES.md"), "utf8");
 for (const dep of ["fflate", "zod"]) if (!tpn.includes(`## ${dep} `)) fail(`THIRD_PARTY_NOTICES.md lacks ${dep}`);
 console.log("  ok: LICENSE (MIT), dist/LICENSE (ELv2), USAGE-TERMS.md, THIRD_PARTY_NOTICES.md, README Licensing");
+// License keys (docs/licensing.md): only public keys may ship; the owner-only issuance tool never does.
+const shipped = readFileSync(join(out, "dist", "kotomark.mjs"), "utf8");
+if (/PRIVATE KEY/.test(shipped) || /generateKeyPair|license-signing-key/.test(shipped)) fail("bundle contains private-key or key-issuance code");
+if (!/KOTOMARK-1\./.test(shipped)) fail("bundle lacks the license key verifier");
+console.log("  ok: bundle has the offline license verifier and no signing material");
 
 step("verify: node dist/kotomark.mjs --help (release folder)");
 if (!/kotomark check/.test(help(out))) fail("--help output looks wrong");

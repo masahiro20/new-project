@@ -7,7 +7,7 @@ var __export = (target, all) => {
 };
 
 // src/cli/index.ts
-import { readFileSync as readFileSync3, writeFileSync as writeFileSync2 } from "node:fs";
+import { readFileSync as readFileSync4, writeFileSync as writeFileSync2 } from "node:fs";
 import { parseArgs } from "node:util";
 
 // node_modules/fflate/esm/index.mjs
@@ -25373,6 +25373,116 @@ function renderGithub(r, opts = {}) {
   return lines.join("\n");
 }
 
+// src/cli/license.ts
+import { createHash as createHash2, createPublicKey, verify } from "node:crypto";
+import { readFileSync as readFileSync3 } from "node:fs";
+import { homedir } from "node:os";
+import { join as join3 } from "node:path";
+
+// src/cli/license-pubkey.ts
+var LICENSE_PUBLIC_KEYS = {
+  // "k-0123456789ab": `-----BEGIN PUBLIC KEY-----
+  // MCowBQYDK2VwAyEA...
+  // -----END PUBLIC KEY-----`,
+};
+
+// src/cli/license.ts
+var PREVIEW = true;
+var FREE_ROWS_PER_RUN = 2e4;
+var KEY_PREFIX = "KOTOMARK-1.";
+var LICENSE_ENV = "KOTOMARK_LICENSE_KEY";
+var B64URL = /^[A-Za-z0-9_-]+$/;
+function validPayload(p) {
+  if (!p || typeof p !== "object") return false;
+  const o = p;
+  return o.v === 1 && typeof o.kid === "string" && typeof o.lic === "string" && typeof o.org === "string" && o.plan === "studio" && Number.isInteger(o.seats) && o.seats > 0 && Number.isFinite(o.iat) && Number.isFinite(o.exp) && Array.isArray(o.features) && o.features.every((f) => typeof f === "string");
+}
+function verifyLicenseKey(key, opts = {}) {
+  if (!key?.trim()) return { state: "none" };
+  const k = key.trim();
+  if (!k.startsWith(KEY_PREFIX)) return { state: "invalid", reason: "unknown format" };
+  const parts = k.slice(KEY_PREFIX.length).split(".");
+  if (parts.length !== 2 || !parts.every((s) => B64URL.test(s))) return { state: "invalid", reason: "malformed" };
+  const [body, sig] = parts;
+  let payload;
+  try {
+    payload = JSON.parse(Buffer.from(body, "base64url").toString("utf8"));
+  } catch {
+    return { state: "invalid", reason: "malformed payload" };
+  }
+  if (!validPayload(payload)) return { state: "invalid", reason: "malformed payload" };
+  const keys = opts.publicKeys ?? LICENSE_PUBLIC_KEYS;
+  const pem = Object.hasOwn(keys, payload.kid) ? keys[payload.kid] : void 0;
+  if (!pem) return { state: "invalid", reason: "unknown kid" };
+  let ok = false;
+  try {
+    ok = verify(null, Buffer.from(KEY_PREFIX + body, "utf8"), createPublicKey(pem), Buffer.from(sig, "base64url"));
+  } catch {
+    ok = false;
+  }
+  if (!ok) return { state: "invalid", reason: "bad signature" };
+  return { state: payload.exp * 1e3 <= (opts.now ?? Date.now()) ? "expired" : "valid", payload };
+}
+function resolveLicenseKey(src = {}) {
+  if (src.flag?.trim()) return { key: src.flag.trim(), source: "flag" };
+  const env = (src.env ?? process.env)[LICENSE_ENV];
+  if (env?.trim()) return { key: env.trim(), source: "env" };
+  try {
+    const file2 = readFileSync3(join3(src.home ?? homedir(), ".kotomark", "license"), "utf8").trim();
+    if (file2) return { key: file2, source: "file" };
+  } catch {
+  }
+  return void 0;
+}
+function loadLicense(src = {}, opts = {}) {
+  const found = resolveLicenseKey(src);
+  if (!found) return { state: "none" };
+  return { ...verifyLicenseKey(found.key, opts), source: found.source };
+}
+var day = (sec) => new Date(sec * 1e3).toISOString().slice(0, 10);
+function licenseWarnings(status, preview = PREVIEW) {
+  const tail = preview ? "continuing (preview: all features free)" : "continuing as free";
+  if (status.state === "expired") return [`warning: license key expired on ${day(status.payload.exp)}; ${tail}`];
+  if (status.state === "invalid") return [`warning: invalid license key (${status.reason}); ${tail}`];
+  return [];
+}
+function gateRun(rows, status, preview = PREVIEW) {
+  if (preview || rows <= FREE_ROWS_PER_RUN || status.state === "valid") return { ok: true };
+  return {
+    ok: false,
+    message: `this run has ${rows.toLocaleString("en-US")} rows; the free tier checks up to ${FREE_ROWS_PER_RUN.toLocaleString("en-US")} rows per run. Split the input or set a license key (--license-key, ${LICENSE_ENV} or ~/.kotomark/license).`
+  };
+}
+var SOURCE_LABEL = { flag: "--license-key", env: LICENSE_ENV, file: "~/.kotomark/license" };
+function formatLicenseStatus(status, opts = {}) {
+  const preview = opts.preview ?? PREVIEW;
+  const now = opts.now ?? Date.now();
+  const lines = ["Kotomark license"];
+  const src = status.state !== "none" && status.source ? ` (from ${SOURCE_LABEL[status.source]})` : "";
+  if (status.state === "none") lines.push("  key:      not set");
+  else lines.push(`  key:      present${src}`);
+  if (status.state === "invalid") lines.push(`  status:   invalid license key (${status.reason})`);
+  if (status.state === "valid" || status.state === "expired") {
+    const p = status.payload;
+    const days = Math.round((p.exp * 1e3 - now) / 864e5);
+    lines.push(
+      `  status:   ${status.state}`,
+      `  license:  ${p.lic}`,
+      `  org:      ${p.org}`,
+      `  plan:     ${p.plan}`,
+      `  seats:    ${p.seats}`,
+      `  expires:  ${day(p.exp)} (${status.state === "expired" ? `${-days} day(s) ago` : `in ${days} day(s)`})`
+    );
+    if (p.features.length) lines.push(`  features: ${p.features.join(", ")}`);
+  }
+  if (preview) lines.push("  preview:  all features free (no key needed until paid plans launch)");
+  else
+    lines.push(
+      status.state === "valid" ? "  tier:     paid — no per-run row limit" : `  tier:     free — up to ${FREE_ROWS_PER_RUN.toLocaleString("en-US")} rows per run; all checks included`
+    );
+  return lines.join("\n");
+}
+
 // src/cli/index.ts
 var USAGE = `Usage:
   kotomark check <file|dir>... [options]                                  consistency check (CI-ready)
@@ -25383,6 +25493,7 @@ var USAGE = `Usage:
   kotomark score <labels.csv> [--known known.csv] [--out score.md]       precision (and recall) from a labeled sheet
   kotomark token create <user> [--plan solo|studio] [--label text]        prints the token once
   kotomark token list | kotomark token revoke <user|token-prefix>
+  kotomark license status [--license-key KEY]                            offline license key status
 
 check options:
   -g, --glossary <file>        glossary: Kotomark JSON, CSV/TSV (Kotomark columns or a termbase export
@@ -25409,6 +25520,8 @@ check options:
   --no-info                    same as --min-severity warning
   --wide                       count East Asian wide characters as 2 for length limits
   -o, --out <file>             write the report to a file instead of stdout
+  --license-key <key>          license key (else $KOTOMARK_LICENSE_KEY, else ~/.kotomark/license).
+                               Verified offline. Preview: not needed, every feature is free.
 
 Directories are searched recursively for .csv .tsv .json .xlf .xliff .xlsx .po .pot .yml .yaml .rpy .ks
 (skipping node_modules, .git, .github, files with "glossary" in the name, package.json/tsconfig.json).
@@ -25463,6 +25576,7 @@ function main(argv) {
       label: { type: "string" },
       "max-terms": { type: "string" },
       "source-lang": { type: "string" },
+      "license-key": { type: "string" },
       help: { type: "boolean", short: "h" }
     }
   });
@@ -25493,7 +25607,7 @@ function main(argv) {
   const gPath = cmd === "check" || cmd === "draft" || cmd === "labels" ? glossaryPath() : void 0;
   const forcedSourceLang = values["source-lang"] === void 0 ? void 0 : oneOf("--source-lang", values["source-lang"], ["ja", "en"], "ja");
   const readGlossary = (path, sourceLang) => {
-    const { glossary, notes } = parseGlossaryWithNotes(readFileSync3(path), path, { sourceLang: forcedSourceLang ?? sourceLang });
+    const { glossary, notes } = parseGlossaryWithNotes(readFileSync4(path), path, { sourceLang: forcedSourceLang ?? sourceLang });
     for (const n of notes) console.error(`note: ${n}`);
     return glossary;
   };
@@ -25508,6 +25622,10 @@ function main(argv) {
     const { tables, notes } = loadInputs(readInputs(files), { format: inputFormat, columns: parseColumns(values.columns), sheet, pairSource: forcedSourceLang });
     for (const n of notes) console.error(`note: ${n}`);
     if (!tables.length) throw new UsageError("No tables could be read from the inputs.");
+    const license = loadLicense({ flag: values["license-key"] });
+    for (const w of licenseWarnings(license)) console.error(`kotomark: ${w}`);
+    const gate = gateRun(tables.reduce((n, t) => n + t.rows.length, 0), license);
+    if (!gate.ok) throw new UsageError(gate.message);
     return tables;
   };
   switch (cmd) {
@@ -25569,8 +25687,13 @@ function main(argv) {
     }
     case "score": {
       if (args.length !== 1) break;
-      const report = scoreLabels(readFileSync3(args[0], "utf8"), values.known ? readFileSync3(values.known, "utf8") : void 0);
+      const report = scoreLabels(readFileSync4(args[0], "utf8"), values.known ? readFileSync4(values.known, "utf8") : void 0);
       emit(values.json || outputFormat === "json" ? JSON.stringify(report, null, 2) : renderScore(report), values.out);
+      return 0;
+    }
+    case "license": {
+      if (args[0] !== "status" || args.length !== 1) break;
+      console.log(formatLicenseStatus(loadLicense({ flag: values["license-key"] })));
       return 0;
     }
     case "token": {

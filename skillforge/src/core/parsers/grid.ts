@@ -2,7 +2,7 @@
 // Unreal string table CSVs and other single-language sheets.
 import { detectLang } from "../text.js";
 import type { Lang, Row, Table, TableFormat } from "../types.js";
-import { finishTable, recordToRow, resolveColumns, resolveSingleColumn, singleTable, type ColumnMap } from "./columns.js";
+import { finishTable, headerList, recordToRow, resolveColumns, resolveSingleColumn, singleTable, type ColumnMap } from "./columns.js";
 import { langFromName, langOfHeader } from "./lang.js";
 
 export interface GridRecord {
@@ -60,7 +60,7 @@ export function tableFromGrid(records: GridRecord[], file: string, baseFormat: "
   }
 
   const single = resolveSingleColumn(headers, override);
-  if (!single) throw error instanceof Error ? new Error(`${file}: ${error.message}`) : new Error(`${file}: could not find a text column in [${headers.join(", ")}]`);
+  if (!single) throw error instanceof Error ? new Error(`${file}: ${error.message}`) : new Error(`${file}: could not find a text column in [${headerList(headers)}]`);
   const rows: Row[] = body.map((r, idx) => {
     const row = recordToRow(toRecord(r), { ...single, target: undefined }, file, r.line, `row${idx + 1}`);
     if (unreal) {

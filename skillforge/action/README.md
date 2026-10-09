@@ -44,6 +44,7 @@
 | `json-path` | — | JSON の全結果（全指摘と `summary`）をここに書きます。 |
 | `annotations` | `true` | 指摘を、検査したファイルへの `::error` / `::warning` / `::notice` 注釈として出します。 |
 | `summary` | `true` | Markdown のレポートをジョブサマリーに追記します。 |
+| `license-key` | `""` | ライセンスキー（任意）。リポジトリの Secret から渡してください（例：`secrets.KOTOMARK_LICENSE_KEY`）。オフラインで検証し、ログではマスクされます。**プレビュー期間中は不要**（全機能が無料）。 |
 | `working-directory` | `.` | 実行するディレクトリ。上の相対パスはここを基準にします。注釈が正しいファイルに付くよう、リポジトリのルートのままにしてください。 |
 
 ## 出力
@@ -158,6 +159,7 @@ CLI committed at `dist/kotomark.mjs` with the runner's Node — no `npm install`
 | `json-path` | — | Write the full JSON result (all findings + `summary`) here. |
 | `annotations` | `true` | Emit findings as `::error` / `::warning` / `::notice` annotations on the checked files. |
 | `summary` | `true` | Append the Markdown report to the job summary. |
+| `license-key` | `""` | License key (optional). Pass it from a repository secret (e.g. `secrets.KOTOMARK_LICENSE_KEY`). Verified offline and masked in logs. **Not needed during the preview** — every feature is free. |
 | `working-directory` | `.` | Directory to run in; relative paths above resolve against it. Keep the repository root so annotations land on the right files. |
 
 ## Outputs
