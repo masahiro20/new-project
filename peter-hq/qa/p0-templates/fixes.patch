@@ -1,0 +1,173 @@
+--- a/app/globals.css
++++ b/app/globals.css
+@@ -30,7 +30,8 @@
+ .header-inner { display: flex; align-items: center; justify-content: space-between; height: 60px; gap: 12px; }
+ .logo { font-weight: 800; font-size: 1.2rem; color: var(--text); text-decoration: none; letter-spacing: .04em; }
+ .site-header nav { display: flex; gap: 16px; align-items: center; font-size: .95rem; }
+-.site-header nav a { color: var(--text); text-decoration: none; }
++.site-header nav a { color: var(--text); text-decoration: none; white-space: nowrap; }
++.logo { white-space: nowrap; }
+ .nav-cta { background: var(--accent); color: var(--accent-ink) !important; padding: 6px 14px; border-radius: 999px; }
+ 
+ .site-footer { border-top: 1px solid var(--line); margin-top: 80px; padding: 32px 0; color: var(--muted); font-size: .85rem; }
+--- a/app/layout.tsx
++++ b/app/layout.tsx
+@@ -39,7 +39,7 @@
+             <nav aria-label="メインメニュー">
+               <Link href="/check">診断</Link>
+               <Link href="/guide">解説</Link>
+-              <Link href="/templates">テンプレート</Link>
++              {ai && <Link href="/templates">テンプレート</Link>}
+               {ai ? (
+                 <Link href="/generate" className="nav-cta">書類を作る</Link>
+               ) : (
+--- a/app/samples/page.tsx
++++ b/app/samples/page.tsx
+@@ -129,7 +129,8 @@
+             {aiEnabled() ? "年間実施計画は無料で作成できます。" : "AIによる作成機能は準備中です。"}
+           </p>
+           <div className="actions">
+-            <Link href="/check" className="btn">減算リスクを無料診断</Link>
++            <Link href="/templates" className="btn">無料テンプレートで作る</Link>
++            <Link href="/check" className="btn secondary">減算リスクを無料診断</Link>
+             {aiEnabled() && <Link href="/generate" className="btn secondary">無料で年間計画を作る</Link>}
+             <Link href="/guide" className="btn secondary">サービス種別ごとの解説</Link>
+           </div>
+--- a/app/templates/TemplateClient.tsx
++++ b/app/templates/TemplateClient.tsx
+@@ -30,6 +30,8 @@
+   const [input, setInput] = useState<TemplateInput>(EMPTY);
+   const [part, setPart] = useState<Part>("committee");
+   const [saving, setSaving] = useState(false);
++  // While typing, the year field may be empty or partial; only a valid year reaches the template.
++  const [yearText, setYearText] = useState<string | null>(null);
+ 
+   useEffect(() => {
+     try {
+@@ -64,7 +66,7 @@
+     setSaving(true);
+     try {
+       const { downloadDocx } = await import("@/lib/docx-export");
+-      await downloadDocx(markdown, `${input.facilityName.trim() || "事業所"}_${label.replace(/（.*$/, "")}_テンプレート.docx`);
++      await downloadDocx(markdown, `${ctx.facilityName.trim() || "事業所"}_令和${ctx.reiwaYear}年度_${label.replace(/（.*$/, "")}_テンプレート.docx`);
+       trackEvent(`template-download-${shownPart}`);
+     } finally {
+       setSaving(false);
+@@ -84,6 +86,9 @@
+           {ctx.restraintRate === null && (
+             <p className="hint" style={{ marginTop: 6 }}>相談支援は身体拘束廃止未実施減算の対象外のため、身体拘束等適正化セットはありません。</p>
+           )}
++          {ctx.kind === "unknown" && (
++            <p className="hint" style={{ marginTop: 6 }}>自立生活援助・就労定着支援・地域相談支援は身体拘束廃止未実施減算の対象外です。これらのサービスでは身体拘束等適正化セットは不要です。</p>
++          )}
+         </div>
+         <div className="field">
+           <label htmlFor="t-name">事業所名</label>
+@@ -92,7 +97,21 @@
+         <div className="grid template-grid">
+           <div className="field">
+             <label htmlFor="t-year">年度（令和）</label>
+-            <input id="t-year" type="number" min={6} max={20} value={input.reiwaYear} onChange={(e) => set("reiwaYear", Number(e.target.value) || EMPTY.reiwaYear)} />
++            <input
++              id="t-year"
++              type="number"
++              min={6}
++              max={20}
++              step={1}
++              value={yearText ?? input.reiwaYear}
++              onChange={(e) => {
++                const v = e.target.value;
++                setYearText(v);
++                const n = Number(v);
++                if (Number.isInteger(n) && n >= 6 && n <= 20) set("reiwaYear", n);
++              }}
++              onBlur={() => setYearText(null)}
++            />
+           </div>
+           <div className="field">
+             <label htmlFor="t-staff">職員数</label>
+--- a/app/templates/page.tsx
++++ b/app/templates/page.tsx
+@@ -38,11 +38,11 @@
+         <TemplateClient />
+ 
+         <h2 style={{ marginTop: 48 }}>無料テンプレートと有料版（AI）の違い</h2>
+-        <div className="table-wrap">
++        <div className="table-wrap" tabIndex={0} role="region" aria-label="無料テンプレートと有料版の違い（横にスクロールできます）">
+           <table className="compare">
+             <thead>
+               <tr>
+-                <th></th>
++                <th><span className="visually-hidden">項目</span></th>
+                 <th>無料テンプレート（このページ）</th>
+                 <th>有料版（AI・近日公開）</th>
+               </tr>
+--- a/lib/templates/committee.ts
++++ b/lib/templates/committee.ts
+@@ -127,7 +127,7 @@
+       owner: officer(ctx),
+     },
+     {
+-      title: "事例検討：【要記入：検討する事例。「利用者A」など個人が特定されない書き方で】",
++      title: `事例検討：【要記入：検討する事例。「${ctx.person}A」など個人が特定されない書き方で】`,
+       purpose: "起きた原因を考え、同じ場面を防ぐ方法と担当・期限を決める",
+       minutes: 15,
+       owner: "委員長",
+@@ -281,7 +281,7 @@
+ - 報告事例がない回も「特になし」だけにせず、「報告0件」と書いたうえで、確認した支援の状況や職場環境を記入します。
+ ${restraint ? "- 身体拘束等適正化委員会と一体開催しているため、身体拘束等の実施状況は「実施なし」の場合も必ず記入します。\n" : ""}- 決定事項は「気をつける」ではなく、誰が・何を・いつまでにするかを書きます。次回の委員会で実施状況を確認します。
+ - 結果の周知は、方法と日付を記録します。結果の周知は運営基準上の義務です。
+-- 利用者の氏名は書かず、「利用者A」などに置き換えます。
++- ${ctx.person === "こども" ? "こども" : "利用者"}の氏名は書かず、「${ctx.person}A」などに置き換えます。
+ - 議事録は委員会の記録として5年間保存します（解釈通知）。`;
+ }
+ 
+--- a/lib/templates/context.ts
++++ b/lib/templates/context.ts
+@@ -55,7 +55,35 @@
+ /** 障害者支援施設が昼間に行えるサービス（施行規則第1条の2）。A型は含まれない */
+ const SUPPORT_FACILITY_DAYTIME = new Set<ServiceType>(["生活介護", "就労移行支援", "就労継続支援B型"]);
+ 
+-export function templateContext(input: TemplateInput): TemplateContext {
++/**
++ * Free text goes into Markdown (lib/markdown.ts): a "|" would split table cells, a leading "#", "-", "1.", ">"
++ * or "---" would turn the line into a heading/list/quote/page break, and "**" toggles bold. Use full-width forms.
++ */
++function plain(value: unknown, max: number): string {
++  return String(value ?? "")
++    .slice(0, max)
++    .replace(/[\r\n]+/g, " ")
++    .replace(/\|/g, "｜")
++    .replace(/\*/g, "＊")
++    .replace(/^(\s*)([#>]|-(?=\s|--)|\d+(?=[.)．]\s))/, (_, sp: string, m: string) => sp + m.replace(/[#>\-0-9]/g, (c) => String.fromCharCode(c.charCodeAt(0) + 0xfee0)));
++}
++
++function intIn(value: unknown, min: number, max: number): number | null {
++  const n = Number(value);
++  return value !== null && value !== "" && Number.isInteger(n) && n >= min && n <= max ? n : null;
++}
++
++export function templateContext(raw: TemplateInput): TemplateContext {
++  const serviceType: ServiceType = Object.prototype.hasOwnProperty.call(KIND, raw.serviceType) ? raw.serviceType : "その他の障害福祉サービス";
++  const input: TemplateInput = {
++    serviceType,
++    facilityName: plain(raw.facilityName, 60),
++    meetingDate: plain(raw.meetingDate, 40),
++    committeeMembers: plain(raw.committeeMembers, 200),
++    officerRole: plain(raw.officerRole, 60),
++    staffCount: intIn(raw.staffCount, 1, 500),
++    reiwaYear: intIn(raw.reiwaYear, 1, 99) ?? 8,
++  };
+   const kind = KIND[input.serviceType];
+   const child = input.serviceType === "放課後等デイサービス" || input.serviceType === "児童発達支援";
+   const fill = (value: string | number | null | undefined, label: string) => {
+--- a/lib/templates/training.ts
++++ b/lib/templates/training.ts
+@@ -124,6 +124,7 @@
+       heading: "体制がないことが減算の理由になる",
+       body: `話す内容：
+ - 身体拘束等の適正化のために、事業所には次の4つが求められています。
++
+ 1. やむを得ず身体拘束等を行う場合の記録
+ 2. 身体拘束等適正化委員会の開催（1年に1回以上）と結果の周知
+ 3. 身体拘束等の適正化のための指針の整備
