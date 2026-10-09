@@ -1,3 +1,4 @@
+import { checkBudgetNow } from "./limits.js";
 import { normalizeApostrophes } from "./text.js";
 import type { Lang } from "./types.js";
 
@@ -56,17 +57,24 @@ export function phraseAnchor(phrase: string, lang: Lang): string {
 interface Node {
   next: Map<number, number>;
   fail: number;
-  /** Pattern ids ending here (including those reached through fail links, merged at build time). */
+  /** Pattern ids ending exactly here. */
   out: number[];
+  /** Nearest node on the fail chain with its own outputs (output link), or -1. */
+  link: number;
 }
+
+/** How often (in characters) `find` looks at the clock inside one text (a single huge line must not escape the budget). */
+const BUDGET_STRIDE = 1 << 14;
 
 /** Aho-Corasick automaton over folded anchors. `find` returns the ids of every anchor occurring in a text. */
 export class AnchorMatcher {
-  private nodes: Node[] = [{ next: new Map(), fail: 0, out: [] }];
+  private nodes: Node[] = [{ next: new Map(), fail: 0, out: [], link: -1 }];
   /** Ids whose anchor is empty: always candidates. */
   readonly always: number[] = [];
   /** Per-id stamp of the last `find` call that reported it (dedupe without clearing an array per call). */
   private readonly stamp: Uint32Array;
+  /** Per-node stamp: the node's outputs (and its whole output-link chain) were already reported in this call. */
+  private nodeStamp = new Uint32Array(0);
   private call = 0;
 
   constructor(anchors: readonly string[]) {
@@ -82,14 +90,15 @@ export class AnchorMatcher {
         let nx = this.nodes[n]!.next.get(c);
         if (nx === undefined) {
           nx = this.nodes.length;
-          this.nodes.push({ next: new Map(), fail: 0, out: [] });
+          this.nodes.push({ next: new Map(), fail: 0, out: [], link: -1 });
           this.nodes[n]!.next.set(c, nx);
         }
         n = nx;
       }
       this.nodes[n]!.out.push(id);
     });
-    // Breadth-first fail links; outputs are merged along them so `find` needs no chain walk.
+    // Breadth-first fail links and output links. Outputs are NOT merged along fail links: with nested anchors
+    // (あ, ああ, あああ, …) merged lists grow to O(anchors) per node and `find` to O(text × anchors) (Atlas re-review).
     const queue: number[] = [];
     for (const nx of this.nodes[0]!.next.values()) queue.push(nx);
     for (let qi = 0; qi < queue.length; qi++) {
@@ -101,10 +110,11 @@ export class AnchorMatcher {
         const target = this.nodes[f]!.next.get(c);
         const fl = target !== undefined && target !== nx ? target : 0;
         this.nodes[nx]!.fail = fl;
-        if (this.nodes[fl]!.out.length) this.nodes[nx]!.out = [...this.nodes[nx]!.out, ...this.nodes[fl]!.out];
+        this.nodes[nx]!.link = this.nodes[fl]!.out.length ? fl : this.nodes[fl]!.link;
         queue.push(nx);
       }
     }
+    this.nodeStamp = new Uint32Array(this.nodes.length);
   }
 
   /** Ids of anchors found in `text` (already folded with foldCase), plus the always-candidates. Unsorted, no duplicates. */
@@ -112,10 +122,14 @@ export class AnchorMatcher {
     const hit: number[] = [...this.always];
     if (this.nodes.length === 1) return hit;
     const call = (this.call = (this.call + 1) >>> 0 || 1);
-    if (call === 1) this.stamp.fill(0);
+    if (call === 1) {
+      this.stamp.fill(0);
+      this.nodeStamp.fill(0);
+    }
     for (const id of this.always) this.stamp[id] = call;
     let n = 0;
     for (let i = 0; i < foldedText.length; i++) {
+      if ((i & (BUDGET_STRIDE - 1)) === BUDGET_STRIDE - 1) checkBudgetNow();
       const c = foldedText.charCodeAt(i);
       let nx = this.nodes[n]!.next.get(c);
       while (nx === undefined && n !== 0) {
@@ -123,10 +137,15 @@ export class AnchorMatcher {
         nx = this.nodes[n]!.next.get(c);
       }
       n = nx ?? 0;
-      for (const id of this.nodes[n]!.out) {
-        if (this.stamp[id] !== call) {
-          this.stamp[id] = call;
-          hit.push(id);
+      // Walk the output links until a node already reported in this call: every node is reported at most once per
+      // text, so the walk costs O(text + anchors found), whatever the nesting.
+      for (let m = this.nodes[n]!.out.length ? n : this.nodes[n]!.link; m > 0 && this.nodeStamp[m] !== call; m = this.nodes[m]!.link) {
+        this.nodeStamp[m] = call;
+        for (const id of this.nodes[m]!.out) {
+          if (this.stamp[id] !== call) {
+            this.stamp[id] = call;
+            hit.push(id);
+          }
         }
       }
     }

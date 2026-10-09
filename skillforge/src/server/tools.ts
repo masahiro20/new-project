@@ -139,6 +139,7 @@ function serialized<T>(user: string, fn: () => Promise<T>): Promise<T> {
 async function saveGlossary(ctx: ServerContext, name: string, g: Glossary) {
   if (g.terms.length > SERVER_LIMITS.maxTerms) throw new LimitError(`Too many glossary terms (${g.terms.length} > ${SERVER_LIMITS.maxTerms}).`);
   if (g.characters.length > SERVER_LIMITS.maxCharacters) throw new LimitError(`Too many glossary characters (${g.characters.length} > ${SERVER_LIMITS.maxCharacters}).`);
+  enforceLimits([], g, SERVER_LIMITS); // string lengths (maxTermLength) too: a glossary that could never be used is not saved
   return serialized(ctx.principal.user, async () => {
     const existing = await ctx.store.list(ctx.principal.user);
     const limit = PLANS[ctx.principal.plan].glossaries;

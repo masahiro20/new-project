@@ -28,7 +28,8 @@ primary_region = "nrt"        # 東京
   auto_stop_machines = "stop"   # アクセスが無いときは停止（停止中は rootfs 分だけ課金）
   auto_start_machines = true    # リクエストが来たら自動で起動
   min_machines_running = 0
-  # 利用制限はメモリ上なので、マシンは必ず1台（fly scale count 1）。
+  # 毎分の制限はメモリ、その日の行数は /data/usage.json（1台専用）。マシンは必ず1台（fly scale count 1）。
+  # 停止時は SIGINT（Fly の既定）で利用量を保存してから終了する。
 
   [http_service.concurrency]
     type = "requests"

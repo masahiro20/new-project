@@ -17,6 +17,10 @@ export interface EngineLimits {
   maxChars: number;
   /** (terms + characters) × rows: a backstop for any check that still scales with both. */
   maxGlossaryRowProduct: number;
+  /** Characters in one glossary string that is matched against the script (term, rendering, variant, name, alias). */
+  maxTermLength: number;
+  /** Characters in one row's source or target text (a single huge line must not dominate a run). */
+  maxRowChars: number;
   /** Wall-clock budget for the checks, in ms. The run stops with a LimitError once it is exceeded. */
   timeBudgetMs?: number;
 }
@@ -28,6 +32,8 @@ export const SERVER_LIMITS: EngineLimits = {
   maxRows: 100_000,
   maxChars: 10_000_000,
   maxGlossaryRowProduct: 250_000_000,
+  maxTermLength: 200,
+  maxRowChars: 100_000,
   timeBudgetMs: 20_000,
 };
 
@@ -38,6 +44,8 @@ export const CLI_LIMITS: EngineLimits = {
   maxRows: 2_000_000,
   maxChars: 500_000_000,
   maxGlossaryRowProduct: 20_000_000_000,
+  maxTermLength: 1_000,
+  maxRowChars: 10_000_000,
 };
 
 /** An input or run outside the limits. The message is meant for the user (no internals). */
@@ -53,11 +61,29 @@ export function enforceLimits(tables: Table[], glossary: Glossary | undefined, l
   const characters = glossary?.characters.length ?? 0;
   if (terms > limits.maxTerms) throw new LimitError(`Too many glossary terms (${fmt(terms)} > ${fmt(limits.maxTerms)}). Split the glossary or drop unused terms.`);
   if (characters > limits.maxCharacters) throw new LimitError(`Too many glossary characters (${fmt(characters)} > ${fmt(limits.maxCharacters)}).`);
+  // Matched glossary strings: nested terms (あ, ああ, …) make the term-in-term pass quadratic in their length.
+  const tooLong = (s: string | undefined, what: string) => {
+    if (s && s.length > limits.maxTermLength) throw new LimitError(`Glossary ${what} too long (${fmt(s.length)} characters > ${fmt(limits.maxTermLength)}): "${s.slice(0, 40)}…".`);
+  };
+  for (const t of glossary?.terms ?? []) {
+    tooLong(t.source, "term");
+    tooLong(t.target, "rendering");
+    for (const v of [...(t.allowed ?? []), ...(t.forbidden ?? [])]) tooLong(v, "variant");
+  }
+  for (const c of glossary?.characters ?? []) {
+    for (const v of [c.ja, c.en, c.reading, ...(c.aliases?.ja ?? []), ...(c.aliases?.en ?? []), ...(c.forbidden?.ja ?? []), ...(c.forbidden?.en ?? [])]) tooLong(v, "character name");
+    for (const v of [...(c.voice?.ja?.firstPerson ?? []), ...(c.voice?.en?.avoid ?? [])]) tooLong(v, "voice word");
+  }
   let rows = 0;
   let chars = 0;
   for (const t of tables) {
     rows += t.rows.length;
-    for (const r of t.rows) chars += r.source.length + r.target.length;
+    for (const r of t.rows) {
+      chars += r.source.length + r.target.length;
+      if (r.source.length > limits.maxRowChars || r.target.length > limits.maxRowChars) {
+        throw new LimitError(`${r.file}:${r.line}: line too long (${fmt(Math.max(r.source.length, r.target.length))} characters > ${fmt(limits.maxRowChars)}). Split the line or check it separately.`);
+      }
+    }
   }
   if (rows > limits.maxRows) throw new LimitError(`Too many rows (${fmt(rows)} > ${fmt(limits.maxRows)}). Check the script in parts.`);
   if (chars > limits.maxChars) throw new LimitError(`Too much text (${fmt(chars)} characters > ${fmt(limits.maxChars)}). Check the script in parts.`);
@@ -78,6 +104,13 @@ let ticks = 0;
 export function checkBudget(): void {
   if (deadline === Number.POSITIVE_INFINITY || (++ticks & 255) !== 0) return;
   if (Date.now() > deadline) throw new LimitError(`The check took longer than its time budget (${budget / 1000} s) and was stopped. Check the script in parts or use a smaller glossary.`);
+}
+
+/** Like checkBudget, but looks at the clock on every call (for loops whose steps are themselves long). */
+export function checkBudgetNow(): void {
+  if (deadline !== Number.POSITIVE_INFINITY && Date.now() > deadline) {
+    throw new LimitError(`The check took longer than its time budget (${budget / 1000} s) and was stopped. Check the script in parts or use a smaller glossary.`);
+  }
 }
 
 /** Runs `fn` with a wall-clock budget (no budget when `ms` is undefined or 0). */

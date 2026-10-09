@@ -516,6 +516,17 @@ function ref(row) {
 function normalizeApostrophes(s) {
   return s.replace(/[\u2018\u2019\u02bc\u2032]/g, "'");
 }
+var lastTextIn = "";
+var lastTextOut = "";
+function normalizedText(text) {
+  if (text === lastTextIn) return lastTextOut;
+  const out = normalizeApostrophes(text);
+  if (text.length > 64) {
+    lastTextIn = text;
+    lastTextOut = out;
+  }
+  return out;
+}
 var PLACEHOLDER = /\[emb\s+exp\s*=\s*(?:"[^"]*"|'[^']*'|[^\s\]]+)\s*\]|\{[A-Za-z0-9_.$:]*\}|%(?:\d+\$)?[-+0#]*\d*(?:\.\d+)?(?:hh?|ll?|z|j|t)?[sdifxXuc@]|\$\{[^}]+\}|\$[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*\|?|\[[A-Z][A-Z0-9_]+\]|\[(?=[a-z0-9_.]*[_.0-9])[a-z_][a-z0-9_.]*\]|\[[A-Za-z_][A-Za-z0-9_.]*(?:![rsatuilcq]+(?::[-<>^=+#0-9,_.]*[A-Za-z%]?)?|:[-<>^=+#0-9,_.]*[A-Za-z%]?)\]/g;
 var BRACKET_WORD = /\[[a-z][a-z]*\]/g;
 var RENPY_TAG_NAMES = /* @__PURE__ */ new Set([
@@ -642,7 +653,7 @@ function enPhraseRegex(phrase, caseSensitive = false, inflect = false) {
 function containsPhrase(text, phrase, lang, caseSensitive = false, loose = false) {
   if (!phrase) return false;
   if (lang !== "ja") return enPhraseRegex(phrase, caseSensitive, loose).test(text);
-  const t = normalizeApostrophes(text);
+  const t = normalizedText(text);
   const p = normalizeApostrophes(phrase);
   return t.includes(p) || loose && jaLooseRegex(p).test(t);
 }
@@ -762,10 +773,8 @@ function pairKey(name) {
 
 // src/core/errors.ts
 var UserFacingError = class extends Error {
-  name = "UserFacingError";
 };
 var InputError = class extends UserFacingError {
-  name = "InputError";
 };
 function inputErrorWithFile(e, file2) {
   if (!(e instanceof UserFacingError) && !(e instanceof SyntaxError)) return e instanceof Error ? e : new Error(String(e));
@@ -23095,7 +23104,9 @@ var CLI_LIMITS = {
   maxCharacters: 2e4,
   maxRows: 2e6,
   maxChars: 5e8,
-  maxGlossaryRowProduct: 2e10
+  maxGlossaryRowProduct: 2e10,
+  maxTermLength: 1e3,
+  maxRowChars: 1e7
 };
 var LimitError = class extends UserFacingError {
   name = "LimitError";
@@ -23106,11 +23117,28 @@ function enforceLimits(tables, glossary, limits) {
   const characters = glossary?.characters.length ?? 0;
   if (terms > limits.maxTerms) throw new LimitError(`Too many glossary terms (${fmt(terms)} > ${fmt(limits.maxTerms)}). Split the glossary or drop unused terms.`);
   if (characters > limits.maxCharacters) throw new LimitError(`Too many glossary characters (${fmt(characters)} > ${fmt(limits.maxCharacters)}).`);
+  const tooLong = (s, what) => {
+    if (s && s.length > limits.maxTermLength) throw new LimitError(`Glossary ${what} too long (${fmt(s.length)} characters > ${fmt(limits.maxTermLength)}): "${s.slice(0, 40)}…".`);
+  };
+  for (const t of glossary?.terms ?? []) {
+    tooLong(t.source, "term");
+    tooLong(t.target, "rendering");
+    for (const v of [...t.allowed ?? [], ...t.forbidden ?? []]) tooLong(v, "variant");
+  }
+  for (const c of glossary?.characters ?? []) {
+    for (const v of [c.ja, c.en, c.reading, ...c.aliases?.ja ?? [], ...c.aliases?.en ?? [], ...c.forbidden?.ja ?? [], ...c.forbidden?.en ?? []]) tooLong(v, "character name");
+    for (const v of [...c.voice?.ja?.firstPerson ?? [], ...c.voice?.en?.avoid ?? []]) tooLong(v, "voice word");
+  }
   let rows = 0;
   let chars = 0;
   for (const t of tables) {
     rows += t.rows.length;
-    for (const r of t.rows) chars += r.source.length + r.target.length;
+    for (const r of t.rows) {
+      chars += r.source.length + r.target.length;
+      if (r.source.length > limits.maxRowChars || r.target.length > limits.maxRowChars) {
+        throw new LimitError(`${r.file}:${r.line}: line too long (${fmt(Math.max(r.source.length, r.target.length))} characters > ${fmt(limits.maxRowChars)}). Split the line or check it separately.`);
+      }
+    }
   }
   if (rows > limits.maxRows) throw new LimitError(`Too many rows (${fmt(rows)} > ${fmt(limits.maxRows)}). Check the script in parts.`);
   if (chars > limits.maxChars) throw new LimitError(`Too much text (${fmt(chars)} characters > ${fmt(limits.maxChars)}). Check the script in parts.`);
@@ -23127,6 +23155,11 @@ var ticks = 0;
 function checkBudget() {
   if (deadline === Number.POSITIVE_INFINITY || (++ticks & 255) !== 0) return;
   if (Date.now() > deadline) throw new LimitError(`The check took longer than its time budget (${budget / 1e3} s) and was stopped. Check the script in parts or use a smaller glossary.`);
+}
+function checkBudgetNow() {
+  if (deadline !== Number.POSITIVE_INFINITY && Date.now() > deadline) {
+    throw new LimitError(`The check took longer than its time budget (${budget / 1e3} s) and was stopped. Check the script in parts or use a smaller glossary.`);
+  }
 }
 
 // src/core/i18n.ts
@@ -23326,12 +23359,15 @@ function phraseAnchor(phrase, lang) {
   const best = pieces.reduce((a, b) => b.length > a.length ? b : a, "");
   return foldCase(best);
 }
+var BUDGET_STRIDE = 1 << 14;
 var AnchorMatcher = class {
-  nodes = [{ next: /* @__PURE__ */ new Map(), fail: 0, out: [] }];
+  nodes = [{ next: /* @__PURE__ */ new Map(), fail: 0, out: [], link: -1 }];
   /** Ids whose anchor is empty: always candidates. */
   always = [];
   /** Per-id stamp of the last `find` call that reported it (dedupe without clearing an array per call). */
   stamp;
+  /** Per-node stamp: the node's outputs (and its whole output-link chain) were already reported in this call. */
+  nodeStamp = new Uint32Array(0);
   call = 0;
   constructor(anchors) {
     this.stamp = new Uint32Array(anchors.length);
@@ -23346,7 +23382,7 @@ var AnchorMatcher = class {
         let nx = this.nodes[n].next.get(c);
         if (nx === void 0) {
           nx = this.nodes.length;
-          this.nodes.push({ next: /* @__PURE__ */ new Map(), fail: 0, out: [] });
+          this.nodes.push({ next: /* @__PURE__ */ new Map(), fail: 0, out: [], link: -1 });
           this.nodes[n].next.set(c, nx);
         }
         n = nx;
@@ -23364,20 +23400,25 @@ var AnchorMatcher = class {
         const target = this.nodes[f].next.get(c);
         const fl2 = target !== void 0 && target !== nx ? target : 0;
         this.nodes[nx].fail = fl2;
-        if (this.nodes[fl2].out.length) this.nodes[nx].out = [...this.nodes[nx].out, ...this.nodes[fl2].out];
+        this.nodes[nx].link = this.nodes[fl2].out.length ? fl2 : this.nodes[fl2].link;
         queue.push(nx);
       }
     }
+    this.nodeStamp = new Uint32Array(this.nodes.length);
   }
   /** Ids of anchors found in `text` (already folded with foldCase), plus the always-candidates. Unsorted, no duplicates. */
   find(foldedText) {
     const hit = [...this.always];
     if (this.nodes.length === 1) return hit;
     const call = this.call = this.call + 1 >>> 0 || 1;
-    if (call === 1) this.stamp.fill(0);
+    if (call === 1) {
+      this.stamp.fill(0);
+      this.nodeStamp.fill(0);
+    }
     for (const id of this.always) this.stamp[id] = call;
     let n = 0;
     for (let i2 = 0; i2 < foldedText.length; i2++) {
+      if ((i2 & BUDGET_STRIDE - 1) === BUDGET_STRIDE - 1) checkBudgetNow();
       const c = foldedText.charCodeAt(i2);
       let nx = this.nodes[n].next.get(c);
       while (nx === void 0 && n !== 0) {
@@ -23385,10 +23426,13 @@ var AnchorMatcher = class {
         nx = this.nodes[n].next.get(c);
       }
       n = nx ?? 0;
-      for (const id of this.nodes[n].out) {
-        if (this.stamp[id] !== call) {
-          this.stamp[id] = call;
-          hit.push(id);
+      for (let m = this.nodes[n].out.length ? n : this.nodes[n].link; m > 0 && this.nodeStamp[m] !== call; m = this.nodes[m].link) {
+        this.nodeStamp[m] = call;
+        for (const id of this.nodes[m].out) {
+          if (this.stamp[id] !== call) {
+            this.stamp[id] = call;
+            hit.push(id);
+          }
         }
       }
     }
@@ -24570,6 +24614,7 @@ function checkTerms(tables, g, locale = "en") {
   g.terms.forEach((o, oi) => {
     const lang = termLang[oi];
     for (const ti of sourceIndex[lang].find(fold(o.source))) {
+      checkBudget();
       const term = g.terms[ti];
       if (oi !== ti && o.source.length > term.source.length && containsPhrase(o.source, term.source, lang)) longer[ti].push(oi);
     }
@@ -24584,6 +24629,7 @@ function checkTerms(tables, g, locale = "en") {
       checkBudget();
       const src = visibleText(row.source);
       for (const ti of idx.find(fold(src))) {
+        checkBudget();
         if (!srcHas(src, g.terms[ti].source, t.sourceLang)) continue;
         let set2 = rowTerms.get(ri);
         if (!set2) rowTerms.set(ri, set2 = /* @__PURE__ */ new Set());
@@ -25750,7 +25796,7 @@ function hasDuplicateKeys(json2) {
   }
   return false;
 }
-var dayStart = (d) => Date.parse(`${d}T00:00:00Z`) / 1e3;
+var dayStart = (d) => /^\d{4}-\d{2}-\d{2}$/.test(d) ? Date.parse(`${d}T00:00:00Z`) / 1e3 : NaN;
 function verifyLicenseKey(key) {
   if (!key?.trim()) return { state: "none" };
   const k = key.trim();
@@ -25800,7 +25846,10 @@ function verifyLicenseKey(key) {
   if (p.kid !== signer) return invalid("kid mismatch");
   if (revoked.has(p.lid)) return invalid("revoked");
   const anchor2 = keys[signer];
-  if (p.iat < dayStart(anchor2.from) || anchor2.until && p.iat >= dayStart(anchor2.until) + 86400) return invalid("signed outside the key's validity period");
+  const from = dayStart(anchor2.from);
+  const until = anchor2.until === void 0 ? Infinity : dayStart(anchor2.until) + 86400;
+  if (Number.isNaN(from) || Number.isNaN(until)) return invalid("bad trust anchor");
+  if (p.iat < from || p.iat >= until) return invalid("signed outside the key's validity period");
   if (!(p.iat <= p.nbf && p.nbf < p.exp)) return invalid("malformed payload");
   if (p.exp - p.iat > MAX_VALIDITY_SEC) return invalid("validity too long");
   const now = Math.floor((hooks?.now ?? Date.now()) / 1e3);

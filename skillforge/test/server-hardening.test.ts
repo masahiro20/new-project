@@ -10,7 +10,7 @@ import { createServer } from "node:http";
 import type { AddressInfo } from "node:net";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
-import { envUserId, Limiter, PLANS, QuotaError, TokenStore } from "../src/server/auth.js";
+import { envUserId, Limiter, PerUserSlots, PLANS, QuotaError, TokenStore } from "../src/server/auth.js";
 import { BODY_LIMITS, LargeBodyGate, readJsonBody } from "../src/server/body.js";
 import { HttpError, publicError, UserFacingError } from "../src/server/errors.js";
 import { buildJudgePrompt, JUDGE_FIELD_LIMITS, judgePacket, parseVerdicts, SYSTEM } from "../src/server/judge.js";
@@ -310,4 +310,19 @@ test("UsageFile debounce never waits more than its delay (5 s cap by design)", a
     await sleep(5);
   }
   assert.ok(existsSync(file) && Date.now() - t0 < 400);
+});
+
+test("B-02: one tool call at a time per user; other users are not affected", () => {
+  const slots = new PerUserSlots();
+  const a = slots.tryEnter("alice");
+  assert.ok(a);
+  assert.equal(slots.tryEnter("alice"), undefined, "a second concurrent call of the same user is refused");
+  const b = slots.tryEnter("bob");
+  assert.ok(b);
+  a!();
+  a!(); // idempotent
+  const again = slots.tryEnter("alice");
+  assert.ok(again);
+  again!();
+  b!();
 });

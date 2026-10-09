@@ -2,7 +2,7 @@ import { createServer, type IncomingMessage, type ServerResponse } from "node:ht
 import { pathToFileURL } from "node:url";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { join } from "node:path";
-import { envTokensFromEnv, Limiter, QuotaError, tokenStoreFromEnv, type Principal } from "./auth.js";
+import { envTokensFromEnv, Limiter, PerUserSlots, QuotaError, tokenStoreFromEnv, type Principal } from "./auth.js";
 import { LargeBodyGate, readJsonBody } from "./body.js";
 import { envVar } from "./env.js";
 import { HttpError, publicError } from "./errors.js";
@@ -33,9 +33,22 @@ const store = storeFromEnv();
 const limiter = new Limiter(Date.now, new UsageFile(join(DATA_DIR, "usage.json")));
 /** B-11: at most 2 request bodies over 1 MiB in flight; bodies over 8 MiB are refused (src/server/body.ts). */
 const largeBodies = new LargeBodyGate();
+/** B-02: one tool call at a time per user — a second concurrent call gets 429 instead of queueing behind the first. */
+const toolCallSlots = new PerUserSlots();
 
 if (tokens.open && process.env.NODE_ENV === "production") {
   console.error("No API tokens configured: create one with `kotomark token create <user>` or set KOTOMARK_API_TOKENS");
+  process.exit(1);
+}
+/**
+ * Open (no-token) mode only on a loopback bind (Atlas re-review): the Host check below stops DNS rebinding, not a
+ * client on the network that simply sends `Host: localhost`. KOTOMARK_ALLOW_OPEN=1 overrides (e.g. a dev container
+ * whose port is published only to the host).
+ */
+const LOOPBACK_BINDS = new Set(["127.0.0.1", "::1", "localhost", "[::1]"]);
+export const openModeAllowed = process.env.NODE_ENV !== "production" && (LOOPBACK_BINDS.has(HOST.toLowerCase()) || envVar("ALLOW_OPEN") === "1");
+if (tokens.open && !openModeAllowed && process.env.NODE_ENV !== "production") {
+  console.error(`No API tokens configured and HOST=${HOST} is not a loopback address: refusing open mode. Create a token, bind to 127.0.0.1, or set KOTOMARK_ALLOW_OPEN=1.`);
   process.exit(1);
 }
 /** B-13: environment tokens are shared secrets typed by hand; refuse guessable ones in production. */
@@ -50,7 +63,7 @@ if (process.env.NODE_ENV === "production") {
 
 function authenticate(req: IncomingMessage): Principal | undefined {
   // Open dev mode never applies in production, even if every token disappears at runtime (tokens.json emptied).
-  if (tokens.open) return process.env.NODE_ENV === "production" ? undefined : { user: "dev", plan: "dev" };
+  if (tokens.open) return openModeAllowed ? { user: "dev", plan: "dev" } : undefined;
   const h = req.headers.authorization ?? "";
   return h.startsWith("Bearer ") ? tokens.verify(h.slice(7).trim()) : undefined;
 }
@@ -82,6 +95,11 @@ export const httpServer = createServer(async (req, res) => {
     limiter.hit(principal);
     const { body, release } = await readJsonBody(req, largeBodies);
     res.on("close", release);
+    if ((body as { method?: unknown } | null)?.method === "tools/call") {
+      const leave = toolCallSlots.tryEnter(principal.user);
+      if (!leave) throw new QuotaError("Another tool call for this account is still running; wait for it to finish (one at a time).", 2);
+      res.on("close", leave);
+    }
     // One HTTP request carries one JSON-RPC message: a batch (removed in MCP 2025-06-18) would run up to
     // 100 tool calls for a single rate-limit token, and in parallel.
     if (Array.isArray(body)) return send(res, 400, { jsonrpc: "2.0", error: { code: -32600, message: "Batch requests are not supported" }, id: null });

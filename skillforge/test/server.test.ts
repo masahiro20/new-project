@@ -195,3 +195,16 @@ test("over-long strings and arrays are rejected by the input schema", async () =
   }
   await client.close();
 });
+
+test("B-10/B-11: a malformed or oversized body gets a fixed message (nothing echoed), 400 / 413", async () => {
+  const post = (body: string) =>
+    fetch(`${base}/mcp`, { method: "POST", headers: { "content-type": "application/json", accept: "application/json, text/event-stream", authorization: "Bearer test-token" }, body });
+  const bad = await post('{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"secret":"魔導石"');
+  assert.equal(bad.status, 400);
+  const text = await bad.text();
+  assert.match(text, /Invalid JSON body/);
+  assert.ok(!text.includes("魔導石"));
+  const big = await post(JSON.stringify({ jsonrpc: "2.0", id: 1, method: "ping", params: { pad: "x".repeat(8 * 1024 * 1024) } }));
+  assert.equal(big.status, 413);
+  assert.match(await big.text(), /Request body too large \(max 8 MiB\)/);
+});

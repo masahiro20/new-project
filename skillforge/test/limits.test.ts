@@ -46,8 +46,52 @@ test("engine limits: clear errors for oversized glossaries and scripts", () => {
   rows60k[0]!.rows = Array.from({ length: 60_000 }, (_, i) => ({ file: "a.csv", line: i, id: `${i}`, source: "あ", target: "a" }));
   assert.throws(() => enforceLimits(rows60k, product, SERVER_LIMITS), /Glossary × script too large/);
   const longText = stressData(1, 1).tables;
-  longText[0]!.rows[0]!.source = "あ".repeat(SERVER_LIMITS.maxChars + 1);
+  const chunk = "あ".repeat(SERVER_LIMITS.maxRowChars);
+  longText[0]!.rows = Array.from({ length: SERVER_LIMITS.maxChars / SERVER_LIMITS.maxRowChars + 1 }, (_, i) => ({ file: "a.csv", line: i, id: `${i}`, source: chunk, target: "" }));
   assert.throws(() => enforceLimits(longText, undefined, SERVER_LIMITS), /Too much text/);
+});
+
+// Atlas re-review of c461679: nested glossary terms (あ, ああ, …) and one huge line ran 36–67 s past the 20 s budget.
+test("B-02 pathological: nested terms and one huge line are refused by the limits or stop within the budget", () => {
+  const nested = (n: number, extra = "") => ({ terms: Array.from({ length: n }, (_, i) => ({ source: "あ".repeat(i + 1) + extra, target: `T${i}` })), characters: [] });
+  const oneLine = (len: number) => [{ file: "x.csv", format: "csv" as const, sourceLang: "ja" as const, targetLang: "en" as const, rows: [{ file: "x.csv", line: 2, id: "1", source: "あ".repeat(len), target: "a" }] }];
+  // The attack as reported: 3,000 nested terms (up to 3,000 chars) and a 1,000,000-char line — refused before any work.
+  const t0 = Date.now();
+  assert.throws(() => enforceLimits(oneLine(1_000_000) as never, nested(3000), SERVER_LIMITS), (e: Error) => e instanceof LimitError && /too long/.test(e.message));
+  assert.throws(() => enforceLimits(oneLine(1_000_000) as never, nested(10), SERVER_LIMITS), /x\.csv:2: line too long \(1,000,000 characters > 100,000\)/);
+  assert.ok(Date.now() - t0 < 1000);
+  // The worst case inside the limits: 200 nested terms of up to 200 chars, a 100,000-char line. Must finish quickly…
+  clearTextCaches();
+  const g = nested(SERVER_LIMITS.maxTermLength);
+  enforceLimits(oneLine(SERVER_LIMITS.maxRowChars) as never, g, SERVER_LIMITS);
+  const t1 = Date.now();
+  withTimeBudget(SERVER_LIMITS.timeBudgetMs, () => runChecks(oneLine(SERVER_LIMITS.maxRowChars) as never, g));
+  if (!process.env.KOTOMARK_SKIP_PERF) assert.ok(Date.now() - t1 < 5_000, `took ${Date.now() - t1} ms`);
+  // …and a budget is honoured inside a single line, not only between rows (CLI-sized input, 300 ms budget).
+  clearTextCaches();
+  const t2 = Date.now();
+  assert.throws(() => withTimeBudget(300, () => runChecks(oneLine(3_000_000) as never, nested(1000))), (e: Error) => e instanceof LimitError && /time budget/.test(e.message));
+  assert.ok(Date.now() - t2 < 3_000, `budget overrun: ${Date.now() - t2} ms`);
+});
+
+test("AnchorMatcher: nested anchors are reported once each, in time linear in the text (output links)", () => {
+  const anchors = Array.from({ length: 2000 }, (_, i) => "あ".repeat(i + 1));
+  const m = new AnchorMatcher(anchors);
+  const t0 = Date.now();
+  const found = m.find("あ".repeat(200_000));
+  assert.equal(found.length, 2000);
+  assert.equal(new Set(found).size, 2000);
+  assert.deepEqual(m.find("ああ").sort((a, b) => a - b), [0, 1]);
+  assert.ok(Date.now() - t0 < 2_000, `took ${Date.now() - t0} ms`);
+});
+
+test("engine limits: over-long glossary strings are refused on the server, allowed further on the CLI", () => {
+  const long = "語".repeat(SERVER_LIMITS.maxTermLength + 1);
+  const g = (t: object) => ({ terms: [], characters: [], ...t });
+  assert.throws(() => enforceLimits([], g({ terms: [{ source: long, target: "x" }] }) as never, SERVER_LIMITS), /Glossary term too long \(201 characters > 200\)/);
+  assert.throws(() => enforceLimits([], g({ terms: [{ source: "a", target: "x", forbidden: [long] }] }) as never, SERVER_LIMITS), /variant too long/);
+  assert.throws(() => enforceLimits([], g({ characters: [{ id: "c", ja: "a", en: "b", aliases: { ja: [long] } }] }) as never, SERVER_LIMITS), /character name too long/);
+  assert.doesNotThrow(() => enforceLimits([], g({ terms: [{ source: long, target: "x" }] }) as never, CLI_LIMITS));
 });
 
 test("time budget: a run past its budget stops with a LimitError; no budget outside withTimeBudget", () => {

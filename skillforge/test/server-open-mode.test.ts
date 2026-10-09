@@ -57,3 +57,17 @@ test("open dev mode listens on loopback and refuses a non-loopback Host (DNS reb
     await s.exited;
   }
 });
+
+test("open mode is refused on a non-loopback bind unless KOTOMARK_ALLOW_OPEN=1", async () => {
+  const refused = boot({ PORT: String(await freePort()), HOST: "0.0.0.0" });
+  refused.listening.catch(() => {});
+  assert.notEqual(await refused.exited, 0);
+  assert.match(refused.output(), /refusing open mode/);
+  const allowed = boot({ PORT: String(await freePort()), HOST: "0.0.0.0", KOTOMARK_ALLOW_OPEN: "1" });
+  try {
+    await allowed.listening;
+  } finally {
+    allowed.child.kill();
+    await allowed.exited;
+  }
+});

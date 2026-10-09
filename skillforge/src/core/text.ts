@@ -27,6 +27,20 @@ export function normalizeApostrophes(s: string): string {
   return s.replace(/[\u2018\u2019\u02bc\u2032]/g, "'");
 }
 
+// One-entry memo for containsPhrase's text: the term checks test many candidate phrases against the same (possibly
+// very long) line, which must not be re-normalized per phrase (B-02).
+let lastTextIn = "";
+let lastTextOut = "";
+function normalizedText(text: string): string {
+  if (text === lastTextIn) return lastTextOut;
+  const out = normalizeApostrophes(text);
+  if (text.length > 64) {
+    lastTextIn = text;
+    lastTextOut = out;
+  }
+  return out;
+}
+
 /**
  * Placeholder syntaxes: {0} {name}, printf (%s %5d %.2f %1$s %c %ld), ${var}, Wesnoth $var / $var|, [PLAYER],
  * Ren'Py [player_name] / [player.name] and Ren'Py interpolation with a conversion flag or format spec
@@ -181,6 +195,7 @@ const phraseCache = new Map<string, RegExp>();
 export function clearTextCaches(): void {
   visibleCache.clear();
   phraseCache.clear();
+  lastTextIn = lastTextOut = "";
 }
 
 /** Fold a plural last word to its singular so a term stored as "Egg Hunts" also matches "Egg hunt". */
@@ -260,7 +275,7 @@ export function enPhraseRegex(phrase: string, caseSensitive = false, inflect = f
 export function containsPhrase(text: string, phrase: string, lang: Lang, caseSensitive = false, loose = false): boolean {
   if (!phrase) return false;
   if (lang !== "ja") return enPhraseRegex(phrase, caseSensitive, loose).test(text);
-  const t = normalizeApostrophes(text);
+  const t = normalizedText(text);
   const p = normalizeApostrophes(phrase);
   return t.includes(p) || (loose && jaLooseRegex(p).test(t));
 }

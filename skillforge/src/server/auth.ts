@@ -218,3 +218,20 @@ export class Limiter {
     };
   }
 }
+
+/** At most one in-flight run per user (B-02): a second concurrent call is refused instead of queueing behind the first. */
+export class PerUserSlots {
+  private busy = new Set<string>();
+
+  /** A release function (idempotent), or undefined when the user already has a call running. */
+  tryEnter(user: string): (() => void) | undefined {
+    if (this.busy.has(user)) return undefined;
+    this.busy.add(user);
+    let done = false;
+    return () => {
+      if (done) return;
+      done = true;
+      this.busy.delete(user);
+    };
+  }
+}

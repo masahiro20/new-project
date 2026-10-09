@@ -45,6 +45,7 @@ export function checkTerms(tables: Table[], g: Glossary, locale: Locale = "en"):
   g.terms.forEach((o, oi) => {
     const lang = termLang[oi]!;
     for (const ti of sourceIndex[lang].find(fold(o.source))) {
+      checkBudget();
       const term = g.terms[ti]!;
       if (oi !== ti && o.source.length > term.source.length && containsPhrase(o.source, term.source, lang)) longer[ti]!.push(oi);
     }
@@ -61,6 +62,7 @@ export function checkTerms(tables: Table[], g: Glossary, locale: Locale = "en"):
       checkBudget();
       const src = visibleText(row.source);
       for (const ti of idx.find(fold(src))) {
+        checkBudget(); // many candidates on one very long line
         if (!srcHas(src, g.terms[ti]!.source, t.sourceLang)) continue;
         let set = rowTerms.get(ri);
         if (!set) rowTerms.set(ri, (set = new Set()));
