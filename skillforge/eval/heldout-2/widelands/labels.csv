@@ -1,0 +1,68 @@
+sample,finding,file_line,id_hash,rule,severity,side,verdict,note
+warning_error,F0006,widelands.ja.po:2605,84c54ce9a8,notation.katakana,warning,target,TP,real katakana variant inconsistency in the file
+warning_error,F0024,tribes.ja.po:126,e417790160,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0033,tribes.ja.po:180,e417790160,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0139,tribes.ja.po:924,2e7bf29dd6,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0166,tribes.ja.po:1116,de1985516c,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0177,tribes.ja.po:1306,e417790160,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0206,tribes.ja.po:1549,ca5e583517,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0207,tribes.ja.po:1554,528313b0d5,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0249,tribes.ja.po:1941,e417790160,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0257,tribes.ja.po:2789,7adb7960f7,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0282,tribes.ja.po:4326,e417790160,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0295,tribes.ja.po:4793,fefc2957e4,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0305,tribes.ja.po:5074,e447fbca16,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0306,tribes.ja.po:5104,e447fbca16,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0321,tribes.ja.po:5236,d748db013d,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0341,tribes.ja.po:5395,4706c1eed9,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0361,tribes.ja.po:5643,3fec872a16,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0389,tribes.ja.po:5928,c111d735c6,untranslated.empty,warning,target,unsure,"proper ship name; all 394 left untranslated, Latin may be intended"
+warning_error,F0470,tribes.ja.po:6414,c111d735c6,untranslated.empty,warning,target,unsure,"proper ship name; all 394 left untranslated, Latin may be intended"
+warning_error,F0519,tribes.ja.po:6708,c111d735c6,untranslated.empty,warning,target,unsure,"proper ship name; all 394 left untranslated, Latin may be intended"
+warning_error,F0524,tribes.ja.po:6738,c111d735c6,untranslated.empty,warning,target,unsure,"proper ship name; all 394 left untranslated, Latin may be intended"
+warning_error,F0630,tribes.ja.po:7374,c111d735c6,untranslated.empty,warning,target,unsure,"proper ship name; all 394 left untranslated, Latin may be intended"
+warning_error,F0700,tribes.ja.po:7794,c111d735c6,untranslated.empty,warning,target,unsure,"proper ship name; all 394 left untranslated, Latin may be intended"
+warning_error,F0793,tribes.ja.po:8989,39d26a1d53,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0912,widelands.ja.po:881,7e3fb5d99b,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0923,widelands.ja.po:950,57077e9850,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0942,widelands.ja.po:1078,e55581686e,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0955,widelands.ja.po:1135,514b52d6ba,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F1046,widelands.ja.po:1979,44cdfbe8ff,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F1133,widelands.ja.po:3126,933bf21afd,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F1194,widelands.ja.po:3709,6928b9bd0d,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F1199,widelands.ja.po:3741,cf5727cbb3,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F1205,widelands.ja.po:3786,94f3352699,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F1295,widelands.ja.po:4767,f52dc753ee,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F1298,widelands.ja.po:4784,459482c48d,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F1317,widelands.ja.po:4895,4ff18f0017,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F1381,widelands.ja.po:5231,4ee67efaef,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F1406,widelands.ja.po:5354,be77763140,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F1603,widelands.ja.po:6539,4ed2589d46,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F1615,widelands.ja.po:6676,99df982658,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F1642,widelands.ja.po:6819,f5899edaf9,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F1662,widelands.ja.po:6996,bc542058f7,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F1667,widelands.ja.po:7046,062ee066d4,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F1683,widelands.ja.po:7150,94e72147d8,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F1793,widelands.ja.po:7904,296d0fa5ce,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F1849,widelands.ja.po:8316,356e773039,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F1876,widelands.ja.po:8481,3fd09299ac,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F1916,widelands.ja.po:8846,3eb80c1e86,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F2056,widelands.ja.po:9762,2f01b8063e,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F2132,widelands.ja.po:10512,2691ffe226,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F2166,widelands.ja.po:11018,5e4808b04b,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F2177,widelands.ja.po:11078,7b731c803d,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F2212,widelands.ja.po:11325,359656a13a,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F2241,widelands.ja.po:11522,047e1e0dc6,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F2250,widelands.ja.po:11590,700773de69,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F2280,widelands.ja.po:11722,2802fa70fb,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F2294,widelands.ja.po:11778,fd9c81f5a1,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F2303,widelands.ja.po:11816,0909e17157,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F2333,widelands.ja.po:11940,5d300b9560,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F2357,widelands.ja.po:12128,66c7afefab,untranslated.empty,warning,target,FP,key name Ctrl; empty msgstr falls back to identical text
+census_extra,F0001,widelands.ja.po:2570,1842aeb42d,notation.katakana,warning,target,TP,real katakana variant inconsistency in the file
+census_extra,F0002,widelands.ja.po:2576,f55eb41f6d,notation.katakana,warning,target,TP,real katakana variant inconsistency in the file
+census_extra,F0003,widelands.ja.po:2580,f029631f94,notation.katakana,warning,target,TP,real katakana variant inconsistency in the file
+census_extra,F0004,widelands.ja.po:6647,354be8d661,notation.katakana,warning,target,TP,real katakana variant inconsistency in the file
+census_extra,F0005,widelands.ja.po:2619,2895b05162,notation.katakana,warning,target,TP,real katakana variant inconsistency in the file
+census_extra,F0007,widelands.ja.po:2769,33f6c0b673,notation.katakana,warning,target,TP,real katakana variant inconsistency in the file
+info,F1107,widelands.ja.po:2711,2c50e77a61,untranslated.copy,info,target,TP,"error message copied verbatim, not translated"

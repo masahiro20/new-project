@@ -457,21 +457,21 @@ section { scroll-margin-top: 72px; }
 
     <div class="proof">
       <div class="proof-main">
-        <div class="proof-fig" aria-hidden="true">187<small>/ 245</small></div>
-        <p class="t" lang="ja">調整に一度も使っていない5つの OSS プロジェクトで測ると、CI で止める警告・エラーの<strong>約76%（245件中187件）が実際の問題</strong>でした。誤検知の大半は、片方の言語にしかないキーをプレースホルダーやタグの誤りとして報告したもので、現在修正中です。</p>
-        <p class="t" lang="en">On five open-source projects never used for tuning, <strong>about 76% of the warnings and errors that fail a CI check (187 of 245) were real issues</strong>. Most false positives came from keys present in only one language being reported as placeholder or tag errors; we are fixing this.</p>
-        <p class="meta t" lang="ja">2026年10月、自社調べ（評価者1名による抜き取り判定）。調整に使った別の6本では、調整後に190件中190件でした（調整前は約70%）。</p>
-        <p class="meta t" lang="en">October 2026, in-house evaluation (one evaluator, sampled findings). On six other files that we did use for tuning, the figure after tuning was 190 of 190 (about 70% before tuning).</p>
+        <div class="proof-fig" aria-hidden="true">287<small>/ 297</small></div>
+        <p class="t" lang="ja">調整に一度も使っていない6つのオープンソース（ゲーム3・アプリ3、.po / YAML / JSON / Ren'Py）の日本語訳で、警告・エラーを無作為に抜き出して確認したところ、判断が分かれた6件を除く<strong>297件中287件（約97%）が実際に直すべき問題</strong>でした。指摘の大半は未翻訳の検出で、それ以外の指摘に限ると24件中22件です。</p>
+        <p class="t" lang="en">On six open-source projects never used for tuning (3 games, 3 apps; .po, YAML, JSON, Ren'Py), we sampled the warnings and errors at random: excluding 6 unclear cases, <strong>287 of 297 (about 97%) were real issues to fix</strong>. Most findings are untranslated strings; for all other findings the figure is 22 of 24.</p>
+        <p class="meta t" lang="ja">2026年10月、自社調べ。判定は評価者1名（AI）によるもので、第三者の確認はまだです。この前に別の未使用5本で測ったときは約76%で、その結果を見て直したため、その5本は「調整に使用」に移しました。</p>
+        <p class="meta t" lang="en">October 2026, in-house evaluation. Findings were judged by one evaluator (an AI), not yet checked by a third party. An earlier held-out run on five other projects gave about 76%; we fixed the causes, so those five now count as tuning data.</p>
       </div>
       <ul class="proof-facts">
-        <li><span class="n">18 / 18</span><span class="t" lang="ja"><b>カタカナ表記揺れ</b>は、調整に使っていないデータで判定できた18件すべてが本物でした。例：ユーザ／ユーザー、プレイヤー／プレーヤー。</span><span class="t" lang="en"><b>Katakana notation drift:</b> all 18 judged findings on the untuned data were real, e.g. ユーザ / ユーザー and プレイヤー / プレーヤー.</span></li>
-        <li><span class="n">159 / 159</span><span class="t" lang="ja"><b>未翻訳・要確認（fuzzy）の行</b>を、行番号付きで1件ずつ報告します。調整に使っていないデータで確認した159件すべてが本物でした。</span><span class="t" lang="en"><b>Untranslated and fuzzy lines</b> are reported one by one, with line numbers. All 159 checked on the untuned data were real.</span></li>
-        <li><span class="n">11</span><span class="t" lang="ja"><b>公開プロジェクト</b>で検証（調整に使用6本、未使用5本）。</span><span class="t" lang="en"><b>Open-source projects</b> tested (6 used for tuning, 5 held out).</span></li>
+        <li><span class="n">19 / 19</span><span class="t" lang="ja"><b>カタカナ表記揺れ</b>は、調整に使っていないデータで判定できた19件すべてが本物でした。例：ユーザ／ユーザー、プレイヤー／プレーヤー。</span><span class="t" lang="en"><b>Katakana notation drift:</b> all 19 judged findings on the untuned data were real, e.g. ユーザ / ユーザー and プレイヤー / プレーヤー.</span></li>
+        <li><span class="n">281 / 290</span><span class="t" lang="ja"><b>未翻訳の行</b>を、行番号付きで1件ずつ報告します。誤検知は、数字だけ・変数だけなど訳す必要のない行でした。</span><span class="t" lang="en"><b>Untranslated lines</b> are reported one by one, with line numbers. The false positives were lines with nothing to translate, such as numbers or a lone variable.</span></li>
+        <li><span class="n">16</span><span class="t" lang="ja"><b>公開プロジェクト</b>で検証（調整に使用10本、未使用6本）。</span><span class="t" lang="en"><b>Open-source projects</b> tested (10 used for tuning, 6 held out).</span></li>
       </ul>
     </div>
 
     <div class="projects">
-      <span class="t" lang="ja">検証に使った公開翻訳ファイル：</span><span class="t" lang="en">Public translation files we used:</span>
+      <span class="t" lang="ja">調整に使用した公開翻訳ファイル：</span><span class="t" lang="en">Used for tuning:</span>
       <ul>
         <li><a href="https://github.com/supertuxkart/stk-code">SuperTuxKart</a></li>
         <li><a href="https://github.com/Orama-Interactive/Pixelorama">Pixelorama</a></li>
@@ -481,14 +481,16 @@ section { scroll-margin-top: 72px; }
       </ul>
       <span class="t" lang="ja">調整に使っていない検証用：</span><span class="t" lang="en">Held out (never used for tuning):</span>
       <ul>
-        <li><a href="https://github.com/freeciv/freeciv">Freeciv</a></li>
-        <li><a href="https://github.com/Warzone2100/warzone2100">Warzone 2100</a></li>
-        <li><a href="https://github.com/SuperTux/supertux">SuperTux</a></li>
-        <li><a href="https://github.com/mastodon/mastodon">Mastodon</a></li>
-        <li><a href="https://github.com/excalidraw/excalidraw">Excalidraw</a></li>
+        <li><a href="https://github.com/widelands/widelands">Widelands</a></li>
+        <li><a href="https://github.com/flareteam/flare-game">Flare: Empyrean Campaign</a></li>
+        <li><a href="https://github.com/jitsi/jitsi-meet">Jitsi Meet</a></li>
+        <li><a href="https://github.com/discourse/discourse">Discourse</a></li>
+        <li><a href="https://github.com/element-hq/element-web">Element Web</a></li>
+        <li><a href="https://github.com/renpy/renpy">The Question</a> <span class="t" lang="ja">（Ren'Py のデモ）</span><span class="t" lang="en">(Ren'Py demo)</span></li>
       </ul>
-      <p class="note t" lang="ja">これらのプロジェクトが Kotomark を推奨しているわけではありません。公開されている翻訳ファイルに検査をかけただけです。ライセンス：GPL / LGPL / AGPL / MIT。</p>
-      <p class="note t" lang="en">These projects did not endorse Kotomark; we only ran it on their public translation files. Licenses: GPL/LGPL/AGPL/MIT.</p>
+      <span class="t" lang="ja">調整に使用（追加分）：Freeciv、Warzone 2100、SuperTux、Mastodon、Excalidraw。</span><span class="t" lang="en">Also used for tuning: Freeciv, Warzone 2100, SuperTux, Mastodon, Excalidraw.</span>
+      <p class="note t" lang="ja">これらのプロジェクトが Kotomark を推奨しているわけではありません。公開されている翻訳ファイルに検査をかけただけです。ライセンス：GPL / LGPL / AGPL / MIT / Apache / CC BY-SA。</p>
+      <p class="note t" lang="en">These projects did not endorse Kotomark; we only ran it on their public translation files. Licenses: GPL/LGPL/AGPL/MIT/Apache/CC BY-SA.</p>
     </div>
     <p class="limits t" lang="ja">限界：ラベル付けは評価者1名によるものです。対象は主に英→日の UI・ゲーム文字列です。日→英は UI 文字列（Misskey）で確認済みで、ゲーム台本での検証は協力者の方と行う予定です。用語集を使う指摘の精度は、用語集の質に左右されます。</p>
     <p class="limits t" lang="en">Limits: one evaluator labeled the findings. The files are mostly English→Japanese UI and game strings. Japanese→English was checked on UI strings (Misskey); evaluation on Japanese→English game scripts with pilot partners is still pending. Glossary-based term checks are only as good as the glossary.</p>

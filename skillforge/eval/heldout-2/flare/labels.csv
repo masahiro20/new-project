@@ -1,0 +1,61 @@
+sample,finding,file_line,id_hash,rule,severity,side,verdict,note
+warning_error,F0002,empyrean_campaign.data.ja.po:149,157a2b3584,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0006,empyrean_campaign.data.ja.po:165,161fcd4814,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0009,empyrean_campaign.data.ja.po:177,68927c5ada,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0035,empyrean_campaign.data.ja.po:495,b4c94c39e9,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0042,empyrean_campaign.data.ja.po:1187,ddfd467d2d,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0045,empyrean_campaign.data.ja.po:1199,5a205a7197,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0052,empyrean_campaign.data.ja.po:1547,62fe7a813a,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0063,empyrean_campaign.data.ja.po:1678,f7b3189479,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0065,empyrean_campaign.data.ja.po:1704,3bfaf2e5e5,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0071,empyrean_campaign.data.ja.po:1788,5d7e18e742,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0074,empyrean_campaign.data.ja.po:1820,27ab4e97f3,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0077,empyrean_campaign.data.ja.po:1840,6eae3a5b06,untranslated.empty,warning,target,FP,source is only an ellipsis; nothing to translate
+warning_error,F0081,empyrean_campaign.data.ja.po:1952,67c1923953,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0086,empyrean_campaign.data.ja.po:1972,ea5c49412a,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0091,empyrean_campaign.data.ja.po:1992,31bf66c391,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0098,empyrean_campaign.data.ja.po:2020,346d8a03cb,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0109,empyrean_campaign.data.ja.po:2064,98c06c6750,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0118,empyrean_campaign.data.ja.po:2100,25877452fe,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0130,empyrean_campaign.data.ja.po:2180,f66abde35d,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0131,empyrean_campaign.data.ja.po:2184,e362dcd9a8,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0158,empyrean_campaign.data.ja.po:2446,72c5cd231d,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0175,empyrean_campaign.data.ja.po:2695,26077f6b81,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0199,empyrean_campaign.data.ja.po:2863,f9849ee93b,untranslated.empty,warning,target,FP,source is only ${AVATAR_NAME}; nothing to translate
+warning_error,F0228,empyrean_campaign.data.ja.po:3038,4becce440b,untranslated.empty,warning,target,FP,"date 1462/8/13; fallback identical, nothing to translate"
+warning_error,F0231,empyrean_campaign.data.ja.po:3058,b74826bde3,untranslated.empty,warning,target,FP,"date 1472/9/27; fallback identical, nothing to translate"
+warning_error,F0236,empyrean_campaign.data.ja.po:3082,951f78acda,untranslated.empty,warning,target,FP,number -50; nothing to translate
+warning_error,F0239,empyrean_campaign.data.ja.po:3102,df55447b48,untranslated.empty,warning,target,FP,number -25; nothing to translate
+warning_error,F0262,empyrean_campaign.data.ja.po:3424,b38184a9ba,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0283,empyrean_campaign.data.ja.po:3626,f90185b347,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0299,empyrean_campaign.data.ja.po:3742,fac055e35b,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0300,empyrean_campaign.data.ja.po:3746,a6f071e119,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0301,empyrean_campaign.data.ja.po:3766,258b78dd5b,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0324,empyrean_campaign.data.ja.po:3970,ad965ae0b9,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0325,empyrean_campaign.data.ja.po:3974,5e76055042,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0329,empyrean_campaign.data.ja.po:3998,f9d44e3de1,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0345,empyrean_campaign.data.ja.po:4073,84ce7df2fa,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0352,empyrean_campaign.data.ja.po:4251,7692e5a964,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0372,empyrean_campaign.data.ja.po:4409,9e2d373ae8,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0401,empyrean_campaign.data.ja.po:4673,3259eaf4ef,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0404,empyrean_campaign.data.ja.po:4701,fdba7952e3,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0411,empyrean_campaign.data.ja.po:4737,a40d22e382,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0416,empyrean_campaign.data.ja.po:4781,f63d08aaab,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0417,empyrean_campaign.data.ja.po:4801,bd5929a138,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0421,empyrean_campaign.data.ja.po:4817,31093d12b3,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0442,empyrean_campaign.data.ja.po:4901,e481e95580,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0448,empyrean_campaign.data.ja.po:4925,9143ab3568,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0462,empyrean_campaign.data.ja.po:4981,b3ebdb6942,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0469,empyrean_campaign.data.ja.po:5009,93112c1b52,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0479,empyrean_campaign.data.ja.po:5073,3aacdfeab9,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0514,empyrean_campaign.data.ja.po:5269,c637ea6357,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0533,empyrean_campaign.data.ja.po:5389,39856ff5e1,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0542,empyrean_campaign.data.ja.po:5443,ccae897035,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0544,empyrean_campaign.data.ja.po:5454,6749829551,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0553,empyrean_campaign.data.ja.po:5516,012b19bbc2,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0560,empyrean_campaign.data.ja.po:5568,441a06441b,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0563,empyrean_campaign.data.ja.po:5608,cbbdcc2890,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0570,empyrean_campaign.data.ja.po:5662,f1f0c9f487,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0574,empyrean_campaign.data.ja.po:5690,659feb5433,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0576,empyrean_campaign.data.ja.po:5712,a21b2517ee,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string
+warning_error,F0583,fantasycore.data.ja.po:76,5f4632af95,untranslated.empty,warning,target,TP,msgstr empty; real untranslated string

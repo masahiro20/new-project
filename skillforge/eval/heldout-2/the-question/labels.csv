@@ -1,0 +1,7 @@
+sample,finding,file_line,id_hash,rule,severity,side,verdict,note
+warning_error,F0001,common.rpy:1214,91feb9eff5,notation.katakana,warning,target,TP,real katakana variant inconsistency in the file
+warning_error,F0002,script.rpy:318,18a9bf5bde,notation.katakana,warning,target,TP,real katakana variant inconsistency in the file
+warning_error,F0006,script.rpy:434,b6c2d8adff,untranslated.empty,warning,target,TP,"menu caption new """" left empty"
+info,F0003,options.rpy:16,c3e12dae25,untranslated.copy,info,target,unsure,"credits block; role labels could be translated, names should not"
+info,F0004,screens.rpy:130,8d1119dbbc,untranslated.copy,info,target,FP,author name; copy is correct
+info,F0005,screens.rpy:134,e002709819,untranslated.copy,info,target,unsure,"""Made with Ren'Py"" commonly kept in English"
