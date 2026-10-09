@@ -12,4 +12,6 @@ export type Guide = {
   /** Set on per-service guides; used for grouping on /guide and the FAQ/BreadcrumbList structured data. */
   serviceType?: string;
   faq?: { q: string; a: string }[];
+  /** Slugs to list first under 関連する解説 (unknown slugs are ignored). */
+  related?: string[];
 };
