@@ -10,6 +10,8 @@ const nextConfig: NextConfig = staticExport
       output: "export",
       basePath,
       assetPrefix: basePath,
+      // Plain <a> links to static files (e.g. /llms.txt) need the prefix too.
+      env: { NEXT_PUBLIC_BASE_PATH: basePath },
       trailingSlash: true,
       images: { unoptimized: true },
       poweredByHeader: false,

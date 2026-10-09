@@ -12,7 +12,7 @@
     "cf:build": "opennextjs-cloudflare build",
     "cf:preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "cf:deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
-    "test": "node --test --experimental-strip-types --no-warnings tests/payments.test.mjs",
+    "test": "node --test --experimental-strip-types --no-warnings tests/payments.test.mjs tests/check.test.mjs",
     "og:generate": "node scripts/og/extract-guides.mjs . > scripts/og/guides.json && node scripts/og/generate-og.mjs --in scripts/og/guides.json --out public/og --png && rm -f public/og/*.svg"
   },
   "dependencies": {

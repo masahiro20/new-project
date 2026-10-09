@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { liveBilling, operator } from "@/lib/launch";
 
-export const metadata: Metadata = { title: "利用規約" };
+export const metadata: Metadata = { title: "利用規約", alternates: { canonical: "/terms" } };
 
 // 雛形です。【要記入】を埋め、公開前にオーナーが内容を最終確認してください（無料公開モードでは lib/launch.ts の値を表示）。
 const sections = (op: ReturnType<typeof operator>, sales: boolean): { title: string; body: string[] }[] => [

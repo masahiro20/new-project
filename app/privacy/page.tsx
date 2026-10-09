@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { aiEnabled, isFreeLaunch, liveBilling, operator } from "@/lib/launch";
 
-export const metadata: Metadata = { title: "プライバシーポリシー" };
+export const metadata: Metadata = { title: "プライバシーポリシー", alternates: { canonical: "/privacy" } };
 
 // 【要記入】の項目は公開前に必ず埋め、オーナーが内容を最終確認してください。
 // 無料公開モードでは lib/launch.ts の運営者情報を使い、使っていない機能（決済・AI）の記載は出さない。

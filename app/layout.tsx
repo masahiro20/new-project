@@ -36,7 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <header className="site-header">
           <div className="wrap header-inner">
             <Link href="/" className="logo">減算ゼロ</Link>
-            <nav>
+            <nav aria-label="メインメニュー">
               {ai && <Link href="/check">無料診断</Link>}
               <Link href="/guide">解説</Link>
               <Link href="/samples">サンプル</Link>
@@ -51,11 +51,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <main>{children}</main>
         <footer className="site-footer">
           <div className="wrap">
-            <nav>
+            <nav aria-label="フッターメニュー">
               <Link href="/terms">利用規約</Link>
               {liveBilling() && <Link href="/legal">特定商取引法に基づく表記</Link>}
               <Link href="/privacy">プライバシーポリシー</Link>
-              <Link href="/llms.txt" prefetch={false}>llms.txt</Link>
+              {/* A plain file, not a page: next/link would try to route it as one. */}
+              <a href={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/llms.txt`}>llms.txt</a>
             </nav>
             <p>本サービスは書類作成を支援するツールです。制度の最新の取扱いは、指定権者（都道府県・市町村）の通知をご確認ください。</p>
           </div>

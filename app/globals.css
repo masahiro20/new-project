@@ -39,7 +39,7 @@ a { color: var(--accent); }
 section { padding: 56px 0; }
 h1 { font-size: clamp(1.7rem, 4.5vw, 2.5rem); line-height: 1.35; margin: 0 0 16px; }
 h2 { font-size: clamp(1.3rem, 3vw, 1.7rem); line-height: 1.4; margin: 0 0 16px; }
-h3 { font-size: 1.1rem; margin: 0 0 8px; }
+h3, .h3 { font-size: 1.1rem; margin: 0 0 8px; }
 .lead { font-size: 1.1rem; color: var(--muted); }
 .eyebrow { color: var(--accent); font-weight: 700; font-size: .9rem; letter-spacing: .06em; margin-bottom: 8px; }
 
@@ -136,3 +136,5 @@ textarea { min-height: 110px; resize: vertical; }
 /* Break Japanese headings at phrase boundaries (Chromium) and keep lines even. */
 h1, h2 { word-break: auto-phrase; text-wrap: balance; }
 @media (min-width: 860px) { .hero h1 { font-size: clamp(1.8rem, 3vw, 2.3rem); } }
+.check-group { border: 0; padding: 0; margin: 24px 0 0; min-width: 0; }
+.check-group legend { font-size: clamp(1.3rem, 3vw, 1.7rem); font-weight: 700; line-height: 1.4; margin-bottom: 8px; padding: 0; }

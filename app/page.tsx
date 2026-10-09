@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import heroArt from "./hero.svg";
@@ -7,6 +8,8 @@ import { jsonLdHtml } from "@/lib/jsonld";
 import { aiEnabled, COMING_SOON, demoPurchase, salesEnabled } from "@/lib/launch";
 import { DEMO_BANNER } from "@/lib/payments/mode";
 import { priceJpy } from "@/lib/stripe";
+
+export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 const FAQ = [
   {
@@ -114,6 +117,11 @@ export default function Home() {
               <div className="stat">最大3%</div>
               <h3>業務継続計画未策定減算</h3>
               <p>感染症・災害のBCPが未策定の場合に対象になります。</p>
+            </div>
+            <div className="card">
+              <div className="stat">最大10%</div>
+              <h3>情報公表未報告減算</h3>
+              <p>情報公表システムへの報告をしていない場合の減算です。施設・居住系10%、その他5%。</p>
             </div>
           </div>
         </div>
