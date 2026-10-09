@@ -10,7 +10,7 @@
 ### ログライン
 ミオが持ってきた正式な投資契約には、「負けたら、保証人が失った分はジンの借金になる」という一文があった。「借金はもうごめんだ」と突っぱねたジンは、ケイの保証が次の取立日、つまり29日後で切れること、そして取立日前に組める決済戦の登録が今夜で締め切られることを知る。格付けZEROでは乗れない昇降骨を、ツバメの裏道情報を頼りにミオと二人でよじ登る。追ってくる仮面の取立人ニルを相手に、ミオの〈眼〉が読み、ジンが触る。使っていい〈デフォルト〉は2回だけ。
 
-*EN: Mio's real contract has fine print: if Jin loses, every penny she puts up becomes his debt. "I'm done with debt," he says, until he learns that Kei's guarantee runs out in 29 days and that tonight is the last chance to register for a fight. Jin can't ride the Lift Bone because he's rated ZERO, so he and Mio climb up through the bone's hollow insides with a masked Collector right behind them. They have a budget of two touches, with Mio's Eye calling every move.*
+*EN: Mio's real contract has fine print: if Jin loses, every penny she puts up becomes his debt. "I'm done with debt," he says, until he learns that Kei's guarantee runs out in 29 days and that tonight is the last chance to register for a fight. Jin can't ride the Bone Lift because he's rated ZERO, so he and Mio climb up through the bone's hollow insides with a masked Collector right behind them. They have a budget of two touches, with Mio's Eye calling every move.*
 
 ### 尺構成（約22分）
 

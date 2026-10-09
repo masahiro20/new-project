@@ -1,0 +1,1092 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LEDGERBREAKER — Book of the Ledger Vol.1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=IBM+Plex+Mono:wght@400;600&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="book.css">
+<style>
+/* Carried over from Vol.0 */
+.art { height: var(--h, 90mm); flex: none; position: relative; }
+.svg-inline > svg, figure .svg-inline > svg { display: block; width: 100%; height: 100%; }
+.art > img, .art > .svg-inline { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; display: block; }
+.art.grow-fig { flex: 1; height: auto; min-height: 0; }
+.cover-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.cover-veil { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(18,20,27,.55) 0%, rgba(18,20,27,0) 22%, rgba(18,20,27,0) 58%, rgba(18,20,27,.92) 100%); }
+.cover-top { position: absolute; top: 12mm; left: 12mm; right: 12mm; display: flex; justify-content: space-between; font-family: var(--mono); font-size: 7pt; letter-spacing: .2em; color: var(--bone); }
+.cover-title { position: absolute; left: 12mm; right: 12mm; bottom: 14mm; display: flex; flex-direction: column; gap: 2mm; color: var(--bone); }
+.cover-title .t { font-family: var(--display); font-size: 40pt; line-height: 1; color: #E5172F; letter-spacing: .01em; }
+.cover-title .sub { font-family: var(--body); font-weight: 700; font-size: 13pt; line-height: 1.2; letter-spacing: .3em; }
+.cover-title .vol { font-family: var(--mono); font-size: 7.4pt; letter-spacing: .18em; border-top: .3mm solid rgba(236,230,214,.5); padding-top: 2mm; display: flex; justify-content: space-between; }
+.board { background: var(--night); color: var(--bone); font-family: var(--mono); font-size: 6.8pt; line-height: 1.55; padding: 3mm 3.5mm; }
+.board .row { display: grid; grid-template-columns: 10mm 1fr 16mm; gap: 2mm; border-bottom: .15mm solid rgba(236,230,214,.18); padding: .5mm 0; }
+.board .row:last-child { border-bottom: 0; }
+.board .hd { color: #A49F93; letter-spacing: .1em; margin-bottom: 1mm; }
+.board .zero { color: #E5172F; font-weight: 600; }
+.notice { border: .8mm double var(--ink); padding: 3mm 4mm; background: #FBFAF4; display: flex; flex-direction: column; gap: 1.2mm; }
+.notice .ttl { font-family: var(--display); font-size: 12pt; line-height: 1.25; text-align: center; letter-spacing: .04em; }
+.notice .issuer { font-family: var(--mono); font-size: 6.3pt; letter-spacing: .1em; color: var(--muted); text-align: right; }
+.blk { background: var(--ink); color: var(--ink); padding: 0 .4em; }
+.hint { border-top: .2mm dashed var(--red); padding-top: 1.5mm; font-size: 7.4pt; line-height: 1.5; }
+.hint b { color: var(--red); font-family: var(--mono); font-size: 6.3pt; letter-spacing: .12em; display: block; }
+.colo { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 3mm; margin-top: auto; }
+.colo-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .32; display: block; }
+.colo dl { display: grid; grid-template-columns: 30mm 1fr; gap: .8mm 3mm; margin: 0; font-size: 7.4pt; line-height: 1.5; }
+.colo dt { font-family: var(--mono); font-size: 6.2pt; letter-spacing: .08em; color: #A49F93; padding-top: .3mm; text-transform: uppercase; }
+.colo dd { margin: 0; }
+.colo .legal { border-top: .2mm solid rgba(236,230,214,.35); padding-top: 2mm; font-size: 7pt; line-height: 1.55; color: #CFC8B8; display: flex; flex-direction: column; gap: 1mm; }
+ol.toc.tight li { padding: 1mm 0; }
+.page.dark .runhead { color: #A49F93; border-color: rgba(236,230,214,.25); }
+
+/* Added in Vol.1 */
+.cut { display: grid; grid-template-columns: 80mm 1fr; gap: 3.5mm; align-items: start; }
+.frame { position: relative; width: 100%; aspect-ratio: 16 / 9; background: #fff; border: .3mm solid var(--ink); }
+.frame > img, .frame > .svg-inline { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.cut-id { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 6.6pt; letter-spacing: .08em; border-bottom: .3mm solid var(--ink); padding-bottom: .6mm; margin-bottom: 1mm; }
+.cut-id b { color: var(--red); font-weight: 600; }
+.cut dl.sheet { display: grid; grid-template-columns: 9mm 1fr; gap: .3mm 1.5mm; margin: 0 0 1mm; font-size: 6.4pt; line-height: 1.4; }
+.cut dl.sheet dt { font-family: var(--mono); font-size: 5.6pt; color: var(--muted); letter-spacing: .04em; padding-top: .2mm; }
+.cut dl.sheet dd { margin: 0; }
+.cut dl.sheet dd.tl { font-family: var(--mono); font-size: 5.8pt; color: var(--muted); }
+.redact { display: inline-block; width: 100%; height: 2.6mm; background: var(--ink); vertical-align: -.5mm; }
+.cut .why { font-size: 6.9pt; line-height: 1.45; }
+.cut-note { font-size: 7.4pt; line-height: 1.5; }
+.theme { font-family: var(--display); font-size: 13pt; line-height: 1.3; }
+.panel { position: relative; width: 100%; aspect-ratio: var(--ar); background: #0B0C11; }
+.panel > img, .panel > .svg-inline { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.wt-row { display: grid; gap: 4mm; align-items: start; }
+.wt-cap { font-size: 6.9pt; line-height: 1.5; color: #CFC8B8; }
+.wt-cap b { font-family: var(--mono); font-size: 6.3pt; letter-spacing: .12em; color: #E5172F; display: block; font-weight: 600; }
+.tl { display: block; font-family: var(--mono); font-size: 5.9pt; line-height: 1.45; letter-spacing: .02em; color: var(--bone); border-left: .5mm solid #E5172F; padding-left: 1.6mm; margin-top: 1mm; }
+.page:not(.dark) .tl { color: var(--ink); }
+.tl i { font-style: normal; color: #A49F93; }
+.page:not(.dark) .tl i { color: var(--muted); }
+.page.dark .lede, .page.dark p { color: var(--bone); }
+.page.dark .note { background: rgba(236,230,214,.08); }
+.chip { display: inline-block; width: 3mm; height: 3mm; vertical-align: -.5mm; margin-right: 1mm; border: .15mm solid var(--ink); }
+.spoiler { border: .6mm solid var(--red); background: repeating-linear-gradient(-45deg, #FBFAF4 0 2mm, #F6E9E4 2mm 4mm); padding: 2mm 3mm; font-size: 7.4pt; }
+.contract { border: .8mm double var(--ink); background: #FBFAF4; padding: 3.5mm 4.5mm; display: flex; flex-direction: column; gap: 1.3mm; font-size: 7.5pt; line-height: 1.5; }
+.contract .ttl { font-family: var(--display); font-size: 13pt; text-align: center; letter-spacing: .12em; }
+.contract .art-no { font-weight: 700; margin-right: 1.5mm; font-family: var(--mono); font-size: 6.8pt; letter-spacing: .04em; }
+.contract .hand { font-family: var(--body); font-weight: 500; border-left: .6mm solid #F0921E; padding-left: 2.5mm; display: flex; flex-direction: column; gap: .6mm; }
+.contract .twelve { border: .4mm solid var(--red); padding: 1.4mm 2.5mm; }
+.contract .sign { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; font-size: 6.8pt; margin-top: 1mm; }
+.contract .sign span { border-top: .2mm solid var(--ink); padding-top: 1mm; }
+.mark-read { background: var(--night); color: var(--bone); font-family: var(--mono); font-size: 6.8pt; line-height: 1.65; padding: 2.6mm 3.5mm; }
+.mark-read .amb { color: #F0921E; }
+.mark-read .red { color: #E5172F; }
+table.ledger.mem td:nth-child(4) { font-weight: 700; }
+
+/* English edition tweaks: Latin sets denser than Japanese */
+body { font-size: 8.6pt; line-height: 1.5; hyphens: auto; }
+.lede { font-size: 9.8pt; line-height: 1.55; }
+.small { font-size: 7.4pt; line-height: 1.5; }
+h1 { letter-spacing: .01em; }
+.jp { font-family: var(--body); letter-spacing: .05em; text-transform: none; }
+table.ledger { font-size: 7.6pt; line-height: 1.42; }
+table.ledger td { padding: 1.1mm 1.5mm; }
+dl.gloss { grid-template-columns: 30mm 1fr; font-size: 7.4pt; line-height: 1.42; gap: .9mm 3mm; }
+dl.gloss dd { padding-bottom: .6mm; }
+.quote { font-size: 10pt; line-height: 1.3; }
+.char-name { font-size: 19pt; }
+.data { font-size: 7.4pt; }
+/* key lists set beside diagrams that keep their Japanese lettering */
+dl.key { display: grid; grid-template-columns: auto 1fr; gap: .5mm 2mm; margin: 0; font-size: 6.7pt; line-height: 1.4; }
+dl.key dt { font-family: var(--mono); font-size: 6pt; font-weight: 600; color: var(--red); white-space: nowrap; padding-top: .15mm; }
+dl.key dd { margin: 0; }
+dl.key dd b { font-weight: 700; }
+.keyhd { font-family: var(--mono); font-size: 6pt; letter-spacing: .12em; color: var(--muted); text-transform: uppercase; border-bottom: .2mm solid var(--rule); padding-bottom: .6mm; margin-bottom: 1mm; }
+/* screenplay: English names are wider than Japanese */
+.script { font-size: 7.7pt; line-height: 1.48; gap: 1.3mm; }
+.script .dl { grid-template-columns: 19mm 1fr; }
+.script .who { font-family: var(--mono); font-size: 6.6pt; font-weight: 600; letter-spacing: .04em; padding-top: .3mm; }
+.script .act { padding-left: 0; }
+.script .paren { font-style: italic; color: var(--muted); font-family: var(--body); font-weight: 400; }
+.script .card { font-family: var(--mono); font-size: 7pt; font-weight: 600; text-align: center; border: .2mm solid var(--ink); padding: .8mm; }
+.script .orig { display: block; font-size: 6.4pt; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<!-- ================= p1 COVER ================= -->
+<section class="page bleed dark">
+  <img class="cover-art" src="art/vol1-cover.svg" alt="">
+  <div class="cover-veil"></div>
+  <div class="cover-top"><span>P7 ANIME ORIGINAL</span><span>BOOK OF THE LEDGER</span></div>
+  <div class="cover-title">
+    <span class="t">LEDGER<br>BREAKER</span>
+    <span class="sub jp">帳簿破り</span>
+    <div class="vol"><span>BOOK OF THE LEDGER · VOL.1</span><span>EPISODE 2 GUIDE</span></div>
+  </div>
+</section>
+
+<!-- ================= p2 ABOUT ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>Ledgerbreaker · Book of the Ledger Vol.1</span><span>About this book</span></div>
+  <span class="chapter-no">Before you open the ledger</span>
+  <h1>About This Book</h1>
+  <p class="lede"><i>Book of the Ledger Vol.1</i> is the second setting guide to <b>LEDGERBREAKER</b>, an original anime project from P7 Anime. If Vol.0 was the ledger of the world and its people, this one is the ledger of <b>how it's made</b> — and of <b>Episode 2</b>.</p>
+  <div class="stack">
+    <h3>What's inside</h3>
+    <p>The first half is a making-of: how Episode 1 became a <b>storyboard</b>, and how it became <b>full-color Webtoon pages</b>. The second half opens up everything Episode 2, "Terms and Conditions," adds to the map — the inside of the Bone Lift, the Middle Tier streets, the Registry, the Settlement Circle, and the investment contract itself, clause by clause.</p>
+  </div>
+  <div class="box">
+    <h4 class="red">Spoiler line</h4>
+    <p>This book goes <b>up to the end of Episode 2</b>, ending included. Nothing from Episode 3 on, and none of the big character secrets. Page 35, "The Memory Ledger," covers how Episode 2 ends.</p>
+  </div>
+  <div class="note small">
+    <h4>Notes for readers</h4>
+    <p>• This is a pre-production guide. Designs, names and details may change.</p>
+    <p>• Storyboards appear as art and direction notes only. <b>The dialogue column is blacked out.</b></p>
+    <p>• We print 10 of the 40 panels of Webtoon Episode 1.</p>
+    <p>• The Episode 2 script excerpt is the cold open only — the first 1:30, from a pre-final draft.</p>
+    <p>• Names and numbers that aren't locked yet are blacked out, even in in-world documents.</p>
+    <p>• Storyboards, Webtoon panels and diagrams keep their original Japanese lettering. English translations and keys sit right beside them.</p>
+    <p>• Names appear in Western order (Jin Akaba). In-world registries print them SURNAME, GIVEN.</p>
+    <p>• This is a work of fiction. No real person, group, religion or financial institution is depicted.</p>
+  </div>
+  <div style="margin-top:auto; align-self:flex-end"><span class="stamp">CLEARED<small>BOURSE · COPY 001</small></span></div>
+  <div class="folio"><span>LEDGERBREAKER — VOL.1</span><span class="no">02</span></div>
+</section>
+
+<!-- ================= p3 CONTENTS ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>Ledgerbreaker · Book of the Ledger Vol.1</span><span>Contents</span></div>
+  <span class="chapter-no">Index of accounts</span>
+  <h1>Contents</h1>
+  <ol class="toc tight">
+    <li><span>Previously</span><span class="pg">04</span></li>
+    <li><span><b>Ch.1 · Behind the Episode 1 Storyboard</b></span><span class="pg">05</span></li>
+    <li><span>&emsp;Vertical city · Wrists · Silence · Freeze · Looking up · White space · Red · Impact</span><span class="pg">05–12</span></li>
+    <li><span><b>Ch.2 · Webtoon Episode 1, in Color</b></span><span class="pg">13</span></li>
+    <li><span>&emsp;How color works — line, color, callouts</span><span class="pg">19</span></li>
+    <li><span><b>Ch.3 · Episode 2, "Terms and Conditions"</b></span><span class="pg">21</span></li>
+    <li><span>&emsp;Highlights, and the idea of a "budget"</span><span class="pg">22</span></li>
+    <li><span><b>Ch.4 · Inside the Bone, Above the Slums</b></span><span class="pg">23</span></li>
+    <li><span>&emsp;The Bone Lift cross-section and the Marrow Road</span><span class="pg">23</span></li>
+    <li><span>&emsp;The Middle Tier streets</span><span class="pg">25</span></li>
+    <li><span>&emsp;The Bourse Middle Tier Registry and provisional entry</span><span class="pg">27</span></li>
+    <li><span>&emsp;The Settlement Circle and the fight card</span><span class="pg">28</span></li>
+    <li><span>&emsp;The Investment Contract (original copy)</span><span class="pg">30</span></li>
+    <li><span><b>Ch.5 · Character Updates</b> — Mio · Tsubame · Nil · Kei</span><span class="pg">31</span></li>
+    <li><span>&emsp;The Memory Ledger <span class="red small">(spoilers)</span></span><span class="pg">35</span></li>
+    <li><span><b>Ch.6 · Episode 2 Screenplay Excerpt</b> — Cold Open, 00:00–01:30</span><span class="pg">36</span></li>
+    <li><span>Glossary</span><span class="pg">38</span></li>
+    <li><span>Afterword &amp; the next ledger</span><span class="pg">39</span></li>
+    <li><span>Colophon</span><span class="pg">40</span></li>
+  </ol>
+  <div class="folio"><span>LEDGERBREAKER — VOL.1</span><span class="no">03</span></div>
+</section>
+
+<!-- ================= p4 PREVIOUSLY ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>Ledgerbreaker · Book of the Ledger Vol.1</span><span>Previously</span></div>
+  <span class="chapter-no">Previously</span>
+  <h1>Previously on LEDGERBREAKER</h1>
+  <p class="mono small muted">Episode 1, "I'm Not Paying" — the story so far</p>
+  <div class="stack">
+    <p>Kanegura is a vertical city where every power is borrowed from a god. At the very bottom, in the Underledger, <b>Jin Akaba</b> runs noodles for a street stall. He's rated <b class="red">ZERO</b> — the one person no Lender will touch. His left arm, wrist to elbow, carries the red mark of the infinite debt his father left behind.</p>
+    <p>Then, the night after Collection Day, the masked Collector <b>Nil</b> comes for the collateral of <b>Kei Kirishima</b>, the woman who raised Jin. The Special Collection Writ names exactly what's owed: <b>every memory of Jin that Kei has</b>. Jin fights back with stall gear. He doesn't stand a chance.</p>
+    <p>Lying in the dirt, he hears a child's voice rising from the mark on his wrist: <b>Hazama</b>, the Zero Lender. One promise later, Jin awakens to <b>Default</b> — touch someone's Credit, seize it for about three seconds, and use it as his own. He takes Nil's chains, reels him in, and cracks his mask with one punch. Nil calls it "the same power your father had," puts the collection on hold, and leaves.</p>
+    <p>The bill? The one memory Jin still had of his <b>father's face</b>.</p>
+    <p>Someone saw it all through an amber <b>Eye</b>: <b>Mio Kuzuha</b>, a loan shark's daughter and an A-rated investor. A boy whose win probability reads <i>undefined</i>? She offers him a deal. Jin makes her swallow three conditions — then seals it not on paper, but with a gloved handshake.</p>
+  </div>
+  <div class="note small" style="margin-top:auto">
+    <h4>Where Episode 1 leaves things</h4>
+    <p><b>Jin:</b> Rating ZERO, balance −∞. Default used once. &nbsp;<b>Kei:</b> her mark still reads OVERDUE: 3 — but under it, in amber ink, there's a new line naming Mio as her guarantor. &nbsp;<b>Mio:</b> Jin's guarantor, by handshake.</p>
+  </div>
+  <div class="folio"><span>LEDGERBREAKER — VOL.1</span><span class="no">04</span></div>
+</section>
+
+<!-- ================= p5 CH1 STORYBOARD (opener + vertical city) ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>Ch.1 · Episode 1 Storyboard</span><span>CH.1 STORYBOARD</span></div>
+  <span class="chapter-no">Chapter 1 — Behind the Storyboard</span>
+  <h1>Behind the Episode 1 Storyboard</h1>
+  <p class="cut-note">Episode 1 runs 225 cuts on the storyboard, 91 of them drawn. We picked 16 to show what each cut is for: the camera, the timing, the pauses. The dialogue column is <span class="blk">blacked out</span> throughout. The Japanese notes inside each frame are translated under <b>NOTE</b>.</p>
+  <p class="theme">1 | A vertical city, a vertical camera</p>
+  <div class="cut">
+    <div class="frame"><img src="../storyboard/ep01/frames/s1-c01b.svg" alt="S1 C1 Straight down on the Underledger"></div>
+    <div>
+      <div class="cut-id"><span>S1 · C<b>01</b></span><span>6.0 sec</span></div>
+      <dl class="sheet"><dt>CAM</dt><dd>Black → F.I.; crane down from overhead</dd><dt>SHOT</dt><dd>Top-down ELS</dd><dt>LINE</dt><dd><span class="redact"></span></dd><dt>NOTE</dt><dd class="tl">"T.U. (slow descent) · Top-down: the well of ribs = the Underledger"</dd></dl>
+      <p class="why">The show's first image. Two seconds of black, then a slow descent from straight overhead. Ribs arc in from every side; a night market glows at the bottom. No logo. No titles.</p>
+    </div>
+  </div>
+  <div class="cut">
+    <div class="frame"><img src="../storyboard/ep01/frames/s1-c02b.svg" alt="S1 C2 Looking up at the ribs"></div>
+    <div>
+      <div class="cut-id"><span>S1 · C<b>02</b></span><span>8.0 sec</span></div>
+      <dl class="sheet"><dt>CAM</dt><dd>FIX → TILT UP</dd><dt>SHOT</dt><dd>LS → low angle</dd><dt>LINE</dt><dd><span class="redact"></span></dd><dt>NOTE</dt><dd class="tl">"Low angle · END: lights of the Peak / bells 1-2-3, crisp · → C3 board"</dd></dl>
+      <p class="why">The bell rings and the whole crowd freezes — acted, not a held frame. Two seconds later we follow their eyes upward. Ribs closing overhead: the show's basic "looking up" composition.</p>
+    </div>
+  </div>
+  <div class="folio"><span>Ch.1 · Episode 1 Storyboard</span><span class="no">05</span></div>
+</section>
+
+<!-- ================= p6 WRISTS ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>Ch.1 · Episode 1 Storyboard</span><span>2 / WRISTS</span></div>
+  <p class="theme">2 | 1.2 seconds per wrist</p>
+  <p class="cut-note">Once the Collection Day notice lights up, we hit four wrist close-ups in a row: <b>−120. −3,400. −18. −9,999.</b> 1.2 seconds is the shortest a shot can be and still let you read one number.</p>
+  <div class="cut">
+    <div class="frame"><img src="../storyboard/ep01/frames/s1-c06.svg" alt="S1 C6 A craftsman's wrist"></div>
+    <div>
+      <div class="cut-id"><span>S1 · C<b>06</b></span><span>1.2 sec</span></div>
+      <dl class="sheet"><dt>CAM</dt><dd>FIX</dd><dt>SHOT</dt><dd>CU (wrist)</dd><dt>LINE</dt><dd>None</dd><dt>NOTE</dt><dd class="tl">"BALANCE −120 · Wrist CU 1: craftsman's thick arm, rolled sleeve (mark: vermilion)"</dd></dl>
+      <p class="why">A craftsman's thick forearm. The number just floats up. Across the four cuts we change the arm's size, angle and age, so it reads as "everyone in town."</p>
+    </div>
+  </div>
+  <div class="cut">
+    <div class="frame"><img src="../storyboard/ep01/frames/s1-c09.svg" alt="S1 C9 A trembling wrist"></div>
+    <div>
+      <div class="cut-id"><span>S1 · C<b>09</b></span><span>2.4 sec</span></div>
+      <dl class="sheet"><dt>CAM</dt><dd>Handheld (shake)</dd><dt>SHOT</dt><dd>CU (wrist)</dd><dt>LINE</dt><dd>None</dd><dt>NOTE</dt><dd class="tl">"BALANCE −9,999 · Wrist CU 4: young wrist trembling (blur, handheld / mark: vermilion)"</dd></dl>
+      <p class="why">Only the fourth cut gets double the length, and only it goes handheld. A right hand clamps the left wrist; the number doubles with the shake. This is where the fear finally shows.</p>
+    </div>
+  </div>
+  <div class="note small" style="margin-top:auto">
+    <h4>Thinking in rhythm</h4>
+    <p>Three short cuts of equal length build a beat. The fourth breaks it — and where the beat breaks, the audience's eye stops.</p>
+  </div>
+  <div class="folio"><span>Ch.1 · Episode 1 Storyboard</span><span class="no">06</span></div>
+</section>
+
+<!-- ================= p7 SILENCE ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>Ch.1 · Episode 1 Storyboard</span><span>3 / SILENCE</span></div>
+  <p class="theme">3 | Kill the sound</p>
+  <p class="cut-note">In the plaza, a street busker has his <b>voice</b> collected. A few seconds that explain how this world works without a single line of explanation.</p>
+  <div class="cut">
+    <div class="frame"><img src="../storyboard/ep01/frames/s1-c14b.svg" alt="S1 C14 A screaming mouth"></div>
+    <div>
+      <div class="cut-id"><span>S1 · C<b>14</b></span><span>4.5 sec</span></div>
+      <dl class="sheet"><dt>CAM</dt><dd>Same setup, slow T.U.</dd><dt>SHOT</dt><dd>ECU (face)</dd><dt>LINE</dt><dd>None (scream → silence)</dd><dt>NOTE</dt><dd class="tl">"ECU, same setup, slow T.U. · Only the mouth keeps screaming (total silence)"</dd></dl>
+      <p class="why">Mid-scream, the audio just <i>cuts</i>. The picture doesn't change: the mouth keeps screaming and the camera keeps pushing in. Three-plus seconds of dead silence — and the audience sits in it too.</p>
+    </div>
+  </div>
+  <div class="cut">
+    <div class="frame"><img src="../storyboard/ep01/frames/s1-c15b.svg" alt="S1 C15 The whole plaza"></div>
+    <div>
+      <div class="cut-id"><span>S1 · C<b>15</b></span><span>4.5 sec</span></div>
+      <dl class="sheet"><dt>CAM</dt><dd>FIX → T.B.</dd><dt>SHOT</dt><dd>MS → LS</dd><dt>LINE</dt><dd><span class="redact"></span></dd><dt>NOTE</dt><dd class="tl">"LS (T.B. from C15a) · Collector leaves / crowd looks away (no one stops it)"</dd></dl>
+      <p class="why">The only sound that comes back is the <i>pap</i> of the Collector's ledger snapping shut. Pull out wide: the ring of onlookers, every face turned away. A picture of nobody stopping it.</p>
+    </div>
+  </div>
+  <div class="folio"><span>Ch.1 · Episode 1 Storyboard</span><span class="no">07</span></div>
+</section>
+
+<!-- ================= p8 FREEZE ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>Ch.1 · Episode 1 Storyboard</span><span>4 / FREEZE</span></div>
+  <p class="theme">4 | Freeze, then introduce yourself</p>
+  <p class="cut-note">From the silent plaza, a crash of crockery — and our hero bursts in. From here on, it's all speed and lightness.</p>
+  <div class="cut">
+    <div class="frame"><img src="../storyboard/ep01/frames/s2-c05a.svg" alt="S2 C5 Triple jump across the roofs"></div>
+    <div>
+      <div class="cut-id"><span>S2 · C<b>05</b></span><span>8 sec</span></div>
+      <dl class="sheet"><dt>CAM</dt><dd>PAN → (up and right)</dd><dt>SHOT</dt><dd>LS</dd><dt>LINE</dt><dd>None</dd><dt>NOTE</dt><dd class="tl">"PAN → (triple jump)"</dd></dl>
+      <p class="why">Up the stepped stall roofs in a triple jump, the path marked in dotted line. A wide, letterboxed long shot sells the height gap between Jin and the trainees staring up from below.</p>
+    </div>
+  </div>
+  <div class="cut">
+    <div class="frame"><img src="../storyboard/ep01/frames/s2-c07b.svg" alt="S2 C7 The Rating card"></div>
+    <div>
+      <div class="cut-id"><span>S2 · C<b>07</b></span><span>12 sec</span></div>
+      <dl class="sheet"><dt>CAM</dt><dd>STOP MOTION → POP</dd><dt>SHOT</dt><dd>FS</dd><dt>LINE</dt><dd><span class="redact"></span></dd><dt>NOTE</dt><dd class="tl">"Rating card POP (slide in + bounce)" · card: AKABA JIN, 16 · RATING ZERO</dd></dl>
+      <p class="why">Upside down in midair, dead still. The frame drains toward monochrome, gets a heavy black border, and a Rating card slides in from the right and bounces. After all that running, we stop — once.</p>
+    </div>
+  </div>
+  <div class="folio"><span>Ch.1 · Episode 1 Storyboard</span><span class="no">08</span></div>
+</section>
+
+<!-- ================= p9 LOOKING UP ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>Ch.1 · Episode 1 Storyboard</span><span>5 / LOOKING UP</span></div>
+  <p class="theme">5 | The fear of looking up</p>
+  <p class="cut-note">Dead end. The trainees take a step back. The camera shows us why — from just behind Jin's head.</p>
+  <div class="cut">
+    <div class="frame"><img src="../storyboard/ep01/frames/s2-c11a.svg" alt="S2 C11 Nil on the wall"></div>
+    <div>
+      <div class="cut-id"><span>S2 · C<b>11</b></span><span>6 sec</span></div>
+      <dl class="sheet"><dt>CAM</dt><dd>Slow T.U.</dd><dt>SHOT</dt><dd>Extreme low angle, LS → FS</dd><dt>LINE</dt><dd>None</dd><dt>NOTE</dt><dd class="tl">"T.U. (in on Nil atop the wall) · extreme low angle"</dd></dl>
+      <p class="why">On top of the dead-end wall: Nil, the Collector. The only thing moving is the hem of his coat. The chains on his arm stay put. He shows how strong he is by doing <i>nothing</i>.</p>
+    </div>
+  </div>
+  <div class="cut">
+    <div class="frame"><img src="../storyboard/ep01/frames/s2-c14b.svg" alt="S2 C14 The −∞ mark"></div>
+    <div>
+      <div class="cut-id"><span>S2 · C<b>14</b></span><span>6 sec</span></div>
+      <dl class="sheet"><dt>CAM</dt><dd>FIX</dd><dt>SHOT</dt><dd>ECU (left forearm)</dd><dt>LINE</dt><dd>None</dd><dt>NOTE</dt><dd class="tl">"ECU: red mark pulses (thump ×2)"</dd></dl>
+      <p class="why">The red −∞ throbs twice — <i>thump, thump.</i> On the storyboard, red is reserved for Jin's and Hazama's marks, red ink, and the CONTRACT SUSPENDED counter. That's exactly why this red jumps off the page.</p>
+    </div>
+  </div>
+  <div class="folio"><span>Ch.1 · Episode 1 Storyboard</span><span class="no">09</span></div>
+</section>
+
+<!-- ================= p10 WHITE LEDGER ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>Ch.1 · Episode 1 Storyboard</span><span>6 / WHITE LEDGER</span></div>
+  <p class="theme">6 | Inside the white ledger</p>
+  <p class="cut-note">Inside Jin, knocked flat. From the noise of the alley, a zero-frame cut into pure white.</p>
+  <div class="cut">
+    <div class="frame"><img src="../storyboard/ep01/frames/s3-c01.svg" alt="S3 C1 The white ledger space"></div>
+    <div>
+      <div class="cut-id"><span>S3 · C<b>01</b></span><span>9.0 sec</span></div>
+      <dl class="sheet"><dt>CAM</dt><dd>FIX → SLOW T.U.</dd><dt>SHOT</dt><dd>ELS / no up or down</dd><dt>LINE</dt><dd>None</dd></dl>
+      <p class="why">The drifting pages mix three motions: some fall, some slide sideways, some rise. Kill the direction of gravity and you get a place with no up or down. Every page carries a red −∞.</p>
+    </div>
+  </div>
+  <div class="cut">
+    <div class="frame"><img src="../storyboard/ep01/frames/s3-c04.svg" alt="S3 C4 Ink takes the shape of a child"></div>
+    <div>
+      <div class="cut-id"><span>S3 · C<b>04</b></span><span>10.0 sec</span></div>
+      <dl class="sheet"><dt>CAM</dt><dd>FIX / rack focus</dd><dt>SHOT</dt><dd>OTS (past Jin) MS</dd><dt>LINE</dt><dd><span class="redact"></span></dd></dl>
+      <p class="why">Drops of red ink rise from below like rain in reverse and build a barefoot child — head, then body, then legs. The face stays hidden behind a ledger page. Focus racks from Jin to Hazama.</p>
+    </div>
+  </div>
+  <div class="folio"><span>Ch.1 · Episode 1 Storyboard</span><span class="no">10</span></div>
+</section>
+
+<!-- ================= p11 RED & SLOW ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>Ch.1 · Episode 1 Storyboard</span><span>7 / RED &amp; SLOW</span></div>
+  <p class="theme">7 | Flood it red. Touch at 4× slow.</p>
+  <p class="cut-note">The stamp of the promise comes down, and we're back in reality. The fastest cut and the slowest cut on the way to the first Default.</p>
+  <div class="cut">
+    <div class="frame"><img src="../storyboard/ep01/frames/s3-c08b.svg" alt="S3 C8 Red spreads"></div>
+    <div>
+      <div class="cut-id"><span>S3 · C<b>08</b></span><span>6.0 sec</span></div>
+      <dl class="sheet"><dt>CAM</dt><dd>FIX → CAM SHAKE on landing</dd><dt>SHOT</dt><dd>Low angle LS → full frame</dd><dt>LINE</dt><dd>None</dd></dl>
+      <p class="why">The giant stamp lands, and red ink floods out from the center to cover the whole screen in six frames, edges jagged with splatter. The last frame stays full red — then hard cut to reality.</p>
+    </div>
+  </div>
+  <div class="cut">
+    <div class="frame"><img src="../storyboard/ep01/frames/s3-c12.svg" alt="S3 C12 Grabbing the wrist"></div>
+    <div>
+      <div class="cut-id"><span>S3 · C<b>12</b></span><span>4.0 sec</span></div>
+      <dl class="sheet"><dt>CAM</dt><dd>FIX (4× slow)</dd><dt>SHOT</dt><dd>ECU (hand and wrist)</dd><dt>LINE</dt><dd>None</dd></dl>
+      <p class="why">Jin's red left hand closes on Nil's black-marked wrist, one finger at a time. Hairline cracks spread from the point of contact like breaking glass. So slow even the dust in the air looks frozen.</p>
+    </div>
+  </div>
+  <div class="folio"><span>Ch.1 · Episode 1 Storyboard</span><span class="no">11</span></div>
+</section>
+
+<!-- ================= p12 IMPACT ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>Ch.1 · Episode 1 Storyboard</span><span>8 / IMPACT</span></div>
+  <p class="theme">8 | A frozen chain, a black-and-white hit</p>
+  <div class="cut">
+    <div class="frame"><img src="../storyboard/ep01/frames/s3-c14a.svg" alt="S3 C14 The frozen chain"></div>
+    <div>
+      <div class="cut-id"><span>S3 · C<b>14</b></span><span>7.0 sec</span></div>
+      <dl class="sheet"><dt>CAM</dt><dd>FIX (hold) → FIX</dd><dt>SHOT</dt><dd>LS (slightly high)</dd><dt>LINE</dt><dd>None</dd><dt>NOTE</dt><dd class="tl">契約停止 = "CONTRACT SUSPENDED 00:03"</dd></dl>
+      <p class="why">The chain aimed at Jin stops dead, blade a hand's width away, and holds for 12 frames. Only the tip trembles. Three seconds of "seizure," shown by a thing that has stopped moving.</p>
+    </div>
+  </div>
+  <div class="cut">
+    <div class="frame"><img src="../storyboard/ep01/frames/s3-c18.svg" alt="S3 C18 Impact"></div>
+    <div>
+      <div class="cut-id"><span>S3 · C<b>18</b></span><span>2.0 sec</span></div>
+      <dl class="sheet"><dt>CAM</dt><dd>FIX → CAM SHAKE (big)</dd><dt>SHOT</dt><dd>ECU (fist and mask)</dd><dt>LINE</dt><dd>None</dd><dt>NOTE</dt><dd class="tl">契約停止 = "CONTRACT SUSPENDED 00:01"</dd></dl>
+      <p class="why">Three negative-flash impact frames, two frames each. The instant normal color returns, a crack splits the mask. The counter reads 00:01.</p>
+    </div>
+  </div>
+  <div class="note small" style="margin-top:auto">
+    <h4>How to read a storyboard</h4>
+    <p><b>T.U. / T.B.</b> camera pushes in / pulls back. <b>PAN / TILT</b> swing sideways / up-down. <b>FIX</b> locked off. <b>OTS</b> over the shoulder. <b>ELS · LS · MS · BS · CU · ECU</b> how much fits in frame, widest first. <b>F.I.</b> fade in from black. <span style="color:#2E6BD6; font-weight:700">Blue lines</span> in a frame are camera directions — they never appear on screen.</p>
+  </div>
+  <div class="folio"><span>Ch.1 · Episode 1 Storyboard</span><span class="no">12</span></div>
+</section>
+
+<!-- ================= p13 CH2 WEBTOON ================= -->
+<section class="page dark">
+  <div class="runhead"><span>Ch.2 · Webtoon Episode 1</span><span>CH.2 WEBTOON</span></div>
+  <span class="chapter-no">Chapter 2 — Webtoon Episode 1, in Color</span>
+  <h1>Webtoon Episode 1: Color Pages</h1>
+  <p class="small">Ten panels from Webtoon Episode 1 (40 panels in all), made to be scrolled vertically on a phone. The Webtoon compresses anime Episode 1, fitting everything up to Default's awakening into one chapter. Even the blank space between panels is part of the direction. Lettering is translated under each panel.</p>
+  <div class="wt-row" style="grid-template-columns: 1fr 1fr">
+    <div class="stack">
+      <div class="panel" style="--ar: 800/1000"><img src="../webtoon/ep01/clean/color/p01.svg" alt="Webtoon panel 1"></div>
+      <p class="wt-cap"><b>PANEL 01 · 60px GAP BELOW</b>A tall opening panel: the city of ribs, and the bell. The <i>GOOONG</i> shrinks as it goes, pulling the eye down the page.<span class="tl"><i>SFX</i> GOOONG · GOOONG · GOOONG…<br><i>CAPTION</i> Kanegura, lowest tier: the Underledger. Midnight. The Collection Day bell, thirteen times.</span></p>
+    </div>
+    <div class="stack">
+      <div class="panel" style="--ar: 800/1300"><img src="../webtoon/ep01/clean/color/p02.svg" alt="Webtoon panel 2"></div>
+      <p class="wt-cap"><b>PANEL 02 · 40px GAP BELOW</b>The Public Ratings Board, from the crowd's eye line. Names at the top are readable; lower down they crush into illegible smudges. That's what inequality looks like.<span class="tl"><i>BOARD</i> PUBLIC RATINGS · TODAY IS COLLECTION DAY · DEFAULTERS WILL SURRENDER COLLATERAL<br><i>BALLOON</i> …This day again.</span></p>
+    </div>
+  </div>
+  <div class="folio"><span>Ch.2 · Webtoon Episode 1</span><span class="no">13</span></div>
+</section>
+
+<!-- ================= p14 WEBTOON 2 ================= -->
+<section class="page dark">
+  <div class="runhead"><span>Ch.2 · Webtoon Episode 1</span><span>PANELS 05 · 10</span></div>
+  <div class="wt-row" style="grid-template-columns: 1fr 1fr">
+    <div class="stack">
+      <div class="panel" style="--ar: 800/1120"><img src="../webtoon/ep01/clean/color/p05.svg" alt="Webtoon panel 5"></div>
+      <p class="wt-cap"><b>PANEL 05 · THE VOICE GOES</b>Mid-scream: <i>bzzt.</i> An empty balloon shows the silence. The page of light pulled from his throat is Settlement Ivory (C08); the drained throat is Collector Ash (C09). The Webtoon's promise: show the price within the first five panels.<span class="tl"><i>SFX</i> AAAAAAH · BZZT<br><i>CAPTION</i> —And the sound was gone.</span></p>
+    </div>
+    <div class="stack">
+      <div class="panel" style="--ar: 800/1360"><img src="../webtoon/ep01/clean/color/p10.svg" alt="Webtoon panel 10"></div>
+      <p class="wt-cap"><b>PANEL 10 · THE ZERO CARD</b>The anime's freeze frame, rebuilt as one tall panel: upside-down Jin and his Rating card. Only the red mark, the red lock of hair and the card's ZERO get ledger red.<span class="tl"><i>SFX</i> KA-CHING (pose!)<br><i>CARD</i> PUBLIC RATING · AKABA JIN · 16 · RATING ZERO<br><i>BALLOON</i> Hi. I'm the least valuable person in this city.</span></p>
+    </div>
+  </div>
+  <div class="folio"><span>Ch.2 · Webtoon Episode 1</span><span class="no">14</span></div>
+</section>
+
+<!-- ================= p15 WEBTOON 3 ================= -->
+<section class="page dark">
+  <div class="runhead"><span>Ch.2 · Webtoon Episode 1</span><span>PANELS 32 · 33</span></div>
+  <div class="panel" style="--ar: 800/420"><img src="../webtoon/ep01/clean/color/p32.svg" alt="Webtoon panel 32"></div>
+  <p class="wt-cap"><b>PANEL 32 · 400px GAP BELOW</b>A thin, wordless strip. Nil's black-marked wrist on the left; Jin's red left hand reaching in from the right. Not touching yet — that gap is the whole panel. On a phone, a big empty scroll follows before the drop into the next full-height panel.</p>
+  <div class="wt-row" style="grid-template-columns: 52mm 1fr">
+    <div class="panel" style="--ar: 800/1400"><img src="../webtoon/ep01/clean/color/p33.svg" alt="Webtoon panel 33"></div>
+    <div class="stack">
+      <p class="wt-cap"><b>PANEL 33 · FULL HEIGHT</b>Contact. The black mark blanks to white; a red strike-through cuts the balance. Red ink sprays. The only sound is a high, glassy crack.<span class="tl"><i>MARK</i> BALANCE AA 4,820,000<br><i>SFX</i> KIIIN—</span></p>
+      <p class="wt-cap">The eye drops in one rush: mask, grabbing hand, Jin's eyes. What the anime stretches with 4× slow motion, the Webtoon stretches with <strong style="color:var(--bone)">the height of the panel</strong>.</p>
+      <div class="note small"><h4>Default's three tells</h4><p>① A red strike-through on the target's number. ② The red counter: CONTRACT SUSPENDED 00:03. ③ The memory that pays for it blanks out like a white ledger page. Anime, Webtoon and this book all show it the same way.</p></div>
+    </div>
+  </div>
+  <div class="folio"><span>Ch.2 · Webtoon Episode 1</span><span class="no">15</span></div>
+</section>
+
+<!-- ================= p16 WEBTOON 4 ================= -->
+<section class="page dark">
+  <div class="runhead"><span>Ch.2 · Webtoon Episode 1</span><span>PANEL 34</span></div>
+  <div class="panel" style="--ar: 800/760"><img src="../webtoon/ep01/clean/color/p34.svg" alt="Webtoon panel 34"></div>
+  <p class="wt-cap"><b>PANEL 34 · 120px GAP BELOW</b>The red counter: CONTRACT SUSPENDED 00:03. White-ledger ground (C80), ledger-red type. From here, the next three seconds are counted out in panels — 00:02, 00:01, 00:00.<span class="tl"><i>COUNTER</i> 契約停止 = CONTRACT SUSPENDED · 00:03</span></p>
+  <div class="note small" style="margin-top:auto">
+    <h4>Anime vs. Webtoon: two ways to count time</h4>
+    <p>Anime builds a pause out of <b>seconds</b>. In a Webtoon the reader scrolls with their own thumb, so the pause is built from <b>the empty space under a panel, in pixels</b>. 400px under panel 32, 300px under panel 37. Scene changes get a big gap; a rapid-fire run gets zero.</p>
+  </div>
+  <div class="folio"><span>Ch.2 · Webtoon Episode 1</span><span class="no">16</span></div>
+</section>
+
+<!-- ================= p17 WEBTOON 5 ================= -->
+<section class="page dark">
+  <div class="runhead"><span>Ch.2 · Webtoon Episode 1</span><span>PANELS 36 · 37</span></div>
+  <div class="wt-row" style="grid-template-columns: 1fr 1fr">
+    <div class="stack">
+      <div class="panel" style="--ar: 800/1100"><img src="../webtoon/ep01/clean/color/p36.svg" alt="Webtoon panel 36"></div>
+      <p class="wt-cap"><b>PANEL 36 · 0px GAP BELOW</b>Jin reels Nil in by his own chain and cocks his right fist. The catchphrase gets no balloon — just huge lettering. Zero gap: straight down into the hit.<span class="tl"><i>LETTERING</i> "I'm not paying."<br><i>COUNTER</i> 00:02</span></p>
+    </div>
+    <div class="stack">
+      <div class="panel" style="--ar: 800/1200"><img src="../webtoon/ep01/clean/color/p37.svg" alt="Webtoon panel 37"></div>
+      <p class="wt-cap"><b>PANEL 37 · 300px GAP BELOW</b>Out of silence, one hit at full volume. The fist lands in the ledger-cover mask and splits it wide open. White ground, speed lines. Counter: 00:01. In Episode 2 this crack comes back as the "rebound mask" (p.33).<span class="tl"><i>SFX</i> DOOM<br><i>COUNTER</i> 00:01</span></p>
+    </div>
+  </div>
+  <div class="folio"><span>Ch.2 · Webtoon Episode 1</span><span class="no">17</span></div>
+</section>
+
+<!-- ================= p18 WEBTOON 6 AMBER EYE ================= -->
+<section class="page dark">
+  <div class="runhead"><span>Ch.2 · Webtoon Episode 1</span><span>PANEL 40</span></div>
+  <div class="wt-row" style="grid-template-columns: 66mm 1fr; flex: 1; min-height: 0">
+    <div class="panel" style="--ar: 800/1400"><img src="art/vol1-wt-p40-nodialogue.svg" alt="Webtoon panel 40 (no dialogue)"></div>
+    <div class="stack">
+      <p class="wt-cap"><b>PANEL 40 · THE LAST PANEL</b>Pull back to a high tearoom window in the Middle Tier — then an extreme close-up, numbers streaming through the iris of a right eye. The other eye hides behind her fringe.<span class="tl"><i>EYE</i> 0.3% · BALANCE: UNMEASURABLE · −∞ · AA→0 00:03<br><i>CAPTION</i> TO BE CONTINUED</span></p>
+      <p class="wt-cap">The Webtoon's palette has one rule: ledger red is the only strong color. Against that, <strong style="color:#F0921E">Mio's eye in this panel is amber</strong> (C70).</p>
+      <p class="wt-cap">After forty panels, the first strong color that isn't red hits the reader's eye. That's the signal: <i>this story continues.</i> It's the one exception, there to make a cliffhanger out of color.</p>
+      <div class="note small" style="margin-top:auto"><h4>The other 30 panels</h4><p>The rest of Webtoon Episode 1 isn't printed here. We're holding it back to release for free later.</p></div>
+    </div>
+  </div>
+  <div class="folio"><span>Ch.2 · Webtoon Episode 1</span><span class="no">18</span></div>
+</section>
+
+<!-- ================= p19 COLOR 1 ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>Ch.2 · How Color Works</span><span>LINE → COLOR</span></div>
+  <h2>How color works: line, color, callouts</h2>
+  <p class="small">Every panel goes through three stages before it's finished. Here's panel 10 (p.14), step by step. <span class="muted">Lettering: SFX "KA-CHING (pose!)" · card "PUBLIC RATING · AKABA JIN · 16 · RATING ZERO" · balloon "Hi. I'm the least valuable person in this city."</span></p>
+  <div class="cols" style="gap:4mm">
+    <figure>
+      <div class="panel" style="--ar: 800/1360; background:#fff; border:.3mm solid var(--ink)"><img src="../webtoon/ep01/clean/lineart/p10.svg" alt="Panel 10, line art"></div>
+      <figcaption><strong>① Line art.</strong> Just linework and solid blacks on white. Character lines are #1A1718; backgrounds are #2A2A2A, so the two never blur together.</figcaption>
+    </figure>
+    <figure>
+      <div class="panel" style="--ar: 800/1360"><img src="../webtoon/ep01/clean/color/p10.svg" alt="Panel 10, color"></div>
+      <figcaption><strong>② Color.</strong> Flat fills with one level of shadow — classic anime cel shading. Two light sources: the white light from the Peak, and warm lantern light.</figcaption>
+    </figure>
+  </div>
+  <div class="note small" style="margin-top:auto">
+    <h4>Why only one level of shadow?</h4>
+    <p>Several artists color the same chapter, so we keep the number of steps low and the results match no matter who's painting. The trade-off: color numbers are strictly fixed (next page).</p>
+  </div>
+  <div class="folio"><span>Ch.2 · How Color Works</span><span class="no">19</span></div>
+</section>
+
+<!-- ================= p20 COLOR 2 ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>Ch.2 · How Color Works</span><span>COLOR CALLOUTS</span></div>
+  <div class="wt-row" style="grid-template-columns: 56mm 1fr">
+    <figure>
+      <div class="panel" style="--ar: 800/1360; background:#fff; border:.3mm solid var(--ink)"><img src="../webtoon/ep01/clean/color-callouts/p10.svg" alt="Panel 10, color callouts"></div>
+      <figcaption><strong>③ Callouts.</strong> On top of the line art, every fill area gets a leader line and a color number. <span class="mono">影</span> = shadow tone, <span class="mono">光</span> = highlight.</figcaption>
+    </figure>
+    <div class="stack">
+      <p class="small">Colors are called by number, <strong>C01 to C83</strong>. Nothing off the chart gets used; any exception gets added to the chart first. Panel 10 uses 15 colors.</p>
+      <table class="ledger">
+        <tbody>
+          <tr><td><span class="chip" style="background:#1B1F2E"></span>C01</td><td>Vault Night (night sky)</td></tr>
+          <tr><td><span class="chip" style="background:#3E5A5C"></span>C02</td><td>Underledger Teal-Gray (walls)</td></tr>
+          <tr><td><span class="chip" style="background:#F2B65A"></span>C05</td><td>Lantern Glow</td></tr>
+          <tr><td><span class="chip" style="background:#C9A24A"></span>C07</td><td>Bourse Gold (card frame)</td></tr>
+          <tr><td><span class="chip" style="background:#E5172F"></span>C20</td><td>Jin's mark</td></tr>
+          <tr><td><span class="chip" style="background:#E5172F"></span>C32</td><td>Jin's red lock of hair</td></tr>
+          <tr><td><span class="chip" style="background:#C8102E"></span>C34</td><td>Jin's towel</td></tr>
+          <tr><td><span class="chip" style="background:#1F2A44"></span>C33</td><td>Jin's work jacket (navy)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="box">
+    <h4>Two rules</h4>
+    <p class="small"><strong class="red">① Red is for the ledger only.</strong> High-saturation red goes to debt and to Jin (and Hazama) — nothing else. Never backgrounds, never extras' clothes; even red signage gets knocked down to Mid-Tier Rust (C03). So when red hits the screen, it's always about debt.</p>
+    <p class="small"><strong style="color:#B86A0C">② Mio's amber is the one exception.</strong> The only strong non-red color in Webtoon Episode 1 is Mio's eye in the final panel (C70). The hook into the next chapter is told in color.</p>
+  </div>
+  <div class="folio"><span>Ch.2 · How Color Works</span><span class="no">20</span></div>
+</section>
+
+<!-- ================= p21 CH3 EPISODE 2 ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>Ch.3 · Episode 2</span><span>CH.3 EPISODE 2</span></div>
+  <span class="chapter-no">Chapter 3 — Episode 2</span>
+  <h1>Episode 2: "Terms and Conditions"</h1>
+  <p class="mono small muted"><span class="jp">第2話「投資契約」</span> · approx. 22 min</p>
+  <div class="stack">
+    <p>The morning after the handshake, Mio shows up with the real thing: a formal investment contract, ready to file with the Bourse. Article 12, on the last page: <i>if you lose, whatever your guarantor loses becomes your debt.</i> Jin, whose arm is already red with his father's debt, shoves the stack right back. <span class="red">"I'm done with debt."</span></p>
+    <p>Then Mio's Eye reads out the number on Kei's guarantee: <b>29 days</b> until it lapses. And the last Settlement Jin could get on the card before Collection Day? Registration closes <b>tonight at eight</b>.</p>
+    <p>A ZERO can't ride the Bone Lift cage. So, on a tip from Tsubame, Jin and Mio climb an old passage through the inside of the bone — with Nil, his mask stitched back together, right behind them. Mio's Eye reads. Jin touches. And they've budgeted exactly <b>two</b> Defaults.</p>
+  </div>
+  <table class="ledger">
+    <thead><tr><th>Block</th><th>Time</th><th>What happens</th></tr></thead>
+    <tbody>
+      <tr><td><b>Cold Open</b></td><td class="num">00:00</td><td>Breakfast / a reflex Default / enter Mio</td></tr>
+      <tr><td><b>OP</b></td><td class="num">01:30</td><td>Opening titles (debuting this episode)</td></tr>
+      <tr><td><b>Act 1</b></td><td class="num">03:00</td><td>The fine print / 29 days and tonight's deadline / the back-road tip</td></tr>
+      <tr><td><b>Eyecatch</b></td><td class="num">08:40</td><td>"2 LEFT"</td></tr>
+      <tr><td><b>Act 2</b></td><td class="num">08:50</td><td>Inside the Bone Lift / Nil gives chase / two touches only</td></tr>
+      <tr><td><b>Act 3</b></td><td class="num">15:40</td><td>Middle Tier lights / provisional entry / a name on the board</td></tr>
+      <tr><td><b>ED · Tag</b></td><td class="num">19:50</td><td>Ending / the stall at midnight; Nil's ledger</td></tr>
+    </tbody>
+  </table>
+  <div class="folio"><span>Ch.3 · Episode 2</span><span class="no">21</span></div>
+</section>
+
+<!-- ================= p22 HIGHLIGHTS / BUDGET ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>Ch.3 · Episode 2</span><span>HIGHLIGHTS</span></div>
+  <h2>Three things to watch for</h2>
+  <div class="box">
+    <h4>① Every rule of the power, in 40 seconds</h4>
+    <p class="small">Morning at the stall. Tsubame drops from the roof going for Jin's chashu — and Jin grabs her wrist on reflex. Red strike-through. 00:03. On borrowed speed, he catches every bowl in midair. Then: an empty bowl. Touch, three seconds, steal it, pay in memory. If Episode 2 is your first, you get it all without a word of explanation.</p>
+  </div>
+  <div class="box">
+    <h4>② Two counters</h4>
+    <p class="small">The red CONTRACT SUSPENDED 00:03 now has company: an <strong style="color:#B86A0C">amber counter</strong> on the opposite side of the screen. Mio's Eye is counting the <b>10-second reconnect</b> — how long before Default works on the same target again. Two clocks run at once, and Jin jumps at exactly ten.</p>
+  </div>
+  <div class="box">
+    <h4>③ A name on the board</h4>
+    <p class="small">The Ratings Board in the Middle Tier plaza. Below even the blank gray rows, red ink starts writing on its own: <span class="mono">AKABA, JIN / ZERO (PROV.)</span>. The zero point of a rise from dead last, on the record.</p>
+  </div>
+  <div class="note">
+    <h4>New idea: the "budget"</h4>
+    <p class="small">That reflex touch at breakfast? Mio calls it <i>pure waste</i>. Every Default takes one of Jin's memories, so Mio sets the number of touches <b>in advance</b>. Budget for the Bone Lift: <b>two</b>. If two isn't enough, she'll read until it is — that's the job of a guarantor who takes fifty percent of his winnings.</p>
+    <p class="small muted">Defaults used in Episode 2: three — one at breakfast, two inside the Bone Lift.</p>
+  </div>
+  <div class="folio"><span>Ch.3 · Episode 2</span><span class="no">22</span></div>
+</section>
+
+<!-- ================= p23 BONE LIFT CROSS-SECTION ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>Ch.4 · Inside the Bone</span><span>CH.4 THE BONE LIFT</span></div>
+  <span class="chapter-no">Chapter 4 — Inside the Bone, Above the Slums</span>
+  <figure class="art grow-fig">
+      <img src="art/vol1-liftbone-ja.svg" alt="Cross-section of the Bone Lift">
+    </figure>
+  <div>
+    <div class="stack" style="gap:1.2mm">
+      <div class="keyhd">Key · bottom to top</div>
+      <dl class="key" style="grid-template-columns: auto 1fr auto 1fr">
+        <dt>06</dt><dd><b>Middle Tier Gate / Bone Exit Terrace.</b> They kick out the grate at the end of the Marrow Road from inside.</dd>
+        <dt>05</dt><dd><b>Crossing 3.</b> The cage comes down. Default #2 ②, on top of the net.</dd>
+        <dt>04</dt><dd><b>Shaft, Crossings 2–3.</b> A chain wraps Mio's ankle; Jin grabs it bare-handed — Default #1 ①.</dd>
+        <dt>03</dt><dd><b>Crossing 2.</b> Nil waits, standing <i>sideways</i> on the shaft wall.</dd>
+        <dt>02</dt><dd><b>Cage shaft.</b> Iron cages that scan your Rating before you ride. Up and down.</dd>
+        <dt>01</dt><dd><b>Crossing 1.</b> 41 seconds till the cage passes. Climb the rings like a ladder.</dd>
+        <dt>00</dt><dd><b>Underledger Gate.</b> Rating scanners at the turnstiles. ZEROs can't board.</dd>
+      </dl>
+      <p class="tl" style="font-size:5.8pt; margin-top:0">Legend: <i>ジンとミオの経路</i> Jin &amp; Mio's route · <i>髄の道</i> the Marrow Road · Footnote: as of Episode 2; based on the map Tsubame drew on the underside of a bowl lid.</p>
+    </div>
+  </div>
+  <figcaption>The Bone Lift in cross-section. The cage shaft runs up the middle; the Marrow Road winds around it. 1–3 are the crossings; red ① and ② mark where Jin used Default.</figcaption>
+  <div class="folio"><span>Ch.4 · Inside the Bone</span><span class="no">23</span></div>
+</section>
+
+<!-- ================= p24 MARROW ROAD ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>Ch.4 · Inside the Bone</span><span>THE MARROW ROAD</span></div>
+  <h2>The Bone Lift and the Marrow Road</h2>
+  <p>The Bone Lifts are elevators inside the ribs, linking tier to tier. The bone is hollow, and iron cages ride up and down it — once they've scanned your Rating. But there's a second, older passage coiled around that hollow: the channel the god's marrow once ran through. <b>The Marrow Road.</b></p>
+  <table class="ledger">
+    <thead><tr><th>Point</th><th>What's there</th></tr></thead>
+    <tbody>
+      <tr><td><b>Underledger Gate</b></td><td>A huge opening at the root of the bone. Lines at the turnstile scanners.</td></tr>
+      <tr><td><b>Crossing 1</b></td><td>First place the Marrow Road cuts across the cage shaft. Wait for the cage, then cross.</td></tr>
+      <tr><td><b>Crossing 2</b></td><td>A Collection Bureau lookout post. In Episode 2, Nil is waiting here.</td></tr>
+      <tr><td><b>Crossing 3</b></td><td>Right in the cage's path. If one comes down from above, there's nowhere to go.</td></tr>
+      <tr><td><b>Exit</b></td><td>A grate at the end of the road. Beyond it: the Bone Exit Terrace, Middle Tier.</td></tr>
+    </tbody>
+  </table>
+  <p class="small">Inside, rings of bone stack up like concentric circles — a ladder, if you're desperate. Look straight up and there's white light far, far above. The only map is the one Tsubame drew in grease pencil on the underside of a bowl lid (p.32).</p>
+  <div class="cols">
+    <div class="notice small">
+      <span class="ttl" style="font-size:9.5pt">Notice to All Passengers</span>
+      <p>Passengers without a Rating may not board.<br>Passengers rated A or above <b>may not bring unrated companions aboard.</b></p>
+      <span class="issuer">THE BOURSE · TRANSIT OFFICE</span>
+    </div>
+    <div class="box small">
+      <h4>Off-the-books travel</h4>
+      <p>When someone with no Rating (a ZERO) climbs to another tier unregistered, that's <b>off-the-books travel</b> — and the Collection Bureau can move to collect, Collection Day or not. It's why Nil can chase them up the bone in Episode 2.</p>
+    </div>
+  </div>
+  <div class="folio"><span>Ch.4 · Inside the Bone</span><span class="no">24</span></div>
+</section>
+
+<!-- ================= p25 MIDDLE TIER FIG ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>Ch.4 · Above the Slums</span><span>THE MIDDLE TIER</span></div>
+  <h2>The Middle Tier streets</h2>
+  <p class="small">Past the grate they kick out of the bone, the screen blows out to white, then slowly finds its exposure again. Here's the first view of Episode 2's Act 3, as one picture.</p>
+  <figure class="art" style="--h:76mm">
+    <img src="art/vol1-midtier-ja.svg" alt="The Middle Tier streets">
+  </figure>
+  <figcaption>The Middle Tier at night. Numbers match the guide on the next page. <span class="mono">Signs: ロープウェイ gondola · LIVE 決済戦 LIVE SETTLEMENT · 両替 exchange · 賭 bets · 質 pawn · 酒 drinks · 湯 bathhouse · 印照会 mark check · 公開格付け Public Ratings</span></figcaption>
+  <div class="cols small">
+    <div class="stack">
+      <h3>Smell</h3>
+      <p>Instead of the Underledger's fish-stock broth: fryer oil and exhaust. On screen, the color of the steam tells you what it smells like.</p>
+    </div>
+    <div class="stack">
+      <h3>Sound</h3>
+      <p>The Middle Tier theme rides a city-pop bassline. Up here, you can't hear the runoff waterfalls of the Underledger.</p>
+    </div>
+  </div>
+  <div class="note small" style="margin-top:auto">
+    <h4>How people move</h4>
+    <p>Middle Tier people check the mark on their wrist again and again as they walk. In this town, when your balance goes up, so does your address. When it drops, so do you.</p>
+  </div>
+  <div class="folio"><span>Ch.4 · Above the Slums</span><span class="no">25</span></div>
+</section>
+
+<!-- ================= p26 MIDDLE TIER GUIDE ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>Ch.4 · Above the Slums</span><span>THE MIDDLE TIER</span></div>
+  <h2>Six places in the Middle Tier</h2>
+  <dl class="gloss" style="grid-template-columns: 32mm 1fr">
+    <dt>① Bone Exit Terrace</dt><dd>Where the Marrow Road comes out. The grate they kicked free is still lying there. The first ledge of the Middle Tier anyone from below ever stands on.</dd>
+    <dt>② Sky gondolas</dt><dd>Rust-colored cars strung between the bones. The space under the station is where people hang out to watch Settlements.</dd>
+    <dt>③ Street monitors</dt><dd>Big screens streaming Settlements live, with old bouts on loop. The bookies' odds go up here too.</dd>
+    <dt>④ Public Ratings Board</dt><dd>A board in the plaza. Names cascade down from AAA to D. Near the very top: <span class="mono">AA SAKAKI, DŌGEN</span>.</dd>
+    <dt>⑤ Bourse Middle Tier Registry</dt><dd>A small white-marble window where Settlements are registered. The second hand of its wall clock ticks with the same sound as the white ledger space (p.27).</dd>
+    <dt>⑥ Neon signs &amp; stalls</dt><dd>Exchange, bets, pawn, drinks, bathhouse. Signs borrow their Lenders' colors — but never ledger red.</dd>
+  </dl>
+  <div class="board">
+    <div class="hd">PUBLIC RATINGS BOARD — MIDDLE TIER, REGISTRY PLAZA (EP.2)</div>
+    <div class="row"><span>AA</span><span>SAKAKI, DŌGEN</span><span style="color:#9AA3AD">● IRON</span></div>
+    <div class="row"><span>A</span><span>(licensed fighters)</span><span>…</span></div>
+    <div class="row"><span>B</span><span>(licensed fighters)</span><span>…</span></div>
+    <div class="row"><span>C</span><span>(licensed fighters)</span><span>…</span></div>
+    <div class="row"><span>D</span><span>────────────</span><span>…</span></div>
+    <div class="row"><span></span><span style="color:#5C5466">(blank gray rows)</span><span></span></div>
+    <div class="row zero"><span>ZERO</span><span>AKABA, JIN / ZERO (PROV.)</span><span>−∞</span></div>
+  </div>
+  <div class="quote" style="margin-top:auto">"Means there's nowhere to go but up."<span class="en"><span class="jp">「上しかねえってことだろ」</span> — Jin Akaba, Episode 2</span></div>
+  <div class="folio"><span>Ch.4 · Above the Slums</span><span class="no">26</span></div>
+</section>
+
+<!-- ================= p27 REGISTRY ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>Ch.4 · Above the Slums</span><span>REGISTRY</span></div>
+  <h2>The Registry and "provisional entry"</h2>
+  <p class="small">Middle Tier Settlements have a monthly <strong>registration deadline</strong>. In Episode 2, "the last card you can get before Collection Day" closes at eight that night.</p>
+  <figure class="art" style="--h:58mm">
+    <img src="art/vol1-registry-ja.svg" alt="How provisional entry works">
+  </figure>
+  <dl class="key" style="grid-template-columns: auto 1fr auto 1fr; gap:.5mm 2mm">
+    <dt>STEP 1</dt><dd><b>To the window.</b> Open until the monthly deadline.</dd>
+    <dt>STEP 4</dt><dd><b>Provisional entry.</b> Name goes up on the bottom row of the board.</dd>
+    <dt>STEP 2</dt><dd><b>Scan the debtor.</b> A ZERO can't be read: <span class="mono">ERROR · BALANCE: UNMEASURABLE</span>.</dd>
+    <dt>STEP 5</dt><dd><b>Full entry</b> — made by the collateral declaration at the first Settlement. Not yet, as of Ep.2.</dd>
+    <dt>STEP 3</dt><dd><b>Match the guarantor.</b> An A-rated guarantor puts up collateral: <span class="mono">APPROVED</span>.</dd>
+    <dt>20:00</dt><dd><b>Deadline.</b> They made it with 39 sec. to spare (19:59:21). One card left before Collection Day.</dd>
+  </dl>
+  <div class="cols small">
+    <div class="stack">
+      <h3>How does a ZERO register?</h3>
+      <p>Jin puts his wrist to the scanner: <span class="mono">BALANCE: UNMEASURABLE</span>. A ZERO entry has no precedent. So the guarantor comes along, has her own mark checked, and shows she'll put up the collateral. That's <strong>provisional entry</strong>.</p>
+    </div>
+    <div class="stack">
+      <h3>When does it become official?</h3>
+      <p>Full registration happens when the <strong>collateral declaration</strong> is made at the first Settlement. At the window, Mio says she'll stake 30% of her credit limit — the maximum.</p>
+    </div>
+  </div>
+  <div class="note small" style="margin-top:auto">
+    <h4>Where the clerk stopped</h4>
+    <p>Flipping through the contract, the registry clerk stops dead at Article 12 — and shoots Jin a look. What it says is on p.30.</p>
+  </div>
+  <div class="folio"><span>Ch.4 · Above the Slums</span><span class="no">27</span></div>
+</section>
+
+<!-- ================= p28 SETTLEMENT CIRCLE ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>Ch.4 · Above the Slums</span><span>SETTLEMENT CIRCLE</span></div>
+  <h2>The Settlement Circle, mapped</h2>
+  <p class="small">A Settlement is fought on a Bourse-licensed Circle. Jin's first bout has been booked into <strong>Middle Tier Circle No. 7</strong>.</p>
+  <figure class="art grow-fig">
+    <img src="art/vol1-ring-ja.svg" alt="Plan of the Settlement Circle">
+  </figure>
+  <div class="cols" style="gap:4mm">
+    <dl class="key">
+      <dt>A</dt><dd><b>Auditor.</b> One, on the edge. Calls the result.</dd>
+      <dt>B</dt><dd><b>The Circle.</b> White bone floor, 20 m across. <span class="mono">挑戦者</span> challenger · <span class="mono">受諾者</span> defender.</dd>
+      <dt>C</dt><dd><b>Out of bounds.</b> Both feet land outside: you lose.</dd>
+      <dt>D</dt><dd><b>Stands.</b> A bowl. Place a bet and your mark lights up.</dd>
+      <dt>E</dt><dd><b>Street feed.</b> Live to every monitor in the Middle Tier.</dd>
+    </dl>
+    <dl class="key">
+      <dt>WIN</dt><dd>Any one of: ① ring-out ② down for a ten-count ③ maxed out, not back in 30 sec. ④ "I'm settling."</dd>
+      <dt>TIME</dt><dd>10 min. No result? Lower balance (whoever borrowed less) wins.</dd>
+      <dt>STAKE</dt><dd>Max 30%, equal on both sides. Winner adds the loser's stake to their limit. A ZERO's guarantor declares for him.</dd>
+    </dl>
+  </div>
+  <p class="small muted">Time limit, win conditions and stakes are the same as Vol.0 p.10 (per the series bible).</p>
+  <div class="folio"><span>Ch.4 · Above the Slums</span><span class="no">28</span></div>
+</section>
+
+<!-- ================= p29 THE CARD ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>Ch.4 · Above the Slums</span><span>THE CARD</span></div>
+  <h2>The fight card: how it works</h2>
+  <p>In the Middle Tier, the Settlement lineup is called <b>the card</b>. It's put together at the Registry and posted in the plaza and on every street monitor. Through Mio's Eye, the posting floats up in amber.</p>
+  <div class="notice">
+    <span class="ttl">Middle Tier Settlement Card (excerpt)</span>
+    <table class="ledger">
+      <thead><tr><th>Circle</th><th>When</th><th>Matchup</th></tr></thead>
+      <tbody>
+        <tr><td>No. 7</td><td>In 3 days</td><td>AKABA, JIN (ZERO / guarantor: KUZUHA) vs. <span class="blk">＿＿＿＿＿＿</span> (C)</td></tr>
+        <tr><td>No. 3</td><td>In 2 days</td><td>(licensed, B) vs. (licensed, B)</td></tr>
+        <tr><td>No. 5</td><td>In 4 days</td><td>(licensed, C) vs. (licensed, D)</td></tr>
+      </tbody>
+    </table>
+    <span class="issuer">THE BOURSE · MIDDLE TIER REGISTRY</span>
+  </div>
+  <table class="ledger">
+    <thead><tr><th>Rule</th><th>What it means</th></tr></thead>
+    <tbody>
+      <tr><td><b>Deadline</b></td><td>One every month. Miss it and you're not on that month's card.</td></tr>
+      <tr><td><b>vs. Collection Day</b></td><td>Kei's guarantee is a promise to pay out of the first Settlement's purse. No card before Collection Day, and the guarantee lapses (p.34).</td></tr>
+      <tr><td><b>A ZERO entry</b></td><td>No credit limit, so only if a guarantor declares the collateral for him.</td></tr>
+      <tr><td><b>Stakes</b></td><td>Up to 30% of the credit limit, equal on both sides.</td></tr>
+    </tbody>
+  </table>
+  <div class="box small">
+    <h4>About the first opponent</h4>
+    <p>A C-rated fighter who borrows from <b>Hikube, the Flame Lender</b>, vermilion lines up to the elbow. Mio's Eye puts their win probability at <strong>96.1%</strong>; Jin's column just blinks <i>undefined</i>. Name and look are still being designed, so we're keeping them under wraps for now.</p>
+  </div>
+  <div class="folio"><span>Ch.4 · Above the Slums</span><span class="no">29</span></div>
+</section>
+
+<!-- ================= p30 THE CONTRACT ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>Ch.4 · Above the Slums</span><span>THE CONTRACT</span></div>
+  <h2>The Investment Contract (original copy)</h2>
+  <p class="small muted">The contract Mio files with the Bourse in Episode 2, set out as clauses for this book (excerpt). It's the Episode 1 handshake, on paper.</p>
+  <div class="contract">
+    <span class="ttl">INVESTMENT CONTRACT</span>
+    <p style="text-align:center" class="small mono">ORIGINAL · FOR FILING WITH THE BOURSE</p>
+    <p>The guarantor, <strong>KUZUHA, MIO</strong> ("the Guarantor"), and the debtor, <strong>AKABA, JIN</strong> ("the Debtor"), agree as follows.</p>
+    <p><span class="art-no">ART. 1</span>The Guarantor shall make collateral declarations on the Debtor's behalf in his Settlements, and shall put up that collateral from her own credit limit.</p>
+    <p><span class="art-no">ART. 2</span>The purse from the first Settlement shall go to repaying the arrears of KIRISHIMA, KEI, per Special Term 1. From the second Settlement on, the Guarantor receives fifty percent of the Debtor's winnings.</p>
+    <p class="small muted">(Articles 3–11 omitted)</p>
+    <div class="hand">
+      <p><span class="art-no">SPECIAL TERM 1</span>The first Settlement purse pays off Kei's arrears. First thing.</p>
+      <p><span class="art-no">SPECIAL TERM 2</span>Nobody's collateral gets taken for Jin Akaba's sake.</p>
+      <p><span class="art-no">SPECIAL TERM 3</span>Someday, the Kuzuha books burn too.</p>
+    </div>
+    <div class="twelve">
+      <p><span class="art-no red">ART. 12</span>Any collateral the Guarantor loses through defeat becomes a debt owed by the Debtor, AKABA, JIN, to the House of Kuzuha.</p>
+    </div>
+    <div class="sign"><span>Guarantor: KUZUHA, MIO <span class="sw" style="background:#F0921E"></span>amber seal</span><span>Debtor: AKABA, JIN <span class="sw" style="background:#E5172F"></span>(signature)</span></div>
+  </div>
+  <div class="cols small">
+    <p><strong>Forty, then fifty.</strong> In Episode 1, Mio said "forty percent of your winnings." That was the price of intel and gear, she explains. Putting up collateral too? With the guarantee fee, it's fifty.</p>
+    <p><strong>The special terms are handwritten.</strong> They're the three conditions Jin counted off on his fingers up on the rib in Episode 1, word for word. The third is pressed in a little harder.</p>
+  </div>
+  <div class="folio"><span>Ch.4 · Above the Slums</span><span class="no">30</span></div>
+</section>
+
+<!-- ================= p31 MIO ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>Ch.5 · Character Updates</span><span>CH.5 / KUZUHA, MIO</span></div>
+  <span class="chapter-no">Chapter 5 — Character Updates</span>
+  <div class="char-head">
+    <div><div class="char-kana"><span class="jp">葛葉 ミオ</span> · KUZUHA, MIO</div><div class="char-name">Mio Kuzuha</div></div>
+    <span class="stamp">GUARANTOR<small>ON RECORD</small></span>
+  </div>
+  <p>In Episode 2, Mio puts her name on the record as Jin's <b>guarantor</b>. She puts up the collateral. She makes the declaration.</p>
+  <h3>How the Eye reads</h3>
+  <div class="mark-read">
+    <span class="amb">● CAGE ASCENDING. PASSES CROSSING 1 IN 41 SEC</span><br>
+    <span class="amb">● NEXT FOOTHOLD: 3 RINGS RIGHT, 2 UP</span><br>
+    <span class="amb">● COLLECTOR / RATING AA · CREDIT: SEIZURE CHAINS (IRON LENDER) · MAX 9 AT ONCE</span><br>
+    <span class="amb">● UPPER RIGHT, TWO. IN 0.6 SEC. LEFT ONE'S A DECOY</span><br>
+    <span class="amb">● RECONNECT IN 10</span>&ensp;<span class="red">CONTRACT SUSPENDED 00:03</span>
+  </div>
+  <p class="small">Mio's Eye gives her time, distance, trajectories, an opponent's Rating and Credit — and win probability. In Episode 2 it reads Nil's next move to the split second. The Eye's numbers are amber; Default's are red. On screen, the two never share a color.</p>
+  <div class="cols small">
+    <div class="note">
+      <h4>The "budget"</h4>
+      <p>Decide how many touches up front. Inside the Bone Lift: two. That breakfast touch: waste. It's how Mio, who's always trusted numbers over people, protects Jin's memories.</p>
+    </div>
+    <div class="note">
+      <h4>Her cut</h4>
+      <p>The first purse goes to Kei's arrears. From the second bout on, fifty percent of the winnings. Lose, and Article 12 makes it Jin's debt.</p>
+    </div>
+  </div>
+  <div class="hint"><b>BALANCE NOTE</b>In the shaft, she presses a hand to her right eye for a second. The columns of numbers break up like static, then snap back. By the end she's shut the right eye and reads with the left alone. One eye drop. Her vision takes its time coming back.</div>
+  <div class="quote" style="margin-top:auto">"I'll read us enough. That's what fifty percent pays for."<span class="en"><span class="jp">「足りるように私が読む。それが五割の仕事」</span> — Mio Kuzuha, Episode 2</span></div>
+  <div class="folio"><span>Ch.5 · Character Updates</span><span class="no">31</span></div>
+</section>
+
+<!-- ================= p32 TSUBAME ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>Ch.5 · Character Updates</span><span>TSUBAME</span></div>
+  <div class="char-head">
+    <div><div class="char-kana"><span class="jp">ツバメ</span> · TSUBAME</div><div class="char-name">Tsubame</div></div>
+    <span class="stamp">BACK ROADS<small>DEALER</small></span>
+  </div>
+  <figure class="art" style="--h:70mm">
+    <img src="art/vol1-tsubame.svg" alt="Tsubame, full-body model sheet">
+  </figure>
+  <p class="tl" style="margin-top:0"><i>Sheet notes:</i> goggles hold her hair down, lenses unused · messy short brown hair, three cowlicks · big green eyes; borrowing speed turns her into a jade afterimage · gap tooth, shows when she grins · jade mark (left wrist, Rating D) — hidden under the sleeve when she doesn't want it seen · baggy hoodie, sleeves past her knuckles · barely-there sandals; her steps make no sound · prop: the bowl lid, with the Marrow Road map drawn in grease pencil (見張り = lookout) · height approx. 140 cm</p>
+  <p>In Episode 2 Tsubame is a <b>back-roads dealer</b>. She knows how to get through the Marrow Road, the old passage inside the Bone Lift, and how many lookouts there are. The map is on the underside of a bowl lid. Her fee is the usual bowl of noodles; Jin's answer is "Put it on my tab."</p>
+  <p class="small">At breakfast she dives off the stall roof as a jade blur, going for Jin's chashu. Jin grabs her wrist on reflex — making her the first "friendly" ever hit by Default.</p>
+  <div class="hint"><b>BALANCE NOTE</b>After the Default, Tsubame stares at her own wrist. For a moment the jade number jumps to digits she's never seen before. She yanks her hoodie sleeve down over it.</div>
+  <div class="quote" style="margin-top:auto">"Info costs one bowl of noodles!"<span class="en"><span class="jp">「情報料は麺一杯ね！」</span></span></div>
+  <div class="folio"><span>Ch.5 · Character Updates</span><span class="no">32</span></div>
+</section>
+
+<!-- ================= p33 NIL ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>Ch.5 · Character Updates</span><span>NIL</span></div>
+  <div class="char-head">
+    <div><div class="char-kana"><span class="jp">ニル</span> · NIL</div><div class="char-name">Nil</div></div>
+    <span class="stamp">AA<small>COLLECTOR</small></span>
+  </div>
+  <figure class="art" style="--h:60mm">
+    <img src="art/vol1-nil-mask.svg" alt="Model sheet of Nil's repaired mask">
+  </figure>
+  <p class="tl" style="margin-top:0"><i>Sheet notes:</i> FRONT · SIDE · stitching detail — <b>crack:</b> made by Jin's fist in Episode 1 · <b>stitches:</b> gray thread in X's, same gray as the chains · <b>eye:</b> one thin horizontal slit; never two eyeholes · <b>spine:</b> a vertical seam on one side; keep the ledger-cover shape intact</p>
+  <p>Nil has <b>stitched the crack shut with gray thread</b> — the one Jin's fist put there in Episode 1. Same mask shape; a row of X-stitches runs across the break. This is how Nil is drawn from now on.</p>
+  <dl class="data">
+    <dt>Rating</dt><dd>AA (per Mio's Eye)</dd>
+    <dt>Credit</dt><dd>Seizure Chains, from Kanagi, the Iron Lender. Up to 9 at once</dd>
+    <dt>New: the chains</dt><dd>Bind someone, and their collateral is drawn out as <b>thread</b>. From Mio, it's a thread of amber light pulled from her right eye</dd>
+    <dt>Movement</dt><dd>Drives chains into the shaft wall and stands on it <i>sideways</i>, gravity be damned. Climbs his own chains like a staircase</dd>
+    <dt>Why he chases</dt><dd>Off-the-books travel (p.24). "You're a separate account."</dd>
+  </dl>
+  <div class="hint"><b>BALANCE NOTE</b>On the roof of the stalled cage, Nil opens his black ledger: <span class="mono">AKABA, JIN — ASCENT — UNCOLLECTED</span>. Just above it is an older line, in the same red ink. The name has been blacked out.</div>
+  <div class="quote" style="margin-top:auto">"Payment is due."<span class="en"><span class="jp">「お支払いの時間です。」</span></span></div>
+  <div class="folio"><span>Ch.5 · Character Updates</span><span class="no">33</span></div>
+</section>
+
+<!-- ================= p34 KEI ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>Ch.5 · Character Updates</span><span>KIRISHIMA, KEI</span></div>
+  <div class="char-head">
+    <div><div class="char-kana"><span class="jp">霧島 ケイ</span> · KIRISHIMA, KEI</div><div class="char-name">Kei Kirishima</div></div>
+    <span class="stamp">29 DAYS<small>GUARANTEE</small></span>
+  </div>
+  <p>At the end of Episode 1, Kei's arrears got a <b>guarantor</b>. But that guarantee comes with an expiry date.</p>
+  <div class="mark-read">
+    <span style="color:#A49F93">KEI'S LEFT WRIST (THROUGH MIO'S EYE)</span><br>
+    <span style="color:#8592F0">● OVERDUE: 3</span><br>
+    <span class="amb">● GUARANTOR: KUZUHA, MIO</span><br>
+    <span class="amb">● TO BE PAID FROM: FIRST SETTLEMENT</span><br>
+    <span class="red">● COLLECTION DAY IN: 29 DAYS</span>
+  </div>
+  <div class="box small">
+    <h4>When the guarantee lapses</h4>
+    <p>The guarantee is a promise to pay out of the first Settlement's purse. <strong>If no first bout is booked before Collection Day, the guarantee lapses and the Special Collection Writ comes back into force.</strong> And then that mask comes back — this time with no hold.</p>
+  </div>
+  <p class="small">Paying debt with more debt, Kei says, is "the worst way there is to pay." Still, with her back turned, she gives Jin one piece of advice: <i>"Don't put your back to a wall. Run the edge. Ring or pit — keep circling, and the chaser tires first."</i> Inside the shaft, Jin does exactly that, running the rim of the rings to slip the chains.</p>
+  <div class="hint"><b>BALANCE NOTE</b>Asked where she learned that, Kei says, "Draining noodles." As she says it, her fingers trace the spot under her left sleeve where the brand is.</div>
+  <div class="quote" style="margin-top:auto">"Eat. Then we talk."<span class="en"><span class="jp">「食え。話はそれからだ。」</span></span></div>
+  <div class="folio"><span>Ch.5 · Character Updates</span><span class="no">34</span></div>
+</section>
+
+<!-- ================= p35 MEMORY LEDGER ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>Ch.5 · Character Updates</span><span>THE MEMORY LEDGER</span></div>
+  <h2>The Memory Ledger</h2>
+  <div class="spoiler"><strong class="red">SPOILERS</strong>&ensp;This page covers Episode 2 through to the end.</div>
+  <p class="small">Every Default costs Jin one memory, paid to Hazama. The bigger the Credit he seizes, the more precious the memory it takes. Here's everything he's paid so far, kept as a ledger.</p>
+  <table class="ledger mem">
+    <thead><tr><th>Ep.</th><th>Where</th><th>Credit seized</th><th>Memory paid</th></tr></thead>
+    <tbody>
+      <tr><td class="num">1</td><td>Alley by the stall</td><td>Nil's Seizure Chains (AA)</td><td class="red">His father's face</td></tr>
+      <tr><td class="num">2</td><td>The stall, morning</td><td>Tsubame's speed (D)</td><td class="red">That morning's breakfast</td></tr>
+      <tr><td class="num">2</td><td>Shaft, Crossings 2–3</td><td>Nil's chain (AA)</td><td class="red">The face of the old regular who likes extra scallions</td></tr>
+      <tr><td class="num">2</td><td>Crossing 3, on the net</td><td>Nil himself (AA)</td><td class="red">The day Kei first called him "my kid"</td></tr>
+    </tbody>
+  </table>
+  <div class="stack small">
+    <p><strong>Breakfast.</strong> Staring at an empty bowl: "Did I eat already?" Jin laughs it off.</p>
+    <p><strong>The old man's face.</strong> The old man at the window in Episode 1's opening, who got his bowl handed over from a laundry line. When a customer at a Middle Tier stall yells "Extra scallions!", Jin's feet stop for a beat. Why it snagged, he can't tell anymore.</p>
+    <p><strong>"My kid."</strong> A small hand clutching the hem of a cook's smock, and a young Kei's voice. The memory turns into a white, ruled page, peels away and flutters up into the dark. Hazama: "That one was a little pricey."</p>
+    <p>That night at the stall, Kei laughs as she tells Tsubame how hard Jin cried that day. "Bet he'll say he doesn't remember." Only the audience knows it's now true.</p>
+  </div>
+  <div class="note small" style="margin-top:auto">
+    <h4>What Mio can see</h4>
+    <p>Mio can't tell what Jin paid. All the Eye shows her is <strong>one unreadable digit moving</strong> beside the −∞. Jin just grins: "Didn't pay a thing. Just skipped out on the bill."</p>
+  </div>
+  <div class="folio"><span>Ch.5 · Character Updates</span><span class="no">35</span></div>
+</section>
+
+<!-- ================= p36 SCRIPT 1 ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>Ch.6 · Episode 2 Screenplay</span><span>COLD OPEN 1/2</span></div>
+  <span class="chapter-no">Chapter 6 — Episode 2 Screenplay Excerpt</span>
+  <h2>Screenplay excerpt: Cold Open</h2>
+  <p class="small muted">Episode 2, first 1:30 (00:00–01:30). Excerpted and arranged from a pre-final draft; may differ from the finished episode. Official English lines are those fixed for the dub and subtitles.</p>
+  <div class="script">
+    <div class="sh">EXT. UNDERLEDGER — WRECK OF THE "KIRISHIMA" NOODLE STALL — MORNING<span class="tc">00:00–00:55</span></div>
+    <p class="cue">SKIP-PROOF: NO LOGO, NO TITLES. STEAM FROM THE VERY FIRST FRAME.</p>
+    <p class="act">A heap of broken bowls in the foreground; through the steam, the smashed stall. Three grooves gouged by chains still scar the post.</p>
+    <p class="act">KEI sets a single bowl on the wooden crate that's standing in for a counter.</p>
+    <div class="dl"><span class="who">KEI</span><span>Eat. Then we talk.</span></div>
+    <p class="act">JIN snaps his chopsticks apart. But what he's looking at isn't the bowl — it's Kei's left wrist. A faded indigo mark: OVERDUE: 3. Beneath it, in amber ink: GUARANTOR: KUZUHA, MIO / TO BE PAID FROM: FIRST SETTLEMENT. Kei covers it with her palm. Jin says nothing and slurps his noodles down in one go.</p>
+    <p class="cue">SFX: ON THE ROOF, A FAINT JADE HUM.</p>
+    <p class="act">Hyper-speed POV. Off the roof drops TSUBAME, a jade afterimage. Target: the chashu in Jin's bowl.</p>
+    <div class="dl"><span class="who">TSUBAME</span><span>Dibs!</span></div>
+    <p class="act">Jin's left hand snaps around Tsubame's wrist. Pure reflex.</p>
+    <p class="cue">SFX: A HIGH, CLEAR NOTE, LIKE GLASS BREAKING.</p>
+    <p class="act">Red ink sprays into the air. A single red strike-through cuts the jade number on Tsubame's wrist.</p>
+    <p class="card">ON SCREEN: <span class="red">CONTRACT SUSPENDED 00:03</span></p>
+    <p class="act">Tsubame's afterimage stops dead — she's just a twelve-year-old again, stumbling in midair. Now jade lines race over Jin's body. The world goes slow: a bouncing bowl, flying chopsticks, the chashu, three empty bowls tipping off the crate. Still on borrowed <i>speed</i>, Jin catches every one in midair, stacks them — and finally plucks Tsubame by the collar.</p>
+    <p class="card">ON SCREEN: 00:00 CONTRACT RESUMED</p>
+  </div>
+  <div class="folio"><span>Ch.6 · Episode 2 Screenplay</span><span class="no">36</span></div>
+</section>
+
+<!-- ================= p37 SCRIPT 2 ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>Ch.6 · Episode 2 Screenplay</span><span>COLD OPEN 2/2</span></div>
+  <div class="script">
+    <div class="dl"><span class="who">TSUBAME</span><span>...Wha— big bro, you were so fast...</span></div>
+    <p class="act">In Jin's hand: one empty bowl.</p>
+    <div class="dl"><span class="who">JIN</span><span>...Hey, Kei. Did I eat already?</span></div>
+    <p class="act">Kei's hands go still.</p>
+    <p class="cue">CAMERA: INSERT — JIN SLURPING NOODLES, JUST A MOMENT AGO. THE IMAGE BLANKS OUT LIKE A WHITE LEDGER PAGE. SFX: PAPER TEARING, DRY (SMALL).</p>
+    <div class="dl"><span class="who">HAZAMA</span><span><span class="paren">(from Jin's wrist, small)</span> Hey Jin — I'll put that on your tab.</span></div>
+    <div class="dl"><span class="who">JIN</span><span><span class="paren">(laughing)</span> Oh, I did? No wonder I'm stuffed.</span></div>
+    <p class="act">Tsubame is staring at her own wrist. For a second the jade number jumps to digits she's never seen. She yanks her hoodie sleeve down over it.</p>
+
+    <div class="sh">EXT. SAME — MORNING<span class="tc">00:55–01:30</span></div>
+    <p class="act">The shadow of a parasol falls across Jin's bowl. MIO KUZUHA stands there: black jacket over her shoulders, a closed folding fan in her hand. Afterglow numbers are still streaming through her amber right eye.</p>
+    <div class="dl"><span class="who">MIO</span><span>That touch? Pure waste.</span></div>
+    <p class="act">She drops a thick stack of paper onto the crate — <i>thud.</i> Gold border on the cover: INVESTMENT CONTRACT (ORIGINAL).</p>
+    <div class="dl"><span class="who">MIO</span><span>Yesterday was a handshake. This is the paper we file with the Bourse.</span></div>
+    <p class="cue">SFX: ONE STAMP. MUSIC: OP INTRO, IN.</p>
+    <div class="sh">OPENING TITLES<span class="tc">01:30–03:00</span></div>
+    <p class="act">Every episode's opening ends on the red mark on Jin's wrist. This week, the counter <span class="red mono">2 LEFT</span> is laid over it, and we cut straight into the episode.</p>
+  </div>
+  <div class="note small" style="margin-top:auto">
+    <h4>How this opening is built</h4>
+    <p>It's built for anyone starting at Episode 2. Touch, three seconds, steal it, pay in memory: every rule of the power, in about 40 seconds, with no line of explanation. Mio's last word is the door into the episode's real theme — the budget.</p>
+  </div>
+  <div class="box small">
+    <h4 class="red">End of excerpt</h4>
+    <p>This volume prints the cold open only; the full Episode 2 screenplay is not published here. Tsubame's "Dibs!" is <span class="jp">「いっただきー！」</span> in Japanese — roughly a gleeful "Thanks for the food!" shouted mid-theft.</p>
+  </div>
+  <div class="folio"><span>Ch.6 · Episode 2 Screenplay</span><span class="no">37</span></div>
+</section>
+
+<!-- ================= p38 GLOSSARY ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>Glossary</span><span>GLOSSARY</span></div>
+  <h2>Glossary: new in Episode 2</h2>
+  <dl class="gloss">
+    <dt>Investment Contract (original)</dt><dd>The formal contract Mio files with the Bourse. The Episode 1 handshake, on paper.</dd>
+    <dt>Guarantor</dt><dd>Someone who puts up collateral and makes the declaration for a fighter with no Rating. Jin's is Mio.</dd>
+    <dt>Special Terms</dt><dd>The three conditions handwritten into the contract. Jin's demands from Episode 1.</dd>
+    <dt>Article 12</dt><dd>Lose, and whatever collateral the guarantor loses becomes Jin's debt to the House of Kuzuha.</dd>
+    <dt>Guarantee lapse</dt><dd>No first Settlement booked by Collection Day? The guarantee falls through and the Special Collection Writ comes back to life.</dd>
+    <dt>Registration deadline</dt><dd>The monthly cutoff for getting on the Middle Tier Settlement card.</dd>
+    <dt>Middle Tier Registry</dt><dd>The Bourse's white-marble window in the Middle Tier where Settlements are registered.</dd>
+    <dt>Provisional entry</dt><dd>How a ZERO registers: the guarantor comes along and has her mark checked. It becomes full entry with the collateral declaration at the first Settlement.</dd>
+    <dt>The card</dt><dd>The Settlement lineup. Made at the Registry, posted in the plaza and on the monitors.</dd>
+    <dt>Boarding</dt><dd>Riding a Bone Lift cage. Requires a Rating scan. ZEROs can't board — not even as someone's companion.</dd>
+    <dt>Underledger Gate</dt><dd>The Bone Lift entrance on the Underledger side. Scanners at the turnstiles.</dd>
+    <dt>Marrow Road</dt><dd>An old channel inside the Bone Lift where the god's marrow once ran. Crosses the cage shaft three times.</dd>
+    <dt>Off-the-books travel</dt><dd>Climbing to another tier with no Rating and no registration. The Collection Bureau can collect any time.</dd>
+    <dt>Budget</dt><dd>Mio's word: deciding in advance how many times Jin may use Default.</dd>
+    <dt>Reconnect</dt><dd>The ~10 seconds after a seized contract comes back before Default works on that target again.</dd>
+    <dt>Bone Exit Terrace</dt><dd>Where the Marrow Road comes out, on the Middle Tier side.</dd>
+    <dt>Middle Tier Circle No. 7</dt><dd>The venue for Jin's first bout.</dd>
+    <dt>Back-roads dealer</dt><dd>Sells back ways to people who can't take the front ones. Tsubame's self-styled job title.</dd>
+  </dl>
+  <div class="folio"><span>Glossary</span><span class="no">38</span></div>
+</section>
+
+<!-- ================= p39 AFTERWORD ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>Afterword</span><span>AFTERWORD</span></div>
+  <h2>The one who counts, and the one who doesn't</h2>
+  <div class="stack">
+    <p>Episode 2 is a story about numbers. Twenty-nine days. Eight tonight. Forty-one seconds. Ten seconds. Two touches. Thirty percent. Fifty. Mio counts everything. Jin counts almost nothing.</p>
+    <p>And yet Jin kept to Mio's "two." The one who doesn't count trusted the one who does. Meanwhile Mio can't count what Jin is paying — all her Eye shows is one unreadable digit moving. These two will probably never balance their books. I want this to be the story of how they watch each other's backs anyway.</p>
+    <p>In the first half we showed you how Episode 1 was put together: a few seconds of silence, 1.2 seconds per wrist, a rule that allows exactly one red. Out of sight, we're counting a lot of things.</p>
+    <p>To everyone who picked up this ledger after Vol.0: thank you, from the bottom of my heart. We'll pay off the tab in the show itself. Promise.</p>
+    <p style="text-align:right">— Hikaru, Showrunner, P7 Anime</p>
+  </div>
+  <div class="box" style="margin-top:auto">
+    <span class="chapter-no">Next Ledger</span>
+    <h2>Book of the Ledger Vol.2 (planned)</h2>
+    <p class="small">Picking up with Episode 3, "First Settlement." Middle Tier Circle No. 7, and Jin's first licensed Settlement. His opponent's win probability: 96.1%. Touches he can afford: probably just one. We'll let you know as soon as it's confirmed.</p>
+  </div>
+  <div class="folio"><span>Afterword</span><span class="no">39</span></div>
+</section>
+
+<!-- ================= p40 COLOPHON ================= -->
+<section class="page dark">
+  <img class="colo-bg" src="art/back.svg" alt="">
+  <div class="colo">
+    <span class="chapter-no">Colophon</span>
+    <h2>LEDGERBREAKER — Book of the Ledger Vol.1</h2>
+    <p class="small" style="color:#CFC8B8">Setting guide to the original anime project <i>LEDGERBREAKER</i> (<span class="jp">帳簿破り</span>) — Episode 2<br>English edition · First published 2026</p>
+    <dl>
+      <dt>Original story &amp; production</dt><dd>P7 Anime</dd>
+      <dt>Showrunner</dt><dd>Hikaru</dd>
+      <dt>Series composition &amp; script</dt><dd>P7 Anime script team</dd>
+      <dt>Storyboard (Ep.1)</dt><dd>P7 Anime direction team</dd>
+      <dt>Webtoon (Ep.1)</dt><dd>P7 Anime art &amp; color design team</dd>
+      <dt>Characters &amp; art</dt><dd>P7 Anime character design / art team</dd>
+      <dt>Editing &amp; layout</dt><dd>P7 Anime editorial</dd>
+      <dt>Publisher</dt><dd>masahiro20 / P7 Anime</dd>
+      <dt>Typefaces</dt><dd>Dela Gothic One, Zen Kaku Gothic New and IBM Plex Mono, via Google Fonts, used under the SIL Open Font License 1.1.</dd>
+    </dl>
+    <div class="legal">
+      <p><strong>About AI use:</strong> The text and illustrations in this book (including the storyboards, Webtoon panels and model sheets) were created using AI tools, and were edited and supervised by the owner.</p>
+      <p>This is a pre-production guide; details may change as the project develops. This is a work of fiction. All names, places, gods and institutions are invented.</p>
+      <p style="margin-top:1.5mm; color:var(--bone)">© 2026 masahiro20 / P7 Anime. All rights reserved.<br>No part of this book may be reproduced or redistributed without permission.</p>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>

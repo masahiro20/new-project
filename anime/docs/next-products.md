@@ -141,7 +141,7 @@ Vol.0 の p29 で「第2話から。骨の内部図、中層の街並み、決�
 **英語の告知文（案）**
 
 ```
-Book of the Ledger Vol.1 — 40 pages. Inside the Lift Bone, the Mid-Tier streets,
+Book of the Ledger Vol.1 — 40 pages. Inside the Bone Lift, the Mid-Tier streets,
 the settlement ring, and how Episode 1 was boarded and coloured.
 ```
 要約：『帳簿の書 Vol.1』40ページ。昇降骨の内部、中層の街、決済円、そして第1話の絵コンテと彩色のメイキングを収録。
