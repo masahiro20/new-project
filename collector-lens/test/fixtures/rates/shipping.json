@@ -16,6 +16,7 @@
     {
       "id": "air_sample",
       "label": "Sample airmail",
+      "carrier": "sample_post",
       "volumetric_divisor": {
         "rows": [
           {
@@ -218,6 +219,7 @@
     {
       "id": "express_sample",
       "label": "Sample express",
+      "carrier": "sample_express",
       "volumetric_divisor": {
         "rows": [
           {

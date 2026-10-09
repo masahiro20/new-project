@@ -5,6 +5,19 @@
       "country": "US",
       "currency": "USD",
       "label": "United States (sample rates)",
+      "notices": [
+        {
+          "id": "sample_post_us",
+          "when": {
+            "carriers": [
+              "sample_post"
+            ]
+          },
+          "message": "Sample notice: this fictional carrier takes parcels to this country only with duties prepaid.",
+          "checked_at": "2026-10-01",
+          "source": "Fictional test table (not a real fee)"
+        }
+      ],
       "duty_basis": {
         "rows": [
           {
@@ -118,6 +131,22 @@
           }
         ]
       },
+      "tax_base": {
+        "rows": [
+          {
+            "effective_from": "2026-01-01",
+            "value": [
+              "goods",
+              "international_shipping",
+              "insurance",
+              "duty"
+            ],
+            "checked_at": "2026-10-01",
+            "source": "Fictional test table (not a real fee)",
+            "checked_by": "test"
+          }
+        ]
+      },
       "de_minimis": {
         "rows": [
           {
@@ -164,8 +193,22 @@
           "rows": [
             {
               "effective_from": "2026-01-01",
+              "kind": "per_unit",
+              "amount": 0.25,
+              "currency": "GBP",
+              "rounding": "round",
+              "checked_at": "2026-10-01",
+              "source": "Fictional test table (not a real fee)",
+              "checked_by": "test"
+            }
+          ]
+        },
+        "digital_camera": {
+          "rows": [
+            {
+              "effective_from": "2026-01-01",
               "kind": "rate",
-              "rate": 0.04,
+              "rate": 0,
               "rounding": "round",
               "checked_at": "2026-10-01",
               "source": "Fictional test table (not a real fee)",
@@ -219,14 +262,31 @@
           }
         ]
       },
+      "tax_base": {
+        "rows": [
+          {
+            "effective_from": "2026-01-01",
+            "value": [
+              "goods",
+              "international_shipping",
+              "insurance",
+              "duty"
+            ],
+            "checked_at": "2026-10-01",
+            "source": "Fictional test table (not a real fee)",
+            "checked_by": "test"
+          }
+        ]
+      },
       "de_minimis": {
         "rows": [
           {
             "effective_from": "2026-01-01",
-            "value": 150,
+            "value": 0,
             "currency": "EUR",
             "applies_to": [
-              "duty"
+              "duty",
+              "import_tax"
             ],
             "checked_at": "2026-10-01",
             "source": "Fictional test table (not a real fee)",
@@ -265,8 +325,25 @@
           "rows": [
             {
               "effective_from": "2026-01-01",
+              "kind": "rate_with_min_max",
+              "rate": 0.05,
+              "min": 0.5,
+              "max": 1,
+              "per": "unit",
+              "currency": "EUR",
+              "rounding": "round",
+              "checked_at": "2026-10-01",
+              "source": "Fictional test table (not a real fee)",
+              "checked_by": "test"
+            }
+          ]
+        },
+        "digital_camera": {
+          "rows": [
+            {
+              "effective_from": "2026-01-01",
               "kind": "rate",
-              "rate": 0.045,
+              "rate": 0,
               "rounding": "round",
               "checked_at": "2026-10-01",
               "source": "Fictional test table (not a real fee)",
@@ -275,6 +352,31 @@
           ]
         }
       },
+      "duty_rules": [
+        {
+          "id": "low_value_flat",
+          "label": "Sample flat duty for parcels up to €150",
+          "replaces": "duty",
+          "rows": [
+            {
+              "effective_from": "2026-07-01",
+              "effective_until": "2028-07-01",
+              "kind": "fixed",
+              "amount": 2,
+              "currency": "EUR",
+              "rounding": "round",
+              "applies_when": {
+                "max_value": 150,
+                "currency": "EUR",
+                "of": "goods"
+              },
+              "checked_at": "2026-10-01",
+              "source": "Fictional test table (not a real fee)",
+              "checked_by": "test"
+            }
+          ]
+        }
+      ],
       "import_tax": {
         "label": "Import VAT",
         "base": "customs_value_plus_duty",
@@ -315,6 +417,22 @@
           {
             "effective_from": "2026-01-01",
             "value": "FOB",
+            "checked_at": "2026-10-01",
+            "source": "Fictional test table (not a real fee)",
+            "checked_by": "test"
+          }
+        ]
+      },
+      "tax_base": {
+        "rows": [
+          {
+            "effective_from": "2026-01-01",
+            "value": [
+              "goods",
+              "international_shipping",
+              "insurance",
+              "duty"
+            ],
             "checked_at": "2026-10-01",
             "source": "Fictional test table (not a real fee)",
             "checked_by": "test"
@@ -424,6 +542,18 @@
           }
         ]
       },
+      "tax_base": {
+        "rows": [
+          {
+            "effective_from": null,
+            "value": null,
+            "checked_at": null,
+            "source": null,
+            "checked_by": null,
+            "note": "要確認（架空の未確定行）"
+          }
+        ]
+      },
       "de_minimis": {
         "rows": [
           {
@@ -493,6 +623,67 @@
             "checked_at": "2026-10-01",
             "source": "Fictional test table (not a real fee)",
             "checked_by": "test"
+          }
+        ]
+      },
+      "subdivisions": {
+        "label": "Province or territory",
+        "tax_label": "Provincial sales tax",
+        "options": [
+          {
+            "id": "ON",
+            "label": "Ontario",
+            "tax": {
+              "label": "Provincial sales tax",
+              "rows": [
+                {
+                  "effective_from": "2026-01-01",
+                  "kind": "rate",
+                  "rate": 0.08,
+                  "rounding": "round",
+                  "checked_at": "2026-10-01",
+                  "source": "Fictional test table (not a real fee)",
+                  "checked_by": "test"
+                }
+              ]
+            }
+          },
+          {
+            "id": "AB",
+            "label": "Alberta",
+            "tax": {
+              "label": "Provincial sales tax",
+              "rows": [
+                {
+                  "effective_from": "2026-01-01",
+                  "kind": "rate",
+                  "rate": 0,
+                  "rounding": "round",
+                  "checked_at": "2026-10-01",
+                  "source": "Fictional test table (not a real fee)",
+                  "checked_by": "test"
+                }
+              ]
+            }
+          },
+          {
+            "id": "QC",
+            "label": "Quebec",
+            "tax": {
+              "label": "Provincial sales tax",
+              "rows": [
+                {
+                  "effective_from": null,
+                  "kind": "rate",
+                  "rate": null,
+                  "rounding": "round",
+                  "checked_at": null,
+                  "source": null,
+                  "checked_by": null,
+                  "note": "要確認（架空の未確定行）"
+                }
+              ]
+            }
           }
         ]
       },

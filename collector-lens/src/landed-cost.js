@@ -2,8 +2,10 @@
  * Tanuki Scout (provisional name) — landed-cost estimator (v1.1, design §3–§6).
  * Pure function: (input, rate tables, today) -> estimated total as a range.
  * No DOM, no network, no storage. Every changeable number comes from the
- * tables (data/rates/*.json); this file only knows the four component kinds
- * (fixed / rate / rate_with_min / tiered) and the order of the calculation.
+ * tables (data/rates/*.json); this file only knows the generic component kinds
+ * (fixed / rate / rate_with_min / rate_with_min_max / per_unit / tiered), the
+ * generic rule shapes (tax_base, duty_rules with applies_when, subdivisions,
+ * notices) and the order of the calculation. No country is named in the code.
  * Loaded as a classic script (attaches to globalThis.CollectorLens) and as a
  * CommonJS module in Node tests. Loaded as a content script for the panel's
  * "Estimated total" section (src/estimate-section.js).
@@ -16,7 +18,11 @@
   var DAY_MS = 86400000;
   var DEFAULT_STALE_DAYS = 45;   // design §4.1: older than this -> "may be out of date"
   var DEFAULT_EXPIRE_DAYS = 90;  // design §4.1: older than this -> not used
-  var KINDS = { fixed: true, rate: true, rate_with_min: true, tiered: true };
+  var KINDS = { fixed: true, rate: true, rate_with_min: true, rate_with_min_max: true, per_unit: true, tiered: true };
+  // Kinds whose amount does not depend on a base value (only on the quantity).
+  var NO_BASE = { fixed: true, per_unit: true };
+  // Parts that a destination's tax_base may list (design §13).
+  var TAX_BASE_PARTS = { goods: true, international_shipping: true, insurance: true, duty: true, customs_value: true };
   var ROUNDING = { ceil: Math.ceil, floor: Math.floor, round: Math.round };
   // Domestic shipping bands (design §3): seller -> proxy warehouse, in JPY.
   // Bands do not overlap: "up to ¥2,000" means more than ¥1,000 and up to ¥2,000.
@@ -25,8 +31,11 @@
     up_to_1000: { range: [0, 1000], label: "Up to ¥1,000" },
     up_to_2000: { range: [1000, 2000], label: "¥1,000–¥2,000" }
   };
-  // Analyzer genre/subgenre -> duty category in destinations.json.
+  // Analyzer genre/subgenre -> fallback duty category in destinations.json.
+  // A destination may key duty by the subgenre itself (e.g. digital_camera);
+  // when it does not, the subgenre falls back to its parent category here.
   var DUTY_CATEGORY = { lens: "lens", film_camera: "camera", digital_camera: "camera", camera: "camera", watch: "watch" };
+  var CATEGORY_LABEL = { lens: "lens", film_camera: "film camera", digital_camera: "digital camera", camera: "camera", watch: "watch" };
 
   // ---------- small helpers ----------
 
@@ -65,8 +74,16 @@
 
   function rowsOf(comp) { return comp && Array.isArray(comp.rows) ? comp.rows : []; }
 
+  // effective_until (optional) is the first day a row no longer applies.
+  function endedBy(r, todayMs) {
+    if (!r || r.effective_until === undefined || r.effective_until === null) return false;
+    var u = parseDay(r.effective_until);
+    return u === null || todayMs >= u;
+  }
+
   // Design §4.1: pick the row in effect today (latest effective_from <= today).
-  // Rows with a future effective_from are ignored until their date.
+  // Rows with a future effective_from are ignored until their date; rows whose
+  // effective_until has come are ignored from that day.
   function selectRow(comp, todayMs) {
     var best = null, bestT = -Infinity;
     var rows = rowsOf(comp);
@@ -74,7 +91,7 @@
       var r = rows[i];
       if (!r || typeof r !== "object") continue;
       var t = r.effective_from == null ? -Infinity : parseDay(r.effective_from);
-      if (t === null || t > todayMs) continue;
+      if (t === null || t > todayMs || endedBy(r, todayMs)) continue;
       if (best === null || t >= bestT) { best = r; bestT = t; }
     }
     return best;
@@ -87,6 +104,8 @@
       case "fixed": return isNum(row.amount);
       case "rate": return isNum(row.rate);
       case "rate_with_min": return isNum(row.rate) && isNum(row.min);
+      case "rate_with_min_max": return isNum(row.rate) && isNum(row.min) && isNum(row.max);
+      case "per_unit": return isNum(row.amount);
       case "tiered":
         return Array.isArray(row.tiers) && row.tiers.length > 0 && row.tiers.every(function (t) {
           return t && (t.up_to === null || isNum(t.up_to)) && (isNum(t.amount) || isNum(t.rate));
@@ -111,12 +130,19 @@
   }
 
   // Evaluate one component row against a base amount (unrounded -> rounded).
-  function evalRow(row, base, currency) {
+  // qty: number of units (per_unit amounts and per-unit min/max multiply by it).
+  function evalRow(row, base, currency, qty) {
     var x;
+    var q = isNum(qty) && qty > 0 ? qty : 1;
     switch (row.kind) {
       case "fixed": x = row.amount; break;
+      case "per_unit": x = row.amount * q; break;
       case "rate": x = row.rate * base; break;
       case "rate_with_min": x = Math.max(row.rate * base, row.min); break;
+      case "rate_with_min_max":
+        var k = row.per === "unit" ? q : 1;
+        x = Math.min(Math.max(row.rate * base, row.min * k), row.max * k);
+        break;
       case "tiered":
         x = null;
         for (var i = 0; i < row.tiers.length; i++) {
@@ -204,7 +230,7 @@
     // Fixed amounts may be in another currency (converted). Rate-based rows work
     // on a base in the line's currency, so their minimums/tiers must match it.
     var cur = row.currency || currency;
-    if (row.kind !== "fixed" && row.kind !== "rate" && cur !== currency) {
+    if (!NO_BASE[row.kind] && row.kind !== "rate" && cur !== currency) {
       warn(ctx, "unknown", label + ": table currency " + cur + " does not match " + currency + ". Not included in the total.", id);
       return line;
     }
@@ -212,13 +238,13 @@
     for (var s = 0; s < 2; s++) {
       if (exempt && exempt[s]) { vals.push(0); continue; }
       var b = base ? base[s] : 0;
-      if (row.kind !== "fixed" && !isNum(b)) { vals.push(null); continue; }
-      var v = evalRow(row, b, cur);
+      if (!NO_BASE[row.kind] && !isNum(b)) { vals.push(null); continue; }
+      var v = evalRow(row, b, cur, ctx.quantity);
       if (v !== null && cur !== currency) v = convert(ctx, v, cur, currency);
       vals.push(v);
     }
     if (vals[0] === null || vals[1] === null) {
-      var baseMissing = row.kind !== "fixed" && base && (!isNum(base[0]) || !isNum(base[1]));
+      var baseMissing = !NO_BASE[row.kind] && base && (!isNum(base[0]) || !isNum(base[1]));
       if (row.kind === "tiered" && !baseMissing) warn(ctx, "out_of_range", label + ": outside the range of the table.", id);
       else if (cur !== currency && !baseMissing) warn(ctx, "no_fx", label + ": needs an exchange rate for " + cur + ".", id);
       explainStatus(ctx, line, { reason: baseMissing ? "base_unknown" : "null" });
@@ -273,6 +299,129 @@
     return [a[0] + b[0], a[1] + b[1]];
   }
 
+  function own(o, k) { return !!o && typeof k === "string" && k !== "" && Object.prototype.hasOwnProperty.call(o, k); }
+
+  // Duty category: the subgenre itself if the destination lists it (e.g.
+  // digital_camera), else its parent category (camera), else the genre.
+  // -> { key, missing } or null when the item type is not a duty category at all.
+  function dutyCategory(dest, input) {
+    var duty = dest.duty || {};
+    var keys = [input.subgenre, DUTY_CATEGORY[input.subgenre], input.genre, DUTY_CATEGORY[input.genre]];
+    var known = null;
+    for (var i = 0; i < keys.length; i++) {
+      var k = keys[i];
+      if (typeof k !== "string" || !k) continue;
+      if (own(duty, k)) return { key: k, missing: false };
+      if (!known && own(DUTY_CATEGORY, k)) known = DUTY_CATEGORY[k];
+    }
+    return known ? { key: known, missing: true } : null;
+  }
+
+  // First duty rule (dest.duty_rules) with a row in effect today that covers
+  // this category. Rules list no category -> every category.
+  function pickDutyRule(ctx, dest, cat) {
+    var rules = Array.isArray(dest.duty_rules) ? dest.duty_rules : [];
+    for (var i = 0; i < rules.length; i++) {
+      var rule = rules[i];
+      if (!rule || typeof rule !== "object" || (rule.replaces !== undefined && rule.replaces !== "duty")) continue;
+      if (Array.isArray(rule.categories)) {
+        if (!cat) continue;
+        if (rule.categories.indexOf(cat.key) < 0 && rule.categories.indexOf(DUTY_CATEGORY[cat.key]) < 0) continue;
+      }
+      var row = selectRow(rule, ctx.today);
+      if (row) return { rule: rule, row: row };
+    }
+    return null;
+  }
+
+  // applies_when: { max_value, currency, of: "goods" | "customs_value" | null }.
+  // Value at or below max_value -> the rule applies. of null (not confirmed)
+  // tests both the goods value and the customs value.
+  // -> "yes" | "no" | "maybe" for one scenario.
+  function bandMatch(ctx, when, currency, goods, customs) {
+    if (!when || typeof when !== "object" || when.max_value === undefined) return "yes";
+    var thr = isNum(when.max_value) ? convert(ctx, when.max_value, when.currency || currency, currency) : null;
+    if (!isNum(thr)) return "maybe";
+    var vals = when.of === "goods" ? [goods] : when.of === "customs_value" ? [customs] : [goods, customs];
+    var inside = 0, outside = 0;
+    for (var i = 0; i < vals.length; i++) {
+      if (!isNum(vals[i])) { inside++; outside++; } else if (vals[i] <= thr) inside++; else outside++;
+    }
+    return outside === 0 ? "yes" : inside === 0 ? "no" : "maybe";
+  }
+
+  function pairExempt(exempt, s) {
+    if (!exempt) return null;
+    var e = [exempt[s], exempt[s]];
+    e.status = exempt.status; e.checked_at = exempt.checked_at; e.source = exempt.source;
+    return e;
+  }
+
+  /*
+   * Import duty line. Uses the category's component, unless a duty rule
+   * (e.g. a flat amount for low-value parcels) applies in a scenario; when it
+   * is unclear whether the rule applies, the range covers both.
+   */
+  function dutyLine(ctx, dest, cat, customs, goods, exempt, currency, used) {
+    var label = "Import duty" + (cat ? " (" + (CATEGORY_LABEL[cat.key] || cat.key) + ")" : "");
+    var comp = cat && !cat.missing ? dest.duty[cat.key] : null;
+    var picked = pickDutyRule(ctx, dest, cat);
+    var hasOverride = ctx.overrides && Object.prototype.hasOwnProperty.call(ctx.overrides, "dest.duty");
+    if (!picked || hasOverride) return componentLine(ctx, comp, "dest.duty", label, currency, customs, exempt);
+    var when = picked.row.applies_when;
+    var m = [0, 1].map(function (s) {
+      if (exempt && exempt[s]) return "no";
+      return bandMatch(ctx, when, currency, goods[s], customs[s]);
+    });
+    if (m[0] === "no" && m[1] === "no") return componentLine(ctx, comp, "dest.duty", label, currency, customs, exempt);
+    var ruleLabel = picked.rule.label || "Duty rule";
+    var cands = [], usedRule = false, usedNormal = false;
+    for (var s = 0; s < 2; s++) {
+      var b = [customs[s], customs[s]];
+      if (m[s] !== "no") { cands.push(componentLine(ctx, picked.rule, "dest.duty", label + " — " + ruleLabel, currency, b, null)); usedRule = true; }
+      if (m[s] !== "yes") { cands.push(componentLine(ctx, comp, "dest.duty", label, currency, b, pairExempt(exempt, s))); usedNormal = true; }
+    }
+    used.duty_rule = picked.rule.id || null;
+    used.duty_rule_applies = m[0] === "yes" && m[1] === "yes" ? "yes" : "partly";
+    var line = baseLine("dest.duty", label, currency);
+    line.rule = picked.rule.id || null;
+    line.note = usedNormal ? ruleLabel + " — applies in part of the range" : ruleLabel;
+    var srcs = [], dates = [];
+    cands.forEach(function (c) {
+      if (c.source && srcs.indexOf(c.source) < 0) srcs.push(c.source);
+      if (c.checked_at) dates.push(c.checked_at);
+    });
+    line.source = srcs.length ? srcs.join(" ; ") : null;
+    line.checked_at = dates.length ? dates.sort()[0] : null;
+    if (cands.some(function (c) { return !isNum(c.low) || !isNum(c.high); })) return line; // unknown (already warned)
+    line.low = Math.min.apply(null, cands.map(function (c) { return c.low; }));
+    line.high = Math.max.apply(null, cands.map(function (c) { return c.high; }));
+    line.status = cands.some(function (c) { return c.status === "stale"; }) ? "stale" : "ok";
+    if (usedNormal && usedRule) {
+      warn(ctx, "duty_rule_partly", ruleLabel + " may apply, depending on the value counted. The duty range covers both.", "dest.duty");
+    }
+    return line;
+  }
+
+  // Notices: destination notices filtered by `when` ({ carriers: [...], methods: [...] })
+  // and shipping-method notices filtered by `when` ({ destinations: [...] }).
+  function noticesFor(ctx, dest, method) {
+    var out = [];
+    function take(list, ok) {
+      (Array.isArray(list) ? list : []).forEach(function (n) {
+        if (!n || typeof n !== "object" || typeof n.message !== "string" || !n.message) return;
+        var from = n.effective_from == null ? -Infinity : parseDay(n.effective_from);
+        if (from === null || from > ctx.today || endedBy(n, ctx.today)) return;
+        if (!ok(n.when || {})) return;
+        out.push({ id: n.id || null, message: n.message, source: n.source || null, checked_at: n.checked_at || null });
+      });
+    }
+    var has = function (arr, v) { return !Array.isArray(arr) || (v != null && arr.indexOf(v) >= 0); };
+    if (dest) take(dest.notices, function (w) { return has(w.carriers, method && method.carrier) && has(w.methods, method && method.id); });
+    if (method) take(method.notices, function (w) { return has(w.destinations, dest && dest.country); });
+    return out;
+  }
+
   /**
    * landedCost(input, tables, today)
    *
@@ -280,7 +429,8 @@
    *   price_jpy, max_bid_jpy, is_auction,
    *   domestic_shipping: "free"|"up_to_1000"|"up_to_2000"|"manual", domestic_shipping_jpy,
    *   proxy, plan, options: [ids], shipping_method, destination,
-   *   genre, subgenre, weight_kg, dimensions_cm: { l, w, h },
+   *   genre, subgenre, weight_kg, dimensions_cm: { l, w, h }, quantity (units, default 1),
+   *   subdivision (e.g. a province id, when the destination lists subdivisions),
    *   fx_rate (JPY per 1 unit of the destination currency), overrides: { lineId: amount }
    * }
    * tables: { meta, proxies, shipping, destinations } (data/rates/*.json)
@@ -295,7 +445,7 @@
       staleDays: isNum(meta.stale_after_days) ? meta.stale_after_days : DEFAULT_STALE_DAYS,
       expireDays: isNum(meta.expire_after_days) ? meta.expire_after_days : DEFAULT_EXPIRE_DAYS,
       overrides: input.overrides && typeof input.overrides === "object" ? input.overrides : null,
-      warnings: [], fx: null, destCurrency: null
+      warnings: [], fx: null, destCurrency: null, quantity: 1
     };
     if (ctx.today === null) {
       warn(ctx, "invalid_input", "Ignored an invalid date; using today.", "today");
@@ -303,6 +453,13 @@
     }
     var jpyLines = [], destLines = [];
     var used = {};
+    var qty = userNum(ctx, input.quantity, "quantity", "the quantity");
+    if (qty !== null && (qty < 1 || Math.floor(qty) !== qty)) {
+      warn(ctx, "invalid_input", "Ignored an invalid value for the quantity.", "quantity");
+      qty = null;
+    }
+    ctx.quantity = qty === null ? 1 : qty;
+    used.quantity = ctx.quantity;
 
     // 1. Item price (design §3: auctions use the user's max bid, else the current price).
     var item = baseLine("item", "Item price", "JPY");
@@ -425,6 +582,10 @@
       "JPY", [chargeable, chargeable]);
     jpyLines.push(shipLine);
     bases.international_shipping = [shipLine.low, shipLine.high];
+
+    // Notices (data-driven, e.g. a carrier's condition for a destination).
+    var notices = noticesFor(ctx, dest, method);
+    notices.forEach(function (n) { warn(ctx, "notice", n.message, "notice." + (n.id || "")); });
     bases.proxy_charges_plus_shipping = add2(bases.proxy_charges, bases.international_shipping);
 
     // 5. Payment fees (charged on what is paid to the proxy).
@@ -454,9 +615,24 @@
 
     // 7. Import taxes (destination currency). Customs value: FOB = item only;
     //    CIF = item + international shipping + insurance. Unknown basis -> FOB..CIF range.
+    //    The import-tax base is set separately by dest.tax_base (list of parts).
+    var subs = dest && dest.subdivisions && Array.isArray(dest.subdivisions.options) ? dest.subdivisions : null;
+    var sub = null;
+    if (subs) {
+      used.subdivision = null;
+      if (input.subdivision) {
+        sub = find(subs.options, input.subdivision);
+        if (!sub) warn(ctx, "invalid_input", "Ignored an unknown " + (subs.label || "region").toLowerCase() + ".", "subdivision");
+        else used.subdivision = sub.id;
+      }
+      if (!sub) warn(ctx, "subdivision_not_chosen", (subs.label || "Region") + ": not chosen, so " + ((subs.tax_label || "regional sales tax").toLowerCase()) + " is not included.", "subdivision");
+    }
+    var subLabel = sub ? ((sub.tax && sub.tax.label) || subs.tax_label || "Regional sales tax") + " (" + (sub.label || sub.id) + ")" : null;
     if (dest && ctx.fx) {
       var basis = param(ctx, dest.duty_basis);
       var fob = [toOut(itemPair[0]), toOut(itemPair[1])];
+      var shipOut = [toOut(bases.international_shipping[0]), toOut(bases.international_shipping[1])];
+      var insOut = [toOut(insurance[0]), toOut(insurance[1])];
       var cifJ = add2(add2(itemPair, bases.international_shipping), insurance);
       var cif = [toOut(cifJ[0]), toOut(cifJ[1])];
       var customs;
@@ -474,29 +650,63 @@
       var dm = param(ctx, dest.de_minimis);
       var dmVal = dm.row && isNum(dm.value) ? convert(ctx, dm.value, dm.row.currency || dest.currency, currency) : null;
       var appliesTo = dm.row && Array.isArray(dm.row.applies_to) ? dm.row.applies_to : ["duty", "import_tax"];
-      function exemptFor(kind) {
+      var exemptFor = function (kind) {
         if (dmVal === null || appliesTo.indexOf(kind) < 0 || !isNum(customs[0])) return null;
         var e = [customs[0] <= dmVal, customs[1] <= dmVal];
         e.status = dm.status; e.checked_at = dm.row.checked_at; e.source = dm.row.source;
         return e;
-      }
+      };
       if (dm.status === "unknown") warn(ctx, "unknown", "Duty-free threshold: not confirmed. Taxes are estimated as if it does not apply.", "dest.de_minimis");
       else if (dm.status === "stale") warn(ctx, "stale", "Duty-free threshold: last checked " + dm.row.checked_at + ", more than " + ctx.staleDays + " days ago. It may be out of date.", "dest.de_minimis");
 
-      var cat = DUTY_CATEGORY[input.subgenre] || DUTY_CATEGORY[input.genre] || null;
-      var dutyComp = cat && dest.duty ? dest.duty[cat] : null;
+      var cat = dutyCategory(dest, input);
       if (!cat) warn(ctx, "unknown", "Item type is not a camera, lens or watch, so the duty rate is unknown.", "dest.duty");
-      var duty = componentLine(ctx, dutyComp, "dest.duty", "Import duty" + (cat ? " (" + cat + ")" : ""), currency, customs, exemptFor("duty"));
-      destLines.push(duty);
+      used.duty_category = cat ? cat.key : null;
+      destLines.push(dutyLine(ctx, dest, cat, customs, fob, exemptFor("duty"), currency, used));
       if (dest.extra_tariff) {
         destLines.push(componentLine(ctx, dest.extra_tariff, "dest.extra_tariff", dest.extra_tariff.label || "Additional tariff", currency, customs, exemptFor("duty")));
       }
       var dutyTotal = sum2(destLines);
       var dutyKnown = destLines.every(function (l) { return isNum(l.low); });
+      var dutyPair = dutyKnown ? dutyTotal : [null, null];
       var customsPlusDuty = dutyKnown && isNum(customs[0]) ? [customs[0] + dutyTotal[0], customs[1] + dutyTotal[1]] : [null, null];
+
+      // Import-tax base. dest.tax_base lists the parts (goods, international_shipping,
+      // insurance, duty, customs_value); null = not confirmed -> range from
+      // goods + duty (low) to goods + shipping + insurance + duty (high).
+      // Without dest.tax_base the older import_tax.base setting is used.
+      var tb;
+      if (dest.tax_base) {
+        var tbp = param(ctx, dest.tax_base);
+        var parts = { goods: fob, international_shipping: shipOut, insurance: insOut, duty: dutyPair, customs_value: customs };
+        var sumParts = function (list, s) {
+          var t = 0;
+          for (var i = 0; i < list.length; i++) {
+            var pp = parts[list[i]];
+            if (!pp || !isNum(pp[s])) return null;
+            t += pp[s];
+          }
+          return t;
+        };
+        if (Array.isArray(tbp.value) && tbp.value.length) {
+          tb = [sumParts(tbp.value, 0), sumParts(tbp.value, 1)];
+          used.tax_base = tbp.value.slice();
+          if (tbp.status === "stale") warn(ctx, "stale", "Import tax base: last checked " + tbp.row.checked_at + ", more than " + ctx.staleDays + " days ago. It may be out of date.", "dest.tax_base");
+        } else {
+          tb = [sumParts(["goods", "duty"], 0), sumParts(["goods", "international_shipping", "insurance", "duty"], 1)];
+          used.tax_base = null;
+          if (dest.import_tax || sub) warn(ctx, "tax_base_unknown", "Whether import tax is charged on the item price alone or also on shipping and insurance is not confirmed. The range covers both.", "dest.tax_base");
+        }
+        if (!isNum(tb[0]) || !isNum(tb[1])) tb = [null, null];
+      } else {
+        tb = dest.import_tax && dest.import_tax.base === "customs_value" ? customs : customsPlusDuty;
+      }
+      used.tax_base_value = tb;
       if (dest.import_tax) {
-        var tb = dest.import_tax.base === "customs_value" ? customs : customsPlusDuty;
         destLines.push(componentLine(ctx, dest.import_tax, "dest.import_tax", dest.import_tax.label || "Import VAT / GST", currency, tb, exemptFor("import_tax")));
+      }
+      if (sub) {
+        destLines.push(componentLine(ctx, sub.tax, "dest.subdivision_tax", subLabel, currency, tb, exemptFor("import_tax")));
       }
       if (dest.broker_fee) {
         destLines.push(componentLine(ctx, dest.broker_fee, "dest.broker_fee", dest.broker_fee.label || "Customs clearance fee", currency, [0, 0]));
@@ -506,6 +716,7 @@
         var l = baseLine(id, id === "dest.duty" ? "Import duty" : "Import VAT / GST", currency);
         destLines.push(l);
       });
+      if (sub) destLines.push(baseLine("dest.subdivision_tax", subLabel, currency));
     }
 
     // 8. Everything into the output currency; the total is the sum of known lines.
@@ -536,6 +747,7 @@
       currency: currency,
       lines: lines,
       warnings: ctx.warnings,
+      notices: notices,
       used: used
     };
   }

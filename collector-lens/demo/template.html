@@ -134,6 +134,7 @@
   .sample-flag { margin: 0; padding: 8px 12px; border-radius: 6px; border-left: 4px solid var(--medium); background: var(--medium-bg); color: var(--ink); font-size: .88rem; font-weight: 600; }
   .est-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr)); gap: 12px; }
   .est-field { display: grid; gap: 4px; min-width: 0; align-content: start; }
+  .est-field[hidden] { display: none; }
   .est-field label { font-size: .85rem; font-weight: 600; }
   .est-field .hint { font-size: .78rem; color: var(--ink-faint); }
   .est-field input, .est-field select { width: 100%; font: inherit; font-size: .92rem; color: var(--ink); background: var(--paper); border: 1px solid var(--rule); border-radius: 6px; padding: 7px 9px; min-width: 0; }
@@ -235,6 +236,10 @@
       <div class="est-field">
         <label for="est-dest">Destination</label>
         <select id="est-dest"></select>
+      </div>
+      <div class="est-field" id="est-sub-field" hidden>
+        <label for="est-subdivision" id="est-sub-label">Region</label>
+        <select id="est-subdivision"></select>
       </div>
       <div class="est-field">
         <label for="est-weight">Weight (kg)</label>
@@ -536,6 +541,19 @@
     return { genre: r.genre, subgenre: r.subgenre || null };
   }
 
+  // Province / region select, only for destinations whose table lists subdivisions.
+  function refreshSubdivisions() {
+    var d = RATES.destinations.destinations.filter(function (x) { return x.country === $("est-dest").value; })[0];
+    var subs = d && d.subdivisions && d.subdivisions.options && d.subdivisions.options.length ? d.subdivisions : null;
+    var sel = $("est-subdivision");
+    sel.textContent = "";
+    $("est-sub-field").hidden = !subs;
+    if (!subs) return;
+    $("est-sub-label").textContent = subs.label || "Region";
+    var o0 = el("option", null, "Choose…"); o0.value = ""; sel.appendChild(o0);
+    subs.options.forEach(function (s) { var o = el("option", null, s.label); o.value = s.id; sel.appendChild(o); });
+  }
+
   function readInput() {
     var t = itemType();
     var band = $("est-domestic").value;
@@ -550,6 +568,7 @@
       plan: "standard",
       shipping_method: $("est-method").value,
       destination: $("est-dest").value,
+      subdivision: $("est-sub-field").hidden ? undefined : ($("est-subdivision").value || undefined),
       genre: t.genre,
       subgenre: t.subgenre,
       weight_kg: $("est-weight").value,
@@ -620,7 +639,9 @@
   globalThis.renderEstimate = render;
 
   ["est-bid", "est-domestic-jpy", "est-weight", "est-fx"].forEach(function (id) { $(id).addEventListener("input", render); });
-  ["est-domestic", "est-method", "est-dest"].forEach(function (id) { $(id).addEventListener("change", render); });
+  $("est-dest").addEventListener("change", refreshSubdivisions);
+  ["est-domestic", "est-method", "est-dest", "est-subdivision"].forEach(function (id) { $(id).addEventListener("change", render); });
+  refreshSubdivisions();
   render();
 })();
 </script>

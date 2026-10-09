@@ -22,7 +22,7 @@ const PLACEHOLDER = (() => {
     if (Array.isArray(x)) return x.forEach(walk);
     if (!x || typeof x !== "object") return;
     if (Array.isArray(x.rows)) for (const r of x.rows) {
-      for (const f of ["value", "amount", "rate", "min", "tiers"]) if (f in r) r[f] = null;
+      for (const f of ["value", "amount", "rate", "min", "max", "tiers"]) if (f in r) r[f] = null;
       Object.assign(r, { effective_from: null, checked_at: null, source: null, note: "要確認：placeholder copy for tests" });
     }
     Object.values(x).forEach(walk);
@@ -321,4 +321,46 @@ test("bundled partial tables: Japan Post shipping and import taxes shown with da
   assert.ok(lines.some((t) => /Import VAT/.test(t) && /Checked 2026-10-09/.test(t)), lines.join("\n"));
   assert.match(q(".est-total").textContent, /€/);
   assert.ok(!/NaN|Infinity|undefined|null/.test(shadow.querySelector(".est").textContent));
+});
+
+test("province select: shown only for destinations with subdivisions; adds the regional tax line", () => {
+  const { shadow, q } = render({ tables: FIXTURE, today: TODAY, listing: { price_jpy: 30000, genre: "camera", subgenre: "lens" } });
+  open(q);
+  const field = q(".est-subdivision").closest("label");
+  assert.equal(field.hidden, true);
+  set(q, ".est-dest", "CA");
+  assert.equal(field.hidden, false);
+  assert.equal(field.querySelector(".lbl").textContent, "Province or territory");
+  assert.deepEqual([...q(".est-subdivision").options].map((o) => o.value), ["", "ON", "AB", "QC"]);
+  assert.ok(warningTexts(shadow).some((t) => /Province or territory: not chosen/.test(t)));
+  const before = q(".est-total").textContent;
+  set(q, ".est-subdivision", "ON");
+  click(q(".est-bd-toggle"));
+  assert.ok(lineTexts(shadow).some((t) => t.startsWith("Provincial sales tax (Ontario)")), lineTexts(shadow).join("\n"));
+  assert.notEqual(q(".est-total").textContent, before);
+  assert.ok(!warningTexts(shadow).some((t) => /not chosen/.test(t)));
+  set(q, ".est-subdivision", "QC");
+  assert.ok(lineTexts(shadow).some((t) => t.startsWith("Provincial sales tax (Quebec)") && t.includes("Not confirmed yet — excluded")));
+  set(q, ".est-dest", "GB");
+  assert.equal(field.hidden, true);
+  assert.ok(!lineTexts(shadow).some((t) => t.startsWith("Provincial")));
+  assert.ok(!/NaN|Infinity|undefined/.test(shadow.querySelector(".est").textContent));
+});
+
+test("notices: carrier condition for the destination shown first in the warnings", () => {
+  const { shadow, q } = render({ tables: FIXTURE, today: TODAY, listing: { price_jpy: 30000, genre: "camera", subgenre: "lens" } });
+  open(q);
+  set(q, ".est-dest", "US");
+  const first = q(".est-warnings li");
+  assert.equal(first.className, "est-notice");
+  assert.match(first.textContent, /^Sample notice: this fictional carrier/);
+  set(q, ".est-method", "express_sample");
+  assert.equal(q(".est-warnings li.est-notice"), null);
+  // Bundled tables: Japan Post to the US.
+  const real = render({ today: TODAY, listing: { price_jpy: 30000, genre: "camera", subgenre: "lens" } });
+  open(real.q);
+  set(real.q, ".est-dest", "US");
+  assert.match(real.q(".est-warnings li.est-notice").textContent, /^Japan Post accepts parcels to the US/);
+  set(real.q, ".est-dest", "GB");
+  assert.equal(real.q(".est-warnings li.est-notice"), null);
 });

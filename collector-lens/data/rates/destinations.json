@@ -5,6 +5,21 @@
       "country": "US",
       "currency": "USD",
       "label": "United States",
+      "notices": [
+        {
+          "id": "japan_post_us_prepaid_duties",
+          "when": {
+            "carriers": [
+              "japan_post"
+            ]
+          },
+          "message": "Japan Post accepts parcels to the US that contain goods sold to the buyer (or items worth over US$100) only if US duties are prepaid through a Japan Post–recommended operator's app and the parcel is posted at a designated post office. Check that your proxy can ship this way.",
+          "checked_at": "2026-10-09",
+          "checked_by": "P4 research (Claude)",
+          "source": "https://www.post.japanpost.jp/service/send/oversea/information/overview.pdf ; https://www.post.japanpost.jp/cgi-kokusai/country.php?cid=7",
+          "note": "日本郵便の差出可否早見表（2026-10-01 現在）と国際郵便条件表（米国）で △。販売品・100米ドル超の物品は、CBP 認定の推奨事業者のアプリで関税等を事前に払い、指定の郵便局から出す場合に限り引受け（§12.1）。shipping.json の carrier が japan_post の配送方法を選んだときだけ出す。代行業者がこの方法で出荷できるかは要確認（§12.4）"
+        }
+      ],
       "duty_basis": {
         "rows": [
           {
@@ -131,6 +146,24 @@
           }
         ]
       },
+      "tax_base": {
+        "rows": [
+          {
+            "checked_at": "2026-10-09",
+            "checked_by": "P4 research (Claude)",
+            "effective_from": "2026-10-09",
+            "effective_from_basis": "確認日（出典に施行日の記載がないため、この日に有効であることを確認した日を記入）",
+            "value": [
+              "goods",
+              "international_shipping",
+              "insurance",
+              "duty"
+            ],
+            "source": "https://www.gov.uk/goods-sent-from-abroad/tax-and-duty",
+            "note": "配送業者に払う VAT は『商品価格・送料・梱包・保険・関税』の合計にかかる（gov.uk。§12.1 英国 輸入 VAT の行）。梱包はエンジンでは別に持たない（代行業者の梱包オプションは課税標準に入れていない）"
+          }
+        ]
+      },
       "de_minimis": {
         "rows": [
           {
@@ -180,14 +213,29 @@
         "watch": {
           "rows": [
             {
-              "effective_from": null,
-              "kind": "rate",
-              "rounding": "round",
-              "rate": null,
               "checked_at": "2026-10-09",
-              "source": null,
               "checked_by": "P4 research (Claude)",
-              "note": "要確認：Third country duty は 0.20 GBP／個の従量税（9101 11/21、9102 11/21 とも、2021-01-01〜）。率では表せないため null。日本の特恵税率（Tariff preference）は 0%（原産地の申告が必要）。出典 https://www.trade-tariff.service.gov.uk/commodities/9102210000"
+              "effective_from": "2021-01-01",
+              "kind": "per_unit",
+              "amount": 0.2,
+              "currency": "GBP",
+              "rounding": "round",
+              "source": "https://www.trade-tariff.service.gov.uk/commodities/9102210000",
+              "note": "Third country duty 0.20 GBP／個の従量税（9101 11/21、9102 11/21 とも、2021-01-01〜。§12.2 で率では表せないため null にしていた値を、per_unit 部品で記入）。数量は1個として計算（input.quantity）。日本の特恵税率（Tariff preference）は 0%（原産地の申告が必要）。135ポンド以下は関税の少額免除で0"
+            }
+          ]
+        },
+        "digital_camera": {
+          "rows": [
+            {
+              "checked_at": "2026-10-09",
+              "checked_by": "P4 research (Claude)",
+              "effective_from": "2022-01-01",
+              "kind": "rate",
+              "rate": 0,
+              "rounding": "round",
+              "source": "https://www.trade-tariff.service.gov.uk/commodities/8525890000",
+              "note": "Third country duty 0.00%（デジタルカメラ 8525 89 00 00、2022-01-01〜）。§12.1 英国カメラの行の note と出典に記録済みの値を、区分を分けて持った。結果は camera と同じ"
             }
           ]
         }
@@ -243,6 +291,24 @@
           }
         ]
       },
+      "tax_base": {
+        "rows": [
+          {
+            "checked_at": "2026-10-09",
+            "checked_by": "P4 research (Claude)",
+            "effective_from": "2026-10-09",
+            "effective_from_basis": "確認日（出典に施行日の記載がないため、この日に有効であることを確認した日を記入）",
+            "value": [
+              "goods",
+              "international_shipping",
+              "insurance",
+              "duty"
+            ],
+            "source": "https://trade.ec.europa.eu/access-to-markets/api/taxes/get/9006538000/JP/DE",
+            "note": "輸入 VAT の課税標準は関税評価額（CIF：商品価格＋EU に入るまでの輸送費・保険）＋関税（＋最初の仕向地までの輸送費）（§12.1 ドイツ 輸入 VAT の行の note）。EU 内の輸送費は別に持たない"
+          }
+        ]
+      },
       "de_minimis": {
         "rows": [
           {
@@ -256,7 +322,7 @@
               "import_tax"
             ],
             "source": "https://taxation-customs.ec.europa.eu/document/download/053e5b4e-f0be-4f20-9a23-3e3b659a6676_en?filename=Customs+Guidance+on+EUR+3+customs+duty.pdf",
-            "note": "免税の基準額はない。VAT は2021-07-01から少額でも課税。関税の150ユーロ以下免除は Council Regulation (EU) 2026/382 で廃止。代わりに、通信販売（distance sales）で150ユーロ以下の貨物には1品目 €3 の定額関税（2026-07-01〜2028-07-01）。計算エンジンは定額関税を表せないため、150ユーロ以下でも従価の関税率で計算する（ずれは数ユーロ）。代行業者経由の購入が distance sale に当たるかは要確認。別に1品目 €2 の Union handling fee が 2026-11-01 から見込み（委任規則は審査中）"
+            "note": "免税の基準額はない。VAT は2021-07-01から少額でも課税。関税の150ユーロ以下免除は Council Regulation (EU) 2026/382 で廃止。代わりに、通信販売（distance sales）で150ユーロ以下の貨物には1品目 €3 の定額関税（2026-07-01〜2028-07-01）。定額関税は duty_rules の eu_low_value_flat で計算する（§13）。代行業者経由の購入が distance sale に当たるかは要確認。別に1品目 €2 の Union handling fee が 2026-11-01 から見込み（委任規則は審査中）"
           }
         ]
       },
@@ -271,7 +337,7 @@
               "rate": 0.042,
               "rounding": "round",
               "source": "https://trade.ec.europa.eu/access-to-markets/en/results?product=9006538000&origin=JP&destination=DE ; https://trade.ec.europa.eu/access-to-markets/api/tariffs/get/9006538000/JP/DE?lang=EN ; https://trade.ec.europa.eu/access-to-markets/api/tariffs/get/9006590000/JP/DE?lang=EN",
-              "note": "Third country duty 4.20%（9006 53 80、9006 59 00。EU Access2Markets）。日本の特恵税率（EU・日本 EPA）は 0%（2020-02-01〜。原産地に関する申告が必要）。デジタルカメラ 8525 89 00 は 0%で、この率は当てはまらない（エンジンは camera 区分にまとめているため要対応）"
+              "note": "Third country duty 4.20%（9006 53 80、9006 59 00。EU Access2Markets）。日本の特恵税率（EU・日本 EPA）は 0%（2020-02-01〜。原産地に関する申告が必要）。デジタルカメラ 8525 89 00 は 0%で、この率は当てはまらない（duty.digital_camera で別に持つ。§13）"
             }
           ]
         },
@@ -292,18 +358,63 @@
         "watch": {
           "rows": [
             {
+              "checked_at": "2026-10-09",
+              "checked_by": "P4 research (Claude)",
+              "effective_from": "2026-10-09",
+              "effective_from_basis": "確認日（出典に施行日の記載がないため、この日に有効であることを確認した日を記入）",
+              "kind": "rate_with_min_max",
+              "rate": 0.045,
+              "min": 0.3,
+              "max": 0.8,
+              "per": "unit",
+              "currency": "EUR",
+              "rounding": "round",
+              "source": "https://trade.ec.europa.eu/access-to-markets/api/tariffs/get/9102210000/JP/DE?lang=EN",
+              "note": "Third country duty 4.50%、ただし1個あたり最低0.30ユーロ・最高0.80ユーロ（9101 11/21、9102 11/21。EU Access2Markets。§12.2 で上限つきの率は表せないため null にしていた値を、rate_with_min_max 部品で記入）。数量は1個として計算。日本の特恵税率は 0%"
+            }
+          ]
+        },
+        "digital_camera": {
+          "rows": [
+            {
               "effective_from": null,
               "kind": "rate",
               "rounding": "round",
               "rate": null,
               "checked_at": "2026-10-09",
               "source": null,
-              "checked_by": "P4 research (Claude)",
-              "note": "要確認：Third country duty は 4.50%、ただし1個あたり最低0.30ユーロ・最高0.80ユーロ（9101 11/21、9102 11/21。EU Access2Markets https://trade.ec.europa.eu/access-to-markets/api/tariffs/get/9102210000/JP/DE?lang=EN ）。上限つきの率は表せないため null。日本の特恵税率は 0%"
+              "checked_by": "Ren",
+              "note": "要確認：デジタルカメラ（HS 8525 89 00）は 0% の可能性が高い（§12 の調査メモ）が、品目別の公式ページを開いて確認した記録がないため記入しない。確認するまではカメラの率も流用しない"
             }
           ]
         }
       },
+      "duty_rules": [
+        {
+          "id": "eu_low_value_flat",
+          "label": "EU flat duty for parcels up to €150",
+          "replaces": "duty",
+          "rows": [
+            {
+              "checked_at": "2026-10-09",
+              "checked_by": "P4 research (Claude)",
+              "effective_from": "2026-07-01",
+              "effective_until": "2028-07-01",
+              "kind": "fixed",
+              "amount": 3,
+              "currency": "EUR",
+              "rounding": "round",
+              "applies_when": {
+                "max_value": 150,
+                "currency": "EUR",
+                "of": null
+              },
+              "source": "https://taxation-customs.ec.europa.eu/document/download/053e5b4e-f0be-4f20-9a23-3e3b659a6676_en?filename=Customs+Guidance+on+EUR+3+customs+duty.pdf",
+              "note": "通信販売（distance sales）で150ユーロ以下の貨物には、従価の関税の代わりに1品目 €3 の定額関税（Council Regulation (EU) 2026/382。2026-07-01〜2028-07-01。§12.1・§12.3 の3）。1件の出品＝1品目として計算。要確認：(1) 150ユーロを判定する額（商品の価格だけか、送料・保険込みか）。§12 に記録がないため of は null で、両方で判定し、どちらとも言えない範囲は従価との幅で出す。(2) 2028-07-01 当日が対象か（ここでは当日から対象外）。(3) 代行業者経由の購入が distance sale に当たるか。別に1品目 €2 の Union handling fee が 2026-11-01 から見込みだが、委任規則が審査中のため入れていない"
+            }
+          ]
+        }
+      ],
       "import_tax": {
         "label": "Import VAT",
         "base": "customs_value_plus_duty",
@@ -353,6 +464,24 @@
             "source": "https://www.abf.gov.au/help-and-support-subsite/Guides/doc-import-declaration-guide.pdf",
             "note": "関税評価額（Customs value）は通常、取引価格を豪ドルに換算したもの。申告書の FOB 欄は輸出地までの費用を含み、国際輸送・保険を含まない（ABF Import Declaration Guide）。なお GST の課税標準は関税評価額＋関税＋国際輸送・保険（下の import_tax 参照）",
             "effective_from_basis": "確認日（出典に施行日の記載がないため、この日に有効であることを確認した日を記入）"
+          }
+        ]
+      },
+      "tax_base": {
+        "rows": [
+          {
+            "checked_at": "2026-10-09",
+            "checked_by": "P4 research (Claude)",
+            "effective_from": "2026-10-09",
+            "effective_from_basis": "確認日（出典に施行日の記載がないため、この日に有効であることを確認した日を記入）",
+            "value": [
+              "goods",
+              "international_shipping",
+              "insurance",
+              "duty"
+            ],
+            "source": "https://www.abf.gov.au/importing-exporting-and-manufacturing/importing/cost-of-importing-goods/gst-and-other-taxes",
+            "note": "GST の課税標準は関税評価額（FOB）＋関税＋豪州までの国際輸送費・保険（ABF。§12.1 豪州 輸入 GST の行、§12.3 の2）。関税は FOB のまま"
           }
         ]
       },
@@ -419,6 +548,20 @@
               "effective_from_basis": "確認日（出典に施行日の記載がないため、この日に有効であることを確認した日を記入）"
             }
           ]
+        },
+        "digital_camera": {
+          "rows": [
+            {
+              "effective_from": null,
+              "kind": "rate",
+              "rounding": "round",
+              "rate": null,
+              "checked_at": null,
+              "source": null,
+              "checked_by": null,
+              "note": "要確認：デジタルカメラ（8525.89）の豪州の関税率は §12 で確認していない（§12.1 豪州カメラの行の note）。9006 と同じとは限らないため、camera の率を流用せず未確定にする"
+            }
+          ]
         }
       },
       "import_tax": {
@@ -433,7 +576,7 @@
             "rate": 0.1,
             "rounding": "round",
             "source": "https://www.abf.gov.au/importing-exporting-and-manufacturing/importing/cost-of-importing-goods/gst-and-other-taxes",
-            "note": "GST 10%。課税標準は関税評価額＋関税＋豪州までの輸送費・保険（ABF）。計算エンジンは課税標準に国際送料を含めないため、1,000豪ドル超の場合 GST を送料×10%だけ少なく見積もる（要対応）",
+            "note": "GST 10%。課税標準は関税評価額＋関税＋豪州までの輸送費・保険（ABF）。課税標準は tax_base で持つ（§13）",
             "effective_from_basis": "確認日（出典に施行日の記載がないため、この日に有効であることを確認した日を記入）"
           }
         ]
@@ -469,6 +612,18 @@
             "source": "https://www.cbsa-asfc.gc.ca/publications/dm-md/d13/d13-3-3-eng.html",
             "note": "課税価格（value for duty）に、直接積出地からカナダまでの輸送費は含めない（CBSA Memorandum D13-3-3）",
             "effective_from_basis": "確認日（出典に施行日の記載がないため、この日に有効であることを確認した日を記入）"
+          }
+        ]
+      },
+      "tax_base": {
+        "rows": [
+          {
+            "effective_from": null,
+            "value": null,
+            "checked_at": null,
+            "source": null,
+            "checked_by": null,
+            "note": "要確認：輸入 GST の課税標準（課税価格＋関税だけか、国際送料・保険も含むか）は §12 で確認していない。計算エンジンは『商品価格＋関税』（下限）から『商品価格＋国際送料＋保険＋関税』（上限）の幅で出す"
           }
         ]
       },
@@ -532,6 +687,20 @@
               "note": "MFN 5%（9101.11.00、9101.21.00、9102.11.00、9102.21.00。T2026-2）。日本の特恵（JT、CPTPPT）は Free（原産地の証明が必要）。ここでは MFN を使う"
             }
           ]
+        },
+        "digital_camera": {
+          "rows": [
+            {
+              "effective_from": null,
+              "kind": "rate",
+              "rounding": "round",
+              "rate": null,
+              "checked_at": null,
+              "source": null,
+              "checked_by": null,
+              "note": "要確認：デジタルカメラ（8525.89）のカナダの MFN 税率は §12 で確認していない。camera も未確定（§12.2）"
+            }
+          ]
         }
       },
       "import_tax": {
@@ -548,6 +717,260 @@
             "source": "https://www.cbsa-asfc.gc.ca/import/postal-postale/dtytx-drttx-eng.html",
             "note": "郵便の輸入品には GST 5%（CBSA）。HST を CBSA が徴収する州（13%など）では GST の代わりに HST、州によっては PST も別にかかる。ここは連邦 GST 5% のみで、州の税は含まない",
             "effective_from_basis": "確認日（出典に施行日の記載がないため、この日に有効であることを確認した日を記入）"
+          }
+        ]
+      },
+      "subdivisions": {
+        "label": "Province or territory",
+        "tax_label": "Provincial sales tax",
+        "note": "利用者が州を選んだときだけ、州の売上税を別の行で足す（§13）。率はすべて要確認。HST の州は、HST から連邦分（GST 5%）を引いた州の分を入れる",
+        "options": [
+          {
+            "id": "AB",
+            "label": "Alberta",
+            "tax": {
+              "label": "Provincial sales tax",
+              "rows": [
+                {
+                  "effective_from": null,
+                  "kind": "rate",
+                  "rate": null,
+                  "rounding": "round",
+                  "checked_at": null,
+                  "source": null,
+                  "checked_by": null,
+                  "note": "要確認：Alberta の州・準州の売上税（HST の州分または PST）と、郵便の輸入時に CBSA が徴収するか。§12 では確認していない（§12.3 の5：HST の州では GST の代わりに HST、PST は州によって別にかかる、という記録のみ）"
+                }
+              ]
+            }
+          },
+          {
+            "id": "BC",
+            "label": "British Columbia",
+            "tax": {
+              "label": "Provincial sales tax",
+              "rows": [
+                {
+                  "effective_from": null,
+                  "kind": "rate",
+                  "rate": null,
+                  "rounding": "round",
+                  "checked_at": null,
+                  "source": null,
+                  "checked_by": null,
+                  "note": "要確認：British Columbia の州・準州の売上税（HST の州分または PST）と、郵便の輸入時に CBSA が徴収するか。§12 では確認していない（§12.3 の5：HST の州では GST の代わりに HST、PST は州によって別にかかる、という記録のみ）"
+                }
+              ]
+            }
+          },
+          {
+            "id": "MB",
+            "label": "Manitoba",
+            "tax": {
+              "label": "Provincial sales tax",
+              "rows": [
+                {
+                  "effective_from": null,
+                  "kind": "rate",
+                  "rate": null,
+                  "rounding": "round",
+                  "checked_at": null,
+                  "source": null,
+                  "checked_by": null,
+                  "note": "要確認：Manitoba の州・準州の売上税（HST の州分または PST）と、郵便の輸入時に CBSA が徴収するか。§12 では確認していない（§12.3 の5：HST の州では GST の代わりに HST、PST は州によって別にかかる、という記録のみ）"
+                }
+              ]
+            }
+          },
+          {
+            "id": "NB",
+            "label": "New Brunswick",
+            "tax": {
+              "label": "Provincial sales tax",
+              "rows": [
+                {
+                  "effective_from": null,
+                  "kind": "rate",
+                  "rate": null,
+                  "rounding": "round",
+                  "checked_at": null,
+                  "source": null,
+                  "checked_by": null,
+                  "note": "要確認：New Brunswick の州・準州の売上税（HST の州分または PST）と、郵便の輸入時に CBSA が徴収するか。§12 では確認していない（§12.3 の5：HST の州では GST の代わりに HST、PST は州によって別にかかる、という記録のみ）"
+                }
+              ]
+            }
+          },
+          {
+            "id": "NL",
+            "label": "Newfoundland and Labrador",
+            "tax": {
+              "label": "Provincial sales tax",
+              "rows": [
+                {
+                  "effective_from": null,
+                  "kind": "rate",
+                  "rate": null,
+                  "rounding": "round",
+                  "checked_at": null,
+                  "source": null,
+                  "checked_by": null,
+                  "note": "要確認：Newfoundland and Labrador の州・準州の売上税（HST の州分または PST）と、郵便の輸入時に CBSA が徴収するか。§12 では確認していない（§12.3 の5：HST の州では GST の代わりに HST、PST は州によって別にかかる、という記録のみ）"
+                }
+              ]
+            }
+          },
+          {
+            "id": "NS",
+            "label": "Nova Scotia",
+            "tax": {
+              "label": "Provincial sales tax",
+              "rows": [
+                {
+                  "effective_from": null,
+                  "kind": "rate",
+                  "rate": null,
+                  "rounding": "round",
+                  "checked_at": null,
+                  "source": null,
+                  "checked_by": null,
+                  "note": "要確認：Nova Scotia の州・準州の売上税（HST の州分または PST）と、郵便の輸入時に CBSA が徴収するか。§12 では確認していない（§12.3 の5：HST の州では GST の代わりに HST、PST は州によって別にかかる、という記録のみ）"
+                }
+              ]
+            }
+          },
+          {
+            "id": "NT",
+            "label": "Northwest Territories",
+            "tax": {
+              "label": "Provincial sales tax",
+              "rows": [
+                {
+                  "effective_from": null,
+                  "kind": "rate",
+                  "rate": null,
+                  "rounding": "round",
+                  "checked_at": null,
+                  "source": null,
+                  "checked_by": null,
+                  "note": "要確認：Northwest Territories の州・準州の売上税（HST の州分または PST）と、郵便の輸入時に CBSA が徴収するか。§12 では確認していない（§12.3 の5：HST の州では GST の代わりに HST、PST は州によって別にかかる、という記録のみ）"
+                }
+              ]
+            }
+          },
+          {
+            "id": "NU",
+            "label": "Nunavut",
+            "tax": {
+              "label": "Provincial sales tax",
+              "rows": [
+                {
+                  "effective_from": null,
+                  "kind": "rate",
+                  "rate": null,
+                  "rounding": "round",
+                  "checked_at": null,
+                  "source": null,
+                  "checked_by": null,
+                  "note": "要確認：Nunavut の州・準州の売上税（HST の州分または PST）と、郵便の輸入時に CBSA が徴収するか。§12 では確認していない（§12.3 の5：HST の州では GST の代わりに HST、PST は州によって別にかかる、という記録のみ）"
+                }
+              ]
+            }
+          },
+          {
+            "id": "ON",
+            "label": "Ontario",
+            "tax": {
+              "label": "Provincial sales tax",
+              "rows": [
+                {
+                  "effective_from": null,
+                  "kind": "rate",
+                  "rate": null,
+                  "rounding": "round",
+                  "checked_at": null,
+                  "source": null,
+                  "checked_by": null,
+                  "note": "要確認：Ontario の州・準州の売上税（HST の州分または PST）と、郵便の輸入時に CBSA が徴収するか。§12 では確認していない（§12.3 の5：HST の州では GST の代わりに HST、PST は州によって別にかかる、という記録のみ）"
+                }
+              ]
+            }
+          },
+          {
+            "id": "PE",
+            "label": "Prince Edward Island",
+            "tax": {
+              "label": "Provincial sales tax",
+              "rows": [
+                {
+                  "effective_from": null,
+                  "kind": "rate",
+                  "rate": null,
+                  "rounding": "round",
+                  "checked_at": null,
+                  "source": null,
+                  "checked_by": null,
+                  "note": "要確認：Prince Edward Island の州・準州の売上税（HST の州分または PST）と、郵便の輸入時に CBSA が徴収するか。§12 では確認していない（§12.3 の5：HST の州では GST の代わりに HST、PST は州によって別にかかる、という記録のみ）"
+                }
+              ]
+            }
+          },
+          {
+            "id": "QC",
+            "label": "Quebec",
+            "tax": {
+              "label": "Provincial sales tax",
+              "rows": [
+                {
+                  "effective_from": null,
+                  "kind": "rate",
+                  "rate": null,
+                  "rounding": "round",
+                  "checked_at": null,
+                  "source": null,
+                  "checked_by": null,
+                  "note": "要確認：Quebec の州・準州の売上税（HST の州分または PST）と、郵便の輸入時に CBSA が徴収するか。§12 では確認していない（§12.3 の5：HST の州では GST の代わりに HST、PST は州によって別にかかる、という記録のみ）"
+                }
+              ]
+            }
+          },
+          {
+            "id": "SK",
+            "label": "Saskatchewan",
+            "tax": {
+              "label": "Provincial sales tax",
+              "rows": [
+                {
+                  "effective_from": null,
+                  "kind": "rate",
+                  "rate": null,
+                  "rounding": "round",
+                  "checked_at": null,
+                  "source": null,
+                  "checked_by": null,
+                  "note": "要確認：Saskatchewan の州・準州の売上税（HST の州分または PST）と、郵便の輸入時に CBSA が徴収するか。§12 では確認していない（§12.3 の5：HST の州では GST の代わりに HST、PST は州によって別にかかる、という記録のみ）"
+                }
+              ]
+            }
+          },
+          {
+            "id": "YT",
+            "label": "Yukon",
+            "tax": {
+              "label": "Provincial sales tax",
+              "rows": [
+                {
+                  "effective_from": null,
+                  "kind": "rate",
+                  "rate": null,
+                  "rounding": "round",
+                  "checked_at": null,
+                  "source": null,
+                  "checked_by": null,
+                  "note": "要確認：Yukon の州・準州の売上税（HST の州分または PST）と、郵便の輸入時に CBSA が徴収するか。§12 では確認していない（§12.3 の5：HST の州では GST の代わりに HST、PST は州によって別にかかる、という記録のみ）"
+                }
+              ]
+            }
           }
         ]
       },

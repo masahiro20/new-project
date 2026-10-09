@@ -315,4 +315,19 @@ test("page estimate preview: fictional label + finite total range for the defaul
   fx.value = "120";
   fx.dispatchEvent(new w.Event("input"));
   assert.equal(w.__lastEstimate.used.fx_source, "user");
+  // Province select appears only for a destination with subdivisions (CA sample).
+  const subField = d.getElementById("est-sub-field");
+  assert.equal(subField.hidden, true);
+  dest.value = "CA";
+  dest.dispatchEvent(new w.Event("change"));
+  assert.equal(subField.hidden, false);
+  const sub = d.getElementById("est-subdivision");
+  sub.value = "ON";
+  sub.dispatchEvent(new w.Event("change"));
+  assert.ok(w.__lastEstimate.lines.some((l) => l.id === "dest.subdivision_tax" && Number.isFinite(l.low)));
+  // The sample carrier's notice for the US shows in the warnings.
+  dest.value = "US";
+  dest.dispatchEvent(new w.Event("change"));
+  assert.equal(subField.hidden, true);
+  assert.ok(/Sample notice/.test(d.getElementById("est-warnings").textContent));
 });

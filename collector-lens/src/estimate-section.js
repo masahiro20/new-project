@@ -52,6 +52,7 @@
     ".est-lines li.s-unknown{border-left-color:#c9c9d1}.est-lines li.s-unknown .amt{font-weight:400;color:#777;font-style:italic}",
     ".est-lines li.s-stale{border-left-color:#f0a202}.est-lines li.s-user{border-left-color:#3a6df0}.est-lines li.s-ok{border-left-color:#2a9d8f}",
     ".est-warnings li{border-left-color:#f0a202;font-size:12px}",
+    ".est-warnings li.est-notice{border-left-color:#3a6df0;font-weight:600}",
     "@media (prefers-color-scheme:dark){.est{border-color:#333}.est-result{background:#2a2a30}.est-field .lbl{color:#d5d5dc}.est-sub{color:#c0c0c8}",
     "input,select{background:#2a2a30;border-color:#4a4a52}.est-bd-toggle{color:#8fa8ff}.est-note,.est-toggle,.est-field .hint,.est-lines .meta{color:#9a9aa5}}"
   ].join("");
@@ -193,6 +194,15 @@
     dests.forEach(function (d) { destSel.appendChild(option(doc, d.country, d.label || d.country)); });
     form.appendChild(field(doc, "Ship to", destSel, null));
 
+    // Province / region: only for destinations whose table lists subdivisions
+    // (a regional sales tax the user chooses). Not saved: the saved settings
+    // stay the ones listed in estimate-settings.js (decision 2026-10-09).
+    var subSel = el(doc, "select", "est-subdivision");
+    var subField = field(doc, "Region", subSel, null);
+    var subLabel = subField.querySelector(".lbl");
+    subField.hidden = true;
+    form.appendChild(subField);
+
     // Weight (per listing, never saved).
     var weight = el(doc, "input", "est-weight");
     weight.type = "text";
@@ -264,6 +274,19 @@
         : "No reference rate bundled. Enter today's rate.";
     }
 
+    function refreshSubdivisions() {
+      var d = currentDest();
+      var subs = d && d.subdivisions && Array.isArray(d.subdivisions.options) && d.subdivisions.options.length ? d.subdivisions : null;
+      var keep = subSel.value;
+      subSel.textContent = "";
+      subField.hidden = !subs;
+      if (!subs) return;
+      subLabel.textContent = subs.label || "Region";
+      subSel.appendChild(option(doc, "", "Choose…"));
+      subs.options.forEach(function (o) { if (o && o.id) subSel.appendChild(option(doc, o.id, o.label || o.id)); });
+      subSel.value = keep && hasOption(subSel, keep) ? keep : "";
+    }
+
     function readInput() {
       bandAmt.hidden = band.value !== "manual";
       return {
@@ -275,6 +298,7 @@
         proxy: proxySel ? proxySel.value : undefined,
         shipping_method: methodSel.value || undefined,
         destination: destSel.value || undefined,
+        subdivision: subField.hidden ? undefined : (subSel.value || undefined),
         genre: listing.genre || null,
         subgenre: listing.subgenre || null,
         weight_kg: weight.value.trim(),
@@ -329,9 +353,14 @@
 
       // Warnings. "Not confirmed" notes about a breakdown line are already
       // shown on that line, so they are not repeated here.
+      // Notices (e.g. a carrier's condition for this destination) come first.
       var lineIds = {};
       r.lines.forEach(function (l) { lineIds[l.id] = true; });
       r.warnings.forEach(function (w) {
+        if (w.code === "notice") warnings.appendChild(el(doc, "li", "est-notice", w.message));
+      });
+      r.warnings.forEach(function (w) {
+        if (w.code === "notice") return;
         if (w.code === "unknown" && w.line && lineIds[w.line]) return;
         warnings.appendChild(el(doc, "li", null, w.message));
       });
@@ -362,6 +391,7 @@
       if (proxySel && s.proxy && hasOption(proxySel, s.proxy)) proxySel.value = s.proxy;
       if (s.shipping_method && hasOption(methodSel, s.shipping_method)) methodSel.value = s.shipping_method;
       if (s.destination && hasOption(destSel, s.destination)) destSel.value = s.destination;
+      refreshSubdivisions();
       if (s.domestic_shipping && hasOption(band, s.domestic_shipping)) band.value = s.domestic_shipping;
       if (s.fx_rates && typeof s.fx_rates === "object") {
         savedFx = {};
@@ -390,14 +420,16 @@
     [bid, bandAmt, weight, fx].forEach(function (c) { c.addEventListener("input", compute); });
     [band, methodSel, destSel].concat(proxySel ? [proxySel] : []).forEach(function (c) {
       c.addEventListener("change", function () {
-        if (c === destSel) refreshFxField();
+        if (c === destSel) { refreshFxField(); refreshSubdivisions(); }
         compute();
         save();
       });
     });
+    subSel.addEventListener("change", compute);
     fx.addEventListener("change", save);
 
     refreshFxField();
+    refreshSubdivisions();
     compute();
     setOpen(ui.open);
     if (store && typeof store.load === "function") {

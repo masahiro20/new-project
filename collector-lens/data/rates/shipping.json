@@ -17,6 +17,7 @@
       "id": "jp_ems",
       "label": "Japan Post EMS",
       "service_ja": "EMS（国際スピード郵便）",
+      "carrier": "japan_post",
       "volumetric_divisor": {
         "rows": [
           {
@@ -931,6 +932,7 @@
       "id": "jp_air_packet",
       "label": "Japan Post International Air Packet (tracked, up to 2 kg)",
       "service_ja": "国際エアパケット（旧 国際eパケットライト）",
+      "carrier": "japan_post",
       "volumetric_divisor": {
         "rows": [
           {
@@ -1445,6 +1447,7 @@
       "id": "jp_small_packet_air",
       "label": "Japan Post Small Packet, airmail (no tracking, up to 2 kg)",
       "service_ja": "小形包装物（航空便）",
+      "carrier": "japan_post",
       "volumetric_divisor": {
         "rows": [
           {
@@ -1959,6 +1962,7 @@
       "id": "jp_parcel_air",
       "label": "Japan Post International Parcel, airmail",
       "service_ja": "国際小包（航空便）",
+      "carrier": "japan_post",
       "volumetric_divisor": {
         "rows": [
           {
