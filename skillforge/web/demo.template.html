@@ -201,10 +201,46 @@ details.packets > summary .n { font-family: var(--font-mono); font-size: 13px; c
 .packet-body li > * { overflow-wrap: anywhere; min-width: 0; white-space: pre-wrap; }
 .packet-body li .flag { color: var(--err); font-size: 12.5px; }
 
+/* Pilot mode: per-finding verdicts + feedback panel (hidden unless 試用モード is on). */
+.res-tools { display: flex; gap: 8px 10px; align-items: center; flex-wrap: wrap; }
+.verdict { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; padding-top: 6px; border-top: 1px dashed var(--rule); }
+.vbtns { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+.vbtn { font-size: 12.5px; padding: 3px 9px; border-radius: 2px; }
+.vbtn[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); font-weight: 700; }
+.vbtn[aria-pressed="true"]::before { content: "✓ "; }
+.vbtn[aria-pressed="true"] .en { color: inherit; opacity: 0.75; }
+.vnote { flex: 1 1 220px; min-width: 0; font-size: 13px; padding: 4px 8px; }
+.vnote[hidden] { display: none; }
+.f.is-labeled { box-shadow: inset 3px 0 0 var(--accent); }
+.fb { margin-top: 20px; background: var(--surface); border: 1px solid var(--accent); border-radius: var(--radius); padding: 14px 16px; display: grid; gap: 12px; min-width: 0; }
+.fb > * { min-width: 0; }
+.fb h3 { font-size: 16px; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+.fb h4 { font-size: 14px; }
+.fb-steps { margin: 0; padding-left: 1.4em; font-size: 13.5px; color: var(--ink-2); display: grid; gap: 2px; }
+.fb .hint { font-size: 13px; color: var(--ink-3); }
+.fb-stats { display: flex; flex-wrap: wrap; gap: 6px 20px; font-size: 14px; }
+.fb-stats b { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 1.15em; }
+.fb-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.fb-table th, .fb-table td { padding: 3px 6px; border-bottom: 1px solid var(--rule); text-align: right; font-variant-numeric: tabular-nums; }
+.fb-table th:first-child, .fb-table td:first-child { text-align: left; }
+.fb-table th { font-weight: 400; color: var(--ink-3); font-size: 12px; }
+.fb-scroll { overflow-x: auto; }
+.fb-actions { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+.fb-actions .copy-status { flex: 1 1 200px; min-width: 0; }
+.fb textarea { min-height: 100px; }
+.fb-known { display: grid; gap: 8px; border-top: 1px solid var(--rule); padding-top: 12px; }
+.fb-known .field-row > .field { flex: 1 1 140px; }
+.fb-known .field-row > .field.wide { flex: 2 1 220px; }
+.fb-known ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 13px; }
+.fb-known li { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; padding: 4px 8px; background: var(--surface-2); border-radius: 2px; }
+.fb-known li .memo { flex: 1 1 120px; min-width: 0; overflow-wrap: anywhere; color: var(--ink-2); }
+.fb-msg { font-size: 13px; color: var(--err); }
+.fb-msg:empty { display: none; }
+
 footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule); font-size: 13px; color: var(--ink-3); display: grid; gap: 4px; }
 
 @media (prefers-reduced-motion: no-preference) {
-  button, .chip { transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease; }
+  button, .chip, .vbtn { transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease; }
 }
 @media (max-width: 520px) {
   .mast h1 { font-size: 22px; }
@@ -505,6 +541,10 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
         if (!state.rows.has(lk)) state.rows.set(lk, r);
       }
     }
+    const hash = inputHash(files, gtext);
+    if (hash !== fb.hash) fbLoad(hash);
+    fb.keys = findingKeys(result.findings);
+    fb.index = new Map(result.findings.map((f, i) => [f, i]));
     state.isSample = state.sampleKey && !state.dirty ? state.sampleKey : null;
     if (!keepFilters) {
       state.cat = "all";
@@ -557,9 +597,10 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
         <div class="${f.side === "target" ? "is-side" : ""}"><dt>訳文 ${esc(tl)}</dt><dd>${f.side === "target" ? highlight(row.target, mark) : esc(row.target)}</dd></div>
       </dl>`;
     }
-    return `<li class="f">
+    const labeled = fb.on && fb.index.has(f) && labelOf(fb.index.get(f)).v;
+    return `<li class="f${labeled ? " is-labeled" : ""}">
       <div class="f-head"><span class="pill ${esc(f.severity)}">${esc((SEV[f.severity] || [f.severity])[0])}</span><code class="ref">${esc(f.file)}:${esc(f.line)}</code><code class="fid">${esc(f.id)}</code><span class="side">${f.side === "source" ? "原文側" : "訳文側"} · <span class="mono">${esc(f.rule)}</span></span></div>
-      <p class="msg">${esc(f.message)}</p>${fix}${lines}</li>`;
+      <p class="msg">${esc(f.message)}</p>${fix}${lines}${fb.on ? verdictHtml(f) : ""}</li>`;
   }
 
   function renderResults() {
@@ -577,7 +618,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
 
     let html = `<div class="res-head">
       <div><h2>チェック結果 <span class="en">Results</span>${state.isSample ? `<span class="badge-sample">サンプル${state.isSample === "ja-en" ? "（日→英）" : "（英→日）"}</span>` : ""}</h2></div>
-      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="copy-status" id="copy-status" role="status"></span><button type="button" id="btn-copy-md">Markdown をコピー</button></div>
+      <div class="res-tools"><span class="copy-status" id="copy-status" role="status"></span><button type="button" class="chip" id="btn-pilot" aria-pressed="${fb.on}">試用モード（指摘に印を付ける）<span class="en">pilot</span></button><button type="button" id="btn-copy-md">Markdown をコピー</button></div>
     </div>
     <p class="res-meta">${meta}</p>
     ${state.notes && state.notes.length ? `<ul class="load-notes" aria-label="読み込みメモ">${state.notes.map((n) => `<li>${esc(n)}</li>`).join("")}</ul>` : ""}
@@ -594,6 +635,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
           return `<button type="button" class="chip${n ? "" : " zero"}" id="cat-${c.key}" data-cat="${c.key}" aria-pressed="${state.cat === c.key}">${c.ja} <span class="en">${c.en}</span> <span class="n">${n}</span></button>`;
         }).join("")}</div></div>
     </div>`;
+    if (fb.on) html += fbPanelHtml();
 
     if (!all.length) {
       html += `<p class="empty">揺れは見つかりませんでした。 <span class="en">No issues found.</span></p>`;
@@ -630,9 +672,10 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
   }
 
   // ---------- copy ----------
-  async function copyText(text, label) {
-    const status = $("copy-status");
-    const fb = $("md-fallback");
+  // Called synchronously from the click handler so clipboard.writeText runs inside the user gesture.
+  async function copyText(text, label, statusId, fallbackId) {
+    const status = $(statusId || "copy-status");
+    const fb = $(fallbackId || "md-fallback");
     try {
       if (!navigator.clipboard || !navigator.clipboard.writeText) throw new Error("no clipboard");
       await navigator.clipboard.writeText(text);
@@ -645,6 +688,240 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
       fb.select();
       if (status) status.textContent = "自動コピーできませんでした。下のテキストを選択済みです（Ctrl+C / ⌘C でコピー）。";
     }
+  }
+
+
+  // ---------- pilot mode (試用モード): verdicts per finding, feedback panel, label/known CSVs ----------
+  // State is per input (hash of file names + contents + glossary), in memory and mirrored to localStorage.
+  const PILOT_KEY = "kotomark.demo.pilot";
+  const BLANK_KEY = "kotomark.demo.pilot.blank";
+  const FB_PREFIX = "kotomark.demo.fb.";
+  const FB_INDEX = "kotomark.demo.fb.index";
+  const FB_KEEP = 20;
+  const VERDICTS = [["tp", "正しい指摘", "TP"], ["fp", "誤検知", "FP"], ["unsure", "保留", "unsure"]];
+  const VERDICT_CSV = { tp: "TP", fp: "FP", unsure: "?" };
+  function loadFlag(key, dflt) {
+    try { const v = localStorage.getItem(key); return v === "1" ? true : v === "0" ? false : dflt; } catch (_) { return dflt; }
+  }
+  function saveFlag(key, on) { try { localStorage.setItem(key, on ? "1" : "0"); } catch (_) { /* storage unavailable */ } }
+  const fb = {
+    on: loadFlag(PILOT_KEY, false), blank: loadFlag(BLANK_KEY, true),
+    hash: null, labels: {}, known: [], keys: [], index: new Map(), open: new Set(),
+    draft: { ref: "", cat: "term", memo: "" },
+  };
+
+  function fnv(h, s) { for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+  function fnvBytes(h, b) { for (let i = 0; i < b.length; i++) { h ^= b[i]; h = Math.imul(h, 16777619); } return h >>> 0; }
+  function inputHash(files, gtext) {
+    let a = 2166136261, b = 0x9e3779b9;
+    const add = (x) => { if (typeof x === "string") { a = fnv(a, x); b = fnv(b, x); } else { a = fnvBytes(a, x); b = fnvBytes(b, x); } a = fnv(a, "\u0001"); b = fnv(b, "\u0002"); };
+    for (const f of files) { add(f.name); add(f.data); }
+    add(gtext || "");
+    return a.toString(16).padStart(8, "0") + b.toString(16).padStart(8, "0");
+  }
+  // file + line + rule + id; a repeat of the same key on one line gets "#2", "#3"…
+  function findingKeys(findings) {
+    const seen = new Map();
+    return findings.map((f) => {
+      const base = [f.file, f.line, f.rule, f.id].join("\u001f");
+      const n = (seen.get(base) || 0) + 1;
+      seen.set(base, n);
+      return n > 1 ? base + "#" + n : base;
+    });
+  }
+  function fbLoad(hash) {
+    fb.hash = hash; fb.labels = {}; fb.known = []; fb.open = new Set();
+    try {
+      const raw = JSON.parse(localStorage.getItem(FB_PREFIX + hash) || "null");
+      if (raw && typeof raw === "object") {
+        for (const [k, l] of Object.entries(raw.labels || {})) {
+          if (!l || typeof l !== "object") continue;
+          const v = VERDICT_CSV[l.v] ? l.v : "";
+          const c = typeof l.c === "string" ? l.c : "";
+          if (v || c) fb.labels[k] = { v, c };
+        }
+        if (Array.isArray(raw.known)) fb.known = raw.known.filter((k) => k && typeof k.id === "string").map((k) => ({ id: k.id, cat: String(k.cat || ""), memo: String(k.memo || "") }));
+      }
+    } catch (_) { /* unreadable or unavailable storage: start empty */ }
+  }
+  function fbSave() {
+    if (!fb.hash) return;
+    try {
+      const key = FB_PREFIX + fb.hash;
+      const empty = !Object.keys(fb.labels).length && !fb.known.length;
+      if (empty) localStorage.removeItem(key);
+      else localStorage.setItem(key, JSON.stringify({ v: 1, labels: fb.labels, known: fb.known }));
+      let idx = [];
+      try { idx = JSON.parse(localStorage.getItem(FB_INDEX) || "[]"); if (!Array.isArray(idx)) idx = []; } catch (_) { idx = []; }
+      idx = idx.filter((h) => h !== fb.hash);
+      if (!empty) idx.unshift(fb.hash);
+      for (const old of idx.splice(FB_KEEP)) localStorage.removeItem(FB_PREFIX + old);
+      localStorage.setItem(FB_INDEX, JSON.stringify(idx));
+    } catch (_) { /* storage unavailable or full: labels last this visit only */ }
+  }
+  const labelOf = (i) => fb.labels[fb.keys[i]] || { v: "", c: "" };
+  function setLabel(i, patch) {
+    const k = fb.keys[i];
+    const next = Object.assign({}, labelOf(i), patch);
+    if (next.v || next.c) fb.labels[k] = next; else delete fb.labels[k];
+    fbSave();
+  }
+
+  function fbStats() {
+    const all = state.result ? state.result.findings : [];
+    const blank = () => ({ total: 0, tp: 0, fp: 0, unsure: 0 });
+    const tot = blank();
+    const byCat = new Map();
+    all.forEach((f, i) => {
+      if (!byCat.has(f.category)) byCat.set(f.category, blank());
+      const c = byCat.get(f.category);
+      const v = labelOf(i).v;
+      for (const s of [tot, c]) { s.total++; if (v) s[v]++; }
+    });
+    return { tot, byCat };
+  }
+  const pct = (s) => (s.tp + s.fp ? `${((s.tp / (s.tp + s.fp)) * 100).toFixed(1)}%` : "—");
+  const catOrder = (a, b) => (CAT_ORDER.indexOf(a) + 1 || 99) - (CAT_ORDER.indexOf(b) + 1 || 99);
+
+  function fbSummaryHtml() {
+    const { tot, byCat } = fbStats();
+    const labeled = tot.tp + tot.fp + tot.unsure;
+    const rows = [...byCat.keys()].sort(catOrder).map((cat) => {
+      const s = byCat.get(cat);
+      return `<tr><td>${esc((CAT_TITLE[cat] || [cat])[0])} <span class="en">${esc(cat)}</span></td><td>${s.tp + s.fp + s.unsure} / ${s.total}</td><td>${s.tp}</td><td>${s.fp}</td><td>${s.unsure}</td><td>${pct(s)}</td></tr>`;
+    }).join("");
+    return `<p class="fb-stats"><span>印を付けた指摘 <span class="en">labeled</span> <b id="fb-labeled">${labeled}</b> / <b id="fb-total">${tot.total}</b></span>
+      <span>適合率 <span class="en">precision TP/(TP+FP)</span> <b id="fb-precision">${pct(tot)}</b></span>
+      <span class="en">TP ${tot.tp} · FP ${tot.fp} · unsure ${tot.unsure}</span></p>
+      <div class="fb-scroll"><table class="fb-table" id="fb-table"><caption class="sr-only">分類ごとの内訳</caption>
+        <thead><tr><th scope="col">分類 <span class="en">category</span></th><th scope="col">印 / 件数</th><th scope="col"><abbr title="正しい指摘">TP</abbr></th><th scope="col"><abbr title="誤検知">FP</abbr></th><th scope="col">保留</th><th scope="col">適合率</th></tr></thead>
+        <tbody>${rows}</tbody></table></div>`;
+  }
+  function knownListHtml() {
+    if (!fb.known.length) return `<li class="en">まだありません。 No missed issues logged.</li>`;
+    return fb.known.map((k, i) => `<li><code class="ref">${esc(k.id)}</code><span class="mono">${esc(k.cat)}</span><span class="memo">${esc(k.memo)}</span>
+      <button type="button" class="btn-quiet btn-small" data-known-del="${i}" aria-label="${esc(k.id)} を一覧から外す">外す</button></li>`).join("");
+  }
+  function renderFb() {
+    const s = $("fb-summary");
+    if (s) s.innerHTML = fbSummaryHtml();
+    const kl = $("known-list");
+    if (kl) kl.innerHTML = knownListHtml();
+    const kb = $("btn-copy-known");
+    if (kb) kb.disabled = !fb.known.length;
+  }
+
+  function fbPanelHtml() {
+    const opts = CAT_ORDER.map((c) => `<option value="${c}"${fb.draft.cat === c ? " selected" : ""}>${esc(CAT_TITLE[c][0])} (${c})</option>`).join("");
+    return `<section class="fb" id="fb" aria-labelledby="fb-h">
+      <h3 id="fb-h">フィードバック <span class="en">Pilot feedback</span></h3>
+      <ol class="fb-steps">
+        <li>各指摘の下で「正しい指摘 / 誤検知 / 保留」を選ぶ <span class="en">mark each finding TP / FP / unsure</span></li>
+        <li>誤検知には「コメント」で理由を一言 <span class="en">a short reason helps most</span></li>
+        <li>「ラベルをコピー（CSV）」→ メールやチャットに貼り付けて送る <span class="en">copy, paste, send</span></li>
+        <li>人のチェックで見つけた問題が指摘に無ければ「見逃しを追加」 <span class="en">log misses below</span></li>
+      </ol>
+      <p class="hint">印はこのブラウザにだけ保存され、同じ入力で開き直すと復元されます。カテゴリごとに30件ほど見れば十分です。<span class="en">Saved in this browser only.</span></p>
+      <div id="fb-summary">${fbSummaryHtml()}</div>
+      <div class="fb-actions">
+        <label class="check" for="fb-blank"><input type="checkbox" id="fb-blank"${fb.blank ? " checked" : ""}><span>原文・訳文の列を空にする（推奨）<span class="en"> omit script text</span></span></label>
+        <button type="button" id="btn-copy-labels" class="btn-primary btn-small">ラベルをコピー（CSV）</button>
+        <span class="copy-status" id="fb-status" role="status"></span>
+      </div>
+      <textarea id="fb-fallback" readonly hidden aria-label="ラベル CSV"></textarea>
+      <form class="fb-known" id="fb-known-form" novalidate>
+        <h4>見逃しを追加 <span class="en">Add a missed issue (known.csv)</span></h4>
+        <div class="field-row">
+          <div class="field"><label for="known-ref">文字列ID か ファイル名:行 <span class="en">id or file:line</span></label>
+            <input type="text" id="known-ref" spellcheck="false" autocomplete="off" placeholder="ch1_005 / script.csv:12" value="${esc(fb.draft.ref)}"></div>
+          <div class="field"><label for="known-cat">分類 <span class="en">category</span></label><select id="known-cat">${opts}</select></div>
+          <div class="field wide"><label for="known-memo">メモ <span class="en">note</span></label>
+            <input type="text" id="known-memo" autocomplete="off" maxlength="300" placeholder="魔導石の訳が Magic Stone" value="${esc(fb.draft.memo)}"></div>
+        </div>
+        <div class="fb-actions">
+          <button type="submit" class="btn-small" id="btn-known-add">追加 <span class="en">add</span></button>
+          <button type="button" class="btn-small" id="btn-copy-known"${fb.known.length ? "" : " disabled"}>見逃しをコピー（CSV）</button>
+          <span class="fb-msg" id="known-msg" role="status"></span>
+          <span class="copy-status" id="known-status" role="status"></span>
+        </div>
+        <textarea id="known-fallback" readonly hidden aria-label="見逃し CSV"></textarea>
+        <ul id="known-list" aria-label="追加した見逃し">${knownListHtml()}</ul>
+      </form>
+    </section>`;
+  }
+
+  function verdictHtml(f) {
+    const i = fb.index.get(f);
+    if (i == null) return "";
+    const l = labelOf(i);
+    const ref = `${f.file}:${f.line}`;
+    const showNote = !!l.c || fb.open.has(i);
+    return `<div class="verdict" role="group" aria-label="判定 ${esc(ref)} ${esc(f.rule)}">
+      <span class="vbtns">${VERDICTS.map(([v, ja, en]) => `<button type="button" class="vbtn" id="v-${i}-${v}" data-v="${v}" data-fi="${i}" aria-pressed="${l.v === v}">${ja} <span class="en">${en}</span></button>`).join("")}</span>
+      <button type="button" class="btn-quiet btn-small" id="vc-${i}" data-vnote="${i}" aria-expanded="${showNote}" aria-controls="vn-${i}">コメント</button>
+      <input type="text" class="vnote" id="vn-${i}" data-vnote-input="${i}" maxlength="300" autocomplete="off" placeholder="理由など一言（任意）" aria-label="コメント ${esc(ref)}" value="${esc(l.c)}"${showNote ? "" : " hidden"}>
+    </div>`;
+  }
+  function updateVerdictRow(i) {
+    const l = labelOf(i);
+    for (const [v] of VERDICTS) { const b = $(`v-${i}-${v}`); if (b) b.setAttribute("aria-pressed", String(l.v === v)); }
+    const li = $(`v-${i}-tp`) && $(`v-${i}-tp`).closest(".f");
+    if (li) li.classList.toggle("is-labeled", !!l.v);
+  }
+
+  // One CSV record per line, except newlines inside quoted cells.
+  function splitCsvRecords(text) {
+    const out = [];
+    let start = 0, q = false;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (c === '"') q = !q;
+      else if (c === "\n" && !q) { out.push(text.slice(start, i)); start = i + 1; }
+    }
+    if (start < text.length) out.push(text.slice(start));
+    return out;
+  }
+  // Same as src/core/pilot.ts: prefix ' to formula-like cells so spreadsheets keep them as text.
+  const csvCell = (v) => { const raw = String(v == null ? "" : v); const s = /^[=+\-@\t\r]/.test(raw) ? "'" + raw : raw; return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
+  // Same sheet as `kotomark labels` (engine's findingsToLabelCsv), with verdict/note filled from the page.
+  function labelsCsv() {
+    const tables = fb.blank ? [] : [...state.tableByFile.values()];
+    const recs = splitCsvRecords(Kotomark.findingsToLabelCsv({ findings: state.result.findings }, tables));
+    const out = [recs[0]];
+    for (let i = 1; i < recs.length; i++) {
+      const rec = recs[i];
+      if (!rec.endsWith(",,")) throw new Error("unexpected label sheet layout");
+      const l = labelOf(i - 1);
+      out.push(rec.slice(0, -2) + "," + csvCell(l.v ? VERDICT_CSV[l.v] : "") + "," + csvCell(l.c.replace(/[\r\n]+/g, " ")));
+    }
+    return out.join("\n") + "\n";
+  }
+  function knownCsv() {
+    return ["string_id,category,memo", ...fb.known.map((k) => [k.id, k.cat, k.memo].map(csvCell).join(","))].join("\n") + "\n";
+  }
+  function addKnown() {
+    const msg = $("known-msg");
+    const ref = $("known-ref").value.trim();
+    const cat = $("known-cat").value;
+    const memo = $("known-memo").value.trim().replace(/[\r\n]+/g, " ");
+    msg.textContent = "";
+    if (!ref) { msg.textContent = "文字列ID か「ファイル名:行」を入力してください。"; $("known-ref").focus(); return; }
+    let id = ref;
+    const m = ref.match(/^(.+):(\d+)$/);
+    if (m) {
+      const row = state.rows.get(m[1] + "\u0000" + m[2]);
+      const isId = [...state.rows.values()].some((r) => r.id === ref);
+      if (row) id = row.id;
+      else if (!isId) { msg.textContent = `「${ref}」の行が見つかりません。ファイル名と行番号（または文字列ID）を確認してください。`; $("known-ref").focus(); return; }
+    }
+    fb.known.push({ id, cat, memo });
+    fb.draft = { ref: "", cat, memo: "" };
+    $("known-ref").value = "";
+    $("known-memo").value = "";
+    fbSave();
+    renderFb();
+    $("known-status").textContent = `${id}（${cat}）を追加しました。`;
+    $("known-ref").focus();
   }
 
   // ---------- samples ----------
@@ -716,6 +993,23 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
     renderFileList();
   });
 
+  $("results").addEventListener("input", (e) => {
+    const t = e.target;
+    if (t.dataset && t.dataset.vnoteInput != null) { setLabel(Number(t.dataset.vnoteInput), { c: t.value }); return; }
+    if (t.id === "known-ref") fb.draft.ref = t.value;
+    else if (t.id === "known-memo") fb.draft.memo = t.value;
+  });
+  $("results").addEventListener("change", (e) => {
+    const t = e.target;
+    if (t.id === "fb-blank") { fb.blank = t.checked; saveFlag(BLANK_KEY, fb.blank); }
+    else if (t.id === "known-cat") fb.draft.cat = t.value;
+  });
+  $("results").addEventListener("submit", (e) => {
+    if (e.target.id !== "fb-known-form") return;
+    e.preventDefault();
+    addKnown();
+  });
+
   $("run-status").addEventListener("click", (e) => {
     if (e.target.id !== "jump-results") return;
     e.preventDefault();
@@ -737,7 +1031,42 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
     if (!b) return;
     if (b.id === "btn-copy-md") { copyText(state.md, "Markdown レポート"); return; }
     if (b.id === "btn-copy-packets") { copyText(JSON.stringify(state.result.reviewPackets, null, 2), "レビューパケット"); return; }
-    if (b.dataset.sev) {
+    if (b.id === "btn-copy-labels") {
+      let csv;
+      try { csv = labelsCsv(); } catch (err) { $("fb-status").textContent = "CSV を作れませんでした：" + ((err && err.message) || err); return; }
+      const { tot } = fbStats();
+      copyText(csv, `ラベル CSV（${tot.tp + tot.fp + tot.unsure} / ${tot.total}件に印）`, "fb-status", "fb-fallback");
+      return;
+    }
+    if (b.id === "btn-copy-known") { copyText(knownCsv(), `見逃し CSV（${fb.known.length}件）`, "known-status", "known-fallback"); return; }
+    if (b.dataset.knownDel != null) {
+      fb.known.splice(Number(b.dataset.knownDel), 1);
+      fbSave(); renderFb();
+      $("known-status").textContent = "一覧から外しました。";
+      $("known-ref").focus();
+      return;
+    }
+    if (b.dataset.v) {
+      const i = Number(b.dataset.fi);
+      setLabel(i, { v: labelOf(i).v === b.dataset.v ? "" : b.dataset.v });
+      updateVerdictRow(i);
+      renderFb();
+      return;
+    }
+    if (b.dataset.vnote != null) {
+      const i = Number(b.dataset.vnote);
+      const inp = $(`vn-${i}`);
+      const show = inp.hidden;
+      if (show) fb.open.add(i); else if (!inp.value) fb.open.delete(i);
+      inp.hidden = !show && !inp.value;
+      b.setAttribute("aria-expanded", String(!inp.hidden));
+      if (!inp.hidden) inp.focus();
+      return;
+    }
+    if (b.id === "btn-pilot") {
+      fb.on = !fb.on;
+      saveFlag(PILOT_KEY, fb.on);
+    } else if (b.dataset.sev) {
       state.sev[b.dataset.sev] = !state.sev[b.dataset.sev];
       if (!SEV_ORDER.some((s) => state.sev[s])) state.sev = { error: true, warning: true, info: true };
     } else if (b.dataset.cat) {

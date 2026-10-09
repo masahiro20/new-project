@@ -9,8 +9,12 @@ import type { CheckResult, Table } from "./types.js";
 
 export const LABEL_COLUMNS = ["finding", "file", "line", "string_id", "category", "rule", "severity", "side", "message", "source", "target", "verdict", "note"] as const;
 
+// Cells starting with = + - @ (or tab/CR) are formulas in spreadsheets; prefix ' so they stay text.
+// readCsv strips the prefix again, so ids round-trip.
+const FORMULA_START = /^[=+\-@\t\r]/;
 const csvCell = (v: unknown) => {
-  const s = String(v ?? "");
+  const raw = String(v ?? "");
+  const s = FORMULA_START.test(raw) ? `'${raw}` : raw;
   return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 };
 
@@ -46,10 +50,12 @@ export interface ScoreReport {
 
 type Labeled = Record<(typeof LABEL_COLUMNS)[number], string>;
 
+const unformula = (s: string) => (s.startsWith("'") && FORMULA_START.test(s.slice(1)) ? s.slice(1) : s);
+
 function readCsv(text: string): Record<string, string>[] {
   const recs = parseCsvRecords(text);
   const header = recs.shift()?.cells.map((h) => h.trim().toLowerCase()) ?? [];
-  return recs.map((r) => Object.fromEntries(header.map((h, i) => [h, (r.cells[i] ?? "").trim()])));
+  return recs.map((r) => Object.fromEntries(header.map((h, i) => [h, unformula((r.cells[i] ?? "").trim())])));
 }
 
 const verdictOf = (v: string): "tp" | "fp" | "unsure" | "unlabeled" => {

@@ -23297,8 +23297,10 @@ function draftGlossary(tables, existing, opts = {}) {
 
 // src/core/pilot.ts
 var LABEL_COLUMNS = ["finding", "file", "line", "string_id", "category", "rule", "severity", "side", "message", "source", "target", "verdict", "note"];
+var FORMULA_START = /^[=+\-@\t\r]/;
 var csvCell = (v) => {
-  const s = String(v ?? "");
+  const raw = String(v ?? "");
+  const s = FORMULA_START.test(raw) ? `'${raw}` : raw;
   return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 };
 function findingsToLabelCsv(result, tables) {
@@ -23312,10 +23314,11 @@ function findingsToLabelCsv(result, tables) {
   });
   return out.join("\n") + "\n";
 }
+var unformula = (s) => s.startsWith("'") && FORMULA_START.test(s.slice(1)) ? s.slice(1) : s;
 function readCsv(text) {
   const recs = parseCsvRecords(text);
   const header = recs.shift()?.cells.map((h) => h.trim().toLowerCase()) ?? [];
-  return recs.map((r) => Object.fromEntries(header.map((h, i2) => [h, (r.cells[i2] ?? "").trim()])));
+  return recs.map((r) => Object.fromEntries(header.map((h, i2) => [h, unformula((r.cells[i2] ?? "").trim())])));
 }
 var verdictOf = (v) => {
   const x2 = v.trim().toLowerCase();

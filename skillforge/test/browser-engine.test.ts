@@ -12,7 +12,7 @@ import { parseCsvRecords } from "../src/core/parsers/csv.js";
 import { ENGINE_BUILD_OPTIONS } from "../web/build-demo.mjs";
 import { read } from "./helpers.js";
 
-type Engine = Pick<typeof core, "parseTable" | "detectFormat" | "loadInputs" | "parseGlossary" | "runChecks" | "renderMarkdown" | "EMPTY_GLOSSARY">;
+type Engine = Pick<typeof core, "parseTable" | "detectFormat" | "loadInputs" | "parseGlossary" | "runChecks" | "renderMarkdown" | "findingsToLabelCsv" | "EMPTY_GLOSSARY">;
 
 const built = await build({ ...ENGINE_BUILD_OPTIONS, write: false, logLevel: "silent" });
 const bundle = built.outputFiles[0]!.text;
@@ -110,6 +110,16 @@ test("bundle loadInputs matches src/core: xlsx bytes, PO, Unity CSV and a ja.jso
   assert.deepEqual(go(browser), direct);
   assert.equal(direct.tables.length, 4);
   assert.ok(direct.result.findings.length > 0);
+});
+
+test("bundle findingsToLabelCsv matches src/core and scores (demo pilot mode)", () => {
+  const s = sets[0]!;
+  const tables = s.scripts.map((x) => core.parseTable(x.text, x.name));
+  const result = core.runChecks(tables, core.parseGlossary(s.glossary.text, s.glossary.name));
+  assert.equal(browser.findingsToLabelCsv(result, tables), core.findingsToLabelCsv(result, tables));
+  // The demo blanks source/target by passing no tables; the sheet must still score.
+  const blank = browser.findingsToLabelCsv(result, []);
+  assert.equal(core.scoreLabels(blank).total.unlabeled, result.findings.length);
 });
 
 test("bundle has no Node built-in references", () => {
