@@ -1,6 +1,6 @@
 import { track } from "../analytics";
 import { config, getPlan } from "../config";
-import { findByLicense, getEntitlement, upsertEntitlement, type Entitlement } from "../entitlements";
+import { findByLicense, getEntitlement, trialEnded, upsertEntitlement, type Entitlement } from "../entitlements";
 import { t } from "../i18n";
 import { sendMail } from "../mail";
 import type { KV } from "../redis";
@@ -56,9 +56,9 @@ export function providerForCheckout(id: string, env: Env = process.env): Payment
   return provider && provider.name === activeMode(env) ? provider : null;
 }
 
-/** Demo entitlements only count while demo mode is active. */
-export function entitlementUsable(e: Entitlement | null, env: Env = process.env): e is Entitlement {
-  return !!e && (e.source !== "demo" || isDemoMode(env));
+/** Demo entitlements only count while demo mode is active and their 30-day trial lasts. */
+export function entitlementUsable(e: Entitlement | null, env: Env = process.env, now = new Date()): e is Entitlement {
+  return !!e && !e.deletedAt && (e.source !== "demo" || (isDemoMode(env) && !trialEnded(e, now)));
 }
 
 /** Turn a paid checkout into an entitlement (idempotent). `source` is the provider's name. */
@@ -73,6 +73,7 @@ export async function fulfillCheckout(kv: KV, checkout: CompletedCheckout, sourc
     customerId: checkout.customerId,
     subscriptionId: checkout.subscriptionId,
     paymentIntentId: checkout.paymentIntentId,
+    ...(checkout.consent && { consent: checkout.consent }),
   }, { licenseKey: checkout.licenseKey });
 }
 

@@ -97,6 +97,7 @@ export function ConnectionPage({ labels }: { labels: Labels }) {
             {conn.stopMode !== "live" ? (
               <div className="card">
                 <p>Arming makes the stop above run automatically the first time spend reaches 100% of {`$${conn.budgetUsd.toFixed(2)}`} this month.</p>
+                {view.me.consentRequired && <p className="msg err">Accept the updated Privacy Policy and Terms on the <Link href="/app">dashboard</Link> before going live.</p>}
                 <Confirm action="arm-live" cta="Arm live mode" />
               </div>
             ) : (

@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { accessSecret } from "../access";
-import { entitlementKey, getEntitlement, isActive, type Entitlement } from "../entitlements";
+import { entitlementKey, getEntitlement, isActive, trialEnded, type Entitlement } from "../entitlements";
 import { sendMail } from "../mail";
 import type { KV } from "../redis";
 import { siteUrl } from "../site";
@@ -13,7 +13,7 @@ import { adapterFor } from "./providers";
 import { isDemoMode } from "../payments/mode";
 
 /** Active, and (for demo entitlements) only while demo mode is on — mirrors entitlementUsable. */
-const monitored = (e: Entitlement | null): e is Entitlement => isActive(e) && (e.source !== "demo" || isDemoMode());
+const monitored = (e: Entitlement | null): e is Entitlement => isActive(e) && (e.source !== "demo" || (isDemoMode() && !trialEnded(e)));
 import type { FetchLike, StopPlan } from "./stop";
 import {
   appendLog,

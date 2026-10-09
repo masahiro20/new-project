@@ -14,6 +14,7 @@ import { POST as complete } from "@/app/api/checkout/complete/route";
 import { GET as demoGet, POST as demoPay } from "@/app/api/checkout/demo/route";
 import { ACCESS_COOKIE, signAccessToken } from "@/lib/access";
 import { readCookie, sameOrigin } from "@/lib/api";
+import { newConsent } from "@/lib/consent";
 import { setStatus, upsertEntitlement, type Entitlement } from "@/lib/entitlements";
 import { getConnection } from "@/lib/guard/store";
 import { createDemoCheckout } from "@/lib/payments/demo";
@@ -34,7 +35,7 @@ function req(path: string, o: Opts = {}): Request {
 const ctx = (id: string) => ({ params: Promise.resolve({ id }) });
 
 async function buyer(id: string): Promise<{ e: Entitlement; cookie: string }> {
-  const { entitlement } = await upsertEntitlement(getKV(), { id, email: `${id}@example.com`, plan: "monthly", source: "stripe" });
+  const { entitlement } = await upsertEntitlement(getKV(), { id, email: `${id}@example.com`, plan: "monthly", source: "stripe", consent: newConsent("checkout") });
   return { e: entitlement, cookie: await signAccessToken({ sub: entitlement.id, plan: entitlement.plan }) };
 }
 
@@ -83,7 +84,7 @@ describe("/api/app/* auth", () => {
   });
 
   it("POST add connection: 403 bad origin (before auth), 401 without cookie, 400 bad input, 201 ok", async () => {
-    const input = { provider: "openai", label: "OpenAI prod", budgetUsd: "100", projectId: "proj_1", token: "demo" };
+    const input = { provider: "openai", label: "OpenAI prod", budgetUsd: "100", projectId: "proj_1", token: "demo", consent: true };
     expect((await addConn(req("/api/app/connections", { body: input, cookie: alice.cookie, origin: "https://evil.example" }))).status).toBe(403);
     expect((await addConn(req("/api/app/connections", { body: input, cookie: alice.cookie, origin: null }))).status).toBe(403);
     expect((await addConn(req("/api/app/connections", { body: input, cookie: alice.cookie, site: "cross-site" }))).status).toBe(403);
@@ -100,7 +101,7 @@ describe("/api/app/* auth", () => {
     vi.stubEnv("ACCESS_SECRET", "test-secret-test-secret-test-secret-0000");
     vi.stubEnv("STRIPE_SECRET_KEY", "sk_test_dummy");
     const cookie = await signAccessToken({ sub: alice.e.id, plan: "monthly" });
-    const input = { provider: "openai", label: "x", budgetUsd: "5", projectId: "proj_1", token: "demo" };
+    const input = { provider: "openai", label: "x", budgetUsd: "5", projectId: "proj_1", token: "demo", consent: true };
     const res = await addConn(req("/api/app/connections", { body: input, cookie }));
     expect(res.status).toBe(400);
   });
@@ -203,7 +204,7 @@ describe("/api/access/*", () => {
 });
 
 describe("/api/checkout/demo + /api/checkout/complete", () => {
-  const card = { number: "4242 4242 4242 4242", expiry: "12/34", cvc: "123", name: "TARO YAMADA" };
+  const card = { number: "4242 4242 4242 4242", expiry: "12/34", cvc: "123", name: "TARO YAMADA", consent: true };
 
   it("pays with a test card, keeps last4 only, then completes into an entitlement", async () => {
     const kv = getKV();

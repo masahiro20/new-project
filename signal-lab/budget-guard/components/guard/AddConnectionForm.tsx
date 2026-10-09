@@ -2,12 +2,14 @@
 
 import { useState } from "react";
 import { api, toSignIn } from "@/components/client/http";
+import { ConsentCheckbox, type ConsentLabels } from "@/components/ConsentCheckbox";
 import { PROVIDER_INFO } from "@/lib/guard/info";
 import type { ProviderId } from "@/lib/guard/providers";
 
 type State = { status: "idle" | "ok" | "error"; message: string };
 
-export function AddConnectionForm({ allowDemo, onAdded }: { allowDemo: boolean; onAdded?: () => void }) {
+export function AddConnectionForm({ allowDemo, onAdded, consent, blocked }: { allowDemo: boolean; onAdded?: () => void; consent: ConsentLabels; blocked?: boolean }) {
+  const [agreed, setAgreed] = useState(false);
   const [state, setState] = useState<State>({ status: "idle", message: "" });
   const [pending, setPending] = useState(false);
   const [provider, setProvider] = useState<ProviderId>("vercel");
@@ -17,11 +19,12 @@ export function AddConnectionForm({ allowDemo, onAdded }: { allowDemo: boolean; 
     e.preventDefault();
     const form = e.currentTarget;
     setPending(true);
-    const r = await api<{ message?: string; error?: string }>("/api/app/connections", { body: Object.fromEntries(new FormData(form)) });
+    const r = await api<{ message?: string; error?: string }>("/api/app/connections", { body: { ...Object.fromEntries(new FormData(form)), consent: agreed } });
     setPending(false);
     if (r.status === 401) return toSignIn();
     if (r.status < 400) {
       form.reset();
+      setAgreed(false);
       setState({ status: "ok", message: r.data.message ?? "Added." });
       onAdded?.();
     } else {
@@ -62,7 +65,8 @@ export function AddConnectionForm({ allowDemo, onAdded }: { allowDemo: boolean; 
         {info.tokenName} <input type="password" name="token" required autoComplete="off" placeholder={allowDemo ? 'Type "demo" to try offline' : ""} />
       </label>
       <p className="hint">{info.leastPrivilege}</p>
-      <button className="btn" disabled={pending}>{pending ? "Checking token…" : "Add connection"}</button>
+      <ConsentCheckbox labels={consent} checked={agreed} onChange={setAgreed} />
+      <button className="btn" disabled={pending || !agreed || blocked}>{pending ? "Checking token…" : "Add connection"}</button>
       {state.message && <p className={state.status === "error" ? "msg err" : "msg"} role={state.status === "error" ? "alert" : undefined}>{state.message}</p>}
     </form>
   );

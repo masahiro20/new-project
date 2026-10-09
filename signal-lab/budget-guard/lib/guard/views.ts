@@ -1,4 +1,6 @@
 import { getPlan } from "../config";
+import { consentCurrent } from "../consent";
+import { trialEndsAt } from "../entitlements";
 import type { Account } from "../api";
 import type { KV } from "../redis";
 import { siteUrl } from "../site";
@@ -11,7 +13,17 @@ import type { StopMode } from "./stop";
 // JSON shapes returned by /api/app/* to the client-rendered dashboard. Never include
 // sealed tokens / secrets: only the masked hint and booleans.
 
-export type Me = { email: string; planLabel: string; status: string; demo: boolean; billing: boolean };
+export type Me = {
+  email: string;
+  planLabel: string;
+  status: string;
+  demo: boolean;
+  billing: boolean;
+  /** The Privacy Policy / Terms changed since this account agreed (or it never did): show the re-consent panel. */
+  consentRequired: boolean;
+  /** Demo/trial accounts: when the 30-day trial ends (ISO). */
+  trialEndsAt: string | null;
+};
 
 export type ConnView = {
   id: string;
@@ -50,6 +62,8 @@ export function meOf(account: Account): Me {
     status: e.status,
     demo: e.source === "demo",
     billing: (e.source === "stripe" && !!e.subscriptionId) || e.source === "demo",
+    consentRequired: !consentCurrent(e.consent),
+    trialEndsAt: e.source === "demo" ? trialEndsAt(e).toISOString() : null,
   };
 }
 

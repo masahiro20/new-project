@@ -58,7 +58,11 @@
 ### 2.2 決めておくこと（本部・オーナー）
 
 - （決定済み・2026-10-09）試用期間は30日。試用・契約の終了後のデータは30日で削除。削除の依頼から7日以内に削除。対象は事業者・開発者の業務利用。外国の事業者への提供は本人の同意による（docs/legal-changes.md）。
-  - 終了後30日の自動削除と、同意を取る画面はコードにない（docs/legal-changes.md §2.3）。実装までは、オーナーが手作業で削除し、同意は案内文の §3 で取る案（専門家に確認中）。
+  - 実装済み（docs/legal-changes.md §2.3）：
+    - 同意のチェックボックス：購入ボタン・デモのカード画面・接続の追加。同意の記録は権利と接続に残る。
+    - 試用の終了：デモの購入から30日（またはデモモードを止めた時）。終了すると監視とダッシュボードが止まる。
+    - 終了から30日後の自動削除：cron が 6 時間ごとに、1 回 2 件まで消す。
+    - 依頼による削除：`POST /api/admin/accounts/delete`。
 - 価格を通話で「案」として伝えてよいか。
 - オーナーが試用者の KV のデータ（接続の一覧やアクティビティ）を見てよい範囲。§4 の指標の一部は、そこを見ないと分からない。
 
@@ -186,7 +190,7 @@
 | Anthropic は Default 以外のワークスペース | `components/guard/AddConnectionForm.tsx`、provider-apis.md §3.1 | 個人アカウントでは Admin API を使えない |
 | 各社のキーの失効の手順（画面の場所） | — | **未確認。** docs に手順がない。案内では「プロバイダ側で失効」とだけ書いた |
 | データの保存内容 | `lib/guard/store.ts`、`docs/lp.md` FAQ、demo-payments.md §4 | アカウント全体の削除機能はコードにない。オーナーが KV から手で消す（§5） |
-| 試用30日、終了後30日で削除、依頼から7日以内 | 2026-10-09 の社内の決定（docs/legal-changes.md） | 終了後30日の自動削除はコードにない。オーナーが手作業で消す |
+| 試用30日、終了後30日で削除、依頼から7日以内 | 2026-10-09 の社内の決定（docs/legal-changes.md） | 実装済み。試用はデモ購入の日から30日。削除は自動（6 時間ごとに確認）。依頼は admin API で消す（§5） |
 
 ---
 
@@ -238,7 +242,7 @@
 | 誤って live にした | — | 停止ページの **Disarm (back to test mode)** を押す。確認なしで戻る。 | — |
 | 誤って止めた（live 停止が実行された） | — | すぐ元に戻す。Vercel：プロジェクトを unpause（本番は数分で戻る。再デプロイ不要）。OpenAI：プロジェクトの上限を削除するか引き上げる。Anthropic：記録されたキーを active に戻す。Budget Guard の中にワンクリックの復旧はない。 | アクティビティの `Undo:` の行を一緒に見る。Anthropic の inactive → active の復帰は公式の保証が未確認。止まった時間と影響を記録し、本部に報告する。 |
 | 戻したのに、同じ月にまた止まるか心配 | 停止は接続ごとに月1回。`stoppedAt` が残る間、同じ月は自動で再実行しない。月が変わると再武装する。 | 来月も困るなら、テストモードに戻すか、予算を上げる。 | — |
-| すぐやめたい | — | 停止を off にする → 接続を削除する → プロバイダでキーを失効させる。 | アカウントの削除を依頼されたら、期限内に KV から消す。削除の機能はコードにないので、手作業になる。対象は少なくとも `budget-guard:bg:{アカウントID}:*`、`budget-guard:ent:{ID}`、`budget-guard:license:*`、`budget-guard:ent-by-email:*`、`budget-guard:demo-checkout:{ID}`。漏れがないかは未確認。 |
+| すぐやめたい | — | 停止を off にする → 接続を削除する → プロバイダでキーを失効させる。 | アカウントの削除を依頼されたら、7日以内に `curl -X POST -H "Authorization: Bearer $ADMIN_TOKEN" -H 'content-type: application/json' -d '{"email":"…"}' https://<サイト>/api/admin/accounts/delete` を実行する（`{id}` や `{licenseKey}` でも可）。消すものは docs/legal-changes.md §2.3 のとおり。Stripe で課金中なら、先に Stripe で解約する。 |
 | サイト全体が 500 / Error 1102 | OpenNext の不具合の回避が外れた、CPU 超過など。 | — | `npx wrangler tail` と Metrics を見る。直らなければ `npx wrangler rollback`（deploy-cloudflare.md §11）。CPU 超過が続くなら Workers Paid（$5/月）。 |
 | キーを送ってきた | — | — | すぐ削除する。相手に失効を頼む（募集手順書 §6）。 |
 

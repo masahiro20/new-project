@@ -28,6 +28,7 @@ export function PlanCard({ plan }: { plan: Plan }) {
             pendingLabel={t.buy.pending}
             errorLabel={t.buy.error}
             note={showDemoBannerAtBuild() ? t.buy.demo : undefined}
+            consent={t.consent}
           />
         </>
       )}

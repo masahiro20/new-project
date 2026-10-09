@@ -1,4 +1,5 @@
 import { badRequest, guard, json, readJson } from "@/lib/api";
+import { consentCurrent } from "@/lib/consent";
 import { getKV } from "@/lib/redis";
 import { adapterFor } from "@/lib/guard/providers";
 import { connIdSchema, connOpSchema } from "@/lib/guard/schemas";
@@ -68,6 +69,8 @@ export async function POST(request: Request, ctx: Ctx) {
     }
 
     case "confirm": {
+      // Going live needs consent to the current Privacy Policy / Terms (re-consent after a version bump).
+      if (op.data.action === "arm-live" && !consentCurrent(account.entitlement.consent)) return done("consent-required", 403);
       // Arm live / stop now: signed challenge (5 min, bound to the plan) + typed label.
       const plan = await planFor(conn);
       const check = verifyChallenge(

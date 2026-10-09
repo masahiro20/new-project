@@ -12,7 +12,7 @@ export default function DemoCheckoutPage() {
   return (
     <section>
       <div className="wrap narrow">
-        <DemoCheckoutView productName={config.name} pricingLabel={t.sections.pricing} openLabel={t.success.open} banner={<DemoBanner inline />} />
+        <DemoCheckoutView productName={config.name} pricingLabel={t.sections.pricing} openLabel={t.success.open} banner={<DemoBanner inline />} consent={t.consent} />
       </div>
     </section>
   );

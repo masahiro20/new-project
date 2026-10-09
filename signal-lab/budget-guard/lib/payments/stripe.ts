@@ -1,4 +1,5 @@
 import Stripe from "stripe";
+import type { ConsentRecord, ConsentVia } from "../consent";
 import { config, type Plan } from "../config";
 import type { Entitlement, EntitlementStatus } from "../entitlements";
 import { siteUrl } from "../site";
@@ -41,8 +42,13 @@ export function mapSubscriptionStatus(status: Stripe.Subscription.Status): Entit
   }
 }
 
-export async function createCheckoutUrl(plan: Plan, opts: { email?: string } = {}): Promise<string> {
-  const metadata = { product: config.slug, plan: plan.id };
+export async function createCheckoutUrl(plan: Plan, opts: { email?: string; consent?: ConsentRecord } = {}): Promise<string> {
+  // The consent given on /pricing travels with the session and lands on the entitlement.
+  const metadata = {
+    product: config.slug,
+    plan: plan.id,
+    ...(opts.consent && { consent_at: opts.consent.at, consent_privacy: opts.consent.privacy, consent_terms: opts.consent.terms, consent_via: opts.consent.via }),
+  };
   const recurring = plan.mode === "subscription" && plan.interval ? { interval: plan.interval } : undefined;
   const session = await getStripe().checkout.sessions.create({
     mode: plan.mode,
@@ -92,6 +98,9 @@ export async function getCompletedCheckout(sessionId: string): Promise<Completed
     subscriptionId: idOf(s.subscription),
     paymentIntentId: idOf(s.payment_intent),
     licenseKey: s.customer && typeof s.customer === "object" && !s.customer.deleted ? s.customer.metadata[LICENSE_META] : undefined,
+    consent: s.metadata.consent_at
+      ? { at: s.metadata.consent_at, privacy: s.metadata.consent_privacy ?? "", terms: s.metadata.consent_terms ?? "", via: (s.metadata.consent_via ?? "checkout") as ConsentVia }
+      : undefined,
   };
 }
 

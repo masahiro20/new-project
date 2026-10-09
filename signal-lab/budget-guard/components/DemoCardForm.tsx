@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ConsentCheckbox, type ConsentLabels } from "./ConsentCheckbox";
 import { DEMO_TEST_CARD, validateCard, type CardField } from "@/lib/payments/card";
 import { api } from "./client/http";
 
@@ -11,7 +12,8 @@ type PayResponse = { ok?: boolean; redirect?: string; error?: string; errors?: P
  * POSTs to /api/checkout/demo. Inputs are uncontrolled and autocomplete is off so the
  * browser doesn't save anything; the server keeps last4 only.
  */
-export function DemoCardForm({ checkoutId, amountLabel }: { checkoutId: string; amountLabel: string }) {
+export function DemoCardForm({ checkoutId, amountLabel, consent }: { checkoutId: string; amountLabel: string; consent: ConsentLabels }) {
+  const [agreed, setAgreed] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<CardField, string>>>({});
   const [message, setMessage] = useState("");
   const [pending, setPending] = useState(false);
@@ -24,7 +26,8 @@ export function DemoCardForm({ checkoutId, amountLabel }: { checkoutId: string; 
     if (!result.ok) return setErrors(result.errors);
     setErrors({});
     setPending(true);
-    const r = await api<PayResponse>("/api/checkout/demo", { body: { id: checkoutId, ...card, email: String(f.get("email") ?? "") } });
+    if (!agreed) return setMessage(consent.required);
+    const r = await api<PayResponse>("/api/checkout/demo", { body: { id: checkoutId, ...card, email: String(f.get("email") ?? ""), consent: agreed } });
     if (r.status === 200 && r.data.redirect) return window.location.assign(r.data.redirect);
     setPending(false);
     setErrors(r.data.errors ?? {});
@@ -52,7 +55,8 @@ export function DemoCardForm({ checkoutId, amountLabel }: { checkoutId: string; 
         <input type="email" name="email" autoComplete="email" placeholder="demo@example.com" maxLength={254} />
       </label>
       <p className="hint">テストカード {DEMO_TEST_CARD}・未来の有効期限・任意の3桁で通ります。実在のカード番号は入力しないでください。</p>
-      <button className="btn" disabled={pending}>{pending ? "処理中… / Processing…" : `デモで支払う（${amountLabel}）`}</button>
+      <ConsentCheckbox labels={consent} checked={agreed} onChange={setAgreed} />
+      <button className="btn" disabled={pending || !agreed}>{pending ? "処理中… / Processing…" : `デモで支払う（${amountLabel}）`}</button>
       {message && <p className="msg err" role="alert">{message}</p>}
     </form>
   );

@@ -1,6 +1,7 @@
 // Feedback for dashboard actions: /api/app/* answer with { msg: <key> }. Unknown values are ignored.
 export const MESSAGES: Record<string, { text: string; error?: boolean }> = {
   checked: { text: "Check finished." },
+  "consent-required": { text: "Please accept the updated Privacy Policy and Terms (top of the dashboard) before going live.", error: true },
   busy: { text: "This connection is being checked right now (hourly check). Try again in a minute.", error: true },
   removed: { text: "Connection removed. Its token was deleted." },
   tested: { text: "Test run recorded below. Nothing was sent to the provider." },

@@ -8,13 +8,14 @@ import { SlackForm } from "@/components/guard/SlackForm";
 import { PROVIDER_INFO } from "@/lib/guard/info";
 import { intervalLabel } from "@/lib/guard/schedule";
 import type { DashboardView } from "@/lib/guard/views";
+import { ConsentCheckbox, type ConsentLabels } from "@/components/ConsentCheckbox";
 import { AppBar } from "./AppBar";
 import { api, toSignIn } from "./http";
 
 const usd = (n: number) => `$${n.toFixed(2)}`;
 const MODE_LABEL = { off: "Stop: off (alerts only)", test: "Stop: test mode", live: "Stop: LIVE" } as const;
 
-type Labels = { billing: string; signOut: string };
+type Labels = { billing: string; signOut: string; consent: ConsentLabels & { updatedTitle: string; updatedBody: string; agree: string } };
 
 /** /app, rendered in the browser from GET /api/app/state (the page itself is a static shell). */
 export function Dashboard({ labels, allowDemo }: { labels: Labels; allowDemo: boolean }) {
@@ -41,6 +42,7 @@ export function Dashboard({ labels, allowDemo }: { labels: Labels; allowDemo: bo
   }
 
   if (!view) return <p className="lead" data-testid="loading">Loading…</p>;
+  const reconsent = view.me.consentRequired ? <ReConsent labels={labels.consent} onDone={load} /> : null;
   const labelsById = new Map(view.connections.map((c) => [c.id, c.label]));
   return (
     <>
@@ -52,6 +54,8 @@ export function Dashboard({ labels, allowDemo }: { labels: Labels; allowDemo: bo
           {view.checkIntervalHours && view.checkIntervalHours > 1 && " (the interval grows with the number of connections we monitor)"}. Email at 80% of budget; the stop action runs at 100% when armed. Alerts go to {view.me.email}.
         </p>
         <Flash msg={msg} />
+        {reconsent}
+        {view.me.trialEndsAt && <p className="hint">Trial ends {view.me.trialEndsAt.slice(0, 10)} (30 days). Your data is deleted 30 days after it ends.</p>}
 
         <div className="grid" data-testid="connections">
           {view.connections.map((c) => {
@@ -81,7 +85,7 @@ export function Dashboard({ labels, allowDemo }: { labels: Labels; allowDemo: bo
         {view.connections.length < view.maxConnections ? (
           <>
             <h2 style={{ marginTop: 40 }}>Add a connection ({view.connections.length}/{view.maxConnections})</h2>
-            <AddConnectionForm allowDemo={allowDemo} onAdded={load} />
+            <AddConnectionForm allowDemo={allowDemo} onAdded={load} consent={labels.consent} blocked={view.me.consentRequired} />
           </>
         ) : (
           <p className="msg">You are using all {view.maxConnections} connections on this plan.</p>
@@ -118,5 +122,26 @@ export function Dashboard({ labels, allowDemo }: { labels: Labels; allowDemo: bo
         )}
       </section>
     </>
+  );
+}
+
+/** Shown when the Privacy Policy / Terms changed since the account agreed. */
+function ReConsent({ labels, onDone }: { labels: Labels["consent"]; onDone: () => void }) {
+  const [agreed, setAgreed] = useState(false);
+  const [busy, setBusy] = useState(false);
+  async function submit() {
+    setBusy(true);
+    const r = await api("/api/app/consent", { body: { consent: agreed } });
+    setBusy(false);
+    if (r.status === 401) return toSignIn();
+    if (r.status < 400) onDone();
+  }
+  return (
+    <div className="consent-panel" data-testid="reconsent">
+      <h2>{labels.updatedTitle}</h2>
+      <p>{labels.updatedBody}</p>
+      <ConsentCheckbox labels={labels} checked={agreed} onChange={setAgreed} />
+      <button className="btn" disabled={!agreed || busy} onClick={submit}>{labels.agree}</button>
+    </div>
   );
 }

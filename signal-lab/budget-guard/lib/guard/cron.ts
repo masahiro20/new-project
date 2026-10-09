@@ -1,6 +1,7 @@
 import { key, type KV } from "../redis";
 import { checkConnectionLocked } from "./service";
-import { intervalFor, isDue, nextCheckHour } from "./schedule";
+import { MAX_DELETES_PER_SWEEP, SWEEP_EVERY_HOURS, sweepRetention } from "./retention";
+import { hourIndex, intervalFor, isDue, nextCheckHour } from "./schedule";
 import { listConnRefs, parseConnRef, rebuildConnIndex } from "./store";
 
 // Hourly check, split into small slices so one invocation stays inside the Workers
@@ -71,6 +72,8 @@ export type CronSliceResult = {
   commands: number;
   /** Check interval (hours) of this hour's list. */
   intervalHours: number;
+  /** Accounts deleted by the retention sweep in this run. */
+  deletedAccounts?: number;
 };
 
 function shuffle<T>(xs: T[]): T[] {
@@ -116,6 +119,16 @@ export async function runCronSlice(
     await kv.expire(k.pending, HOUR_TTL);
     members = [sentinel, ...due];
     result.initialized = true;
+    // Retention: every few hours, the list-building run also deletes up to 2 accounts whose
+    // subscription / trial ended more than 30 days ago (lib/guard/retention.ts).
+    if (hourIndex(now) % SWEEP_EVERY_HOURS === 0) {
+      try {
+        const sweep = await sweepRetention(kv, now, MAX_DELETES_PER_SWEEP);
+        result.deletedAccounts = sweep.deleted.length;
+      } catch (err) {
+        console.error("[cron] retention sweep failed", err); // retried at the next sweep
+      }
+    }
   }
   const sentinel = members.find((m) => m.startsWith(SENTINEL_PREFIX));
   const interval = Math.max(1, Number(sentinel?.slice(1)) || 1);

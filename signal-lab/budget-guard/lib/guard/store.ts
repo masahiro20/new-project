@@ -1,4 +1,5 @@
 import { randomBytes } from "node:crypto";
+import type { ConsentRecord } from "../consent";
 import { getJSON, key, setJSON, type KV } from "../redis";
 import type { Connection, Notice } from "./check";
 import { encryptSecret, maskSecret } from "./crypto";
@@ -17,6 +18,8 @@ export interface StoredConnection extends Connection {
   createdAt: string;
   /** Vercel only: Spend Management webhook secret, sealed with AAD `${id}:webhook`. */
   sealedWebhookSecret?: string;
+  /** Consent given when this connection was added (stored with the connection: no extra write). */
+  consent?: ConsentRecord;
 }
 
 export interface AccountSettings {
@@ -117,7 +120,7 @@ export async function listConnections(kv: KV, acct: string): Promise<StoredConne
 export async function addConnection(
   kv: KV,
   acct: string,
-  input: { label: string; target: Target; budgetUsd: number; token: string },
+  input: { label: string; target: Target; budgetUsd: number; token: string; consent?: ConsentRecord },
   encKey?: Buffer,
 ): Promise<StoredConnection> {
   const conns = await listConnections(kv, acct);
@@ -133,6 +136,7 @@ export async function addConnection(
     sealedToken: encryptSecret(input.token, id, encKey),
     tokenHint: maskSecret(input.token),
     createdAt: new Date().toISOString(),
+    ...(input.consent && { consent: input.consent }),
   };
   await setJSON(kv, k.conns(acct), [...conns, conn]);
   await kv.set(k.owner(id), acct);

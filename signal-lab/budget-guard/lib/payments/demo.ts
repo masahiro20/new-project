@@ -1,4 +1,5 @@
 import { CROCKFORD } from "../license";
+import type { ConsentRecord } from "../consent";
 import { getPlan } from "../config";
 import { getEntitlement, setStatus, type Entitlement } from "../entitlements";
 import { getJSON, getKV, key, setJSON, type KV } from "../redis";
@@ -22,6 +23,8 @@ export type DemoCheckout = {
   last4?: string;
   createdAt: string;
   paidAt?: string;
+  /** Consent given on /pricing, then again on the card page (latest wins). */
+  consent?: ConsentRecord;
 };
 
 const recordKey = (id: string) => key("demo-checkout", id);
@@ -34,9 +37,9 @@ function newDemoId(): string {
   return `demo_${Array.from(bytes, (b) => CROCKFORD[b & 31]).join("")}`;
 }
 
-export async function createDemoCheckout(kv: KV, planId: string, email?: string): Promise<DemoCheckout> {
+export async function createDemoCheckout(kv: KV, planId: string, email?: string, consent?: ConsentRecord): Promise<DemoCheckout> {
   if (!getPlan(planId)) throw new Error(`unknown plan "${planId}"`);
-  const record: DemoCheckout = { id: newDemoId(), planId, email: email || DEMO_EMAIL, status: "pending", createdAt: new Date().toISOString() };
+  const record: DemoCheckout = { id: newDemoId(), planId, email: email || DEMO_EMAIL, status: "pending", createdAt: new Date().toISOString(), ...(consent && { consent }) };
   await setJSON(kv, recordKey(record.id), record, { ex: PENDING_TTL_SECONDS });
   return record;
 }
@@ -51,13 +54,13 @@ export type PayResult = { ok: true; checkout: DemoCheckout } | { ok: false; reas
  * Validate the card and mark the checkout paid. Idempotent: paying an already
  * paid checkout returns it unchanged. The card itself is dropped here (last4 only).
  */
-export async function payDemoCheckout(kv: KV, id: string, card: CardInput, opts: { email?: string; now?: Date } = {}): Promise<PayResult> {
+export async function payDemoCheckout(kv: KV, id: string, card: CardInput, opts: { email?: string; now?: Date; consent?: ConsentRecord } = {}): Promise<PayResult> {
   const record = await getDemoCheckout(kv, id);
   if (!record) return { ok: false, reason: "not_found" };
   if (record.status !== "pending") return { ok: true, checkout: record };
   const result = validateCard(card, opts.now);
   if (!result.ok) return { ok: false, reason: "invalid_card", errors: result.errors };
-  const paid: DemoCheckout = { ...record, email: opts.email || record.email, status: "paid", last4: result.last4, paidAt: new Date().toISOString() };
+  const paid: DemoCheckout = { ...record, email: opts.email || record.email, status: "paid", last4: result.last4, paidAt: new Date().toISOString(), ...(opts.consent && { consent: opts.consent }) };
   await setJSON(kv, recordKey(id), paid, { ex: PAID_TTL_SECONDS });
   return { ok: true, checkout: paid };
 }
@@ -78,13 +81,13 @@ export function createDemoProvider(kv: () => KV = getKV): PaymentProvider {
     name: "demo",
     ownsCheckoutId: isDemoCheckoutId,
     async createCheckout(plan, opts = {}) {
-      const record = await createDemoCheckout(kv(), plan.id, opts.email);
+      const record = await createDemoCheckout(kv(), plan.id, opts.email, opts.consent);
       return `/checkout/demo?id=${record.id}`;
     },
     async getCompletedCheckout(id): Promise<CompletedCheckout | null> {
       const record = await getDemoCheckout(kv(), id);
       if (!record || record.status === "pending" || !getPlan(record.planId)) return null;
-      return { id, email: record.email, planId: record.planId, status: record.status === "canceled" ? "canceled" : "active" };
+      return { id, email: record.email, planId: record.planId, status: record.status === "canceled" ? "canceled" : "active", ...(record.consent && { consent: record.consent }) };
     },
     async createPortalUrl() {
       return "/checkout/demo/portal";

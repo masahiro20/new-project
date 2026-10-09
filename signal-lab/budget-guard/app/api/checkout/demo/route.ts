@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { badRequest, forbiddenOrigin, json, readJson, sameOrigin } from "@/lib/api";
 import { formatAmount, getPlan } from "@/lib/config";
+import { CONSENT_REQUIRED_ERROR, hasConsentFlag, newConsent } from "@/lib/consent";
 import { t } from "@/lib/i18n";
 import { getDemoCheckout, isDemoCheckoutId, payDemoCheckout } from "@/lib/payments/demo";
 import { demoCheckoutEnabled } from "@/lib/payments/mode";
@@ -39,6 +40,7 @@ export async function POST(request: Request) {
   const body = await readJson(request);
   const id = String(body?.id ?? "");
   if (!body || !isDemoCheckoutId(id)) return badRequest("チェックアウトが見つかりません / Checkout not found.");
+  if (!hasConsentFlag(body)) return json({ error: CONSENT_REQUIRED_ERROR, consentRequired: true }, 400);
   const kv = getKV();
   if (!(await rateLimit(kv, `demo-pay:${clientIp(request.headers)}`, 20, 600))) {
     return json({ error: "しばらく時間をおいて再度お試しください / Too many attempts." }, 429);
@@ -51,7 +53,7 @@ export async function POST(request: Request) {
     kv,
     id,
     { number: String(body.number ?? ""), expiry: String(body.expiry ?? ""), cvc: String(body.cvc ?? ""), name: String(body.name ?? "") },
-    { email: email?.data },
+    { email: email?.data, consent: newConsent("demo-card") },
   );
   if (!result.ok) {
     return result.reason === "not_found"

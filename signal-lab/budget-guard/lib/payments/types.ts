@@ -1,4 +1,5 @@
 import type { Plan } from "../config";
+import type { ConsentRecord } from "../consent";
 import type { Entitlement, EntitlementStatus } from "../entitlements";
 
 // Provider boundary. Exactly two implementations: `demo` (no money moves, see
@@ -19,6 +20,8 @@ export type CompletedCheckout = {
   paymentIntentId?: string;
   /** Previously issued key stored at the provider (used when rebuilding a lost KV cache). */
   licenseKey?: string;
+  /** Consent given at checkout (stored with the checkout, copied onto the entitlement). */
+  consent?: ConsentRecord;
 };
 
 export interface PaymentProvider {
@@ -27,7 +30,7 @@ export interface PaymentProvider {
   /** Does this id look like one of this provider's checkouts (cs_… / demo_…)? Format check only. */
   ownsCheckoutId(id: string): boolean;
   /** Returns the URL to send the buyer to (absolute for Stripe, app-relative for demo). */
-  createCheckout(plan: Plan, opts?: { email?: string }): Promise<string>;
+  createCheckout(plan: Plan, opts?: { email?: string; consent?: ConsentRecord }): Promise<string>;
   /** null unless `id` is a paid checkout for this product. */
   getCompletedCheckout(id: string): Promise<CompletedCheckout | null>;
   /** Billing portal URL (cancel / update card). */
