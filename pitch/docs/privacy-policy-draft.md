@@ -56,7 +56,7 @@ The Founding Supporter plan is a one-time purchase made on **Ko-fi** (ko-fi.com)
   It does not contain your name, your email address or your Ko-fi order number.
 - **Linking the key to your order:** we keep a private record that links the key's random ID to your Ko-fi order, so we can
   handle refunds and keys that have been shared publicly. We delete this link 60 days after purchase (30-day refund window plus 30 days).
-  the 30-day refund period plus 30 days). Ko-fi keeps its own order records under its own policy.
+  Ko-fi keeps its own order records under its own policy.
 - **Checking the key:** the app checks your key on your device, offline. The key is never sent to us or anyone else.
   If a key is refunded or shared widely, it is listed in a later version of the app and stops working there.
 
