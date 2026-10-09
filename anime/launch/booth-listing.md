@@ -79,6 +79,7 @@ p30　奥付
 ・判型：A5（148×210mm）／30ページ／フルカラー
 ・言語：日本語（英語版は別ストアで販売しています）
 ・ファイル：{LEDGERBREAKER_Vol0_JA.pdf}（約{ }MB）
+・特典：スマホ壁紙3種（PNG・1179×2556、ZIP同梱 ledgerbreaker-vol0-bonus-wallpapers.zip）※通常版・応援版とも
 ・ネタバレ範囲：第1話まで
 ・推奨：PC・タブレット・スマートフォンのPDFビューア
 

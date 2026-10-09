@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1179 2556" width="1179" height="2556" role="img" aria-labelledby="t d">
+  <title id="t">LEDGERBREAKER wallpaper — Ledger Mark</title>
+  <desc id="d">Minimal phone wallpaper: the red ledger-mark emblem (struck-through zero inside a double-ruled wristband with seven lender notches) centred on Vault Night, small LEDGERBREAKER wordmark below.</desc>
+  <style>@import url('https://fonts.googleapis.com/css2?family=Dela+Gothic+One&amp;family=IBM+Plex+Mono:wght@500;700&amp;family=Zen+Kaku+Gothic+New:wght@700;900&amp;display=block');</style>
+  <defs>
+    <radialGradient id="bg" cx="589.5" cy="1290" r="1500" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#262B3F"/>
+      <stop offset="0.45" stop-color="#1B1F2E"/>
+      <stop offset="1" stop-color="#11131C"/>
+    </radialGradient>
+    <radialGradient id="halo" cx="589.5" cy="1290" r="620" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#E5172F" stop-opacity="0.22"/>
+      <stop offset="0.6" stop-color="#7A0614" stop-opacity="0.08"/>
+      <stop offset="1" stop-color="#7A0614" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="calm" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1B1F2E" stop-opacity="1"/>
+      <stop offset="1" stop-color="#1B1F2E" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="9" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect width="1179" height="2556" fill="url(#bg)"/>
+  <!-- faint ledger paper -->
+  <path d="M0 660H1179M0 732H1179M0 804H1179M0 876H1179M0 948H1179M0 1020H1179M0 1092H1179M0 1164H1179M0 1236H1179M0 1308H1179M0 1380H1179M0 1452H1179M0 1524H1179M0 1596H1179M0 1668H1179M0 1740H1179M0 1812H1179M0 1884H1179M0 1956H1179M0 2028H1179M0 2100H1179M0 2172H1179M0 2244H1179M0 2316H1179M0 2388H1179M0 2460H1179M0 2532H1179" stroke="#E5172F" stroke-opacity="0.06" stroke-width="1.5"/>
+  <path d="M104 0V2556M116 0V2556" stroke="#E5172F" stroke-opacity="0.14" stroke-width="2"/>
+  <rect width="1179" height="760" fill="url(#calm)"/>
+  <rect width="1179" height="2556" fill="url(#halo)"/>
+
+  <g transform="translate(124.5 825) scale(1.55)">
+    <g fill="none" stroke="#E5172F">
+      <circle cx="300" cy="300" r="232" stroke-width="10"/>
+      <circle cx="300" cy="300" r="214" stroke-width="3"/>
+      <circle cx="300" cy="300" r="152" stroke-width="3" stroke-opacity="0.7"/>
+    </g>
+    <!-- ledger ticks between the band rules -->
+    <g stroke="#E5172F" stroke-opacity="0.5" stroke-width="2">
+      <path d="M518 300L526 300"/><path d="M516.6 324.4L524.6 325.3"/><path d="M512.5 348.5L520.3 350.3"/><path d="M505.8 372L513.3 374.6"/><path d="M496.4 394.6L503.6 398.1"/><path d="M484.6 416L491.4 420.2"/><path d="M470.4 435.9L476.7 440.9"/><path d="M454.1 454.1L459.8 459.8"/><path d="M435.9 470.4L440.9 476.7"/><path d="M416 484.6L420.2 491.4"/><path d="M394.6 496.4L398.1 503.6"/><path d="M372 505.8L374.6 513.3"/><path d="M348.5 512.5L350.3 520.3"/><path d="M324.4 516.6L325.3 524.6"/><path d="M300 518L300 526"/><path d="M275.6 516.6L274.7 524.6"/><path d="M251.5 512.5L249.7 520.3"/><path d="M228 505.8L225.4 513.3"/><path d="M205.4 496.4L201.9 503.6"/><path d="M184 484.6L179.8 491.4"/><path d="M164.1 470.4L159.1 476.7"/><path d="M145.9 454.1L140.2 459.8"/><path d="M129.6 435.9L123.3 440.9"/><path d="M115.4 416L108.6 420.2"/><path d="M103.6 394.6L96.4 398.1"/><path d="M94.2 372L86.7 374.6"/><path d="M87.5 348.5L79.7 350.3"/><path d="M83.4 324.4L75.4 325.3"/><path d="M82 300L74 300"/><path d="M83.4 275.6L75.4 274.7"/><path d="M87.5 251.5L79.7 249.7"/><path d="M94.2 228L86.7 225.4"/><path d="M103.6 205.4L96.4 201.9"/><path d="M115.4 184L108.6 179.8"/><path d="M129.6 164.1L123.3 159.1"/><path d="M145.9 145.9L140.2 140.2"/><path d="M164.1 129.6L159.1 123.3"/><path d="M184 115.4L179.8 108.6"/><path d="M205.4 103.6L201.9 96.4"/><path d="M228 94.2L225.4 86.7"/><path d="M251.5 87.5L249.7 79.7"/><path d="M275.6 83.4L274.7 75.4"/><path d="M300 82L300 74"/><path d="M324.4 83.4L325.3 75.4"/><path d="M348.5 87.5L350.3 79.7"/><path d="M372 94.2L374.6 86.7"/><path d="M394.6 103.6L398.1 96.4"/><path d="M416 115.4L420.2 108.6"/><path d="M435.9 129.6L440.9 123.3"/><path d="M454.1 145.9L459.8 140.2"/><path d="M470.4 164.1L476.7 159.1"/><path d="M484.6 184L491.4 179.8"/><path d="M496.4 205.4L503.6 201.9"/><path d="M505.8 228L513.3 225.4"/><path d="M512.5 251.5L520.3 249.7"/><path d="M516.6 275.6L524.6 274.7"/>
+    </g>
+    <!-- seven lender notches -->
+    <g stroke="#0E0B10" stroke-width="3">
+      <circle cx="300" cy="68" r="11" fill="#E5172F"/>
+      <circle cx="481.4" cy="155.4" r="9" fill="#9AA3AD"/>
+      <circle cx="526.2" cy="351.6" r="9" fill="#FF5A1F"/>
+      <circle cx="400.7" cy="509" r="9" fill="#F0921E"/>
+      <circle cx="199.3" cy="509" r="9" fill="#2FC48D"/>
+      <circle cx="73.8" cy="351.6" r="9" fill="#4F63E8"/>
+      <circle cx="118.6" cy="155.4" r="9" fill="#FFDC5A"/>
+    </g>
+    <g filter="url(#glow)">
+      <path fill="#E5172F" fill-rule="evenodd"
+        d="M300 168 C 380 168 432 226 432 300 C 432 378 376 432 300 432 C 222 432 168 376 168 300 C 168 222 222 168 300 168 Z
+           M300 214 C 254 214 222 252 224 302 C 226 350 256 388 302 386 C 348 384 378 348 376 298 C 374 250 344 214 300 214 Z"/>
+      <path fill="#E5172F" d="M160 352 L 440 221 L 450 243 L 170 374 Z"/>
+      <path fill="#1B1F2E" d="M172 352 L 438 229 L 440 235 L 174 358 Z" opacity="0.9"/>
+    </g>
+    <g fill="#E5172F">
+      <path d="M262 424 C 262 436 260 446 264 452 C 270 460 284 458 284 448 C 284 440 282 434 284 428 Z"/>
+      <path d="M318 430 C 317 436 318 440 321 444 C 325 448 334 447 334 441 C 334 437 333 434 334 428 Z"/>
+    </g>
+    <path d="M269 434 C 268 440 268 444 270 448" stroke="#FF6B7A" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.8"/>
+    <path d="M220 250 C 236 214 268 194 304 190" stroke="#FF6B7A" stroke-width="6" fill="none" stroke-linecap="round" opacity="0.7"/>
+  </g>
+  <!-- one falling drop, far below -->
+  <path d="M569.5 1760 C 562.5 1772 563.5 1784 569.5 1784 C 575.5 1784 576.5 1772 569.5 1760 Z" fill="#E5172F" opacity="0.7"/>
+
+  <text x="589.5" y="1905" text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-weight="500" font-size="26" letter-spacing="8" fill="#5C5466">BALANCE  −∞</text>
+  <g text-anchor="middle">
+    <text x="589.5" y="2030" font-family="'Dela Gothic One',sans-serif" font-size="40" letter-spacing="10" fill="#E5172F">LEDGERBREAKER</text>
+    <text x="589.5" y="2074" font-family="'Zen Kaku Gothic New',sans-serif" font-weight="700" font-size="22" letter-spacing="16" fill="#9A958C">帳簿破り</text>
+  </g>
+</svg>

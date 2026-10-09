@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1179 2556" width="1179" height="2556" role="img" aria-labelledby="t d">
+  <title id="t">LEDGERBREAKER wallpaper — 払わねえよ。</title>
+  <desc id="d">Typographic phone wallpaper: the line 払わねえよ。 set vertically in large type, I'M NOT PAYING. beside it, and Jin's raised left arm with the red ledger mark from wrist to elbow, on Ink Black ledger paper. Small LEDGERBREAKER wordmark.</desc>
+  <style>@import url('https://fonts.googleapis.com/css2?family=Dela+Gothic+One&amp;family=IBM+Plex+Mono:wght@500;700&amp;family=Zen+Kaku+Gothic+New:wght@700;900&amp;display=block');</style>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0E0B10"/>
+      <stop offset="0.55" stop-color="#140D13"/>
+      <stop offset="1" stop-color="#0E0B10"/>
+    </linearGradient>
+    <radialGradient id="aura" cx="400" cy="1250" r="760" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#E5172F" stop-opacity="0.30"/>
+      <stop offset="0.5" stop-color="#7A0614" stop-opacity="0.12"/>
+      <stop offset="1" stop-color="#7A0614" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="calm" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0E0B10" stop-opacity="1"/>
+      <stop offset="1" stop-color="#0E0B10" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="mark" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#FF2A44"/>
+      <stop offset="0.55" stop-color="#E5172F"/>
+      <stop offset="1" stop-color="#9E0C22"/>
+    </linearGradient>
+    <linearGradient id="upper" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1A1420"/>
+      <stop offset="0.7" stop-color="#0E0B10"/>
+      <stop offset="1" stop-color="#0E0B10"/>
+    </linearGradient>
+    <linearGradient id="rim" x1="0" y1="1742" x2="0" y2="2020" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#E5172F" stop-opacity="0.6"/>
+      <stop offset="1" stop-color="#E5172F" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="blur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="22"/></filter>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect width="1179" height="2556" fill="url(#bg)"/>
+  <path d="M0 660H1179M0 724H1179M0 788H1179M0 852H1179M0 916H1179M0 980H1179M0 1044H1179M0 1108H1179M0 1172H1179M0 1236H1179M0 1300H1179M0 1364H1179M0 1428H1179M0 1492H1179M0 1556H1179M0 1620H1179M0 1684H1179M0 1748H1179M0 1812H1179M0 1876H1179M0 1940H1179M0 2004H1179M0 2068H1179M0 2132H1179M0 2196H1179M0 2260H1179M0 2324H1179M0 2388H1179M0 2452H1179M0 2516H1179" stroke="#E5172F" stroke-opacity="0.07" stroke-width="1.5"/>
+  <path d="M104 0V2556M116 0V2556" stroke="#E5172F" stroke-opacity="0.16" stroke-width="2"/>
+  <rect width="1179" height="760" fill="url(#calm)"/>
+  <rect width="1179" height="2556" fill="url(#aura)"/>
+
+  <!-- ===== the arm ===== -->
+  <!-- upper arm, silhouette, runs off the bottom-left (no key detail down there) -->
+  <path d="M206 1716 L 392 1742 C 350 1960 300 2200 236 2556 L -140 2556 C -40 2230 110 1960 206 1716 Z" fill="url(#upper)"/>
+  <path d="M392 1742 C 370 1850 352 1940 336 2020" fill="none" stroke="url(#rim)" stroke-width="4"/>
+  <!-- elbow -->
+  <ellipse cx="300" cy="1732" rx="96" ry="40" fill="#1A1420" transform="rotate(8 300 1732)"/>
+
+  <!-- red mark: wrist to elbow -->
+  <path d="M206 1716 C 214 1470 318 1200 360 1004 L 480 1022 C 474 1250 430 1500 392 1742 Z" fill="#E5172F" filter="url(#blur)" opacity="0.9"/>
+  <path d="M206 1716 C 214 1470 318 1200 360 1004 L 480 1022 C 474 1250 430 1500 392 1742 Z" fill="url(#mark)" stroke="#0E0B10" stroke-width="4"/>
+  <path d="M341.3 1088L469.7 1109.8M341.3 1104L469.7 1125.8M311.9 1230.4L450.6 1253.9M311.9 1246.4L450.6 1269.9M282.6 1372.7L431.5 1397.9M282.6 1388.7L431.5 1413.9M253.3 1515L412.5 1542M253.3 1531L412.5 1558" stroke="#7A0614" stroke-width="5"/>
+  <path d="M232 1690 C 244 1460 330 1210 370 1024" fill="none" stroke="#FF6B7A" stroke-width="6" stroke-linecap="round" opacity="0.75"/>
+  <text transform="translate(424 1150) rotate(9.6)" font-family="'IBM Plex Mono',monospace" font-weight="700" font-size="46" fill="#FFD0D6" text-anchor="middle">−∞</text>
+
+  <!-- fist (back of the hand toward the viewer), silhouette with red rim -->
+  <g transform="translate(436 900) rotate(9.6)">
+    <path d="M-66 100 C -76 40 -80 -20 -72 -64 Q -68 -98 -36 -96 Q -20 -112 0 -100 Q 20 -114 38 -98 Q 66 -104 70 -66 C 78 -10 74 50 62 104 Z" fill="#15101A" stroke="#E5172F" stroke-width="5" filter="url(#glow)"/>
+    <path d="M-36 -96 C -40 -80 -40 -70 -34 -60 M0 -100 C -4 -84 -4 -72 2 -62 M38 -98 C 34 -82 34 -72 40 -62" fill="none" stroke="#3A2A36" stroke-width="4" stroke-linecap="round"/>
+    <path d="M-72 -20 C -96 -10 -100 30 -78 52" fill="#15101A" stroke="#E5172F" stroke-width="4"/>
+  </g>
+  <!-- ink droplets lifting off the mark -->
+  <g fill="#E5172F">
+    <circle cx="540" cy="1320" r="9"/><circle cx="566" cy="1220" r="7" opacity="0.8"/>
+    <circle cx="548" cy="1110" r="5.5" opacity="0.6"/><circle cx="590" cy="1020" r="4.5" opacity="0.45"/>
+    <circle cx="570" cy="900" r="3.5" opacity="0.3"/><circle cx="604" cy="800" r="2.5" opacity="0.2"/>
+    <path d="M534 1400 C 523 1418 525 1436 536 1436 C 547 1436 549 1418 534 1400 Z"/>
+  </g>
+
+  <!-- ===== the line ===== -->
+  <path d="M732 690V2010M744 690V2010" stroke="#E5172F" stroke-width="3" stroke-opacity="0.8"/>
+  <text x="920" y="700" style="writing-mode: vertical-rl" font-family="'Dela Gothic One',sans-serif" font-size="232" fill="#F5EEDD" letter-spacing="2">払わねえよ。</text>
+  <text transform="translate(690 700) rotate(90)" font-family="'IBM Plex Mono',monospace" font-weight="700" font-size="40" letter-spacing="10" fill="#E5172F">I'M NOT PAYING.</text>
+
+  <g text-anchor="middle">
+    <text x="589.5" y="2130" font-family="'Dela Gothic One',sans-serif" font-size="40" letter-spacing="10" fill="#E5172F">LEDGERBREAKER</text>
+    <text x="589.5" y="2174" font-family="'Zen Kaku Gothic New',sans-serif" font-weight="700" font-size="22" letter-spacing="16" fill="#9A958C">帳簿破り</text>
+  </g>
+</svg>

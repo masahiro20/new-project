@@ -61,6 +61,7 @@ SPECS
 • PDF, digital download
 • A5 (148 × 210 mm), 30 pages, full colour
 • About 1.5 MB
+• Bonus: 3 phone wallpapers (PNG, 1179 × 2556) in a separate ZIP
 • English. A Japanese edition is sold separately on BOOTH.
 
 HOW THIS WAS MADE
