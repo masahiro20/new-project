@@ -28,10 +28,10 @@
 
 ## 1. AI使用の表示方針（正直に・先に言う）
 
-1. **プロフィール**に1行：「作品の文章・画像は生成AIを使って制作し、作者が編集・監修しています」／EN: "Made with AI assistance, edited by me."
-2. **発売ポスト（JP-3／EN-3）本文に明記**。商品ページ・PDF奥付にも同じ表示がある。
-3. 画像（サムネイル）右下に小さく「AI使用・作者監修／Made with AI assistance」を入れてある。
-4. 「手描き」「描き下ろし原画」「AI不使用」とは**絶対に書かない**。聞かれたら「AIで作った下書きを、自分で構成・修正しています」と正直に答える。
+1. **プロフィール**に1行：「すべて生成AIで制作（作者が確認・選定）」／EN: "Made entirely with generative AI · reviewed by the creator."（本部決定 d21 の短い文）
+2. **発売ポスト（JP-3／EN-3）本文に明記**。商品ページ・PDF奥付には同じ内容を長い文（本部決定 d21）で載せている。
+3. 画像（サムネイル）下部に小さく「すべて生成AIで制作（作者が確認・選定）／Made entirely with generative AI · reviewed by the creator」を入れてある。
+4. 「手描き」「描き下ろし原画」「AI不使用」とは**絶対に書かない**。聞かれたら「文章・イラスト・図版・ページ構成はすべて生成AIで作りました（イラストは画像生成サービスではなく、AIが書いたコードで描いています）。自分は内容を確認して、選んで公開しています」と正直に答える。
 5. 既存作品・作家に似せた画像は出さない。「〇〇みたい」と言われても、自分から既存作品名を使って宣伝しない。
 
 ---
@@ -73,7 +73,7 @@ A5／30ページ／PDF。明日公開です。
 格付けZERO・残高−∞の少年が「払わない」物語の、世界と人物をまとめました。
 {BOOTH_URL}
 
-※文章・図版はAIを用いて制作し、作者が編集・監修
+※すべて生成AIで制作（作者が確認・選定）
 #創作
 ```
 
@@ -132,12 +132,12 @@ Each gets a full page in Book of the Ledger Vol.0. Out tomorrow.
 ```
 Book of the Ledger Vol.0 is out.
 
-The LEDGERBREAKER setting book: the city, the Seven Lenders, the DEFAULT power diagrammed, 8 characters, and the first 3 minutes of Episode 1.
+The LEDGERBREAKER setting book: the city, the Seven Lenders, Jin's power diagrammed, 8 characters, and Episode 1's first 3 minutes.
 
 PDF · A5 · 30 pages · $4
 {KOFI_URL}
 
-Made with AI assistance, edited by the creator.
+Made entirely with generative AI · reviewed by the creator.
 ```
 
 ### EN-4 | Day +2 | DEFAULT | image: p13 diagram (EN edition)
@@ -183,18 +183,18 @@ Reply below. The answers shape Vol.1.
 
 ## 5. 計測値（重みづけ文字数 / 上限280、URL=23）
 
-2026-10-09 改題（LEDGERBREAKER）後に再計測。日付は「10月20日」／"Oct 20" を入れた想定。URL は23で計算。全ポストが上限280以内。英語の `−∞` の「−」（マイナス記号）は2として数えている。
+2026-10-09 改題（LEDGERBREAKER）後に再計測。同日、AI使用の表示を本部決定 d21 の文言に替えて JP-3・EN-3 を再計測（EN-3 は上限を超えたため、中身の一覧を短くした）。日付は「10月20日」／"Oct 20" を入れた想定。URL は23で計算。全ポストが上限280以内。英語の `−∞` の「−」（マイナス記号）は2として数えている。
 
 | ポスト | 重みづけ文字数 |
 |---|---|
 | JP-1 | 206 / 280 |
 | JP-2 | 209 / 280 |
-| JP-3 | 266 / 280 |
+| JP-3 | 258 / 280 |
 | JP-4 | 230 / 280 |
 | JP-5 | 223 / 280 |
 | EN-1 | 256 / 280 |
 | EN-2 | 264 / 280 |
-| EN-3 | 275 / 280 |
+| EN-3 | 276 / 280 |
 | EN-4 | 256 / 280 |
 | EN-5 | 270 / 280 |
 

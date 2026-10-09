@@ -50,7 +50,7 @@ Every power is borrowed from the gods. He's not paying.
 
 最初の2行は、プレビューの抜粋として読まれることを想定して書いています。**（Ko-fiで要確認：「Read more」の前に何行・何文字表示されるか。1行しか表示されなくても、1行目だけで意味が通ります）**
 
-要約：世界観の紹介（力は神からの借金、主人公 Jin は無限の負債を背負い返済を拒む）→ 30ページの本の中身一覧 → ネタバレ範囲（第1話まで）→ 仕様（PDF・A5・30ページ・約1.5MB・壁紙3枚）→ AIツールで制作しオーナーが編集・監修した旨 → 注意事項（非公式の独立企画、内容の注意、返金不可、個人利用のみ）→ 著作権表示。
+要約：世界観の紹介（力は神からの借金、主人公 Jin は無限の負債を背負い返済を拒む）→ 30ページの本の中身一覧 → ネタバレ範囲（第1話まで）→ 仕様（PDF・A5・30ページ・約1.5MB・壁紙3枚）→ 文章・イラスト・図版・ページ構成はすべて生成AIで作成し（イラストはAIが書いたコードで描画）、作者が確認・選定して公開した旨 → 注意事項（非公式の独立企画、内容の注意、返金不可、個人利用のみ）→ 著作権表示。
 
 ```
 Every power in Kanegura is a loan from the gods. Miss a payment, and they collect: your voice, your sight, your memories.
@@ -80,7 +80,7 @@ SPECS
 • English. A Japanese edition is sold separately on BOOTH.
 
 HOW THIS WAS MADE
-The text and illustrations were created with AI tools, then structured, edited and supervised by me ({owner name}). Nothing was generated to imitate a specific artist's style or another work's characters. The same statement is printed in the book's colophon.
+All text, illustrations, diagrams and page layout in this book were made with generative AI (the illustrations are drawn from AI-written code, not an image generator). The creator reviewed and selected the content before release. Nothing was generated to imitate a specific artist's style or another work's characters. The same statement is printed in the book's colophon.
 
 GOOD TO KNOW
 • LEDGERBREAKER is an independent, original project. There's no anime, manga or publishing deal, and designs may change as the project develops.
@@ -128,10 +128,10 @@ GOOD TO KNOW
 
 商品フォームにタグやカテゴリーの欄があれば使ってください **（Ko-fiで要確認）**。欄がなくても、これらの言葉はすでに説明文に入っています。
 
-要約：作品名、オリジナルストーリー、世界観、設定資料集、キャラクターガイド、バトルファンタジー、アニメ調イラスト、デジタルダウンロード、PDF、AI支援、のタグです。
+要約：作品名、オリジナルストーリー、世界観、設定資料集、キャラクターガイド、バトルファンタジー、アニメ調イラスト、デジタルダウンロード、PDF、生成AI、のタグです。
 
 ```
-LEDGERBREAKER, original story, worldbuilding, setting book, character guide, battle fantasy, anime-style art, digital download, PDF, AI-assisted
+LEDGERBREAKER, original story, worldbuilding, setting book, character guide, battle fantasy, anime-style art, digital download, PDF, generative AI
 ```
 
 - 移行期間中だけ（2026-10-09 からおよそ3か月）任意で追加：`Red Ledger`
@@ -139,12 +139,14 @@ LEDGERBREAKER, original story, worldbuilding, setting book, character guide, bat
 
 ## 7. 企画紹介（Ko-fi ページの About／ショップのヘッダー） — コピペ用
 
-要約：LEDGERBREAKER は、力がすべて神々からの借金で、格付けが ZERO〜AAA で公開される街を舞台に、無限の借金を相続して返済を拒む少年を描くオリジナルアニメ企画です。設定資料集・キャラクターページ・脚本の抜粋で1巻ずつ世界を作っており、文章とイラストは AI ツールで作り、オーナーが編集・監修しています。支援はそのまま Vol.1 に使われます。
+要約：LEDGERBREAKER は、力がすべて神々からの借金で、格付けが ZERO〜AAA で公開される街を舞台に、無限の借金を相続して返済を拒む少年を描くオリジナルアニメ企画です。設定資料集・キャラクターページ・脚本の抜粋で1巻ずつ世界を作っており、支援はそのまま Vol.1 に使われます。最後に「すべて生成AIで制作（作者が確認・選定）」の一行を添えています。
 
 ```
 LEDGERBREAKER is an original anime series concept: a city where every power is a loan from the gods, a public Rating from ZERO to AAA, and a broke kid who inherited an infinite debt and refuses to pay.
 
-I'm building the world one volume at a time: setting books, character pages and screenplay excerpts. The text and illustrations are made with AI tools and structured, edited and supervised by me. Your support goes straight into Vol.1.
+I'm building the world one volume at a time: setting books, character pages and screenplay excerpts. Your support goes straight into Vol.1.
+
+Made entirely with generative AI · reviewed by the creator.
 ```
 
 - 英語の About では、ブランド名がひとつの単語として読まれるよう、日本語タイトル（帳簿破り）は入れていません。日本からの訪問者向けにオーナーが入れたい場合だけ戻してください。
@@ -162,7 +164,7 @@ Out now: LEDGERBREAKER — Book of the Ledger Vol.0 (PDF, $4)
 
 本文：
 
-要約：世界観（力は神からの借り物、手首に残高が光り、格付けは公開、取り立ての日に担保を奪われる）と、主人公 Jin の能力（触れた借り物の力を3秒奪い、そのたびに記憶で支払う）を紹介し、本の中身4点・購入リンク・仕様・AI 制作の旨を載せ、最後に「最初に手放すならどの担保？」と読者に問いかけます。
+要約：世界観（力は神からの借り物、手首に残高が光り、格付けは公開、取り立ての日に担保を奪われる）と、主人公 Jin の能力（触れた借り物の力を3秒奪い、そのたびに記憶で支払う）を紹介し、本の中身4点・購入リンク・仕様・「すべて生成AIで制作（作者が確認・選定）」の一行を載せ、最後に「最初に手放すならどの担保？」と読者に問いかけます。
 
 ```
 In Kanegura, every power is borrowed from the gods.
@@ -181,7 +183,7 @@ Book of the Ledger Vol.0 is the 30-page World & Character Guide to LEDGERBREAKER
 Get it here: {KOFI_SHOP_URL}
 
 PDF · A5 · 30 pages · about 1.5 MB · spoilers up to Episode 1 only.
-Made with AI tools; structured, edited and supervised by me.
+Made entirely with generative AI · reviewed by the creator.
 
 Which collateral would you give up first? Tell me below.
 ```
@@ -195,7 +197,7 @@ Which collateral would you give up first? Tell me below.
 
 ### Ko-fi での AI 使用の開示
 - Ko-fi のヘルプページ「Ko-fi's stance on AI」（2026-10-08 に検索結果から要約。ページ本体は取得ツールに 403 を返しました）によると、Ko-fi では AI コンテンツは**認められています**が、**AI 生成の作品は Ko-fi のプレゼント企画・チャレンジ・コンテストの対象外**です（[Ko-fi's stance on AI](https://help.ko-fi.com/hc/en-us/articles/19789627403293-Ko-fi-s-stance-on-AI)、[Content Guidelines](https://help.ko-fi.com/hc/en-us/articles/360007937553)） **（Ko-fiで要確認）**。
-- **ショップの商品に AI 表示を義務づける明確なルールは見つかりませんでした（Ko-fiで要確認）**。それでも開示はします。どこでも同じ言い方で、説明文の「HOW THIS WAS MADE」、About の紹介文、固定投稿、PDF の奥付（p30：「The text and illustrations in this book were created using AI tools, and were structured, edited and supervised by the creator.」）に書いています。海外のアニメファンは AI 使用を隠されることに強く反発します。最初に明かしておく方が、後で指摘されるより売上への影響が小さく済みます。
+- **ショップの商品に AI 表示を義務づける明確なルールは見つかりませんでした（Ko-fiで要確認）**。それでも開示はします。本部決定 d21 の文言で、説明文の「HOW THIS WAS MADE」と PDF の奥付（p30）には長い文（「All text, illustrations, diagrams and page layout in this book were made with generative AI (the illustrations are drawn from AI-written code, not an image generator). The creator reviewed and selected the content before release.」）を、About の紹介文と固定投稿には短い文（「Made entirely with generative AI · reviewed by the creator.」）を書いています。海外のアニメファンは AI 使用を隠されることに強く反発します。最初に明かしておく方が、後で指摘されるより売上への影響が小さく済みます。
 - 奥付の文言を変えたら、§3・§7・§8 も合わせて変えてください。出品ページが本より多くも少なくも主張しないようにします。
 - 「nothing was generated to imitate…」（特定の作家の画風や他作品のキャラクターをまねて生成したものはない）の一文は、BOOTH と同じく意図を述べたものです。オーナーの生成記録で裏づけられない限り、「no prompts referenced any artist or work」（どの作家や作品もプロンプトで参照していない）のような強い表現に変えないでください（`docs/review-originality-vol0.md` L-13）。
 - この商品を Ko-fi のコンテストやプレゼント企画に応募しないでください。

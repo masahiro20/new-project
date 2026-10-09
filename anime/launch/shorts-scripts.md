@@ -16,7 +16,7 @@
 | 音 | 各プラットフォームの**公式ライブラリ（商用利用可の音源）**から選ぶ。市販曲・アニメ曲を使わない。効果音「チン」（レジ音）＝借力の合図、鐘の音＝取立日 |
 | VO | 基本は**ボイスなし（文字＋音）**。オーナー本人の声で読むのは可。AI音声（TTS）を使う場合は説明欄の AI 表示に「音声：AI」を足す |
 | CTA | 最後の2〜3秒：「Setting book PDF → link in bio」＋固定コメントにストアURL（`{BOOTH_URL}`／`{KOFI_URL}`） |
-| 説明欄（共通末尾） | `Original series project. Visuals & text made with AI assistance, edited by the creator. / 本作はオリジナル企画です。画像・文章はAIを用いて制作し、作者が編集・監修しています。` |
+| 説明欄（共通末尾） | `Original series project. Made entirely with generative AI · reviewed by the creator. / 本作はオリジナル企画です。すべて生成AIで制作（作者が確認・選定）。` |
 
 ---
 
@@ -112,8 +112,8 @@
 
 **注意**：p25–27 の脚本抜粋は**読めない速さ・ぼかし**で見せる（買う理由を残す）。
 
-キャプション（EN）：`Book of the Ledger Vol.0 — the LEDGERBREAKER setting book. PDF, 30 pages, $4. Link in bio. Made with AI assistance.`
-キャプション（JP）：`『LEDGERBREAKER 帳簿の書 Vol.0』設定資料集PDF・30ページ・500円。リンクはプロフィールから。AI使用・作者監修。`
+キャプション（EN）：`Book of the Ledger Vol.0 — the LEDGERBREAKER setting book. PDF, 30 pages, $4. Link in bio. Made entirely with generative AI · reviewed by the creator.`
+キャプション（JP）：`『LEDGERBREAKER 帳簿の書 Vol.0』設定資料集PDF・30ページ・500円。リンクはプロフィールから。すべて生成AIで制作（作者が確認・選定）。`
 
 ---
 

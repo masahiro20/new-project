@@ -9,11 +9,11 @@
 ## A. 発売前（Day −7 ごろまで）
 
 - [ ] **商標の簡易確認**：J-PlatPat で「LEDGERBREAKER」「レジャーブレイカー」「帳簿破り」「ちょうぼやぶり」を第9・16・28・41類で検索。USPTO（tmsearch.uspto.gov）も画面で再確認（手順：`docs/title-alternatives.md` §6）。気になる先行登録があれば弁理士に相談
-- [ ] **AIの下書きを自分の言葉で書き直す**：商品説明文（BOOTH §3／Ko-fi §3）・X ポスト・PDF本文のうち、少なくとも説明文とポストは自分で構成・修正する（理由：`docs/monetization.md`「AIと著作権」）
+- [ ] **AIの下書きを自分の言葉で書き直す**：商品説明文（BOOTH §3／Ko-fi §3）・X ポスト・PDF本文のうち、少なくとも説明文とポストは自分で構成・修正する（理由：`docs/monetization.md`「AIと著作権」）。※PDF本文・イラスト・図版・ページ構成を自分で書き直した場合は、AI使用の表示（本部決定 d21「すべて生成AIで作成」）が事実でなくなるので、奥付・商品説明・投稿の表示を実態どおりに直す
 - [ ] **編集ログをつける**：日付／ファイル／どこを／どう直したか／理由 を1行ずつ。直す前と後の文章・画像を保存（記録の置き場所は自由）
 - [ ] Ko-fi の "Nothing was generated to imitate…" の一文が、自分の制作記録と合っているか確認（`docs/review-originality-vol0.md` L-13）
 - [ ] 特定商取引法の表記・振込口座（BOOTH）、PayPal/Stripe（Ko-fi）を設定 ── 方法は**要確認**（`booth-listing.md` §7-2）
-- [ ] X のプロフィールに AI 使用の1行を入れる（`x-posts.md` §1）
+- [ ] X のプロフィールに AI 使用の1行「すべて生成AIで制作（作者が確認・選定）」を入れる（`x-posts.md` §1）
 
 ## B. BOOTH（日本語版）── 原稿：`launch/booth-listing.md`
 

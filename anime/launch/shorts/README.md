@@ -16,7 +16,7 @@
 
 - 冒頭1.5秒＝テキストフック。字幕は英語メイン＋小さめの日本語字幕。
 - 文字は上250px・下400px・右150px の外に出しています（プラットフォームのボタン・説明文と重ならない位置）。
-- 最終カード：「LEDGERBREAKER — Book of the Ledger Vol.0 / 帳簿の書 Vol.0」＋「LINK IN BIO / リンクはプロフィールから」＋小さく「Made with AI assistance / AI使用」。
+- 最終カード：「LEDGERBREAKER — Book of the Ledger Vol.0 / 帳簿の書 Vol.0」＋「LINK IN BIO / リンクはプロフィールから」＋小さく「Made entirely with generative AI · reviewed by the creator / すべて生成AIで制作（作者が確認・選定）」。
 - short3 の第1話脚本抜粋ページ（p25）は、台本の指示どおり**ぼかして読めない**ようにしています。
 - 第1話より先のネタバレはありません（九条・ニルの正体・ケイの過去には触れていません）。
 
@@ -48,7 +48,7 @@ node anime/launch/shorts/build-shorts.js 1 --at=0.6,10,23   # 静止画プレビ
 | 15.0–16.8 | They take it. | 取り立てられる。 | 取り立てられる。 |
 | 16.8–18.5 | — and the sound is gone. | ——そして音が消える。 | ——音が、消えた。 |
 | 18.5–21.5 | Nobody stops them. | 誰も止めない。 | 誰も、止めない。 |
-| 21.5–25.0 | 最終カード：ONE KID REFUSES TO PAY. ＋ロゴ＋Book of the Ledger Vol.0＋LINK IN BIO＋Made with AI assistance | ひとりだけ、払わない少年がいる。／設定資料集はプロフィールのリンクから／AI使用 | ひとりだけ、払わない少年がいる。 |
+| 21.5–25.0 | 最終カード：ONE KID REFUSES TO PAY. ＋ロゴ＋Book of the Ledger Vol.0＋LINK IN BIO＋Made entirely with generative AI · reviewed by the creator | ひとりだけ、払わない少年がいる。／設定資料集はプロフィールのリンクから／すべて生成AIで制作（作者が確認・選定） | ひとりだけ、払わない少年がいる。 |
 
 ### 説明欄（キャプション）
 - EN（英語アカウント・英語圏向け）：
@@ -86,7 +86,7 @@ EN：`#LEDGERBREAKER` `#worldbuilding`　／　JP：`#創作` `#設定資料集`
 | 20.4–23.0 | **"I'M NOT PAYING."** | 「払わねえよ。」 | 「払わねえよ。」 |
 | 23.0–25.0 | （文字なし。一撃のコマ「ドンッ」） | — | — |
 | 25.0–26.6 | 00:00 — contract resumed. | 00:00──契約再開。 | 契約再開。 |
-| 26.6–30.0 | ロゴカード：LEDGERBREAKER／帳簿破り＋Book of the Ledger Vol.0＋LINK IN BIO＋Made with AI assistance | 設定資料集はプロフィールのリンクから／AI使用 | 帳簿の書 Vol.0／リンクはプロフィールから |
+| 26.6–30.0 | ロゴカード：LEDGERBREAKER／帳簿破り＋Book of the Ledger Vol.0＋LINK IN BIO＋Made entirely with generative AI · reviewed by the creator | 設定資料集はプロフィールのリンクから／すべて生成AIで制作（作者が確認・選定） | 帳簿の書 Vol.0／リンクはプロフィールから |
 
 ### 説明欄
 - EN：
@@ -123,16 +123,16 @@ EN：`#LEDGERBREAKER` `#originalcharacter`（または `#worldbuilding`）　／
 | 10.3–11.3 | Episode 1.（p25 脚本抜粋・ぼかし） | 第1話。 | 第1話・脚本抜粋。 |
 | 11.3–13.5 | A5 · 30 pages · PDF（p13 にズーム） | A5・30ページ・PDF | A5・30ページ・PDF |
 | 13.5–16.6 | 価格カード：¥500 on BOOTH／$4 on Ko-fi／A5 · 30 pages · PDF | BOOTH（日本語版）500円／Ko-fi（英語版）4ドル | 日本語版・通常版／English edition |
-| 16.6–20.0 | 最終カード＋「¥500 BOOTH · $4 Ko-fi」＋LINK IN BIO＋Made with AI assistance | リンクはプロフィールから／AI使用 | 帳簿の書 Vol.0／リンクはプロフィールから |
+| 16.6–20.0 | 最終カード＋「¥500 BOOTH · $4 Ko-fi」＋LINK IN BIO＋Made entirely with generative AI · reviewed by the creator | リンクはプロフィールから／すべて生成AIで制作（作者が確認・選定） | 帳簿の書 Vol.0／リンクはプロフィールから |
 
 ※ 中身のページは**英語版PDF**のページです。日本語アカウントで「日本語版のページを見せたい」場合は、`build-shorts.js` の `prepareBook()` の `vol0-en.pdf` を `vol0-ja.pdf` に替えて再出力できます（字幕はそのまま）。
 
 ### 説明欄（shorts-scripts.md #5 のキャプション）
 - EN：
-  `Book of the Ledger Vol.0 — the LEDGERBREAKER setting book. PDF, 30 pages, $4. Link in bio. Made with AI assistance.`
-  （意味：『帳簿の書 Vol.0』──LEDGERBREAKER の設定資料集。PDF・30ページ・4ドル。リンクはプロフィールから。AI使用。）
+  `Book of the Ledger Vol.0 — the LEDGERBREAKER setting book. PDF, 30 pages, $4. Link in bio. Made entirely with generative AI · reviewed by the creator.`
+  （意味：『帳簿の書 Vol.0』──LEDGERBREAKER の設定資料集。PDF・30ページ・4ドル。リンクはプロフィールから。すべて生成AIで制作（作者が確認・選定）。）
 - JP：
-  `『LEDGERBREAKER 帳簿の書 Vol.0』設定資料集PDF・30ページ・500円。リンクはプロフィールから。AI使用・作者監修。`
+  `『LEDGERBREAKER 帳簿の書 Vol.0』設定資料集PDF・30ページ・500円。リンクはプロフィールから。すべて生成AIで制作（作者が確認・選定）。`
 - 最後に共通のAI表示文言を付ける。
 
 ### ハッシュタグ
@@ -149,9 +149,9 @@ EN：`#LEDGERBREAKER` `#worldbuilding`　／　JP：`#設定資料集` `#創作`
 
 shorts-scripts.md の方針をそのまま適用します。
 
-1. **動画内**：最終カードに小さく「Made with AI assistance / AI使用」を入れてあります（消さないでください）。
+1. **動画内**：最終カードに小さく「Made entirely with generative AI · reviewed by the creator / すべて生成AIで制作（作者が確認・選定）」を入れてあります（消さないでください）。
 2. **説明欄の末尾（共通文言）**：
-   `Original series project. Visuals & text made with AI assistance, edited by the creator. / 本作はオリジナル企画です。画像・文章はAIを用いて制作し、作者が編集・監修しています。`
+   `Original series project. Made entirely with generative AI · reviewed by the creator. / 本作はオリジナル企画です。すべて生成AIで制作（作者が確認・選定）。`
    AI音声（TTS）でナレーションを付けた場合は「音声：AI」を足す。
 3. **YouTube**：アップロード画面の「改変または合成されたコンテンツ（altered or synthetic content）」の質問。本作の映像はアニメ調で写実的ではないため、通常は申告対象の「写実的」には当たりにくいとされていますが、**方針は「迷ったら申告」**です。AI音声を使った場合は特に申告してください。2026年5月に「AI content labeling」への名称変更・EU AI法対応の更新があったと報じられていますが、アニメ調コンテンツの扱いの詳細は**未確認（要確認）**です。
 4. **YouTube の「inauthentic content」**：3本は内容が違う（世界観／主人公の覚醒／商品紹介）ので問題ありませんが、同じ映像で冒頭テキストだけ変えた版を大量に出さないでください（A/B テストは1フックにつき2〜3版まで）。

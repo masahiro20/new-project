@@ -29,7 +29,7 @@
 | 脚本の全文は売らない | 漫画賞・原作賞の多くは「未発表」が応募の条件。第1話・第2話の脚本全文は、有料・無料を問わず公開しない | `monetization.md` §2 |
 | 抜粋の上限 | **1話につき、どの商品・投稿を合わせても「約3分ぶん」まで**。第1話はもう Vol.0 の p25〜27（冒頭3分）で使い切っている。だから第1話の脚本はこれ以上出さない（絵コンテの台詞欄も同じに数える）。第2話は Vol.1 で最大3分まで出してよい | 本書で決める。賞ごとの「未発表」の範囲は**要確認**（応募前に要項を読み、必要なら編集部へ問い合わせ） |
 | 抜粋の記録 | どの話のどこを、どの商品で出したかを、チームが `docs/next-products.md` §8 の表に記録する | 同上 |
-| AI 使用を明かす | Vol.0 と同じ書き方（「文章と図はAIを用いて制作し、作者が構成・編集・監修」）を、商品説明・奥付・メンバー向け投稿に入れる | `kofi-listing.md`、`review-originality-vol0.md` L-13 |
+| AI 使用を明かす | 本部決定 d21 の文言を使う。奥付・商品説明は長い文（「本書の文章・イラスト・図版・ページ構成は、すべて生成AIで作成しました（イラストは画像生成サービスではなく、AIが書いたコードで描いています）。作者が内容を確認し、選んで公開しています。」、商品が本でなければ「本書の」を「この商品の」「本作の」に）、メンバー向け投稿などの短い場所は「すべて生成AIで制作（作者が確認・選定）」／EN「Made entirely with generative AI · reviewed by the creator」 | `kofi-listing.md`、`review-originality-vol0.md` L-13 |
 | オーナーが書き直す | 商品説明文と告知の投稿は、少なくともオーナーが自分の言葉で書き直し、編集ログをつける | `monetization.md`「AIと著作権」、`owner-launch-checklist.md` A |
 | pixivFANBOX は使わない | FANBOX は AI 生成作品を扱えない | `monetization.md` §1 E |
 | 大量出品をしない | BOOTH は AI 作品の大量・連続出品を厳しく取り締まっている。90日で増やす商品は **2点まで**（Vol.1 とセット） | `monetization.md` §1 E |
@@ -213,7 +213,7 @@ the settlement ring, and how Episode 1 was boarded and coloured.
 
 | サービス | リスク | 対応 |
 |---|---|---|
-| Ko-fi | AI コンテンツは認められている。会員向け投稿に AI 表示のルールがあるかは**要確認** | 毎回の投稿の最後に「Made with AI assistance, edited by me」を入れる |
+| Ko-fi | AI コンテンツは認められている。会員向け投稿に AI 表示のルールがあるかは**要確認** | 毎回の投稿の最後に「Made entirely with generative AI · reviewed by the creator」を入れる |
 | pixivFANBOX | AI 生成作品を扱えない（`monetization.md` §1 E） | **使わない**（日本向けの月額は今は作らない） |
 | Patreon | 手数料10%。AI の規約は**要確認** | 今は使わない |
 

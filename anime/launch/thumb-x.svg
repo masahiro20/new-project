@@ -44,6 +44,7 @@
       <text x="22" y="47" font-size="30" fill="#F5EEDD">BOOTH <tspan fill="#C9A24A">¥500</tspan></text>
       <text x="398" y="47" text-anchor="end" font-size="30" fill="#F5EEDD">Ko-fi <tspan fill="#C9A24A">$4</tspan></text>
     </g>
-    <text x="2" y="830" font-family="'Zen Kaku Gothic New',sans-serif" font-size="18" fill="#9A958C">AI使用・作者監修 / Made with AI assistance</text>
+    <text x="2" y="816" font-family="'Zen Kaku Gothic New',sans-serif" font-size="18" fill="#9A958C">すべて生成AIで制作（作者が確認・選定）</text>
+    <text x="2" y="842" font-family="'Zen Kaku Gothic New',sans-serif" font-size="15" fill="#9A958C">Made entirely with generative AI · reviewed by the creator</text>
   </g>
 </svg>

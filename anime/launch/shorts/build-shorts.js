@@ -129,8 +129,8 @@ html,body{margin:0;background:var(--ink)}
 .priceline{margin-top:30px;font-family:'IBM Plex Mono';font-weight:700;font-size:36px;color:var(--ivory)}
 .bio{margin-top:38px;background:var(--red);color:var(--ivory);font-family:'Dela Gothic One';font-size:54px;padding:16px 46px 20px;border-radius:999px;box-shadow:0 10px 40px rgba(229,23,47,.35)}
 .bio small{font-family:'Zen Kaku Gothic New';font-weight:900;font-size:30px;display:block;margin-top:2px}
-.ai{margin-top:44px;font-family:'IBM Plex Mono';font-weight:500;font-size:30px;color:var(--ash);letter-spacing:.02em}
-.ai span{font-family:'Zen Kaku Gothic New';font-weight:700}
+.ai{margin-top:40px;font-family:'IBM Plex Mono';font-weight:500;font-size:24px;line-height:1.35;color:var(--ash);white-space:nowrap}
+.ai span{display:block;margin-top:6px;font-family:'Zen Kaku Gothic New';font-weight:700;font-size:28px}
 #price .big{font-family:'Dela Gothic One';font-size:150px;line-height:1;color:var(--ivory)}
 #price .big .r{color:var(--red)}
 #price .where{font-family:'Dela Gothic One';font-size:56px;color:var(--ivory);margin-top:14px}
@@ -163,7 +163,7 @@ html,body{margin:0;background:var(--ink)}
   <div class="title-jp">帳簿の書 Vol.0</div>
   <div class="priceline" id="priceline"></div>
   <div class="bio">LINK IN BIO<small>リンクはプロフィールから</small></div>
-  <div class="ai">Made with AI assistance / <span>AI使用</span></div>
+  <div class="ai">Made entirely with generative AI · reviewed by the creator<span>すべて生成AIで制作（作者が確認・選定）</span></div>
 </div></div>
 <div id="preload"><span style="font-family:'Dela Gothic One'">${allText}</span><span style="font-family:'Zen Kaku Gothic New';font-weight:700">${allText}</span><span style="font-family:'Zen Kaku Gothic New';font-weight:900">${allText}</span><span style="font-family:'IBM Plex Mono';font-weight:700">${allText}</span><span style="font-family:'IBM Plex Mono';font-weight:500">${allText}</span></div>
 </div>
@@ -436,7 +436,7 @@ function stateAt(sp, t) {
 }
 
 function allText(specs) {
-  const bits = ['LEDGERBREAKER 帳簿破り Book of the Ledger Vol.0 帳簿の書 Vol.0 LINK IN BIO リンクはプロフィールから Made with AI assistance / AI使用 ¥500 on BOOTH 日本語版 · 通常版 — or — $4 on Ko-fi English edition A5 · 30 pages · PDF 0123456789−∞'];
+  const bits = ['LEDGERBREAKER 帳簿破り Book of the Ledger Vol.0 帳簿の書 Vol.0 LINK IN BIO リンクはプロフィールから Made entirely with generative AI · reviewed by the creator すべて生成AIで制作（作者が確認・選定） ¥500 on BOOTH 日本語版 · 通常版 — or — $4 on Ko-fi English edition A5 · 30 pages · PDF 0123456789−∞'];
   for (const sp of specs) {
     bits.push(sp.hook.en.replace(/<[^>]+>/g, ''), sp.hook.jp);
     for (const c of sp.caps) bits.push(c.en, c.jp);
