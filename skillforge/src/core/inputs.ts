@@ -6,6 +6,7 @@ import { hasRenpyTranslations, renpyCharacters } from "./parsers/renpy.js";
 import { langFromName, otherLang, pairKey } from "./parsers/lang.js";
 import { ksBareKey, ksStructureNotes } from "./parsers/ks.js";
 import type { ColumnMap } from "./parsers/columns.js";
+import { nothingToTranslate } from "./text.js";
 import type { Lang, Row, Table } from "./types.js";
 
 export interface InputFile {
@@ -119,6 +120,7 @@ export function pairTables(src: Table, tgt: Table): { table: Table; missingInTar
       maxLength: s.maxLength ?? t?.maxLength,
     };
     if (sourceRef) row.sourceRef = sourceRef;
+    if (ks && t?.speaker) row.targetSpeaker = t.speaker;
     if (!t) {
       row.missing = "target";
       if (tgt.singleLang === "ja" && legitPlural(s.id, tgtIds, srcIds)) row.pluralVariant = true;
@@ -210,8 +212,10 @@ export function loadInputs(files: InputFile[], opts: LoadOptions = {}): LoadResu
       parsed.push({ input, table: r.table });
       const t = r.table;
       if (!t.singleLang && t.rows.length) {
-        const empty = t.rows.filter((row) => !row.target.trim()).length;
-        if (empty === t.rows.length) notes.push(`${t.file}: no translations yet (all ${empty} targets empty); only source-side checks apply`);
+        const blank = t.rows.filter((row) => !row.target.trim());
+        // Rows with nothing to translate (a blank `old " "`, a lone number or placeholder) are not reported, so not counted.
+        const empty = blank.filter((row) => row.source.trim() && !nothingToTranslate(row.source)).length;
+        if (blank.length === t.rows.length) notes.push(`${t.file}: no translations yet (all ${blank.length} targets empty); only source-side checks apply`);
         else if (empty) notes.push(`${t.file}: ${empty} of ${t.rows.length} rows have an empty target (untranslated)`);
       }
     } catch (e) {

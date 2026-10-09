@@ -1,5 +1,5 @@
 import { parseCsvRecords } from "./parsers/csv.js";
-import type { CheckResult, Table } from "./types.js";
+import type { CheckResult, Row, Table } from "./types.js";
 
 /**
  * Pilot measurement helpers: export findings to a labeling sheet, then score the labeled sheet.
@@ -19,11 +19,24 @@ const csvCell = (v: unknown) => {
 };
 
 export function findingsToLabelCsv(result: CheckResult, tables: Table[]): string {
-  // A paired .ks row is also found under its original's file (source-side findings point there).
-  const rows = new Map(tables.flatMap((t) => t.rows.flatMap((r) => [[`${r.file}\u0000${r.id}`, r] as const, ...(r.sourceRef ? [[`${r.sourceRef.file}\u0000${r.id}`, r] as const] : [])])));
+  // Rows are looked up by where the finding points (file + line), not by id alone: several .po entries can share an id
+  // (the same msgctxt, or msgid with different contexts), and a lookup by id showed another entry's text. A paired .ks
+  // row is also found under its original's file and line (source-side findings point there).
+  const at = new Map<string, Row>();
+  const byLine = new Map<string, Row>();
+  const byId = new Map<string, Row>();
+  const add = (file: string, line: number, r: Row) => {
+    if (!at.has(`${file}\u0000${line}\u0000${r.id}`)) at.set(`${file}\u0000${line}\u0000${r.id}`, r);
+    if (!byLine.has(`${file}\u0000${line}`)) byLine.set(`${file}\u0000${line}`, r);
+    if (!byId.has(`${file}\u0000${r.id}`)) byId.set(`${file}\u0000${r.id}`, r);
+  };
+  for (const t of tables) for (const r of t.rows) {
+    add(r.file, r.line, r);
+    if (r.sourceRef) add(r.sourceRef.file, r.sourceRef.line, r);
+  }
   const out = [LABEL_COLUMNS.join(",")];
   result.findings.forEach((f, i) => {
-    const row = rows.get(`${f.file}\u0000${f.id}`);
+    const row = at.get(`${f.file}\u0000${f.line}\u0000${f.id}`) ?? byLine.get(`${f.file}\u0000${f.line}`) ?? byId.get(`${f.file}\u0000${f.id}`);
     out.push(
       [`F${String(i + 1).padStart(4, "0")}`, f.file, f.line, f.id, f.category, f.rule, f.severity, f.side, f.message, row?.source ?? "", row?.target ?? "", "", ""]
         .map(csvCell)

@@ -15,6 +15,8 @@ export interface Messages {
   nameNearMiss(token: string, close: string): string;
   nameSpeakerLabel(label: string, majority: string, count: number): string;
   nameSpeakerUnknown(label: string): string;
+  /** Paired scenario files: the translation's speaker label is not the character's name in the translation language. */
+  nameSpeakerTarget(label: string, original: string, expected: string[]): string;
   honorificPolicyRomanized(found: string, policy: string): string;
   honorificPolicyKeep(jaWithHonorific: string, found: string, expected: string): string;
   honorificDrift(form: string, jaHon: string, majority: string, count: number): string;
@@ -93,6 +95,7 @@ const en: Messages = {
   nameNearMiss: (t, c) => `"${t}" looks like a misspelling of "${c}". Add it to ignoreWords if it is a real word.`,
   nameSpeakerLabel: (l, m, n) => `Speaker label "${l}" differs from "${m}" used in ${n} other rows.`,
   nameSpeakerUnknown: (l) => `Speaker "${l}" is not in the character sheet and is one edit away from a known character.`,
+  nameSpeakerTarget: (l, o, e) => `Speaker label "${l}" in the translation (original "${o}") is not this character's approved name "${e.join('" / "')}".`,
   honorificPolicyRomanized: (f, p) => `Romanized honorific "${f}" but the project policy is "${p}".`,
   honorificPolicyKeep: (ja, f, e) => `Policy is "keep" but "${ja}" is rendered "${f}" (expected "${e}").`,
   honorificDrift: (form, jaHon, m, n) => `"${form}" here, but this speaker's "${jaHon}" is rendered "${m}" in ${n} other lines.`,
@@ -150,6 +153,7 @@ const ja: Messages = {
   nameNearMiss: (t, c) => `「${t}」は「${c}」の誤記の可能性があります。実在の単語なら ignoreWords に追加してください。`,
   nameSpeakerLabel: (l, m, n) => `話者ラベル「${l}」が、他の${n}行で使われている「${m}」と異なります。`,
   nameSpeakerUnknown: (l) => `話者「${l}」はキャラクター表になく、既知のキャラ名と1文字違いです。`,
+  nameSpeakerTarget: (l, o, e) => `訳文の話者ラベル「${l}」（原文は「${o}」）が、このキャラの正しい表記${q(e)}と異なります。`,
   honorificPolicyRomanized: (f, p) => `ローマ字の敬称「${f}」が使われていますが、プロジェクトの敬称方針は${POLICY_JA[p] ?? `「${p}」`}です。`,
   honorificPolicyKeep: (jaName, f, e) => `敬称方針は「keep」（ローマ字で残す）ですが、「${jaName}」が「${f}」と訳されています（期待される訳は「${e}」）。`,
   honorificDrift: (form, jaHon, m, n) => `ここでは「${form}」ですが、この話者の「${jaHon}」は他の${n}行で「${m}」と訳されています。`,

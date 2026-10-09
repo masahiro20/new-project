@@ -683,6 +683,14 @@ function displayLength(s, wideAsTwo) {
   }
   return n;
 }
+var KEY_ABBREV = /^(?:ctrl|shift|alt|altgr|cmd|esc|del|ins|pgup|pgdn|fn|f\d{1,2})$/i;
+function nothingToTranslate(source) {
+  const v = visibleText(source.replace(/\[([A-Z]+)\]/g, " $1 ")).replace(/\{\{[^{}]*\}\}/g, " ").trim();
+  const keys = v.split(/\s*\+\s*/);
+  if (keys.length && keys.every((k) => KEY_ABBREV.test(k) || keys.length > 1 && /^[A-Za-z0-9]$/.test(k)) && keys.some((k) => KEY_ABBREV.test(k))) return true;
+  const rest = v.replace(/(?<=\d)\s*x(?![A-Za-z])/gi, " ").replace(/(?<![A-Za-z])x(?=\s*\d)/gi, " ").replace(/(?<=\d)\s*[ap]\.?m\.?(?![A-Za-z])/gi, " ");
+  return !new RegExp("\\p{L}", "u").test(rest);
+}
 
 // src/core/parsers/lang.ts
 var otherLang = (l) => l === "ja" ? "en" : "ja";
@@ -2699,6 +2707,7 @@ function pairTables(src, tgt) {
       maxLength: s.maxLength ?? t?.maxLength
     };
     if (sourceRef) row.sourceRef = sourceRef;
+    if (ks && t?.speaker) row.targetSpeaker = t.speaker;
     if (!t) {
       row.missing = "target";
       if (tgt.singleLang === "ja" && legitPlural(s.id, tgtIds, srcIds)) row.pluralVariant = true;
@@ -2767,8 +2776,9 @@ function loadInputs(files, opts = {}) {
       parsed.push({ input: input2, table: r.table });
       const t = r.table;
       if (!t.singleLang && t.rows.length) {
-        const empty = t.rows.filter((row) => !row.target.trim()).length;
-        if (empty === t.rows.length) notes.push(`${t.file}: no translations yet (all ${empty} targets empty); only source-side checks apply`);
+        const blank = t.rows.filter((row) => !row.target.trim());
+        const empty = blank.filter((row) => row.source.trim() && !nothingToTranslate(row.source)).length;
+        if (blank.length === t.rows.length) notes.push(`${t.file}: no translations yet (all ${blank.length} targets empty); only source-side checks apply`);
         else if (empty) notes.push(`${t.file}: ${empty} of ${t.rows.length} rows have an empty target (untranslated)`);
       }
     } catch (e) {
@@ -23063,6 +23073,7 @@ var en = {
   nameNearMiss: (t, c) => `"${t}" looks like a misspelling of "${c}". Add it to ignoreWords if it is a real word.`,
   nameSpeakerLabel: (l, m, n) => `Speaker label "${l}" differs from "${m}" used in ${n} other rows.`,
   nameSpeakerUnknown: (l) => `Speaker "${l}" is not in the character sheet and is one edit away from a known character.`,
+  nameSpeakerTarget: (l, o, e) => `Speaker label "${l}" in the translation (original "${o}") is not this character's approved name "${e.join('" / "')}".`,
   honorificPolicyRomanized: (f, p) => `Romanized honorific "${f}" but the project policy is "${p}".`,
   honorificPolicyKeep: (ja2, f, e) => `Policy is "keep" but "${ja2}" is rendered "${f}" (expected "${e}").`,
   honorificDrift: (form, jaHon, m, n) => `"${form}" here, but this speaker's "${jaHon}" is rendered "${m}" in ${n} other lines.`,
@@ -23111,6 +23122,7 @@ var ja = {
   nameNearMiss: (t, c) => `「${t}」は「${c}」の誤記の可能性があります。実在の単語なら ignoreWords に追加してください。`,
   nameSpeakerLabel: (l, m, n) => `話者ラベル「${l}」が、他の${n}行で使われている「${m}」と異なります。`,
   nameSpeakerUnknown: (l) => `話者「${l}」はキャラクター表になく、既知のキャラ名と1文字違いです。`,
+  nameSpeakerTarget: (l, o, e) => `訳文の話者ラベル「${l}」（原文は「${o}」）が、このキャラの正しい表記${q(e)}と異なります。`,
   honorificPolicyRomanized: (f, p) => `ローマ字の敬称「${f}」が使われていますが、プロジェクトの敬称方針は${POLICY_JA[p] ?? `「${p}」`}です。`,
   honorificPolicyKeep: (jaName, f, e) => `敬称方針は「keep」（ローマ字で残す）ですが、「${jaName}」が「${f}」と訳されています（期待される訳は「${e}」）。`,
   honorificDrift: (form, jaHon, m, n) => `ここでは「${form}」ですが、この話者の「${jaHon}」は他の${n}行で「${m}」と訳されています。`,
@@ -23383,6 +23395,50 @@ function checkNames(tables, g, locale = "en") {
           found: label
         });
       }
+    }
+  }
+  for (const t of tables) {
+    if (t.sourceLang === t.targetLang) continue;
+    const loose = (s) => hiraganaToKatakana(stripSpeakerTitle(normalizeApostrophes(s)).toLowerCase());
+    for (const row of t.rows) {
+      if (!row.targetSpeaker) continue;
+      const c = findCharacter(g, row.speaker);
+      if (!c) continue;
+      const label = row.targetSpeaker;
+      const group2 = `${c.ja} → ${c.en}`;
+      const forbidden = (t.targetLang === "en" ? c.forbidden?.en : c.forbidden?.ja)?.find((f) => loose(f) === loose(label));
+      if (forbidden) {
+        const approved2 = t.targetLang === "en" ? c.en : c.ja;
+        findings.push({
+          category: "name",
+          severity: "error",
+          rule: "name.forbidden",
+          group: group2,
+          file: row.file,
+          line: row.line,
+          id: row.id,
+          side: "target",
+          message: msg.nameForbidden(label, approved2),
+          found: label,
+          expected: approved2
+        });
+        continue;
+      }
+      const approved = t.targetLang === "en" ? enNames(c) : [...jaNames(c), ...c.reading ? [c.reading] : []];
+      if ([c.id, ...approved].some((n) => loose(n) === loose(label))) continue;
+      findings.push({
+        category: "name",
+        severity: "warning",
+        rule: "name.speaker-label",
+        group: `speaker ${approved[0]}`,
+        file: row.file,
+        line: row.line,
+        id: row.id,
+        side: "target",
+        message: msg.nameSpeakerTarget(label, row.speaker, approved),
+        found: label,
+        expected: approved[0]
+      });
     }
   }
   return { findings, usage };
@@ -23919,6 +23975,7 @@ var KNOWN_TAGS = /* @__PURE__ */ new Set([
   "italic",
   "bold"
 ]);
+var VALUE_TAGS = /* @__PURE__ */ new Set(["space", "voffset", "pos", "indent", "cspace", "mspace", "alpha", "margin", "line-height", "line-indent", "rotate", "gradient", "width", "size", "color", "sprite", "material"]);
 var EMPHASIS_TAGS = /* @__PURE__ */ new Set(["i", "b", "em", "strong", "u", "italic", "bold", "plain"]);
 var RUBY_TAGS = /* @__PURE__ */ new Set(["ruby", "rt", "rp", "rb"]);
 var VOID_TAGS = /* @__PURE__ */ new Set(["br", "sprite", "img", "hr", "space", "page", "pos", "voffset", "x", "ph", "bpt", "ept", "it"]);
@@ -23948,7 +24005,8 @@ function tags(s, pair, renpy, kag = false) {
   for (const m of s.matchAll(TAG)) {
     const [, close, name, attrs2, self] = m;
     if (RUBY_TAGS.has(name.toLowerCase())) continue;
-    if (!close && !self && !attrs2 && !KNOWN_TAGS.has(name.toLowerCase()) && !pair.includes(`</${name}>`)) continue;
+    const lower = name.toLowerCase();
+    if (!close && !self && !attrs2 && (!KNOWN_TAGS.has(lower) || VALUE_TAGS.has(lower)) && !pair.includes(`</${name}>`)) continue;
     list3.push(close ? `</${name}>` : self ? `<${name}/>` : `<${name}>`);
     if (self || VOID_TAGS.has(name.toLowerCase())) continue;
     if (!close) stack.push(name);
@@ -23968,7 +24026,7 @@ function tags(s, pair, renpy, kag = false) {
   unbalanced.push(...rstack.map((n) => `{${n}}`));
   return { list: list3, unbalanced: [...unbalanced, ...stack.map((n) => `<${n}>`)] };
 }
-var TRANSLATED_BRACKET = /\[[^[\]\n]*[^\x00-\x7f][^[\]\n]*\]/g;
+var TRANSLATED_BRACKET = /\[[^[\]\n]*[^\x00-\x7f][^[\]\n]*\]|［[^［］\n]+］/g;
 var PRINTF = /^%(?:(\d+)\$)?([-+0#]*\d*(?:\.\d+)?(?:hh?|ll?|z|j|t)?[sdifxXuc@])$/;
 function printfArgs(tokens) {
   const args = /* @__PURE__ */ new Map();
@@ -24096,7 +24154,7 @@ function checkRules(tables, opts = {}) {
     for (const [ri, row] of t.rows.entries()) {
       if (row.missing) {
         if (row.pluralVariant) continue;
-        if (row.missing === "target" && bilingual && row.source.trim()) {
+        if (row.missing === "target" && bilingual && row.source.trim() && !nothingToTranslate(row.source)) {
           out.push({ category: "untranslated", severity: "warning", rule: "untranslated.empty", ...base(row, "target"), message: msg.untranslatedMissingKey() });
         } else if (row.missing === "source" && row.target.trim()) {
           out.push({ category: "untranslated", severity: "info", rule: "untranslated.extra-key", ...base(row, "target"), message: msg.untranslatedExtraKey() });
@@ -24104,7 +24162,7 @@ function checkRules(tables, opts = {}) {
         continue;
       }
       if (!row.target.trim()) {
-        if (bilingual && row.source.trim()) {
+        if (bilingual && row.source.trim() && !nothingToTranslate(row.source)) {
           out.push({ category: "untranslated", severity: "warning", rule: "untranslated.empty", ...base(row, "target"), message: msg.untranslatedEmpty() });
         }
         continue;
@@ -24992,10 +25050,21 @@ var csvCell = (v) => {
   return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 };
 function findingsToLabelCsv(result, tables) {
-  const rows = new Map(tables.flatMap((t) => t.rows.flatMap((r) => [[`${r.file}\0${r.id}`, r], ...r.sourceRef ? [[`${r.sourceRef.file}\0${r.id}`, r]] : []])));
+  const at = /* @__PURE__ */ new Map();
+  const byLine = /* @__PURE__ */ new Map();
+  const byId = /* @__PURE__ */ new Map();
+  const add = (file2, line, r) => {
+    if (!at.has(`${file2}\0${line}\0${r.id}`)) at.set(`${file2}\0${line}\0${r.id}`, r);
+    if (!byLine.has(`${file2}\0${line}`)) byLine.set(`${file2}\0${line}`, r);
+    if (!byId.has(`${file2}\0${r.id}`)) byId.set(`${file2}\0${r.id}`, r);
+  };
+  for (const t of tables) for (const r of t.rows) {
+    add(r.file, r.line, r);
+    if (r.sourceRef) add(r.sourceRef.file, r.sourceRef.line, r);
+  }
   const out = [LABEL_COLUMNS.join(",")];
   result.findings.forEach((f, i2) => {
-    const row = rows.get(`${f.file}\0${f.id}`);
+    const row = at.get(`${f.file}\0${f.line}\0${f.id}`) ?? byLine.get(`${f.file}\0${f.line}`) ?? byId.get(`${f.file}\0${f.id}`);
     out.push(
       [`F${String(i2 + 1).padStart(4, "0")}`, f.file, f.line, f.id, f.category, f.rule, f.severity, f.side, f.message, row?.source ?? "", row?.target ?? "", "", ""].map(csvCell).join(",")
     );

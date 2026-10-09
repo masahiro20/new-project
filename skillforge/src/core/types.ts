@@ -39,6 +39,11 @@ export interface Row {
    * the source side are reported here (runChecks rewrites their location).
    */
   sourceRef?: { file: string; line: number };
+  /**
+   * Paired scenario files (.ks) only: the speaker label written in the translation file. `speaker` keeps the original's
+   * (it identifies the character for voice checks); this one is checked against the character's target-language name.
+   */
+  targetSpeaker?: string;
   /** With `missing`: a plural variant (`.one`, `_few` …) that Japanese does not need (it has one plural form); not reported. */
   pluralVariant?: boolean;
 }

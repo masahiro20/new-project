@@ -159,6 +159,38 @@ export function checkNames(tables: Table[], g: Glossary, locale: Locale = "en"):
       }
     }
   }
+  // Paired scenario files (.ks): the translation writes its own speaker labels. The original's label identifies the
+  // character; the translation's must be that character's name in the translation language (or the shared id).
+  for (const t of tables) {
+    if (t.sourceLang === t.targetLang) continue;
+    const loose = (s: string) => hiraganaToKatakana(stripSpeakerTitle(normalizeApostrophes(s)).toLowerCase());
+    for (const row of t.rows) {
+      if (!row.targetSpeaker) continue;
+      const c = findCharacter(g, row.speaker);
+      if (!c) continue;
+      const label = row.targetSpeaker;
+      const group = `${c.ja} → ${c.en}`;
+      const forbidden = (t.targetLang === "en" ? c.forbidden?.en : c.forbidden?.ja)?.find((f) => loose(f) === loose(label));
+      if (forbidden) {
+        const approved = t.targetLang === "en" ? c.en : c.ja;
+        findings.push({
+          category: "name", severity: "error", rule: "name.forbidden", group,
+          file: row.file, line: row.line, id: row.id, side: "target",
+          message: msg.nameForbidden(label, approved),
+          found: label, expected: approved,
+        });
+        continue;
+      }
+      const approved = t.targetLang === "en" ? enNames(c) : [...jaNames(c), ...(c.reading ? [c.reading] : [])];
+      if ([c.id, ...approved].some((n) => loose(n) === loose(label))) continue;
+      findings.push({
+        category: "name", severity: "warning", rule: "name.speaker-label", group: `speaker ${approved[0]}`,
+        file: row.file, line: row.line, id: row.id, side: "target",
+        message: msg.nameSpeakerTarget(label, row.speaker!, approved),
+        found: label, expected: approved[0],
+      });
+    }
+  }
   return { findings, usage };
 }
 

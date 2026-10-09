@@ -1,4 +1,4 @@
-import { BRACKET_WORD, displayLength, isRenpyText, KAG_STYLE_TAG, PLACEHOLDER, placeholderText, RENPY_PACING_TAGS, RENPY_TAG, RENPY_TAG_NAMES, hideRenpyEscapes, visibleText } from "../text.js";
+import { BRACKET_WORD, displayLength, nothingToTranslate, isRenpyText, KAG_STYLE_TAG, PLACEHOLDER, placeholderText, RENPY_PACING_TAGS, RENPY_TAG, RENPY_TAG_NAMES, hideRenpyEscapes, visibleText } from "../text.js";
 import { messages, type RubyProblem } from "../i18n.js";
 import type { Finding, Locale, Row, Side, Table } from "../types.js";
 
@@ -14,6 +14,11 @@ const KNOWN_TAGS = new Set([
   "line-indent", "lowercase", "uppercase", "smallcaps", "margin", "mspace", "nobr", "noparse", "pos", "rotate", "space", "voffset",
   "width", "gradient", "page", "x", "g", "ph", "bpt", "ept", "it", "bx", "ex", "sc", "italic", "bold",
 ]);
+/**
+ * TextMeshPro tags that only exist with a value (`<space=1em>`, `<voffset=2px>`, `<size=120%>`). Written bare and never
+ * closed (`<space>`, Element's key label), the word is display text like `<unknown>`, not markup.
+ */
+const VALUE_TAGS = new Set(["space", "voffset", "pos", "indent", "cspace", "mspace", "alpha", "margin", "line-height", "line-indent", "rotate", "gradient", "width", "size", "color", "sprite", "material"]);
 /** Emphasis that Japanese typography usually drops; losing it is a warning, not a broken string. */
 const EMPHASIS_TAGS = new Set(["i", "b", "em", "strong", "u", "italic", "bold", "plain"]);
 const RUBY_TAGS = new Set(["ruby", "rt", "rp", "rb"]);
@@ -57,7 +62,8 @@ function tags(s: string, pair: string, renpy: boolean, kag = false): { list: str
   for (const m of s.matchAll(TAG)) {
     const [, close, name, attrs, self] = m;
     if (RUBY_TAGS.has(name!.toLowerCase())) continue;
-    if (!close && !self && !attrs && !KNOWN_TAGS.has(name!.toLowerCase()) && !pair.includes(`</${name}>`)) continue;
+    const lower = name!.toLowerCase();
+    if (!close && !self && !attrs && (!KNOWN_TAGS.has(lower) || VALUE_TAGS.has(lower)) && !pair.includes(`</${name}>`)) continue;
     list.push(close ? `</${name}>` : self ? `<${name}/>` : `<${name}>`);
     if (self || VOID_TAGS.has(name!.toLowerCase())) continue;
     if (!close) stack.push(name!);
@@ -80,8 +86,8 @@ function tags(s: string, pair: string, renpy: boolean, kag = false): { list: str
   return { list, unbalanced: [...unbalanced, ...stack.map((n) => `<${n}>`)] };
 }
 
-/** Bracketed text with non-ASCII inside: a translated label such as [なし] or a menu path [エクスポート]. */
-const TRANSLATED_BRACKET = /\[[^[\]\n]*[^\x00-\x7f][^[\]\n]*\]/g;
+/** Bracketed text with non-ASCII inside: a translated label such as [なし] or a menu path [エクスポート], or one in full-width brackets (［番号］). */
+const TRANSLATED_BRACKET = /\[[^[\]\n]*[^\x00-\x7f][^[\]\n]*\]|［[^［］\n]+］/g;
 
 /** A printf conversion: [1] argument number of `%2$s` (absent for `%s`), [2] flags, width, precision and type. */
 const PRINTF = /^%(?:(\d+)\$)?([-+0#]*\d*(?:\.\d+)?(?:hh?|ll?|z|j|t)?[sdifxXuc@])$/;
@@ -260,7 +266,7 @@ export function checkRules(tables: Table[], opts: { wideAsTwo?: boolean; locale?
       // (unless it is a plural form Japanese does not need); absent from the source → an extra key (info).
       if (row.missing) {
         if (row.pluralVariant) continue;
-        if (row.missing === "target" && bilingual && row.source.trim()) {
+        if (row.missing === "target" && bilingual && row.source.trim() && !nothingToTranslate(row.source)) {
           out.push({ category: "untranslated", severity: "warning", rule: "untranslated.empty", ...base(row, "target"), message: msg.untranslatedMissingKey() });
         } else if (row.missing === "source" && row.target.trim()) {
           out.push({ category: "untranslated", severity: "info", rule: "untranslated.extra-key", ...base(row, "target"), message: msg.untranslatedExtraKey() });
@@ -268,7 +274,7 @@ export function checkRules(tables: Table[], opts: { wideAsTwo?: boolean; locale?
         continue;
       }
       if (!row.target.trim()) {
-        if (bilingual && row.source.trim()) {
+        if (bilingual && row.source.trim() && !nothingToTranslate(row.source)) {
           out.push({ category: "untranslated", severity: "warning", rule: "untranslated.empty", ...base(row, "target"), message: msg.untranslatedEmpty() });
         }
         continue;

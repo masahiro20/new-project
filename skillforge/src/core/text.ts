@@ -345,3 +345,24 @@ export function displayLength(s: string, wideAsTwo: boolean): number {
   }
   return n;
 }
+
+/** Key-name abbreviations a translation keeps as they are on the keyboard (Ctrl, Shift, Esc, F1). */
+const KEY_ABBREV = /^(?:ctrl|shift|alt|altgr|cmd|esc|del|ins|pgup|pgdn|fn|f\d{1,2})$/i;
+
+/**
+ * A source with nothing to translate: an empty translation shows it unchanged and nothing looks wrong. True when,
+ * after removing markup and placeholders, no letter is left (numbers, signs, dates and times, punctuation such as
+ * `...`, a lone `${NAME}`, `%{a}: %{b}`, `{{current}}/{{total}}`), apart from a multiplier `1.5x` / `x2` or AM/PM after a time; or when the
+ * text is a key name or key combination (Ctrl, Shift+F1, Ctrl+S).
+ */
+export function nothingToTranslate(source: string): boolean {
+  // A bracketed capitalised word ([DISABLED], [NEW]) is shown as text, so it is kept; [AVATAR_NAME] / [P1] are placeholders.
+  const v = visibleText(source.replace(/\[([A-Z]+)\]/g, " $1 ")).replace(/\{\{[^{}]*\}\}/g, " ").trim();
+  const keys = v.split(/\s*\+\s*/);
+  if (keys.length && keys.every((k) => KEY_ABBREV.test(k) || (keys.length > 1 && /^[A-Za-z0-9]$/.test(k))) && keys.some((k) => KEY_ABBREV.test(k))) return true;
+  const rest = v
+    .replace(/(?<=\d)\s*x(?![A-Za-z])/gi, " ")
+    .replace(/(?<![A-Za-z])x(?=\s*\d)/gi, " ")
+    .replace(/(?<=\d)\s*[ap]\.?m\.?(?![A-Za-z])/gi, " ");
+  return !/\p{L}/u.test(rest);
+}
