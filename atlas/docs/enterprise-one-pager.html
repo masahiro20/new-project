@@ -1,0 +1,272 @@
+<!doctype html>
+<!--
+  DRAFT - NOT FOR EXTERNAL USE. Atlas enterprise one-pager (English), Growth role, 2026-10-09.
+  Needs owner (masahiro20) approval before it is sent, printed for, or shown to anyone outside the team.
+  Markdown twin: atlas/docs/enterprise-one-pager.md (keep both in sync).
+  Placeholders the leader fills: {{HOLDOUT_FILES}}, {{HOLDOUT_REPOS}}, {{HOLDOUT_FP_RATE}}, {{HOLDOUT_RECALL}},
+  {{HOLDOUT_REVIEW_SHARE}} (holdout validation only - never the tuning-set numbers), {{CONTACT_EMAIL}}, {{DOMAIN}}.
+  Rules: single file, no external requests (system fonts, inline SVG only). Prints on one A4 or US Letter page.
+  Wording: findings are "pattern detected". Never label any project with intent-laden words; OSV's MAL-* category
+  may be referenced by id only. Real names appear only in cited public incidents. No certification/compliance claims.
+  The atlas-scan CLI is NOT on npm yet; the GitHub Action is NOT on the Marketplace. Pricing is planned, nothing billed.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light dark">
+<title>Atlas Enterprise Brief</title>
+<meta name="description" content="One-page brief for platform and security leads: evidence-backed review of MCP servers and agent skills before they go on your allowlist. Draft.">
+<style>
+  :root {
+    --bg: #e9edf1;
+    --paper: #ffffff;
+    --bg-alt: #f4f6f8;
+    --ink: #121821;
+    --ink-2: #3c4654;
+    --ink-3: #5d6876;
+    --line: #d3dae2;
+    --line-strong: #b4bfcb;
+    --accent: #0d5c6e;
+    --accent-soft: #dcecef;
+    --signal: #a8460b;
+    --signal-soft: #f8e7da;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, "Cascadia Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  }
+  @media screen and (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f141a;
+      --paper: #18212b;
+      --bg-alt: #141b23;
+      --ink: #e6ebf0;
+      --ink-2: #b9c3ce;
+      --ink-3: #8f9bab;
+      --line: #27323e;
+      --line-strong: #3a4757;
+      --accent: #5fb8c9;
+      --accent-soft: #16323a;
+      --signal: #f0a06a;
+      --signal-soft: #3a2618;
+    }
+  }
+
+  @page { margin: 11mm 12mm; }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+  a { color: var(--accent); text-underline-offset: 2px; }
+  code { font-family: var(--mono); font-size: 0.88em; background: var(--bg-alt); border: 1px solid var(--line); border-radius: 3px; padding: 0 0.25em; }
+  h1, h2, h3, p, ul, ol { margin: 0; }
+
+  .sheet {
+    max-width: 860px;
+    margin: 24px auto;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 28px 32px 22px;
+  }
+  @media (max-width: 720px) {
+    .sheet { margin: 0; border: 0; border-radius: 0; padding: 18px 16px; }
+  }
+
+  .draft {
+    background: var(--signal-soft);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--signal);
+    border-radius: 4px;
+    font-size: 0.8em;
+    padding: 4px 10px;
+    margin-bottom: 14px;
+  }
+  .draft strong { color: var(--signal); }
+
+  header.top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding-bottom: 12px; border-bottom: 2px solid var(--accent); }
+  .brand { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; letter-spacing: 0.02em; color: var(--ink); }
+  .brand svg { width: 24px; height: 24px; color: var(--accent); flex: none; }
+  .doc-type { font-size: 0.75em; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); text-align: right; line-height: 1.4; }
+  h1 { font-size: 1.75em; line-height: 1.18; letter-spacing: -0.015em; margin: 12px 0 6px; }
+  .value { font-size: 1.02em; color: var(--ink-2); max-width: 62em; }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 26px; margin-top: 14px; }
+  @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } }
+  section { min-width: 0; }
+  .span { grid-column: 1 / -1; }
+  h2 {
+    font-size: 0.74em; text-transform: uppercase; letter-spacing: 0.09em;
+    color: var(--accent); margin-bottom: 6px; padding-bottom: 3px; border-bottom: 1px solid var(--line);
+  }
+  p + p, p + ul, ul + p { margin-top: 6px; }
+  ul { padding-left: 1.1em; }
+  li + li { margin-top: 3px; }
+  .muted { color: var(--ink-3); }
+  .small { font-size: 0.86em; }
+
+  .incidents { list-style: none; padding: 0; }
+  .incidents li { padding-left: 10px; border-left: 2px solid var(--line-strong); }
+  .incidents li + li { margin-top: 6px; }
+  .incidents b { color: var(--ink); }
+  .src { display: block; font-size: 0.82em; color: var(--ink-3); }
+
+  ol.steps { list-style: none; padding: 0; counter-reset: s; }
+  ol.steps li { counter-increment: s; position: relative; padding-left: 26px; }
+  ol.steps li + li { margin-top: 5px; }
+  ol.steps li::before {
+    content: counter(s); position: absolute; left: 0; top: 0.1em;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--accent); color: var(--paper);
+    font-size: 0.72em; font-weight: 700; line-height: 18px; text-align: center;
+  }
+
+  .tag { display: inline-block; font-size: 0.7em; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; padding: 0 5px; border-radius: 3px; border: 1px solid var(--line-strong); color: var(--ink-3); vertical-align: 0.12em; white-space: nowrap; }
+  .tag.now { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+
+  .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 6px 0; }
+  .metric { border: 1px solid var(--line); border-radius: 4px; padding: 5px 8px; background: var(--bg-alt); }
+  .metric .n { font-family: var(--mono); font-weight: 700; font-size: 0.86em; color: var(--accent); display: block; }
+  .metric .l { font-size: 0.78em; color: var(--ink-2); line-height: 1.3; display: block; }
+
+  table.price { width: 100%; border-collapse: collapse; font-size: 0.9em; margin-top: 4px; }
+  table.price th, table.price td { text-align: left; padding: 3px 6px 3px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+  table.price th { font-weight: 600; white-space: nowrap; }
+  table.price td.amt { font-family: var(--mono); font-size: 0.92em; white-space: nowrap; }
+
+  .pilot { background: var(--accent-soft); border-radius: 4px; padding: 7px 10px; margin-top: 6px; }
+
+  footer.foot {
+    margin-top: 14px; padding-top: 8px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 18px;
+    font-size: 0.78em; color: var(--ink-3);
+  }
+  footer.foot .contact { color: var(--ink); font-weight: 600; }
+
+  @media print {
+    :root { --bg: #ffffff; }
+    html, body { background: #fff; }
+    body { font-size: 8.7pt; line-height: 1.4; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .sheet { max-width: none; margin: 0; padding: 0; border: 0; border-radius: 0; }
+    .grid { grid-template-columns: 1fr 1fr; gap: 9px 20px; margin-top: 10px; }
+    h1 { font-size: 17pt; margin: 8px 0 4px; }
+    header.top { padding-bottom: 8px; }
+    .draft { margin-bottom: 8px; padding: 3px 8px; }
+    a { color: var(--accent); text-decoration: none; }
+    section, li, .metric, table { break-inside: avoid; }
+    footer.foot { margin-top: 10px; padding-top: 6px; }
+  }
+</style>
+</head>
+<body>
+<main class="sheet">
+
+  <div class="draft" role="note"><strong>DRAFT</strong> &mdash; internal only. Needs owner approval before any external use. Accuracy figures are placeholders pending holdout validation.</div>
+
+  <header class="top">
+    <div>
+      <span class="brand">
+        <svg viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <circle cx="16" cy="16" r="13" stroke="currentColor" stroke-width="2"/>
+          <path d="M3 16h26M16 3c-4.5 4-4.5 22 0 26M16 3c4.5 4 4.5 22 0 26" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M10.5 16.5l3.5 3.5 7.5-8" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>Atlas</span>
+      </span>
+    </div>
+    <div class="doc-type">Enterprise brief<br>MCP servers &amp; agent skills</div>
+  </header>
+
+  <h1>Know what you're approving before it goes on your MCP allowlist.</h1>
+  <p class="value">Atlas reviews every MCP server and agent skill your teams request, shows the evidence behind each verdict, and exports a ready-to-deploy allowlist for Claude Code and GitHub Copilot / VS Code. Static analysis only &mdash; we never run your code.</p>
+
+  <div class="grid">
+
+    <section>
+      <h2>The problem</h2>
+      <p>Claude Code (<code>managed-mcp.json</code> / <code>allowedMcpServers</code>) and GitHub Copilot / VS Code now ship enterprise MCP allowlists. <b>They control what is allowed to load &mdash; not what's inside.</b> Registries verify names, not code. The public record shows why that gap matters:</p>
+      <ul class="incidents" style="margin-top:6px">
+        <li><b>postmark-mcp</b> &mdash; an unofficial npm package that, in a later version, was reported to BCC every outgoing email to an outside address. Earlier versions looked fine.
+          <span class="src"><a href="https://www.koi.security/blog/postmark-mcp-npm-malicious-backdoor-email-theft" rel="noopener noreferrer">Koi Security</a>, Sept 2025 &middot; <a href="https://osv.dev/vulnerability/MAL-2025-47604" rel="noopener noreferrer">OSV MAL-2025-47604</a></span></li>
+        <li><b>ClawHavoc / ClawHub</b> &mdash; 341+ skills were reported to deliver an information-stealer; Snyk's ToxicSkills study found critical issues in 13.4% of 3,984 skills reviewed.
+          <span class="src"><a href="https://snyk.io/blog/toxicskills-malicious-ai-agent-skills-clawhub/" rel="noopener noreferrer">Snyk ToxicSkills</a> and public security reporting</span></li>
+        <li><b>CVE-2025-6514</b> &mdash; command injection (CVSS 9.6) in <code>mcp-remote</code>, a widely used bridge to remote MCP servers.
+          <span class="src"><a href="https://www.cve.org/CVERecord?id=CVE-2025-6514" rel="noopener noreferrer">CVE record</a></span></li>
+      </ul>
+      <p class="small muted">Summaries of third-party public reporting, not Atlas findings.</p>
+    </section>
+
+    <section>
+      <h2>How Atlas works</h2>
+      <ol class="steps">
+        <li><b>Paste.</b> Drop in your <code>.mcp.json</code> or VS Code <code>mcp.json</code>, or a list of skills and plugins.</li>
+        <li><b>Review.</b> Each server or skill is checked against public rules and gets <b>approve / review / deny</b>, with every pattern detected shown and why it matters.</li>
+        <li><b>Approve &amp; export.</b> Approve what you accept and export Claude Code <code>managed-mcp.json</code> + <code>allowedMcpServers</code>, or a Copilot / VS Code <code>allowedMcpServers</code> block.</li>
+      </ol>
+
+      <h2 style="margin-top:10px">What you get</h2>
+      <ul>
+        <li><b>Verdicts with evidence.</b> A grade never appears without its findings: rule, file, line, snippet and reason. <span class="tag now">CLI today</span></li>
+        <li><b>Exportable allowlists</b> for Claude Code and Copilot / VS Code. <span class="tag">Private prototype</span></li>
+        <li><b>CI gate.</b> <code>atlas-scan</code> CLI (MIT) emits SARIF 2.1.0; a GitHub Action uploads it to code scanning and fails the job by severity. <span class="tag now">Works today</span> <span class="small muted">CLI not yet on npm; Action not on Marketplace &mdash; used from source, pinned by commit.</span></li>
+        <li><b>Version-diff alerts</b> when an approved server ships a version that adds a network sink, hidden-instruction pattern or changed tools. <span class="tag">Roadmap</span></li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>How we measure accuracy</h2>
+      <p>Numbers come only from a <b>holdout set</b> kept apart from tuning: {{HOLDOUT_FILES}} files across {{HOLDOUT_REPOS}} public repositories, randomly sampled with a fixed seed, with no repository or owner overlap with the tuning set. Two reviewers label findings independently without seeing scanner output; disagreements are adjudicated.</p>
+      <div class="metrics">
+        <div class="metric"><span class="n">{{HOLDOUT_FP_RATE}}</span><span class="l">False-positive rate (high/critical, source &amp; skill code)</span></div>
+        <div class="metric"><span class="n">{{HOLDOUT_RECALL}}</span><span class="l">Recall on attack-type patterns</span></div>
+        <div class="metric"><span class="n">{{HOLDOUT_REVIEW_SHARE}}</span><span class="l">Share of findings routed to human review</span></div>
+      </div>
+      <p class="small muted">Noise reduction lowers severity and flags a finding for review; it never deletes it, and never allowlists by repository name or owner.</p>
+    </section>
+
+    <section>
+      <h2>What we don't do</h2>
+      <ul>
+        <li><b>Static only.</b> We never execute, install or import what we check. Sandboxed dynamic checks are roadmap.</li>
+        <li><b>Remote-only servers get metadata only</b> &mdash; registry data, provenance and launch config, clearly labelled. No code review without source.</li>
+        <li><b>Static analysis can be evaded.</b> A determined author can hide from pattern matching; some data paths are visible only at runtime.</li>
+        <li><b>Not a guarantee or certification.</b> A verdict is evidence for your review. Mapping to Japan's AI Guidelines for Business (AI事業者ガイドライン) is roadmap.</li>
+      </ul>
+    </section>
+
+    <section class="span">
+      <h2>Pilot offer</h2>
+      <div class="grid" style="margin-top:0; gap:8px 26px">
+        <div>
+          <table class="price" aria-label="Planned pricing">
+            <tr><th>Team</th><td class="amt">$99 / mo</td><td>Allowlist Builder for one team</td></tr>
+            <tr><th>Business</th><td class="amt">$499 / mo</td><td>Multiple teams &amp; policies</td></tr>
+            <tr><th>Enterprise</th><td class="amt">$6k&ndash;12k / yr</td><td>Custom terms, procurement support</td></tr>
+          </table>
+          <p class="small muted" style="margin-top:4px">Planned pricing; tier contents provisional. Paying never changes a score.</p>
+        </div>
+        <div>
+          <p class="pilot"><b>Pilot: nothing billed.</b> Send us your current MCP config. We return a reviewed verdict for each server and skill, plus a draft allowlist your team can deploy &mdash; and you tell us what's missing.</p>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <footer class="foot">
+    <span class="contact">Contact: {{CONTACT_EMAIL}} &middot; {{DOMAIN}}</span>
+    <span>Findings describe detected patterns, not intent. Scores are informational, not a security guarantee.</span>
+  </footer>
+
+</main>
+</body>
+</html>
