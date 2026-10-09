@@ -1,0 +1,323 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1200" height="1200" viewBox="0 0 1200 1200" role="img" aria-label="帳簿破り BOOTH サムネイル"><defs>
+  <pattern id="ruled" width="1200" height="34" patternUnits="userSpaceOnUse"><line x1="0" y1="33.5" x2="1200" y2="33.5" stroke="#232838" stroke-width="1"/></pattern>
+  <filter id="glowR" x="-20%" y="-60%" width="140%" height="220%"><feGaussianBlur stdDeviation="10" result="b"/><feFlood flood-color="#E5172F" flood-opacity=".55"/><feComposite in2="b" operator="in"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .06 0"/></filter>
+  <linearGradient id="fadeL" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#0E0B10"/><stop offset="1" stop-color="#0E0B10" stop-opacity="0"/></linearGradient>
+  <linearGradient id="fadeT" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0E0B10"/><stop offset="1" stop-color="#0E0B10" stop-opacity="0"/></linearGradient>
+  <linearGradient id="fadeB" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#0E0B10"/><stop offset="1" stop-color="#0E0B10" stop-opacity="0"/></linearGradient>
+  <radialGradient id="redglow"><stop offset="0" stop-color="#E5172F" stop-opacity=".45"/><stop offset="1" stop-color="#E5172F" stop-opacity="0"/></radialGradient><symbol id="jin" viewBox="0 0 600 1300" overflow="visible">
+  <defs>
+    <linearGradient id="jin-bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#181B25"/>
+      <stop offset="0.55" stop-color="#12141B"/>
+      <stop offset="1" stop-color="#0B0C11"/>
+    </linearGradient>
+    <pattern id="jin-rule" width="600" height="34" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="33.5" x2="600" y2="33.5" stroke="#232838" stroke-width="1"/>
+    </pattern>
+    <radialGradient id="jin-aura" cx="300" cy="560" r="440" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#E5172F" stop-opacity="0.34"/>
+      <stop offset="0.5" stop-color="#7A0614" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#7A0614" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="jin-floor" cx="300" cy="1242" r="200" gradientUnits="userSpaceOnUse" gradientTransform="translate(0 1056) scale(1 0.15)">
+      <stop offset="0" stop-color="#E5172F" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#E5172F" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="jin-blur" x="-1" y="-1" width="3" height="3"><feGaussianBlur stdDeviation="9"/></filter>
+    <filter id="jin-soft" x="-1" y="-1" width="3" height="3"><feGaussianBlur stdDeviation="3"/></filter>
+  </defs>
+
+  <!-- backdrop -->
+  
+  
+  
+  
+  
+  <rect x="0" y="1180" width="600" height="120" fill="url(#jin-floor)"/>
+  <ellipse cx="300" cy="1242" rx="150" ry="14" fill="#06070A" opacity="0.8"/>
+
+    <g stroke="#0B0910" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <!-- long tenugui tail (behind) -->
+    <path d="M262,322 C226,380 196,450 178,560 C162,660 186,760 168,880 C150,1000 120,1080 104,1170 L124,1150 L128,1188 L146,1140 L160,1166 C172,1080 198,1000 212,890 C228,770 206,660 218,570 C232,470 256,400 292,336 Z" fill="#C8102E"/>
+    <path d="M160,1166 C172,1080 198,1000 212,890 C228,770 206,660 218,570 C232,470 256,400 292,336 L276,332 C240,410 214,480 202,570 C190,660 214,770 196,890 C182,1000 158,1080 146,1140 Z" fill="#8E0A20" stroke="none"/>
+    <g stroke="#E5374F" stroke-width="1.5" opacity="0.5" fill="none">
+      <path d="M190,520 L222,528"/><path d="M178,680 L206,684"/><path d="M180,840 L206,846"/><path d="M150,1010 L178,1018"/>
+    </g>
+
+    <!-- legs -->
+    <path d="M220,700 L302,700 L296,770 C292,860 290,940 286,980 L282,1176 L238,1178 C236,1100 232,1040 230,980 C224,900 218,800 220,700 Z" fill="#1F2A44"/>
+    <path d="M298,700 L382,700 C384,800 378,900 372,980 C368,1040 366,1100 366,1178 L324,1176 L318,980 C312,940 308,860 304,770 Z" fill="#1F2A44"/>
+    <path d="M282,1176 L286,980 C290,940 292,860 296,770 L300,716 L306,770 C300,860 298,940 296,980 L292,1176 Z" fill="#141B2E" stroke="none"/>
+    <path d="M366,1178 C366,1100 368,1040 372,980 C378,900 384,800 382,704 L366,770 C362,880 356,960 352,1000 L352,1176 Z" fill="#141B2E" stroke="none"/>
+    <path d="M226,712 C224,800 230,900 238,980 C240,1060 244,1120 246,1170 L238,1176 C236,1100 232,1040 230,980 C224,900 218,800 222,712 Z" fill="#2E3D60" stroke="none"/>
+    <path d="M244,968 Q258,976 272,966 M248,990 Q262,996 276,988 M330,972 Q344,980 358,970" fill="none" stroke="#141B2E" stroke-width="2"/>
+    <!-- knee patch -->
+    <path d="M324,906 L362,902 L364,944 L326,948 Z" fill="#3A4560" stroke-width="2"/>
+    <path d="M328,910 L358,907 M328,942 L360,939" stroke="#141B2E" stroke-width="1.5" stroke-dasharray="3 3" fill="none"/>
+    <!-- rolled cuffs -->
+    <path d="M236,1150 L282,1150 L284,1180 L234,1182 Z" fill="#2E3D60"/>
+    <path d="M324,1150 L368,1150 L370,1182 L322,1180 Z" fill="#2E3D60"/>
+    <!-- boots -->
+    <path d="M234,1180 L284,1180 L288,1214 L292,1234 C282,1244 228,1246 210,1240 C208,1226 224,1214 232,1206 Z" fill="#6A5848"/>
+    <path d="M322,1180 L370,1182 L374,1206 C382,1214 396,1226 394,1240 C376,1246 320,1244 312,1234 L316,1214 Z" fill="#6A5848"/>
+    <path d="M262,1184 L270,1214 M346,1184 L338,1214" fill="none" stroke="#4A3C30" stroke-width="2"/>
+    <path d="M210,1240 C228,1246 282,1244 292,1234 L292,1242 C272,1250 224,1250 210,1244 Z" fill="#E9E1CF" stroke-width="2"/>
+    <path d="M312,1234 C320,1244 376,1246 394,1240 L394,1244 C380,1250 332,1250 312,1242 Z" fill="#E9E1CF" stroke-width="2"/>
+
+    <!-- torso (work jacket) -->
+    <path d="M230,328 C262,316 338,316 370,328 L392,352 C396,420 388,500 376,590 C378,630 384,670 386,710 L214,710 C216,670 222,630 224,590 C212,500 204,420 208,352 Z" fill="#1F2A44"/>
+    <path d="M370,328 L392,352 C396,420 388,500 376,590 C378,630 384,670 386,710 L346,710 C352,600 360,470 352,360 Z" fill="#151C30" stroke="none"/>
+    <path d="M216,360 C212,430 218,510 230,590 C226,630 222,670 222,706 L234,706 C236,640 240,600 238,560 C230,480 228,420 232,362 Z" fill="#2E3D60" stroke="none"/>
+    <path d="M250,560 Q272,572 292,566 M312,580 Q330,590 350,578" fill="none" stroke="#141B2E" stroke-width="2"/>
+    <!-- inner tee -->
+    <path d="M280,318 L300,398 L320,318 Z" fill="#11141C"/>
+    <!-- collar -->
+    <path d="M276,316 L300,400 L258,352 L246,326 Z" fill="#2E3D60"/>
+    <path d="M324,316 L300,400 L342,352 L354,326 Z" fill="#26324F"/>
+    <path d="M300,400 L300,684" fill="none" stroke-width="2.5"/>
+    <!-- chest pocket -->
+    <path d="M318,440 L356,438 L358,486 L320,488 Z" fill="#26324F" stroke-width="2"/>
+    <path d="M318,440 L356,438 L356,452 L318,454 Z" fill="#2E3D60" stroke-width="2"/>
+    <!-- belt -->
+    <path d="M216,680 L386,680 L386,708 L214,708 Z" fill="#3A2C24"/>
+    <rect x="288" y="680" width="24" height="28" fill="#9AA3AD" stroke-width="2"/>
+    <!-- hanging scarf end over chest -->
+    <path d="M262,330 C252,380 248,430 254,486 L264,474 L272,498 L282,470 C278,420 280,370 292,336 Z" fill="#C8102E"/>
+    <path d="M282,470 C278,420 280,370 292,336 L282,334 C270,380 266,430 270,482 Z" fill="#8E0A20" stroke="none"/>
+
+    <!-- right arm (viewer left): elbow out, hand hooked on belt -->
+    <path d="M230,332 C204,338 192,372 186,420 L170,512 L210,524 L222,452 L238,386 Z" fill="#1F2A44"/>
+    <path d="M196,382 C190,420 184,470 178,508 L188,512 C194,470 200,420 206,386 Z" fill="#2E3D60" stroke="none"/>
+    <path d="M164,538 C176,582 196,622 222,656 L248,636 C228,604 214,576 206,550 Z" fill="#E2B48E"/>
+    <path d="M200,556 C210,584 224,610 244,634 L248,636 L236,646 C218,620 206,592 196,560 Z" fill="#C08D6A" stroke="none"/>
+    <path d="M164,504 L214,518 L208,552 L158,538 Z" fill="#2E3D60"/>
+    <path d="M216,648 C218,672 236,690 258,684 L262,662 L248,632 Z" fill="#E2B48E"/>
+    <path d="M232,668 C240,662 250,664 256,670" fill="none" stroke-width="2"/>
+
+    <!-- left arm (viewer right), sleeve cut off -->
+    <path d="M370,334 C394,340 404,380 408,440 L414,522 L382,526 L378,452 L368,398 Z" fill="#E2B48E"/>
+    <path d="M398,372 C404,410 408,460 412,518 L400,520 C396,460 392,410 386,374 Z" fill="#C08D6A" stroke="none"/>
+    <path d="M366,326 L392,348 L400,372 L392,366 L388,384 L380,370 L374,386 L368,364 Z" fill="#1F2A44"/>
+    <!-- red mark: wrist to elbow -->
+    <path d="M382,524 L414,520 C424,580 430,636 432,684 L404,690 C400,640 390,584 382,524 Z" fill="#E5172F" filter="url(#jin-blur)" stroke="none"/>
+    <path d="M382,524 L414,520 C424,580 430,636 432,684 L404,690 C400,640 390,584 382,524 Z" fill="#E5172F"/>
+    <path d="M404,524 L414,520 C424,580 430,636 432,684 L422,686 C418,630 414,580 404,524 Z" fill="#9E0C22" stroke="none"/>
+    <path d="M388,530 C392,580 400,640 408,684" fill="none" stroke="#FF6B7A" stroke-width="2.5"/>
+    <g fill="none" stroke="#7A0614" stroke-width="2">
+      <path d="M384,540 L416,532 M385,548 L417,540"/>
+      <path d="M390,582 L422,572 M391,590 L423,580"/>
+      <path d="M396,624 L428,614 M397,632 L429,622"/>
+    </g>
+    <g fill="none" stroke="#FFD0D6" stroke-width="2.2">
+      <path d="M404,664 L410,664"/>
+      <path d="M413,664 C416,658 420,658 422,664 C424,670 428,670 430,664 C428,658 424,658 422,664 C420,670 416,670 413,664 Z"/>
+    </g>
+    <path d="M402,686 C392,708 398,744 418,748 C438,748 446,716 434,684 Z" fill="#E2B48E"/>
+    <path d="M426,690 C436,710 436,736 424,746 C440,744 444,712 434,686 Z" fill="#C08D6A" stroke="none"/>
+    <path d="M404,704 C414,700 424,704 426,716 M402,724 L432,726" fill="none" stroke-width="2"/>
+    <!-- ink droplets lifting off -->
+    <g stroke="none" fill="#E5172F">
+      <circle cx="444" cy="600" r="4"/><circle cx="454" cy="556" r="3" opacity="0.8"/>
+      <circle cx="440" cy="516" r="2.5" opacity="0.6"/><circle cx="462" cy="484" r="2" opacity="0.45"/>
+      <circle cx="448" cy="440" r="1.6" opacity="0.3"/>
+      <path d="M448,636 C443,644 444,652 449,652 C454,652 455,644 448,636 Z"/>
+    </g>
+
+    <!-- neck -->
+    <path d="M284,280 L284,318 L316,318 L316,280 Z" fill="#E2B48E"/>
+    <path d="M284,284 L316,284 L316,302 C304,298 294,298 284,302 Z" fill="#C08D6A" stroke="none"/>
+    <!-- scarf wrap + knot -->
+    <path d="M258,298 C280,316 320,316 344,298 L350,326 C322,346 278,346 252,328 Z" fill="#C8102E"/>
+    <path d="M320,316 C330,312 338,306 344,298 L350,326 C340,334 330,338 318,342 Z" fill="#8E0A20" stroke="none"/>
+    <path d="M262,310 C282,324 318,324 340,310" fill="none" stroke="#E5374F" stroke-width="2"/>
+    <path d="M250,316 C242,330 246,346 262,348 C274,346 276,330 266,318 Z" fill="#C8102E"/>
+    <path d="M248,326 C232,320 222,330 214,344 L234,340 Z" fill="#C8102E"/>
+
+    <!-- hair back -->
+    <path d="M238,262 L226,214 L188,198 L222,176 L200,130 L246,138 L246,90 L282,122 L300,62 L320,118 L356,84 L358,134 L404,124 L380,170 L414,190 L376,210 L364,262 L346,232 L254,232 Z" fill="#141012"/>
+    <path d="M300,62 L310,110 L320,118 Z M246,90 L262,120 L282,122 Z M356,84 L350,124 L358,134 Z" fill="#2E2630" stroke="none"/>
+    <!-- ears -->
+    <path d="M256,226 C244,222 242,246 256,256 Z" fill="#E2B48E"/>
+    <path d="M344,226 C356,222 358,246 344,256 Z" fill="#C08D6A"/>
+    <!-- face -->
+    <path d="M254,196 C252,244 264,276 300,294 C336,276 348,244 346,196 Z" fill="#E2B48E"/>
+    <path d="M338,200 C344,244 334,272 300,294 C324,270 332,240 330,200 Z" fill="#C08D6A" stroke="none"/>
+    <!-- bangs -->
+    <path d="M246,182 C262,140 338,140 354,182 L350,218 L338,194 L330,222 L318,192 L306,214 L296,190 L282,220 L274,192 L262,218 L254,196 Z" fill="#141012"/>
+    <path d="M288,152 C306,148 324,152 336,162" fill="none" stroke="#3A2E36" stroke-width="3"/>
+    <!-- red forelock -->
+    <path d="M270,150 C288,170 292,206 280,248 C274,228 264,210 256,192 C260,174 264,160 270,150 Z" fill="#E5172F"/>
+    <path d="M274,166 C282,186 284,210 280,238" fill="none" stroke="#FF6B7A" stroke-width="2"/>
+    <!-- brows -->
+    <path d="M264,214 L294,223" stroke-width="4.5" fill="none"/>
+    <path d="M340,214 L312,222" stroke-width="4.5" fill="none"/>
+    <!-- eyes -->
+    <path d="M266,236 Q280,226 294,236" fill="none" stroke-width="4"/>
+    <ellipse cx="282" cy="242" rx="6" ry="8" fill="#3B2418" stroke="none"/>
+    <circle cx="284" cy="239" r="2" fill="#F5EEDD" stroke="none"/>
+    <path d="M308,236 Q322,226 336,236" fill="none" stroke-width="4"/>
+    <ellipse cx="320" cy="242" rx="6" ry="8" fill="#3B2418" stroke="none"/>
+    <circle cx="322" cy="239" r="2" fill="#F5EEDD" stroke="none"/>
+    <!-- nose, crooked grin -->
+    <path d="M302,252 L298,262 L304,262" fill="none" stroke-width="2"/>
+    <path d="M286,274 Q302,282 316,270" fill="none" stroke-width="2.6"/>
+    <path d="M312,268 L318,272" fill="none" stroke-width="2"/>
+    <path d="M330,264 L338,262" stroke="#C08D6A" stroke-width="2" fill="none"/>
+  </g>
+</symbol><symbol id="hazama" viewBox="0 0 600 1300" overflow="visible">
+  <defs>
+    <linearGradient id="hazama-bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#181B25"/>
+      <stop offset="0.55" stop-color="#12141B"/>
+      <stop offset="1" stop-color="#0B0C11"/>
+    </linearGradient>
+    <pattern id="hazama-rule" width="600" height="34" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="33.5" x2="600" y2="33.5" stroke="#232838" stroke-width="1"/>
+    </pattern>
+    <radialGradient id="hazama-aura" cx="300" cy="560" r="440" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#E5172F" stop-opacity="0.34"/>
+      <stop offset="0.5" stop-color="#7A0614" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#7A0614" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="hazama-floor" cx="300" cy="1242" r="200" gradientUnits="userSpaceOnUse" gradientTransform="translate(0 1056) scale(1 0.15)">
+      <stop offset="0" stop-color="#E5172F" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#E5172F" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="hazama-blur" x="-1" y="-1" width="3" height="3"><feGaussianBlur stdDeviation="9"/></filter>
+    <filter id="hazama-soft" x="-1" y="-1" width="3" height="3"><feGaussianBlur stdDeviation="3"/></filter>
+  </defs>
+
+  <!-- backdrop -->
+  
+  
+  
+  
+  
+  <rect x="0" y="1180" width="600" height="120" fill="url(#hazama-floor)"/>
+  <ellipse cx="300" cy="1242" rx="150" ry="14" fill="#06070A" opacity="0.8"/>
+
+    <!-- floor puddle + falling drops -->
+  <ellipse cx="300" cy="1236" rx="70" ry="10" fill="#E5172F" opacity="0.5" filter="url(#hazama-blur)"/>
+  <path d="M248,1236 C252,1226 290,1224 300,1228 C320,1222 350,1226 352,1236 C340,1244 262,1246 248,1236 Z" fill="#E5172F" stroke="#7A0614" stroke-width="2.5"/>
+  <path d="M272,1232 C284,1228 300,1228 312,1230" stroke="#FF6B7A" stroke-width="2" fill="none"/>
+  <g fill="#E5172F" stroke="#7A0614" stroke-width="2">
+    <path d="M284,940 C278,950 279,960 285,960 C291,960 292,950 284,940 Z"/>
+    <path d="M318,980 C313,988 314,996 319,996 C324,996 325,988 318,980 Z" opacity="0.9"/>
+    <path d="M284,1070 C280,1076 281,1082 285,1082 C289,1082 290,1076 284,1070 Z" opacity="0.8"/>
+    <path d="M316,1120 C312,1126 313,1131 317,1131 C321,1131 322,1126 316,1120 Z" opacity="0.7"/>
+    <path d="M296,1170 C293,1175 294,1179 297,1179 C300,1179 301,1175 296,1170 Z" opacity="0.6"/>
+  </g>
+
+  <!-- whole child: soft ink glow behind -->
+  <path d="M300,330 C350,330 372,370 370,420 C368,470 360,500 372,520 L392,660 C400,690 380,700 370,720 L340,890 L260,890 L230,720 C220,700 200,690 208,660 L228,520 C240,500 232,470 230,420 C228,370 250,330 300,330 Z" fill="#E5172F" opacity="0.45" filter="url(#hazama-blur)"/>
+
+  <!-- halo-like ruled ring -->
+  <ellipse cx="300" cy="304" rx="46" ry="9" fill="none" stroke="#E5172F" stroke-width="7" opacity="0.6" filter="url(#hazama-soft)"/>
+  <ellipse cx="300" cy="304" rx="46" ry="9" fill="none" stroke="#FF6B7A" stroke-width="2.4"/>
+  <ellipse cx="300" cy="304" rx="38" ry="6" fill="none" stroke="#E5172F" stroke-width="1.2"/>
+
+  <g stroke="#4A0410" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <!-- legs, floating on tiptoe, bare feet -->
+    <path d="M272,700 L296,700 L292,820 C292,836 295,846 293,858 C298,872 294,892 284,894 C274,894 272,876 278,860 L274,820 Z" fill="#E5172F"/>
+    <path d="M304,700 L328,700 L326,820 L322,860 C328,876 326,894 316,894 C306,892 302,872 307,858 C305,846 308,836 308,820 Z" fill="#E5172F"/>
+    <path d="M316,712 L328,700 L326,820 L322,860 C326,874 326,888 318,892 C320,870 316,858 318,840 Z M288,712 L296,700 L292,820 C292,836 295,846 293,858 C296,870 294,884 290,888 C290,870 286,850 288,820 Z" fill="#B0101F" stroke="none"/>
+    <path d="M278,720 L280,840 M312,720 L312,840" stroke="#FF6B7A" stroke-width="2" fill="none"/>
+    <path d="M282,894 C280,906 284,914 288,902" fill="#E5172F" stroke-width="2"/>
+    <path d="M314,894 C314,910 320,918 322,902" fill="#E5172F" stroke-width="2"/>
+
+    <!-- oversized shirt -->
+    <path d="M250,494 C276,484 324,484 350,494 L372,516 C378,580 384,650 386,716 C376,722 366,712 358,724 C350,746 340,722 330,738 C320,754 310,730 300,742 C290,756 280,730 270,742 C260,756 250,728 242,724 C234,712 222,722 214,716 C216,650 222,580 228,516 Z" fill="#E5172F"/>
+    <path d="M336,492 L350,494 L372,516 C378,580 384,650 386,716 C376,722 366,712 358,724 C356,640 352,560 336,492 Z" fill="#B0101F" stroke="none"/>
+    <path d="M240,540 C236,600 232,660 230,706" fill="none" stroke="#FF6B7A" stroke-width="4"/>
+    <path d="M276,560 Q300,572 322,560 M262,640 Q300,656 340,640" fill="none" stroke="#B0101F" stroke-width="2.5"/>
+    <!-- hem drips -->
+    <path d="M270,742 C268,760 272,772 276,760 L274,744 Z M330,738 C330,758 336,766 338,752 Z M242,724 C240,744 246,750 248,736 Z" fill="#E5172F" stroke-width="2"/>
+    <!-- collar -->
+    <path d="M272,490 Q300,510 328,490" fill="none" stroke-width="3"/>
+
+    <!-- right sleeve (viewer left) -->
+    <path d="M252,494 C232,500 222,530 218,570 L204,660 L242,666 L248,580 L256,520 Z" fill="#E5172F"/>
+    <path d="M226,560 C220,600 214,630 210,656" fill="none" stroke="#FF6B7A" stroke-width="3"/>
+    <circle cx="222" cy="680" r="15" fill="#E5172F"/>
+    <path d="M216,694 C214,708 220,716 224,706" fill="#E5172F" stroke-width="2"/>
+
+    <!-- left sleeve (viewer right) + ink thread -->
+    <path d="M348,494 C368,500 378,530 382,570 L396,660 L358,666 L352,580 L344,520 Z" fill="#B0101F"/>
+    <path d="M362,520 C372,560 380,610 388,656 L396,660 L382,570 C378,530 368,500 348,494 Z" fill="#8E0A1A" stroke="none"/>
+    <!-- glowing wrist mark -->
+    <ellipse cx="378" cy="670" rx="26" ry="12" fill="#FF6B7A" opacity="0.8" filter="url(#hazama-blur)" stroke="none"/>
+    <circle cx="378" cy="682" r="15" fill="#E5172F"/>
+    <path d="M362,668 C372,674 386,674 396,668 M362,674 C372,680 386,680 396,674" fill="none" stroke="#FFD0D6" stroke-width="2"/>
+    <!-- thread of ink leading out of frame (to Jin's wrist) -->
+    <path d="M392,676 C440,690 452,640 492,650 C530,660 540,610 572,616 C590,620 598,600 604,596" fill="none" stroke="#E5172F" stroke-width="2.5"/>
+    <path d="M392,676 C440,690 452,640 492,650 C530,660 540,610 572,616 C590,620 598,600 604,596" fill="none" stroke="#E5172F" stroke-width="8" opacity="0.4" filter="url(#hazama-soft)"/>
+
+    <!-- head -->
+    <path d="M232,412 C230,352 262,332 300,332 C338,332 370,352 368,412 C368,462 340,490 300,490 C260,490 232,462 232,412 Z" fill="#E5172F"/>
+    <path d="M340,346 C362,366 368,400 364,436 C360,466 340,486 312,490 C342,470 356,440 354,404 C352,380 348,360 340,346 Z" fill="#B0101F" stroke="none"/>
+    <!-- ink hair tufts -->
+    <path d="M236,392 C232,350 262,322 300,322 C338,322 368,350 364,392 L352,366 L344,380 L330,350 L318,372 L300,344 L284,370 L270,352 L256,382 L248,366 Z" fill="#C4101F"/>
+    <path d="M272,338 C288,330 312,330 328,338" fill="none" stroke="#FF6B7A" stroke-width="3"/>
+    <path d="M244,392 C242,410 246,420 250,412 Z M356,392 C358,414 352,420 350,410 Z" fill="#C4101F" stroke-width="2"/>
+
+    <!-- ledger page stuck to the face -->
+    <g transform="rotate(-6 300 418)">
+      <path d="M248,364 L352,364 L352,450 L336,472 L248,472 Z" fill="#E9E1CF" stroke="#0E0B10" stroke-width="2.5"/>
+      <path d="M352,450 L336,472 L340,454 Z" fill="#C9BFA8" stroke="#0E0B10" stroke-width="2"/>
+      <g stroke="#9A958C" stroke-width="1" fill="none">
+        <path d="M252,380 L348,380 M252,394 L348,394 M252,408 L348,408 M252,422 L348,422 M252,436 L348,436 M252,450 L344,450 M252,464 L336,464"/>
+      </g>
+      <path d="M266,366 L266,470 M270,366 L270,470" stroke="#E5172F" stroke-width="1" fill="none"/>
+      <path d="M322,366 L322,470" stroke="#0E0B10" stroke-width="0.8" fill="none" opacity="0.5"/>
+      <!-- scribbled figures (not legible) -->
+      <g stroke="#0E0B10" stroke-width="1.4" fill="none">
+        <path d="M276,376 c3,-6 6,4 9,-2 c3,-5 5,3 8,-1"/><path d="M328,376 c2,-5 4,3 6,-1 l6,0"/>
+        <path d="M278,390 c4,-5 6,3 10,-1"/><path d="M330,390 l4,-5 l0,6 m4,-6 c3,0 3,6 0,6"/>
+        <path d="M328,404 c2,-4 6,-4 6,0 c0,4 -6,4 -6,0 m10,0 l6,0"/>
+        <path d="M276,446 c3,-6 6,4 9,-2 c3,-5 5,3 8,-1 c3,-4 5,2 7,0"/>
+      </g>
+      <path d="M326,418 L344,418 M326,432 L346,428" stroke="#E5172F" stroke-width="1.6" fill="none"/>
+      <!-- smile showing through the paper -->
+      <path d="M278,430 Q300,450 322,430" fill="none" stroke="#E5172F" stroke-width="3" opacity="0.45"/>
+    </g>
+  </g>
+
+  <!-- dissolving edges: floating red strokes & ruled-line fragments -->
+  <g fill="none" stroke="#E5172F" stroke-linecap="round">
+    <path d="M176,560 c4,-8 10,6 14,-2" stroke-width="2.4" opacity="0.8"/>
+    <path d="M162,610 l10,0 m-5,-6 l0,14" stroke-width="2.2" opacity="0.6"/>
+    <path d="M180,720 c-4,8 6,12 8,4 c2,-6 8,-2 6,4" stroke-width="2.2" opacity="0.7"/>
+    <path d="M150,470 c6,-4 10,2 6,8" stroke-width="2" opacity="0.45"/>
+    <path d="M420,480 c4,-8 10,6 14,-2 c3,-6 7,2 9,-1" stroke-width="2.4" opacity="0.8"/>
+    <path d="M430,560 c-6,4 0,14 6,8" stroke-width="2.2" opacity="0.6"/>
+    <path d="M412,760 l12,0 m-4,-6 c4,2 4,10 0,12" stroke-width="2.2" opacity="0.65"/>
+    <path d="M440,420 l6,-6 l0,10" stroke-width="2" opacity="0.4"/>
+    <path d="M196,800 c4,-6 8,4 12,-2" stroke-width="2" opacity="0.5"/>
+    <path d="M188,520 L220,520 M180,532 L206,532" stroke-width="1.6" opacity="0.5"/>
+    <path d="M392,610 L428,610 M398,622 L420,622" stroke-width="1.6" opacity="0.5"/>
+    <path d="M206,760 L238,760 M370,790 L404,790 M380,802 L398,802" stroke-width="1.6" opacity="0.45"/>
+    <path d="M226,860 L254,860 M346,880 L372,880" stroke-width="1.4" opacity="0.35"/>
+  </g>
+</symbol></defs>
+<rect width="1200" height="1200" fill="#0E0B10"/><rect width="1200" height="1200" fill="url(#ruled)"/>
+<line x1="64" y1="0" x2="64" y2="1200" stroke="#E5172F" stroke-opacity=".25" stroke-width="2"/><line x1="72" y1="0" x2="72" y2="1200" stroke="#E5172F" stroke-opacity=".25" stroke-width="2"/>
+<circle cx="860" cy="560" r="460" fill="url(#redglow)"/>
+<use href="#hazama" x="760" y="40" width="420" height="910" opacity=".4"/>
+<use href="#jin" x="590" y="80" width="520" height="1127" />
+<rect x="0" y="0" width="640" height="1200" fill="url(#fadeL)" opacity=".75"/>
+<g transform="translate(70 160) scale(.54)"><g>
+    <text x="550" y="70" text-anchor="middle" font-family="'Zen Kaku Gothic New','Noto Sans JP',sans-serif" font-weight="700" font-size="44" letter-spacing="22" fill="#9A958C">レジャーブレイカー</text>
+    <text x="40" y="350" font-family="'Dela Gothic One','Zen Kaku Gothic New',sans-serif" font-size="250" fill="#F5EEDD" textLength="1020" lengthAdjust="spacingAndGlyphs">帳簿<tspan fill="#E5172F" filter="url(#glowR)">破</tspan>り</text>
+    <path d="M560 150 L640 230 L600 250 L700 360" fill="none" stroke="#0E0B10" stroke-width="16"/>
+    <path d="M560 150 L640 230 L600 250 L700 360" fill="none" stroke="#F5EEDD" stroke-width="4"/>
+    <line x1="40" y1="410" x2="1060" y2="410" stroke="#E5172F" stroke-width="4"/>
+    <text x="550" y="478" text-anchor="middle" font-family="'IBM Plex Mono',ui-monospace,monospace" font-size="40" letter-spacing="14" fill="#F5EEDD">LEDGERBREAKER</text>
+  </g></g>
+<rect x="110" y="520" width="300" height="64" fill="#E5172F"/>
+<text x="130" y="564" font-family="'Zen Kaku Gothic New','Noto Sans JP',sans-serif" font-weight="700" font-size="34" fill="#F5EEDD">設定資料集 PDF</text>
+<text x="110" y="660" font-family="'Zen Kaku Gothic New','Noto Sans JP',sans-serif" font-weight="700" font-size="52" fill="#F5EEDD">払わねえよ。</text>
+<text x="112" y="712" font-family="'IBM Plex Mono',ui-monospace,monospace" font-size="26" letter-spacing="3" fill="#9A958C">I'm not paying.</text>
+<text x="110" y="1140" font-family="'Zen Kaku Gothic New','Noto Sans JP',sans-serif" font-size="22" fill="#9A958C">AI使用・作者監修 / Made with AI assistance</text>
+<rect width="1200" height="1200" filter="url(#grain)" opacity=".7"/>
+</svg>
