@@ -21,9 +21,9 @@ const TableInput = z.object({
   filename: z.string().describe("Original file name, e.g. ch1.csv or locales/ja.json — used for line references, format detection and pairing single-language files (ja.json + en.json) by key."),
   content: z
     .string()
-    .describe("Full file text: CSV/TSV, JSON, XLIFF 1.2/2.0, gettext PO, a locale JSON/YAML, a Unity/Unreal string table CSV, or a Ren'Py tl/*.rpy file."),
+    .describe("Full file text: CSV/TSV, JSON, XLIFF 1.2/2.0, gettext PO, a locale JSON/YAML, a Unity/Unreal string table CSV, a Ren'Py tl/*.rpy file, or a KAG/TyranoScript scenario (.ks; one file per language, e.g. scenario/ja/first.ks + scenario/en/first.ks, paired by label)."),
   format: z
-    .enum(["csv", "tsv", "json", "xliff", "po", "i18n-json", "unity-csv", "unreal-csv", "yaml", "renpy"])
+    .enum(["csv", "tsv", "json", "xliff", "po", "i18n-json", "unity-csv", "unreal-csv", "yaml", "renpy", "ks"])
     .optional()
     .describe("Force the parser; default: detected from the file name and content. (.xlsx is binary and not accepted as text.)"),
 });

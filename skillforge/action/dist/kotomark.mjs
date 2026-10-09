@@ -496,7 +496,7 @@ function ref(row) {
 function normalizeApostrophes(s) {
   return s.replace(/[\u2018\u2019\u02bc\u2032]/g, "'");
 }
-var PLACEHOLDER = /\{[A-Za-z0-9_.$:]*\}|%(?:\d+\$)?[-+0#]*\d*(?:\.\d+)?(?:hh?|ll?|z|j|t)?[sdifxXuc@]|\$\{[^}]+\}|\$[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*\|?|\[[A-Z][A-Z0-9_]+\]|\[(?=[a-z0-9_.]*[_.0-9])[a-z_][a-z0-9_.]*\]|\[[A-Za-z_][A-Za-z0-9_.]*(?:![rsatuilcq]+(?::[-<>^=+#0-9,_.]*[A-Za-z%]?)?|:[-<>^=+#0-9,_.]*[A-Za-z%]?)\]/g;
+var PLACEHOLDER = /\[emb\s+exp\s*=\s*(?:"[^"]*"|'[^']*'|[^\s\]]+)\s*\]|\{[A-Za-z0-9_.$:]*\}|%(?:\d+\$)?[-+0#]*\d*(?:\.\d+)?(?:hh?|ll?|z|j|t)?[sdifxXuc@]|\$\{[^}]+\}|\$[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*\|?|\[[A-Z][A-Z0-9_]+\]|\[(?=[a-z0-9_.]*[_.0-9])[a-z_][a-z0-9_.]*\]|\[[A-Za-z_][A-Za-z0-9_.]*(?:![rsatuilcq]+(?::[-<>^=+#0-9,_.]*[A-Za-z%]?)?|:[-<>^=+#0-9,_.]*[A-Za-z%]?)\]/g;
 var BRACKET_WORD = /\[[a-z][a-z]*\]/g;
 var RENPY_TAG_NAMES = /* @__PURE__ */ new Set([
   "b",
@@ -542,6 +542,8 @@ function hideRenpyEscapes(s) {
 function placeholderText(s, renpy = false) {
   return hideRenpyEscapes(s).replace(RENPY_TAG, (m, close, name, value) => RENPY_TAG_NAMES.has(name) && (renpy || close || value) ? "" : m);
 }
+var KAG_STYLE_TAG = /\[(font|resetfont|style|resetstyle|graph|mark|endmark|indent|endindent)(?:\s[^\]]*)?\]/g;
+var KAG_STYLE_VISIBLE = /\[(?:(?:font|style|graph|mark|indent)\s+[^\]=]+=[^\]]*|resetfont|resetstyle|endmark|endindent)\]/g;
 var visibleCache = /* @__PURE__ */ new Map();
 function visibleText(s) {
   const hit = visibleCache.get(s);
@@ -552,7 +554,7 @@ function visibleText(s) {
   return v;
 }
 function stripMarkup(s) {
-  return hideRenpyEscapes(normalizeApostrophes(s)).replace(/<rt>.*?<\/rt>/g, "").replace(/\{rt\}.*?\{\/rt\}/g, "").replace(/<\/?[A-Za-z][^<>]*>/g, "").replace(RENPY_TAG, (m, _c, name) => RENPY_TAG_NAMES.has(name) ? "" : m).replace(/\{([^{}|]+)\|[^{}]+\}/g, "$1").replace(/[|｜]([^《|｜]+)《[^》]+》/g, "$1").replace(PLACEHOLDER, "").replace(/\uE000/g, "{").replace(/\uE001/g, "[");
+  return hideRenpyEscapes(normalizeApostrophes(s)).replace(/<rt>.*?<\/rt>/g, "").replace(/\{rt\}.*?\{\/rt\}/g, "").replace(/<\/?[A-Za-z][^<>]*>/g, "").replace(KAG_STYLE_VISIBLE, "").replace(RENPY_TAG, (m, _c, name) => RENPY_TAG_NAMES.has(name) ? "" : m).replace(/\{([^{}|]+)\|[^{}]+\}/g, "$1").replace(/[|｜]([^《|｜]+)《[^》]+》/g, "$1").replace(PLACEHOLDER, "").replace(/\uE000/g, "{").replace(/\uE001/g, "[");
 }
 function katakanaKey(s) {
   return s.replace(/[・＝=ー\-‐]/g, "").replace(/ヴァ/g, "バ").replace(/ヴィ/g, "ビ").replace(/ヴェ/g, "ベ").replace(/ヴォ/g, "ボ").replace(/ヴ/g, "ブ").replace(/([エケセテネヘメレゲゼデベペェ])イ/g, "$1").replace(/([オコソトノホモヨロゴゾドボポョォ])ウ$/, "$1").replace(/[ァィゥェォ]/g, (c) => String.fromCharCode(c.charCodeAt(0) + 1));
@@ -1501,6 +1503,277 @@ function parseRenpy(text, file2, opts = {}) {
   return { table: { file: file2, format: "renpy", sourceLang, targetLang, rows }, notes };
 }
 
+// src/core/parsers/ks.ts
+var KS_STYLE_TAGS = /* @__PURE__ */ new Set(["font", "resetfont", "style", "resetstyle", "graph", "mark", "endmark", "indent", "endindent"]);
+var CLEAR_TAGS = /* @__PURE__ */ new Set(["cm", "er", "ct"]);
+var TEXT_ATTR_TAGS = /* @__PURE__ */ new Set(["glink", "ptext", "mtext"]);
+function parseKsTag(inner2) {
+  const s = inner2.trim();
+  const m = /^([^\s=\]]+)/.exec(s);
+  const name = (m?.[1] ?? "").toLowerCase();
+  const attrs2 = {};
+  const rest = s.slice(m?.[0].length ?? 0);
+  for (const a of rest.matchAll(/([^\s=]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"']*))|(\S+)/g)) {
+    if (a[5] !== void 0) attrs2[a[5]] = "";
+    else attrs2[a[1]] = a[2] ?? a[3] ?? a[4] ?? "";
+  }
+  return { name, attrs: attrs2, raw: s };
+}
+function tagEnd(s, p) {
+  let q2;
+  for (let i2 = p + 1; i2 < s.length; i2++) {
+    const c = s[i2];
+    if (q2) {
+      if (c === q2) q2 = void 0;
+    } else if (c === '"' || c === "'") {
+      if (/=\s*$/.test(s.slice(p, i2))) q2 = c;
+    } else if (c === "]") return i2 + 1;
+  }
+  return -1;
+}
+var CJK = /[　-ヿ㐀-鿿豈-﫿＀-￯]/;
+var firstChar = (s) => String.fromCodePoint(s.codePointAt(0));
+function parseKsUnits(text, file2) {
+  const lines = text.replace(/^﻿/, "").split(/\r\n|\r|\n/);
+  const units = [];
+  const notes = [];
+  const counter = /* @__PURE__ */ new Map();
+  const chara = {};
+  let label = "(top)";
+  let title;
+  let speaker;
+  let mode = "text";
+  let scripts = 0;
+  let macros = 0;
+  let unclosed = 0;
+  let cur;
+  let ruby;
+  const contextOf = (extra) => [title !== void 0 ? `*${label}|${title}` : void 0, extra].filter(Boolean).join(" | ") || void 0;
+  const push = (lineNo, endLine, txt, who, extra) => {
+    const n = (counter.get(label) ?? 0) + 1;
+    counter.set(label, n);
+    units.push({ label, index: n, line: lineNo, endLine, speaker: who, text: txt, context: contextOf(extra) });
+  };
+  const flushRuby = (lineNo) => {
+    if (ruby === void 0) return;
+    const r = ruby;
+    ruby = void 0;
+    raw(`{|${r}}`, lineNo);
+  };
+  const flush = () => {
+    if (cur) flushRuby(cur.endLine);
+    if (!cur) return;
+    const t = cur.text.replace(/^[ \n]+|[ \n]+$/g, "");
+    const shown = t.replace(/\[(?:[a-z]+)(?:\s[^\]]*)?\]/g, (m) => /^\[emb\s/.test(m) ? m : "").trim();
+    if (shown) push(cur.line, cur.endLine, t, cur.speaker);
+    cur = void 0;
+  };
+  const open2 = (lineNo) => {
+    if (!cur) cur = { line: lineNo, endLine: lineNo, text: "", speaker, joinNext: false };
+    cur.endLine = lineNo;
+    return cur;
+  };
+  function raw(s, lineNo) {
+    open2(lineNo).text += s;
+  }
+  const textOut = (s, lineNo, markup = false) => {
+    if (!s) return;
+    if (!cur && !s.trim() && (markup || ruby === void 0)) return;
+    const u = open2(lineNo);
+    if (u.joinNext) {
+      u.joinNext = false;
+      const last = u.text.slice(-1);
+      if (u.text && last !== "\n" && last !== " " && !s.startsWith(" ") && !CJK.test(last) && !CJK.test(firstChar(s))) u.text += " ";
+    }
+    if (ruby !== void 0 && !markup) {
+      const c = firstChar(s);
+      u.text += `{${c}|${ruby}}`;
+      ruby = void 0;
+      s = s.slice(c.length);
+    }
+    u.text += s;
+  };
+  const handleTag = (tag, lineNo, inline) => {
+    const { name, attrs: attrs2 } = tag;
+    if (name !== "ruby") flushRuby(lineNo);
+    if (name === "p" || CLEAR_TAGS.has(name)) return flush();
+    if (name === "r") {
+      if (cur) raw("\n", lineNo);
+      return;
+    }
+    if (name === "ruby") {
+      flushRuby(lineNo);
+      ruby = attrs2.text ?? "";
+      return;
+    }
+    if (name === "emb") {
+      const exp = attrs2.exp ?? "";
+      return textOut(exp.includes('"') ? `[emb exp='${exp}']` : `[emb exp="${exp}"]`, lineNo, true);
+    }
+    if (name === "ch" || name === "hch") return textOut(attrs2.text ?? "", lineNo);
+    if (KS_STYLE_TAGS.has(name)) {
+      if (inline) raw(`[${tag.raw}]`, lineNo);
+      return;
+    }
+    if (name === "iscript") {
+      flush();
+      mode = "script";
+      scripts++;
+      return "stop";
+    }
+    if (name === "macro") {
+      mode = "macro";
+      macros++;
+      return;
+    }
+    if (name === "chara_new" && attrs2.name && attrs2.jname) {
+      chara[attrs2.name] = attrs2.jname;
+      return;
+    }
+    if (name === "chara_ptext") {
+      flush();
+      speaker = attrs2.name ? chara[attrs2.name] ?? attrs2.name : void 0;
+      return;
+    }
+    if (TEXT_ATTR_TAGS.has(name) && attrs2.text?.trim()) {
+      flush();
+      push(lineNo, lineNo, attrs2.text, void 0, `[${name}]`);
+    }
+  };
+  for (let i2 = 0; i2 < lines.length; i2++) {
+    const lineNo = i2 + 1;
+    const rawLine = lines[i2];
+    const t = rawLine.replace(/^[\t ]+/, "");
+    if (mode === "comment") {
+      if (t.includes("*/")) mode = "text";
+      continue;
+    }
+    if (mode === "script") {
+      if (/^(?:\[endscript[\s\]]|@endscript\b)/.test(t)) mode = "text";
+      continue;
+    }
+    let body = t;
+    if (mode === "macro") {
+      const end = /\[endmacro\s*\]|^@endmacro\b.*$/.exec(t);
+      if (!end) continue;
+      mode = "text";
+      body = t.slice(end.index + end[0].length);
+      if (!body.trim()) continue;
+    }
+    if (!body.trim()) continue;
+    if (body.startsWith(";")) continue;
+    if (body.startsWith("/*")) {
+      if (!body.includes("*/", 2)) mode = "comment";
+      continue;
+    }
+    if (body.startsWith("*")) {
+      flush();
+      const m = /^\*([^|\s]*)(?:\|(.*))?/.exec(body);
+      label = m[1] || "(top)";
+      title = m[2]?.trim() || void 0;
+      speaker = void 0;
+      continue;
+    }
+    if (body.startsWith("#")) {
+      flush();
+      const name = body.slice(1).split(":")[0].trim();
+      speaker = name ? chara[name] ?? name : void 0;
+      continue;
+    }
+    if (body.startsWith("@")) {
+      handleTag(parseKsTag(body.slice(1)), lineNo, false);
+      continue;
+    }
+    if (body.startsWith("_")) body = body.slice(1);
+    if (cur) cur.joinNext = true;
+    let p = 0;
+    let buf = "";
+    while (p < body.length) {
+      if (mode === "macro") {
+        const end = /\[endmacro\s*\]/.exec(body.slice(p));
+        if (!end) break;
+        p += end.index + end[0].length;
+        mode = "text";
+        continue;
+      }
+      const c = body[p];
+      if (c === "[" && body[p + 1] === "[") {
+        buf += "[[";
+        p += 2;
+        continue;
+      }
+      if (c !== "[") {
+        buf += c;
+        p++;
+        continue;
+      }
+      const e = tagEnd(body, p);
+      if (e < 0) {
+        unclosed++;
+        buf += body.slice(p);
+        break;
+      }
+      textOut(buf, lineNo);
+      buf = "";
+      const tag = parseKsTag(body.slice(p + 1, e - 1));
+      p = e;
+      if (handleTag(tag, lineNo, true) === "stop") {
+        p = body.length;
+        break;
+      }
+    }
+    textOut(buf, lineNo);
+    flushRuby(lineNo);
+  }
+  flush();
+  if (scripts) notes.push(`${file2}: ${scripts} [iscript] block(s) skipped`);
+  if (macros) notes.push(`${file2}: ${macros} [macro] definition(s) skipped`);
+  if (unclosed) notes.push(`${file2}: ${unclosed} line(s) with a "[" that is never closed; read as text`);
+  if (mode === "script" || mode === "macro") notes.push(`${file2}: [${mode === "script" ? "iscript" : "macro"}] not closed before the end of the file`);
+  return { units, notes };
+}
+function parseKs(text, file2) {
+  const { units, notes } = parseKsUnits(text, file2);
+  const rows = units.map((u) => ({
+    file: file2,
+    line: u.line,
+    id: `${u.label}#${u.index}`,
+    source: u.text,
+    target: "",
+    speaker: u.speaker,
+    context: u.context
+  }));
+  if (!rows.length) notes.push(`${file2}: no text found (KAG/TyranoScript scenario with no text lines)`);
+  const lang = langFromName(file2) ?? detectLang(rows.map((r) => r.source));
+  return { table: { file: file2, format: "ks", sourceLang: lang, targetLang: lang === "ja" ? "en" : "ja", rows, singleLang: lang }, notes };
+}
+var labelOf = (id) => id.slice(0, id.lastIndexOf("#"));
+function ksStructureNotes(src, tgt) {
+  const count = (t) => {
+    const m = /* @__PURE__ */ new Map();
+    for (const r of t.rows) m.set(labelOf(r.id), (m.get(labelOf(r.id)) ?? 0) + 1);
+    return m;
+  };
+  const a = count(src);
+  const b = count(tgt);
+  const differ = [...a].filter(([l, n]) => b.has(l) && b.get(l) !== n).map(([l, n]) => `*${l} (${n} / ${b.get(l)})`);
+  const onlySrc = [...a.keys()].filter((l) => !b.has(l)).map((l) => `*${l}`);
+  const onlyTgt = [...b.keys()].filter((l) => !a.has(l)).map((l) => `*${l}`);
+  const notes = [];
+  const list3 = (xs) => xs.slice(0, 5).join(", ") + (xs.length > 5 ? `, … (+${xs.length - 5})` : "");
+  if (differ.length) {
+    notes.push(
+      `${src.file} ↔ ${tgt.file}: ${differ.length} label(s) have a different number of text units (${src.singleLang} / ${tgt.singleLang}): ${list3(differ)}; units are paired by position within the label, so those after a split or merged page may be misaligned`
+    );
+  }
+  if (onlySrc.length) notes.push(`${src.file} ↔ ${tgt.file}: label(s) only in ${src.file}: ${list3(onlySrc)}`);
+  if (onlyTgt.length) notes.push(`${src.file} ↔ ${tgt.file}: label(s) only in ${tgt.file}: ${list3(onlyTgt)}`);
+  return notes;
+}
+function ksBareKey(maskedKey) {
+  return maskedKey.split("/").filter((s) => s !== "*").map((s) => s.replace(/[._\- ]\*(?=\.|$|[._\- ])/g, "").replace(/^\*[._\- ]/, "")).join("/");
+}
+
 // src/core/parsers/yaml.ts
 var ESCAPES2 = {
   "0": "\0",
@@ -2305,6 +2578,7 @@ function detectFormat(file2, text) {
   if (f.endsWith(".json")) return "json";
   if (f.endsWith(".yml") || f.endsWith(".yaml")) return "yaml";
   if (f.endsWith(".rpy")) return "renpy";
+  if (f.endsWith(".ks")) return "ks";
   if (f.endsWith(".tsv")) return "tsv";
   if (f.endsWith(".csv")) return "csv";
   if (typeof text !== "string") {
@@ -2336,8 +2610,8 @@ function parseTableWithNotes(data, file2, opts = {}) {
     text = d.text;
     if (d.note) notes.push(d.note);
   }
-  if (format === "yaml" || format === "renpy") {
-    const r = format === "yaml" ? parseYaml(text, file2) : parseRenpy(text, file2, { langs: opts.langs, characters: opts.renpyCharacters });
+  if (format === "yaml" || format === "renpy" || format === "ks") {
+    const r = format === "yaml" ? parseYaml(text, file2) : format === "ks" ? parseKs(text, file2) : parseRenpy(text, file2, { langs: opts.langs, characters: opts.renpyCharacters });
     return { table: r.table, notes: [...notes, ...r.notes] };
   }
   return { table: parseText(text, file2, format, opts), notes };
@@ -2402,13 +2676,20 @@ function pairTables(src, tgt) {
   };
   const rows = [];
   const missingInTarget = [];
+  const ks = src.format === "ks" && tgt.format === "ks";
   for (const s of src.rows) {
     const t = byId.get(s.id)?.shift();
     if (!t) missingInTarget.push(s.id);
-    const ctx = [s.context, t?.context && t.context !== s.context ? t.context : void 0, t ? void 0 : `missing in ${tgt.file}`].filter(Boolean);
+    const ctx = [
+      s.context,
+      t?.context && t.context !== s.context ? t.context : void 0,
+      t ? void 0 : `missing in ${tgt.file}`,
+      ks && t ? `${src.singleLang}: ${s.file}:${s.line}` : void 0
+    ].filter(Boolean);
+    const sourceRef = ks && t ? { file: s.file, line: s.line } : void 0;
     const row = {
-      file: file2,
-      line: s.line,
+      file: ks ? (t ?? s).file : file2,
+      line: ks && t ? t.line : s.line,
       id: s.id,
       source: s.source,
       target: t?.source ?? "",
@@ -2417,6 +2698,7 @@ function pairTables(src, tgt) {
       context: ctx.join(" | ") || void 0,
       maxLength: s.maxLength ?? t?.maxLength
     };
+    if (sourceRef) row.sourceRef = sourceRef;
     if (!t) {
       row.missing = "target";
       if (tgt.singleLang === "ja" && legitPlural(s.id, tgtIds, srcIds)) row.pluralVariant = true;
@@ -2428,7 +2710,7 @@ function pairTables(src, tgt) {
     const q2 = byId.get(t.id);
     if (!q2 || !q2.includes(t)) continue;
     onlyInTarget.push(t.id);
-    const row = { ...t, file: file2, source: "", target: t.source, missing: "source", context: [t.context, `only in ${tgt.file}:${t.line}`].filter(Boolean).join(" | ") };
+    const row = { ...t, file: ks ? t.file : file2, source: "", target: t.source, missing: "source", context: [t.context, `only in ${tgt.file}:${t.line}`].filter(Boolean).join(" | ") };
     if (src.singleLang === "ja" && legitPlural(t.id, srcIds, tgtIds)) row.pluralVariant = true;
     rows.push(row);
   }
@@ -2515,6 +2797,16 @@ function loadInputs(files, opts = {}) {
       used.add(j).add(cands[0]);
     }
   }
+  for (const j of jas) {
+    if (used.has(j) || j.table.format !== "ks") continue;
+    const k = ksBareKey(pairKey(j.input.name));
+    const sameJa = jas.filter((x2) => !used.has(x2) && x2.table.format === "ks" && ksBareKey(pairKey(x2.input.name)) === k);
+    const cands = ens.filter((e) => !used.has(e) && e.table.format === "ks" && ksBareKey(pairKey(e.input.name)) === k);
+    if (sameJa.length === 1 && cands.length === 1) {
+      pairs.push([j, cands[0], "matching names"]);
+      used.add(j).add(cands[0]);
+    }
+  }
   const restJa = jas.filter((s) => !used.has(s));
   const restEn = ens.filter((t) => !used.has(t));
   if (restJa.length === 1 && restEn.length === 1) {
@@ -2534,6 +2826,7 @@ function loadInputs(files, opts = {}) {
     note += `; direction ${s.table.singleLang}→${t.table.singleLang} (${dir.why})`;
     if (pluralSkipped.length) note += `; ${pluralSkipped.length} plural variant key(s) absent from the Japanese file not reported (Japanese has one plural form): ${list(pluralSkipped)}`;
     notes.push(note);
+    if (table.format === "ks") notes.push(...ksStructureNotes(s.table, t.table));
   }
   for (const p of singles) {
     if (used.has(p)) continue;
@@ -23647,8 +23940,9 @@ function diff(a, b) {
   return { missing, extra };
 }
 var base = (row, side) => ({ file: row.file, line: row.line, id: row.id, side });
-function tags(s, pair, renpy) {
+function tags(s, pair, renpy, kag = false) {
   const list3 = [];
+  if (kag) for (const m of hideRenpyEscapes(s).matchAll(KAG_STYLE_TAG)) list3.push(`[${m[1]}]`);
   const stack = [];
   const unbalanced = [];
   for (const m of s.matchAll(TAG)) {
@@ -23840,7 +24134,9 @@ function checkRules(tables, opts = {}) {
       const pair = `${row.source}
 ${row.target}`;
       const renpy = isRenpyText(pair, t.format);
-      const ph = placeholderDiff(row.source, row.target, renpy);
+      const kag = t.format === "ks";
+      const noKag = (x2) => kag ? hideRenpyEscapes(x2).replace(KAG_STYLE_TAG, "") : x2;
+      const ph = placeholderDiff(noKag(row.source), noKag(row.target), renpy);
       if (ph.missing.length || ph.extra.length) {
         out.push({
           category: "placeholder",
@@ -23852,8 +24148,8 @@ ${row.target}`;
       } else if (ph.fewer.length || ph.more.length) {
         out.push({ category: "placeholder", severity: "info", rule: "placeholder.count", ...base(row, "target"), message: msg.placeholderCount(ph.fewer, ph.more) });
       }
-      const st = tags(row.source, pair, renpy);
-      const tt = tags(row.target, pair, renpy);
+      const st = tags(row.source, pair, renpy, kag);
+      const tt = tags(row.target, pair, renpy, kag);
       const td2 = diff(st.list, tt.list);
       const emphasisOnly = t.targetLang === "ja" && !td2.extra.length && td2.missing.every((x2) => EMPHASIS_TAGS.has(x2.replace(/[</>{}]/g, "").toLowerCase()));
       if (td2.missing.length && emphasisOnly) {
@@ -24221,6 +24517,14 @@ function runChecks(tables, glossary = EMPTY_GLOSSARY, opts = {}) {
   const voice = checkVoice(tables, glossary, opts.minLinesForVoice ?? 3, locale);
   const rules = opts.rules === false ? [] : checkRules(tables, { wideAsTwo: opts.wideAsTwo, locale });
   const findings = [...glossaryDirection(tables, glossary, locale), ...terms.findings, ...notation.findings, ...names.findings, ...honorifics.findings, ...voice.findings, ...rules];
+  const refs = /* @__PURE__ */ new Map();
+  for (const t of tables) for (const r of t.rows) if (r.sourceRef) refs.set(`${r.file}\0${r.line}\0${r.id}`, r.sourceRef);
+  if (refs.size) {
+    for (const f of findings) {
+      const ref2 = f.side === "source" ? refs.get(`${f.file}\0${f.line}\0${f.id}`) : void 0;
+      if (ref2) Object.assign(f, ref2);
+    }
+  }
   findings.sort(
     (a, b) => CATEGORY_ORDER.indexOf(a.category) - CATEGORY_ORDER.indexOf(b.category) || (a.group ?? "").localeCompare(b.group ?? "") || a.file.localeCompare(b.file) || a.line - b.line || SEVERITY_ORDER.indexOf(a.severity) - SEVERITY_ORDER.indexOf(b.severity)
   );
@@ -24688,7 +24992,7 @@ var csvCell = (v) => {
   return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 };
 function findingsToLabelCsv(result, tables) {
-  const rows = new Map(tables.flatMap((t) => t.rows.map((r) => [`${r.file}\0${r.id}`, r])));
+  const rows = new Map(tables.flatMap((t) => t.rows.flatMap((r) => [[`${r.file}\0${r.id}`, r], ...r.sourceRef ? [[`${r.sourceRef.file}\0${r.id}`, r]] : []])));
   const out = [LABEL_COLUMNS.join(",")];
   result.findings.forEach((f, i2) => {
     const row = rows.get(`${f.file}\0${f.id}`);
@@ -24916,7 +25220,7 @@ function tokenStoreFromEnv(env = process.env) {
 // src/cli/inputs.ts
 import { existsSync as existsSync2, readdirSync, readFileSync as readFileSync2, statSync as statSync2 } from "node:fs";
 import { join as join2, relative, resolve, sep } from "node:path";
-var SUPPORTED_EXTENSIONS = [".csv", ".tsv", ".json", ".xlf", ".xliff", ".xlsx", ".po", ".pot", ".yml", ".yaml", ".rpy"];
+var SUPPORTED_EXTENSIONS = [".csv", ".tsv", ".json", ".xlf", ".xliff", ".xlsx", ".po", ".pot", ".yml", ".yaml", ".rpy", ".ks"];
 var SKIP_DIRS = /* @__PURE__ */ new Set(["node_modules", ".git", ".github"]);
 var GLOSSARY_CANDIDATES = ["kotomark.glossary.json", "glossary.json", "kotomark.glossary.csv"];
 var UsageError = class extends Error {
@@ -25022,7 +25326,7 @@ check options:
                                the file with keys the other lacks, else a base/default name, else ja.
   --format md|json|junit|github  report format (default md). --json = --format json.
   --input-format <fmt>         force the input format (csv|tsv|json|xliff|xlsx|po|i18n-json|
-                               unity-csv|unreal-csv|yaml|renpy); default: detected from extension
+                               unity-csv|unreal-csv|yaml|renpy|ks); default: detected from extension
                                + content.
                                (Legacy: --format <input format other than json> still sets the input format.)
   --columns k=v,...            CSV/TSV/XLSX column override, e.g. source=原文,target=訳文,speaker=話者
@@ -25037,12 +25341,12 @@ check options:
   --wide                       count East Asian wide characters as 2 for length limits
   -o, --out <file>             write the report to a file instead of stdout
 
-Directories are searched recursively for .csv .tsv .json .xlf .xliff .xlsx .po .pot .yml .yaml .rpy
+Directories are searched recursively for .csv .tsv .json .xlf .xliff .xlsx .po .pot .yml .yaml .rpy .ks
 (skipping node_modules, .git, .github, files with "glossary" in the name, package.json/tsconfig.json).
 
 check exit code: 0 = passed, 1 = findings at/above --fail-on, 2 = bad input or usage.`;
 var OUTPUT_FORMATS = ["md", "markdown", "json", "junit", "github"];
-var INPUT_FORMATS = ["csv", "tsv", "json", "xliff", "xlsx", "po", "i18n-json", "unity-csv", "unreal-csv", "yaml", "renpy"];
+var INPUT_FORMATS = ["csv", "tsv", "json", "xliff", "xlsx", "po", "i18n-json", "unity-csv", "unreal-csv", "yaml", "renpy", "ks"];
 var SEVERITIES = ["info", "warning", "error"];
 function emit(text, out) {
   if (out) writeFileSync2(out, text.endsWith("\n") ? text : text + "\n");

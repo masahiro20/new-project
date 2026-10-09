@@ -39,7 +39,7 @@ export function normalizeApostrophes(s: string): string {
  * Match it on `placeholderText(s)`, not the raw string, so Ren'Py escapes and text tags are out of the way.
  */
 export const PLACEHOLDER =
-  /\[emb\s+exp\s*=\s*(?:"[^"\]]*"|'[^'\]]*'|[^\s\]]+)\s*\]|\{[A-Za-z0-9_.$:]*\}|%(?:\d+\$)?[-+0#]*\d*(?:\.\d+)?(?:hh?|ll?|z|j|t)?[sdifxXuc@]|\$\{[^}]+\}|\$[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*\|?|\[[A-Z][A-Z0-9_]+\]|\[(?=[a-z0-9_.]*[_.0-9])[a-z_][a-z0-9_.]*\]|\[[A-Za-z_][A-Za-z0-9_.]*(?:![rsatuilcq]+(?::[-<>^=+#0-9,_.]*[A-Za-z%]?)?|:[-<>^=+#0-9,_.]*[A-Za-z%]?)\]/g;
+  /\[emb\s+exp\s*=\s*(?:"[^"]*"|'[^']*'|[^\s\]]+)\s*\]|\{[A-Za-z0-9_.$:]*\}|%(?:\d+\$)?[-+0#]*\d*(?:\.\d+)?(?:hh?|ll?|z|j|t)?[sdifxXuc@]|\$\{[^}]+\}|\$[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*\|?|\[[A-Z][A-Z0-9_]+\]|\[(?=[a-z0-9_.]*[_.0-9])[a-z_][a-z0-9_.]*\]|\[[A-Za-z_][A-Za-z0-9_.]*(?:![rsatuilcq]+(?::[-<>^=+#0-9,_.]*[A-Za-z%]?)?|:[-<>^=+#0-9,_.]*[A-Za-z%]?)\]/g;
 
 /** A bare lowercase bracket word ([name], [none]): a Ren'Py variable or a display label. rules.ts decides which. */
 export const BRACKET_WORD = /\[[a-z][a-z]*\]/g;

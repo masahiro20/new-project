@@ -34,6 +34,11 @@ export interface Row {
    * info untranslated.extra-key). Comparison rules (placeholders, tags, ruby, length) never run on these rows.
    */
   missing?: "source" | "target";
+  /**
+   * Paired scenario files (.ks): `file`/`line` point at the translated text, and this at the original's. Findings on
+   * the source side are reported here (runChecks rewrites their location).
+   */
+  sourceRef?: { file: string; line: number };
   /** With `missing`: a plural variant (`.one`, `_few` …) that Japanese does not need (it has one plural form); not reported. */
   pluralVariant?: boolean;
 }

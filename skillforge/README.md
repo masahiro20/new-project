@@ -105,7 +105,7 @@ kotomark check <file|dir>... [options]
                                  (noted on stderr); --no-glossary disables it. Import notes go to stderr
   --source-lang ja|en            force the direction a TBX / ja,en CSV glossary is read in (default: the script's)
   --format md|json|junit|github  report format (default md); --json = --format json
-  --input-format <fmt>           force the input parser (csv|tsv|json|xliff|xlsx|po|i18n-json|unity-csv|unreal-csv|yaml|renpy); default: detected
+  --input-format <fmt>           force the input parser (csv|tsv|json|xliff|xlsx|po|i18n-json|unity-csv|unreal-csv|yaml|renpy|ks); default: detected
   --columns source=原文,target=訳文  column override for tables;  --sheet <name|1-based number> for .xlsx
   --fail-on error|warning|never  exit 1 at/above this severity (default error)
   --min-severity info|warning|error  hide lower findings in the report (gating still sees them); --no-info = warning
@@ -126,7 +126,7 @@ kotomark check <file|dir>... [options]
 
 補足：
 
-- 引数にはファイルもディレクトリも渡せます。ディレクトリは中まで探します（対象：`.csv .tsv .json .xlf .xliff .xlsx .po .pot .yml .yaml .rpy`）。
+- 引数にはファイルもディレクトリも渡せます。ディレクトリは中まで探します（対象：`.csv .tsv .json .xlf .xliff .xlsx .po .pot .yml .yaml .rpy .ks`）。
   `node_modules`、`.git`、`.github`、名前に `*glossary*` を含むファイル、`package.json`/`tsconfig.json`、設定用の YAML（`docker-compose.yml`、`pnpm-lock.yaml`、`crowdin.yml` など）は飛ばします。レポートのファイル名は
   作業ディレクトリからの相対パスなので、CI の注釈が実際のファイルを指します。
 - **終了コード：** `0` 合格 · `1` `--fail-on` 以上の指摘あり · `2` 入力または使い方の誤り。
@@ -165,7 +165,7 @@ kotomark token list | token revoke <user|prefix>
 
 ## 入力形式
 
-どの行にも、ユーザーが開いて確認できる `file:line` が付きます。行番号は、ファイル上の行（CSV、JSON、PO、YAML、Ren'Py）か、表計算の行（XLSX）です。
+どの行にも、ユーザーが開いて確認できる `file:line` が付きます。行番号は、ファイル上の行（CSV、JSON、PO、YAML、Ren'Py、KAG/TyranoScript）か、表計算の行（XLSX）です。
 
 - **CSV/TSV**：1行目に列名が必要です。自動で見分ける列：`id|key`、`ja|source|原文`、`en|target|訳文`、`speaker|character|話者`、`max_length|limit|文字数`、`context|notes|comment`。`Japanese(ja)`、`English (en)`、`ja-JP`、`Japanese` のような言語名の列名も使えます。行番号はその行が始まるファイル上の行なので、セルの中の改行も正しく扱えます。
 - **Excel `.xlsx`**：文字が入っている最初のシート（または `sheet` で名前か1始まりの番号を指定）。列名の行は CSV と同じです。行番号は表計算の行番号で、ファイル名にはシート名が付きます（例：`book.xlsx#Script`）。共有文字列、書式付き文字列、インライン文字列を読みます。ふりがな（`<rPh>`）は読み飛ばします。数式はキャッシュされた値を使います。日付はシリアル値のままです。SheetJS は使いません。`fflate` で展開し、小さな XML リーダーで読みます（ブラウザでも動きます）。
@@ -180,6 +180,12 @@ kotomark token list | token revoke <user|prefix>
   - テキストタグと埋め込みの検査：`{b}` `{i}` `{u}` `{s}` `{plain}` などのタグは HTML の `<b>` と同じく、閉じ忘れ（`tag.unbalanced`）と過不足（`tag.mismatch`。日本語の訳で強調だけが落ちたときは `tag.emphasis-dropped` の情報）を見ます。`{color=#f00}` `{size=+10}` `{a=…}` `{font=…}` `{cps=…}` `{k=…}` は名前だけを比べます（値の違いは指摘しません）。`{w}` `{w=0.5}` `{p}` `{nw}` `{fast}` などの間の取り方のタグは比べません。ルビ `{rb}…{/rb}{rt}…{/rt}` は `<ruby>` と同じ扱いです（英語で落とすのは可、英語側に残れば `ruby.leak`、読みが仮名でなければ `ruby.reading`）。`[name!t]` `[score:.2f]` `[player.name]` `[p_name]` は埋め込みで、`!t` などのフラグや書式も一致が必要です。`{#…}` は表示されない区別用の印として無視し、`[[` と `{{` は文字としての `[` `{` です。文字数と用語の照合では、タグ・埋め込み・ルビの読みを除いた表示文字列を使います。Ren'Py 以外のファイルでも `{/b}` や `{color=…}` があればその文字列は Ren'Py の書き方として読みます。それが無いファイルの `{b}` `{0}` `{name}` は従来どおりプレースホルダーです（docs/decisions.md）。
   - 向きは原文（コメント側の台詞）の中身から判別します。日本語の作品なら日→英です。
   - 話者の表示名：`define e = Character("アイリーン")`（`_("…")` で囲んだものも可）を含むゲーム本体のスクリプト（`translate` のブロックが無い `.rpy`）を一緒に渡すと、変数を表示名に置き換えます。こうしたスクリプトは表としては検査しません（注意に読み込んだ名前が出ます）。渡さなければ変数名のままです。
+- **KAG / TyranoScript のシナリオ**（`.ks`。吉里吉里 KAG3、ティラノスクリプト / ティラノビルダー）：言語ごとに複製したシナリオ（`data/scenario/ja/first.ks` + `data/scenario/en/first.ks`、`first.ks` + `first_en.ks`）を、1言語のファイルとして読んで組み合わせます。詳しくは `docs/formats-ks.md`。
+  - 1行は**ページ単位の文のまとまり**です：最初の文の行から `[p]` まで（`[cm]` `[er]` `[ct]`、話者の行、ラベルでも区切ります。`[l]` では区切りません）。ID は `ラベル名#番号`（ラベルの中で1から）、行番号はまとまりの最初の行、話者は `#名前`（`#名前:表情`、`#` で消す）か `[chara_ptext name=…]`（同じファイルの `[chara_new jname=…]` で表示名に）。`[glink text=…]` などの選択肢の文も1行になります。
+  - `;` のコメント、`/* */`、`[iscript]`…`[endscript]`、`[macro]`…`[endmacro]` は飛ばします。`@tag` の行はタグとして読みます。
+  - 文の中のタグ：`[ruby text=かん]漢` は `{漢|かん}` として持ち、ルビの検査をそのまま使います（読みが空なら `ruby.malformed`、英語側に残れば `ruby.leak`）。`[emb exp=f.name]` は埋め込み（プレースホルダー）として比べます（訳で落とすと `placeholder.mismatch`）。`[font …]` `[resetfont]` `[graph …]` などの装飾タグは名前で比べます（`tag.mismatch`）。`[r]` は改行、`[l]` や `[wait]`、演出のタグは除きます。
+  - 2つのファイルは ID で組み合わせます。行の場所は**訳文のファイルと行**（直すのは訳文なので）、原文の場所は文脈に入り、原文側の指摘（原文のルビ、話者名の揺れ）は原文のファイルと行を指します。片方にしか無いまとまりは未翻訳（警告）か余分なキー（情報）、ラベルの中のまとまりの数が違えば注意が出ます（そのまま番号で対応させます）。
+  - 文字コードは UTF-8、BOM 付き UTF-16、Shift_JIS を読みます。
 - **Unity Localization の文字列テーブル CSV**（`Key,Id,Shared Comments,Japanese(ja),English(en)`）：`Key` が ID、`Shared Comments` が文脈です。普通の `ja,en` 列と同じく、左側の言語の列を原文とします。
 - **Unreal の文字列テーブル CSV**（`Key,SourceString,Comment`）：1言語のファイルです。`\n` のようなエスケープを元に戻します。コメントに `Speaker: X` があれば話者として使います。
 - **XLIFF 1.2**（`<trans-unit>`、`maxwidth`）と **2.0**（`<unit><segment>`）。話者は `<note from="speaker">`、`<note category="speaker">`、または `speaker: X` という注記から取ります。インラインタグ（`<g>`、`<x/>`、`<ph>`、`<pc>`）はタグ検査のために残します。
@@ -194,7 +200,7 @@ kotomark token list | token revoke <user|prefix>
   - **向き**：TBX と、言語名の付いた CSV 列は、台本の向きで読みます（CLI、デモ、MCP は表の原文の言語を使います。`--source-lang ja|en` で固定できます）。台本が無いときは、TBX のルートの `xml:lang` か最初の言語列で決め、それも無ければ日→英です。`source,target` 列と Kotomark 形式の CSV（`type`/`allowed`/リスト形式の `forbidden` がある）は、向きが固定です。
   - **キャラクター**（名前、別名、口調プロフィール）は TBX では表せません。Kotomark の JSON 用語集に書いてください。`kotomark glossary convert terms.tbx --out glossary.json` で、どの取り込み形式も Kotomark の JSON に変換でき、確認や追記ができます。
   - サンプル：`samples/glossaries/glossary.tbx`（TBX v2）と `samples/glossaries/crowdin-glossary.csv` には `samples/ja-en/glossary.json` と同じ用語が入っていて、`samples/ja-en` に対して同じ用語の指摘が出ます。
-- すべての形式のサンプル（わざと揺れを入れたもの）は `samples/formats/` にあります（`samples/ja-en/glossary.json` と一緒に検査してください）。`samples/formats/book.xlsx` は `scripts/make-sample-xlsx.ts` で生成しています。YAML は `samples/formats/yaml/`（`ja-JP.yml` + `en-US.yml`）、Ren'Py は `samples/formats/renpy/game/`（`tl/english/script.rpy` と、話者名の `define` がある `script.rpy`）です。
+- すべての形式のサンプル（わざと揺れを入れたもの）は `samples/formats/` にあります（`samples/ja-en/glossary.json` と一緒に検査してください）。`samples/formats/book.xlsx` は `scripts/make-sample-xlsx.ts` で生成しています。YAML は `samples/formats/yaml/`（`ja-JP.yml` + `en-US.yml`）、Ren'Py は `samples/formats/renpy/game/`（`tl/english/script.rpy` と、話者名の `define` がある `script.rpy`）、KAG/TyranoScript は `samples/formats/ks/scenario/`（`ja/first.ks` + `en/first.ks`）です。
 
 エンジンの API（ブラウザでも動き、デモのバンドルからも書き出しています）：
 

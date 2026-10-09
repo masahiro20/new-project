@@ -3,7 +3,7 @@ import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative, resolve, sep } from "node:path";
 import type { InputFile } from "../core/index.js";
 
-export const SUPPORTED_EXTENSIONS = [".csv", ".tsv", ".json", ".xlf", ".xliff", ".xlsx", ".po", ".pot", ".yml", ".yaml", ".rpy"];
+export const SUPPORTED_EXTENSIONS = [".csv", ".tsv", ".json", ".xlf", ".xliff", ".xlsx", ".po", ".pot", ".yml", ".yaml", ".rpy", ".ks"];
 // .github holds CI workflow YAML, never locale files.
 const SKIP_DIRS = new Set(["node_modules", ".git", ".github"]);
 /** Looked up in the working directory when --glossary is not given (first hit wins). */

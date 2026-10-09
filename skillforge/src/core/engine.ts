@@ -18,6 +18,15 @@ export function runChecks(tables: Table[], glossary: Glossary = EMPTY_GLOSSARY, 
   const rules = opts.rules === false ? [] : checkRules(tables, { wideAsTwo: opts.wideAsTwo, locale });
 
   const findings: Finding[] = [...glossaryDirection(tables, glossary, locale), ...terms.findings, ...notation.findings, ...names.findings, ...honorifics.findings, ...voice.findings, ...rules];
+  // A row whose source text lives in another file (paired .ks scenarios): source-side findings point there.
+  const refs = new Map<string, { file: string; line: number }>();
+  for (const t of tables) for (const r of t.rows) if (r.sourceRef) refs.set(`${r.file}\u0000${r.line}\u0000${r.id}`, r.sourceRef);
+  if (refs.size) {
+    for (const f of findings) {
+      const ref = f.side === "source" ? refs.get(`${f.file}\u0000${f.line}\u0000${f.id}`) : undefined;
+      if (ref) Object.assign(f, ref);
+    }
+  }
   findings.sort(
     (a, b) =>
       CATEGORY_ORDER.indexOf(a.category) - CATEGORY_ORDER.indexOf(b.category) ||

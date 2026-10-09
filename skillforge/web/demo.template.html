@@ -266,7 +266,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
       <p class="hint">CSV / TSV / Excel (.xlsx) / JSON / XLIFF / gettext (.po)。Unity・Unreal の文字列テーブルにも対応。ファイルは複数選択・ドラッグ＆ドロップ可。表は ja / en（または source / target）列が必要です。ja.json と en.json のような言語別ファイルはキーで自動的に対にします。</p>
       <div class="field">
         <label for="script-files">ファイルを追加 <span class="en">Add files</span></label>
-        <input type="file" id="script-files" multiple accept=".csv,.tsv,.json,.xlf,.xliff,.xlsx,.po,.pot,.yml,.yaml,.rpy">
+        <input type="file" id="script-files" multiple accept=".csv,.tsv,.json,.xlf,.xliff,.xlsx,.po,.pot,.yml,.yaml,.rpy,.ks">
       </div>
       <ul class="files" id="file-list" aria-label="読み込み済みファイル"></ul>
       <div class="field">
@@ -289,6 +289,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
             <option value="po">gettext PO</option>
             <option value="yaml">YAML（ロケール）</option>
             <option value="renpy">Ren'Py（tl/*.rpy）</option>
+            <option value="ks">KAG / TyranoScript（.ks）</option>
           </select>
         </div>
       </div>
@@ -363,7 +364,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
   const SEV_ORDER = ["error", "warning", "info"];
   const LANG = { ja: "JA", en: "EN" };
   const KIND = { voice: "口調", "unglossaried-term": "未登録用語" };
-  const KNOWN_EXT = /\.(csv|tsv|json|xlf|xliff|xlsx|xlsm|po|pot|yml|yaml|rpy)$/i;
+  const KNOWN_EXT = /\.(csv|tsv|json|xlf|xliff|xlsx|xlsm|po|pot|yml|yaml|rpy|ks)$/i;
   const BINARY_EXT = /\.(xlsx|xlsm)$/i;
   const LOCALE_KEY = "kotomark.demo.locale";
   function loadLocale() {
@@ -538,9 +539,14 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
     for (const t of tables) {
       state.tableByFile.set(t.file, t);
       for (const r of t.rows) {
-        state.rows.set(t.file + "\u0000" + r.line + "\u0000" + r.id, r);
-        const lk = t.file + "\u0000" + r.line;
-        if (!state.rows.has(lk)) state.rows.set(lk, r);
+        // Paired .ks scenarios: a row lives in the translation file (r.file) and its original in r.sourceRef.
+        const refs = [[t.file, r.line], ...(r.file !== t.file ? [[r.file, r.line]] : []), ...(r.sourceRef ? [[r.sourceRef.file, r.sourceRef.line]] : [])];
+        for (const [file, line] of refs) {
+          if (!state.tableByFile.has(file)) state.tableByFile.set(file, t);
+          state.rows.set(file + "\u0000" + line + "\u0000" + r.id, r);
+          const lk = file + "\u0000" + line;
+          if (!state.rows.has(lk)) state.rows.set(lk, r);
+        }
       }
     }
     const hash = inputHash(files, gtext);

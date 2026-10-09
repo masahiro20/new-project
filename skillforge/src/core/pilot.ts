@@ -19,7 +19,8 @@ const csvCell = (v: unknown) => {
 };
 
 export function findingsToLabelCsv(result: CheckResult, tables: Table[]): string {
-  const rows = new Map(tables.flatMap((t) => t.rows.map((r) => [`${r.file}\u0000${r.id}`, r] as const)));
+  // A paired .ks row is also found under its original's file (source-side findings point there).
+  const rows = new Map(tables.flatMap((t) => t.rows.flatMap((r) => [[`${r.file}\u0000${r.id}`, r] as const, ...(r.sourceRef ? [[`${r.sourceRef.file}\u0000${r.id}`, r] as const] : [])])));
   const out = [LABEL_COLUMNS.join(",")];
   result.findings.forEach((f, i) => {
     const row = rows.get(`${f.file}\u0000${f.id}`);

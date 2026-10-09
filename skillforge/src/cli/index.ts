@@ -30,7 +30,7 @@ check options:
                                the file with keys the other lacks, else a base/default name, else ja.
   --format md|json|junit|github  report format (default md). --json = --format json.
   --input-format <fmt>         force the input format (csv|tsv|json|xliff|xlsx|po|i18n-json|
-                               unity-csv|unreal-csv|yaml|renpy); default: detected from extension
+                               unity-csv|unreal-csv|yaml|renpy|ks); default: detected from extension
                                + content.
                                (Legacy: --format <input format other than json> still sets the input format.)
   --columns k=v,...            CSV/TSV/XLSX column override, e.g. source=原文,target=訳文,speaker=話者
@@ -45,14 +45,14 @@ check options:
   --wide                       count East Asian wide characters as 2 for length limits
   -o, --out <file>             write the report to a file instead of stdout
 
-Directories are searched recursively for .csv .tsv .json .xlf .xliff .xlsx .po .pot .yml .yaml .rpy
+Directories are searched recursively for .csv .tsv .json .xlf .xliff .xlsx .po .pot .yml .yaml .rpy .ks
 (skipping node_modules, .git, .github, files with "glossary" in the name, package.json/tsconfig.json).
 
 check exit code: 0 = passed, 1 = findings at/above --fail-on, 2 = bad input or usage.`;
 
 const OUTPUT_FORMATS = ["md", "markdown", "json", "junit", "github"] as const;
 type OutputFormat = (typeof OUTPUT_FORMATS)[number];
-const INPUT_FORMATS: Format[] = ["csv", "tsv", "json", "xliff", "xlsx", "po", "i18n-json", "unity-csv", "unreal-csv", "yaml", "renpy"];
+const INPUT_FORMATS: Format[] = ["csv", "tsv", "json", "xliff", "xlsx", "po", "i18n-json", "unity-csv", "unreal-csv", "yaml", "renpy", "ks"];
 const SEVERITIES: Severity[] = ["info", "warning", "error"];
 
 function emit(text: string, out?: string) {

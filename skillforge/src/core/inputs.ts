@@ -106,6 +106,7 @@ export function pairTables(src: Table, tgt: Table): { table: Table; missingInTar
       s.context, t?.context && t.context !== s.context ? t.context : undefined, t ? undefined : `missing in ${tgt.file}`,
       ks && t ? `${src.singleLang}: ${s.file}:${s.line}` : undefined,
     ].filter(Boolean);
+    const sourceRef = ks && t ? { file: s.file, line: s.line } : undefined;
     const row: Row = {
       file: ks ? (t ?? s).file : file,
       line: ks && t ? t.line : s.line,
@@ -117,6 +118,7 @@ export function pairTables(src: Table, tgt: Table): { table: Table; missingInTar
       context: ctx.join(" | ") || undefined,
       maxLength: s.maxLength ?? t?.maxLength,
     };
+    if (sourceRef) row.sourceRef = sourceRef;
     if (!t) {
       row.missing = "target";
       if (tgt.singleLang === "ja" && legitPlural(s.id, tgtIds, srcIds)) row.pluralVariant = true;
