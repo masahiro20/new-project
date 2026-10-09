@@ -129,6 +129,9 @@ node scripts/qa-evalmode.mjs --fixtures /tmp/pitch-fx          # Playwright: 同
 
 - `node scripts/eval-segmentation.mjs [--swiftf0]` — 子音と不均一なタイミングを含む合成音声で、
   等分割と手がかりによる区切りを比較します。結果：`docs/eval-results.md`。
+- `node scripts/eval-robustness.mjs [--words 300] [--seeds 3] [--conditions …]` — 雑音・響き・スマホのマイク・話者・
+  無声化・きしみ声などの劣化条件ごとに、合格率と誤合格率、失敗の原因（F0 追跡／区切り／発話範囲）を測ります。
+  結果：`docs/eval-robustness.md`。
 - `node scripts/eval-real.mjs manifest.json [--swiftf0] [--csv out.csv]` — 実際の録音で評価します。
 - 人の声での評価手順（録音者が見つかるまで保留）：`docs/eval-plan.md`、
   語のリストは `docs/eval-words.tsv`。ウェイトリスト用 LP の原稿：`docs/lp.md`。
