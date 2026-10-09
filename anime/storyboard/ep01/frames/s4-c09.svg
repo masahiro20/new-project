@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+<rect width="1600" height="900" fill="#FFFFFF"/>
+<rect x="0" y="0" width="1600" height="900" fill="#4A4A4A"/><ellipse cx="300" cy="200" rx="200" ry="90" fill="none" stroke="#8A8A8A" stroke-width="4"/><ellipse cx="300" cy="200" rx="420" ry="190" fill="none" stroke="#8A8A8A" stroke-width="6"/><ellipse cx="300" cy="200" rx="640" ry="290" fill="none" stroke="#8A8A8A" stroke-width="8"/><ellipse cx="300" cy="200" rx="860" ry="390" fill="none" stroke="#8A8A8A" stroke-width="10"/><g transform="translate(820,430) scale(2.6)">
+<path d="M-110,190 C-90,140 -50,120 0,118 C50,120 90,140 110,190 Z" fill="#8A8A8A" stroke="#2A2A2A" stroke-width="2"/>
+<path d="M-20,118 L0,140 L20,118 L12,100 L-12,100 Z" fill="#FFFFFF" stroke="#2A2A2A" stroke-width="1.6"/>
+<path d="M0,140 L-12,132 L-12,150 Z M0,140 L12,132 L12,150 Z" fill="#2A2A2A"/>
+<path d="M-12,80 L-12,104 L12,104 L12,80 Z" fill="#FFFFFF" stroke="#2A2A2A" stroke-width="1.6"/>
+<path d="M-76,-10 C-80,-70 -40,-98 0,-98 C40,-98 80,-70 76,-10 L84,80 C66,88 52,84 44,72 L-44,72 C-52,84 -66,88 -84,80 Z" fill="#D6D6D6" stroke="#2A2A2A" stroke-width="2"/>
+<path d="M-52,-20 C-54,40 -36,74 0,88 C36,74 54,40 52,-20 Z" fill="#FFFFFF" stroke="#2A2A2A" stroke-width="2"/>
+<path d="M10,0 Q24,-8 40,0" fill="none" stroke="#2A2A2A" stroke-width="2.6"/>
+<path d="M12,4 Q26,0 40,4" fill="none" stroke="#2A2A2A" stroke-width="1"/>
+<ellipse cx="26" cy="12" rx="7" ry="8" fill="#B8B8B8" stroke="#2A2A2A" stroke-width="1.2"/><circle cx="26" cy="13" r="3.5" fill="#2A2A2A"/>
+<path d="M8,-14 Q24,-20 40,-14" fill="none" stroke="#2A2A2A" stroke-width="1.6"/>
+<path d="M6,34 L4,40" stroke="#2A2A2A" stroke-width="1.2"/>
+<path d="M-4,56 L14,55" stroke="#2A2A2A" stroke-width="1.8"/>
+<path d="M-78,-4 C-72,-62 -24,-82 24,-74 C50,-68 66,-44 70,-14 L54,-28 L46,-6 L34,-36 C22,-16 4,6 -6,40 C-12,58 -22,72 -36,82 C-34,58 -38,38 -46,30 C-52,46 -58,58 -66,64 Z" fill="#D6D6D6" stroke="#2A2A2A" stroke-width="2"/>
+<path d="M12,-62 C-2,-42 -16,0 -26,58" fill="none" stroke="#8A8A8A" stroke-width="1.4"/></g><g transform="translate(1260,860)"><path d="M0,0 L-170,-260 A310,310 0 0,1 150,-280 Z" fill="#FFFFFF" stroke="#2A2A2A" stroke-width="5"/><path d="M0,0 L-110,-286 M0,0 L-46,-306 M0,0 L20,-310 M0,0 L86,-300" stroke="#8A8A8A" stroke-width="3"/><path d="M-30,10 C-40,-30 -10,-50 20,-40 C40,-20 30,10 10,20 Z" fill="#8A8A8A" stroke="#2A2A2A" stroke-width="4"/></g><text x="1090" y="330" font-family="Zen Kaku Gothic New, IBM Plex Mono, IPAGothic, sans-serif" font-size="56" fill="#FFFFFF" font-weight="700">87%</text><path d="M1080,340 L910,440" stroke="#D6D6D6" stroke-width="3"/><text x="1090" y="370" font-family="Zen Kaku Gothic New, IBM Plex Mono, IPAGothic, sans-serif" font-size="22" fill="#D6D6D6" >CAPTURE</text><rect x="0" y="0" width="1600" height="70" fill="#2A2A2A"/><rect x="0" y="830" width="1600" height="70" fill="#2A2A2A"/><rect x="32" y="86" width="310" height="32" fill="#FFFFFF"/><text x="40" y="110" font-family="Zen Kaku Gothic New, IBM Plex Mono, IPAGothic, sans-serif" font-size="24" fill="#2E6BD6" font-weight="700" text-anchor="start">NEXT-EP FOOTAGE / FIX</text><rect x="32" y="776" width="522" height="32" fill="#FFFFFF"/><text x="40" y="800" font-family="Zen Kaku Gothic New, IBM Plex Mono, IPAGothic, sans-serif" font-size="24" fill="#2E6BD6" font-weight="700" text-anchor="start">readout = her 〈眼〉 (amber in color)</text>
+</svg>
