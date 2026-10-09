@@ -40,3 +40,30 @@ test("result link round-trips and rejects junk", async () => {
   assert.equal(decodeResult("#r=999-1"), null);
   assert.equal(decodeResult("#other"), null);
 });
+
+test("every template fix covers items of its own group", async () => {
+  const { templatesFor } = await import("../lib/check.ts");
+  for (const s of CHECK_SERVICES)
+    for (const g of checkGroups(s)) for (const t of g.templates ?? []) for (const c of t.covers) assert.ok(g.items.includes(c), c);
+  const abuse = checkGroups(byLabel("放課後等デイサービス")).find((g) => g.id === "abuse");
+  assert.deepEqual(templatesFor(abuse, ["直近1年以内に虐待防止研修を実施し、記録がある"]), ["training"]);
+  assert.deepEqual(templatesFor(abuse, abuse.items), ["committee", "training"]);
+  assert.deepEqual(templatesFor(abuse, []), []);
+});
+
+test("template links preselect the service and the template", async () => {
+  const { templateHref } = await import("../lib/check.ts");
+  const href = templateHref(byLabel("共同生活援助"), "restraint");
+  const params = new URLSearchParams(href.split("#")[1]);
+  assert.equal(params.get("s"), "共同生活援助（グループホーム）");
+  assert.equal(params.get("p"), "restraint");
+});
+
+test("a saved draft is restored only with known answers", async () => {
+  const { parseDraft } = await import("../lib/check.ts");
+  const key = `虐待防止措置:${checkGroups(CHECK_SERVICES[0])[0].items[0]}`;
+  assert.deepEqual(parseDraft(JSON.stringify({ serviceIndex: 0, checked: [key, "junk", 3] })), { serviceIndex: 0, checked: [key] });
+  assert.equal(parseDraft(JSON.stringify({ serviceIndex: 999, checked: [] })), null);
+  assert.equal(parseDraft("{bad"), null);
+  assert.equal(parseDraft(null), null);
+});

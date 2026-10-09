@@ -15,7 +15,7 @@ export default function CheckPage() {
       <div className="wrap narrow">
         <p className="eyebrow">無料診断</p>
         <h1>減算リスクを1分でチェック</h1>
-        <p className="lead">サービス種別を選び、当てはまるものにチェックを入れてください。入力内容は送信されません。</p>
+        <p className="lead">サービス種別を選び、当てはまるものにチェックを入れてください（最大13問）。入力内容は送信されません。途中でページを閉じても、このブラウザで開き直せば続きから回答できます。</p>
         <CheckClient ai={aiEnabled()} />
       </div>
     </section>

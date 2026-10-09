@@ -5,6 +5,8 @@
 export type AnalyticsEvent =
   | "check-start"
   | "check-complete"
+  | "check-resume"
+  | "check-to-template"
   | "sample-download-committee"
   | "sample-download-training"
   | "sample-download-restraint"

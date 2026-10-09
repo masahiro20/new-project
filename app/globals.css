@@ -139,7 +139,12 @@ h1, h2 { word-break: auto-phrase; text-wrap: balance; }
 @media (min-width: 860px) { .hero h1 { font-size: clamp(1.8rem, 3vw, 2.3rem); } }
 .check-group { border: 0; padding: 0; margin: 24px 0 0; min-width: 0; }
 .check-group legend { font-size: clamp(1.3rem, 3vw, 1.7rem); font-weight: 700; line-height: 1.4; margin-bottom: 8px; padding: 0; }
-.next-steps { margin: 8px 0 0; font-size: .92rem; color: var(--text); }
+.check-bar { position: sticky; bottom: 0; z-index: 5; display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 24px -16px 0; padding: 10px 16px; background: var(--surface); border-top: 1px solid var(--line); box-shadow: 0 -4px 12px rgba(0, 0, 0, .04); }
+.check-progress { font-weight: 700; line-height: 1.5; }
+.check-bar .btn { flex: none; }
+.check-progress .hint { display: block; font-size: .78rem; font-weight: 400; margin: 0; }
+.link-button { background: none; border: 0; padding: 0; color: var(--accent); text-decoration: underline; font: inherit; cursor: pointer; }
+.next-steps { margin: 12px 0 0; font-size: .92rem; color: var(--text); }
 .tabs-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 24px 0 8px; }
 .template-grid { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
 .compare th { white-space: nowrap; }

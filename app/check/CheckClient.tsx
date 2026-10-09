@@ -1,11 +1,33 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ChecklistDownload from "@/app/ChecklistDownload";
 import { trackEvent } from "@/lib/analytics";
-import { CHECK_SERVICES, checkGroups, decodeResult, encodeResult, NOT_APPLICABLE_NOTE } from "@/lib/check";
+import {
+  CHECK_SERVICES,
+  checkGroups,
+  decodeResult,
+  encodeResult,
+  NOT_APPLICABLE_NOTE,
+  parseDraft,
+  templateHref,
+  templatesFor,
+} from "@/lib/check";
 import { CHECKLIST } from "@/lib/checklist";
+import { PART_LABELS } from "@/lib/parts";
+
+const DRAFT_KEY = "gensan-zero:check-draft";
+
+/** In-progress answers stay in this browser only (never sent), so a visitor can leave and finish later. */
+function saveDraft(serviceIndex: number, checked: Set<string>) {
+  try {
+    if (checked.size) localStorage.setItem(DRAFT_KEY, JSON.stringify({ serviceIndex, checked: [...checked] }));
+    else localStorage.removeItem(DRAFT_KEY);
+  } catch {
+    // Storage blocked: the check still works, only resuming is lost.
+  }
+}
 
 export default function CheckClient({ ai }: { ai: boolean }) {
   const [serviceIndex, setServiceIndex] = useState(0);
@@ -16,15 +38,36 @@ export default function CheckClient({ ai }: { ai: boolean }) {
   const [showResult, setShowResult] = useState(false);
   const [started, setStarted] = useState(false);
   const [copied, setCopied] = useState<"idle" | "done" | "failed">("idle");
+  const [resumed, setResumed] = useState(false);
+  const resultRef = useRef<HTMLDivElement>(null);
+  // check-complete is counted once per visit, even if the answers are edited and the result shown again.
+  const completed = useRef(false);
   const keys = groups.flatMap((g) => g.items.map((item) => `${g.name}:${item}`));
 
   // A shared result link (#r=…) reopens the same answers. The fragment never reaches the server.
+  // Otherwise, answers left half-way on an earlier visit are restored (this browser only).
   useEffect(() => {
     const result = decodeResult(window.location.hash);
-    if (!result) return;
+    if (!result) {
+      let draft = null;
+      try {
+        draft = parseDraft(localStorage.getItem(DRAFT_KEY));
+      } catch {
+        // Storage blocked: start empty.
+      }
+      if (!draft || !draft.checked.length) return;
+      // localStorage is only readable after mount, so restoring here is intended.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setServiceIndex(draft.serviceIndex);
+      setChecked(new Set(draft.checked));
+      // Counted as started on the earlier visit, so don't send check-start again.
+      setStarted(true);
+      setResumed(true);
+      trackEvent("check-resume");
+      return;
+    }
     const restoredKeys = checkGroups(CHECK_SERVICES[result.serviceIndex]).flatMap((g) => g.items.map((item) => `${g.name}:${item}`));
     // The hash is only readable after mount, so restoring here is intended.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setServiceIndex(result.serviceIndex);
     setChecked(new Set(restoredKeys.filter((_, i) => result.checked(i))));
     setShowResult(true);
@@ -35,13 +78,21 @@ export default function CheckClient({ ai }: { ai: boolean }) {
       setStarted(true);
       trackEvent("check-start");
     }
-    setChecked((prev) => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      return next;
-    });
+    const next = new Set(checked);
+    if (next.has(key)) next.delete(key);
+    else next.add(key);
+    setChecked(next);
+    saveDraft(serviceIndex, next);
   };
+
+  /** For shared PCs, or to start over: forget the answers kept in this browser. */
+  function clearAnswers() {
+    setChecked(new Set());
+    setShowResult(false);
+    setResumed(false);
+    saveDraft(serviceIndex, new Set());
+    window.history.replaceState(null, "", window.location.pathname);
+  }
 
   // Counts only that the check was started/finished; the answers themselves are never sent.
   function finish() {
@@ -51,8 +102,15 @@ export default function CheckClient({ ai }: { ai: boolean }) {
       trackEvent("check-start");
     }
     setShowResult(true);
-    trackEvent("check-complete");
+    if (!completed.current) {
+      completed.current = true;
+      trackEvent("check-complete");
+    }
+    // The finished result lives in the URL (#r=…), so the half-way draft is no longer needed.
+    saveDraft(serviceIndex, new Set());
     window.history.replaceState(null, "", `#${encodeResult(serviceIndex, keys.map((k) => checked.has(k)))}`);
+    // The result renders below the questions; bring it into view (the button may be in the sticky bar).
+    requestAnimationFrame(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
   }
 
   async function copyLink() {
@@ -76,6 +134,9 @@ export default function CheckClient({ ai }: { ai: boolean }) {
           onChange={(e) => {
             setServiceIndex(Number(e.target.value));
             setShowResult(false);
+            // Answers belong to one service's questions, so changing the service starts over.
+            setChecked(new Set());
+            saveDraft(Number(e.target.value), new Set());
             window.history.replaceState(null, "", window.location.pathname);
           }}
         >
@@ -85,6 +146,12 @@ export default function CheckClient({ ai }: { ai: boolean }) {
         </select>
         {note && <p className="hint" style={{ marginTop: 6 }}>{note}</p>}
       </div>
+      {resumed && !showResult && (
+        <p className="hint" role="status">
+          前回の途中の回答を復元しました（このブラウザにだけ保存されています）。{" "}
+          <button type="button" className="link-button" onClick={clearAnswers}>回答を消して最初から</button>
+        </p>
+      )}
 
       {groups.map((g) => (
         <fieldset key={g.id} className="check-group">
@@ -101,12 +168,18 @@ export default function CheckClient({ ai }: { ai: boolean }) {
         </fieldset>
       ))}
 
-      <div className="actions">
-        <button type="button" className="btn" onClick={finish}>診断結果を見る</button>
-      </div>
+      {!showResult && (
+        <div className="check-bar no-print">
+          <span className="check-progress">
+            チェック {checked.size}／{keys.length}
+            <span className="hint">（分からない項目は空欄のまま結果を見られます）</span>
+          </span>
+          <button type="button" className="btn" onClick={finish}>診断結果を見る</button>
+        </div>
+      )}
 
       {showResult && (
-        <div style={{ marginTop: 32 }} role="status">
+        <div ref={resultRef} style={{ marginTop: 32, scrollMarginTop: 72 }} role="status">
           {missing.length === 0 ? (
             <p className="ok">すべての項目が整っています。来年度に向けて、年間計画と指針の見直しを続けましょう。</p>
           ) : (
@@ -119,6 +192,20 @@ export default function CheckClient({ ai }: { ai: boolean }) {
                   <ul>
                     {g.missing.map((m) => <li key={m}>{m}</li>)}
                   </ul>
+                  {templatesFor(g, g.missing).length > 0 && (
+                    <div className="actions" style={{ marginTop: 8 }}>
+                      {templatesFor(g, g.missing).map((part) => (
+                        <Link
+                          key={part}
+                          href={templateHref(service, part)}
+                          className="btn"
+                          onClick={() => trackEvent("check-to-template")}
+                        >
+                          無料で作る：{PART_LABELS[part].replace(/（.*$/, "")}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
                   <p className="next-steps">
                     <strong>次にやること：</strong>
                     {g.next.map((n, i) => (
@@ -137,7 +224,9 @@ export default function CheckClient({ ai }: { ai: boolean }) {
               </p>
               <div className="actions">
                 {ai && <Link href="/generate" className="btn">書類を作る</Link>}
-                <Link href={`/templates#s=${encodeURIComponent(service.template)}`} className={ai ? "btn secondary" : "btn"}>無料テンプレートで作る</Link>
+                <Link href={templateHref(service)} className="btn secondary" onClick={() => trackEvent("check-to-template")}>
+                  無料テンプレートの一覧
+                </Link>
                 <Link href="/samples" className="btn secondary">書類サンプルを見る</Link>
                 <Link href={service.guide ? `/guide/${service.guide}` : "/guide"} className="btn secondary">
                   {service.guide ? `${service.label.replace(/（.*$/, "")}の解説` : "サービス種別ごとの解説"}
@@ -153,6 +242,7 @@ export default function CheckClient({ ai }: { ai: boolean }) {
             </div>
           )}
           <div className="actions no-print">
+            <button type="button" className="btn secondary" onClick={() => setShowResult(false)}>回答を直す</button>
             <button type="button" className="btn secondary" onClick={copyLink}>
               {copied === "done" ? "結果のURLをコピーしました" : "結果のURLをコピー（職員と共有）"}
             </button>

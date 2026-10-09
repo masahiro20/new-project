@@ -8,7 +8,8 @@
 |---|---|---|---|
 | ① 訪問 | 解説・トップを見た | 各ページのパス（`/guide/...`、`/`） | 画面遷移ごと（app/Analytics.tsx） |
 | ② 行動のきっかけ | 解説の「無料診断」「無料テンプレート」「サンプル」を押した | `cta-check`／`cta-templates`／`cta-samples` | 解説ページのボタン（app/TrackedLink.tsx） |
-| ③ 診断 | 診断を始めた・結果を見た | `check-start`／`check-complete` | app/check/CheckClient.tsx |
+| ③ 診断 | 診断を始めた・途中から再開した・結果を見た（1回の訪問で1回だけ数える） | `check-start`／`check-resume`／`check-complete` | app/check/CheckClient.tsx |
+| ③→④ | 診断結果から無料テンプレートへ進んだ | `check-to-template` | 診断結果の「無料で作る：…」「無料テンプレートの一覧」 |
 | ④ 無料で作る | テンプレート・サンプル・チェックリストを Word/PDF で保存した | `template-download-{committee,training,restraint}`、`sample-download-…`、`checklist-download-{pdf,docx}` | /templates、/samples、各所のチェックリスト |
 | ⑤ 有料版を試す（AI が有効なとき） | 無料お試し（年間計画）を始めた・できた | `preview-start`／`preview-complete` | app/generate/GenerateClient.tsx |
 | ⑥ 購入 | 購入ボタンを押した → 購入して戻ってきた | `checkout-start` → `purchase-complete` | 同上（`purchase-complete` は決済後に初めて戻ったときだけ） |
@@ -19,7 +20,8 @@
 
 | 率 | 計算 | 集客計画の目安・判断 |
 |---|---|---|
-| 診断の完了率 | `check-complete` ÷ `check-start` | 低ければ診断の項目数・説明を見直す |
+| 診断の完了率 | `check-complete` ÷ `check-start` | 50%未満なら設問の文言・並びを見直す（`check-resume` が多ければ、途中で離れる人が多い） |
+| 診断 → テンプレートへ | `check-to-template` ÷ `check-complete` | 結果の「無料で作る」ボタンが押されているか |
 | 診断 → 無料で作る | （`template-download-*` 合計）÷ `check-complete` | 診断結果の「次にやること」が効いているか |
 | 解説 → 行動 | （`cta-*` 合計）÷ 解説のページビュー | 解説の上下のボタンの文言・位置 |
 | 無料お試し → 購入 | `checkout-start` ÷ `preview-complete`、`purchase-complete` ÷ `checkout-start` | 決済ページでの離脱 |

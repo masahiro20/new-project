@@ -1,6 +1,8 @@
 // Rules for the free 減算リスク診断 (/check). Pure data + functions, so the page and tests share them.
 // Rates: 令和6年度報酬改定の概要 (8)(9)(16)、留意事項通知（者）⑿〜⒂、（児）(8)〜(12).
 
+import type { Part } from "./parts";
+
 export type ServiceKind = "residential" | "daytime" | "consultation" | "unknown";
 
 export type CheckService = {
@@ -31,7 +33,9 @@ export const CHECK_SERVICES: CheckService[] = [
 ];
 
 export type NextStep = { label: string; href: string };
-export type CheckGroup = { id: string; name: string; risk: string; items: string[]; next: NextStep[] };
+/** A free template (/templates) that fills the gap left by the listed items. */
+export type TemplateFix = { part: Part; covers: string[] };
+export type CheckGroup = { id: string; name: string; risk: string; items: string[]; next: NextStep[]; templates?: TemplateFix[] };
 
 /** The groups that apply to a service. Restraint does not apply to consultation services. */
 export function checkGroups(service: CheckService): CheckGroup[] {
@@ -39,16 +43,19 @@ export function checkGroups(service: CheckService): CheckGroup[] {
   const rate = (residential: string, other: string) =>
     k === "residential" ? residential : k === "unknown" ? `施設・居住系${residential}、その他${other}` : other;
 
+  const abuseCommittee = "直近1年以内に虐待防止委員会を開催し、議事録がある";
+  const abuseNotice = "委員会の結果を職員に周知した記録がある";
+  const abuseTraining = "直近1年以内に虐待防止研修を実施し、記録がある";
+  const abuseOfficer = "虐待防止の担当者が決まっている";
   const groups: CheckGroup[] = [
     {
       id: "abuse",
       name: "虐待防止措置",
       risk: "虐待防止措置未実施減算（所定単位数の1%）",
-      items: [
-        "直近1年以内に虐待防止委員会を開催し、議事録がある",
-        "委員会の結果を職員に周知した記録がある",
-        "直近1年以内に虐待防止研修を実施し、記録がある",
-        "虐待防止の担当者が決まっている",
+      items: [abuseCommittee, abuseNotice, abuseTraining, abuseOfficer],
+      templates: [
+        { part: "committee", covers: [abuseCommittee, abuseNotice, abuseOfficer] },
+        { part: "training", covers: [abuseTraining] },
       ],
       next: [
         { label: "議事録のひな形と例", href: "/guide/gyakutai-iinkai-gijiroku" },
@@ -68,6 +75,17 @@ export function checkGroups(service: CheckService): CheckGroup[] {
         "身体拘束等の適正化のための指針がある",
         "直近1年以内に身体拘束等適正化の研修を実施した",
         "やむを得ず拘束する場合の記録様式がある",
+      ],
+      templates: [
+        {
+          part: "restraint",
+          covers: [
+            "直近1年以内に身体拘束等適正化委員会を開催した（虐待防止委員会との一体開催も可）",
+            "身体拘束等の適正化のための指針がある",
+            "直近1年以内に身体拘束等適正化の研修を実施した",
+            "やむを得ず拘束する場合の記録様式がある",
+          ],
+        },
       ],
       next: [
         { label: "身体拘束の指針ひな形", href: "/guide/shintai-kousoku-shishin" },
@@ -125,4 +143,29 @@ export function decodeResult(hash: string): { serviceIndex: number; checked: (i:
   if (!CHECK_SERVICES[serviceIndex]) return null;
   const bits = parseInt(m[2], 36);
   return { serviceIndex, checked: (i) => (bits & (1 << i)) !== 0 };
+}
+
+/** Free templates that cover at least one of the missing items, in the group's order. */
+export function templatesFor(group: CheckGroup, missing: string[]): Part[] {
+  return (group.templates ?? []).filter((t) => t.covers.some((item) => missing.includes(item))).map((t) => t.part);
+}
+
+/** Link to /templates with the service and the template preselected (fragment only, nothing is sent). */
+export function templateHref(service: CheckService, part?: Part): string {
+  return `/templates#s=${encodeURIComponent(service.template)}${part ? `&p=${part}` : ""}`;
+}
+
+/** In-progress answers kept in this browser only, so a visitor can come back and finish. */
+export type CheckDraft = { serviceIndex: number; checked: string[] };
+
+export function parseDraft(raw: string | null): CheckDraft | null {
+  if (!raw) return null;
+  try {
+    const d = JSON.parse(raw) as Partial<CheckDraft>;
+    if (typeof d.serviceIndex !== "number" || !CHECK_SERVICES[d.serviceIndex] || !Array.isArray(d.checked)) return null;
+    const valid = new Set(checkGroups(CHECK_SERVICES[d.serviceIndex]).flatMap((g) => g.items.map((item) => `${g.name}:${item}`)));
+    return { serviceIndex: d.serviceIndex, checked: d.checked.filter((k): k is string => typeof k === "string" && valid.has(k)) };
+  } catch {
+    return null;
+  }
 }

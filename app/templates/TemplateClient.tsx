@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import MarkdownView from "@/app/MarkdownView";
 import { trackEvent } from "@/lib/analytics";
 import { SERVICE_TYPES } from "@/lib/form";
-import { PART_LABELS, type Part } from "@/lib/parts";
+import { PART_LABELS, PARTS, type Part } from "@/lib/parts";
 import { buildTemplate, templateContext, templateParts, type TemplateInput } from "@/lib/templates";
 
 const STORAGE_KEY = "gensan-zero:template-input";
@@ -42,11 +42,14 @@ export default function TemplateClient() {
     } catch {
       // Storage blocked: start empty.
     }
-    // Coming from the diagnosis (/check): #s=<サービス種別> preselects the service.
-    const fromCheck = decodeURIComponent(/^#s=(.+)$/.exec(window.location.hash)?.[1] ?? "");
-    if ((SERVICE_TYPES as readonly string[]).includes(fromCheck)) {
-      setInput((prev) => ({ ...prev, serviceType: fromCheck as TemplateInput["serviceType"] }));
+    // Coming from the diagnosis (/check): #s=<サービス種別>&p=<part> preselects the service and the template.
+    const fromCheck = new URLSearchParams(window.location.hash.slice(1));
+    const service = fromCheck.get("s") ?? "";
+    if ((SERVICE_TYPES as readonly string[]).includes(service)) {
+      setInput((prev) => ({ ...prev, serviceType: service as TemplateInput["serviceType"] }));
     }
+    const fromCheckPart = fromCheck.get("p");
+    if ((PARTS as readonly string[]).includes(fromCheckPart ?? "")) setPart(fromCheckPart as Part);
   }, []);
 
   /** For shared PCs: forget everything typed here. */
