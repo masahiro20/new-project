@@ -1,0 +1,139 @@
+--- a/calc/index.html
++++ b/calc/index.html
+@@ -266,7 +266,7 @@
+   <section class="card" aria-labelledby="h-compare">
+     <h2 id="h-compare"><span class="step">03</span>Monthly cost by model <span class="hint" id="compare-unit">USD / month</span></h2>
+     <div class="headline" id="headline"></div>
+-    <div class="tablewrap"><table id="compare-table" aria-describedby="compare-notes"></table></div>
++    <div class="tablewrap" tabindex="0" role="region" aria-label="Monthly cost by model (table)"><table id="compare-table" aria-describedby="compare-notes"></table></div>
+     <div class="chart" id="chart" role="img" aria-label="Horizontal bar chart of the monthly cost on each candidate model"></div>
+     <div class="row">
+       <button type="button" id="copy-md">Copy as Markdown</button>
+@@ -279,7 +279,7 @@
+ 
+   <section class="card" aria-labelledby="h-models">
+     <h2 id="h-models"><span class="step">04</span>Models in your data (current cost)</h2>
+-    <div class="tablewrap"><table id="model-table"></table></div>
++    <div class="tablewrap" tabindex="0" role="region" aria-label="Models in your data (table)"><table id="model-table"></table></div>
+   </section>
+ 
+   <section class="card" id="price-section" aria-labelledby="h-pick">
+@@ -413,11 +413,11 @@
+       "name": "Claude Sonnet 5.5",
+       "input": 2,
+       "output": 10,
+-      "cacheRead": 0.1,
++      "cacheRead": 0.2,
+       "cacheWrite": 2.5,
+       "status": "verified",
+       "source": "https://platform.claude.com/docs/en/about-claude/pricing",
+-      "note": "Cache read 0.05x input. 1h write $4. Batch $1/$5. 1M context at standard price."
++      "note": "Cache read 0.1x input. 1h write $4. Batch $1/$5. 1M context at standard price."
+     },
+     {
+       "provider": "anthropic",
+@@ -674,7 +674,7 @@
+   ],
+   "notes": [
+     "Anthropic prices were read today from the official pricing page (platform.claude.com/docs/en/about-claude/pricing). Model IDs come from platform.claude.com/docs/en/about-claude/models/overview and model-ids-and-versions. The claude-api skill was not used as a price source.",
+-    "Anthropic cacheWrite = 5-minute cache write (1.25x input). 1h write = 2x input. Cache read = 0.1x input by default, 0.05x on Opus 5.5 / Sonnet 5.5, and 0.025x on Fable 5.1 / Mythos 5.1.",
++    "Anthropic cacheWrite = 5-minute cache write (1.25x input). 1h write = 2x input. Cache read = 0.1x input by default, 0.05x on Opus 5.5, and 0.025x on Fable 5.1 / Mythos 5.1.",
+     "Anthropic Batch API: 50% off input and output. Stacks with caching. Fast mode is not available with Batch.",
+     "Anthropic long context: Claude 4.6+ models (except Haiku 5.5) get the full 1M context at standard pricing. Haiku 5.5 has two price tiers split at 100K prompt tokens.",
+     "Anthropic inference_geo='us' applies a 1.1x multiplier (4.6+ models).",
+@@ -704,11 +704,15 @@
+ 
+   function toNum(v) {
+     if (v == null || v === "") return 0;
+-    if (typeof v === "number") return isFinite(v) ? v : 0;
+-    const s = String(v).replace(/[\s,"'_]/g, "");
++    if (typeof v === "number") return isFinite(v) && v >= 0 ? v : NaN;
++    let s = String(v).replace(/[\s"'_]/g, "");
+     if (s === "" || s === "-") return 0;
++    // Commas only as thousands separators ("1,234,567"); "1,5" (decimal comma) is rejected, not read as 15.
++    if (s.includes(",")) { if (!/^\d{1,3}(,\d{3})+(\.\d+)?$/.test(s)) return NaN; s = s.replace(/,/g, ""); }
++    // "1.000" / "1.000.000" are ambiguous (European thousands separators): reject instead of reading 1.
++    if (/^\d{1,3}(\.\d{3})+$/.test(s)) return NaN;
+     const n = Number(s);
+-    return isFinite(n) ? n : NaN;
++    return isFinite(n) && n >= 0 ? n : NaN;
+   }
+ 
+   // Returns "YYYY-MM-DD" (UTC) or null
+@@ -731,7 +735,9 @@
+       return `${m[1]}-${m[2].padStart(2, "0")}-${m[3].padStart(2, "0")}`;
+     }
+     const d = new Date(s);
+-    return isNaN(d) ? null : d.toISOString().slice(0, 10);
++    if (isNaN(d)) return null;
++    // No zone in the string: Date parsed it as local time, so read the local calendar day (not UTC).
++    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+   }
+ 
+   // CSV/TSV parser with quotes
+@@ -839,6 +845,12 @@
+     return "generic-csv";
+   }
+ 
++  // Drop rows with non-numeric or negative token counts (toNum returns NaN for those) and count them.
++  function dropBad(rows) {
++    const ok = rows.filter((r) => ["unc", "cw5", "cw1", "cr", "out"].every((k) => !isNaN(r[k])));
++    return { rows: ok, bad: rows.length - ok.length };
++  }
++
+   function parseJson(obj) {
+     let buckets = [];
+     if (Array.isArray(obj) && obj.length && obj[0] && Array.isArray(obj[0].data)) obj.forEach((p) => buckets.push(...p.data));
+@@ -862,7 +874,7 @@
+             unc: toNum(r.uncached_input_tokens), cw5: (r.cache_creation && typeof r.cache_creation === "object" ? toNum(cc.ephemeral_5m_input_tokens) : toNum(r.cache_creation_input_tokens)),
+             cw1: toNum(cc.ephemeral_1h_input_tokens), cr: toNum(r.cache_read_input_tokens), out: toNum(r.output_tokens) });
+         }
+-        return { format: "anthropic-api", rows, bad: 0 };
++        return { format: "anthropic-api", ...dropBad(rows) };
+       }
+       if (isOA) {
+         for (const [b, r] of all) {
+@@ -873,7 +885,7 @@
+           rows.push({ date: toDay(b.start_time != null ? b.start_time : r.start_time), model, provider: inferProvider(model) || "openai",
+             unc: Math.max(0, toNum(r.input_tokens) - cached - cw), cw5: cw, cw1: 0, cr: cached, out: toNum(r.output_tokens) });
+         }
+-        return { format: "openai-api", rows, bad: 0 };
++        return { format: "openai-api", ...dropBad(rows) };
+       }
+       throw new Error("No token-count fields found inside results.\n\n" + EXPECTED_HELP);
+     }
+@@ -958,7 +970,7 @@
+     let best = null, bestLen = -1;
+     for (const m of models) {
+       for (const id of priceIds(m)) {
+-        const ok = n === id || (n.startsWith(id + "-") && /^-(\d{4}-?\d{2}-?\d{2}|\d{8}|latest|v\d+(-\d+)?(:\d+)?)$/.test(n.slice(id.length)))
++        const ok = n === id || (n.startsWith(id + "-") && /^-((\d{4}-?\d{2}-?\d{2}|\d{8})(-v\d+(-\d+)?(:\d+)?)?|latest|v\d+(-\d+)?(:\d+)?)$/.test(n.slice(id.length)))
+           || (n.startsWith(id + "@"));
+         if (ok && id.length > bestLen) { best = m; bestLen = id.length; }
+       }
+@@ -1123,6 +1135,7 @@
+     try {
+       state.parsed = Logic.parseUsage(input.value);
+       state.agg = Logic.aggregate(state.parsed.rows);
++      if (!Object.values(state.agg.totals).every((x) => isFinite(x))) throw new Error("Token totals are too large to calculate. Check the numbers in your data.");
+       err.hidden = true;
+     } catch (e) {
+       state.parsed = null; state.agg = null;
+@@ -1170,7 +1183,7 @@
+     $("headline").innerHTML =
+       `<div><div class="k">Current cost${r.currentComplete ? "" : " (priced models only)"}</div><div class="v">${fmtUSD(cur)}</div></div>` +
+       (best ? `<div><div class="k">Cheapest option</div><div class="v">${esc(best.model.name)} ${fmtUSD(best.cost)}</div></div>` : "") +
+-      (best && best.delta != null ? `<div><div class="k">Difference if you switch to it</div><div class="v ${best.delta < 0 ? "neg" : "pos"}">${fmtSigned(best.delta)} (${fmtPct(best.pct)})</div></div>` : "");
++      (best && best.delta != null ? `<div><div class="k">Difference if you switch to it</div><div class="v ${best.delta < 0 ? "neg" : best.delta > 0 ? "pos" : ""}">${fmtSigned(best.delta)} (${fmtPct(best.pct)})</div></div>` : "");
+ 
+     // compare table
+     let html = `<thead><tr><th class="num">#</th><th>Target model</th><th class="num">Cost</th><th class="num">vs current</th><th class="num">vs current (%)</th><th>Price</th></tr></thead><tbody>`;
+@@ -1250,7 +1263,7 @@
+     r.breakdown.forEach((b) => {
+       html += `<tr><td class="mono">${esc(b.model)}</td><td>${b.matched ? esc(b.matched.name) : '<span class="badge crit">Not in price table</span>'}</td>` +
+         `<td class="num">${fmtTok(b.tok.unc)}</td><td class="num">${fmtTok(b.tok.cw5 + b.tok.cw1)}</td><td class="num">${fmtTok(b.tok.cr)}</td><td class="num">${fmtTok(b.tok.out)}</td>` +
+-        `<td class="num">${b.cost == null ? '<span class="badge warn">Unverified · excluded</span>' : fmtUSD(b.cost)}</td></tr>`;
++        `<td class="num">${b.cost == null ? (b.matched ? '<span class="badge warn">Unverified · excluded</span>' : '<span class="badge crit">Not priced</span>') : fmtUSD(b.cost)}</td></tr>`;
+     });
+     const t = r.tokens;
+     html += `<tr><td><b>Total</b></td><td></td><td class="num">${fmtTok(t.unc)}</td><td class="num">${fmtTok(t.cw5 + t.cw1)}</td><td class="num">${fmtTok(t.cr)}</td><td class="num">${fmtTok(t.out)}</td><td class="num"><b>${fmtUSD(r.current)}</b></td></tr>`;
