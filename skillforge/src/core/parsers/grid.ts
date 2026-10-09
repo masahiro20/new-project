@@ -69,6 +69,12 @@ export function tableFromGrid(records: GridRecord[], file: string, baseFormat: "
     }
     return row;
   });
+  // Unreal string tables have no speaker column; a "Speaker: X" comment is a common convention.
+  for (const row of rows) {
+    if (row.speaker || !row.context) continue;
+    const m = /^\s*(?:speaker|character|話者)\s*[:：]\s*(.+?)\s*$/im.exec(row.context);
+    if (m) row.speaker = m[1];
+  }
   const lang = langOfHeader(single.source) ?? langFromName(file) ?? detectLang(rows.map((r) => r.source));
   return singleTable(file, format, rows, lang);
 }

@@ -123,6 +123,8 @@ input[type="file"]::file-selector-button { font: inherit; font-size: 13px; margi
 .res-head h2 { font-size: 20px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
 .badge-sample { font-size: 12px; font-weight: 700; letter-spacing: 0.04em; border: 1.5px solid var(--err); color: var(--err); padding: 1px 7px; border-radius: 2px; transform: rotate(-2deg); display: inline-block; }
 .res-meta { font-size: 13px; color: var(--ink-2); margin-top: 8px; overflow-wrap: anywhere; }
+.load-notes { font-size: 13px; color: var(--ink-2); margin: 6px 0 0; padding-left: 1.2em; overflow-wrap: anywhere; }
+.load-notes li { margin-top: 2px; }
 .copy-status { font-size: 13px; color: var(--ink-2); }
 .copy-status:empty { display: none; }
 #md-fallback { margin-top: 8px; min-height: 120px; }
@@ -225,10 +227,10 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
   <section class="inputs" aria-label="入力">
     <div class="panel" id="panel-script">
       <h2>台本 <span class="en">Script</span></h2>
-      <p class="hint">CSV / TSV / JSON / XLIFF。ファイルは複数選択・ドラッグ＆ドロップ可。CSV は ja / en（または source / target）列が必要です。</p>
+      <p class="hint">CSV / TSV / Excel (.xlsx) / JSON / XLIFF / gettext (.po)。Unity・Unreal の文字列テーブルにも対応。ファイルは複数選択・ドラッグ＆ドロップ可。表は ja / en（または source / target）列が必要です。ja.json と en.json のような言語別ファイルはキーで自動的に対にします。</p>
       <div class="field">
         <label for="script-files">ファイルを追加 <span class="en">Add files</span></label>
-        <input type="file" id="script-files" multiple accept=".csv,.tsv,.json,.xlf,.xliff">
+        <input type="file" id="script-files" multiple accept=".csv,.tsv,.json,.xlf,.xliff,.xlsx,.po,.pot">
       </div>
       <ul class="files" id="file-list" aria-label="読み込み済みファイル"></ul>
       <div class="field">
@@ -248,6 +250,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
             <option value="tsv">TSV</option>
             <option value="json">JSON</option>
             <option value="xliff">XLIFF</option>
+            <option value="po">gettext PO</option>
           </select>
         </div>
       </div>
@@ -321,7 +324,8 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
   const SEV_ORDER = ["error", "warning", "info"];
   const LANG = { ja: "JA", en: "EN" };
   const KIND = { voice: "口調", "unglossaried-term": "未登録用語" };
-  const KNOWN_EXT = /\.(csv|tsv|json|xlf|xliff)$/i;
+  const KNOWN_EXT = /\.(csv|tsv|json|xlf|xliff|xlsx|xlsm|po|pot)$/i;
+  const BINARY_EXT = /\.(xlsx|xlsm)$/i;
   const LOCALE_KEY = "kotomark.demo.locale";
   function loadLocale() {
     try { const v = localStorage.getItem(LOCALE_KEY); return v === "en" || v === "ja" ? v : "ja"; } catch (_) { return "ja"; }
@@ -330,7 +334,8 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
   function currentLocale() { return $("opt-locale-en").checked ? "en" : "ja"; }
 
   const state = {
-    files: [], // {name, text, format}
+    files: [], // {name, text, format} or, for .xlsx, {name, bytes, format}
+    notes: [],
     sampleKey: null, dirty: false,
     result: null, md: "", rows: new Map(), tableByFile: new Map(),
     isSample: null, cat: "all", sev: { error: true, warning: true, info: true },
@@ -355,18 +360,24 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
   function renderFileList() {
     const ul = $("file-list");
     ul.innerHTML = state.files.map((f, i) => `
-      <li><span class="name">${esc(f.name)}</span><span class="meta num">${esc(fmtSize(f.text.length))}</span>
-        <button type="button" class="btn-quiet btn-small" id="file-edit-${i}" data-edit="${i}">編集</button>
+      <li><span class="name">${esc(f.name)}</span><span class="meta num">${esc(f.bytes ? fmtBytes(f.bytes.length) : fmtSize(f.text.length))}</span>
+        ${f.bytes ? "" : `<button type="button" class="btn-quiet btn-small" id="file-edit-${i}" data-edit="${i}">編集</button>`}
         <button type="button" class="btn-quiet btn-small" id="file-del-${i}" data-del="${i}" aria-label="${esc(f.name)} を外す">外す</button></li>`).join("");
   }
   function fmtSize(n) { return n < 1024 ? `${n} 文字` : `${(n / 1024).toFixed(1)}k 文字`; }
+  function fmtBytes(n) { return n < 1024 ? `${n} B` : `${(n / 1024).toFixed(1)} KB`; }
 
   async function addFiles(fileList) {
     const failed = [];
     for (const file of fileList) {
       try {
-        const text = await readFileText(file);
-        state.files.push({ name: uniqueName(file.name), text, format: "auto" });
+        if (BINARY_EXT.test(file.name)) {
+          const bytes = new Uint8Array(await file.arrayBuffer());
+          state.files.push({ name: uniqueName(file.name), bytes, format: "auto" });
+        } else {
+          const text = await readFileText(file);
+          state.files.push({ name: uniqueName(file.name), text, format: "auto" });
+        }
       } catch (e) {
         failed.push({ where: file.name, msg: (e && e.message) || String(e) });
       }
@@ -380,6 +391,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
     const head = text.trimStart();
     if (head.startsWith("<")) return "xliff";
     if (head.startsWith("{") || head.startsWith("[")) return "json";
+    if (/^(#[^\n]*\n|\s*\n)*\s*(msgctxt|msgid)\s+"/.test(head)) return "po";
     const first = head.split(/\r?\n/, 1)[0] || "";
     if (first.includes("\t") && !first.includes(",")) return "tsv";
     if (first.includes(",") && !first.includes("\t")) return "csv";
@@ -388,6 +400,9 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
   }
 
   // ---------- run ----------
+  // Engine errors start with the file name; the error list already shows it.
+  function stripName(name, msg) { return msg.startsWith(name + ": ") ? msg.slice(name.length + 2) : msg; }
+
   function showErrors(list, soft) {
     const box = $("errors");
     if (!soft) $("run-status").textContent = "";
@@ -418,18 +433,23 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
       state.result = null;
       return;
     }
-    const tables = [];
-    for (const inp of inputs) {
-      try {
-        let format = inp.format;
-        if (format === "auto") format = inp.pasted || !KNOWN_EXT.test(inp.name) ? sniffPasted(inp.name, inp.text) : Kotomark.detectFormat(inp.name, inp.text);
-        const t = Kotomark.parseTable(inp.text, inp.name, { format });
-        if (!t.rows.length) throw new Error("翻訳行が1行も見つかりませんでした。形式や列名を確認してください。");
-        tables.push(t);
-      } catch (e) {
-        errors.push({ where: inp.name, msg: (e && e.message) || String(e) });
-      }
+    const files = inputs.map((inp) => {
+      let format = inp.format;
+      if (format === "auto") format = inp.bytes ? undefined : inp.pasted || !KNOWN_EXT.test(inp.name) ? sniffPasted(inp.name, inp.text) : undefined;
+      return { name: inp.name, data: inp.bytes || inp.text, format };
+    });
+    let loaded = { tables: [], notes: [] };
+    try {
+      loaded = Kotomark.loadInputs(files, { onError: (name, e) => errors.push({ where: name, msg: stripName(name, (e && e.message) || String(e)) }) });
+    } catch (e) {
+      errors.push({ where: "読み込み", msg: (e && e.message) || String(e) });
     }
+    const tables = [];
+    for (const t of loaded.tables) {
+      if (!t.rows.length) errors.push({ where: t.file, msg: "翻訳行が1行も見つかりませんでした。形式や列名を確認してください。" });
+      else tables.push(t);
+    }
+    state.notes = loaded.notes;
     let glossary = Kotomark.EMPTY_GLOSSARY;
     const gtext = $("gloss-text").value;
     let glossError = false;
@@ -543,6 +563,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="copy-status" id="copy-status" role="status"></span><button type="button" id="btn-copy-md">Markdown をコピー</button></div>
     </div>
     <p class="res-meta">${meta}</p>
+    ${state.notes && state.notes.length ? `<ul class="load-notes" aria-label="読み込みメモ">${state.notes.map((n) => `<li>${esc(n)}</li>`).join("")}</ul>` : ""}
     <textarea id="md-fallback" readonly hidden aria-label="Markdown レポート"></textarea>
     <div class="summary">
       <div><div class="filter-label" id="lbl-sev">重要度 <span class="en">severity · 合計 ${all.length}件</span></div>

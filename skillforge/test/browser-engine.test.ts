@@ -4,6 +4,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import vm from "node:vm";
+import { readFileSync } from "node:fs";
 import { build } from "esbuild";
 import * as core from "../src/core/index.js";
 import { parseCsvRecords } from "../src/core/parsers/csv.js";
@@ -11,7 +12,7 @@ import { parseCsvRecords } from "../src/core/parsers/csv.js";
 import { ENGINE_BUILD_OPTIONS } from "../web/build-demo.mjs";
 import { read } from "./helpers.js";
 
-type Engine = Pick<typeof core, "parseTable" | "detectFormat" | "parseGlossary" | "runChecks" | "renderMarkdown" | "EMPTY_GLOSSARY">;
+type Engine = Pick<typeof core, "parseTable" | "detectFormat" | "loadInputs" | "parseGlossary" | "runChecks" | "renderMarkdown" | "EMPTY_GLOSSARY">;
 
 const built = await build({ ...ENGINE_BUILD_OPTIONS, write: false, logLevel: "silent" });
 const bundle = built.outputFiles[0]!.text;
@@ -55,7 +56,7 @@ const sets: { label: string; scripts: Input[]; glossary: Input }[] = [
 ];
 
 test("bundle exposes the engine API as the Kotomark global", () => {
-  for (const fn of ["parseTable", "detectFormat", "parseGlossary", "runChecks", "renderMarkdown"] as const) {
+  for (const fn of ["parseTable", "detectFormat", "loadInputs", "parseGlossary", "runChecks", "renderMarkdown"] as const) {
     assert.equal(typeof browser[fn], "function", fn);
   }
   assert.equal(JSON.stringify(browser.EMPTY_GLOSSARY), JSON.stringify(core.EMPTY_GLOSSARY));
@@ -93,6 +94,22 @@ test("bundle detects the key ja-en issues", () => {
   assert.ok(has("name.near-miss").some((f) => f.found === "Lisete"), "name near-miss");
   assert.ok(has("honorific.policy").length > 0, "honorific finding");
   assert.ok(has("voice.first-person").length > 0, "voice finding");
+});
+
+test("bundle loadInputs matches src/core: xlsx bytes, PO, Unity CSV and a ja.json + en.json pair (no TextDecoder in the sandbox)", () => {
+  const bin = (p: string) => new Uint8Array(readFileSync(new URL(`../${p}`, import.meta.url)));
+  const files = ["book.xlsx", "ui.po", "unity_table.csv", "locales/ja.json", "locales/en.json"].map((n) => ({ name: n, data: bin(`samples/formats/${n}`) }));
+  const glossaryText = read("samples/ja-en/glossary.json");
+  const go = (engine: Engine) => {
+    const loaded = engine.loadInputs(files.map((f) => ({ ...f, data: new Uint8Array(f.data) })));
+    const result = engine.runChecks(loaded.tables, engine.parseGlossary(glossaryText, "glossary.json"));
+    return JSON.parse(JSON.stringify({ notes: loaded.notes, tables: loaded.tables, result }));
+  };
+  assert.ok(!("TextDecoder" in sandbox));
+  const direct = go(core);
+  assert.deepEqual(go(browser), direct);
+  assert.equal(direct.tables.length, 4);
+  assert.ok(direct.result.findings.length > 0);
 });
 
 test("bundle has no Node built-in references", () => {

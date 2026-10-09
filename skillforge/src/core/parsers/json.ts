@@ -127,7 +127,7 @@ export function parseJson(text: string, file: string, opts: { columns?: ColumnMa
   } catch (e) {
     throw new Error(`${file}: ${(e as Error).message}`);
   }
-  if (opts.format === "i18n-json" || (opts.format !== "json-records" && isLocaleFile(root, opts.columns))) return localeTable(root, file);
+  if (opts.format === "i18n-json" || isLocaleFile(root, opts.columns)) return localeTable(root, file);
   let records: { rec: LinedObject; key?: string }[];
   if (Array.isArray(root)) {
     records = root.filter(isObj).map((o) => ({ rec: lined(o) }));
