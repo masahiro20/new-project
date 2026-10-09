@@ -227,6 +227,27 @@ html:not(.touch) #howto .tc{display:none}
 .stats b{font-family:var(--m);font-weight:400;font-size:15px;text-align:right}
 .stats .score b{font-size:22px;color:#fff}
 #newHi{color:var(--am);font-size:12px;letter-spacing:.2em;margin-top:6px;min-height:1em}
+
+/* quality / fps options */
+.opts{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;font-size:11px}
+.opt{display:flex;align-items:center;gap:8px}
+.opt .lbl{font-size:10px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:3px;overflow:hidden;background:rgba(5,13,19,.6)}
+.seg button,.tgl{border:0;border-left:1px solid var(--line);background:transparent;padding:0 10px;min-height:32px;min-width:44px;font-size:13px;font-weight:700;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;gap:4px;transition:background .15s}
+.seg button:first-child{border-left:0}
+.seg button small,.tgl small{font-family:var(--m);font-size:9px;color:var(--dim);font-weight:400;letter-spacing:.06em}
+.seg button:hover,.tgl:hover,.seg button:focus-visible,.tgl:focus-visible{background:rgba(95,242,232,.12);outline:none}
+.seg button.on{background:rgba(95,242,232,.26);color:#fff}
+.seg button.on small{color:var(--cy)}
+.tgl{border:1px solid var(--line);border-radius:3px;background:rgba(5,13,19,.6);font-family:var(--m);font-weight:400;letter-spacing:.1em;min-width:52px}
+.tgl.on{background:rgba(95,242,232,.26);color:#fff;border-color:var(--cy)}
+#titleOpts{position:absolute;top:calc(var(--st) + 12px);right:calc(var(--sr) + 12px);flex-direction:column;align-items:flex-end;padding:8px 10px;gap:6px}
+.card .opts{justify-content:center;margin-top:12px}
+#fpsMeter{position:absolute;left:calc(var(--sl) + 6px);bottom:calc(var(--sb) + 4px);z-index:9;pointer-events:none;font-family:var(--m);font-size:11px;letter-spacing:.08em;line-height:1;
+  color:var(--cy);text-shadow:0 0 4px rgba(95,242,232,.5);padding:3px 6px;background:rgba(5,13,19,.55);border:1px solid rgba(95,242,232,.25);border-radius:2px;white-space:nowrap}
+#fpsMeter.slow{color:var(--am);text-shadow:0 0 4px rgba(255,181,71,.5)}
+@media (max-width:420px){ #titleOpts{top:calc(var(--st) + 8px);right:calc(var(--sr) + 8px);padding:6px 8px} .seg button{padding:0 8px} }
 </style>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Share+Tech+Mono&display=swap">
 
@@ -355,12 +376,20 @@ html:not(.touch) #howto .tc{display:none}
         3分以内に灰殻12体と殻王を撃破。<br>一定のリズムで歩くと共鳴率が上がる。<br>共鳴率100%で鼓動モード OVERBEAT。</div>
     </div>
     <div id="titleNote"></div>
+    <div id="titleOpts" class="opts panel">
+      <div class="opt"><span class="lbl">画質 QUALITY</span><div class="seg qseg" role="group" aria-label="画質 QUALITY"><button type="button" data-q="low">低<small>LOW</small></button><button type="button" data-q="mid">中<small>MID</small></button><button type="button" data-q="high">高<small>HIGH</small></button></div></div>
+      <div class="opt"><span class="lbl">FPS表示 FPS</span><button type="button" class="tgl fpstgl" aria-pressed="false">OFF</button></div>
+    </div>
   </div>
 
   <div id="pause" class="hidden">
     <div class="card">
       <h2>一時停止</h2><div class="sub">PAUSED</div>
       <div class="vol"><span>音量 VOLUME</span><input id="vol" type="range" min="0" max="100" value="80"></div>
+      <div class="opts">
+        <div class="opt"><span class="lbl">画質 QUALITY</span><div class="seg qseg" role="group" aria-label="画質 QUALITY"><button type="button" data-q="low">低<small>LOW</small></button><button type="button" data-q="mid">中<small>MID</small></button><button type="button" data-q="high">高<small>HIGH</small></button></div></div>
+        <div class="opt"><span class="lbl">FPS表示 FPS</span><button type="button" class="tgl fpstgl" aria-pressed="false">OFF</button></div>
+      </div>
       <div class="btns">
         <button id="btnResume" class="btn" type="button">再開<small>RESUME</small></button>
         <button id="btnPauseTitle" class="btn" type="button">タイトルへ<small>TITLE</small></button>
@@ -391,6 +420,7 @@ html:not(.touch) #howto .tc{display:none}
     </div>
   </div>
   <div id="rotHint">横画面推奨 ／ LANDSCAPE RECOMMENDED</div>
+  <div id="fpsMeter" class="hidden" aria-hidden="true">FPS --</div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -428,12 +458,32 @@ setTouchMode(isTouch);
 
 if (typeof THREE === 'undefined'){ $('titleNote').textContent = '3Dエンジンを読み込めません / THREE.JS UNAVAILABLE'; return; }
 
+/* ================= quality presets ================= */
+// pr: pixel-ratio ceiling (the auto drop in adaptRes never goes above it), prMin: floor for that auto drop.
+// fog/far/skyScale: draw distance. bldR: buildings farther than this from the city centre are not drawn.
+// fx: share of particles / dust / embers. deco: searchlights + street-lamp light pools. radarInt/ecgInt: HUD canvas redraw interval (s).
+const QUALITY = {
+  low:  {pr:0.75, prMin:0.5,  fog:0.0058, far:1400, skyScale:0.42, bldR:380,      fx:0.4, deco:false, radarInt:0.1,  ecgInt:1/12},
+  mid:  {pr:1.0,  prMin:0.75, fog:0.0034, far:3000, skyScale:1,    bldR:Infinity, fx:0.7, deco:true,  radarInt:0.05, ecgInt:1/30},
+  high: {pr:1.5,  prMin:0.75, fog:0.0034, far:3000, skyScale:1,    bldR:Infinity, fx:1,   deco:true,  radarInt:0.05, ecgInt:1/30},
+};
+function autoQuality(){
+  let hc = 8; try { hc = navigator.hardwareConcurrency || 8; } catch(e){}
+  return (isTouch || hc <= 4) ? 'mid' : 'high';
+}
+let qName = store.get('grandstride_quality', '');
+if (!QUALITY[qName]) qName = autoQuality();
+let Q = QUALITY[qName];
+let showFps = store.get('grandstride_showfps', '0') === '1';
+
 /* ================= renderer / scene ================= */
 let renderer;
 try{
-  renderer = new THREE.WebGLRenderer({antialias:(window.devicePixelRatio || 1) < 1.5, powerPreference:'high-performance'});
+  // antialias can only be chosen when the WebGL context is created. It follows the preset active at page load;
+  // switching presets later changes everything else live but keeps this as-is (no renderer re-creation).
+  renderer = new THREE.WebGLRenderer({antialias:qName !== 'low' && (window.devicePixelRatio || 1) < 1.5, powerPreference:'high-performance'});
 }catch(e){ $('titleNote').textContent = 'WebGL を初期化できません / WEBGL UNAVAILABLE'; return; }
-let PR = Math.min(window.devicePixelRatio || 1, 1.5);
+let PR = Math.min(window.devicePixelRatio || 1, Q.pr);
 renderer.setPixelRatio(PR);
 renderer.setSize(window.innerWidth, window.innerHeight);
 $('gl').appendChild(renderer.domElement);
@@ -441,8 +491,8 @@ $('gl').appendChild(renderer.domElement);
 const scene = new THREE.Scene();
 const FOG_COL = 0x0b1322;
 scene.background = new THREE.Color(0x060a14);
-scene.fog = new THREE.FogExp2(FOG_COL, 0.0034);
-const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.3, 3000);
+scene.fog = new THREE.FogExp2(FOG_COL, Q.fog);
+const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.3, Q.far);
 camera.rotation.order = 'YXZ';
 
 scene.add(new THREE.HemisphereLight(0x4a6a9a, 0x1a120a, 0.75));
@@ -536,8 +586,13 @@ const world = new THREE.Group(); scene.add(world);
     }
   }
   const dummy = new THREE.Object3D(); const col = new THREE.Color();
+  world.userData.bldg = [];
   for (const [list, mat] of [[listA, matA],[listB, matB]]){
+    // nearest first, so a quality preset can drop the far ring just by lowering InstancedMesh.count
+    for (const b of list) b.dc = Math.hypot(b.x, b.z);
+    list.sort((a, b) => a.dc - b.dc);
     const im = new THREE.InstancedMesh(box, mat, list.length);
+    world.userData.bldg.push({im, full:list.length, within:(r) => { let n = 0; while (n < list.length && list[n].dc <= r) n++; return n; }});
     list.forEach((b,i)=>{
       dummy.position.set(b.x, 0, b.z); dummy.rotation.set(b.rx, rnd(-0.04,0.04), b.rz); dummy.scale.set(b.w, b.h, b.d); dummy.updateMatrix();
       im.setMatrixAt(i, dummy.matrix); col.setRGB(b.tint, b.tint, b.tint*1.08); im.setColorAt(i, col);
@@ -560,13 +615,14 @@ const world = new THREE.Group(); scene.add(world);
     fragmentShader:'varying vec3 vP; void main(){ float h = vP.y; vec3 top = vec3(0.012,0.02,0.05); vec3 hor = vec3(0.09,0.10,0.16); vec3 glow = vec3(0.55,0.24,0.12);'+
       'float g = exp(-abs(h)*14.0); float n = 0.5+0.5*vP.z; vec3 c = mix(hor, top, smoothstep(0.0,0.5,h)); c += glow*g*(0.35+0.4*n); if (h < 0.0) c = mix(hor*0.6, vec3(0.02,0.03,0.06), clamp(-h*4.0,0.0,1.0)); gl_FragColor = vec4(c,1.0); }'
   });
-  const sky = new THREE.Mesh(new THREE.SphereGeometry(2500, 24, 12), skyMat); world.add(sky);
+  const sky = new THREE.Mesh(new THREE.SphereGeometry(2500, 24, 12), skyMat); world.add(sky); world.userData.sky = sky;
   // stars
   {
     const n = 700, p = new Float32Array(n*3);
     for (let i = 0; i < n; i++){ const a = rand()*Math.PI*2, e = 0.08 + rand()*1.4; const r = 2200; p[i*3] = Math.cos(a)*Math.cos(e)*r; p[i*3+1] = Math.sin(e)*r; p[i*3+2] = Math.sin(a)*Math.cos(e)*r; }
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(p,3));
-    world.add(new THREE.Points(g, new THREE.PointsMaterial({color:0xbcd0ff, size:1.6, sizeAttenuation:false, fog:false, transparent:true, opacity:.8})));
+    const stars = new THREE.Points(g, new THREE.PointsMaterial({color:0xbcd0ff, size:1.6, sizeAttenuation:false, fog:false, transparent:true, opacity:.8}));
+    world.add(stars); world.userData.stars = stars;
   }
   // distant shore lights
   {
@@ -597,7 +653,7 @@ const world = new THREE.Group(); scene.add(world);
     // light pools on ground
     const pool = new THREE.InstancedMesh(new THREE.CircleGeometry(7, 16), new THREE.MeshBasicMaterial({color:0x3a2610, transparent:true, opacity:.55, depthWrite:false, blending:THREE.AdditiveBlending}), pos.length);
     pos.forEach((q,i)=>{ d.position.set(q[0],0.06,q[1]); d.rotation.set(-Math.PI/2,0,0); d.updateMatrix(); pool.setMatrixAt(i, d.matrix); });
-    world.add(pool);
+    world.add(pool); world.userData.pool = pool;
   }
   // aviation lights on tall tops
   {
@@ -625,7 +681,7 @@ const ash = (function(){
   for (let i = 0; i < n; i++){ p[i*3] = rnd(-60,60); p[i*3+1] = rnd(0,50); p[i*3+2] = rnd(-60,60); }
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(p,3));
   const pts = new THREE.Points(g, new THREE.PointsMaterial({color:0xff9a5a, size:.35, transparent:true, opacity:.55, blending:THREE.AdditiveBlending, depthWrite:false}));
-  pts.frustumCulled = false; scene.add(pts); return {pts, p, g, n};
+  pts.frustumCulled = false; scene.add(pts); return {pts, p, g, n, cap:n};
 })();
 
 /* ================= launch bay ================= */
@@ -731,7 +787,7 @@ const PV = 'attribute float psize; attribute vec4 pcolor; varying vec4 vC; unifo
 const PF = 'varying vec4 vC; void main(){ vec2 c = gl_PointCoord-0.5; float d = length(c); if (d > 0.5) discard; float a = smoothstep(0.5,0.0,d); gl_FragColor = vec4(vC.rgb, vC.a*a); }';
 const particleSystems = [];
 function makeParticles(max, blending){
-  const S = {max, i:0,
+  const S = {max, cap:max, i:0,
     pos:new Float32Array(max*3), col:new Float32Array(max*4), size:new Float32Array(max),
     vel:new Float32Array(max*3), life:new Float32Array(max), ml:new Float32Array(max), a0:new Float32Array(max),
     s0:new Float32Array(max), grow:new Float32Array(max), grav:new Float32Array(max), drag:new Float32Array(max), alive:0};
@@ -740,17 +796,18 @@ function makeParticles(max, blending){
   S.aPos.setUsage(THREE.DynamicDrawUsage); S.aCol.setUsage(THREE.DynamicDrawUsage); S.aSize.setUsage(THREE.DynamicDrawUsage);
   g.setAttribute('position', S.aPos); g.setAttribute('pcolor', S.aCol); g.setAttribute('psize', S.aSize);
   S.mat = new THREE.ShaderMaterial({uniforms:{uScale:{value:500}, uMax:{value:128}}, vertexShader:PV, fragmentShader:PF, transparent:true, depthWrite:false, blending});
-  S.pts = new THREE.Points(g, S.mat); S.pts.frustumCulled = false; scene.add(S.pts);
+  S.geo = g; S.pts = new THREE.Points(g, S.mat); S.pts.frustumCulled = false; scene.add(S.pts);
   particleSystems.push(S); return S;
 }
 function emit(S, x,y,z, vx,vy,vz, r,g,b,a, sz, life, grow, grav, drag){
-  const i = S.i; S.i = (i + 1) % S.max; const i3 = i*3, i4 = i*4;
+  if (Q.fx < 1 && Math.random() > Q.fx) return; // quality preset: thin out emission
+  const i = S.i; S.i = (i + 1) % S.cap; const i3 = i*3, i4 = i*4;
   S.pos[i3] = x; S.pos[i3+1] = y; S.pos[i3+2] = z; S.vel[i3] = vx; S.vel[i3+1] = vy; S.vel[i3+2] = vz;
   S.col[i4] = r; S.col[i4+1] = g; S.col[i4+2] = b; S.col[i4+3] = a; S.a0[i] = a;
   S.size[i] = sz; S.s0[i] = sz; S.life[i] = life; S.ml[i] = life; S.grow[i] = grow || 0; S.grav[i] = grav || 0; S.drag[i] = drag || 0;
 }
 function updParticles(S, dt){
-  for (let i = 0; i < S.max; i++){
+  for (let i = 0; i < S.cap; i++){
     if (S.life[i] <= 0) continue;
     S.life[i] -= dt; const i3 = i*3;
     if (S.life[i] <= 0){ S.col[i*4+3] = 0; S.size[i] = 0; continue; }
@@ -762,6 +819,13 @@ function updParticles(S, dt){
     S.col[i*4+3] = S.a0[i] * k;
   }
   S.aPos.needsUpdate = true; S.aCol.needsUpdate = true; S.aSize.needsUpdate = true;
+}
+// Shrinks/grows the live pool of a particle system (and its draw range) for the quality preset.
+function setParticleCap(S, cap){
+  cap = clamp(Math.round(cap), 16, S.max);
+  for (let i = cap; i < S.max; i++){ S.life[i] = 0; S.size[i] = 0; S.col[i*4+3] = 0; }
+  S.cap = cap; S.i = S.i % cap; S.geo.setDrawRange(0, cap);
+  S.aSize.needsUpdate = true; S.aCol.needsUpdate = true;
 }
 function clearParticles(S){ S.life.fill(0); S.size.fill(0); for (let i = 0; i < S.max; i++) S.col[i*4+3] = 0; S.aSize.needsUpdate = true; S.aCol.needsUpdate = true; }
 const FX = makeParticles(1400, THREE.AdditiveBlending);
@@ -987,7 +1051,7 @@ const hudEl = {
   frame:$('frame'), dash:$('dash'), flash:$('flash'), muzzle:$('muzzle'), dmgDir:$('dmgDir'), popup:$('popup'), cracks:$('cracks'),
   gf:[0,1,2,3].map(i=>$('gf'+i)), gl:[0,1,2,3].map(i=>$('gl'+i)), gn:[0,1,2,3].map(i=>$('gn'+i)),
 };
-let popupT = 0, dmgDirT = 0, hitT = 0, muzzleT = 0, radarAcc = 0;
+let popupT = 0, dmgDirT = 0, hitT = 0, muzzleT = 0, radarAcc = 0, ecgDrawAcc = 0, ecgPending = false;
 function popup(text){ setText(hudEl.popup, text); popupT = 1.1; }
 
 /* cracks */
@@ -1058,7 +1122,7 @@ function resetMission(){
 const launchSeq = {t:0, bootIdx:0, said:false, called:false, clunk:false};
 const BOOT_LINES = [
   ['鞍座 接続 SADDLE LINK', 'OK'], ['動力炉 CORE', 'ONLINE'], ['脚部 GRIP FL/FR/RL/RR', 'OK'],
-  ['火器管制 FCS', 'OK'], ['索敵 RADAR', 'OK'], ['神経同調 NEURAL LINK', 'SYNC'],
+  ['火器管制 FCS', 'OK'], ['索敵 RADAR', 'OK'], ['神経共鳴 NEURAL LINK', 'LINKED'],
 ];
 const BOOT_LIT = [['compass', 0.7], ['radarWrap', 1.0], ['gripPanel', 1.35], ['sysPanel', 1.7], ['topStats', 2.0], ['resPanel', 2.3], ['reticle', 2.7]];
 function startLaunch(){
@@ -1777,7 +1841,8 @@ function updHUD(dt){
     if (ph < 0.06) v = Math.sin(ph / 0.06 * Math.PI) * 1; else if (ph < 0.1) v = -0.35; else if (ph > 0.3 && ph < 0.42) v = Math.sin((ph - 0.3) / 0.12 * Math.PI) * 0.22;
     ecgBuf[59] = v + (Math.random() - 0.5) * 0.05;
   }
-  if (ecgDirty){ ecgCtx.clearRect(0,0,120,22); ecgCtx.strokeStyle = P.overbeat ? '#ffb547' : '#5ff2e8'; ecgCtx.lineWidth = 1.4; ecgCtx.beginPath();
+  ecgDrawAcc += dt; if (ecgDirty) ecgPending = true;
+  if (ecgPending && ecgDrawAcc >= Q.ecgInt){ ecgPending = false; ecgDrawAcc = 0; ecgCtx.clearRect(0,0,120,22); ecgCtx.strokeStyle = P.overbeat ? '#ffb547' : '#5ff2e8'; ecgCtx.lineWidth = 1.4; ecgCtx.beginPath();
   for (let i = 0; i < 60; i++){ const y = 13 - ecgBuf[i] * 10; if (i) ecgCtx.lineTo(i * 2, y); else ecgCtx.moveTo(0, y); } ecgCtx.stroke(); }
   // heat/armor
   setSty(hudEl.heatBar, 'width', P.heat.toFixed(0) + '%'); setText(hudEl.heatVal, String(Math.round(P.heat)));
@@ -1823,8 +1888,8 @@ function updHUD(dt){
   const warnOn = w.length > 0 && G.state === 'play' && G.ending <= 0;
   setAlarm(warnOn);
   if (warnOn) setText(hudEl.warnDetail, w.join(' ／ '));
-  // radar (20Hz is plenty)
-  radarAcc += dt; if (radarAcc >= 0.05){ drawRadar(radarAcc); radarAcc = 0; }
+  // radar (20Hz is plenty; 10Hz on the low preset)
+  radarAcc += dt; if (radarAcc >= Q.radarInt){ drawRadar(radarAcc); radarAcc = 0; }
 }
 function drawRadar(dt){
   const c = radarCtx, W = 160, R = 74, range = 220;
@@ -1896,7 +1961,7 @@ function updAmbient(dt){
   const av = world.userData.aviMat; if (av) av.opacity = Math.sin(G.t * 2.5) > 0.2 ? 1 : 0.15;
   // ash follows camera
   const p = ash.p, cx = camera.position.x, cz = camera.position.z;
-  for (let i = 0; i < ash.n; i++){
+  for (let i = 0; i < ash.cap; i++){
     const i3 = i*3;
     p[i3] += Math.sin(G.t * 0.5 + i) * dt * 1.5 + dt * 2; p[i3+1] -= dt * (0.8 + (i % 5) * 0.2); p[i3+2] += Math.cos(G.t * 0.4 + i) * dt * 1.5;
     if (p[i3+1] < 0) p[i3+1] = 50;
@@ -1944,7 +2009,7 @@ function frame(now){
   requestAnimationFrame(frame);
   const raw = Math.max(0, (now - last) / 1000); last = now;
   const dt = Math.min(0.05, raw);
-  simT += dt; fpsAcc += raw; fpsN++; if (fpsAcc >= 1){ fps = fpsN / fpsAcc; fpsAcc = 0; fpsN = 0; adaptRes(); }
+  simT += dt; fpsAcc += raw; fpsN++; if (fpsAcc >= 1){ fps = fpsN / fpsAcc; fpsAcc = 0; fpsN = 0; adaptRes(); updFpsMeter(); }
   if (G.state === 'paused'){ renderer.render(scene, camera); return; }
   if (G.state !== 'play') G.t += dt;
   if (G.state === 'title') updTitle(dt);
@@ -1960,8 +2025,10 @@ function adaptRes(){
   // dynamic resolution: drop pixel ratio when the device cannot hold ~30fps
   if (G.state !== 'play' && G.state !== 'title') return;
   if (fps < 28){ lowFpsSecs++; } else lowFpsSecs = 0;
-  if (lowFpsSecs >= 2 && PR > 0.75){ PR = Math.max(0.75, PR - 0.25); renderer.setPixelRatio(PR); onResize(); lowFpsSecs = 0; }
+  // stays inside the active preset: never above Q.pr (PR starts at min(dpr, Q.pr)), never below Q.prMin
+  if (lowFpsSecs >= 2 && PR > Q.prMin){ PR = Math.max(Q.prMin, PR - 0.25); renderer.setPixelRatio(PR); onResize(); lowFpsSecs = 0; }
 }
+
 let dashScale = 1;
 function onResize(){
   const w = window.innerWidth, h = window.innerHeight;
@@ -1976,13 +2043,68 @@ function onResize(){
 }
 window.addEventListener('resize', onResize);
 window.addEventListener('orientationchange', () => setTimeout(onResize, 200));
-onResize();
+
+/* ================= quality / fps meter ================= */
+const fpsEl = $('fpsMeter');
+function updFpsMeter(){
+  if (!showFps) return;
+  const f = Math.round(fps);
+  setText(fpsEl, 'FPS ' + String(f).padStart(2, ' '));
+  fpsEl.classList.toggle('slow', f < 28);
+}
+function refreshOptsUI(){
+  document.querySelectorAll('.qseg button').forEach(b => { const on = b.dataset.q === qName; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false'); });
+  document.querySelectorAll('.fpstgl').forEach(b => { b.classList.toggle('on', showFps); b.textContent = showFps ? 'ON' : 'OFF'; b.setAttribute('aria-pressed', showFps ? 'true' : 'false'); });
+}
+function applyQuality(name){
+  if (!QUALITY[name]) return false;
+  qName = name; Q = QUALITY[name];
+  // antialias is fixed at renderer creation (see above); everything below switches live
+  PR = Math.min(window.devicePixelRatio || 1, Q.pr); lowFpsSecs = 0;
+  renderer.setPixelRatio(PR);
+  scene.fog.density = Q.fog;
+  camera.far = Q.far; // projection matrix is rebuilt in onResize()
+  const u = world.userData;
+  u.sky.scale.setScalar(Q.skyScale); u.stars.scale.setScalar(Q.skyScale);
+  for (const b of u.bldg) b.im.count = Q.bldR === Infinity ? b.full : b.within(Q.bldR);
+  u.pool.visible = Q.deco;
+  for (const s of searchlights) s.m.visible = Q.deco;
+  for (const S of particleSystems) setParticleCap(S, S.max * Q.fx);
+  ash.cap = Math.max(16, Math.round(ash.n * Q.fx)); ash.g.setDrawRange(0, ash.cap);
+  onResize();
+  refreshOptsUI();
+  return true;
+}
+function setQuality(name, save){
+  if (!applyQuality(name)) return false;
+  if (save !== false) store.set('grandstride_quality', name);
+  return true;
+}
+function setShowFps(on){
+  showFps = !!on; store.set('grandstride_showfps', showFps ? '1' : '0');
+  fpsEl.classList.toggle('hidden', !showFps);
+  if (showFps){ setText(fpsEl, 'FPS ' + Math.round(fps)); updFpsMeter(); }
+  refreshOptsUI();
+}
+document.querySelectorAll('.qseg button').forEach(b => b.addEventListener('click', (e) => { e.stopPropagation(); snd('uiClick'); setQuality(b.dataset.q); }));
+document.querySelectorAll('.fpstgl').forEach(b => b.addEventListener('click', (e) => { e.stopPropagation(); snd('uiClick'); setShowFps(!showFps); }));
+window.addEventListener('keydown', (e) => {
+  if (e.code !== 'KeyF' || e.repeat || G.state === 'launch') return; // during launch every key skips the sequence
+  if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName) && e.target.type !== 'range') return;
+  setShowFps(!showFps);
+});
+applyQuality(qName); // also calls onResize()
+setShowFps(showFps);
 
 /* ================= test hooks ================= */
 window.__GAME = {
   get state(){ return G.state; },
   get fps(){ return Math.round(fps); },
-  get renderInfo(){ return {calls:renderer.info.render.calls, triangles:renderer.info.render.triangles, programs:renderer.info.programs.length, geometries:renderer.info.memory.geometries, pixelRatio:PR}; },
+  get renderInfo(){ return {calls:renderer.info.render.calls, triangles:renderer.info.render.triangles, points:renderer.info.render.points, programs:renderer.info.programs.length, geometries:renderer.info.memory.geometries, pixelRatio:PR, far:camera.far, quality:qName}; },
+  get quality(){ return qName; },
+  setQuality: (q) => setQuality(q) ? qName : false,
+  get showFps(){ return showFps; },
+  setShowFps: (on) => { setShowFps(on); return showFps; },
   start(){
     initAudio();
     if (G.state === 'paused') showOnly([]);
