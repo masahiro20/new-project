@@ -15,6 +15,15 @@
 body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.55}
 .wrap{max-width:1280px;margin:0 auto;padding-inline:16px;padding-block:18px 64px;display:grid;gap:18px}
 header{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;justify-content:space-between}
+.stuck{display:grid;grid-template-columns:auto auto;align-items:center;gap:0 12px;padding:6px 16px 6px 12px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+.stuck b{font-family:var(--display);font-weight:400;font-size:clamp(2rem,6vw,2.8rem);line-height:1;grid-row:span 2;font-variant-numeric:tabular-nums;color:var(--muted)}
+.stuck b.hot{color:var(--wait)}.stuck b.ok{color:var(--live)}
+.stuck .lb1{font-weight:700;font-size:.92rem}
+.stuck .lb2{font-family:var(--mono);font-size:.72rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.hdr-right{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.why{display:inline-block;font-size:.72rem;padding:1px 8px;border-radius:4px;white-space:nowrap;border:1px solid currentColor}
+.why.owner{color:var(--wait)}.why.peter{color:var(--accent)}.why.work{color:var(--live)}.why.unknown{color:var(--idle)}
+.team .whyd{font-size:.8rem;color:var(--wait);overflow-wrap:anywhere}
 .brand{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;min-width:0}
 h1{font-family:var(--display);font-weight:400;font-size:clamp(1.6rem,4vw,2.4rem);margin:0;letter-spacing:.04em}
 h1 span{color:var(--accent)}
@@ -148,7 +157,10 @@ td a{color:var(--accent)}
       <h1>Peter <span>HQ</span></h1>
       <div class="src" id="src">データ：接続中…</div>
     </div>
-    <button class="btn primary" type="button" id="presentBtn"><i class="tri"></i>プレゼンモード</button>
+    <div class="hdr-right">
+      <div class="stuck" aria-live="polite"><b id="stuckN">—</b><span class="lb1">止まっているチーム</span><span class="lb2" id="stuckSub">確認中</span></div>
+      <button class="btn primary" type="button" id="presentBtn"><i class="tri"></i>プレゼンモード</button>
+    </div>
   </header>
 
   <section class="verdict" aria-live="polite">
@@ -206,7 +218,8 @@ td a{color:var(--accent)}
     <div class="box">
       <h2>見方</h2>
       <div>🟢 キーボードを叩き、光のデータが本部の量子コアへ流れる＝作業中</div>
-      <div>🟡 リーダーが立ち上がって手を挙げている＝返事待ち</div>
+      <div>🟡 リーダーが立ち上がって手を挙げている＝オーナー待ち（承認ボックスに確認待ちがある）</div>
+      <div>🔵 頭上のホログラムに「ピーター待ち」＝作業を終えて次の指示を待っている</div>
       <div>⚪ 伸びをしたり椅子にもたれたり＝任務完了で待機（費用ゼロ）</div>
       <div>各チームの上のホログラムは実データ（状態・最後に動いた時刻・直近の作業）。金色の輪がリーダー</div>
       <div class="note">空の明るさは東京の時刻に連動。天気は演出です。</div>
@@ -307,6 +320,17 @@ function rel(iso){const m=mins(iso);if(m==null)return"—";if(m<1)return"たっ�
 function hhmm(iso){const t=Date.parse(iso);if(isNaN(t))return"—";return new Date(t).toLocaleString("ja-JP",{timeZone:"Asia/Tokyo",month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"});}
 function jst(){const d=new Date();try{const p={};new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Tokyo",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false}).formatToParts(d).forEach(x=>p[x.type]=x.value);return{h:Number(p.hour)%24,m:Number(p.minute),day:p.year+"-"+p.month+"-"+p.day};}catch(e){return{h:d.getHours(),m:d.getMinutes(),day:d.toDateString()};}}
 function el(tag,cls,text){const e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e;}
+function projCode(p){const m=String(p||"").match(/(HQ|P\d+)/i);return m?m[1].toUpperCase():null;}
+function pendingFor(code){return APPROVALS.filter(a=>a.status==="pending"&&projCode(a.project)===code).sort((a,b)=>(a.order||99)-(b.order||99));}
+const WHY_COL={owner:"#ffb547",peter:"#7aa2ff",work:"#3ee08f",unknown:"#8d97b2"};
+// Wait reason: owner = a pending approval for this team; working = session running; otherwise the team is waiting on Peter (done, blocked or failed).
+function reasonOf(tm){const s=S[tm.code],pend=pendingFor(tm.code);
+  if(s.state==="working")return{k:"work",label:"作業中",pend,detail:pend.length?"承認待ちが"+pend.length+"件あるが作業は継続中":"いま作業中"};
+  if(pend.length)return{k:"owner",label:"オーナー待ち",pend,detail:"承認待ち：「"+pend[0].title+"」"+(pend.length>1?" ほか"+(pend.length-1)+"件":"")};
+  if(s.state==="none")return{k:"unknown",label:"確認中",pend,detail:"作業記録に接続していません"};
+  const peterIsSelf=tm.code==="HQ";
+  const why=s.state==="blocked"?(s.needs||"セッションが返事を待っている"):s.state==="failed"?"エラーで止まっている":peterIsSelf?"次の巡回まで待機":"任務を終えて次の指示待ち";
+  return{k:"peter",label:peterIsSelf?"巡回待ち":"ピーター待ち",pend,detail:why};}
 function stColor(st){return st==="working"?"#3ee08f":st==="blocked"?"#ffb547":st==="failed"?"#ff6b6b":"#8d97b2";}
 function fromSession(s){
   const c=s&&(s.ccr||s);if(!c||!c.id)return null;
@@ -442,7 +466,7 @@ function initWorld(){
 
   // ---- hologram panel ----
   function makeHolo(tm,w,h){
-    const c=document.createElement("canvas");c.width=720;c.height=360;const tex=new THREE.CanvasTexture(c);tex.encoding=THREE.sRGBEncoding;tex.anisotropy=4;
+    const c=document.createElement("canvas");c.width=720;c.height=400;const tex=new THREE.CanvasTexture(c);tex.encoding=THREE.sRGBEncoding;tex.anisotropy=4;
     const mat=new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false,side:THREE.DoubleSide,toneMapped:false,color:0xd8d8d8});
     const mesh=new THREE.Mesh(new THREE.PlaneGeometry(w,h),mat);
     mesh.userData={c,tex,tm};return mesh;
@@ -461,17 +485,19 @@ function initWorld(){
     g.font="600 26px 'JetBrains Mono', monospace";g.fillStyle=col;g.fillText(tm.code+" · "+tm.members.length+"名",40,62);
     g.font="700 50px 'Zen Kaku Gothic New', sans-serif";g.fillStyle="#f2f5ff";g.fillText(tm.name,40,120);
     // status pill
-    const label=ST_JA[st]||"—";g.font="700 28px 'Zen Kaku Gothic New', sans-serif";const pw=g.measureText(label).width+62;
-    g.fillStyle=hexA(sc,.18);g.strokeStyle=sc;g.lineWidth=2.5;g.beginPath();if(g.roundRect)g.roundRect(W-40-pw,34,pw,46,23);else g.rect(W-40-pw,34,pw,46);g.fill();g.stroke();
-    g.fillStyle=sc;g.beginPath();g.arc(W-40-pw+24,57,8,0,7);g.fill();g.fillText(label,W-40-pw+42,67);
+    const why=reasonOf(tm);const label=why.label;const wc=WHY_COL[why.k];g.font="700 28px 'Zen Kaku Gothic New', sans-serif";const pw=g.measureText(label).width+62;
+    g.fillStyle=hexA(wc,.18);g.strokeStyle=wc;g.lineWidth=2.5;g.beginPath();if(g.roundRect)g.roundRect(W-40-pw,34,pw,46,23);else g.rect(W-40-pw,34,pw,46);g.fill();g.stroke();
+    g.fillStyle=wc;g.beginPath();g.arc(W-40-pw+24,57,8,0,7);g.fill();g.fillText(label,W-40-pw+42,67);
+    // wait reason
+    g.font="700 28px 'Zen Kaku Gothic New', sans-serif";g.fillStyle=wc;g.fillText(wrapLines(g,why.detail,W-80,1)[0]||"",40,170);
     // last activity
-    g.font="500 26px 'Zen Kaku Gothic New', sans-serif";g.fillStyle="#a9b6d6";
+    g.font="500 24px 'Zen Kaku Gothic New', sans-serif";g.fillStyle="#a9b6d6";
     const lastTxt=s.updatedAt?"最後に動いた "+rel(s.updatedAt)+"（"+hhmm(s.updatedAt)+"）":(st==="none"?"作業記録に接続していません":"記録の時刻なし");
-    g.fillText(lastTxt,40,170);
-    g.fillStyle=hexA(col,.5);g.fillRect(40,190,W-80,2);
-    g.font="600 22px 'JetBrains Mono', monospace";g.fillStyle=col;g.fillText("直近の作業",40,230);
+    g.fillText(lastTxt,40,208);
+    g.fillStyle=hexA(col,.5);g.fillRect(40,228,W-80,2);
+    g.font="600 22px 'JetBrains Mono', monospace";g.fillStyle=col;g.fillText("直近の作業",40,266);
     g.font="500 28px 'Zen Kaku Gothic New', sans-serif";g.fillStyle="#e9edf7";
-    const lines=wrapLines(g,s.recent||tm.one,W-80,2);lines.forEach((L,i)=>g.fillText(L,40,272+i*40));
+    const lines=wrapLines(g,s.recent||tm.one,W-80,2);lines.forEach((L,i)=>g.fillText(L,40,308+i*40));
     // scanlines
     g.fillStyle="rgba(255,255,255,.035)";for(let y=8;y<H-8;y+=4)g.fillRect(8,y,W-16,1);
     tex.needsUpdate=true;
@@ -578,7 +604,7 @@ function initWorld(){
     const beam=center?null:addBeam(pod,0,.2,0,17,.35,3.2,tm.color,.18);
     const ringPulse=new THREE.Mesh(new THREE.RingGeometry(.9,1.0,48),basic(0xffb547,{transparent:true,opacity:0,side:THREE.DoubleSide,depthWrite:false}));ringPulse.rotation.x=-Math.PI/2;ringPulse.position.y=.21;pod.add(ringPulse);
     // hologram
-    const hw=center?5.6:4.8,hh=hw/2;
+    const hw=center?5.6:4.8,hh=hw*400/720;
     const holo=makeHolo(tm,hw,hh);holo.position.y=center?9.4:5.6;pod.add(holo);
     const emitter=addBeam(pod,0,center?7.2:.2,0,holo.position.y-hh/2,hw*.42,.12,tm.color,center?.06:.09);
     const pad=new THREE.Mesh(new THREE.CylinderGeometry(.22,.3,.1,24),darkMetal);pad.position.y=.24;if(!center)pod.add(pad);
@@ -721,7 +747,7 @@ function initWorld(){
   function stepPeople(dt,t,sp){
     for(const q of people){const st=S[q.team.code].state,u=q.u,Tg=u.target;
       const own=q.member.sid?MS[q.member.sid]:null;const pst=own&&own.state!=="none"?own.state:st;
-      const working=pst==="working",blockedLead=st==="blocked"&&q.lead;
+      const working=pst==="working",blockedLead=q.lead&&(st==="blocked"||reasonOf(q.team).k==="owner");
       if(blockedLead&&q.mode!=="raise"&&!q.path){q.mode="raise";}
       if(!blockedLead&&q.mode==="raise"){q.mode="sit";q.next=t+3;}
       if(q.mode==="sit"&&t>q.next)chooseAction(q,pst,t);
@@ -808,7 +834,7 @@ function initWorld(){
     // screens and name tags
     const fr=Math.floor(t*10);
     for(const q of people){const st=S[q.team.code].state;const own=q.member.sid?MS[q.member.sid]:null;const pst=own&&own.state!=="none"?own.state:st;
-      const s2=pst==="working"?"working":(st==="blocked"&&q.lead)?"blocked":"idle";const dd=q.desk.userData;
+      const s2=pst==="working"?"working":(q.lead&&(st==="blocked"||reasonOf(q.team).k==="owner"))?"blocked":"idle";const dd=q.desk.userData;
       if(s2==="working"){if((fr+q.i)%(LITE?4:2)===0)drawScreen(q.desk,s2,q.team.color,t+q.i);}else if(dd.drawn!==s2){drawScreen(q.desk,s2,q.team.color,t);dd.drawn=s2;}
       if(s2==="working")dd.drawn="";
       const dcam=camera.position.distanceTo(q.p.getWorldPosition(tmpV));q.nameS.material.opacity=Math.max(0,Math.min(1,(18-dcam)/5));q.nameS.visible=q.nameS.material.opacity>.02;}
@@ -853,14 +879,18 @@ function render(){
   for(const tm of TEAMS){const s=S[tm.code];if(tm.code!=="HQ"){if(s.state==="working")work++;else if(s.state==="blocked")wait++;else if(s.state!=="none")idle++;}
     if(s.updatedAt&&(!last||Date.parse(s.updatedAt)>Date.parse(last)))last=s.updatedAt;if(typeof s.cost==="number")total+=s.cost;}
   for(const k in MS){const s=MS[k];if(typeof s.cost==="number")total+=s.cost;}
+  let own=0,pet=0;{let known=0;const outerN=TEAMS.length-1;for(const tm of TEAMS){if(tm.code==="HQ")continue;const r=reasonOf(tm);if(r.k!=="unknown")known++;if(r.k==="owner")own++;else if(r.k==="peter")pet++;}
+    const nEl=document.getElementById("stuckN"),sub=document.getElementById("stuckSub");
+    if(!known){nEl.textContent="—";nEl.className="";sub.textContent="確認中";}
+    else{nEl.textContent=String(own+pet);nEl.className=own+pet?"hot":"ok";sub.textContent="オーナー待ち "+own+" ・ ピーター待ち "+pet+" ／ 全"+outerN+"チーム";}}
   const v=document.getElementById("verdict");
   if(mode!=="connecting"){v.textContent="";const em=(t,c)=>el("em",c,t);
     if(work>0)v.append(em(work+"チーム",""),"が作業中（全"+(TEAMS.length)+"チーム・"+PEOPLE_N+"人体制）。");else v.append("いま作業中のチームは ",em("0","w"),"。全員が任務を終え、次の指示を待っています。");
     document.getElementById("verdictSub").textContent=(last?"最後に誰かが働いたのは "+rel(last)+"（"+hhmm(last)+"）。":"")+"AIは仕事を渡されたときだけ動き、待機中は費用がかかりません。";}
   const chips=document.getElementById("chips");chips.textContent="";
   const add=(c,t)=>{const s=el("span","chip");const i=el("i");i.style.background=c;s.append(i,document.createTextNode(t));chips.append(s);};
-  add("#3ee08f","作業中 "+work);add("#ffb547","返事待ち "+wait);add("#7c8aa8","待機 "+idle);add("#7aa2ff","累計使用量 $"+total.toFixed(2));
-  const hud=document.getElementById("hud");hud.textContent="";[["#3ee08f","作業中 "+work],["#ffb547","返事待ち "+wait],["#7c8aa8","待機 "+idle]].forEach(([c,t])=>{const s=el("span","chip");const i=el("i");i.style.background=c;s.append(i,document.createTextNode(t));hud.append(s);});
+  add("#3ee08f","作業中 "+work);add("#ffb547","オーナー待ち "+own);add("#7aa2ff","ピーター待ち "+pet);add("#7aa2ff","累計使用量 $"+total.toFixed(2));
+  const hud=document.getElementById("hud");hud.textContent="";[["#3ee08f","作業中 "+work],["#ffb547","オーナー待ち "+own],["#7aa2ff","ピーター待ち "+pet]].forEach(([c,t])=>{const s=el("span","chip");const i=el("i");i.style.background=c;s.append(i,document.createTextNode(t));hud.append(s);});
   if(T.hb&&T.hb.next){const m=Math.max(0,Math.round((Date.parse(T.hb.next)-Date.now())/6e4));const s=el("span","chip");const i=el("i");i.style.background="#f5b942";s.append(i,document.createTextNode("次の巡回まで "+m+"分"));hud.append(s);}
   // nav state dots
   document.querySelectorAll("#teamnav button").forEach(b=>{const st=S[b.dataset.code]?S[b.dataset.code].state:"none";b.classList.toggle("on",st==="working");b.querySelector("i").style.color=b.querySelector("i").style.background;});
@@ -869,6 +899,7 @@ function render(){
   for(const tm of TEAMS){const s=S[tm.code];const card=el("article","team");card.style.setProperty("--tc",tm.color);
     const hd=el("div","hd");const row=el("div","row");const dot=el("i");dot.style.cssText="width:10px;height:10px;border-radius:2px;background:"+tm.color;
     row.append(dot,el("b",null,tm.name),el("span","code",tm.code));const st=el("span","st "+s.state,ST_JA[s.state]||"—");row.append(st);hd.append(row);
+    const why=reasonOf(tm);const wr=el("div");wr.style.cssText="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;min-width:0";wr.append(el("span","why "+why.k,why.label));if(why.k!=="work"||why.pend.length)wr.append(el("span","whyd",why.detail));if(why.k==="peter"||why.k==="unknown")wr.lastChild.style.color="var(--muted)";hd.append(wr);
     const pj=PROJECTS[tm.code.toLowerCase()];hd.append(el("div","one",tm.one+(pj&&pj.stage?" ／ "+pj.stage:"")));card.append(hd);
     const ul=el("ul");for(const m of tm.members){const li=el("li");const d=el("span","dot"+(m.lead?" lead":""));d.style.background=tm.color;d.style.opacity=m.lead?1:.75;
       const w=el("div","who",m.name);w.append(el("span",null,m.role));if(m.sid&&MS[m.sid].state!=="none")w.append(el("span","st "+MS[m.sid].state,ST_JA[MS[m.sid].state]));li.append(d,w,el("div","do",m.does));li.tabIndex=0;
@@ -936,7 +967,8 @@ function buildSteps(){const out=[];const outerTeams=TEAMS.filter(t=>t.code!=="HQ
   const order=outerTeams.slice().sort((a,b)=>(S[b.code].state==="working")-(S[a.code].state==="working"));
   for(const tm of order){const s=S[tm.code];const lead=tm.members.find(m=>m.lead);
     let tx=tm.name+"："+tm.one+"。リーダーの"+lead.name+"と"+(tm.members.length-1)+"人のメンバー。";
-    tx+=s.state==="working"?"いま作業中。光のデータが本部へ流れています。":s.state==="blocked"?"いまオーナーの返事待ちです。":s.state==="none"?"":"いまは待機中"+(s.updatedAt?"（最後に動いたのは"+rel(s.updatedAt)+"）":"")+"。";
+    const why=reasonOf(tm);
+    tx+=why.k==="work"?"いま作業中。光のデータが本部へ流れています。":why.k==="owner"?"いまオーナー待ち。"+why.detail+"。":why.k==="peter"?"いまはピーター待ち（"+why.detail+"）"+(s.updatedAt?"。最後に動いたのは"+rel(s.updatedAt):"")+"。":"";
     if(s.recent)tx+=" 直近："+s.recent;
     out.push({kind:"pod",code:tm.code,dur:Math.min(12,7+tx.length/40),eye:tm.code+" · "+tm.name.toUpperCase(),text:tx});}
   out.push({kind:"wide",dur:8,eye:"LIVE",text:(work?"いま"+work+"チームが作業中。":"")+"ここに映る状態はすべて Claude Code の実際の作業記録から1分ごとに取得しています。"});
@@ -984,7 +1016,7 @@ render();renderInbox();setInterval(render,30000);
   try{dbRef=window.claude&&window.claude.use?await window.claude.use("db"):null;}catch(e){dbRef=null;}
   if(dbRef){
     try{const u=await window.claude.use("user");if(u&&u.can){const c=await u.can("data.write");if(c===false)canWrite=false;}}catch(e){}
-    dbRef.collection("approvals").onSnapshot(snap=>{APPROVALS=snap.docs.map(d=>Object.assign({_id:d.id},d.data()));renderInbox();},()=>{});
+    dbRef.collection("approvals").onSnapshot(snap=>{APPROVALS=snap.docs.map(d=>Object.assign({_id:d.id},d.data()));renderInbox();render();},()=>{});
     dbRef.collection("projects").onSnapshot(snap=>{PROJECTS={};snap.docs.forEach(d=>{PROJECTS[d.id]=d.data();});render();},()=>{});
     setTimeout(()=>{if(live)return;const map={working:"working",research:"working",meeting:"working",waiting:"blocked",blocked:"blocked",done:"idle",offline:"sleep"};
       const idmap={peter:"HQ",mina:"P0",forge:"P1",vega:"P2",kana:"P3",ren:"P4",atlas:"P5",hikaru:"P7",rook:"P8"};
