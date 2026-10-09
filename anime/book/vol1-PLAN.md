@@ -87,7 +87,7 @@
 | 36–37 | 第2話 脚本抜粋：COLD OPEN（00:00〜01:30）のみ | — |
 | 38 | 用語集（第2話で増えた言葉） | — |
 | 39 | あとがき＋Vol.2 予告（第3話「初決済」。相手の名前は出さない） | — |
-| 40 | 奥付（`page dark`）：クレジット、書体（Google Fonts／SIL OFL 1.1）、**AI使用の表示**、© 2026 masahiro20 / P7 Anime、無断転載禁止 | back.svg |
+| 40 | 奥付（`page dark`）：クレジット、書体（Google Fonts／SIL OFL 1.1）、**AI使用の表示**、© 2026 {{表示名}} / P7 Anime、無断転載禁止 | back.svg |
 
 ## チェックリスト（書き出しのたびに）
 - `node build.mjs vol1-ja.html` の出力が「40 pages no overflow」で、MISSING art がないこと。

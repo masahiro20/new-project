@@ -24,7 +24,7 @@
 | 説明文 | §3 を全部。`{LEDGERBREAKER_Vol0_JA.pdf}`・`{約 }MB`・`{オーナー名}` を埋める（JA PDF は 2026-10-09 時点で 2,576,696 バイト≒約2.6MB。再ビルドしたら測り直す） |
 | 価格 | 通常版 ¥500／応援版 ¥1,000（§4）。バリエーションか BOOST かは**要確認** |
 | ダウンロードファイル | ① `book/vol0-ja.pdf` を `LEDGERBREAKER_Vol0_JA.pdf` に改名してアップ ② `launch/wallpapers/ledgerbreaker-vol0-bonus-wallpapers.zip`（通常版・応援版の両方に付ける。1商品に複数ファイルを付ける方法は**要確認**） |
-| 商品画像 | 1枚目 `launch/thumb-booth.png` → p1 表紙 → p13〈デフォルト〉図解 → p16 赤羽ジン → p5 断面図（§5）。各サンプルに `SAMPLE / © 2026 masahiro20 / P7 Anime`。SAMPLE 入りPNGが必要ならチームに依頼 |
+| 商品画像 | 1枚目 `launch/thumb-booth.png` → p1 表紙 → p13〈デフォルト〉図解 → p16 赤羽ジン → p5 断面図（§5）。各サンプルに `SAMPLE / © 2026 {{表示名}} / P7 Anime`。SAMPLE 入りPNGが必要ならチームに依頼 |
 | タグ | §6 の12個を上から（上限数は**要確認**） |
 | カテゴリ | 「設定資料集」に近いもの（正確な名前は**要確認**） |
 | AI申告 | 出品画面にAI項目があれば正直に選ぶ（**要確認**、§7-1） |
@@ -77,3 +77,9 @@
 - [ ] 反応の良かったポスト・ショートと、その数字
 - [ ] 購入者からの質問・感想・不具合（**購入者の名前や個人情報は送らない**）
 - [ ] 編集ログで直した箇所（チームの原稿に反映するため）
+
+## 表示名の差し替え（オーナーが表示名を決めたら）
+公開物の中のオーナー名は、仮に `{{表示名}}` にしてあります（奥付の © 表記、BOOTH・Ko-fi の説明文、サムネイル）。奥付の発行者の欄は「（販売者表示に合わせて確定）」です。決めたらチームに伝えてください。チームが次の手順で一括で差し替えます。
+1. `grep -rl "{{表示名}}" anime/` で出てきたファイルの `{{表示名}}` を、決めた表示名に置き換える。
+2. 奥付の「（販売者表示に合わせて確定）」と "(to be finalized to match the seller name)" を同じ表示名にする。
+3. `node anime/book/build.mjs vol0-ja.html vol0-en.html vol1-ja.html vol1-en.html`（anime/book で実行）、`anime/book/sample/export-pages.sh`、`node anime/launch/render-thumbs.js thumb-booth thumb-kofi thumb-x` を実行して作り直す。

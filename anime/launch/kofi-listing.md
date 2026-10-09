@@ -88,7 +88,7 @@ GOOD TO KNOW
 • Refunds: it's a digital download, so I can't refund after purchase. If your file is broken or won't open, message me on Ko-fi and I'll send a working copy.
 • Licence: for personal use only. Please don't share, re-upload or resell the file, or use it to train AI.
 
-© 2026 masahiro20 / P7 Anime
+© 2026 {{表示名}} / P7 Anime
 ```
 
 説明文についてのメモ：
@@ -121,7 +121,7 @@ GOOD TO KNOW
 3. サンプルページ：p16、Jin のキャラクターページ
 4. サンプルページ：p1、表紙
 
-- 各サンプルページの隅に、小さく `SAMPLE / © 2026 masahiro20 / P7 Anime` と入れてください。
+- 各サンプルページの隅に、小さく `SAMPLE / © 2026 {{表示名}} / P7 Anime` と入れてください。
 - pp25–27（脚本）、pp17–23（ほかのキャラクター）、p28（用語集）は見せないでください。購入者がファイルを開く理由を残しておきます。
 
 ## 6. タグ／キーワード — コピペ用
