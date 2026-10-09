@@ -1010,7 +1010,7 @@ function render(){
   if(mode==="live"){b.textContent="実測";src.append("データ：",b," Claude Code の作業記録から1分ごとに取得");}
   else if(mode==="report"){b.className="rep";b.textContent="報告値";src.append("データ：",b," ピーターの巡回記録（実測に接続できないため）");}
   else src.textContent="データ：接続中…";
-  renderRoad();
+  renderRoad();renderInbox();
   if(W3)W3.updateSigns();
 }
 // team nav
@@ -1020,6 +1020,9 @@ TEAMS.forEach(tm=>{const b=el("button");b.type="button";b.dataset.code=tm.code;c
 // approvals
 const STATUS_LABEL={approved:"承認済み",declined:"却下",done:"対応済み",later:"あとで",decided:"ピーターが決定"};
 function renderInbox(){
+  // keep anything the owner is typing across re-renders
+  const ae=document.activeElement;if(ae&&ae.tagName==="TEXTAREA"&&ae.id.startsWith("note-"))return;
+  const typed={};document.querySelectorAll("#approvals textarea").forEach(t=>{typed[t.id]=t.value;});
   const open=document.getElementById("approvals"),done=document.getElementById("approvalsDone");open.textContent="";done.textContent="";
   const stopN=a=>projCodes(a.project).filter(c=>S[c]&&S[c].state!=="working").length;
   const pend=APPROVALS.filter(a=>a.status==="pending"||a.status==="later").sort((a,b)=>(a.status==="later")-(b.status==="later")||stopN(b)-stopN(a)||(a.order||99)-(b.order||99));
@@ -1028,8 +1031,9 @@ function renderInbox(){
   document.getElementById("inboxCount").textContent=dbRef?"確認待ち "+pend.length+"件":"読み込み中…";
   if(!pend.length)open.append(el("p","note",dbRef?"今は確認待ちはありません。":"読み込み中…"));
   for(const a of pend){const c=el("article","ap");const top=el("div","top");top.append(el("span","tt",a.title),el("span","pj",(a.project||"")+(a.status==="later"?" · あとで":"")));c.append(top);
+    if(a.status==="later"&&a.decidedAt){const m=mins(a.decidedAt);const old=m!=null&&m>24*60;const r=el("div","stopn",(old?"⏰ ":"")+"「あとで」にしてから "+rel(a.decidedAt).replace("前","")+(old?"。そろそろ判断できますか？":""));if(!old)r.style.color="var(--muted)";c.append(r);}
     if(a.detail)c.append(el("div","dt",a.detail));if(a.recommend)c.append(el("div","rec","ピーターの推奨："+a.recommend));
-    const ta=document.createElement("textarea");ta.id="note-"+a._id;ta.placeholder="ひとこと（任意）";ta.value=a.note||"";ta.setAttribute("aria-label",a.title+" へのメモ");c.append(ta);
+    const ta=document.createElement("textarea");ta.id="note-"+a._id;ta.placeholder="ひとこと（任意）";ta.value=typed["note-"+a._id]!=null?typed["note-"+a._id]:(a.note||"");ta.setAttribute("aria-label",a.title+" へのメモ");c.append(ta);
     const sn=stopN(a);if(sn)c.insertBefore(el("div","stopn","このチームが止まっています："+projCodes(a.project).filter(x=>S[x]&&S[x].state!=="working").join("・")),c.children[1]||null);
     const btns=el("div","btns big");const okVal=a.kind==="task"?"done":"approved";
     for(const [val,label,cls] of [[okVal,a.kind==="task"?"やった":"承認する","yes"],["later","あとで",""]]){const b=el("button",cls,label);b.type="button";b.disabled=!canWrite;b.addEventListener("click",()=>decide(a,val,ta.value,b));btns.append(b);}
