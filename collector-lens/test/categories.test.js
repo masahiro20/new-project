@@ -118,3 +118,12 @@ test("glossary grew and includes lens and film_camera genres", () => {
   assert.ok(film.length >= 20, `film: ${film.length}`);
   for (const e of [...lens, ...film]) assert.ok(e.genre.includes("camera"), `${e.id} keeps the camera umbrella`);
 });
+
+// 誤検出の回帰：ジャンルが判定できない出品（パーカー）で「フード」をレンズフードと解説しない
+test("a hoodie's フード付き is not explained as a lens hood", () => {
+  const r = CL.analyze({ title: "パーカー フード付き Mサイズ", description: "綿100%のパーカーです。フード付きで暖かいです。数回着用しました。" }, null, index);
+  assert.equal(r.genre, "general");
+  assert.ok(!r.terms.some((t) => t.id === "hood"), JSON.stringify(r.terms.map((t) => t.id)));
+  const lens = CL.analyze({ title: "単焦点レンズ 50mm F1.8", description: "純正のレンズフード付きです。前後キャップあり。" }, null, index);
+  assert.ok(lens.terms.some((t) => t.id === "hood"));
+});

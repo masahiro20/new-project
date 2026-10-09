@@ -275,10 +275,12 @@
         reassurances.push(item);
       } else if (e.risk === "high" || e.risk === "medium" || e.risk === "low") {
         flags.push(item);
-      } else if (genre === "general" || e.genre.indexOf(genre) >= 0 || e.genre.indexOf("general") >= 0 ||
+      } else if (e.genre.indexOf(genre) >= 0 || e.genre.indexOf("general") >= 0 ||
           (subgenre && e.genre.indexOf(subgenre) >= 0)) {
         // Neutral vocabulary is shown only if it fits the item's genre:
         // "ダイヤル" is a watch dial, but also a camera's shutter-speed dial.
+        // A listing we can't place (genre "general") gets general terms only,
+        // so a hoodie's "フード付き" is not explained as a lens hood.
         terms.push(item);
       }
     });
