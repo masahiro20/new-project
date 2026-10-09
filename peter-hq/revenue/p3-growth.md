@@ -97,6 +97,9 @@ https://masahiro20.github.io/new-project/pitch/
 ```
 
 ### 2-4. Show HN（英語。題名69字、上限80字）
+
+> **注意（2026-10-09 追記）**：Hacker News のガイドラインは「生成された文を投稿に入れない」「生成・AI で手直しした文をコメントに書かない」と定めている（https://news.ycombinator.com/newsguidelines.html）。**この文書の HN 用の英文はそのまま貼らない。** オーナーが自分の言葉で書くための参考にとどめる。
+
 ```
 Show HN: Pitch – check your Japanese pitch accent from your own voice
 ```
