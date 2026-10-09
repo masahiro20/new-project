@@ -12,7 +12,6 @@
 -->
 <title>Kotomark（仮称）— 日英ゲーム台本の一貫性チェック</title>
 <meta name="description" content="Kotomark（仮称）は日英ゲームローカライズ向けの台本全体の一貫性チェックです。用語・カタカナ表記・キャラ名・敬称・口調の揺れを、ファイル名と行番号付きで指摘します。">
-<meta name="robots" content="noindex, nofollow">
 <meta name="color-scheme" content="light dark">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%231c4a86'/%3E%3Cpath d='M9 8v16M9 16l9-8M12.5 13l6 11' stroke='%23fff' stroke-width='3' fill='none' stroke-linecap='square'/%3E%3Ccircle cx='24' cy='23' r='2.6' fill='%23e0533d'/%3E%3C/svg%3E">
 <style>
@@ -335,9 +334,6 @@ section { scroll-margin-top: 72px; }
       <p class="lede t" lang="ja">Kotomark は日英ゲームローカライズ向けの<strong>台本全体の一貫性チェック</strong>です。用語、カタカナ表記、キャラ名、敬称、口調が台本のどこで揺れているかを、ファイル名と行番号付きで指摘します。</p>
       <p class="lede t" lang="en">Kotomark checks a <strong>whole Japanese↔English game script</strong> for consistency. It finds where terms, katakana spellings, character names, honorifics and character voices drift, and points to each case by file and line.</p>
       <div class="cta-row">
-        <!-- TODO before going live: the demo artifact below is currently PRIVATE to the owner.
-             It must be shared publicly (anyone with the link can view) before this LP is published,
-             otherwise visitors will hit an access error. -->
         <a class="btn" href="demo/">
           <span class="t" lang="ja">デモを試す</span><span class="t" lang="en">Try the demo</span>
           <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" stroke="currentColor" stroke-width="1.8" fill="none"/></svg>
@@ -486,10 +482,8 @@ section { scroll-margin-top: 72px; }
       <p class="note t" lang="ja">これらのプロジェクトが Kotomark を推奨しているわけではありません。公開されている翻訳ファイルに検査をかけただけです。ライセンス：GPL / LGPL / MIT。</p>
       <p class="note t" lang="en">These projects did not endorse Kotomark; we only ran it on their public translation files. Licenses: GPL/LGPL/MIT.</p>
     </div>
-
-    <!-- TODO before launch: the repo is private; replace this link with a public one. -->
-    <p class="limits t" lang="ja">限界：ラベル付けは評価者1名によるものです。対象は英→日の UI・ゲーム文字列で、日→英の台本での検証は協力者の方と行う予定です（未実施）。用語集を使う指摘の精度は、用語集の質に左右されます。<a href="https://github.com/masahiro20/new-project/blob/peter/p1-skillforge/skillforge/docs/real-world-eval.md">評価の詳細</a></p>
-    <p class="limits t" lang="en">Limits: one evaluator labeled the findings. The files are English→Japanese UI and game strings; evaluation on Japanese→English scripts with pilot partners is still pending. Glossary-based term checks are only as good as the glossary. <a href="https://github.com/masahiro20/new-project/blob/peter/p1-skillforge/skillforge/docs/real-world-eval.md">Full evaluation</a></p>
+    <p class="limits t" lang="ja">限界：ラベル付けは評価者1名によるものです。対象は英→日の UI・ゲーム文字列で、日→英の台本での検証は協力者の方と行う予定です（未実施）。用語集を使う指摘の精度は、用語集の質に左右されます。</p>
+    <p class="limits t" lang="en">Limits: one evaluator labeled the findings. The files are English→Japanese UI and game strings; evaluation on Japanese→English scripts with pilot partners is still pending. Glossary-based term checks are only as good as the glossary.</p>
   </div>
 </section>
 
@@ -630,14 +624,10 @@ section { scroll-margin-top: 72px; }
       </ol>
     </div>
     <div class="contact">
-      <h3><span class="t" lang="ja">連絡先</span><span class="t" lang="en">Contact</span></h3>
-      <!-- TODO(owner): replace the placeholder address below with a real contact address or form.
-           Do NOT connect a form or collect emails until a privacy policy is published (see docs/lp.md). -->
-      <span class="addr">{{CONTACT}}</span>
-      <p class="t" lang="ja">台本の形式（CSV / XLIFF など）、言語の向き、おおよその行数をお知らせください。</p>
-      <p class="t" lang="en">Tell us your file format (CSV, XLIFF, …), language direction and rough line count.</p>
-      <p class="placeholder-note t" lang="ja">※ 仮のアドレスです。公開前に正式な連絡先に差し替えます。</p>
-      <p class="placeholder-note t" lang="en">Placeholder address. It will be replaced with a real contact before launch.</p>
+      <h3><span class="t" lang="ja">試用のご相談</span><span class="t" lang="en">Pilot sign-up</span></h3>
+      <p class="t" lang="ja">試用のご相談は近日受付開始です。それまではデモをそのままお試しください。</p>
+      <p class="t" lang="en">Pilot sign-up opens soon. In the meantime, feel free to try the demo.</p>
+      <p><a class="btn" href="demo/"><span class="t" lang="ja">デモを試す</span><span class="t" lang="en">Try the demo</span></a></p>
     </div>
   </div>
 </section>

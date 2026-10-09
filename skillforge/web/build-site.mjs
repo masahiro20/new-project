@@ -1,8 +1,9 @@
 // Builds the static site for GitHub Pages (served under /new-project/kotomark/):
 //   site/index.html       ← lp/index.html
 //   site/demo/index.html  ← web/dist/kotomark-demo.html (run `npm run build:demo` first)
-// Everything uses relative paths and makes no external requests (Google Fonts are stripped;
-// both pages already declare system-font fallbacks). The pilot contact stays a {{CONTACT}} placeholder.
+// 相対パスのみで、外部への通信はしない（Google Fonts は外す。両ページともシステムフォントの代替あり）。
+// 連絡先は環境変数 CONTACT（例: CONTACT=pilot@example.org npm run build:site）。
+// 空のときは問い合わせ欄の代わりに「試用のご相談は近日受付開始」を表示する。
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -10,6 +11,31 @@ import { fileURLToPath } from "node:url";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const out = join(root, "site");
 const DEMO_ARTIFACT_URL = "https://claude.ai/artifact/SYxoeqmhYquutDJGCoa7kr";
+// 非公開リポジトリへのリンクは公開版では外す（公開先ができたら差し替える）。
+const PRIVATE_EVAL_LINK = /\s*<a href="https:\/\/github\.com\/masahiro20\/new-project\/[^"]*">[^<]*<\/a>/g;
+const CONTACT = (process.env.CONTACT ?? "").trim();
+if (CONTACT && !/^[^\s@<>"]+@[^\s@<>"]+\.[^\s@<>"]+$/.test(CONTACT)) throw new Error(`build-site: CONTACT is not an email address: ${CONTACT}`);
+const escHtml = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+function contactBlock() {
+  if (CONTACT) {
+    const a = escHtml(CONTACT);
+    return `    <div class="contact">
+      <h3><span class="t" lang="ja">連絡先</span><span class="t" lang="en">Contact</span></h3>
+      <a class="addr" href="mailto:${a}">${a}</a>
+      <p class="t" lang="ja">台本の形式（CSV / XLIFF など）、言語の向き、おおよその行数をお知らせください。送り主：Kotomark 開発チーム</p>
+      <p class="t" lang="en">Tell us your file format (CSV, XLIFF, …), language direction and rough line count. — The Kotomark team</p>
+    </div>
+`;
+  }
+  return `    <div class="contact">
+      <h3><span class="t" lang="ja">試用のご相談</span><span class="t" lang="en">Pilot sign-up</span></h3>
+      <p class="t" lang="ja">試用のご相談は近日受付開始です。それまではデモをそのままお試しください。</p>
+      <p class="t" lang="en">Pilot sign-up opens soon. In the meantime, feel free to try the demo.</p>
+      <p><a class="btn" href="demo/"><span class="t" lang="ja">デモを試す</span><span class="t" lang="en">Try the demo</span></a></p>
+    </div>
+`;
+}
 
 function replaceOnce(text, from, to, what) {
   const n = text.split(from).length - 1;
@@ -27,7 +53,14 @@ function stripGoogleFonts(html) {
 let lp = readFileSync(join(root, "lp/index.html"), "utf8");
 lp = stripGoogleFonts(lp);
 lp = replaceOnce(lp, `href="${DEMO_ARTIFACT_URL}"`, `href="demo/"`, "demo link in LP");
-lp = replaceOnce(lp, "pilot@example.com", "{{CONTACT}}", "pilot contact in LP");
+lp = lp.replace(/\s*<!--KOTOMARK_CONTACT_START-->[\s\S]*?<!--KOTOMARK_CONTACT_END-->\n/, (m) => {
+  if (!m) return m;
+  return "\n" + contactBlock();
+});
+if (lp.includes("KOTOMARK_CONTACT")) throw new Error("build-site: contact markers not replaced");
+lp = lp.replace(PRIVATE_EVAL_LINK, "");
+lp = lp.replace(/\s*<!-- TODO before launch: the repo is private[^>]*-->/, "");
+lp = lp.replace(/\s*<!-- TODO before going live:[\s\S]*?-->/, "");
 
 // Demo: the artifact host adds the document skeleton, so add it here.
 let demo = readFileSync(join(root, "web/dist/kotomark-demo.html"), "utf8");
@@ -47,6 +80,7 @@ ${demo}
 
 for (const [name, html] of [["index.html", lp], ["demo/index.html", demo]]) {
   if (/https?:\/\/fonts\.g/.test(html)) throw new Error(`build-site: external font reference left in ${name}`);
+  if (/\{\{[^}]*\}\}|pilot@example\.com|masahiro20\/new-project|claude\.ai\/artifact/.test(html)) throw new Error(`build-site: placeholder or private link left in ${name}`);
   const file = join(out, name);
   mkdirSync(dirname(file), { recursive: true });
   writeFileSync(file, html);
