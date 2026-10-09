@@ -2833,7 +2833,9 @@ $('btnToTitle').addEventListener('click', () => { snd('uiClick'); goTitle(); });
 })();
 function skipLaunch(){
   if (G.state !== 'launch') return;
-  if (launchSeq.t < 0.4) return; // avoid accidental skip from the launch click itself
+  // avoid accidental skip from the launch click itself. Uses the clock directly: launchSeq.t only advances when a
+  // frame runs, so during a long first-launch frame every skip press was ignored.
+  if ((performance.now() - launchSeq.t0) / 1000 < 0.4) return;
   P.res = Math.max(P.res, 40);
   beginPlay();
 }
@@ -3000,6 +3002,15 @@ function pushOut(pos, r){
     }
   }
 }
+// Chasers walk straight at the player, so a building face between them cancels every step in pushOut and they
+// stay jammed there (out of reach, and holding a spawn slot). After ~0.5s without progress, slide sideways along
+// the face for a while; if the slide is blocked too, try the other side.
+function unstick(e, p, ox, oz, step, dt){
+  if (Math.hypot(p.x - ox, p.z - oz) < step * 0.3){
+    e.stuckT = (e.stuckT || 0) + dt;
+    if (e.stuckT > 0.5){ e.stuckT = 0; if (e.slideT > 0) e.orbit = -e.orbit; e.slideT = 1.4; }
+  } else e.stuckT = 0;
+}
 function fireEnemyShot(from, to, speed, dmg, homing){
   const s = eShots.find(x => !x.alive); if (!s) return;
   s.pos.copy(from); s.vel.subVectors(to, from).normalize().multiplyScalar(speed); s.life = homing ? 6 : 4; s.alive = true; s.dmg = dmg;
@@ -3041,13 +3052,16 @@ function updEnemies(dt){
       if (e.state === 'recoil'){
         e.st -= dt; p.x -= nx * 16 * dt; p.z -= nz * 16 * dt; if (e.st <= 0) e.state = 'chase';
       } else {
-        const sp = d < 50 ? 30 : 19;
-        e.dir.x = lerp(e.dir.x, nx, Math.min(1, dt * 2.5)); e.dir.z = lerp(e.dir.z, nz, Math.min(1, dt * 2.5));
+        const sp = d < 50 ? 30 : 19, ox = p.x, oz = p.z;
+        if (e.slideT > 0){ e.slideT -= dt; e.dir.set(-nz * e.orbit, 0, nx * e.orbit); }
+        else { e.dir.x = lerp(e.dir.x, nx, Math.min(1, dt * 2.5)); e.dir.z = lerp(e.dir.z, nz, Math.min(1, dt * 2.5)); }
         const l = Math.hypot(e.dir.x, e.dir.z) || 1;
         p.x += e.dir.x / l * sp * dt; p.z += e.dir.z / l * sp * dt;
         if (d < 12 && P.y < 6){ hurt(9, p); e.state = 'recoil'; e.st = 1.5; sparks(V1.set(p.x, 4, p.z), 20); P.v *= 0.6; }
+        pushOut(p, 4.5);
+        if (e.state === 'chase') unstick(e, p, ox, oz, sp * dt, dt);
       }
-      pushOut(p, 4.5);
+      if (e.state === 'recoil') pushOut(p, 4.5);
       p.y = Math.abs(Math.sin(e.t * 14)) * 0.4;
       e.g.lookAt(px, p.y, pz);
       for (const L of e.model.legs) L.pivot.rotation.x = Math.sin(e.t * 18 + L.z + (L.s > 0 ? Math.PI : 0)) * 0.5;
@@ -3068,7 +3082,12 @@ function updEnemies(dt){
       }
     } else if (e.type === 'lord'){
       if (e.state === 'recoil'){ e.st -= dt; p.x -= nx * 10 * dt; p.z -= nz * 10 * dt; if (e.st <= 0) e.state = 'chase'; }
-      else if (d > 50){ p.x += nx * 8 * dt; p.z += nz * 8 * dt; }
+      else if (d > 50){
+        const ox = p.x, oz = p.z;
+        if (e.slideT > 0){ e.slideT -= dt; p.x += -nz * e.orbit * 8 * dt; p.z += nx * e.orbit * 8 * dt; }
+        else { p.x += nx * 8 * dt; p.z += nz * 8 * dt; }
+        pushOut(p, 12); unstick(e, p, ox, oz, 8 * dt, dt);
+      }
       else if (d < 24 && P.y < 8){ hurt(16, p); e.state = 'recoil'; e.st = 2; }
       pushOut(p, 12);
       e.g.lookAt(px, 0, pz);
@@ -3164,6 +3183,8 @@ function spawnBoss(){
   let x = P.pos.x + fx * 150, z = P.pos.z + fz * 150;
   if (M.boss === 'lord'){
     const r = Math.hypot(x, z); if (r > ARENA_R - 30){ x *= (ARENA_R - 30) / r; z *= (ARENA_R - 30) / r; }
+    // facing the arena edge, the clamp above can pull the spawn to ~25m (on top of the player); spawn toward the centre instead
+    if (Math.hypot(x - P.pos.x, z - P.pos.z) < 120){ const pr = Math.hypot(P.pos.x, P.pos.z) || 1; x = P.pos.x - P.pos.x / pr * 150; z = P.pos.z - P.pos.z / pr * 150; }
   } else {
     let ok = false;
     for (let k = 0; k < 40 && !ok; k++){
@@ -3628,6 +3649,13 @@ function updCamera(dt){
 
 /* ================= lock-on ================= */
 const aimDir = new THREE.Vector3();
+// true when a building stands between the cockpit and the target (sampled every ~6m), so lock-on and the homing
+// shots do not pick an enemy that every round would hit the wall in front of
+function occluded(from, to, d){
+  const n = Math.ceil(d / 6);
+  for (let i = 1; i < n; i++){ const k = i / n; if (buildingAt(from.x + (to.x - from.x) * k, from.y + (to.y - from.y) * k, from.z + (to.z - from.z) * k)) return true; }
+  return false;
+}
 function updLock(){
   aimDir.set(0,0,-1).applyQuaternion(camera.quaternion);
   const maxAng = P.overbeat ? 0.16 : 0.1;
@@ -3638,7 +3666,7 @@ function updLock(){
     V1.subVectors(c, camera.position); const d = V1.length(); if (d > 260) continue;
     const a = Math.acos(clamp(V1.dot(aimDir) / d, -1, 1)) - (BOSS_TYPES[e.type] ? 0.05 : 0);
     const stick = e === G.lock ? 0.04 : 0;
-    if (a - stick < bestA){ bestA = a - stick; best = e; }
+    if (a - stick < bestA && !occluded(camera.position, c, d)){ bestA = a - stick; best = e; }
   }
   if (best && best !== G.lock) snd('lockOn');
   G.lock = best;

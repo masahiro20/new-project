@@ -32,9 +32,9 @@
 **You are strapped into the saddle of HEKATON TYPE-04, a 28-meter, four-legged war machine.**
 **Every step shakes the cockpit. Every shot heats the core. Push resonance to 100% and the machine's heartbeat becomes yours. OVERBEAT.**
 
-GRANDSTRIDE is a first-person cockpit mech action game that runs in your browser. You never leave the saddle. You read the gauges, listen to the warning lights, keep four legs planted, and hold the line.
+GRANDSTRIDE is a first-person cockpit mech action game that runs in your browser. You never leave the saddle. You read the gauges, heed the warning lights, keep four legs planted, and hold the line.
 
-*Made with AI assistance: the game code and the text were written with an AI coding assistant (Claude), then reviewed, tested and edited by Team GRANDSTRIDE. No AI-generated images, 3D models, music or voice files are used: the visuals are drawn from code with three.js, and every sound is synthesized live with Web Audio.*
+*Made with extensive use of generative AI (Claude): the game code, the in-game and store text, the world setting and design documents, and the promotional art were created by AI under Team GRANDSTRIDE's direction, then play-tested, edited and approved by the team. No AI image-generation models and no AI-generated audio files are used: the game's visuals are drawn at runtime by AI-written three.js code, and every sound is synthesized live by AI-written Web Audio code. Full details in the AI disclosure below.*
 
 ### Features
 
@@ -48,13 +48,13 @@ GRANDSTRIDE is a first-person cockpit mech action game that runs in your browser
 - **First-person cockpit, all the way.** The HUD is built into the cockpit: resonance meter, a grip readout for each of the four legs, core temperature gauge, and a warning-light panel.
 - **Four legs, four grip gauges (FL / FR / RL / RR).** Turning, landing, sidestepping and taking hits wear down each leg separately. When a leg's grip hits zero, the machine leans, slows down and turns sluggishly until the leg recovers. Stand still to regain grip faster.
 - **Resonance.** Walk with a steady rhythm and keep landing shots to raise it. Hit 100% and enter **OVERBEAT**, a short burst where the machine fights at full power.
-- **Core temperature.** Dash, boost, sidestep and fire heat the reactor. Push too hard and it forces a cooldown at the worst possible moment.
+- **Core temperature.** Dash, boost, sidestep and fire heat the reactor. Push too hard and a forced cooldown locks out firing, dashing and boosting at the worst possible moment.
 - **Launch sequence.** The first time you press LAUNCH, the cockpit boots around you: saddle link, core online, leg grip check, fire control, radar, neural link. The gauges light up one by one, the hangar bay opens, and Control calls it: "HEKATON, LAUNCH." After that, you launch in about one second.
 - **Radio from Control.** Itsuka, your mission controller, keeps you alive over the radio with warnings, callouts and the occasional dry remark.
 - **Score and rank (S / A / B / C)** at the end of each mission. High scores are saved per mission in your browser.
 - **Every sound is synthesized live.** Footsteps, cannon fire, alarms and engine hum are generated in real time with the Web Audio API. No audio files.
 - **Plays on PC and phone.** Keyboard and mouse on desktop, virtual stick and buttons on touch screens.
-- **Quality settings (Low / Medium / High) and an FPS display**, so you can tune it to your machine.
+- **Quality settings (Low / Mid / High) and an FPS display** (toggle with `F`), so you can tune it to your machine.
 
 ### Controls
 
@@ -83,6 +83,7 @@ Tip: click the game screen once to capture the mouse. Press `Esc` to release it.
 - On phones, play in **landscape** and use the fullscreen button. Older phones may run hot.
 - On iPhone / iPad, sound starts after your first tap (browser rule).
 - The game pauses automatically if you switch tabs or the window loses focus.
+- Gauges, buttons and the results screen are labelled in English and Japanese, but Itsuka's radio messages and the mission briefing are currently in Japanese only.
 
 ### Development status and roadmap
 
@@ -112,6 +113,7 @@ GRANDSTRIDE is free to play. If you enjoyed it, a small tip (suggested $3) goes 
 - Mission controller Itsuka: radio text
 - Sound: all synthesized in real time with the Web Audio API
 - **three.js r128** — Copyright © 2010–2021 three.js authors. Released under the **MIT License**. https://github.com/mrdoob/three.js/blob/r128/LICENSE
+- Fonts: **Chakra Petch** (© 2018 The Chakra Petch Project Authors) and **Share Tech Mono** (© 2012 Carrois Type Design), SIL Open Font License 1.1
 - Made with AI assistance (Claude). See the AI disclosure below.
 
 ---
@@ -122,9 +124,9 @@ GRANDSTRIDE is free to play. If you enjoyed it, a small tip (suggested $3) goes 
 **あなたは全高28mの四脚機「ヘカトン TYPE-04」の鞍座（あんざ）に座る鞍士（あんし）だ。**
 **一歩ごとに鞍座が揺れ、撃つたびに炉が熱を持つ。共鳴率100%、機体の鼓動があなたの鼓動になる ― 鼓動モード OVERBEAT。**
 
-『鋼脚戦機 GRANDSTRIDE』は、ブラウザで遊べる一人称コックピット視点の四脚メカアクションです。視点は最後まで鞍座の中。計器を読み、警告灯に耳を澄まし、4本の脚で踏みとどまって都市を守ってください。
+『鋼脚戦機 GRANDSTRIDE』は、ブラウザで遊べる一人称コックピット視点の四脚メカアクションです。視点は最後まで鞍座の中。計器を読み、警告灯に気を配り、4本の脚で踏みとどまって都市を守ってください。
 
-*生成 AI の使用について: ゲームのコードとストア文などの文章は AI コーディング支援（Claude）で作り、Team GRANDSTRIDE が確認・テスト・編集しています。画像・3D モデル・音楽・音声に生成 AI のファイルは使っていません（見た目は three.js でコードから描画、音は Web Audio でその場で合成）。*
+*生成 AI の使用について: このゲームは生成 AI（Claude）を全面的に使って作っています。ゲームのコード、ゲーム内とストアの文章、世界設定・設計資料、宣伝用の画像は、Team GRANDSTRIDE の指示のもとで AI が作り、Team GRANDSTRIDE がテストプレイ・編集・承認しました。画像生成 AI と、AI が生成した音声ファイルは使っていません。ゲームの見た目は AI が書いた three.js のコードがその場で描き、音はすべて AI が書いた Web Audio のコードがその場で合成しています。詳しくは下の開示をご覧ください。*
 
 ### 特徴
 
@@ -138,13 +140,13 @@ GRANDSTRIDE is free to play. If you enjoyed it, a small tip (suggested $3) goes 
 - **最初から最後まで鞍座の中。** 計器は鞍座に組み込まれた形で表示。共鳴率メーター、4本脚それぞれの脚圧、炉温計、警告灯パネル。
 - **4本の脚、4つの脚圧（FL / FR / RL / RR）。** 旋回・着地・横跳び・被弾で脚ごとに減る。脚圧が0になった脚があると、回復するまで機体が傾き、足が鈍り、旋回も重くなる。止まっていると早く回復する。
 - **共鳴率。** 一定のリズムで歩き、撃ち当て続けると上がる。100%で **鼓動モード OVERBEAT** に突入、短い時間だけ機体が全力を出す。
-- **炉温。** 疾走・跳躍・横跳び・射撃で上がる。無理をすると強制冷却で動けなくなる。
-- **出撃演出。** 初めて「出撃」を押したときは鞍座が起動する。鞍座接続 → 動力炉 → 脚部 → 火器管制 → 索敵 → 神経接続。計器がひとつずつ灯り、格納庫の扉が開き、「HEKATON, LAUNCH」。2回目からは約1秒で出撃。
+- **炉温。** 疾走・跳躍・横跳び・射撃で上がる。無理をすると強制冷却に入り、射撃・疾走・跳躍ができなくなる。
+- **出撃演出。** 初めて「出撃」を押したときは鞍座が起動する。鞍座接続 → 動力炉 → 脚部 → 火器管制 → 索敵 → 神経共鳴。計器がひとつずつ灯り、格納庫の扉が開き、「HEKATON, LAUNCH」。2回目からは約1秒で出撃。
 - **管制官イツカの無線。** 警告、接敵の知らせ、ときどき皮肉。あなたの脈拍を一番気にしているのは彼女だ。
 - **スコアと評価（S / A / B / C）。** 作戦ごとの最高スコアはブラウザに保存。
 - **音はすべてその場で合成。** 足音、砲声、警報、炉のうなりは Web Audio で生成。音声ファイルは使っていません。
 - **PC でもスマホでも。** PC はキーボード＋マウス、スマホは仮想スティックとボタン。
-- **品質設定（低・中・高）と FPS 表示。**
+- **品質設定（低・中・高）と FPS 表示（`F` キーで切り替え）。**
 
 ### 操作方法
 
@@ -202,6 +204,7 @@ GRANDSTRIDE is free to play. If you enjoyed it, a small tip (suggested $3) goes 
 - 管制官イツカ: 無線テキスト
 - 音: すべて Web Audio API でリアルタイム合成
 - **three.js r128** — Copyright © 2010–2021 three.js authors. **MIT License** で公開。https://github.com/mrdoob/three.js/blob/r128/LICENSE
+- フォント: **Chakra Petch**（© 2018 The Chakra Petch Project Authors）、**Share Tech Mono**（© 2012 Carrois Type Design）。SIL Open Font License 1.1
 - AI コーディング支援（Claude）を使って制作（下の開示を参照）
 
 ---
@@ -210,13 +213,13 @@ GRANDSTRIDE is free to play. If you enjoyed it, a small tip (suggested $3) goes 
 
 | 欄 | 設定案 | メモ |
 |---|---|---|
-| Kind of project | **HTML** | 単一 HTML（`dist/` のビルド）を zip にして index.html をルートに置く |
+| Kind of project | **HTML** | `dist/grandstride-itch.zip`（index.html をルートに、Three.js r128 とフォントを同梱）をそのままアップロード |
 | Classification | **Games** | |
 | Release status | **Prototype** | |
 | Genre | **Action** | |
 | Tags（10個） | `mechs`, `robots`, `first-person`, `3d`, `singleplayer`, `sci-fi`, `shooter`, `boss-battle`, `arcade`, `upgrades` | 入力時に itch の候補に出るか確認し、出ないものは差し替える（予備: `short`, `post-apocalyptic`, `atmospheric`, `fps`） |
 | Platforms | Playable in browser（HTML5） | |
-| Languages | English, Japanese | 画面の文字は日英併記 |
+| Languages | English, Japanese | 計器・ボタン・結果画面は日英併記。**イツカの無線、作戦説明、タイトルの操作説明の本文は日本語のみ**（英語版を入れるまでは EN 説明文の制限事項に明記） |
 | Inputs | Keyboard, Mouse, Touchscreen | |
 | Accessibility | （該当なしで可） | 字幕的な無線テキストはあるが、専用機能はまだない |
 | Average session | A few minutes | 1プレイ約3〜5分（2回目以降の出撃は約1秒）。M01＋M02＋整備・今日の作戦目標で1回の訪問は10〜20分を想定。itch に「About a half-hour」もあるが、1プレイの長さで選ぶ |
@@ -249,15 +252,25 @@ GRANDSTRIDE is free to play. If you enjoyed it, a small tip (suggested $3) goes 
 
 ### 生成 AI 使用の開示（AI disclosure）
 
-itch の編集画面の生成 AI に関する項目では、**「使用している」を選ぶ**。対象の選択肢があれば **Code** と **Text** にチェックし、Graphics と Sound は「生成 AI の画像・音声ファイルは使っていない」と分かるように説明欄に書く。説明文（§3・§4）の冒頭近くにも同じ趣旨の短い表示を入れてある。
+itch の編集画面の生成 AI に関する項目では、**「使用している」を選ぶ**。対象の選択肢があれば **Code・Text・Graphics** にチェックする（宣伝用画像を AI が SVG で作図しているため。画像生成モデルは使っていない）。Sound は生成 AI の音声ファイルがないのでチェックしないが、合成のコードを AI が書いたことを説明欄に書く。本部の方針は「控えめより正確に」（2026-10-09 ピーター判断）。説明文（§3・§4）の冒頭近くにも同じ内容の短い表示を入れてある。
 
 説明欄の文案（英語）:
 
-> This game was made with AI assistance. The game code and the written text (store description, in-game text and Itsuka's radio lines) were produced with help from an AI coding assistant (Claude), then reviewed, tested and edited by the developer, Team GRANDSTRIDE. The game uses no AI-generated images, 3D models, music or voice files: all visuals are built from code at runtime with three.js, and all sound is synthesized live with the Web Audio API by code written with AI assistance. Game design, world setting and final decisions are by the developer.
+> This project was made with extensive use of generative AI (Claude).
+> - **Code:** written by an AI coding assistant under Team GRANDSTRIDE's direction, then play-tested and adjusted.
+> - **Text:** the store description, in-game text, Itsuka's radio lines, and the world setting and design documents were drafted by AI and edited and approved by the team.
+> - **Graphics:** no AI image-generation models were used. In-game visuals are drawn at runtime by AI-written three.js code. The cover and screenshots are captures of the game. The promotional banner, header and title card were composed as vector art (SVG) by an AI assistant.
+> - **Sound:** no AI-generated audio files. All sound is synthesized live with the Web Audio API by AI-written code.
+> - Team GRANDSTRIDE chose the concept, directed the work and made the final decisions.
 
 日本語訳（参考）:
 
-> このゲームは AI の支援を受けて作りました。ゲームのコードと文章（ストアの説明、ゲーム内の文字、イツカの無線の台詞）は AI のコーディング支援（Claude）を使って作り、開発者 Team GRANDSTRIDE が確認・テスト・編集しています。AI が生成した画像・3D モデル・音楽・音声ファイルは使っていません。画面はすべて three.js でコードから描画し、音はすべて Web Audio API でその場で合成しています（そのコードも AI の支援で書いたものです）。ゲームデザイン、世界設定、最終的な判断は開発者が行っています。
+> このプロジェクトは生成 AI（Claude）を全面的に使って作りました。
+> - **コード:** Team GRANDSTRIDE の指示のもとで AI のコーディング支援が書き、チームがテストプレイして調整した。
+> - **文章:** ストアの説明、ゲーム内の文字、イツカの無線の台詞、世界設定と設計資料は AI が下書きし、チームが編集・承認した。
+> - **画像:** 画像生成モデルは使っていない。ゲーム内の見た目は AI が書いた three.js のコードがその場で描く。カバーとスクリーンショットはゲーム画面の撮影。宣伝用のバナー・ヘッダー・タイトルカードは AI がベクター画像（SVG）として作図した。
+> - **音:** AI が生成した音声ファイルはない。音はすべて、AI が書いた Web Audio のコードがその場で合成している。
+> - コンセプトの決定、制作の指示、最終判断は Team GRANDSTRIDE が行った。
 
 ※ 将来、キービジュアルやカプセル画像を AI で作った場合は、この開示（と §3・§4 の表示）を更新する（`monetization.md` §7 では人が描く方針）。
 
@@ -340,7 +353,8 @@ itch の編集画面の生成 AI に関する項目では、**「使用してい
 - [ ] MISSION 03 が入ったら、§3・§4・§6 の「coming soon／近日追加」を更新
 - [ ] タグが itch の候補に存在するか確認（`upgrades` は特に）
 - [x] 開発者名をクレジットに入れる（Team GRANDSTRIDE）
-- [x] 説明文（英語・日本語）の本文に生成 AI の使用表示を入れる（§3・§4、§5 の開示と同じ内容）
+- [x] 説明文（英語・日本語）の本文に生成 AI の使用表示を入れる（§3・§4、§5 の開示と同じ内容。2026-10-09 に「実態どおり」へ改訂）
+- [ ] itch の AI Disclosure で Code・Text・Graphics にチェックし、§5 の説明文を貼る
 - [ ] スクリーンショット: 現在の 1〜5 に加え、追加予定の shell-lord / twinshell / harbor をそろえる。カバー画像 630×500
 - [ ] itch のページで PC（Chrome/Edge）とスマホ（横向き・全画面）の両方で動作確認、iframe 内でマウス固定と保存（localStorage）が効くか確認
 - [ ] 文面に他作品の名前・用語が入っていないか最終確認
