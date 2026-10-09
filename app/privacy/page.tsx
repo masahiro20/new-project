@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { aiEnabled, isFreeLaunch, operator, salesEnabled } from "@/lib/launch";
+import { aiEnabled, isFreeLaunch, liveBilling, operator } from "@/lib/launch";
 
 export const metadata: Metadata = { title: "プライバシーポリシー" };
 
@@ -7,8 +7,9 @@ export const metadata: Metadata = { title: "プライバシーポリシー" };
 // 無料公開モードでは lib/launch.ts の運営者情報を使い、使っていない機能（決済・AI）の記載は出さない。
 export default function PrivacyPage() {
   const op = operator();
-  const free = isFreeLaunch();
-  const sales = salesEnabled();
+  const sales = liveBilling();
+  // Placeholders remain only for the owner to fill before live billing.
+  const free = isFreeLaunch() || !sales;
   const ai = aiEnabled();
   const turnstile = Boolean(process.env.TURNSTILE_SECRET_KEY);
   const upstash = Boolean(process.env.UPSTASH_REDIS_REST_URL);
@@ -70,7 +71,7 @@ export default function PrivacyPage() {
         <p>次の事業者に業務の一部を委託しています。</p>
         <ul>
           {sales && <li>決済：Stripe, Inc.（アメリカ合衆国）および Stripe Japan 株式会社。クレジットカード情報は Stripe が管理し、当サービスでは保持しません。</li>}
-          <li>ホスティング：{free ? "Vercel Inc.（アメリカ合衆国）" : "【要記入：例 Vercel Inc.（アメリカ合衆国）】"}</li>
+          <li>ホスティング：{process.env.HOSTING_PROVIDER || (free ? "GitHub, Inc.（アメリカ合衆国。GitHub Pages）" : "【要記入：例 Vercel Inc.（アメリカ合衆国）】")}</li>
           {abuse.length > 0 && <li>不正利用の防止：{abuse.join("、")}</li>}
         </ul>
 

@@ -5,6 +5,7 @@ import MarkdownView from "@/app/MarkdownView";
 import { GUIDES, SERVICE_GUIDES, TOPIC_GUIDES, getGuide } from "@/lib/guides";
 import { breadcrumbList, jsonLdHtml } from "@/lib/jsonld";
 import { aiEnabled } from "@/lib/launch";
+import { ogImage } from "@/lib/og";
 import { siteUrl, SITE_NAME } from "@/lib/site";
 
 export function generateStaticParams() {
@@ -28,6 +29,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
           url: `/guide/${guide.slug}`,
           publishedTime: guide.published ?? guide.updated,
           modifiedTime: guide.updated,
+          images: [ogImage()],
         },
       }
     : {};

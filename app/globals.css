@@ -124,3 +124,7 @@ textarea { min-height: 110px; resize: vertical; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 .doc > :first-child { margin-top: 0; }
 .prose .doc td:first-child { white-space: normal; min-width: 7em; }
+
+.demo-banner { background: var(--warn-soft); color: var(--warn); border-bottom: 1px solid var(--warn); text-align: center; font-weight: 700; font-size: .9rem; padding: 6px 16px; }
+.field-err { display: block; color: var(--warn); font-size: .85rem; font-weight: 400; }
+.card-form .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }

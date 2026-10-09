@@ -5,10 +5,6 @@ import { siteUrl } from "./site";
 // A paid session may regenerate its set (e.g. after a network drop) for this long.
 const SESSION_VALID_SECONDS = 7 * 24 * 60 * 60;
 
-export function paymentDisabled(): boolean {
-  return process.env.PAYMENT_DISABLED === "true" && process.env.NODE_ENV !== "production";
-}
-
 export function priceJpy(): number {
   const price = Number(process.env.PRICE_JPY ?? 2980);
   return Number.isInteger(price) && price > 0 ? price : 2980;

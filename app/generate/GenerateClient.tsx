@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import MarkdownView from "@/app/MarkdownView";
 import { SERVICE_TYPES, type FacilityInput } from "@/lib/form";
@@ -81,8 +81,9 @@ async function streamInto(url: string, body: unknown, onText: (text: string) => 
   return undefined;
 }
 
-export default function GenerateClient({ price, sales, turnstileSiteKey }: { price: number; sales: boolean; turnstileSiteKey?: string }) {
+export default function GenerateClient({ price, sales, demo = false, turnstileSiteKey }: { price: number; sales: boolean; demo?: boolean; turnstileSiteKey?: string }) {
   const params = useSearchParams();
+  const router = useRouter();
   // Without sales there is no paid session to resume, whatever the URL says.
   const sessionId = sales ? params.get("session_id") : null;
   const canceled = sales && params.get("canceled") === "1";
@@ -169,7 +170,9 @@ export default function GenerateClient({ price, sales, turnstileSiteKey }: { pri
     const res = await fetch("/api/checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(input) });
     const data = await res.json().catch(() => ({}));
     if (data.url) {
-      window.location.href = data.url;
+      // Demo checkout is an in-app page (basePath-aware navigation); Stripe is an external URL.
+      if (data.url.startsWith("/")) router.push(data.url);
+      else window.location.href = data.url;
     } else {
       setMessage(data.error ?? "決済ページを開けませんでした。");
       setBusy(false);
@@ -244,7 +247,7 @@ export default function GenerateClient({ price, sales, turnstileSiteKey }: { pri
             議事録は、実際に開催した委員会のメモをもとに清書します。開催していない会議や研修の記録を作ることはできません。
           </p>
 
-          {sales && <PurchaseSummary price={price} />}
+          {sales && <PurchaseSummary price={price} demo={demo} />}
 
           <div className="actions">
             <button type="button" className={sales ? "btn secondary" : "btn"} onClick={preview} disabled={busy || (!!turnstileSiteKey && !turnstileToken)}>
@@ -262,8 +265,8 @@ export default function GenerateClient({ price, sales, turnstileSiteKey }: { pri
       {sessionId && (
         <p className="ok no-print">
           {busy
-            ? "お支払いありがとうございます。3つの書類セットを同時に作成しています（数分かかります）。"
-            : "お支払いありがとうございます。作成した書類は、このブラウザに保存されています。忘れずにWordで保存してください。"}
+            ? `${demo ? "（デモ）" : ""}お支払いありがとうございます。3つの書類セットを同時に作成しています（数分かかります）。`
+            : `${demo ? "（デモ）" : ""}お支払いありがとうございます。作成した書類は、このブラウザに保存されています。忘れずにWordで保存してください。`}
         </p>
       )}
 
@@ -291,7 +294,7 @@ export default function GenerateClient({ price, sales, turnstileSiteKey }: { pri
         <div className="card no-print" style={{ marginTop: 24 }}>
           <h3>続きの書類もまとめて作成できます</h3>
           <p>委員会の議事次第・議事録、研修資料と理解度テスト、身体拘束等適正化の指針と記録様式まで、{price.toLocaleString()}円で一式そろいます。</p>
-          <PurchaseSummary price={price} />
+          <PurchaseSummary price={price} demo={demo} />
           <div className="actions">
             <button type="button" className="btn" onClick={checkout} disabled={busy}>全書類セットを作る</button>
           </div>

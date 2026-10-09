@@ -1,14 +1,27 @@
+import { isDemoMode } from "./payments/mode";
+
 // Launch modes. LAUNCH_MODE=free runs the site without paid features: no checkout,
 // no seller details, and AI generation only when an Anthropic key is configured.
+// PAYMENTS_MODE (lib/payments/mode.ts) decides whether a purchase is demo or real.
 // Read on the server only; static pages pick these up at build time.
 
 export function isFreeLaunch(): boolean {
   return process.env.LAUNCH_MODE === "free";
 }
 
-/** Paid sets can be sold. Off in free mode, whatever Stripe settings exist. */
+/** The purchase flow is shown (demo or real). Off in free mode, whatever Stripe settings exist. */
 export function salesEnabled(): boolean {
   return !isFreeLaunch();
+}
+
+/** Real money changes hands: purchase flow on and PAYMENTS_MODE resolves to stripe. */
+export function liveBilling(): boolean {
+  return salesEnabled() && !isDemoMode();
+}
+
+/** The demo purchase flow is shown (no real charges). */
+export function demoPurchase(): boolean {
+  return salesEnabled() && isDemoMode();
 }
 
 /** AI generation is possible (an Anthropic key is set). */
@@ -21,9 +34,9 @@ export const COMING_SOON = {
   ai: "AIによる書類作成は準備中です。公開したら、このサイトでお知らせします。",
 } as const;
 
-/** Operator details shown on the terms and privacy pages. Free mode publishes no seller placeholders. */
+/** Operator details shown on the terms and privacy pages. Seller placeholders appear only with live billing. */
 export function operator(): { name: string; contact: string; established: string; court: string } {
-  return isFreeLaunch()
+  return !liveBilling()
     ? {
         name: "減算ゼロ運営事務局",
         contact: "準備中",

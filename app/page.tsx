@@ -2,7 +2,8 @@ import Link from "next/link";
 import { SERVICE_GUIDES, TOPIC_GUIDES } from "@/lib/guides";
 import { siteUrl, SITE_NAME } from "@/lib/site";
 import { jsonLdHtml } from "@/lib/jsonld";
-import { aiEnabled, COMING_SOON, salesEnabled } from "@/lib/launch";
+import { aiEnabled, COMING_SOON, demoPurchase, salesEnabled } from "@/lib/launch";
+import { DEMO_BANNER } from "@/lib/payments/mode";
 import { priceJpy } from "@/lib/stripe";
 
 const FAQ = [
@@ -37,6 +38,7 @@ export default function Home() {
   const price = priceJpy();
   const sales = salesEnabled();
   const ai = aiEnabled();
+  const demo = demoPurchase();
   const faq = sales ? FAQ : FAQ.map((f) => (f.q === "支払い方法は？" ? FREE_FAQ : f));
   const jsonLd = [
     {
@@ -153,8 +155,13 @@ export default function Home() {
                 {price.toLocaleString()}円 <small>（税込・1事業所・年間セット）</small>
               </p>
               <p>月額契約はありません。必要なときに1回払いで作成できます。</p>
+              {demo && <p className="notice" style={{ marginTop: 12 }}>{DEMO_BANNER}。テストカードで購入の流れを体験できます。</p>}
               <div className="actions">
-                <Link href="/generate" className="btn">書類を作る</Link>
+                {ai ? (
+                  <Link href="/generate" className="btn">{demo ? "デモで書類を作る" : "書類を作る"}</Link>
+                ) : (
+                  demo && <Link href="/checkout/demo" className="btn">デモで購入を体験する</Link>
+                )}
               </div>
             </div>
           ) : (

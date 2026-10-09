@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { operator, salesEnabled } from "@/lib/launch";
+import { liveBilling, operator } from "@/lib/launch";
 
 export const metadata: Metadata = { title: "利用規約" };
 
@@ -73,7 +73,7 @@ const sections = (op: ReturnType<typeof operator>, sales: boolean): { title: str
 
 export default function TermsPage() {
   const op = operator();
-  const sales = salesEnabled();
+  const sales = liveBilling();
   return (
     <section>
       <div className="wrap narrow prose">

@@ -30,7 +30,7 @@ cp .env.example .env.local   # キーを記入
 npm run dev                  # http://localhost:3000
 ```
 
-決済なしで有料フローを確認したいときは、`.env.local` に `PAYMENT_DISABLED=true` を設定します（本番ビルドでは無効になります）。
+決済なしで有料フローを確認したいときは、`PAYMENTS_MODE=demo`（Stripe キーが未設定なら自動で demo）にします。テストカード `4242 4242 4242 4242` で購入の流れを確認でき、お金は動きません。詳しくは [docs/demo-payments.md](docs/demo-payments.md)。
 
 ## 公開手順
 
@@ -62,5 +62,6 @@ Vercel の無料プランは商用利用ができないため、Cloudflare Worke
 ```bash
 npm run typecheck
 npm run lint
+npm test
 npm run build
 ```

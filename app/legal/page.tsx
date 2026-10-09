@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { salesEnabled } from "@/lib/launch";
+import { liveBilling } from "@/lib/launch";
 import { REGENERATE_PER_DAY } from "@/lib/purchase";
 import { priceJpy } from "@/lib/stripe";
 
@@ -21,8 +21,8 @@ const ROWS: [string, string][] = [
 ];
 
 export default function LegalPage() {
-  // Nothing is sold in free mode, so the seller placeholders are not published.
-  if (!salesEnabled()) notFound();
+  // Nothing is sold in free or demo mode, so the seller placeholders are not published.
+  if (!liveBilling()) notFound();
   return (
     <section>
       <div className="wrap narrow prose">

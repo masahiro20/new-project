@@ -3,6 +3,8 @@ import { GUIDES } from "@/lib/guides";
 import { SAMPLE_UPDATED } from "@/lib/samples";
 import { siteUrl } from "@/lib/site";
 
+export const dynamic = "force-static";
+
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = siteUrl();
   // YYYY-MM-DD strings compare correctly as text.

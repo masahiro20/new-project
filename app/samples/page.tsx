@@ -6,6 +6,7 @@ import { breadcrumbList, jsonLdHtml } from "@/lib/jsonld";
 import { aiEnabled } from "@/lib/launch";
 import { PARTS, PART_LABELS } from "@/lib/parts";
 import { SAMPLE_FACILITY, SAMPLE_UPDATED, SAMPLES } from "@/lib/samples";
+import { ogImage } from "@/lib/og";
 import { siteUrl, SITE_NAME } from "@/lib/site";
 
 const TITLE = "虐待防止委員会の議事録・研修資料・身体拘束適正化指針の書類サンプル（無料）";
@@ -19,7 +20,7 @@ export const metadata: Metadata = {
   title: META_TITLE,
   description: DESCRIPTION,
   alternates: { canonical: "/samples" },
-  openGraph: { type: "article", siteName: SITE_NAME, locale: "ja_JP", title: META_TITLE, description: DESCRIPTION, url: "/samples" },
+  openGraph: { type: "article", siteName: SITE_NAME, locale: "ja_JP", title: META_TITLE, description: DESCRIPTION, url: "/samples", images: [ogImage()] },
 };
 
 const ANCHORS: Record<(typeof PARTS)[number], string> = {

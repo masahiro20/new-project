@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { aiEnabled, COMING_SOON, salesEnabled } from "@/lib/launch";
+import { aiEnabled, COMING_SOON, demoPurchase, salesEnabled } from "@/lib/launch";
 import { priceJpy } from "@/lib/stripe";
 import GenerateClient from "./GenerateClient";
 
@@ -50,6 +50,7 @@ export default function GeneratePage() {
           <GenerateClient
             price={priceJpy()}
             sales={sales}
+            demo={demoPurchase()}
             turnstileSiteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || undefined}
           />
         </Suspense>

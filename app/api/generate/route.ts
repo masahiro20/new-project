@@ -2,11 +2,11 @@ import { z } from "zod";
 import { streamDocuments } from "@/lib/claude";
 import { facilitySchema } from "@/lib/form";
 import { hashInput } from "@/lib/hash";
-import { aiEnabled, COMING_SOON, salesEnabled } from "@/lib/launch";
+import { aiEnabled, COMING_SOON, demoPurchase, salesEnabled } from "@/lib/launch";
 import { PARTS } from "@/lib/parts";
 import { REGENERATE_PER_DAY } from "@/lib/purchase";
-import { allow } from "@/lib/ratelimit";
-import { isPaidFor, paymentDisabled } from "@/lib/stripe";
+import { allow, ipKey } from "@/lib/ratelimit";
+import { isPaid } from "@/lib/payments";
 
 export const maxDuration = 300;
 
@@ -29,17 +29,20 @@ export async function POST(request: Request) {
   }
   const { sessionId, part, input } = parsed.data;
 
-  if (!paymentDisabled()) {
-    const paid = await isPaidFor(sessionId, hashInput(input)).catch((error) => {
-      console.error("payment check failed", error);
-      return false;
-    });
-    if (!paid) {
-      return Response.json(
-        { error: "お支払いを確認できませんでした。購入時と同じ入力内容でお試しください。" },
-        { status: 402 },
-      );
-    }
+  const paid = await isPaid(sessionId, hashInput(input)).catch((error) => {
+    console.error("payment check failed", error);
+    return false;
+  });
+  if (!paid) {
+    return Response.json(
+      { error: "お支払いを確認できませんでした。購入時と同じ入力内容でお試しください。" },
+      { status: 402 },
+    );
+  }
+
+  // Demo purchases cost nothing to make, so cap them per IP as well (each purchase runs 3 sets).
+  if (demoPurchase() && !(await allow(`demo-generate:${ipKey(request)}`, 6, 60 * 60 * 1000))) {
+    return Response.json({ error: "デモの作成は1時間に2セットまでです。" }, { status: 429 });
   }
 
   // A paid session may regenerate for 7 days; cap it so one payment can't run up unbounded API cost.

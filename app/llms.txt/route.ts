@@ -1,7 +1,7 @@
 import { SERVICE_GUIDES, TOPIC_GUIDES } from "@/lib/guides";
 import { PARTS, PART_LABELS } from "@/lib/parts";
 import { siteUrl, SITE_NAME } from "@/lib/site";
-import { aiEnabled, salesEnabled } from "@/lib/launch";
+import { aiEnabled, liveBilling } from "@/lib/launch";
 import { priceJpy } from "@/lib/stripe";
 
 // Prerendered at build time (no per-request CPU on Workers Free).
@@ -10,7 +10,7 @@ export const dynamic = "force-static";
 // llms.txt: a plain-text map of the site for AI assistants and AI search crawlers.
 export function GET() {
   const base = siteUrl();
-  const offer = salesEnabled()
+  const offer = liveBilling()
     ? `価格は1事業所・年間セット${priceJpy().toLocaleString()}円（税込）。年間実施計画は無料で作成できる。`
     : `減算リスク診断・解説・書類サンプルは無料。有料版（書類セットの一括作成）は準備中${aiEnabled() ? "。年間実施計画は無料で作成できる" : "、AIによる作成機能も準備中"}。`;
   const generate = aiEnabled() ? `- [書類を作成する](${base}/generate): 事業所情報を入力して書類を作成\n` : "";
