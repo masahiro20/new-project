@@ -1,29 +1,29 @@
 # Model Switch Calculator
 
-A browser-only tool. Paste API usage data and it estimates the monthly cost if all of that traffic moved to another model. The UI is in Japanese.
+ブラウザだけで動くツール。API の利用データを貼り付けると、その利用量をすべて別のモデルに移した場合の月額を見積もる。UI は日本語。
 
-- File: `index.html` is a single page fragment that follows the artifact page contract. It has no doctype/html/head/body tags and makes no network requests.
-- Privacy: everything runs in the browser. Nothing is sent anywhere. The only links are the pricing-source links.
+- ファイル：`index.html` は、artifact のページ規約に沿った 1 ページ分の断片。doctype／html／head／body タグはなく、通信もしない。
+- プライバシー：すべてブラウザ内で動く。どこにも何も送らない。リンクは価格の出典へのものだけ。
 
-## Supported input (auto-detected)
-- Anthropic Console usage CSV. Columns such as `usage_input_tokens_no_cache`, `..._cache_write_5m/1h`, `..._cache_read`, `usage_output_tokens`.
-- Anthropic Admin API `usage_report/messages` JSON. The tool reads `data[].results[]`.
-- OpenAI usage CSV and Admin API `/v1/organization/usage/completions` JSON. `input_cached_tokens` is counted as part of `input_tokens`.
-- Generic CSV: `date,model,input_tokens,output_tokens[,cached_input_tokens]`.
+## 対応する入力（自動判定）
+- Anthropic Console の利用 CSV。`usage_input_tokens_no_cache`、`..._cache_write_5m/1h`、`..._cache_read`、`usage_output_tokens` などの列。
+- Anthropic Admin API の `usage_report/messages` JSON。`data[].results[]` を読む。
+- OpenAI の利用 CSV と、Admin API の `/v1/organization/usage/completions` JSON。`input_cached_tokens` は `input_tokens` の一部として数える。
+- 汎用 CSV：`date,model,input_tokens,output_tokens[,cached_input_tokens]`。
 
-Header matching ignores case, spaces and underscores. The input can be comma, tab or semicolon separated.
+ヘッダーの照合では、大文字・小文字、空白、アンダースコアを無視する。区切りはカンマ・タブ・セミコロンのどれでもよい。
 
-## Updating prices
-The price table is the single `PRICES` constant near the top of the `<script>`. It sits between the `PRICES —` and `END PRICES` banners and uses the same shape as `prices.json`.
-- A row is used in totals only when it has `status: "verified"` and non-null `input` and `output` prices.
-- Every other row shows 「未確認」 and is left out of totals. The user can type a price into that row to include it; the row is then marked 手入力.
-- Models whose IDs are listed in `MAIN_IDS` in the UI code appear in the main price table and are selected for comparison by default. All other models go under 旧世代.
+## 価格の更新
+価格表は `<script>` の先頭近くにある定数 `PRICES` ひとつ。`PRICES —` と `END PRICES` の見出しコメントの間にあり、形は `prices.json` と同じ。
+- 合計に使われるのは、`status: "verified"` で、`input` と `output` の価格が null でない行だけ。
+- それ以外の行は「未確認」と表示し、合計から外す。ユーザーがその行に価格を入力すると合計に入り、その行は「手入力」と表示される。
+- UI コードの `MAIN_IDS` に ID を並べたモデルは、メインの価格表に出て、初期状態で比較対象に選ばれる。それ以外のモデルはすべて「旧世代」に入る。
 
-## Cost assumptions
-- Prices use the Standard tier. They exclude Batch discounts, long-context surcharges and regional uplifts.
-- Anthropic cache writes use the 5-minute price. A 1-hour cache write costs 2x input.
-- For OpenAI targets, cache-write tokens are charged at the normal input price.
-- 「キャッシュ率を維持する」 (on): cache-read tokens are charged at the target model's cache-read price.
-- 「キャッシュ率を維持する」 (off): all input tokens are charged at the normal input price.
-- 30日換算 multiplies the totals by 30 / (number of days the data covers).
-- Token counts are approximate across providers because their tokenizers differ.
+## コストの前提
+- 価格は Standard 階層。Batch 割引、長文コンテキストの割増、リージョン割増は含めない。
+- Anthropic のキャッシュ書き込みは 5 分の単価を使う。1 時間のキャッシュ書き込みは入力単価の 2 倍。
+- OpenAI 宛てでは、キャッシュ書き込みトークンを通常の入力単価で数える。
+- 「キャッシュ率を維持する」オン：キャッシュ読み込みトークンを、移行先モデルのキャッシュ読み込み単価で数える。
+- 「キャッシュ率を維持する」オフ：入力トークンをすべて通常の入力単価で数える。
+- 「30日換算」は、合計に 30 ÷（データの日数）を掛ける。
+- プロバイダごとにトークナイザーが違うので、プロバイダをまたぐトークン数は概算になる。
