@@ -203,6 +203,125 @@ class V11Mechanisms(unittest.TestCase):
             self.assertNotEqual(scan.ctx_of(p), "test", p)
 
 
+class V12Mechanisms(unittest.TestCase):
+    """v1.2: general rules from the holdout FP categories. Each has an FP-shaped synthetic case
+    (downgraded to medium/review or low) and an adversarial near-miss that must stay high/critical."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.f, _, _ = scan.scan_repo(os.path.join(FX, "v12"))
+
+    def get(self, file, rule, line=None):
+        file = file.replace("/", os.sep)
+        return [x for x in self.f if x["file"] == file and x["rule"] == rule and (line is None or x["line"] == line)]
+
+    def assert_review(self, xs):
+        self.assertTrue(xs, "no finding")
+        for x in xs:
+            self.assertFalse(x.get("suppressed"), x)
+            self.assertEqual(x["sev"], "medium", x)
+            self.assertTrue(x.get("review") and x.get("why"), x)
+
+    def assert_kept(self, xs, sev=("high", "critical"), ctx="src"):
+        self.assertTrue(xs, "no finding")
+        for x in xs:
+            self.assertFalse(x.get("suppressed"), x)
+            self.assertIn(x["sev"], sev, x)
+            self.assertEqual(x["ctx"], ctx, x)
+
+    # (1) data files
+    def test_policy_data_files_are_review_level(self):
+        for rule in ("ATL-TP-003", "ATL-TP-002", "ATL-RF-001"):
+            self.assert_review(self.get("policies/guard-policy.json", rule))
+        self.assert_review(self.get("policies/guard.yaml", "ATL-TP-001", 9))
+        for x in self.get("policies/guard-policy.json", "ATL-TP-003"):
+            self.assertIn("data file", x["why"])
+
+    def test_tool_definitions_in_data_files_stay_high(self):
+        self.assert_kept(self.get("defs/tools.json", "ATL-TP-001"))
+        self.assert_kept(self.get("defs/tools.json", "ATL-TP-004"))
+        self.assert_kept(self.get("defs/functions.json", "ATL-TP-003"))   # {name, description, parameters}
+        self.assert_kept(self.get("defs/tools.yaml", "ATL-TP-003"))       # tools: [- description:]
+        self.assert_kept(self.get("server.json", "ATL-TP-003"))           # manifest by name
+
+    def test_install_script_in_package_json_stays_critical(self):
+        self.assert_kept(self.get("hooks-pkg/package.json", "ATL-RF-001"), sev=("critical",))
+
+    def test_data_ctx_helpers(self):
+        self.assertEqual(scan.data_string_kind(("tools", "[]", "description"), ["name", "description"], "a.json"), "manifest")
+        self.assertEqual(scan.data_string_kind(("x", "description"), ["name", "inputschema"], "a.json"), "manifest")
+        self.assertEqual(scan.data_string_kind(("scripts", "postinstall"), [], "package.json"), "exec")
+        self.assertEqual(scan.data_string_kind(("rules", "[]", "match"), ["id", "match"], "p.json"), "data")
+        self.assertEqual(scan.data_string_kind(("rules",), [], ".claude/settings.json"), "manifest")
+        self.assertEqual(scan.data_string_kind(("tool", "ruff", "x"), [], "pyproject.toml"), "data")
+
+    # (2) detection rules / corpus collections
+    def test_corpus_collections_are_review_level(self):
+        xs = self.get("corpus_py/eval_set.py", "ATL-TP-003")
+        self.assertEqual(len(xs), 10)
+        self.assert_review(xs)
+        self.assert_review(self.get("corpus_py/eval_set.py", "ATL-TP-002"))   # ATTACK_VECTORS (name route)
+        if scan._node_ok:
+            self.assert_review(self.get("corpus_ts/corpus.ts", "ATL-TP-003"))
+
+    def test_attack_string_named_rules_passed_to_description_stays_high(self):
+        self.assert_kept(self.get("corpus_py/server.py", "ATL-TP-003", 6))
+        self.assert_kept(self.get("corpus_py/server.py", "ATL-TP-003", 21))  # pattern-like list joined into a description
+        if scan._node_ok:
+            self.assert_kept(self.get("corpus_ts/server.ts", "ATL-TP-003", 2))
+
+    def test_many_poisoned_tool_descriptions_are_not_a_corpus(self):
+        xs = [x for x in self.get("corpus_py/server.py", "ATL-TP-003") if 10 <= x["line"] <= 18]
+        self.assertEqual(len(xs), 9)
+        self.assert_kept(xs)
+
+    def test_expected_key_cannot_hide_tag_plus_credential(self):
+        xs = [x for r in ("ATL-TP-001", "ATL-TP-004") for x in self.get("corpus_py/server.py", r)]
+        self.assert_kept(xs, sev=("critical",))
+
+    def test_corpus_name_words(self):
+        for n in ("ATTACK_VECTORS", "injectionPatterns", "expected_outputs", "BLOCKLIST", "rules", "sampleCorpus"):
+            self.assertTrue(scan.ast_py.corpus_name(n), n)
+        for n in ("TOOLS", "unexpectedError", "server", "description", "ruler_x"):
+            self.assertFalse(scan.ast_py.corpus_name(n), n)
+
+    # (3) Rust inline tests
+    def test_rust_cfg_test_module_is_test_ctx(self):
+        for rule, ln in (("ATL-TP-001", 14), ("ATL-RF-001", 15), ("ATL-TP-001", 26)):
+            xs = self.get("crates/core/src/scan.rs", rule, ln)
+            self.assertTrue(xs and all(x["ctx"] == "test" for x in xs), xs)
+
+    def test_rust_code_outside_test_items_stays_src(self):
+        self.assert_kept(self.get("crates/core/src/scan.rs", "ATL-RF-001", 21), sev=("critical",))
+        self.assert_kept(self.get("crates/core/src/scan.rs", "ATL-TP-001", 4))
+        self.assert_kept(self.get("crates/core/src/scan.rs", "ATL-TP-001", 30))
+
+    # (4) presentational invisible characters
+    def test_invisible_char_in_stylesheet_or_minified_is_low(self):
+        for p in ("web/style.css", "web/assets/lib.min.css") + (("web/assets/lib.min.js",) if scan._node_ok else ()):
+            xs = self.get(p, "ATL-OB-001")
+            self.assertTrue(xs and all(x["sev"] == "low" for x in xs), (p, xs))
+
+    def test_invisible_char_in_js_tool_description_stays_high(self):
+        if not scan._node_ok:
+            self.skipTest("node/typescript helper not installed")
+        self.assert_kept(self.get("corpus_ts/server.ts", "ATL-OB-001", 4))
+        self.assert_kept(self.get("corpus_ts/server.ts", "ATL-OB-001", 5))  # non-minified source string
+
+    # (5) setup.py that is not a setuptools script
+    def test_setup_py_without_setup_call_is_not_install_time(self):
+        xs = self.get("cli_tool/setup.py", "ATL-IN-002")
+        self.assertTrue(xs and all(x.get("suppressed") and x["sev"] == "info" and x.get("why") for x in xs), xs)
+
+    def test_real_setup_py_stays_high(self):
+        xs = self.get("pkg/setup.py", "ATL-IN-002")
+        self.assertEqual(len(xs), 2)
+        self.assert_kept(xs)
+        self.assertTrue(scan.setup_py_calls_setup("import setuptools\nsetuptools.setup(name='x')"))
+        self.assertTrue(scan.setup_py_calls_setup("from distutils.core import setup as s\ns()"))
+        self.assertFalse(scan.setup_py_calls_setup("def setup():\n    pass\nsetup()"))
+
+
 class Wording(unittest.TestCase):
     def test_titles_never_say_malware(self):
         for r in scan.R:

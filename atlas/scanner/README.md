@@ -1,4 +1,4 @@
-# Atlas scanner v1（v1.1）
+# Atlas scanner v1（v1.2）
 
 読み取り専用の静的スキャナー。検査対象の import・実行・インストール・ビルドは一切しない。
 
@@ -30,6 +30,36 @@
 - **Rust・Go の簡易トークナイザー（`lex_spans`）：** 文字列リテラル（複数行の `"..."`、`r#"..."#`、Go の `` `...` ``）とコメント（入れ子の `/* */` を含む）の範囲を求める。文字列内の案内文は `string~` として扱う（RF-001 は low）。ただし同じ文の手前（直前の `;`・`{`・`}` まで）に `Command::new`・`exec` などがあれば下げない。`description =`・`WithDescription(` の直後の文字列は説明文（`string:desc`）とする。
 - **正直さを求める「〜と言うな」：** TP-002 の直後が主張（`it will work`、`X is open`、`that ... is impossible` など）で、同じ節に `unless`・`until`・`without verifying` などの確認条件があり、文中に隠蔽・送信・認証情報の語がなく、目的語が `this`・`about ...`・`anything` でないものは medium に下げる（例：「アカウントなしで動くとユーザーに言うな」）。
 - **テストのパスを追加：** `__fixtures__/`、`mocks/`、`cypress/`、`playwright/`、`.storybook/`、`*.stories.*`、`*.bench.*`、`*_spec.rb`、`src/test/`、`FooTest.java`／`FooTests.cs` など。`demo*`・`*-docs/` のような名前は配布物の本体であることがあるため、広げていない。
+
+## v1.2：ホールドアウトで見つかった誤検知の種類への対策
+ホールドアウト（`../reports/stage3-holdout.md` §4）の誤検知を**種類の単位で**一般化した規則。ホールドアウトのファイル名・文字列には合わせていない（フィクスチャーはすべて合成）。検証は3つ目の新しい標本で行う。v1.1 と同じく、格下げは medium（`review: true` と `why`）か、明らかに実行されないものだけ low にとどめる。リポジトリ名・所有者・パッケージ名による許可リストは使わない。`scan.SCANNER_VERSION = "1.2"`。
+
+- **(1) データファイル（`DATA_EXT`：.json・.jsonc・.jsonl・.ndjson・.yaml・.yml・.toml）：** TP-*・RF-*・SK-* の一致は、その文字列が MCP マニフェストやツール定義でなければ medium（`why`：「data file (not an MCP manifest/tool definition)」）にする。文字列ごとにキーの経路を求めて判定する（JSON は字句解析、YAML はインデント、TOML は `[table]` と `key =` から求める。どれも実行・import はしない）。
+  - **満額のまま残すもの：**
+    - ファイル名が `server.json`・`mcp.json`・`.mcp.json`・`manifest.json`・`plugin.json`・`marketplace.json`・`hooks.json`・`smithery.yaml`・`glama.json`・`gemini-extension.json` など（`MANIFEST_NAMES`）のもの。
+    - `.claude/`・`.claude-plugin/`・`.cursor/`・`.vscode/`・`.gemini/` などのエージェント設定ディレクトリの中のもの。
+    - 経路に `tools`・`prompts`・`resources`・`functions`・`mcpServers`・`mcp` があるもの。
+    - 同じオブジェクトに `inputSchema`・`input_schema`・`outputSchema` があるもの、または `name` と `parameters`／`arguments` が並ぶもの（関数呼び出し形式のツール定義）。
+    - 経路に `scripts`・`command`・`run`・`postinstall`・`hooks`・`args` などの**実行されるキー**（`EXEC_KEYS`）があるもの。package.json の `mcp`・`bin`・`main` の値。
+  - **glama.json などのインストール用メタデータは満額のまま**にした。レジストリやクライアントがその内容でインストールを実行するため、そこに書かれた `curl | sh` は実行される文字列だからである。ホールドアウトでも、これらは誤検知ではなく「実在するが正当」に分類されていた。
+  - JSON として読めないときは、ファイル全体に `inputSchema`・`mcpServers` があればマニフェスト扱いにする。
+- **(2) 検出ルール・コーパスの集まり（AST、Python と JS/TS）：** ツールの説明文**以外**の文字列で、次のどちらかに当てはまるものは medium（`why`：「detection rule / corpus data」）にする。
+  - **同じリテラルに攻撃句が並ぶ：** 一番外側の list／tuple／set／dict（JS の配列・オブジェクト）の中で、TP/RF/SK に一致する文字列が**9件以上**（自分＋兄弟8件以上、`CORPUS_MIN_STRINGS`）ある。
+  - **名前が検出データを示す（`string:corpus`）：** そのリテラルを受ける変数名・キー名を単語に分け（snake・camel・大文字）、pattern(s)・regex・signature・rule(s)・vector(s)・corpus・sample(s)・payload(s)・expected・fixture(s)・blocklist・denylist のどれかを含む（`ast_py.CORPUS_WORDS`）。または、すぐ外側の dict に期待結果のキー（`expected*`・`verdict`・`ground_truth`・`is_malicious`・`should_block` など、`EVAL_KEYS`）がある。
+  - **説明文への流れ込みを確認する：** 変数が `description=`・`{"description": X}`・`server.tool(name, X)`・`FOO_DESCRIPTION = X` に使われていれば、パターンともコーパスとも扱わない。これは v1 の「`rules = "..."` という名前の変数はパターン扱いで抑制」の穴も塞いでいる（v1.2 からは説明文として判定する）。
+  - **説明文と期待結果のキー：** 期待結果のキーと並ぶ `description` の値は、v1.1 の脅威カタログ（`string:catalog`）として medium にする。タグ＋隠蔽／認証情報の組み合わせは、従来どおり critical に上げる。
+- **(3) Rust のインラインテスト：** v1.1 の字句解析で文字列とコメントを除いたうえで中括弧の対応をとる。`#[cfg(test)]`（`all(test, …)` を含む）が付いた mod／fn と、`#[test]`・`#[tokio::test]` などが付いた fn の範囲にある検出は、文脈を `test` にする（`ctx_why` を付ける）。範囲の外、たとえばテストモジュールの後ろにある通常の関数は src のまま。Go の `_test.go` は従来どおり test。
+- **(4) 表示用の不可視文字（OB-001）：** CSS・SCSS・Less の `content:` の値の中、または圧縮されたファイル（`*.min.*`、または1行1,000文字超の CSS／JS）にあるものは low（「presentational character in stylesheet / minified bundle」）にする。JS のツール説明文（`string:desc`）の中にあるものは対象外で、high のまま。
+- **(5) setup.py の IN-002：** AST で setuptools／distutils の `setup()`（`from setuptools import setup`、`setuptools.setup(...)`、`distutils.core.setup` と別名）を呼んでいるかを確かめる。呼んでいなければ、pip が実行するインストールスクリプトではない（例：CLI の `setup` サブコマンドのモジュール）。この場合は info にし、`suppressed: true` と理由を付ける。構文エラーで読めないときは、文字列から判定する。
+- **見送ったもの：** 攻撃句を3つ以上例として並べる docstring の格下げ。FastMCP では docstring がそのままツールの説明文になるため、例として引用しているのか本物の毒入れなのかを区別する確かな手がかりがない。
+
+**回帰テスト：** `tests/fixtures/v12/` に、仕組みごとの誤検知の形と、それに似た攻撃の形を合成して置いた。攻撃の形の例は次のとおり。
+- JSON の `tools[].description`、関数呼び出し形式の定義、YAML の `tools:`、server.json、package.json の `postinstall`
+- `rules` という名前の攻撃文字列を `description=` に渡すもの、毒入れした説明文が9件並ぶツール一覧
+- `expected` キーを足しても critical のままになるタグ＋`~/.ssh`
+- `#[cfg(test)]` の後ろにある通常の関数
+- JS のツール説明文にあるゼロ幅空白
+- 本物の setuptools の setup.py
 
 ## 使い方
 ```sh

@@ -5,9 +5,16 @@ imported or executed.
 
 analyse(text) -> {"ok": bool, "spans": [(start, end, kind, role)], "hits": [finding...]}
   spans: char offsets into `text`; kind in {"string", "comment"};
-         role in {"desc", "catalog", "pattern", "patternlist", "test", "plain"}
+         role in {"desc", "catalog", "pattern", "patternlist", "test", "corpus", "plain"}
          catalog (v1.1): a description value inside a threat/rule record, i.e. a dict that
          also has a severity/taxonomy-style key ({"severity": ..., "description": ...}).
+         v1.2: also a dict with an expected-outcome key ({"description": ..., "expected": "block"}).
+         corpus (v1.2): a non-description string inside a collection literal whose variable / key
+         names say it is detection data (rules, vectors, corpus, samples, payloads, expected ...),
+         or inside a record with an expected-outcome key. Never assigned to a name that is also
+         used as a tool description.
+  groups (v1.2): [(start, end)] of outermost list/tuple/set/dict literals; the scanner counts
+         how many strings in one literal match attack rules.
   hits:  semantic detections for code rules (CE-001, CE-002, OB-003, CR-001, NW-001)
 """
 import ast
@@ -29,6 +36,31 @@ SHELL_FUNCS = {("os", "system"), ("os", "popen"), ("asyncio", "create_subprocess
 CATALOG_KEYS = {"severity", "risk", "risk_level", "threat", "threat_type", "threat_name", "taxonomy", "cwe", "cve",
                 "mitre", "mitre_attack", "attack_id", "technique", "remediation", "mitigation", "owasp",
                 "aitech", "aisubtech", "scanner_category"}
+# v1.2: keys of an evaluation / test-case record ({"input": ..., "expected": "block"}).
+# Compared after lower-casing and dropping "_" / "-"; any key starting with "expected" counts.
+EVAL_KEYS = {"groundtruth", "ismalicious", "malicious", "shouldblock", "shouldflag", "shoulddetect", "verdict",
+             "attacktype", "attackcategory", "isattack", "isinjection"}
+# v1.2: words in a variable / key name that mark a collection as detection rules or a test corpus
+CORPUS_WORDS = {"pattern", "patterns", "regex", "regexes", "regexp", "regexps", "signature", "signatures", "rule", "rules",
+                "ruleset", "rulesets", "vector", "vectors", "corpus", "corpora", "sample", "samples", "payload", "payloads",
+                "expected", "fixture", "fixtures", "blocklist", "denylist", "blacklist", "testcase", "testcases"}
+
+
+def norm_key(k):
+    return re.sub(r"[_\-\s]", "", str(k)).lower()
+
+
+def is_eval_key(k):
+    n = norm_key(k)
+    return n.startswith("expected") or n in EVAL_KEYS
+
+
+def corpus_name(name):
+    """True if an identifier / key (snake, camel, SCREAMING, dotted) contains a corpus word."""
+    words = re.findall(r"[A-Z]?[a-z]+|[A-Z]+(?![a-z])", str(name))
+    return any(w.lower() in CORPUS_WORDS for w in words)
+
+
 SEND_SINKS = {"post", "put", "send", "sendall", "write", "print", "info", "debug", "warning", "error",
               "log", "request", "urlopen", "dumps", "dump"}
 
@@ -74,11 +106,12 @@ def analyse(text):
     try:
         tree = ast.parse(text)
     except (SyntaxError, ValueError, RecursionError, MemoryError):
-        return {"ok": False, "spans": [], "hits": []}
+        return {"ok": False, "spans": [], "hits": [], "groups": []}
     off = _Offsets(text)
     lines = off.lines
     spans = []
     hits = []
+    groups = []
 
     # comments via tokenize (strings come from the AST so we know their role)
     try:
@@ -101,6 +134,63 @@ def analyse(text):
             if isinstance(first, ast.Expr) and isinstance(first.value, ast.Constant) and isinstance(first.value.value, str):
                 docstrings.add(first.value)
 
+    # v1.2: names whose value ends up in a tool description (description=X, {"description": X},
+    # FOO_DESC = X, f.__doc__ = X). A collection bound to such a name is never "pattern"/"corpus".
+    desc_sinks = set()
+    for node in ast.walk(tree):
+        vals = []
+        if isinstance(node, ast.keyword) and node.arg in DESC_KW:
+            vals.append(node.value)
+        elif isinstance(node, ast.Dict):
+            vals += [v for k, v in zip(node.keys, node.values)
+                     if isinstance(k, ast.Constant) and isinstance(k.value, str) and k.value in DESC_KW]
+        elif isinstance(node, (ast.Assign, ast.AnnAssign)) and node.value is not None:
+            targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+            if re.search(r"desc|description|prompt|instruction|__doc__", " ".join(_dotted(t) for t in targets), re.I):
+                vals.append(node.value)
+        for v in vals:
+            desc_sinks.update(x.id for x in ast.walk(v) if isinstance(x, ast.Name))
+
+    CONTAINERS = (ast.List, ast.Tuple, ast.Set, ast.Dict)
+
+    def binding_names(node):
+        """Names the value `node` is bound to: assignment targets, keyword arg, called function."""
+        p = parents.get(node)
+        if isinstance(p, (ast.Assign, ast.AnnAssign)):
+            targets = p.targets if isinstance(p, ast.Assign) else [p.target]
+            return [_dotted(t) for t in targets], any(isinstance(t, ast.Name) and t.id in desc_sinks for t in targets)
+        if isinstance(p, ast.keyword):
+            return [p.arg or ""], p.arg in DESC_KW
+        if isinstance(p, ast.Call):
+            return [_dotted(p.func)], False
+        return [], False
+
+    def corpus_ctx(node):
+        """(in_corpus, outermost_container) for a string node (v1.2)."""
+        names, cur, eval_rec, outer = [], node, False, None
+        while True:
+            p = parents.get(cur)
+            if isinstance(p, (ast.BinOp, ast.JoinedStr)):
+                cur = p
+                continue
+            if not isinstance(p, CONTAINERS):
+                break
+            if isinstance(p, ast.Dict):
+                keys = [k.value for k in p.keys if isinstance(k, ast.Constant) and isinstance(k.value, str)]
+                for k, v in zip(p.keys, p.values):
+                    if v is cur and isinstance(k, ast.Constant) and isinstance(k.value, str):
+                        names.append(k.value)
+                if outer is None and any(is_eval_key(k) for k in keys):
+                    eval_rec = True  # innermost record has an expected-outcome key
+            outer = p
+            cur = p
+        if outer is None:
+            return False, None
+        bnames, to_desc = binding_names(outer)
+        if to_desc:
+            return False, outer
+        return eval_rec or any(corpus_name(x) for x in names + bnames), outer
+
     def role_of(node):
         if node in docstrings:
             return "desc"
@@ -119,15 +209,17 @@ def analyse(text):
                     if k.value in DESC_KW:
                         sib = {kk.value.lower() for kk in p.keys
                                if isinstance(kk, ast.Constant) and isinstance(kk.value, str)}
-                        return "catalog" if sib & CATALOG_KEYS else "desc"
+                        return "catalog" if (sib & CATALOG_KEYS or any(is_eval_key(x) for x in sib)) else "desc"
                     if PATTERN_NAME.search(k.value):
                         return "pattern"
             return "plain"
         if isinstance(p, (ast.Assign, ast.AnnAssign)):
             targets = p.targets if isinstance(p, ast.Assign) else [p.target]
             names = " ".join(_dotted(t) for t in targets)
+            flows_to_desc = any(isinstance(t, ast.Name) and t.id in desc_sinks for t in targets)
             if PATTERN_NAME.search(names):
-                return "pattern"
+                # v1.2: `rules = "..."` that is later passed as a description is a description
+                return "desc" if flows_to_desc else "pattern"
             if re.search(r"desc|description|prompt|instruction|__doc__", names, re.I):
                 return "desc"
             return "plain"
@@ -162,8 +254,18 @@ def analyse(text):
                 continue
             s = off.char(node.lineno, node.col_offset)
             e = off.char(node.end_lineno, node.end_col_offset)
-            spans.append((s, e, "string", role_of(node)))
+            role = role_of(node)
+            if role in ("plain", "patternlist", "pattern"):
+                in_corpus, outer = corpus_ctx(node)
+                if role == "plain" and in_corpus:
+                    role = "corpus"
+                elif role in ("patternlist", "pattern") and outer is not None and binding_names(outer)[1]:
+                    role = "desc"  # v1.2: a list/dict that is passed on as a tool description
+            spans.append((s, e, "string", role))
             continue
+        if isinstance(node, CONTAINERS) and not isinstance(parents.get(node), CONTAINERS) \
+                and getattr(node, "end_lineno", None) is not None:
+            groups.append((off.char(node.lineno, node.col_offset), off.char(node.end_lineno, node.end_col_offset)))
         if not isinstance(node, ast.Call):
             continue
         name = _dotted(node.func)
@@ -213,4 +315,4 @@ def analyse(text):
                 if isinstance(d, ast.Constant) and isinstance(d.value, str) and re.fullmatch(r"0\.0\.0\.0(:\d+)?", d.value) \
                         and re.search(r"host|bind|addr", arg.arg, re.I):
                     hit("ATL-NW-001", "medium", d, "Server binds to all interfaces (AST)")
-    return {"ok": True, "spans": spans, "hits": hits}
+    return {"ok": True, "spans": spans, "hits": hits, "groups": groups}

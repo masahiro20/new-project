@@ -23,6 +23,16 @@ const PATTERN_NAME = /pattern|regex|regexp|signature|rules?$|keywords?|indicator
 const CATALOG_KEYS = new Set(["severity", "risk", "risk_level", "riskLevel", "threat", "threat_type", "threatType", "threat_name",
   "taxonomy", "cwe", "cve", "mitre", "mitre_attack", "attack_id", "technique", "remediation", "mitigation", "owasp",
   "aitech", "aisubtech", "scanner_category"].map((k) => k.toLowerCase()));
+// v1.2: expected-outcome keys of an evaluation record, and words that mark a collection as
+// detection rules / a test corpus. Kept in sync with ast_py.EVAL_KEYS / CORPUS_WORDS.
+const EVAL_KEYS = new Set(["groundtruth", "ismalicious", "malicious", "shouldblock", "shouldflag", "shoulddetect", "verdict",
+  "attacktype", "attackcategory", "isattack", "isinjection"]);
+const CORPUS_WORDS = new Set(["pattern", "patterns", "regex", "regexes", "regexp", "regexps", "signature", "signatures", "rule",
+  "rules", "ruleset", "rulesets", "vector", "vectors", "corpus", "corpora", "sample", "samples", "payload", "payloads", "expected",
+  "fixture", "fixtures", "blocklist", "denylist", "blacklist", "testcase", "testcases"]);
+const isEvalKey = (k) => { const n = String(k).replace(/[_\-\s]/g, "").toLowerCase(); return n.startsWith("expected") || EVAL_KEYS.has(n); };
+const corpusName = (name) => (String(name).match(/[A-Z]?[a-z]+|[A-Z]+(?![a-z])/g) || []).some((w) => CORPUS_WORDS.has(w.toLowerCase()));
+const propName = (p) => (p && p.name && (p.name.text !== undefined ? p.name.text : "")) || "";
 const SEND_SINKS = /^(fetch|post|put|send|write|log|info|debug|warn|error|request|axios|got)$/;
 
 function scriptKind(file) {
@@ -63,6 +73,7 @@ function analyse(file, text) {
   const sf = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true, scriptKind(file));
   const spans = [];
   const hits = [];
+  const groups = [];
   let importsChildProcess = /child_process/.test(text);
   const lineOf = (pos) => sf.getLineAndCharacterOfPosition(pos).line + 1;
   const snippet = (n) => text.slice(n.getStart(sf), n.getEnd()).split("\n")[0].slice(0, 160);
@@ -79,6 +90,59 @@ function analyse(file, text) {
     }
   } catch { /* scanner is best-effort; AST spans below still apply */ }
 
+  // v1.2: identifiers whose value ends up in a tool description ({description: X},
+  // server.tool(name, X, ...), const FOO_DESCRIPTION = X). Bound collections are never "pattern"/"corpus".
+  const descSinks = new Set();
+  const collectIds = (n) => { const v = (x) => { if (ts.isIdentifier(x)) descSinks.add(x.text); ts.forEachChild(x, v); }; v(n); };
+  (function findSinks(n) {
+    if (ts.isPropertyAssignment(n) && DESC_KEYS.has(propName(n))) collectIds(n.initializer);
+    if (ts.isShorthandPropertyAssignment(n) && DESC_KEYS.has(n.name.text)) descSinks.add(n.name.text);
+    if (ts.isCallExpression(n) && /^(tool|registerTool|prompt|registerPrompt|resource)$/.test(calleeName(n.expression)) && n.arguments[1]) {
+      collectIds(n.arguments[1]);
+    }
+    if (ts.isVariableDeclaration(n) && n.initializer && ts.isIdentifier(n.name) && /desc|description|prompt|instruction/i.test(n.name.text)) {
+      collectIds(n.initializer);
+    }
+    ts.forEachChild(n, findSinks);
+  })(sf);
+
+  const isContainer = (n) => n && (ts.isArrayLiteralExpression(n) || ts.isObjectLiteralExpression(n));
+  const isWrapper = (n) => n && (ts.isParenthesizedExpression(n) || ts.isAsExpression(n) || ts.isTypeAssertionExpression(n) ||
+    (ts.isSatisfiesExpression && ts.isSatisfiesExpression(n)) || (ts.isBinaryExpression(n) && n.operatorToken.kind === ts.SyntaxKind.PlusToken) ||
+    ts.isTemplateSpan(n) || ts.isTemplateExpression(n) || ts.isPropertyAssignment(n) || ts.isSpreadElement(n));
+  function bindingOf(outer) {
+    let q = outer.parent;
+    while (q && (ts.isParenthesizedExpression(q) || ts.isAsExpression(q) || (ts.isSatisfiesExpression && ts.isSatisfiesExpression(q)))) q = q.parent;
+    if (!q) return [[], false];
+    if (ts.isVariableDeclaration(q) && ts.isIdentifier(q.name)) return [[q.name.text], descSinks.has(q.name.text)];
+    if (ts.isPropertyAssignment(q)) return [[propName(q)], DESC_KEYS.has(propName(q))];
+    if (ts.isPropertyDeclaration(q) || ts.isBinaryExpression(q)) {
+      const nm = ts.isPropertyDeclaration(q) ? propName(q) : calleeText(q.left, sf);
+      return [[nm], descSinks.has(nm)];
+    }
+    if (ts.isCallExpression(q) || ts.isNewExpression(q)) return [[calleeName(q.expression)], false];
+    return [[], false];
+  }
+  function corpusCtx(node) {
+    const names = [];
+    let cur = node, evalRec = false, outer = null;
+    for (;;) {
+      const p = cur.parent;
+      if (!p) break;
+      if (ts.isPropertyAssignment(p)) { if (p.initializer === cur) names.push(propName(p)); cur = p; continue; }
+      if (isContainer(p)) {
+        if (ts.isObjectLiteralExpression(p) && outer === null && p.properties.some((q) => isEvalKey(propName(q)))) evalRec = true;
+        outer = p; cur = p; continue;
+      }
+      if (isWrapper(p) && !ts.isPropertyAssignment(p)) { cur = p; continue; }
+      break;
+    }
+    if (!outer) return [false, null];
+    const [bnames, toDesc] = bindingOf(outer);
+    if (toDesc) return [false, outer];
+    return [evalRec || names.concat(bnames).some(corpusName), outer];
+  }
+
   function roleOf(node) {
     const p = node.parent;
     if (!p) return "plain";
@@ -87,13 +151,14 @@ function analyse(file, text) {
       if (DESC_KEYS.has(k)) {
         const obj = p.parent;
         const sib = obj && ts.isObjectLiteralExpression(obj) && obj.properties.some((q) => q.name &&
-          CATALOG_KEYS.has(String(q.name.text || "").toLowerCase()));
+          (CATALOG_KEYS.has(String(q.name.text || "").toLowerCase()) || isEvalKey(q.name.text || "")));
         return sib ? "catalog" : "desc";
       }
       if (PATTERN_NAME.test(k)) return "pattern";
     }
     if (ts.isVariableDeclaration(p) && p.initializer === node && ts.isIdentifier(p.name)) {
-      if (PATTERN_NAME.test(p.name.text)) return "pattern";
+      // v1.2: `const rules = "..."; server.tool(name, rules)` is a description, not a pattern
+      if (PATTERN_NAME.test(p.name.text)) return descSinks.has(p.name.text) ? "desc" : "pattern";
       if (/desc|description|prompt|instruction/i.test(p.name.text)) return "desc";
     }
     if (ts.isCallExpression(p) || ts.isNewExpression(p)) {
@@ -116,13 +181,24 @@ function analyse(file, text) {
 
   function visit(n) {
     if (ts.isStringLiteral(n) || ts.isNoSubstitutionTemplateLiteral(n) || ts.isTemplateExpression(n)) {
-      spans.push([n.getStart(sf), n.getEnd(), "string", roleOf(n)]);
+      let role = roleOf(n);
+      if (role === "plain" || role === "patternlist" || role === "pattern") {
+        const [inCorpus, outer] = corpusCtx(n);
+        if (role === "plain" && inCorpus) role = "corpus";
+        else if (role !== "plain" && outer && bindingOf(outer)[1]) role = "desc";  // collection passed on as a description
+      }
+      spans.push([n.getStart(sf), n.getEnd(), "string", role]);
     } else if (n.kind === ts.SyntaxKind.RegularExpressionLiteral) {
       spans.push([n.getStart(sf), n.getEnd(), "regex", "pattern"]);
     } else if (ts.isJsxText(n)) {
       spans.push([n.getStart(sf), n.getEnd(), "string", "plain"]);
     }
 
+    if (isContainer(n)) {
+      let q = n.parent;
+      while (q && (isWrapper(q) && !ts.isPropertyAssignment(q))) q = q.parent;
+      if (!(q && (isContainer(q) || ts.isPropertyAssignment(q) && isContainer(q.parent)))) groups.push([n.getStart(sf), n.getEnd()]);
+    }
     if (ts.isCallExpression(n) || ts.isNewExpression(n)) {
       const name = calleeName(n.expression);
       const full = calleeText(n.expression, sf);
@@ -173,7 +249,7 @@ function analyse(file, text) {
     ts.forEachChild(n, visit);
   }
   visit(sf);
-  return { spans, hits };
+  return { spans, hits, groups };
 }
 
 function main() {

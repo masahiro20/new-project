@@ -144,6 +144,8 @@ MEDIA_B64 = ("iVBORw0KGgo", "/9j/", "R0lGOD", "UklGR", "AAABAA", "T2dnUw", "d09G
 
 
 SEV_RANK = {"critical": 4, "high": 3, "medium": 2, "low": 1, "info": 0}
+SCANNER_VERSION = "1.2"
+CORPUS_MIN_STRINGS = 9  # v1.2: a string plus >= 8 sibling strings in one literal that match attack rules
 
 
 # ---------------------------------------------------------------------------
@@ -461,7 +463,343 @@ def _stmt_prefix(text, start):
     return seg
 
 
-def decide(f, text, ext, ctx, span, fenced):
+# ---------------------------------------------------------------------------
+# v1.2 (1): data files. TP/RF/SK hits in JSON / YAML / TOML that is not an MCP manifest or tool
+# definition are quoted data (policies, rule sets, eval sets) -> medium + review. Strings that
+# are tool / prompt definitions, sit under an executable key, or live in a manifest stay as is.
+DATA_EXT = {".json", ".jsonc", ".jsonl", ".ndjson", ".yaml", ".yml", ".toml"}
+# files whose strings reach an agent / installer / client: always full severity
+MANIFEST_NAMES = {"server.json", "mcp.json", ".mcp.json", "manifest.json", "plugin.json", "marketplace.json",
+                  "mcp_config.json", "claude_desktop_config.json", "gemini-extension.json", "hooks.json",
+                  "smithery.yaml", "smithery.yml", "glama.json", "mcp-server.json", "mcpb.json", "dxt.json"}
+AGENT_CONFIG_DIRS = re.compile(r"(^|/)\.(claude|claude-plugin|cursor|codex|gemini|vscode|windsurf|continue|kiro|roo|amazonq)/")
+# a key on the path to the string that makes it a tool / prompt definition
+TOOL_CONTAINER_KEYS = {"tools", "prompts", "resources", "resourcetemplates", "functions", "function", "mcpservers", "mcp",
+                       "toolsets", "tooldefinitions"}
+# a sibling key that makes the enclosing object a tool definition
+TOOL_SIBLING_KEYS = {"inputschema", "outputschema", "argsschema", "toolannotations"}
+# a key on the path that makes the string executable configuration (scripts, hooks, commands)
+EXEC_KEYS = {"command", "commands", "cmd", "run", "script", "scripts", "install", "preinstall", "postinstall", "prepare",
+             "exec", "entrypoint", "shell", "args", "hooks", "setup", "beforeinstall", "afterinstall", "startcommand"}
+DATA_RULE_PREFIX = ("ATL-TP-", "ATL-RF-", "ATL-SK-")
+
+
+def _nk(k):
+    return re.sub(r"[_\-\s]", "", str(k)).lower()
+
+
+_JSON_WS = re.compile(r"(?:\s+|//[^\n]*|/\*.*?\*/)*", re.S)
+_JSON_STR = re.compile(r'"(?:\\.|[^"\\])*"', re.S)
+_JSON_LIT = re.compile(r"[^,\]\}\s:]+")
+
+
+def json_string_ctx(text):
+    """[(start, end, path, sibling_keys)] for every string value of a JSON / JSONC / JSON Lines text.
+    path: object keys from the root ("[]" for array levels). Raises ValueError on malformed input."""
+    out = []
+    n = len(text)
+
+    def skip(i):
+        return _JSON_WS.match(text, i).end()
+
+    def value(i, path, sibs, depth):
+        if depth > 200:
+            raise ValueError("too deep")
+        i = skip(i)
+        if i >= n:
+            raise ValueError("eof")
+        c = text[i]
+        if c == "{":
+            keys = []
+            i = skip(i + 1)
+            if text.startswith("}", i):
+                return i + 1
+            while True:
+                m = _JSON_STR.match(text, i)
+                if not m:
+                    raise ValueError("key")
+                k = m.group()[1:-1]
+                keys.append(_nk(k))
+                i = skip(m.end())
+                if not text.startswith(":", i):
+                    raise ValueError(":")
+                i = skip(value(i + 1, path + (k,), keys, depth + 1))
+                if text.startswith(",", i):
+                    i = skip(i + 1)
+                    if text.startswith("}", i):
+                        return i + 1
+                    continue
+                if text.startswith("}", i):
+                    return i + 1
+                raise ValueError("}")
+        if c == "[":
+            i = skip(i + 1)
+            if text.startswith("]", i):
+                return i + 1
+            while True:
+                i = skip(value(i, path + ("[]",), sibs, depth + 1))
+                if text.startswith(",", i):
+                    i = skip(i + 1)
+                    if text.startswith("]", i):
+                        return i + 1
+                    continue
+                if text.startswith("]", i):
+                    return i + 1
+                raise ValueError("]")
+        if c == '"':
+            m = _JSON_STR.match(text, i)
+            if not m:
+                raise ValueError("string")
+            out.append((i, m.end(), path, sibs))
+            return m.end()
+        m = _JSON_LIT.match(text, i)
+        if not m:
+            raise ValueError("literal")
+        return m.end()
+
+    i = skip(0)
+    while i < n:
+        i = skip(value(i, (), [], 0))
+    return out
+
+
+_YAML_KEY = re.compile(r"^(\s*)(?:-\s+)*(?:\"([^\"]+)\"|'([^']+)'|([^\s#:\-\"'][^:#]*?))\s*:(?:\s|$)")
+
+
+def yaml_ctx(text, a):
+    """(path, sibling_keys) for offset `a` in a YAML text, from indentation (heuristic)."""
+    lines = text[:a].split("\n")
+    cur = lines[-1]
+    rest = text[a:].split("\n", 1)[0]
+    full_line = cur + rest
+
+    def key_of(line):
+        m = _YAML_KEY.match(line)
+        if not m:
+            return None, None
+        k = m.group(2) or m.group(3) or m.group(4)
+        # column of the key text itself (after any "- " list markers)
+        col = len(line) - len(line.lstrip(" -")) if line.lstrip().startswith("-") else m.end(1)
+        return k.strip(), col
+
+    path = []
+    k0, c0 = key_of(full_line)
+    if k0 is not None and len(cur) > c0:
+        path.append(k0)
+        limit = c0
+    else:
+        limit = len(full_line) - len(full_line.lstrip(" -"))
+    own_col = c0 if k0 is not None else None
+    for ln in reversed(lines[:-1]):
+        if not ln.strip() or ln.lstrip().startswith("#"):
+            continue
+        k, c = key_of(ln)
+        ind = len(ln) - len(ln.lstrip(" -")) if ln.lstrip().startswith("-") else len(ln) - len(ln.lstrip())
+        if k is not None and c < limit:
+            path.append(k)
+            if own_col is None:
+                own_col = c
+            limit = c
+        elif k is None and ind < limit and not ln.lstrip().startswith("-"):
+            limit = ind
+        if limit == 0:
+            break
+    path.reverse()
+    # siblings: keys at the own key's column in the same block
+    sibs = []
+    if own_col is not None:
+        all_lines = text.split("\n")
+        idx = len(lines) - 1
+        for rng in (range(idx, -1, -1), range(idx + 1, len(all_lines))):
+            for j in rng:
+                ln = all_lines[j]
+                if not ln.strip() or ln.lstrip().startswith("#"):
+                    continue
+                k, c = key_of(ln)
+                ind = len(ln) - len(ln.lstrip())
+                if k is not None and c == own_col:
+                    sibs.append(_nk(k))
+                    if ln.lstrip().startswith("-") and rng.step == 1:
+                        break  # next list item
+                    if ln.lstrip().startswith("-") and rng.step == -1:
+                        break  # start of this list item
+                elif ind < own_col and not (k is not None and c > own_col):
+                    break
+    return tuple(path), sibs
+
+
+def toml_ctx(text, a):
+    """(path, sibling_keys) for offset `a` in a TOML text: [table] header + key (heuristic)."""
+    head = text[:a]
+    table, tstart = (), 0
+    for m in re.finditer(r"(?m)^\s*\[\[?\s*([^\]]+?)\s*\]\]?\s*$", head):
+        table = tuple(x.strip().strip("\"'") for x in m.group(1).split("."))
+        tstart = m.end()
+    nxt = re.compile(r"(?m)^\s*\[\[?\s*[\w\"'.-]+\s*\]").search(text, a)
+    block = text[tstart:nxt.start() if nxt else len(text)]
+    sibs = [_nk(k.strip("\"'")) for k in re.findall(r"(?m)^\s*([\w.\"'-]+)\s*=", block)]
+    keys = re.findall(r"(?m)^\s*([\w.\"'-]+)\s*=", head[tstart:])
+    path = table + (tuple(keys[-1].strip("\"'").split(".")) if keys else ())
+    return path, sibs
+
+
+def data_string_kind(path, sibs, rel):
+    """'manifest' | 'exec' | 'data' for a string at `path` (keys) in a data file `rel`."""
+    p = rel.replace("\\", "/")
+    base = p.rsplit("/", 1)[-1].lower()
+    if base in MANIFEST_NAMES or AGENT_CONFIG_DIRS.search("/" + p.lower()):
+        return "manifest"
+    keys = [_nk(k) for k in path if k != "[]"]
+    if any(k in EXEC_KEYS for k in keys):
+        return "exec"
+    if any(k in TOOL_CONTAINER_KEYS for k in keys) or set(sibs) & TOOL_SIBLING_KEYS \
+            or ("name" in sibs and ("parameters" in sibs or "arguments" in sibs)):
+        return "manifest"
+    if base == "package.json" and keys and keys[0] in ("mcp", "bin", "main", "exports"):
+        return "manifest"
+    return "data"
+
+
+class DataCtx:
+    """Lazily computed per-file context for data files (v1.2)."""
+
+    def __init__(self, text, ext, rel):
+        self.text, self.ext, self.rel = text, ext, rel
+        self._json = None
+
+    def kind(self, a):
+        try:
+            if self.ext in (".yaml", ".yml"):
+                return data_string_kind(*yaml_ctx(self.text, a), self.rel)
+            if self.ext == ".toml":
+                return data_string_kind(*toml_ctx(self.text, a), self.rel)
+            if self._json is None:
+                self._json = json_string_ctx(self.text)
+            for s, e, path, sibs in self._json:
+                if s <= a < e:
+                    return data_string_kind(path, sibs, self.rel)
+            return data_string_kind(("?",), [], self.rel)
+        except (ValueError, RecursionError, IndexError):
+            # unparseable: fall back to the file as a whole
+            if re.search(r"inputSchema|input_schema|mcpServers", self.text):
+                return "manifest"
+            return data_string_kind((), [], self.rel)
+
+
+# ---------------------------------------------------------------------------
+# v1.2 (3): Rust inline tests. #[cfg(test)] items and #[test] / #[tokio::test] functions.
+_RS_CFG_TEST = re.compile(r"#\[\s*cfg\s*\(\s*(?:all\s*\(\s*)?test\s*[,)]")
+_RS_TEST_ATTR = re.compile(r"#\[\s*(?:[A-Za-z_][\w]*::)*test\b[^\]]*\]")
+
+
+def rust_test_ranges(text, spans):
+    """[(start, end)] of Rust items marked #[cfg(test)] or #[test]-like, via brace matching that
+    skips string literals and comments (lex_spans) and char literals."""
+    masked = [(s, e) for s, e, k, _ in spans]
+    masked.sort()
+    inside = {}
+    for s, e in masked:
+        inside[s] = e
+
+    def in_mask(i):
+        import bisect
+        j = bisect.bisect_right(masked, (i, float("inf"))) - 1
+        return j >= 0 and masked[j][0] <= i < masked[j][1]
+
+    out = []
+    n = len(text)
+    for rx in (_RS_CFG_TEST, _RS_TEST_ATTR):
+        for m in rx.finditer(text):
+            if in_mask(m.start()):
+                continue
+            i = m.end()
+            # find the item's opening brace (or `;` for `mod tests;`)
+            while i < n:
+                if i in inside:
+                    i = inside[i]
+                    continue
+                if text[i] in "{;":
+                    break
+                i += 1
+            if i >= n or text[i] == ";":
+                continue
+            depth, j = 0, i
+            while j < n:
+                if j in inside:
+                    j = inside[j]
+                    continue
+                c = text[j]
+                if c == "'":
+                    cm = re.compile(r"'(\\(x[0-9A-Fa-f]{2}|u\{[0-9A-Fa-f]{1,6}\}|.)|[^\\'\n])'").match(text, j)
+                    if cm:
+                        j = cm.end()
+                        continue
+                if c == "{":
+                    depth += 1
+                elif c == "}":
+                    depth -= 1
+                    if depth == 0:
+                        break
+                j += 1
+            out.append((m.start(), min(j + 1, n)))
+    return out
+
+
+# v1.2 (4): presentational invisible characters
+STYLE_EXT = {".css", ".scss", ".sass", ".less"}
+
+
+def presentational_ob001(text, a, ext, base, line, loc):
+    """True if an OB-001 hit at `a` is in a stylesheet `content:` value or in a minified CSS/JS file."""
+    if loc == "string:desc":
+        return False
+    minified = ".min." in base.lower() or len(line) > 1000
+    if ext in STYLE_EXT:
+        if minified:
+            return True
+        ls = text.rfind("\n", 0, a) + 1
+        seg = text[max(ls, a - 200):a]
+        return bool(re.search(r"\bcontent\s*:\s*[^;{}]*$", seg, re.I))
+    if ext in JS_EXT:
+        return minified
+    return False
+
+
+def setup_py_calls_setup(text):
+    """v1.2 (5): does this setup.py call setuptools / distutils setup()? AST, with a regex fallback."""
+    import ast
+    try:
+        tree = ast.parse(text)
+    except (SyntaxError, ValueError, RecursionError, MemoryError):
+        return bool(re.search(r"\b(setuptools|distutils)\b", text) and re.search(r"\bsetup\s*\(", text))
+    names = set()  # local names bound to setuptools/distutils setup
+    mods = set()   # local names bound to the modules
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ImportFrom) and node.module and node.module.split(".")[0] in ("setuptools", "distutils"):
+            for al in node.names:
+                if al.name == "setup":
+                    names.add(al.asname or "setup")
+                elif al.name == "core":
+                    mods.add(al.asname or "core")
+        elif isinstance(node, ast.Import):
+            for al in node.names:
+                if al.name.split(".")[0] in ("setuptools", "distutils"):
+                    mods.add((al.asname or al.name).split(".")[0] if not al.asname else al.asname)
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Call):
+            fn = node.func
+            if isinstance(fn, ast.Name) and fn.id in names:
+                return True
+            if isinstance(fn, ast.Attribute) and fn.attr == "setup":
+                v = fn.value
+                while isinstance(v, ast.Attribute):
+                    v = v.value
+                if isinstance(v, ast.Name) and v.id in mods:
+                    return True
+    return False
+
+
+def decide(f, text, ext, ctx, span, fenced, data=None, base=""):
     """Apply the context layer to one text-rule candidate. Mutates f."""
     rid = f["rule"]
     a, b = f["_a"], f["_b"]
@@ -519,6 +857,16 @@ def decide(f, text, ext, ctx, span, fenced):
         f["review"] = True
         f["why"] = "quoted in a threat/rule catalog entry (description next to severity/taxonomy keys); review"
         return
+    if rid.startswith(DATA_RULE_PREFIX) and SEV_RANK[f["sev"]] > SEV_RANK["medium"] and loc != "string:desc" \
+            and (loc == "string:corpus" or f.get("_grp", 0) >= CORPUS_MIN_STRINGS):
+        # v1.2 (2): detection rules / test corpus held in a collection literal. Downgraded for
+        # review, never suppressed; tool descriptions are excluded.
+        f["sev"] = "medium"
+        f["review"] = True
+        f["why"] = ("detection rule / corpus data (" + ("collection named like rules/vectors/corpus/expected, or an "
+                    "expected-outcome record" if loc == "string:corpus" else
+                    f"{f['_grp']} strings in one literal match attack rules") + "); review")
+        return
     if rid == "ATL-TP-001" and span and span[2] == "string" and loc not in ("string:desc",) \
             and format_tag_only(text[span[0]:span[1]]):
         # v1.1: <INSTRUCTION>Output the list exactly as provided</INSTRUCTION> in a non-description
@@ -551,6 +899,9 @@ def decide(f, text, ext, ctx, span, fenced):
         if not re.search(r"[\u202a-\u202e\u2066-\u2069]", m_text):
             if loc in ("comment", "comment~", "prose") or ext in (".json", ".ndjson", ".xml", ".csv") or "\ufeff" in m_text:
                 low("zero-width/BOM character in comment or data (no bidi control)")
+        if SEV_RANK[f["sev"]] > SEV_RANK["low"] and presentational_ob001(text, a, ext, base, line, loc):
+            # v1.2 (4): CSS `content:` glyphs and minified bundles are not read as instructions
+            low("presentational character in stylesheet / minified bundle")
     if rid == "ATL-NW-002" and MESSAGING.search(m_text):
         if not HARDCODED_TOKEN.search(line):
             f["sev"] = "low"
@@ -560,6 +911,12 @@ def decide(f, text, ext, ctx, span, fenced):
         lit = text[a + 1:b]
         if lit.startswith(MEDIA_B64):
             return sup("embedded media (magic bytes)")
+    if data is not None and rid.startswith(DATA_RULE_PREFIX) and SEV_RANK[f["sev"]] > SEV_RANK["medium"] \
+            and loc not in ("comment~",) and data.kind(a) == "data":
+        # v1.2 (1): quoted text in a data file that is not an MCP manifest / tool definition
+        f["sev"] = "medium"
+        f["review"] = True
+        f["why"] = "data file (not an MCP manifest/tool definition); review"
 
 
 def scan_repo_ex(root, use_ast=True, skip_dirs=None):
@@ -631,6 +988,8 @@ def scan_repo_ex(root, use_ast=True, skip_dirs=None):
             ast_res = js_res.get(full)
             if ast_res and ast_res.get("ok"):
                 ast_res["spans"] = utf16_spans_to_py(text, ast_res["spans"])
+                ast_res["groups"] = [(g[0], g[1]) for g in utf16_spans_to_py(
+                    text, [(g[0], g[1], "", "") for g in ast_res.get("groups", [])])]
         parsed = bool(ast_res and ast_res.get("ok"))
         if use_ast and (ext == ".py" or ext in JS_EXT):
             stats["ast_parsed" if parsed else "ast_failed"] += 1
@@ -639,12 +998,31 @@ def scan_repo_ex(root, use_ast=True, skip_dirs=None):
         li = LineIndex(text)
         lines = text.split("\n")
         spans = ast_res["spans"] if parsed else []
+        test_ranges = []
         if use_ast and not parsed and ext in LEX_EXT and cands:
             try:
                 spans = lex_spans(text, ext)
                 stats["lexed"] += 1
             except (IndexError, ValueError, RecursionError):
                 spans = []
+            if ext == ".rs" and ctx != "test":
+                try:
+                    test_ranges = rust_test_ranges(text, spans)
+                except (IndexError, ValueError, RecursionError):
+                    test_ranges = []
+        data = DataCtx(text, ext, rel) if (use_ast and ext in DATA_EXT) else None
+        # v1.2 (2): per collection literal, how many distinct strings hold a TP/RF/SK candidate
+        grp_count = {}
+        groups = ast_res.get("groups", []) if parsed else []
+        if groups:
+            hit_strings = set()
+            for r, a, b in cands:
+                if r["id"].startswith(DATA_RULE_PREFIX):
+                    sp = innermost(spans, a, b)
+                    if sp and sp[2] == "string":
+                        hit_strings.add((sp[0], sp[1]))
+            for g in groups:
+                grp_count[g] = sum(1 for s0, e0 in hit_strings if g[0] <= s0 and e0 <= g[1])
         fenced = md_regions(text) if (ext in DOC_EXT or is_skill) and use_ast else []
         ast_lines = defaultdict(set)
         if parsed:
@@ -663,6 +1041,12 @@ def scan_repo_ex(root, use_ast=True, skip_dirs=None):
             if not use_ast:
                 continue
             f["_a"], f["_b"] = a, b
+            f_ctx = ctx
+            if any(s0 <= a < e0 for s0, e0 in test_ranges):
+                f_ctx = f["ctx"] = "test"  # v1.2 (3): inside #[cfg(test)] / #[test] (Rust)
+                f["ctx_why"] = "inside a Rust #[cfg(test)] / #[test] item"
+            if grp_count:
+                f["_grp"] = max((c for g, c in grp_count.items() if g[0] <= a < g[1]), default=0)
             file_cands.append(f)
             if r["id"] in SEMANTIC_RULES and parsed:
                 f["suppressed"] = True
@@ -692,7 +1076,7 @@ def scan_repo_ex(root, use_ast=True, skip_dirs=None):
                         f["why"] = "inside a detection pattern / assertion (AST)"
                 continue
             span = innermost(spans, a, b) if (parsed or ext in LEX_EXT) else None
-            decide(f, text, ext, ctx, span, fenced)
+            decide(f, text, ext, f_ctx, span, fenced, data=data, base=base)
             if ext in PATTERN_FILE_EXT and not f.get("suppressed"):
                 f["suppressed"] = True
                 f["why"] = "detection-rule file (YARA/semgrep)"
@@ -738,11 +1122,19 @@ def scan_repo_ex(root, use_ast=True, skip_dirs=None):
                         add("ATL-DP-001", "medium", rel, 0, f"{name}: {ver}", "Unpinned / non-registry dependency",
                             method="manifest")
         if base == "setup.py":
+            n_before = len(findings)
             if re.search(r"cmdclass\s*=|\bclass\s+\w+\((install|develop|egg_info)\)", text):
                 add("ATL-IN-002", "high", rel, 0, "custom cmdclass", "setup.py custom install command", method="manifest")
             if re.search(r"urllib|requests\.|socket\.|subprocess|os\.system", text):
                 add("ATL-IN-002", "high", rel, 0, "network/exec in setup.py", "setup.py network/exec at install time",
                     method="manifest")
+            if use_ast and len(findings) > n_before and not setup_py_calls_setup(text):
+                # v1.2 (5): a module that happens to be named setup.py (e.g. a CLI "setup" command) is not
+                # run by pip unless it calls setuptools/distutils setup()
+                for x in findings[n_before:]:
+                    x["sev"] = "info"
+                    x["suppressed"] = True
+                    x["why"] = "setup.py does not call setuptools/distutils setup() (AST): not an install-time script"
 
     for sd in skill_dirs:
         for dp, dns, fns in os.walk(sd):
@@ -762,6 +1154,7 @@ def scan_repo_ex(root, use_ast=True, skip_dirs=None):
     for f in findings:
         f.pop("_a", None)
         f.pop("_b", None)
+        f.pop("_grp", None)
     return findings, len(files), len(skill_dirs), dict(stats)
 
 

