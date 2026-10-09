@@ -191,5 +191,5 @@ export const guide: Guide = {
       url: "https://www.city.chiba.jp/hokenfukushi/koreishogai/shogaifukushi/documents/3-9_3.pdf",
     },
   ],
-  related: ["hiyari-hatto-houkokusho", "bcp-gensan-jidou", "unei-shidou-shiteki-jidou", "houkago-day-gensan"],
+  related: ["sougei-anzen-souchi", "hiyari-hatto-houkokusho", "hijou-saigai-keikaku", "bcp-gensan-jidou", "unei-shidou-shiteki-jidou", "houkago-day-gensan"],
 };

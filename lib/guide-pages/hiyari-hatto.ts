@@ -190,5 +190,5 @@ export const guide: Guide = {
       url: "https://www.cfa.go.jp/assets/contents/node/basic_page/field_ref_resources/7692b729-5944-45ee-bbd8-f0283126b7db/def1acaf/20241101_policies_shougaijishien_shisaku_guideline_tebiki_06.pdf",
     },
   ],
-  related: ["anzen-keikaku-jidou", "gyakutai-iinkai-gijiroku", "iinkai-ittai-kaisai", "houkago-day-shintai-kousoku-rei"],
+  related: ["jiko-houkoku", "anzen-keikaku-jidou", "gyakutai-iinkai-gijiroku", "iinkai-ittai-kaisai", "houkago-day-shintai-kousoku-rei"],
 };

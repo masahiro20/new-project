@@ -178,5 +178,5 @@ export const guide: Guide = {
       url: "https://www.cfa.go.jp/assets/contents/node/basic_page/field_ref_resources/7692b729-5944-45ee-bbd8-f0283126b7db/def1acaf/20241101_policies_shougaijishien_shisaku_guideline_tebiki_06.pdf",
     },
   ],
-  related: ["bcp-gensan-jidou", "iinkai-ittai-kaisai", "gyakutai-iinkai-gijiroku", "houkago-day-gensan", "jidou-hattatsu-gensan"],
+  related: ["bcp-gensan-jidou", "nenkan-kenshu-keikaku", "iinkai-ittai-kaisai", "gyakutai-iinkai-gijiroku", "houkago-day-gensan", "jidou-hattatsu-gensan"],
 };

@@ -49,6 +49,10 @@
     "title": "虐待防止担当者は児発管が兼務できる？虐待防止責任者との違いと決め方"
   },
   {
+    "slug": "hijou-saigai-keikaku",
+    "title": "非常災害対策計画と避難訓練｜障害福祉の運営基準・BCP・避難確保計画との違い"
+  },
+  {
     "slug": "hiyari-hatto-houkokusho",
     "title": "ヒヤリハット報告書の書き方と例文｜障害福祉の事故報告との違い・委員会での分析"
   },
@@ -75,6 +79,10 @@
     "title": "自己評価・保護者評価の公表と減算｜放課後等デイサービスの支援プログラム・情報公表"
   },
   {
+    "slug": "jiko-houkoku",
+    "title": "事故報告書の書き方｜放課後等デイサービスの市町村への報告対象・期限と記入例"
+  },
+  {
     "slug": "kansen-taisaku-iinkai",
     "title": "感染対策委員会の開催頻度と議事録｜障害福祉・放デイは3月に1回？研修・訓練も"
   },
@@ -87,9 +95,17 @@
     "title": "個別支援計画の書き方と例文｜放課後等デイサービスの5領域・作成手順・未作成減算"
   },
   {
+    "slug": "kujou-kaiketsu",
+    "title": "苦情解決の体制と掲示｜障害福祉・放デイの苦情解決責任者・受付担当者・第三者委員"
+  },
+  {
     "slug": "kyotaku-kaigo-gensan",
     "title": "居宅介護・重度訪問介護の減算対策｜身体拘束・虐待防止・BCPの書類",
     "serviceType": "居宅介護・重度訪問介護"
+  },
+  {
+    "slug": "nenkan-kenshu-keikaku",
+    "title": "障害福祉の年間研修計画の例｜虐待防止・身体拘束・感染症・BCPの必要回数をサービス別に整理"
   },
   {
     "slug": "reiwa9-kaitei-jidou",
@@ -136,6 +152,10 @@
     "slug": "soudan-shien-gensan",
     "title": "計画相談支援・障害児相談支援の減算｜虐待防止・身体拘束・BCPの適用範囲",
     "serviceType": "相談支援"
+  },
+  {
+    "slug": "sougei-anzen-souchi",
+    "title": "送迎の置き去り防止と安全装置｜放課後等デイサービスの対象車両・所在確認の手順・送迎記録"
   },
   {
     "slug": "tanki-nyusho-gensan",

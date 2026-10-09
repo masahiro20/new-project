@@ -18,6 +18,7 @@ export const GUIDE_CATEGORIES: { id: string; name: string; slugs: string[] }[] =
       "houkago-day-shintai-kousoku-rei",
       "gyakutai-kenshu-shiryou",
       "kenshu-rikaido-test",
+      "nenkan-kenshu-keikaku",
       "gyakutai-boushi-self-check",
       "unei-kitei-gyakutai",
     ],
@@ -25,7 +26,7 @@ export const GUIDE_CATEGORIES: { id: string; name: string; slugs: string[] }[] =
   {
     id: "unei",
     name: "支援と安全の運営（計画・記録・委員会）",
-    slugs: ["kobetsu-shien-keikaku-kakikata", "anzen-keikaku-jidou", "hiyari-hatto-houkokusho", "kansen-taisaku-iinkai"],
+    slugs: ["kobetsu-shien-keikaku-kakikata", "anzen-keikaku-jidou", "hiyari-hatto-houkokusho", "jiko-houkoku", "sougei-anzen-souchi", "hijou-saigai-keikaku", "kansen-taisaku-iinkai", "kujou-kaiketsu"],
   },
   {
     id: "shidou",
