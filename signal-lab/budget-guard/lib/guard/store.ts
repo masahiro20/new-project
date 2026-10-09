@@ -51,6 +51,20 @@ const k = {
   connLock: (id: string) => key("bg", "lock", id),
 };
 
+/** Raw keys, for batched reads/writes (MGET / MSET: one Upstash command for several keys). */
+export const storeKeys = {
+  conns: k.conns,
+  state: k.state,
+  snap: k.snap,
+  log: k.log,
+  settings: k.settings,
+};
+
+/** Newest first, capped — same order appendLog writes. */
+export function mergeLog(log: LogEntry[], entries: LogEntry[]): LogEntry[] {
+  return [...[...entries].reverse(), ...log].slice(0, LOG_SIZE);
+}
+
 export const connRef = (acct: string, id: string) => `${acct}|${id}`;
 export function parseConnRef(ref: string): { acct: string; id: string } | null {
   const i = ref.lastIndexOf("|");
@@ -157,7 +171,7 @@ export const saveSnapshot = (kv: KV, acct: string, id: string, s: Snapshot) => s
 export async function appendLog(kv: KV, acct: string, entries: LogEntry[]): Promise<void> {
   if (entries.length === 0) return;
   const log = (await getJSON<LogEntry[]>(kv, k.log(acct))) ?? [];
-  await setJSON(kv, k.log(acct), [...entries.reverse(), ...log].slice(0, LOG_SIZE));
+  await setJSON(kv, k.log(acct), mergeLog(log, entries));
 }
 
 export async function getLog(kv: KV, acct: string): Promise<LogEntry[]> {

@@ -4,7 +4,7 @@ import type { KV } from "../redis";
 import { siteUrl } from "../site";
 import { challengeSecret, planFor } from "./service";
 import { issueChallenge, type StopPlan } from "./stop";
-import { getLog, getSettings, getSnapshot, listConnections, MAX_CONNECTIONS, type LogEntry, type Snapshot, type StoredConnection } from "./store";
+import { getSnapshot, MAX_CONNECTIONS, storeKeys, type AccountSettings, type LogEntry, type Snapshot, type StoredConnection } from "./store";
 import type { ProviderId } from "./providers";
 import type { StopMode } from "./stop";
 
@@ -55,9 +55,15 @@ const connView = (c: StoredConnection, snapshot: Snapshot | null): ConnView => (
   snapshot,
 });
 
+const parse = <T>(raw: string | null | undefined): T | null => (raw == null ? null : (JSON.parse(raw) as T));
+
+/** Two Upstash commands (MGET connections/log/settings, MGET snapshots), whatever the number of connections. */
 export async function dashboardView(kv: KV, account: Account): Promise<DashboardView> {
-  const [conns, log, settings] = await Promise.all([listConnections(kv, account.id), getLog(kv, account.id), getSettings(kv, account.id)]);
-  const snaps = await Promise.all(conns.map((c) => getSnapshot(kv, account.id, c.id)));
+  const [connsRaw, logRaw, settingsRaw] = await kv.mget(storeKeys.conns(account.id), storeKeys.log(account.id), storeKeys.settings(account.id));
+  const conns = parse<StoredConnection[]>(connsRaw) ?? [];
+  const log = parse<LogEntry[]>(logRaw) ?? [];
+  const settings = parse<AccountSettings>(settingsRaw) ?? {};
+  const snaps = conns.length ? (await kv.mget(...conns.map((c) => storeKeys.snap(account.id, c.id)))).map((s) => parse<Snapshot>(s)) : [];
   return {
     me: meOf(account),
     connections: conns.map((c, i) => connView(c, snaps[i])),

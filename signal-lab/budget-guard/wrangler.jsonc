@@ -18,7 +18,7 @@
     "crons": ["* * * * *"]
   },
   "vars": {
-    // Connections per cron run (≈30 KV requests + provider calls < 50 subrequests, ~3 ms CPU).
+    // Connections per cron run (≈11 Upstash commands + provider calls, max ~21 subrequests, ~3 ms CPU).
     // 60 runs/hour × 2 = up to ~118 connections per hour. See docs/deploy-cloudflare.md §7.
     "CRON_BATCH_SIZE": "2"
   },

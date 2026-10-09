@@ -35,6 +35,8 @@ const k = {
 };
 
 export const getEntitlement = (kv: KV, id: string) => getJSON<Entitlement>(kv, k.ent(id));
+/** KV key of an entitlement (for batched reads: MGET). */
+export const entitlementKey = (id: string) => k.ent(id);
 
 async function byIndex(kv: KV, indexKey: string): Promise<Entitlement | null> {
   const id = await kv.get(indexKey);

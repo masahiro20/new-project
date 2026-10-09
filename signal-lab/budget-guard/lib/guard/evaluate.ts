@@ -9,6 +9,8 @@ export interface GuardState {
   warnedAt?: string;
   limitNotifiedAt?: string;
   stoppedAt?: string;
+  /** UTC hour ("2026-10-09T03") the hourly cron last checked this connection: a second cron run of that hour skips it. */
+  lastHour?: string;
 }
 
 export interface Evaluation {

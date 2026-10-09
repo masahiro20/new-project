@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { accessSecret } from "../access";
-import { getEntitlement, isActive, type Entitlement } from "../entitlements";
+import { entitlementKey, getEntitlement, isActive, type Entitlement } from "../entitlements";
 import { sendMail } from "../mail";
 import type { KV } from "../redis";
 import { siteUrl } from "../site";
@@ -20,17 +20,20 @@ import {
   claimHookEvent,
   getConnection,
   getSettings,
-  getState,
   listAccounts,
   listConnections,
+  mergeLog,
   ownerOf,
   saveSettings,
-  saveSnapshot,
-  saveState,
+  storeKeys,
   updateConnection,
   withConnLock,
+  type AccountSettings,
+  type LogEntry,
+  type Snapshot,
   type StoredConnection,
 } from "./store";
+import type { GuardState } from "./evaluate";
 
 // Glue between the pure guard logic and the template's KV, mail and entitlements.
 
@@ -95,13 +98,26 @@ export async function sendSlackTest(kv: KV, acct: string, fetchImpl: FetchLike =
 // --- Notifications -----------------------------------------------------------
 
 /** Email every notice except routine errors; mirror the same to Slack when configured. */
-export async function notify(kv: KV, acct: string, email: string, notices: Notice[], fetchImpl: FetchLike = fetch): Promise<void> {
+export async function notify(
+  kv: KV,
+  acct: string,
+  email: string,
+  notices: Notice[],
+  fetchImpl: FetchLike = fetch,
+  /** Already-read settings (saves the KV read when the caller fetched them in an MGET). */
+  settings?: AccountSettings,
+): Promise<void> {
   const mailable = notices.filter((n) => n.kind !== "error" && n.kind !== "info");
   if (mailable.length === 0) return;
   for (const n of mailable) {
     await sendMail({ to: email, subject: `[Budget Guard] ${SUBJECT[n.kind]}`, text: `${n.message}\n\nDashboard: ${siteUrl()}/app` });
   }
-  const url = await slackUrl(kv, acct).catch(() => null);
+  let url: string | null = null;
+  try {
+    url = settings ? (settings.sealedSlackUrl ? decryptSecret(settings.sealedSlackUrl, `${acct}:slack`) : null) : await slackUrl(kv, acct);
+  } catch {
+    url = null;
+  }
   if (!url) return;
   try {
     await postSlack(url, mailable.map((n) => `*${SUBJECT[n.kind]}* — ${n.message}`).join("\n"), fetchImpl);
@@ -127,8 +143,8 @@ export const CONN_LOCK_SECONDS = 120;
 
 /**
  * Like checkAccount, and also reports connections skipped because another check of
- * the same connection was running (per-connection lock, see withConnLock) — the cron
- * retries those later instead of checking twice at once.
+ * the same connection was running (per-connection lock) — callers retry those later
+ * instead of checking twice at once.
  */
 export async function checkAccountDetailed(
   kv: KV,
@@ -138,53 +154,102 @@ export async function checkAccountDetailed(
   only?: string,
   opts: { forceLimit?: boolean; notifyFetch?: FetchLike } = {},
 ): Promise<{ notices: Notice[]; busy: string[]; checked: number }> {
+  const ids = only ? [only] : (await listConnections(kv, acct)).map((c) => c.id);
   const all: Notice[] = [];
   const busy: string[] = [];
   let checked = 0;
-  for (const conn of await listConnections(kv, acct)) {
-    if (only && conn.id !== only) continue;
-    const r = await withConnLock(kv, conn.id, CONN_LOCK_SECONDS, () => checkOne(kv, acct, conn, now, opts));
-    if (!r.ok) busy.push(conn.id);
-    else {
+  for (const id of ids) {
+    const r = await checkConnectionLocked(kv, acct, id, now, { ...opts, email });
+    if (r.status === "busy") busy.push(id);
+    if (r.status === "checked") {
       checked++;
-      all.push(...r.value);
+      all.push(...r.notices);
     }
   }
-  await appendLog(kv, acct, all.map((n) => ({ ...n, at: now.toISOString() })));
-  await notify(kv, acct, email, all, opts.notifyFetch);
   return { notices: all, busy, checked };
 }
 
-/** One connection: fetch spend, evaluate against this month's state, stop if due, save. */
-async function checkOne(kv: KV, acct: string, conn: StoredConnection, now: Date, opts: { forceLimit?: boolean }): Promise<Notice[]> {
-  const all: Notice[] = [];
-  {
-    let token: string;
-    let fetchImpl: FetchLike;
+export type LockedCheck =
+  | { status: "busy" } // another check of this connection holds the lock
+  | { status: "missing" } // the connection was removed
+  | { status: "inactive" } // entitlement lapsed (only with requireEntitlement)
+  | { status: "already" } // cron: already checked in this hour
+  | { status: "checked"; notices: Notice[] };
+
+const parse = <T>(raw: string | null): T | null => (raw === null ? null : (JSON.parse(raw) as T));
+
+/**
+ * One connection, end to end, under its lock: fetch spend, evaluate against this
+ * month's state (notices / stop once a month), save, log, notify. Upstash commands:
+ * SET NX (lock) + one MGET (entitlement, connections, state, log, settings) + one MSET
+ * (state, snapshot, log) + DEL (unlock) = 4, with or without notices.
+ */
+export async function checkConnectionLocked(
+  kv: KV,
+  acct: string,
+  connId: string,
+  now: Date,
+  opts: {
+    email?: string;
+    requireEntitlement?: boolean;
+    forceLimit?: boolean;
+    notifyFetch?: FetchLike;
+    /** Cron: skip if this connection was already checked in this UTC hour (and record it). */
+    hour?: string;
+  } = {},
+): Promise<LockedCheck> {
+  const r = await withConnLock(kv, connId, CONN_LOCK_SECONDS, async (): Promise<LockedCheck> => {
+    const [entRaw, connsRaw, stateRaw, logRaw, settingsRaw] = await kv.mget(
+      entitlementKey(acct),
+      storeKeys.conns(acct),
+      storeKeys.state(acct, connId),
+      storeKeys.log(acct),
+      storeKeys.settings(acct),
+    );
+    let email = opts.email ?? "";
+    if (opts.requireEntitlement) {
+      const ent = parse<Entitlement>(entRaw);
+      if (!monitored(ent)) return { status: "inactive" }; // lapsed subscriptions stop being monitored
+      email = ent.email;
+    }
+    const conn = (parse<StoredConnection[]>(connsRaw) ?? []).find((c) => c.id === connId);
+    if (!conn) return { status: "missing" };
+    const prevState = parse<GuardState>(stateRaw) ?? undefined;
+    // Read under the lock, so two cron runs of one hour can't both check (the second sees lastHour).
+    if (opts.hour && prevState?.lastHour === opts.hour) return { status: "already" };
+
+    const notices: Notice[] = [];
+    const writes: Record<string, string> = {};
+    let token: string | undefined;
+    let fetchImpl: FetchLike | undefined;
     try {
       token = openToken(conn);
       fetchImpl = fetchFor(token);
     } catch (err) {
-      all.push({ kind: "error", connectionId: conn.id, message: `${conn.label}: ${err instanceof Error ? err.message : err}` });
-      return all;
+      notices.push({ kind: "error", connectionId: conn.id, message: `${conn.label}: ${err instanceof Error ? err.message : err}` });
     }
-    const result = await checkConnection(conn, (await getState(kv, acct, conn.id)) ?? undefined, {
-      token,
-      fetchImpl,
-      now,
-      forceLimit: opts.forceLimit,
-    });
-    await saveState(kv, acct, conn.id, result.state);
-    await saveSnapshot(kv, acct, conn.id, {
-      spendUsd: result.spendUsd ?? 0,
-      ratio: result.evaluation?.ratio ?? 0,
-      level: result.evaluation?.level ?? "ok",
-      checkedAt: now.toISOString(),
-      error: result.notices.find((n) => n.kind === "error")?.message,
-    });
-    all.push(...result.notices);
-  }
-  return all;
+    if (token !== undefined && fetchImpl) {
+      const result = await checkConnection(conn, prevState, { token, fetchImpl, now, forceLimit: opts.forceLimit });
+      writes[storeKeys.state(acct, conn.id)] = JSON.stringify(opts.hour ? { ...result.state, lastHour: opts.hour } : result.state);
+      writes[storeKeys.snap(acct, conn.id)] = JSON.stringify({
+        spendUsd: result.spendUsd ?? 0,
+        ratio: result.evaluation?.ratio ?? 0,
+        level: result.evaluation?.level ?? "ok",
+        checkedAt: now.toISOString(),
+        error: result.notices.find((n) => n.kind === "error")?.message,
+      } satisfies Snapshot);
+      notices.push(...result.notices);
+    } else if (opts.hour) {
+      writes[storeKeys.state(acct, conn.id)] = JSON.stringify({ ...(prevState ?? { period: periodKey(now) }), lastHour: opts.hour });
+    }
+    if (notices.length) {
+      writes[storeKeys.log(acct)] = JSON.stringify(mergeLog(parse<LogEntry[]>(logRaw) ?? [], notices.map((n) => ({ ...n, at: now.toISOString() }))));
+    }
+    await kv.mset(writes);
+    await notify(kv, acct, email, notices, opts.notifyFetch, parse<AccountSettings>(settingsRaw) ?? {});
+    return { status: "checked", notices };
+  });
+  return r.ok ? r.value : { status: "busy" };
 }
 
 // --- Vercel Spend Management webhook --------------------------------------------

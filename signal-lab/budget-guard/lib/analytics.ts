@@ -11,10 +11,15 @@ const RETENTION_SECONDS = 400 * 24 * 60 * 60;
 const day = (d: Date) => d.toISOString().slice(0, 10);
 export const statsKey = (date: Date) => `stats:${config.slug}:${day(date)}`;
 
+/** Day keys this isolate already gave a TTL: one EXPIRE per key per isolate, not per event. */
+const expired = new Set<string>();
+
 export async function track(kv: KV, event: AnalyticsEvent, date = new Date()): Promise<void> {
   const k = statsKey(date);
   await kv.hincrby(k, event, 1);
+  if (expired.has(k)) return;
   await kv.expire(k, RETENTION_SECONDS);
+  expired.add(k);
 }
 
 export async function getStats(kv: KV, days: number, until = new Date()): Promise<Record<string, Record<string, number>>> {

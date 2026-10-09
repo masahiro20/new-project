@@ -1,24 +1,27 @@
-import { getEntitlement, isActive } from "../entitlements";
-import { isDemoMode } from "../payments/mode";
 import { key, type KV } from "../redis";
-import { checkAccountDetailed } from "./service";
+import { checkConnectionLocked } from "./service";
 import { listConnRefs, parseConnRef, rebuildConnIndex } from "./store";
 
 // Hourly check, split into small slices so one invocation stays inside the Workers
-// Free limits (10 ms CPU, 50 subrequests) however many connections there are.
+// Free limits (10 ms CPU, 50 subrequests) — and inside Upstash's free 500k commands a
+// month — however many connections there are.
 //
-// Every UTC hour has its own work list: on the hour's first run, the connection index
-// (`bg:allconns`, one SMEMBERS) is copied into `bg:cron:{hour}:pending`. Each run then
-// takes at most `batch` connections from that set:
-//   1. claim:   SET bg:cron:{hour}:item:{ref} running NX EX lease   (one runner per item)
-//   2. check:   checkAccountDetailed(…, only = connId)  — itself under the per-connection
-//               lock, so a parallel "Check now" / webhook can't run the same check
-//   3. finish:  SET item = done (EX 3h), SREM pending
-// A run that dies mid-item leaves the claim to expire (lease), and a later run of the
-// same hour picks the item up again; a connection that keeps failing is given up for
-// this hour after MAX_ATTEMPTS and retried next hour. Notices and stops stay once a
-// month because they are decided from the per-connection state (evaluate.ts), which
-// only one check at a time can read-and-write.
+// Every UTC hour has its own work list `bg:cron:{hour}:pending`: a "#" sentinel plus
+// every connection (`acct|connId`) copied from the index `bg:allconns`.
+//   - Hour start: the first run that finds the list empty wins `SET init NX` and fills it
+//     (SMEMBERS index + SADD + EXPIRE). Losers do nothing this minute.
+//   - Each run: SMEMBERS the list, then for at most `batch` items:
+//       checkConnectionLocked()  — SET NX on the per-connection lock (one runner per
+//                                  connection, also against "Check now" / webhooks),
+//                                  MGET, provider calls, MSET, DEL lock
+//       SREM the item            — done for this hour
+//     A run that dies mid-item leaves the item in the list and its lock to expire
+//     (CONN_LOCK_SECONDS); a later run of the same hour picks it up. An item that keeps
+//     throwing is dropped for this hour after MAX_ATTEMPTS (next hour starts fresh).
+//   - When only "#" is left the hour is done; the isolate remembers that, so the rest of
+//     the hour's runs cost no Upstash command at all (a new isolate pays one SMEMBERS).
+// Notices and stops stay once a month: they are decided from the per-connection state
+// (evaluate.ts), which only the lock holder reads and writes.
 //
 // Vercel: vercel.json calls /api/cron/check hourly with no batch limit → the whole list
 // in one call. Cloudflare: a `* * * * *` trigger with CRON_BATCH_SIZE (wrangler.jsonc)
@@ -31,17 +34,22 @@ export function cronBatchSize(env: Record<string, string | undefined> = process.
   const n = Number(env.CRON_BATCH_SIZE);
   return Number.isInteger(n) && n > 0 ? n : Infinity;
 }
-export const CLAIM_LEASE_SECONDS = 5 * 60;
 export const MAX_ATTEMPTS = 3;
 
 const hourKey = (now: Date) => now.toISOString().slice(0, 13); // 2026-10-09T03
+const SENTINEL = "#";
 const keys = (hour: string) => ({
   init: key("bg", "cron", hour, "init"),
   pending: key("bg", "cron", hour, "pending"),
   attempts: key("bg", "cron", hour, "attempts"),
-  item: (ref: string) => key("bg", "cron", hour, "item", ref),
 });
-const MIGRATED = key("bg", "allconns", "migrated");
+
+/** The last hour this isolate saw finished: later runs of that hour need no KV at all. */
+let finishedHour: string | null = null;
+/** Tests: forget the in-memory "hour finished" flag (= a fresh isolate). */
+export function resetCronMemory(): void {
+  finishedHour = null;
+}
 
 export type CronSliceResult = {
   hour: string;
@@ -55,9 +63,9 @@ export type CronSliceResult = {
   remaining: number;
   notices: number;
   errors: number;
+  /** Upstash commands this run used. */
+  commands: number;
 };
-
-const monitored = (e: Awaited<ReturnType<typeof getEntitlement>>) => isActive(e) && (e!.source !== "demo" || isDemoMode());
 
 function shuffle<T>(xs: T[]): T[] {
   for (let i = xs.length - 1; i > 0; i--) {
@@ -67,8 +75,8 @@ function shuffle<T>(xs: T[]): T[] {
   return xs;
 }
 
-/** KV requests one connection check can take (claim … finish), for the subrequest budget. */
-const KV_OPS_PER_ITEM = 16;
+/** Upstash commands one item can take (lock, MGET, MSET, unlock, SREM + error bookkeeping). */
+const KV_OPS_PER_ITEM = 7;
 
 export async function runCronSlice(rawKv: KV, opts: { now?: Date; batch?: number; maxKvOps?: number } = {}): Promise<CronSliceResult> {
   // Count KV requests (each is one Upstash HTTP subrequest; Workers Free allows 50 per
@@ -81,69 +89,51 @@ export async function runCronSlice(rawKv: KV, opts: { now?: Date; batch?: number
   const batch = Math.max(1, opts.batch ?? Infinity);
   const hour = hourKey(now);
   const k = keys(hour);
-  const result: CronSliceResult = { hour, initialized: false, checked: 0, skipped: 0, remaining: 0, notices: 0, errors: 0 };
+  const result: CronSliceResult = { hour, initialized: false, checked: 0, skipped: 0, remaining: 0, notices: 0, errors: 0, commands: 0 };
+  const done = () => ((result.commands = kvOps), result);
 
-  if (!(await kv.get(k.init))) {
-    if (!(await kv.get(MIGRATED))) {
-      // Connections stored before the index existed: rebuild once (only when the index is empty).
-      if ((await kv.scard(key("bg", "allconns"))) === 0) await rebuildConnIndex(kv);
-      await kv.set(MIGRATED, "1");
-    }
-    const refs = await listConnRefs(kv);
-    // Two runs may both get here; SADD is idempotent and finished items are guarded by their "done" claim.
-    if (refs.length) {
-      await kv.sadd(k.pending, ...refs);
-      await kv.expire(k.pending, HOUR_TTL);
-    }
-    await kv.set(k.init, "1", { ex: HOUR_TTL });
+  if (finishedHour === hour) return done(); // 0 commands
+
+  let members = await kv.smembers(k.pending);
+  if (members.length === 0) {
+    // Not filled yet (or a filler died: init expires quickly so a later run retries).
+    if (!(await kv.set(k.init, "1", { nx: true, ex: 120 }))) return done();
+    let refs = await listConnRefs(kv);
+    if (refs.length === 0 && (await rebuildConnIndex(kv)) > 0) refs = await listConnRefs(kv); // data from before the index
+    await kv.sadd(k.pending, SENTINEL, ...refs);
+    await kv.expire(k.pending, HOUR_TTL);
+    members = [SENTINEL, ...refs];
     result.initialized = true;
   }
+  const pending = shuffle(members.filter((m) => m !== SENTINEL)); // shuffled: overlapping runs rarely contend
+  if (pending.length === 0) {
+    finishedHour = hour;
+    return done();
+  }
 
-  const pending = shuffle(await kv.smembers(k.pending)); // shuffled: overlapping runs rarely contend for the same item
-  // Every claim attempt costs subrequests, so cap them too (not only successful checks).
-  const maxClaims = batch === Infinity ? Infinity : batch + 4;
   const maxKvOps = opts.maxKvOps ?? (batch === Infinity ? Infinity : 34);
-  let claims = 0;
-  let handled = 0;
+  let attempted = 0;
   for (const ref of pending) {
-    if (handled >= batch || claims >= maxClaims || kvOps + KV_OPS_PER_ITEM > maxKvOps) break;
-    claims++;
-    if (!(await kv.set(k.item(ref), "running", { nx: true, ex: CLAIM_LEASE_SECONDS }))) {
-      // Running elsewhere — or already done and re-added by a racing hour init: drop it from the list.
-      if ((await kv.get(k.item(ref))) === "done") await kv.srem(k.pending, ref);
-      continue;
-    }
-    handled++;
-    const finish = async () => {
-      await kv.set(k.item(ref), "done", { ex: HOUR_TTL });
-      await kv.srem(k.pending, ref);
-    };
+    if (attempted >= batch + 2 || result.checked + result.skipped + result.errors >= batch || kvOps + KV_OPS_PER_ITEM > maxKvOps) break;
+    attempted++;
     const parsed = parseConnRef(ref);
     try {
-      const ent = parsed ? await getEntitlement(kv, parsed.acct) : null;
-      if (!parsed || !monitored(ent)) {
-        result.skipped++; // lapsed subscriptions stop being monitored
-        await finish();
-        continue;
-      }
-      const r = await checkAccountDetailed(kv, parsed.acct, ent!.email, now, parsed.id);
-      if (r.busy.length) {
-        await kv.del(k.item(ref)); // a "Check now" holds the connection: retry in a later run
-        continue;
-      }
-      if (r.checked === 0) result.skipped++; // connection was removed
-      else result.checked++;
-      result.notices += r.notices.length;
-      await finish();
+      const r = parsed ? await checkConnectionLocked(kv, parsed.acct, parsed.id, now, { requireEntitlement: true, hour }) : ({ status: "missing" } as const);
+      if (r.status === "busy") continue; // being checked elsewhere right now: stays in the list
+      if (r.status === "checked") {
+        result.checked++;
+        result.notices += r.notices.length;
+      } else result.skipped++; // removed, no longer monitored, or already checked this hour by an overlapping run
+      await kv.srem(k.pending, ref);
     } catch (err) {
       result.errors++;
       const attempts = await kv.hincrby(k.attempts, ref, 1);
-      await kv.expire(k.attempts, HOUR_TTL);
+      if (attempts === 1) await kv.expire(k.attempts, HOUR_TTL);
       console.error(`[cron] ${ref} failed (attempt ${attempts}/${MAX_ATTEMPTS})`, err);
-      if (attempts >= MAX_ATTEMPTS) await finish(); // give up for this hour; next hour starts fresh
-      else await kv.del(k.item(ref)); // retry in a later run this hour
+      if (attempts >= MAX_ATTEMPTS) await kv.srem(k.pending, ref); // give up for this hour; next hour starts fresh
     }
   }
   result.remaining = Math.max(0, pending.length - result.checked - result.skipped);
-  return result;
+  if (result.remaining === 0) finishedHour = hour;
+  return done();
 }

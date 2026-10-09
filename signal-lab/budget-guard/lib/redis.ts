@@ -11,6 +11,10 @@ import { isBuildPhase, isProduction, warnOnce } from "./site";
  */
 export interface KV {
   get(key: string): Promise<string | null>;
+  /** One command for several string keys (Upstash bills per command, not per key). */
+  mget(...keys: string[]): Promise<(string | null)[]>;
+  /** One command for several string keys, no TTL. */
+  mset(entries: Record<string, string>): Promise<void>;
   /** Returns true if the value was written (false when `nx` and the key exists). */
   set(key: string, value: string, opts?: { nx?: boolean; ex?: number }): Promise<boolean>;
   /** Atomically read and delete (single-use tokens). */
@@ -76,6 +80,15 @@ export function createMemoryKV(now: () => number = Date.now): KV {
   return {
     async get(k) {
       return typed(k, isStr) ?? null;
+    },
+    async mget(...keys) {
+      return keys.map((k) => {
+        const e = live(k);
+        return e && typeof e.value === "string" ? e.value : null; // Redis MGET: nil for non-strings
+      });
+    },
+    async mset(entries) {
+      for (const [k, v] of Object.entries(entries)) data.set(k, { value: v });
     },
     async set(k, value, opts = {}) {
       if (opts.nx && live(k)) return false;
@@ -153,6 +166,10 @@ function createUpstashKV(url: string, token: string): KV {
   const r = new Redis({ url, token, automaticDeserialization: false });
   return {
     get: (k) => r.get<string>(k),
+    mget: (...keys) => (keys.length ? r.mget<(string | null)[]>(...keys) : Promise.resolve([])),
+    async mset(entries) {
+      if (Object.keys(entries).length) await r.mset(entries);
+    },
     async set(k, value, opts = {}) {
       const res = opts.nx
         ? opts.ex
