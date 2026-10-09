@@ -764,6 +764,10 @@ function findColumns(headers, override) {
   if (!found.target) delete found.target;
   return found;
 }
+function headerList(headers, max2 = 200) {
+  const list3 = headers.join(", ");
+  return list3.length > max2 ? `${list3.slice(0, max2)}… (${headers.length} columns)` : list3;
+}
 function resolveColumns(headers, override = {}) {
   const found = findColumns(headers, override);
   if (found.source && found.target && !override.source && !override.target && langOfHeader(found.source) && langOfHeader(found.target) && headers.indexOf(found.target) < headers.indexOf(found.source)) {
@@ -771,7 +775,7 @@ function resolveColumns(headers, override = {}) {
   }
   if (!found.source || !found.target) {
     throw new Error(
-      `Could not find source/target columns in [${headers.join(", ")}]. Name them e.g. "ja"/"en" or "source"/"target", or pass a column map.`
+      `Could not find source/target columns in [${headerList(headers)}]. Name them e.g. "ja"/"en" or "source"/"target", or pass a column map.`
     );
   }
   return found;
@@ -845,7 +849,7 @@ function tableFromGrid(records, file2, baseFormat, opts = {}) {
     return finishTable(file2, format, rows2, cols, opts.langs);
   }
   const single = resolveSingleColumn(headers, override);
-  if (!single) throw error62 instanceof Error ? new Error(`${file2}: ${error62.message}`) : new Error(`${file2}: could not find a text column in [${headers.join(", ")}]`);
+  if (!single) throw error62 instanceof Error ? new Error(`${file2}: ${error62.message}`) : new Error(`${file2}: could not find a text column in [${headerList(headers)}]`);
   const rows = body.map((r, idx) => {
     const row = recordToRow(toRecord(r), { ...single, target: void 0 }, file2, r.line, `row${idx + 1}`);
     if (unreal) {

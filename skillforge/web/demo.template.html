@@ -59,6 +59,9 @@ h1, h2, h3, h4 { margin: 0; line-height: 1.3; }
 .mast > * { min-width: 0; }
 .mast h1 { font-size: 26px; font-weight: 700; letter-spacing: 0.02em; }
 .mast h1 small { font-size: 13px; font-weight: 400; color: var(--ink-3); margin-left: 6px; }
+.back-lp { display: inline-block; font-size: 13px; margin-bottom: 6px; }
+.back-lp[hidden] { display: none; }
+.more { margin-top: 12px; }
 .mast .lede { color: var(--ink-2); font-size: 14px; margin-top: 4px; }
 .samples { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .mast-side { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; min-width: 0; }
@@ -253,6 +256,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
 <div class="wrap" id="app" lang="ja">
   <header class="mast">
     <div>
+      <a class="back-lp" id="back-lp" href="../" hidden data-i18n="mast.back">← Kotomark の紹介ページ</a>
       <h1>Kotomark<small data-i18n="mast.sub">（仮称）台本の揺れチェッカー</small></h1>
       <p class="lede" data-i18n="mast.lede">日英ゲーム台本の訳揺れ・表記揺れ・キャラ名・敬称・口調をまとめて点検します。<span class="en">JA↔EN script consistency checker</span></p>
     </div>
@@ -366,6 +370,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
     ja: {
       "title": "Kotomark 台本チェッカー",
       "mast.sub": "（仮称）台本の揺れチェッカー",
+      "mast.back": "← Kotomark の紹介ページ",
       "mast.lede": `日英ゲーム台本の訳揺れ・表記揺れ・キャラ名・敬称・口調をまとめて点検します。${EN_("JA↔EN script consistency checker")}`,
       "ui.legend": "画面",
       "sample.jaen": "サンプル台本で試す（日→英）",
@@ -421,6 +426,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
       "empty.none": `揺れは見つかりませんでした。 ${EN_("No issues found.")}`,
       "empty.filter": "この絞り込みに該当する指摘はありません。",
       "count": (n) => `${n}件`,
+      "more.btn": (n, step) => `さらに表示（次の${step}件、残り${n}件） ${EN_("Show more")}`,
       "pk.summary": `要判断パケット ${EN_("Review packets")}`,
       "pk.intro": "ルールだけでは判断できない行（口調・用語集にない頻出語）をまとめたものです。AIアシスタントや校正担当に渡して確認してください。",
       "pk.copy": "パケットを JSON でコピー",
@@ -463,6 +469,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
     en: {
       "title": "Kotomark Script Checker",
       "mast.sub": " (working name) script consistency checker",
+      "mast.back": "← About Kotomark",
       "mast.lede": "Checks JA↔EN game scripts for translation drift, katakana notation variants, character names, honorifics and voice — all in one pass.",
       "ui.legend": "Interface",
       "sample.jaen": "Try the sample script (JA→EN)",
@@ -515,6 +522,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
       "empty.none": "No issues found.",
       "empty.filter": "No findings match this filter.",
       "count": (n) => `${n}`,
+      "more.btn": (n, step) => `Show more (next ${step} of ${n} remaining)`,
       "pk.summary": "Review packets",
       "pk.intro": "Lines that rules alone cannot judge (voice, frequent terms missing from the glossary), grouped for review. Hand them to an AI assistant or a proofreader.",
       "pk.copy": "Copy packets as JSON",
@@ -617,12 +625,14 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
   function saveLocale(v) { try { localStorage.setItem(LOCALE_KEY, v); } catch (_) { /* storage unavailable: choice lasts this visit only */ } }
   function currentLocale() { return $("opt-locale-en").checked ? "en" : "ja"; }
 
+  const PAGE = 200;
   const state = {
     files: [], // {name, text, format} or, for .xlsx, {name, bytes, format}
     notes: [],
     sampleKey: null, dirty: false,
     result: null, md: "", rows: new Map(), tableByFile: new Map(),
     isSample: null, cat: "all", sev: { error: true, warning: true, info: true },
+    more: {}, // category → how many findings are drawn (large results are drawn in pages of PAGE)
     errors: { list: [], soft: false }, status: null,
   };
 
@@ -706,13 +716,21 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
     if (!soft) { state.status = null; $("run-status").textContent = ""; }
     renderErrors();
   }
+  // Engine messages are English; translate the common column error for the Japanese screen.
+  function engineMsg(m) {
+    if (ui !== "ja" || typeof m !== "string") return m;
+    return m
+      .replace(/Could not find source\/target columns in \[([\s\S]*)\]\. Name them[\s\S]*$/, "原文・訳文の列が見つかりません（列：[$1]）。列名を「ja」「en」や「source」「target」にしてください。")
+      .replace(/could not find a text column in \[([\s\S]*)\]$/, "テキストの列が見つかりません（列：[$1]）。")
+      .replace(/… \((\d+) columns\)\]/, "…（全$1列）]");
+  }
   function renderErrors() {
     const box = $("errors");
     const { list, soft } = state.errors;
     if (!list.length) { box.hidden = true; box.innerHTML = ""; return; }
     box.className = "errors" + (soft ? " soft" : "");
     const where = (e) => (e.w ? t(e.w, e.wArg) : e.where);
-    const msg = (e) => (e.m ? t(e.m) : e.msg);
+    const msg = (e) => (e.m ? t(e.m) : engineMsg(e.msg));
     box.innerHTML = `<h3>${soft ? t("err.softH") : t("err.hardH")}</h3>
       <ul>${list.map((e) => `<li><strong>${esc(where(e))}</strong>${t("err.sep")}${esc(msg(e))}</li>`).join("")}</ul>`;
     box.hidden = false;
@@ -819,6 +837,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
     if (!keepFilters) {
       state.cat = "all";
       state.sev = { error: true, warning: true, info: true };
+      state.more = {};
     }
     const openPackets = keepFilters && $("packets") && $("packets").open;
     renderResults();
@@ -917,14 +936,19 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
       for (const cat of CAT_ORDER) {
         const fs = shown.filter((f) => f.category === cat);
         if (!fs.length) continue;
+        // Thousands of findings would freeze the page: draw the first PAGE per category, then "Show more".
+        const limit = state.more[cat] || PAGE;
+        const drawn = fs.length > limit ? fs.slice(0, limit) : fs;
         const groups = new Map();
-        for (const f of fs) { const g = f.group || ""; if (!groups.has(g)) groups.set(g, []); groups.get(g).push(f); }
+        for (const f of drawn) { const g = f.group || ""; if (!groups.has(g)) groups.set(g, []); groups.get(g).push(f); }
         html += `<section class="cat" aria-labelledby="cat-h-${cat}"><h3 id="cat-h-${cat}">${catHeading(cat)} <span class="n">${t("count", fs.length)}</span></h3>`;
         for (const [g, list] of groups) {
           const usages = usageFor(cat, g).map((u) => usageHtml(u, g)).join("");
           html += `<div class="group">${g || usages ? `<div class="group-head">${g ? `<h4>${esc(g)}</h4>` : ""}${usages}</div>` : ""}
             <ul class="flist">${list.map(findingHtml).join("")}</ul></div>`;
         }
+        const rest = fs.length - drawn.length;
+        if (rest > 0) html += `<p class="more"><button type="button" class="btn-small" id="more-${cat}" data-more="${cat}" data-drawn="${drawn.length}">${t("more.btn", rest, Math.min(PAGE, rest))}</button></p>`;
         html += `</section>`;
       }
     }
@@ -1336,13 +1360,30 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
       if (!inp.hidden) inp.focus();
       return;
     }
+    if (b.dataset.more) {
+      const cat = b.dataset.more;
+      const before = Number(b.dataset.drawn);
+      state.more[cat] = before + PAGE;
+      const openPackets = $("packets") && $("packets").open;
+      renderResults();
+      if (openPackets) $("packets").open = true;
+      // Keep keyboard focus in place: the next button if more remain, otherwise the first newly drawn finding.
+      const nb = $(`more-${cat}`);
+      const items = document.querySelectorAll(`#cat-h-${cat} ~ .group .flist > li`);
+      const first = items[before];
+      if (nb) nb.focus();
+      else if (first) { first.tabIndex = -1; first.focus(); }
+      return;
+    }
     if (b.id === "btn-pilot") {
       fb.on = !fb.on;
       saveFlag(PILOT_KEY, fb.on);
     } else if (b.dataset.sev) {
+      state.more = {};
       state.sev[b.dataset.sev] = !state.sev[b.dataset.sev];
       if (!SEV_ORDER.some((s) => state.sev[s])) state.sev = { error: true, warning: true, info: true };
     } else if (b.dataset.cat) {
+      state.more = {};
       state.cat = b.dataset.cat;
     } else return;
     const openPackets = $("packets") && $("packets").open;
@@ -1381,6 +1422,8 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
   let localeExplicit = savedLocale !== null;
   $((savedLocale || ui) === "en" ? "opt-locale-en" : "opt-locale-ja").checked = true;
   applyStaticI18n();
+  // On the published site the demo lives at <site>/demo/: link back to the landing page. Hidden elsewhere (e.g. the artifact build).
+  if (/\/demo\/(index\.html)?$/.test(location.pathname)) $("back-lp").hidden = false;
   // Open in a working state: run the JA→EN sample immediately.
   loadSample("ja-en");
 })();
