@@ -62,7 +62,34 @@ kotomark check script.txt --input-format csv
   working directory is used (a note goes to stderr). `--no-glossary` turns that off.
 - Parser notes (skipped sheets, guessed columns, …) go to stderr.
 
-## GitHub Actions
+## GitHub Action (recommended)
+
+The repository ships a composite action, [`action/`](../action/README.md), that runs the bundled CLI
+(`action/dist/kotomark.mjs`, committed) with the runner's Node 20+ — no install step:
+
+```yaml
+permissions:
+  contents: read
+steps:
+  - uses: actions/checkout@v4
+  - id: kotomark
+    uses: masahiro20/new-project/skillforge/action@<ref>   # pin a SHA or tag
+    with:
+      paths: loc/                 # one per line for paths with spaces
+      glossary: kotomark.glossary.json
+      fail-on: error              # error | warning | never
+      junit-path: reports/kotomark-junit.xml   # optional; json-path too
+  # outputs: steps.kotomark.outputs.errors / warnings / infos / exit-code
+```
+
+It runs one JSON pass (outputs + gate) and then renders annotations (`annotations: true`), the Markdown
+job summary (`summary: true`) and the optional JUnit/JSON files, and exits with the `fail-on` exit code only
+after every report is written. `uses: owner/repo/path@ref` from another repository requires this repository
+to be public, or same-organization access to be allowed. All inputs, outputs and a JUnit-upload example:
+[`action/README.md`](../action/README.md); a copyable workflow: [`.github-example/kotomark.yml`](../.github-example/kotomark.yml).
+After changing the CLI or core, rebuild the committed bundle with `npm run build:action`.
+
+## GitHub Actions (CLI directly)
 
 ```yaml
 # .github/workflows/localization-qa.yml

@@ -1,0 +1,86 @@
+name: Kotomark localization QA
+description: Whole-script consistency checks for Japanese <-> English game localization (terms, names, honorifics, voice, placeholders, tags, ruby, length).
+author: Kotomark
+branding:
+  icon: check-square
+  color: blue
+
+inputs:
+  paths:
+    description: Files or directories to check. One per line (lines may contain spaces), or whitespace separated on a single line (a single line that names one existing path is taken as-is). Directories are searched recursively.
+    required: false
+    default: "."
+  glossary:
+    description: Glossary file (JSON or CSV). Empty = use kotomark.glossary.json / glossary.json / kotomark.glossary.csv from the working directory if present.
+    required: false
+    default: ""
+  fail-on:
+    description: Fail the step when findings at or above this severity exist (error | warning | never).
+    required: false
+    default: error
+  locale:
+    description: Language of messages and labels (en | ja).
+    required: false
+    default: en
+  min-severity:
+    description: Hide findings below this severity (info | warning | error) in annotations, JUnit and the job summary. Gating and the count outputs always use all findings.
+    required: false
+    default: ""
+  input-format:
+    description: Force the input format (csv | tsv | json | xliff | xlsx | po | i18n-json | unity-csv | unreal-csv). Empty = detect.
+    required: false
+    default: ""
+  junit-path:
+    description: Write a JUnit XML report to this path (optional).
+    required: false
+    default: ""
+  json-path:
+    description: Write the full JSON result (all findings plus summary counts) to this path (optional).
+    required: false
+    default: ""
+  annotations:
+    description: Emit findings as GitHub annotations (error / warning / notice) on the checked files.
+    required: false
+    default: "true"
+  summary:
+    description: Append the Markdown report to the job summary ($GITHUB_STEP_SUMMARY).
+    required: false
+    default: "true"
+  working-directory:
+    description: Directory to run in. Relative paths in the other inputs resolve against it. Keep it at the repository root so annotations point at the right files.
+    required: false
+    default: "."
+
+outputs:
+  errors:
+    description: Number of error findings.
+    value: ${{ steps.kotomark.outputs.errors }}
+  warnings:
+    description: Number of warning findings.
+    value: ${{ steps.kotomark.outputs.warnings }}
+  infos:
+    description: Number of info findings.
+    value: ${{ steps.kotomark.outputs.infos }}
+  exit-code:
+    description: Exit code of the check (0 passed, 1 findings at or above fail-on, 2 bad input or usage).
+    value: ${{ steps.kotomark.outputs.exit-code }}
+
+runs:
+  using: composite
+  steps:
+    - id: kotomark
+      shell: bash
+      # Inputs are passed as environment variables, never interpolated into the script.
+      run: bash "$GITHUB_ACTION_PATH/run.sh"
+      env:
+        INPUT_PATHS: ${{ inputs.paths }}
+        INPUT_GLOSSARY: ${{ inputs.glossary }}
+        INPUT_FAIL_ON: ${{ inputs.fail-on }}
+        INPUT_LOCALE: ${{ inputs.locale }}
+        INPUT_MIN_SEVERITY: ${{ inputs.min-severity }}
+        INPUT_INPUT_FORMAT: ${{ inputs.input-format }}
+        INPUT_JUNIT_PATH: ${{ inputs.junit-path }}
+        INPUT_JSON_PATH: ${{ inputs.json-path }}
+        INPUT_ANNOTATIONS: ${{ inputs.annotations }}
+        INPUT_SUMMARY: ${{ inputs.summary }}
+        INPUT_WORKING_DIRECTORY: ${{ inputs.working-directory }}

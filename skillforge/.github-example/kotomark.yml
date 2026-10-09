@@ -1,0 +1,39 @@
+# Sample workflow: copy to .github/workflows/kotomark.yml in your game repository and adjust paths.
+# (Not active here — this directory is not .github/.)
+name: Localization QA
+
+on:
+  pull_request:
+    paths: ["loc/**", "kotomark.glossary.json"]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  kotomark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Annotations on the PR diff + Markdown job summary; fails the job on errors (exit 1).
+      - id: kotomark
+        uses: masahiro20/new-project/skillforge/action@main   # pin a commit SHA or tag in real use
+        with:
+          paths: loc/
+          glossary: kotomark.glossary.json
+          fail-on: error
+          locale: en            # ja for Japanese messages
+          min-severity: warning # hide info findings in annotations/summary (gating still sees everything)
+          junit-path: reports/kotomark-junit.xml
+          json-path: reports/kotomark.json
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kotomark-reports
+          path: reports/
+
+      # Optional: show the JUnit file as a test report (needs `checks: write` in the job's permissions),
+      # e.g. mikepenz/action-junit-report or dorny/test-reporter with `if: always()`.
