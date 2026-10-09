@@ -4,6 +4,7 @@ import { terms } from "@/content/legal/terms";
 import { REVIEW_MARK } from "@/content/legal/types";
 import { config } from "@/lib/config";
 import { mergeLog, type LogEntry } from "@/lib/guard/store";
+import { DEMO_TOMBSTONE_DAYS } from "@/lib/guard/retention";
 import { hostingProvider } from "@/lib/site";
 
 afterEach(() => vi.unstubAllEnvs());
@@ -163,6 +164,16 @@ describe("purchase records kept 7 years for tax bookkeeping (decision d28)", () 
     }
     expect(jaP).toContain("最小限");
     expect(enP).toContain("as little information identifying you as possible");
+  });
+});
+
+describe("minimal entitlement record kept after deletion", () => {
+  it("says what is kept, why, and for how long, in both languages", () => {
+    const ja = section(privacy.ja(config), "保存期間と削除");
+    const en = section(privacy.en(config), "Retention and deletion");
+    expect(DEMO_TOMBSTONE_DAYS).toBe(90);
+    for (const w of ["最小限の権利の記録", "ID、状態、プラン、日付", "同意の記録", "作り直される", "90日間"]) expect(ja).toContain(w);
+    for (const w of ["Minimal entitlement record", "ID, status, plan, dates", "consent record", "created again", "90 days"]) expect(en).toContain(w);
   });
 });
 
