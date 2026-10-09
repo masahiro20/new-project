@@ -20,7 +20,7 @@ export const DEFAULTS = {
   segmentation: 'auto', // 'auto' = use energy/voicing cues when available, 'equal' = equal slots
   evidenceWeight: 1.0, // reward for putting a boundary on a cue (vs. the duration prior)
   particle: true, // false = isolated word without が (then flat and tail-high look the same)
-  breakDipDb: 6, // a voicing break is a consonant cue only if energy dips (dB) across it
+  breakDipDb: [1, 3], // energy dip (dB) across a voicing break: below [0] not a consonant, full cue at [1]
 };
 
 /** Hz → semitones relative to 100 Hz. */
@@ -122,9 +122,10 @@ function utteranceSpan(track, voicedIdx, slots, o) {
  * A voiceless consonant (closure, frication, っ) takes energy out of the signal;
  * a pitch tracker that merely loses lock while F0 moves fast inside a vowel
  * (common at a rise or a fall — exactly where the accent is) leaves the energy
- * untouched. So a break only counts as a cue in proportion to the energy dip
- * across it (full strength at `breakDipDb`). Without an energy track every
- * break counts fully, as before.
+ * untouched (within the ~1 dB a steady vowel wobbles). So a break counts as a
+ * cue only as far as energy dips across it: none below breakDipDb[0], full from
+ * breakDipDb[1] (even a flap or glide dips ~2–4 dB; a stop or fricative 10+ dB).
+ * Without an energy track every break counts fully, as before.
  */
 function voicingBreakStrength(st, E, i, i1, look, o) {
   if (!E) return 1;
@@ -138,7 +139,8 @@ function voicingBreakStrength(st, E, i, i1, look, o) {
   for (let x = i; x < Math.min(j + 1, E.length); x++) low = Math.min(low, E[x]);
   if (!Number.isFinite(low)) return 1;
   const ref = Number.isFinite(after) ? Math.min(before, after) : before;
-  return Math.max(0, Math.min(1, (ref - low) / o.breakDipDb));
+  const [d0, d1] = o.breakDipDb;
+  return Math.max(0, Math.min(1, (ref - low - d0) / (d1 - d0)));
 }
 
 /**
