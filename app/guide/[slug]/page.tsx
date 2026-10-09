@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import ChecklistDownload from "@/app/ChecklistDownload";
+import { CHECKLIST, CHECKLIST_GUIDES } from "@/lib/checklist";
 import MarkdownView from "@/app/MarkdownView";
 import { GUIDES, SERVICE_GUIDES, TOPIC_GUIDES, getGuide } from "@/lib/guides";
 import { breadcrumbList, jsonLdHtml } from "@/lib/jsonld";
@@ -119,6 +121,14 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
             ))}
           </>
         ) : null}
+
+        {CHECKLIST_GUIDES.includes(guide.slug) && (
+          <div className="card" style={{ marginTop: 32 }}>
+            <h3>無料配布：{CHECKLIST.title}</h3>
+            <p>運営指導の前に確認したい書類を、印を付けながら確認できるチェックリストです。印刷・編集して事業所内で使えます。</p>
+            <ChecklistDownload />
+          </div>
+        )}
 
         <h2>出典・参考</h2>
         <ul>

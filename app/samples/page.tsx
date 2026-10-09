@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import MarkdownView from "@/app/MarkdownView";
 import SampleDownload from "./SampleDownload";
+import ChecklistDownload from "@/app/ChecklistDownload";
+import { CHECKLIST } from "@/lib/checklist";
 import { breadcrumbList, jsonLdHtml } from "@/lib/jsonld";
 import { aiEnabled } from "@/lib/launch";
 import { PARTS, PART_LABELS } from "@/lib/parts";
@@ -90,6 +92,16 @@ export default function SamplesPage() {
           <summary>入力した会議メモ（架空）</summary>
           <p style={{ whiteSpace: "pre-wrap" }}>{f.meetingNotes}</p>
         </details>
+
+        <div className="card" id="checklist" style={{ margin: "24px 0" }}>
+          <p className="eyebrow" style={{ margin: 0 }}>無料配布</p>
+          <h3>{CHECKLIST.title}</h3>
+          <p>
+            虐待防止・身体拘束・BCP・公表と報告・個別支援計画・運営規程まで、運営指導の前に確認したい書類を1枚ずつ印を付けて確認できます。
+            保管場所を書き込む欄つき。令和6年度報酬改定と運営指導マニュアル（令和8年6月）に沿った2026年10月版です。
+          </p>
+          <ChecklistDownload />
+        </div>
 
         <h2>目次</h2>
         <ul>

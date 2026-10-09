@@ -8,7 +8,9 @@ export type AnalyticsEvent =
   | "sample-download-committee"
   | "sample-download-training"
   | "sample-download-restraint"
-  | "demo-purchase-complete";
+  | "demo-purchase-complete"
+  | "checklist-download-pdf"
+  | "checklist-download-docx";
 
 type GoatCounter = { count: (vars: { path: string; title?: string; event?: boolean }) => void };
 const gc = () => (window as unknown as { goatcounter?: Partial<GoatCounter> }).goatcounter;
