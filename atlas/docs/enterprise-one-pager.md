@@ -2,8 +2,7 @@
 DRAFT - NOT FOR EXTERNAL USE. Atlas enterprise one-pager (English), Growth role, 2026-10-09.
 Markdown twin of atlas/docs/enterprise-one-pager.html (keep both in sync).
 Needs owner (masahiro20) approval before it is sent, printed for, or shown to anyone outside the team.
-Placeholders the leader fills: {{HOLDOUT_FILES}}, {{HOLDOUT_REPOS}}, {{HOLDOUT_FP_RATE}}, {{HOLDOUT_RECALL}},
-{{HOLDOUT_REVIEW_SHARE}} (holdout validation only - never the tuning-set numbers), {{CONTACT_EMAIL}}, {{DOMAIN}}.
+Placeholders the leader fills: {{CONTACT_EMAIL}}, {{DOMAIN}}. Holdout numbers filled 2026-10-09 (atlas/reports/stage3-holdout.md).
 Wording: findings are "pattern detected"; OSV MAL-* referenced by id only; no certification/compliance claims.
 -->
 
@@ -43,13 +42,15 @@ Claude Code (`managed-mcp.json` / `allowedMcpServers`) and GitHub Copilot / VS C
 
 ## How we measure accuracy
 
-Numbers come only from a **holdout set** kept apart from tuning: {{HOLDOUT_FILES}} files across {{HOLDOUT_REPOS}} public repositories, randomly sampled with a fixed seed, with no repository or owner overlap with the tuning set. Two reviewers label findings independently without seeing scanner output; disagreements are adjudicated.
+Numbers come only from a **holdout set** kept apart from tuning: 41,320 files across 100 public repositories, randomly sampled with a fixed seed, with no repository or owner overlap with the tuning set. Each high/critical finding is labelled in two independent review passes that cannot see the scanner's decision; disagreements are adjudicated.
 
 | Metric | Holdout result |
 |---|---|
-| False-positive rate (high/critical, source & skill code) | {{HOLDOUT_FP_RATE}} |
-| Recall on attack-type patterns | {{HOLDOUT_RECALL}} |
-| Share of findings routed to human review | {{HOLDOUT_REVIEW_SHARE}} |
+| Files analysed statically | 41,320 |
+| Randomly sampled registry servers | 100 |
+| Lines of scanned code executed | 0 |
+
+Precision on this first holdout was below our bar: most high/critical flags came from security tools' own detection rules and test vectors. We publish accuracy figures only after the fix is re-validated on a fresh random sample.
 
 *Noise reduction lowers severity and flags a finding for review; it never deletes it, and never allowlists by repository name or owner.*
 

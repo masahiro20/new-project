@@ -3,8 +3,7 @@
   DRAFT - NOT FOR EXTERNAL USE. Atlas enterprise one-pager (English), Growth role, 2026-10-09.
   Needs owner (masahiro20) approval before it is sent, printed for, or shown to anyone outside the team.
   Markdown twin: atlas/docs/enterprise-one-pager.md (keep both in sync).
-  Placeholders the leader fills: {{HOLDOUT_FILES}}, {{HOLDOUT_REPOS}}, {{HOLDOUT_FP_RATE}}, {{HOLDOUT_RECALL}},
-  {{HOLDOUT_REVIEW_SHARE}} (holdout validation only - never the tuning-set numbers), {{CONTACT_EMAIL}}, {{DOMAIN}}.
+  Placeholders the leader fills: {{CONTACT_EMAIL}}, {{DOMAIN}}. Holdout numbers filled 2026-10-09 (atlas/reports/stage3-holdout.md).
   Rules: single file, no external requests (system fonts, inline SVG only). Prints on one A4 or US Letter page.
   Wording: findings are "pattern detected". Never label any project with intent-laden words; OSV's MAL-* category
   may be referenced by id only. Real names appear only in cited public incidents. No certification/compliance claims.
@@ -224,12 +223,13 @@
 
     <section>
       <h2>How we measure accuracy</h2>
-      <p>Numbers come only from a <b>holdout set</b> kept apart from tuning: {{HOLDOUT_FILES}} files across {{HOLDOUT_REPOS}} public repositories, randomly sampled with a fixed seed, with no repository or owner overlap with the tuning set. Two reviewers label findings independently without seeing scanner output; disagreements are adjudicated.</p>
+      <p>Numbers come only from a <b>holdout set</b> kept apart from tuning: 41,320 files across 100 public repositories, randomly sampled with a fixed seed, with no repository or owner overlap with the tuning set. Each high/critical finding is labelled in two independent review passes that cannot see the scanner&#39;s decision; disagreements are adjudicated.</p>
       <div class="metrics">
-        <div class="metric"><span class="n">{{HOLDOUT_FP_RATE}}</span><span class="l">False-positive rate (high/critical, source &amp; skill code)</span></div>
-        <div class="metric"><span class="n">{{HOLDOUT_RECALL}}</span><span class="l">Recall on attack-type patterns</span></div>
-        <div class="metric"><span class="n">{{HOLDOUT_REVIEW_SHARE}}</span><span class="l">Share of findings routed to human review</span></div>
+        <div class="metric"><span class="n">41,320</span><span class="l">Files analysed statically</span></div>
+        <div class="metric"><span class="n">100</span><span class="l">Randomly sampled registry servers</span></div>
+        <div class="metric"><span class="n">0</span><span class="l">Lines of scanned code executed</span></div>
       </div>
+      <p class="small">Precision on this first holdout was below our bar: most high/critical flags came from security tools&#39; own detection rules and test vectors. We publish accuracy figures only after the fix is re-validated on a fresh random sample.</p>
       <p class="small muted">Noise reduction lowers severity and flags a finding for review; it never deletes it, and never allowlists by repository name or owner.</p>
     </section>
 

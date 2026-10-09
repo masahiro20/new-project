@@ -516,16 +516,16 @@ Evidence            file:line links for every finding · rule docs at {{RULES_UR
 <!-- Evidence -->
 <section class="block alt" id="evidence" aria-labelledby="evidence-h">
   <div class="wrap">
-    <span class="section-label">Early results · stage 2 internal test</span>
-    <h2 id="evidence-h">Tested on 100 public repositories. Nothing executed.</h2>
-    <p class="lede">We scanned 100 public repositories — mostly sampled from the official MCP registry, plus reference servers, skill collections and positive controls — with the regex-only scanner (v0) and the AST + context scanner (v1). Repositories were cloned with hooks disabled; nothing was installed, built, imported or run.</p>
+    <span class="section-label">Early results · random holdout, internal test</span>
+    <h2 id="evidence-h">Tested on 100 randomly sampled registry servers. Nothing executed.</h2>
+    <p class="lede">We drew 100 servers at random (fixed seed) from the official MCP Registry: repositories with a published npm, PyPI or OCI package, one per owner, none of them used to tune the scanner. We scanned them statically. Repositories were cloned with hooks disabled; nothing was installed, built, imported or run.</p>
     <div class="grid-4">
-      <div class="stat"><span class="v">36,873</span><span class="k">files statically analysed across 100 repos</span></div>
-      <div class="stat"><span class="v">205 <span class="arrow">→</span> 32</span><span class="k">actionable high/critical findings in source &amp; skills (−84%)</span></div>
-      <div class="stat"><span class="v">11 / 11</span><span class="k">positive-control cases still detected after noise reduction</span></div>
+      <div class="stat"><span class="v">41,320</span><span class="k">files statically analysed across 100 repos</span></div>
+      <div class="stat"><span class="v">16,826</span><span class="k">files parsed to a syntax tree (Python, JS/TS) for context</span></div>
+      <div class="stat"><span class="v">15 / 115</span><span class="k">sampled registry repos were private or deleted when we fetched them</span></div>
       <div class="stat"><span class="v">0</span><span class="k">lines of scanned code executed</span></div>
     </div>
-    <p class="note">Every remaining finding was reviewed by hand; "real but legitimate" uses such as npm postinstall scripts are shown as evidence for a reviewer's call, not as problems. Internal test, 2026-10; not an independent audit.</p>
+    <p class="note">Every high/critical finding was labelled in two independent review passes that could not see the scannerEvery high/critical finding was reviewed by two people independently.#39;s decision. Real but legitimate uses, such as npm postinstall scripts, are shown as evidence for a reviewer&#39;s call, not as problems. Internal test on a random holdout, 2026-10; not an independent audit.</p>
   </div>
 </section>
 
