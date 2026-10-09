@@ -90,7 +90,7 @@ npm run build
 - **ライセンスキー**：`SLAB-XXXX-XXXX-XXXX`（Crockford Base32、60ビット）。入力は大文字小文字・ハイフン・`O/I/L` の取り違えを吸収します。KV に逆引きを保存し、Stripe の Customer metadata（`{slug}_license`）にも保存するので、KV が消えても Stripe から復元できます
 - **アクセス Cookie**：`{slug}_access`。jose の HS256 JWT（`aud` = slug）。httpOnly、本番は secure、sameSite=lax
 - **マジックリンク**：15分有効・1回限り（KV にはトークンのハッシュだけを保存し `GETDEL` で消費）。未登録のメールにも同じ応答を返し、検索とメール送信は `after()` で行うので応答時間からも推測できません。リンクは `/access?token=…` に着地し、ボタンを押して初めて消費されます（メールのリンクスキャナ対策）
-- **楽観的チェック**：`proxy.ts` は `/app` で Cookie の有無だけを見ます
+- **楽観的チェック**：Budget Guard では `proxy.ts` を削除した（Cloudflare Workers で Node.js の proxy が実験的扱いで、バンドルが約5MB増えるため。docs/deploy-cloudflare.md）。`/app` の layout の `requireAccess()` が同じリダイレクトを行う
 - **本検証**：`requireAccess()` が署名と entitlement の状態（active / trialing / past_due）を毎回確認します。KV になければ Stripe を確認して再キャッシュします
 
 ### 待機リスト・集計
@@ -98,7 +98,7 @@ npm run build
 - 集計は `sendBeacon` → `/api/track` → `HINCRBY stats:{slug}:{YYYY-MM-DD}`。ブラウザから送れるのは `pageview` と `cta_click` だけで、`checkout_start` / `purchase` / `signup` はサーバー側で数えます。個人は識別しません
 
 ### OGP
-`app/opengraph-image.tsx` / `twitter-image.tsx` / `icon.tsx` は `ImageResponse` でビルド時に静的生成します（`runtime = "edge"` は書かない）。**日本語フォントを同梱していないため、`og.title` / `og.subtitle` は英数字のみ**（config の検証で弾きます）。日本語にしたい場合は、サブセット化した `.ttf/.otf/.woff` を `lib/og.tsx` で `readFile` して `fonts` に渡し、`lib/config.ts` の `latin()` 検証を外してください（同梱物は500KBまで）。
+Budget Guard では OG 画像・favicon を `npm run og`（`scripts/gen-og.tsx` → `lib/og.tsx` の `ImageResponse`）で `app/opengraph-image.png` / `twitter-image.png` / `icon.png` に書き出して置いています（`next/og` の wasm をサーバーバンドルに入れないため。`product.config.ts` の og / brand を変えたら再実行）。**日本語フォントを同梱していないため、`og.title` / `og.subtitle` は英数字のみ**（config の検証で弾きます）。日本語にしたい場合は、サブセット化した `.ttf/.otf/.woff` を `lib/og.tsx` で `readFile` して `fonts` に渡し、`lib/config.ts` の `latin()` 検証を外してください（同梱物は500KBまで）。
 
 ### 法務
 - `/legal/tokushoho`：ROWS 方式。サブスクのプランがあれば「契約の自動更新」「解約方法」の行が自動で増えます
@@ -149,7 +149,6 @@ await setJSON(kv, key("notes", access.entitlement.id), { text: "…" }, { ex: 86
 
 ```
 product.config.ts        ★ ローンチごとに変える
-proxy.ts                 /app の Cookie 有無チェック
 app/
   page.tsx               LP（静的生成、JSON-LD 付き）
   pricing/ success/ access/
@@ -157,7 +156,7 @@ app/
   (product)/app/         ★ 本体（layout で requireAccess）
   actions/{waitlist,access}.ts
   api/{checkout,portal,stripe/webhook,access/verify,track,admin/stats}/
-  opengraph-image.tsx twitter-image.tsx icon.tsx robots.ts sitemap.ts llms.txt/
+  opengraph-image.png twitter-image.png icon.png robots.ts sitemap.ts llms.txt/
 components/              landing/*, WaitlistForm, BuyButton, PurchaseConfirm, PlanCard, Track, AccessForms
 content/legal/           規約・プライバシーの雛形（ja / en）
 lib/

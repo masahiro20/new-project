@@ -111,7 +111,7 @@ export function findPlaceholders(value: unknown, path = ""): string[] {
 
 export const config: ProductConfig = parseConfig(raw);
 
-/** Name of the signed access cookie (read by proxy.ts, so it lives in this light module). */
+/** Name of the signed access cookie (kept in this light module so any edge code can read it). */
 export const ACCESS_COOKIE = `${config.slug}_access`;
 
 export function getPlan(id: string): Plan | undefined {

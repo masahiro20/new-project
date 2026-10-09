@@ -1,0 +1,23 @@
+# Local values for `npm run preview` (workerd). Copy to .dev.vars (git-ignored).
+# DUMMY values only — never put real keys here. Production: `npx wrangler secret put NAME`.
+
+# Demo payments: no money moves, every page shows 「デモ：実際の請求はありません」.
+PAYMENTS_MODE=demo
+
+# 32+ chars. Dummy for local use only (production: openssl rand -base64 32).
+ACCESS_SECRET=local-dummy-access-secret-change-me-0123456789
+# 32 bytes, base64. Dummy (production: openssl rand -base64 32).
+TOKEN_ENCRYPTION_KEY=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+# Cron route auth (Authorization: Bearer $CRON_SECRET). Dummy.
+CRON_SECRET=local-dummy-cron-secret
+
+# Leave Upstash unset locally → in-memory KV (per isolate, lost on restart).
+# UPSTASH_REDIS_REST_URL=
+# UPSTASH_REDIS_REST_TOKEN=
+
+# Optional
+# RESEND_API_KEY=
+# MAIL_FROM="Budget Guard <alerts@example.com>"
+# ADMIN_TOKEN=
+# STRIPE_SECRET_KEY=
+# STRIPE_WEBHOOK_SECRET=

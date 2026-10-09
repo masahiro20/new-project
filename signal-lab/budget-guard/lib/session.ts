@@ -7,8 +7,10 @@ import { isActive, type Entitlement } from "./entitlements";
 import { resolveEntitlement } from "./payments";
 import { getKV } from "./redis";
 
-// Request-bound access helpers (the "DAL"). proxy.ts only checks that the cookie
-// exists; these verify the signature AND the current entitlement status.
+// Request-bound access helpers (the "DAL"). They verify the signature AND the current
+// entitlement status. There is no proxy.ts: Next 16 proxies run on the Node.js runtime,
+// which OpenNext/Cloudflare supports only experimentally and which added ~5 MB to the
+// Worker (docs/deploy-cloudflare.md). The /app layout's requireAccess() redirect covers it.
 
 export type Access =
   | { gated: false; entitlement: null; plan: null } // access.gate = "none"

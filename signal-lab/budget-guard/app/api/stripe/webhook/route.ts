@@ -12,7 +12,8 @@ export async function POST(request: Request) {
   const signature = request.headers.get("stripe-signature") ?? "";
   let event;
   try {
-    event = getStripe().webhooks.constructEvent(body, signature, secret);
+    // Async variant: uses Web Crypto where Node crypto isn't available (Cloudflare Workers build of stripe).
+    event = await getStripe().webhooks.constructEventAsync(body, signature, secret);
   } catch {
     return Response.json({ error: "invalid signature" }, { status: 400 });
   }

@@ -1,0 +1,21 @@
+{
+  // Cloudflare Workers (free plan) via OpenNext. See docs/deploy-cloudflare.md.
+  // Secrets are NOT stored here: `wrangler secret put NAME` (prod) / .dev.vars (local).
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "budget-guard",
+  // Custom entry: OpenNext's generated .open-next/worker.js + a scheduled() handler for the cron.
+  "main": "cf-worker.ts",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  // Hourly, same as vercel.json. Free plan: 5 Cron Triggers per account (shared by all Workers).
+  "triggers": {
+    "crons": ["0 * * * *"]
+  },
+  "observability": {
+    "enabled": true
+  }
+}

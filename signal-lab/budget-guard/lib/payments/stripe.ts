@@ -12,7 +12,9 @@ let stripe: Stripe | null = null;
 export function getStripe(): Stripe {
   const secret = process.env.STRIPE_SECRET_KEY;
   if (!secret) throw new Error("STRIPE_SECRET_KEY is not set");
-  stripe ??= new Stripe(secret);
+  // Fetch-based HTTP client: works on Node (Vercel) and on Cloudflare Workers (workerd),
+  // where the default Node http client is not a safe assumption.
+  stripe ??= new Stripe(secret, { httpClient: Stripe.createFetchHttpClient() });
   return stripe;
 }
 

@@ -6,7 +6,7 @@ import { requireAccess } from "@/lib/session";
 
 export const metadata: Metadata = { robots: { index: false } };
 
-// The real check (proxy.ts only looks for the cookie). Server Actions and Route
+// The access check (redirects to /access; there is no proxy.ts). Server Actions and Route
 // Handlers under the product must call requireAccess() themselves too.
 export default async function ProductLayout({ children }: { children: React.ReactNode }) {
   const access = await requireAccess();
