@@ -29,19 +29,26 @@ function addNoise(x, snrDb, seed, kind = 'white') {
   return x.map((v, i) => v + n[i] * g);
 }
 
-/** 部屋の響き：直接音 ＋ 指数減衰する雑音（RT60、直接音と残響のエネルギー比 DRR）。 */
+/**
+ * 部屋の響き：直接音 ＋ 指数減衰する残響（RT60、直接音と残響のエネルギー比 DRR）。
+ * 残響は疎な乱数パルス列（velvet noise、2,000 本/秒）で、密な雑音の応答と聞こえ方は同じで計算が軽い。
+ */
 function reverb(x, rt60, drrDb, seed) {
   const r = rng(seed);
-  const len = Math.round(rt60 * SR);
-  const h = new Float32Array(len);
+  const taps = [];
   let e = 0;
-  for (let i = 48; i < len; i++) { h[i] = (r() * 2 - 1) * Math.exp((-6.91 * i) / SR / rt60); e += h[i] * h[i]; }
+  for (let t = 0.003; t < rt60; t += 0.0005) {
+    const i = Math.round((t + r() * 0.0005) * SR);
+    const v = (r() < 0.5 ? -1 : 1) * Math.exp((-6.91 * i) / SR / rt60);
+    taps.push([i, v]); e += v * v;
+  }
   const g = Math.sqrt(10 ** (-drrDb / 10) / e);
+  const len = Math.round(rt60 * SR) + 1;
   const y = new Float32Array(x.length + len);
   for (let i = 0; i < x.length; i++) {
     if (x[i] === 0) continue;
     y[i] += x[i];
-    for (let j = 48; j < len; j++) y[i + j] += x[i] * h[j] * g;
+    for (const [d, v] of taps) y[i + d] += x[i] * v * g;
   }
   return y;
 }
