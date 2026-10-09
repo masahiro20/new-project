@@ -1,17 +1,18 @@
 # P2 Model Switch Calculator — HN and Reddit drafts
 
 Author: Midas (2026-10-09). Status: **draft. Do not post before the owner approves.** Posting uses the owner's own HN and Reddit accounts.
-Page: https://masahiro20.github.io/new-project/calc/ (live, checked 2026-10-09)
+Page: https://masahiro20.github.io/new-project/calc/ (live, checked 2026-10-09; updated for calc v2: Gemini prices and share links)
 
 ## What the page actually does (every claim below comes from the live page)
-- You paste an Anthropic or OpenAI usage export (CSV or JSON) or drop in a file. The page shows what the same traffic would cost per month on each current Claude and GPT model, side by side.
-- List prices were checked on 2026-10-08 against the official pricing pages. Rows whose price isn't verified are left out of totals, and you can type in a price yourself.
+- You paste an Anthropic or OpenAI usage export (CSV or JSON) or drop in a file. The page shows what the same traffic would cost per month on each current Claude, GPT and Gemini model, side by side.
+- List prices were checked on 2026-10-09 against the official pricing pages (Anthropic, OpenAI, Google). Rows whose price isn't verified are left out of totals, and you can type in a price yourself.
 - **Runs entirely in the browser.** After the page loads it makes no network requests: no uploads, no tracking, no sign-up.
 - Cache-aware:
   - Cache writes and reads are priced separately.
   - A "keep my cache hit ratio" toggle controls how cache tokens are priced on the target model.
   - 30-day normalisation.
-- You can copy the results as Markdown or CSV. Sample data is included for both providers.
+- You can copy the results as Markdown or CSV, or copy a share link. The link holds only settings and aggregate token totals, never the pasted rows. It does reveal your usage volume, and the page says so. Sample data is included for Anthropic and OpenAI.
+- There's no dedicated Gemini export parser. Gemini usage goes in through the simple CSV. Gemini Flash prices are promotional through 2026-12-31, as the page notes.
 - Caveats stated on the page:
   - Tokenizers differ, so cross-provider comparisons are estimates.
   - Prices are standard tier, with no Batch, long-context or regional pricing.
@@ -51,12 +52,13 @@ Show HN: Model Switch Calculator – price your LLM usage on every other model
 ```
 Hi HN. I built this after watching our own API bills and asking a simple question every time a cheaper model shipped: if we moved all of this traffic, what would the month actually cost?
 
-The pricing pages answer per-token questions, but real usage is a mix of input, output, cache writes and cache reads, and that mix changes the answer a lot. So the calculator takes the usage export you already have (Anthropic Console CSV, Anthropic Admin API JSON, OpenAI usage CSV/JSON, or a plain date,model,tokens CSV) and reprices the whole bundle on each current Claude and GPT model.
+The pricing pages answer per-token questions, but real usage is a mix of input, output, cache writes and cache reads, and that mix changes the answer a lot. So the calculator takes the usage export you already have (Anthropic Console CSV, Anthropic Admin API JSON, OpenAI usage CSV/JSON, or a plain date,model,tokens CSV) and reprices the whole bundle on each current Claude, GPT and Gemini model.
 
 A few details:
 - It runs entirely in your browser. After the page loads it makes no network requests, so your usage data stays on your machine.
 - Cache tokens are priced separately, with a toggle for whether your cache hit ratio carries over to the target model.
-- Prices were checked against the official pages on 2026-10-08. Anything I couldn't verify is left out of totals; you can type in your own number.
+- Prices were checked against the official pages on 2026-10-09. Anything I couldn't verify is left out of totals; you can type in your own number.
+- You can share a link to your results. It carries only the settings and aggregate token totals (in the URL fragment, so it isn't sent to a server), not your rows.
 - Cross-provider numbers are estimates because tokenizers differ. Same-provider comparisons are tighter.
 
 There's sample data if you don't want to paste your own. I'd love to hear where the numbers look wrong for your workload, or which export format I'm missing.
@@ -66,19 +68,19 @@ There's sample data if you don't want to paste your own. I'd love to hear where 
 
 **Title**
 ```
-I made a free, browser-only calculator that reprices your real LLM usage on every Claude and GPT model
+I made a free, browser-only calculator that reprices your real LLM usage on every Claude, GPT and Gemini model
 ```
 
 **Body**
 ```
 Every time a cheaper model comes out I end up doing the same spreadsheet: take last month's usage, split it into input, output and cache tokens, and multiply by a new price list. So I turned it into a page.
 
-You paste your Anthropic or OpenAI usage export (CSV or JSON, or drop the file), and it shows what the same traffic would cost per month on each current model, side by side. You can copy the table as Markdown or CSV.
+You paste your Anthropic or OpenAI usage export (CSV or JSON, or drop the file), and it shows what the same traffic would cost per month on each current Claude, GPT and Gemini model, side by side. You can copy the table as Markdown or CSV, or share a link that holds only the totals.
 
 Things I cared about:
 - Nothing leaves your browser. No sign-up, no uploads, no tracking.
 - Cache writes and reads are priced separately, because that's where most "switch and save" estimates go wrong.
-- Every price shows where it came from and when it was checked (2026-10-08). Unverified prices are left out unless you type one in.
+- Every price shows where it came from and when it was checked (2026-10-09). Unverified prices are left out unless you type one in.
 
 It's free. There's sample data if you just want to see how it works:
 https://masahiro20.github.io/new-project/calc/
@@ -90,9 +92,9 @@ What I'm unsure about: cross-provider comparisons are estimates because tokenize
 ```
 **Model Switch Calculator** — https://masahiro20.github.io/new-project/calc/
 
-What it does: paste your Anthropic Console usage CSV or Admin API usage JSON, and it shows what the same traffic would cost per month on each current Claude model (and GPT models, if you're comparing). Cache writes and cache reads are priced separately, with a toggle for keeping your cache hit ratio on the new model.
+What it does: paste your Anthropic Console usage CSV or Admin API usage JSON, and it shows what the same traffic would cost per month on each current Claude model (and GPT or Gemini models, if you're comparing). Cache writes and cache reads are priced separately, with a toggle for keeping your cache hit ratio on the new model.
 
-How it's built: one static page, no backend. It makes no network requests after it loads, so usage data stays in your browser. I built it with Claude Code. Prices were checked against the official pricing pages on 2026-10-08, and unverified prices are left out of totals.
+How it's built: one static page, no backend. It makes no network requests after it loads, so usage data stays in your browser. I built it with Claude Code. Prices were checked against the official pricing pages on 2026-10-09, and unverified prices are left out of totals.
 
 Free, no sign-up. Feedback on the cost model is very welcome, especially from anyone using 1-hour cache writes.
 ```
