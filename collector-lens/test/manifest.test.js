@@ -45,3 +45,13 @@ test("store build settings fit Chrome Web Store limits", () => {
   // The repo manifest keeps the working title; only the store build is renamed.
   assert.match(m.name, /prototype/i);
 });
+
+test("Firefox build settings are present and the content scripts use no chrome.* APIs", () => {
+  const cfg = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "store", "store.json"), "utf8"));
+  assert.match(cfg.firefox.gecko_id, /^[a-z0-9.-]+@[a-z0-9.-]+$/);
+  assert.ok(parseFloat(cfg.firefox.strict_min_version) >= 142, "AMO data_collection_permissions needs 140 desktop / 142 Android");
+  for (const f of m.content_scripts.flatMap((c) => c.js)) {
+    const src = fs.readFileSync(path.join(__dirname, "..", f), "utf8");
+    assert.ok(!/\bchrome\.[a-z]/.test(src), `${f} uses chrome.* (not portable)`);
+  }
+});

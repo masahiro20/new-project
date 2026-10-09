@@ -4,5 +4,9 @@
   "description": "Explains Japanese condition notes, shop grades and return terms on camera and watch listings in English, and flags risky wording.",
   "version": "0.1.0",
   "zip_basename": "tanuki-scout",
-  "provisional": "Provisional name. Not cleared: needs owner sign-off and a formal USPTO / J-PlatPat search (classes 9 and 42) before submission."
+  "provisional": "Provisional name. Not cleared: needs owner sign-off and a formal USPTO / J-PlatPat search (classes 9 and 42) before submission.",
+  "firefox": {
+    "gecko_id": "tanuki-scout@masahiro20.github.io",
+    "strict_min_version": "142.0"
+  }
 }

@@ -2,7 +2,7 @@
   "name": "collector-lens-prototype",
   "version": "0.1.0",
   "private": true,
-  "description": "Tanuki Scout (provisional name) — Japan listing decoder Chrome extension prototype. Not for public release.",
+  "description": "Tanuki Scout (provisional name) \u2014 Japan listing decoder Chrome extension prototype. Not for public release.",
   "scripts": {
     "build:data": "node scripts/build-data.mjs",
     "check:glossary": "node scripts/check-glossary.mjs",
@@ -11,7 +11,8 @@
     "package": "node scripts/build-data.mjs && node scripts/package.mjs",
     "build:demo": "node scripts/build-demo.mjs",
     "package:store": "node scripts/build-data.mjs && node scripts/package-store.mjs",
-    "store:screenshots": "node scripts/store-screenshots.mjs"
+    "store:screenshots": "node scripts/store-screenshots.mjs",
+    "package:firefox": "node scripts/build-data.mjs && node scripts/package-store.mjs --firefox"
   },
   "devDependencies": {
     "jsdom": "^24.1.3"

@@ -53,6 +53,18 @@ npm run package      # dist/ を作る
 
 Chrome で `chrome://extensions` → デベロッパーモード → 「パッケージ化されていない拡張機能を読み込む」→ `collector-lens/dist` を選択。
 
+## Firefox 版
+
+同じソースから Firefox（AMO）用の zip を作れます。提出はしていません。
+
+```bash
+npm run package:firefox   # store/tanuki-scout-firefox-<version>.zip
+```
+
+- manifest に `browser_specific_settings.gecko`（ID、最低バージョン 142、データ収集なしの宣言）を加え、`minimum_chrome_version` を外します。
+- コードは `chrome.*` API を使っていないため、変更は不要です（テストで確認）。
+- `addons-linter` でエラー・警告0件。実機の Firefox での表示確認はまだです（作業環境に Firefox がないため）。
+
 ## 辞書の運用
 
 - 原本は `data/glossary.json`。1語ごとに `ja`（表記ゆれ）、`en`、`explain`、`genre`、`category`、`risk`、`reviewed`。
