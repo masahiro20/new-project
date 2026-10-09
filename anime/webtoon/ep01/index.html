@@ -26,7 +26,7 @@ body { background: var(--bg); color: var(--ink); font-family: var(--body); font-
 .wrap { max-width: 940px; margin-inline: auto; display: grid; gap: 22px; }
 header { display: grid; gap: 8px; max-width: 640px; }
 .eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
-h1 { font-family: var(--display); font-weight: 400; font-size: clamp(26px, 4.4vw, 40px); line-height: 1.2; margin: 0; text-wrap: balance; }
+h1 { font-family: var(--display); font-weight: 400; font-size: clamp(26px, 4.4vw, 40px); line-height: 1.2; margin: 0; text-wrap: balance; word-break: keep-all; overflow-wrap: anywhere; }
 h1 .red { color: var(--red); }
 p { margin: 0; max-width: 64ch; }
 .opts { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--muted); align-items: center; }
@@ -53,6 +53,7 @@ p { margin: 0; max-width: 64ch; }
     <p>縦スクロール版の第1話ネームです。アニメ第1話を圧縮し、取立日の夜から〈デフォルト〉の覚醒までを1話に収めています。スマホの幅で、上から順に読んでください。</p>
     <div class="opts">
       <span id="count"></span>
+      <label for="show-clean"><input type="checkbox" id="show-clean" checked> 清書（カラー）があるコマは清書で表示</label>
       <label for="show-notes"><input type="checkbox" id="show-notes"> 演出メモを表示</label>
     </div>
   </header>
@@ -68,7 +69,10 @@ p { margin: 0; max-width: 64ch; }
   const reader = document.getElementById('reader');
   const D = window.WT01;
   if (!D || !D.panels || !D.panels.length) { reader.innerHTML = '<div class="empty">ネームのデータを読み込めませんでした。</div>'; return; }
-  document.getElementById('count').textContent = `全${D.panels.length}コマ`;
+  const nClean = D.panels.filter(p => p.clean).length;
+  document.getElementById('count').textContent = `全${D.panels.length}コマ（清書済み ${nClean}コマ）`;
+  const cleanBox = document.getElementById('show-clean');
+  try { if (localStorage.getItem('wt01-clean') === '0') cleanBox.checked = false; } catch (e) {}
   const notes = document.getElementById('show-notes');
   try { notes.checked = localStorage.getItem('wt01-notes') === '1'; } catch (e) {}
   const applyNotes = () => reader.classList.toggle('notes', notes.checked);
@@ -84,14 +88,18 @@ p { margin: 0; max-width: 64ch; }
       .replace(/(xlink:href|href)="#([^"]+)"/g, (_, a, id) => `${a}="#${p}${id}"`);
     return text;
   }
-  const texts = await Promise.all(D.panels.map(p => fetch('panels/' + p.file).then(r => r.ok ? r.text() : null).catch(() => null)));
+  async function draw() {
+  reader.innerHTML = '';
+  const useClean = cleanBox.checked;
+  const pathOf = p => (useClean && p.clean ? 'clean/color/' : 'panels/') + p.file;
+  const texts = await Promise.all(D.panels.map(p => fetch(pathOf(p)).then(r => r.ok ? r.text() : null).catch(() => null)));
   D.panels.forEach((p, i) => {
     const panel = document.createElement('div');
     panel.className = 'panel';
     panel.setAttribute('role', 'img');
     panel.setAttribute('aria-label', `コマ${p.no}`);
     if (texts[i]) panel.innerHTML = inline(texts[i], p.no);
-    else { const img = document.createElement('img'); img.src = 'panels/' + p.file; img.alt = `コマ${p.no}`; panel.append(img); }
+    else { const img = document.createElement('img'); img.src = pathOf(p); img.alt = `コマ${p.no}`; panel.append(img); }
     const note = document.createElement('div');
     note.className = 'note';
     note.innerHTML = `<b>#${String(p.no).padStart(2, '0')}</b>`;
@@ -106,5 +114,8 @@ p { margin: 0; max-width: 64ch; }
   const end = document.createElement('div'); end.className = 'end';
   end.innerHTML = '第1話 おわり<small>第2話「投資契約」へつづく</small>';
   const endSp = document.createElement('div'); endSp.className = 'spacer'; reader.append(end, endSp);
+  }
+  cleanBox.addEventListener('change', () => { try { localStorage.setItem('wt01-clean', cleanBox.checked ? '1' : '0'); } catch (e) {} draw(); });
+  draw();
 })();
 </script>

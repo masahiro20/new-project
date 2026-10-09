@@ -14,10 +14,11 @@ for part in ("a", "b"):
     with open(path, encoding="utf-8") as f:
         for p in json.load(f)["panels"]:
             if os.path.exists(os.path.join(HERE, "panels", p["file"])):
-                panels.append({"no": p["no"], "file": p["file"], "gap": int(p.get("gap_after", 60)), "note": p.get("note", "")})
+                panels.append({"no": p["no"], "file": p["file"], "gap": int(p.get("gap_after", 60)), "note": p.get("note", ""),
+                           "clean": os.path.exists(os.path.join(HERE, "clean", "color", p["file"]))})
             else:
                 print("missing panel", p["file"])
 panels.sort(key=lambda p: p["no"])
 with open(os.path.join(HERE, "data.js"), "w", encoding="utf-8") as f:
     f.write("window.WT01 = " + json.dumps({"panels": panels}, ensure_ascii=False) + ";\n")
-print(len(panels), "panels")
+print(len(panels), "panels,", sum(p["clean"] for p in panels), "clean")
