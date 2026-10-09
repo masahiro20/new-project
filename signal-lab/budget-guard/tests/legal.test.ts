@@ -89,17 +89,30 @@ describe("terms of service drafts", () => {
     for (const fact of ["per day", "every hour", "up to 12 hours", "not instantaneous"]) expect(enS).toContain(fact);
   });
 
-  it("liability: never a blanket exclusion; wilful misconduct / gross negligence excluded from the cap; 12-month cap", () => {
-    const jaL = section(ja, "責任の制限");
-    const enL = section(en, "Limitation of liability");
+  it("business use, with separate business and consumer liability clauses", () => {
+    expect(section(ja, "対象となる利用者")).toContain("業務での利用");
+    expect(section(en, "Who the Service is for")).toContain("business purposes");
+    const jaB = section(ja, "責任の制限（事業者の利用者）");
+    const jaC = section(ja, "責任の制限（消費者の利用者）");
+    const enB = section(en, "Limitation of liability (business users)");
+    const enC = section(en, "Limitation of liability (consumers)");
     expect(all(ja)).not.toMatch(/一切(の)?責任を負(わ|い)/);
     expect(all(en).toLowerCase()).not.toMatch(/no liability|not liable for any|in no event/);
-    expect(jaL).toContain("故意または重大な過失がある場合");
-    expect(jaL).toContain("重大な過失を除きます");
-    expect(jaL).toContain("12か月");
-    expect(enL).toContain("willful misconduct or gross negligence");
-    expect(enL).toContain("other than gross negligence");
-    expect(enL).toContain("12 months");
+    for (const s of [jaB, jaC]) {
+      expect(s).toContain("故意または重大な過失");
+      expect(s).toContain("12か月");
+    }
+    for (const s of [enB, enC]) {
+      expect(s).toContain("willful misconduct or gross negligence");
+      expect(s).toContain("12 months");
+    }
+    // Consumers: only slight negligence is capped (消契法8条3項), and the cap never drops to zero (8条1項).
+    expect(jaC).toContain("重大な過失を除きます");
+    expect(jaC).toContain("いずれか高い額");
+    expect(jaC).toContain("無償の試用・デモ");
+    expect(enC).toContain("other than gross negligence");
+    expect(enC).toContain("the higher of");
+    expect(enC).toContain("where you have paid no fees");
     // English uses a general limitation-of-liability clause, without the Japanese statute.
     expect(all(en)).not.toMatch(/Consumer Contract Act/);
   });
@@ -107,8 +120,23 @@ describe("terms of service drafts", () => {
   it("demo and trial conditions", () => {
     const jaD = section(ja, "デモと試用");
     const enD = section(en, "Demo and trial");
-    for (const fact of ["料金は請求されず", "試用の期間は（要確認）", "テストモードで始まります", "捨ててよいプロジェクト", "live"]) expect(jaD).toContain(fact);
-    for (const fact of ["not charged", "trial period is to be confirmed", "starts in test mode", "throwaway project", "live"]) expect(enD).toContain(fact);
+    for (const fact of ["料金は請求されず", "試用の期間は30日間", "終了から30日間保存", "7日以内", "テストモードで始まります", "捨ててよいプロジェクト", "live"]) expect(jaD).toContain(fact);
+    for (const fact of ["not charged", "trial period is 30 days", "30 days after the end", "within 7 days", "starts in test mode", "throwaway project", "live"]) expect(enD).toContain(fact);
+  });
+});
+
+describe("decided values replace the open questions", () => {
+  it("retention 30 days after the end, deletion within 7 days, consent for cross-border transfers", () => {
+    const ja = privacy.ja(config);
+    const en = privacy.en(config);
+    expect(section(ja, "保存期間と削除")).toContain("終了から30日間保存");
+    expect(section(ja, "保存期間と削除")).toContain("ご依頼から7日以内");
+    expect(section(en, "Retention and deletion")).toContain("30 days after the end");
+    expect(section(en, "Retention and deletion")).toContain("within 7 days of your request");
+    expect(section(ja, "外国にある第三者への提供")).toContain("本人の同意を得たうえで");
+    expect(section(en, "International transfers")).toContain("prior consent");
+    const decided = /試用の期間は（要確認）|保存期間は（要確認）|（要確認）日以内|trial period is to be confirmed|within \(to be confirmed\) days/;
+    for (const d of [ja, en, terms.ja(config), terms.en(config)]) expect(all(d)).not.toMatch(decided);
   });
 });
 

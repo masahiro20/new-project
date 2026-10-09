@@ -37,7 +37,8 @@ export const privacy: Record<"ja" | "en", LegalDoc> = {
           `${R}Slack の webhook URL：利用者が登録を解除するまで保存します。接続を削除しても、この URL は削除されません。`,
           `${R}利用額のスナップショット：接続ごとに最新の1件だけを保存し、確認のたびに上書きします。接続を削除すると削除します。`,
           `${R}アクティビティログ：アカウントごとに最新の50件だけを保存し、古いものから順に消えます。削除した接続についての記録も、新しい記録に押し出されるまで残ります。`,
-          `${R}サブスクリプションの終了後や試用の終了後に、上記の情報を自動で削除する仕組みは現在ありません（監視は止まります）。終了後の保存期間は（要確認）です。アカウント全体の削除は、下記の窓口へのご依頼により当方が手作業で行い、ご依頼から（要確認）日以内に完了します。`,
+          `${R}サブスクリプションまたは試用（30日間）が終了すると、監視を止めます。当方が保存している上記の情報は、終了から30日間保存し、その後に削除します。`,
+          `${R}アカウント全体の削除は、下記の窓口からいつでもご依頼いただけます。ご依頼から7日以内に削除し、完了をお知らせします。`,
           `${R}不正利用を防ぐため、IP アドレスを回数制限の目的でのみ一時的に保存し、最長10分で自動的に削除します。デモの購入記録（メールアドレスとカード番号の末尾4桁）は、支払い前のものは1時間、支払い済みのものは90日で自動的に削除します。`,
         ],
       },
@@ -65,7 +66,7 @@ export const privacy: Record<"ja" | "en", LegalDoc> = {
       {
         heading: "外国にある第三者への提供",
         body: [
-          `${R}本サービスは、下記の外国にある事業者に個人データの取扱いを委託し、または利用者の指示により送信します。各国の個人情報の保護に関する制度は、個人情報保護委員会が公表している「外国における個人情報の保護に関する制度等の調査」（${PPC_FOREIGN}）でご確認いただけます（米国は「アメリカ合衆国（連邦）」と各州の項目）。各事業者が講じる措置は、各社のプライバシーポリシーなどの公表情報によるもので、当方が個別に確認したものではありません。`,
+          `${R}本サービスは、下記の外国にある事業者に個人データの取扱いを委託し、または利用者の指示により送信します。これらの提供は、あらかじめ本人の同意を得たうえで行います（同意は、購入時と接続の追加時にいただきます）。以下は、同意をいただく際にお示しする情報です。各国の個人情報の保護に関する制度は、個人情報保護委員会が公表している「外国における個人情報の保護に関する制度等の調査」（${PPC_FOREIGN}）でご確認いただけます（米国は「アメリカ合衆国（連邦）」と各州の項目）。各事業者が講じる措置は、各社のプライバシーポリシーなどの公表情報によるもので、当方が個別に確認したものではありません。`,
           `${R}Upstash, Inc.（データの保存）：所在国は米国です。データの保存先は、当方が本サービスのデプロイ時に選んだリージョン（国名は（要確認））です。同社は EU-米国データプライバシーフレームワーク（DPF）の認証を受け、委託先と標準契約条項などのデータ移転契約を結ぶとしています。`,
           `${R}${hostingEntity()}（ホスティング）：所在国は米国です。${
             hostingProvider() === "Cloudflare"
@@ -111,7 +112,8 @@ export const privacy: Record<"ja" | "en", LegalDoc> = {
           `${R}Slack webhook URL: kept until you remove it. Deleting a connection does not delete it.`,
           `${R}Spend snapshots: only the latest one per connection, overwritten at every check and deleted with the connection.`,
           `${R}Activity log: only the latest 50 entries per account; older ones drop off. Entries about a deleted connection stay until newer entries push them out.`,
-          `${R}There is currently no automatic deletion of the above when a subscription or trial ends (monitoring stops). How long it is kept after that is to be confirmed. We delete a whole account by hand when you ask us at the contact below, within (to be confirmed) days of your request.`,
+          `${R}When a subscription or trial (30 days) ends, monitoring stops. We keep the data above for 30 days after the end and then delete it.`,
+          `${R}You can ask us to delete your whole account at any time at the contact below. We delete it within 7 days of your request and let you know when it is done.`,
           `${R}To prevent abuse, we keep IP addresses briefly for rate limiting only; they are deleted automatically within 10 minutes. Demo purchase records (email and the last 4 digits of the card) are deleted automatically after 1 hour if unpaid, or after 90 days if paid.`,
         ],
       },
@@ -139,7 +141,7 @@ export const privacy: Record<"ja" | "en", LegalDoc> = {
       {
         heading: "International transfers",
         body: [
-          `${R}We entrust personal data to, or send it on your instructions to, the companies abroad listed below. Information on each country's personal data protection system is available in the Personal Information Protection Commission of Japan's survey of foreign systems (${PPC_FOREIGN}); for the US, see "United States (federal)" and the state entries. The measures listed for each company are taken from its published information, such as its privacy policy; we have not verified them individually.`,
+          `${R}We entrust personal data to, or send it on your instructions to, the companies abroad listed below. We do so only with your prior consent, which we ask for at purchase and when you add a connection. The information below is what we give you when asking for that consent. Information on each country's personal data protection system is available in the Personal Information Protection Commission of Japan's survey of foreign systems (${PPC_FOREIGN}); for the US, see "United States (federal)" and the state entries. The measures listed for each company are taken from its published information, such as its privacy policy; we have not verified them individually.`,
           `${R}Upstash, Inc. (storage): located in the United States. Data is stored in the region we chose when deploying the Service (country to be confirmed). Upstash states that it is certified under the EU-U.S. Data Privacy Framework (DPF) and signs data transfer agreements such as Standard Contractual Clauses with its vendors.`,
           `${R}${hostingEntity()} (hosting): located in the United States. ${
             hostingProvider() === "Cloudflare"

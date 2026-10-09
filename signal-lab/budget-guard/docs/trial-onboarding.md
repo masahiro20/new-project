@@ -57,7 +57,8 @@
 
 ### 2.2 決めておくこと（本部・オーナー）
 
-- 試用者のデータを削除する期限（募集手順書の案は依頼から7日以内）。
+- （決定済み・2026-10-09）試用期間は30日。試用・契約の終了後のデータは30日で削除。削除の依頼から7日以内に削除。対象は事業者・開発者の業務利用。外国の事業者への提供は本人の同意による（docs/legal-changes.md）。
+  - 終了後30日の自動削除と、同意を取る画面はコードにない（docs/legal-changes.md §2.3）。実装までは、オーナーが手作業で削除し、同意は案内文の §3 で取る案（専門家に確認中）。
 - 価格を通話で「案」として伝えてよいか。
 - オーナーが試用者の KV のデータ（接続の一覧やアクティビティ）を見てよい範囲。§4 の指標の一部は、そこを見ないと分からない。
 
@@ -83,7 +84,7 @@
 
 > **Getting started with Budget Guard (trial)**
 >
-> Thanks for trying Budget Guard. This is an early prototype. Payments are in demo mode: no money moves.
+> Thanks for trying Budget Guard. This is an early prototype for businesses and developers. Payments are in demo mode: no money moves. The trial lasts 30 days.
 >
 > **1. Create your account (2 minutes)**
 > - Open {SITE_URL}/pricing and click Buy. Use the test card `4242 4242 4242 4242`, any future expiry date, any CVC.
@@ -121,7 +122,8 @@
 > - We store: your email, your license, and for each connection the encrypted token, a masked hint (first 4 and last 4 characters), your budget and stop settings, spend readings and an activity log (last 50 entries).
 > - Storage is Upstash, email is Resend, hosting is Cloudflare.
 > - We don't store card numbers. In demo mode only the last 4 digits are kept.
-> - Ask us to delete your account at any time. We'll do it within {N} days and tell you when it's done.
+> - When the trial ends, monitoring stops and we delete your data 30 days later.
+> - Ask us to delete your account at any time. We'll do it within 7 days and tell you when it's done.
 >
 > **What we ask in return:** a 15-minute call or a few lines of written feedback after about a week.
 
@@ -129,7 +131,7 @@
 
 > **Budget Guard の始め方（試用）**
 >
-> 試していただき、ありがとうございます。これは初期の試作品です。決済はデモモードで、お金は動きません。
+> 試していただき、ありがとうございます。これは事業者・開発者向けの初期の試作品です。決済はデモモードで、お金は動きません。試用期間は30日です。
 >
 > **1. アカウントを作る（2分）**
 > - {SITE_URL}/pricing を開き、購入を押す。テストカード `4242 4242 4242 4242`、未来の有効期限、任意の CVC を使う。
@@ -167,7 +169,8 @@
 > - 保存するもの：メールアドレス、ライセンス。接続ごとに、暗号化したトークン、伏せ字（先頭4文字と末尾4文字）、予算と停止の設定、利用額の記録、アクティビティ（最新50件）。
 > - 保存先は Upstash、メールは Resend、ホスティングは Cloudflare。
 > - カード番号は保存しない。デモモードでは末尾4桁だけを持つ。
-> - アカウントの削除はいつでも依頼できる。{N} 日以内に削除し、完了を連絡する。
+> - 試用が終わると監視は止まり、データは終了から30日後に削除する。
+> - アカウントの削除はいつでも依頼できる。7日以内に削除し、完了を連絡する。
 >
 > **お願い：** 1週間ほど使ったあと、15分の通話か、数行の感想をください。
 
@@ -183,7 +186,7 @@
 | Anthropic は Default 以外のワークスペース | `components/guard/AddConnectionForm.tsx`、provider-apis.md §3.1 | 個人アカウントでは Admin API を使えない |
 | 各社のキーの失効の手順（画面の場所） | — | **未確認。** docs に手順がない。案内では「プロバイダ側で失効」とだけ書いた |
 | データの保存内容 | `lib/guard/store.ts`、`docs/lp.md` FAQ、demo-payments.md §4 | アカウント全体の削除機能はコードにない。オーナーが KV から手で消す（§5） |
-| {N} 日 | 募集手順書 §6 の案は7日 | 本部の承認事項 |
+| 試用30日、終了後30日で削除、依頼から7日以内 | 2026-10-09 の社内の決定（docs/legal-changes.md） | 終了後30日の自動削除はコードにない。オーナーが手作業で消す |
 
 ---
 
