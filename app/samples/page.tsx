@@ -103,7 +103,7 @@ export default function SamplesPage() {
             <div className="result-head">
               <h2 style={{ margin: 0 }}>{PART_LABELS[p]}</h2>
               <div className="actions no-print" style={{ marginTop: 0 }}>
-                <SampleDownload markdown={SAMPLES[p]} filename={`サンプル_${PART_LABELS[p].replace(/（.*$/, "")}.docx`} />
+                <SampleDownload part={p} markdown={SAMPLES[p]} filename={`サンプル_${PART_LABELS[p].replace(/（.*$/, "")}.docx`} />
               </div>
             </div>
             <MarkdownView markdown={SAMPLES[p]} />

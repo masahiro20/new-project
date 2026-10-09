@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Analytics from "./Analytics";
 import { aiEnabled, demoPurchase, liveBilling } from "@/lib/launch";
 import { DEMO_BANNER } from "@/lib/payments/mode";
 import { ogImage } from "@/lib/og";
@@ -15,6 +16,10 @@ export const metadata: Metadata = {
   description:
     "障害福祉サービス事業所向け。虐待防止委員会の議事録、研修資料と理解度テスト、身体拘束等適正化の指針を、事業所に合わせてAIが作成します。減算リスクの無料診断つき。",
   openGraph: { type: "website", locale: "ja_JP", siteName: "減算ゼロ", images: [ogImage()] },
+  // Google Search Console ownership (meta-tag method); see docs/search-console.md.
+  ...(process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+    ? { verification: { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION } }
+    : {}),
   twitter: { card: "summary_large_image" },
 };
 
@@ -55,6 +60,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <p>本サービスは書類作成を支援するツールです。制度の最新の取扱いは、指定権者（都道府県・市町村）の通知をご確認ください。</p>
           </div>
         </footer>
+        {process.env.NEXT_PUBLIC_GOATCOUNTER_CODE && <Analytics code={process.env.NEXT_PUBLIC_GOATCOUNTER_CODE} />}
       </body>
     </html>
   );

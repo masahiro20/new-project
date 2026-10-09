@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { trackEvent } from "@/lib/analytics";
+import type { Part } from "@/lib/parts";
 
-export default function SampleDownload({ markdown, filename }: { markdown: string; filename: string }) {
+export default function SampleDownload({ part, markdown, filename }: { part: Part; markdown: string; filename: string }) {
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
 
@@ -12,6 +14,7 @@ export default function SampleDownload({ markdown, filename }: { markdown: strin
     try {
       const { downloadDocx } = await import("@/lib/docx-export");
       await downloadDocx(markdown, filename);
+      trackEvent(`sample-download-${part}`);
     } catch {
       setFailed(true);
     } finally {

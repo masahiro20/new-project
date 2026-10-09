@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { trackEvent } from "@/lib/analytics";
 
 const GROUPS = [
   {
@@ -24,14 +25,30 @@ const GROUPS = [
 export default function CheckClient({ ai }: { ai: boolean }) {
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [showResult, setShowResult] = useState(false);
+  const [started, setStarted] = useState(false);
 
-  const toggle = (key: string) =>
+  const toggle = (key: string) => {
+    if (!started) {
+      setStarted(true);
+      trackEvent("check-start");
+    }
     setChecked((prev) => {
       const next = new Set(prev);
       if (next.has(key)) next.delete(key);
       else next.add(key);
       return next;
     });
+  };
+
+  // Counts only that the check was started/finished; the answers themselves are never sent.
+  function finish() {
+    if (!started) {
+      setStarted(true);
+      trackEvent("check-start");
+    }
+    setShowResult(true);
+    trackEvent("check-complete");
+  }
 
   const missing = GROUPS.map((g) => ({ ...g, missing: g.items.filter((item) => !checked.has(`${g.name}:${item}`)) })).filter((g) => g.missing.length);
 
@@ -53,7 +70,7 @@ export default function CheckClient({ ai }: { ai: boolean }) {
       ))}
 
       <div className="actions">
-        <button type="button" className="btn" onClick={() => setShowResult(true)}>診断結果を見る</button>
+        <button type="button" className="btn" onClick={showResult ? undefined : finish}>診断結果を見る</button>
       </div>
 
       {showResult && (

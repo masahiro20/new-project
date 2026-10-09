@@ -13,6 +13,7 @@ export default function PrivacyPage() {
   const ai = aiEnabled();
   const turnstile = Boolean(process.env.TURNSTILE_SECRET_KEY);
   const upstash = Boolean(process.env.UPSTASH_REDIS_REST_URL);
+  const analytics = Boolean(process.env.NEXT_PUBLIC_GOATCOUNTER_CODE);
 
   const abuse = free
     ? [
@@ -73,6 +74,11 @@ export default function PrivacyPage() {
           {sales && <li>決済：Stripe, Inc.（アメリカ合衆国）および Stripe Japan 株式会社。クレジットカード情報は Stripe が管理し、当サービスでは保持しません。</li>}
           <li>ホスティング：{process.env.HOSTING_PROVIDER || (free ? "GitHub, Inc.（アメリカ合衆国。GitHub Pages）" : "【要記入：例 Vercel Inc.（アメリカ合衆国）】")}</li>
           {abuse.length > 0 && <li>不正利用の防止：{abuse.join("、")}</li>}
+          {analytics && (
+            <li>
+              アクセス解析：GoatCounter（閲覧されたページ、診断の開始・完了、書類サンプルの保存の回数を集計します。Cookie は使わず、IPアドレスなど個人を特定できる情報は保存されません。診断の回答内容は送信しません）
+            </li>
+          )}
         </ul>
 
         <h2>安全管理措置</h2>

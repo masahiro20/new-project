@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
+import { trackEvent } from "@/lib/analytics";
 import { DEMO_TEST_CARD, validateCard, type CardField } from "@/lib/payments/card";
 
 /**
@@ -33,7 +34,10 @@ export default function DemoCheckoutClient({ amountLabel, ai }: { amountLabel: s
     form.reset();
 
     // Static host (no AI server): the demo ends here.
-    if (!ai || !token) return setDone(true);
+    if (!ai || !token) {
+      trackEvent("demo-purchase-complete");
+      return setDone(true);
+    }
 
     setPending(true);
     setMessage(null);
