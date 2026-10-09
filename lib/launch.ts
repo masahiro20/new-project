@@ -9,19 +9,42 @@ export function isFreeLaunch(): boolean {
   return process.env.LAUNCH_MODE === "free";
 }
 
-/** The purchase flow is shown (demo or real). Off in free mode, whatever Stripe settings exist. */
-export function salesEnabled(): boolean {
-  return !isFreeLaunch();
+/**
+ * Base URL of the separate paid/AI API (the Cloudflare Worker in worker/) for the static site.
+ * This is the single switch that turns the purchase flow on for GitHub Pages.
+ */
+export function paidApiUrl(): string | undefined {
+  return process.env.NEXT_PUBLIC_PAID_API_URL?.trim().replace(/\/$/, "") || undefined;
 }
 
-/** Real money changes hands: purchase flow on and PAYMENTS_MODE resolves to stripe. */
+/** Prefix for client-side fetches to the API: the Worker on the static site, same origin otherwise. */
+export function apiBase(): string {
+  return isStaticExport() ? (paidApiUrl() ?? "") : "";
+}
+
+/** The purchase flow is shown (demo or real). Off in free mode, and on the static site until the API is set. */
+export function salesEnabled(): boolean {
+  if (isFreeLaunch()) return false;
+  return !isStaticExport() || Boolean(paidApiUrl());
+}
+
+/**
+ * Demo or real payments. The server reads PAYMENTS_MODE/STRIPE_SECRET_KEY (lib/payments/mode.ts);
+ * the static site has no keys, so it is told the Worker's mode via NEXT_PUBLIC_PAYMENTS_MODE.
+ */
+function paymentsAreDemo(): boolean {
+  if (isStaticExport()) return (process.env.NEXT_PUBLIC_PAYMENTS_MODE ?? "demo").trim().toLowerCase() !== "stripe";
+  return isDemoMode();
+}
+
+/** Real money changes hands: purchase flow on and payments are live (stripe). */
 export function liveBilling(): boolean {
-  return salesEnabled() && !isDemoMode();
+  return salesEnabled() && !paymentsAreDemo();
 }
 
 /** The demo purchase flow is shown (no real charges). */
 export function demoPurchase(): boolean {
-  return salesEnabled() && isDemoMode();
+  return salesEnabled() && paymentsAreDemo();
 }
 
 /** Static export (GitHub Pages): no server, so nothing may call /api/*. */
@@ -29,9 +52,15 @@ export function isStaticExport(): boolean {
   return process.env.STATIC_EXPORT === "1";
 }
 
-/** AI generation is possible (an Anthropic key is set and there is a server to call). */
+/** Fixed mock output instead of Claude (tests only): AI_MOCK=1 and no Anthropic key. */
+export function aiMock(): boolean {
+  return process.env.AI_MOCK === "1" && !process.env.ANTHROPIC_API_KEY;
+}
+
+/** AI generation is possible: a key (or the test mock) on this server, or the Worker API for the static site. */
 export function aiEnabled(): boolean {
-  return !isStaticExport() && Boolean(process.env.ANTHROPIC_API_KEY);
+  if (isStaticExport()) return Boolean(paidApiUrl());
+  return Boolean(process.env.ANTHROPIC_API_KEY) || aiMock();
 }
 
 export const COMING_SOON = {

@@ -11,7 +11,7 @@ import { DEMO_TEST_CARD, validateCard, type CardField } from "@/lib/payments/car
  * and never leaves the browser: inputs are uncontrolled, autocomplete is off, and the
  * form is cleared after a successful submit.
  */
-export default function DemoCheckoutClient({ amountLabel, ai }: { amountLabel: string; ai: boolean }) {
+export default function DemoCheckoutClient({ amountLabel, ai, apiBase = "" }: { amountLabel: string; ai: boolean; apiBase?: string }) {
   const router = useRouter();
   const token = useSearchParams().get("token");
   const [errors, setErrors] = useState<Partial<Record<CardField, string>>>({});
@@ -41,7 +41,7 @@ export default function DemoCheckoutClient({ amountLabel, ai }: { amountLabel: s
 
     setPending(true);
     setMessage(null);
-    const res = await fetch("/api/checkout/demo", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ token }) });
+    const res = await fetch(`${apiBase}/api/checkout/demo`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ token }) });
     const data = await res.json().catch(() => ({}));
     if (data.url) router.push(data.url);
     else {

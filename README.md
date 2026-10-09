@@ -53,6 +53,10 @@ npm run dev                  # http://localhost:3000
 - 利用規約・プライバシーポリシーの運営者は「減算ゼロ運営事務局」、連絡先は「準備中」と表示する
 - `NEXT_PUBLIC_SITE_URL` が未設定なら `VERCEL_PROJECT_PRODUCTION_URL`（Vercel が自動で設定）を使う
 
+## 有料版（購入・生成 API を Cloudflare Worker に分ける）
+
+情報ページは GitHub Pages、購入と AI 生成だけを `worker/` の Cloudflare Worker が受け持つ。`NEXT_PUBLIC_PAID_API_URL` を付けて書き出すと購入ボタンが出る。オーナー作業と切り替え手順は [docs/paid-launch.md](docs/paid-launch.md)。
+
 ## Cloudflare Workers で公開する
 
 Vercel の無料プランは商用利用ができないため、Cloudflare Workers（OpenNext）でも動くようにしています。手順は [docs/deploy-cloudflare.md](docs/deploy-cloudflare.md) を参照してください。

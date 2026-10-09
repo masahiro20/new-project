@@ -81,7 +81,20 @@ async function streamInto(url: string, body: unknown, onText: (text: string) => 
   return undefined;
 }
 
-export default function GenerateClient({ price, sales, demo = false, turnstileSiteKey }: { price: number; sales: boolean; demo?: boolean; turnstileSiteKey?: string }) {
+export default function GenerateClient({
+  price,
+  sales,
+  demo = false,
+  apiBase = "",
+  turnstileSiteKey,
+}: {
+  price: number;
+  sales: boolean;
+  demo?: boolean;
+  /** Origin of the API: the Worker on the static site, "" (same origin) otherwise. */
+  apiBase?: string;
+  turnstileSiteKey?: string;
+}) {
   const params = useSearchParams();
   const router = useRouter();
   // Without sales there is no paid session to resume, whatever the URL says.
@@ -115,7 +128,7 @@ export default function GenerateClient({ price, sales, demo = false, turnstileSi
   }
 
   async function generatePart(id: string, part: Part, data: FacilityInput) {
-    const text = await run(part, "/api/generate", { sessionId: id, part, input: data });
+    const text = await run(part, `${apiBase}/api/generate`, { sessionId: id, part, input: data });
     if (text) saveOutput(id, part, text);
   }
 
@@ -157,7 +170,7 @@ export default function GenerateClient({ price, sales, demo = false, turnstileSi
     setMessage(null);
     save(input);
     setBusy(true);
-    await run("preview", "/api/preview", { input, turnstileToken });
+    await run("preview", `${apiBase}/api/preview`, { input, turnstileToken });
     if (turnstileSiteKey) setTurnstileReset((n) => n + 1);
     setBusy(false);
   }
@@ -167,7 +180,7 @@ export default function GenerateClient({ price, sales, demo = false, turnstileSi
     setMessage(null);
     save(input);
     setBusy(true);
-    const res = await fetch("/api/checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(input) });
+    const res = await fetch(`${apiBase}/api/checkout`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(input) });
     const data = await res.json().catch(() => ({}));
     if (data.url) {
       // Demo checkout is an in-app page (basePath-aware navigation); Stripe is an external URL.

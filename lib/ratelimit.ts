@@ -51,9 +51,10 @@ export async function allow(key: string, limit: number, windowMs: number): Promi
   return (await allowInRedis(key, limit, windowMs)) ?? allowInMemory(key, limit, windowMs);
 }
 
-/** Client IP as set by the hosting proxy. Vercel sets x-real-ip and overwrites x-forwarded-for. */
+/** Client IP as set by the hosting proxy: Cloudflare sets cf-connecting-ip, Vercel x-real-ip. */
 export function clientIp(request: Request): string {
   return (
+    request.headers.get("cf-connecting-ip")?.trim() ||
     request.headers.get("x-real-ip")?.trim() ||
     request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
     "unknown"

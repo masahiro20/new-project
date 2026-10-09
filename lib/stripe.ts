@@ -33,8 +33,8 @@ export async function createCheckoutUrl(inputHash: string): Promise<string> {
       },
     ],
     metadata: { inputHash },
-    success_url: `${siteUrl()}/generate?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${siteUrl()}/generate?canceled=1`,
+    success_url: `${siteUrl()}/generate/?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${siteUrl()}/generate/?canceled=1`,
     locale: "ja",
   });
   if (!session.url) throw new Error("Stripe did not return a checkout URL");

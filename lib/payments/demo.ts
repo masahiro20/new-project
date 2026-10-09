@@ -51,7 +51,7 @@ async function verify(token: string, now = Date.now()): Promise<Payload | null> 
 /** Starts a demo checkout: returns the in-app card page URL. */
 export async function createDemoCheckout(inputHash: string): Promise<string> {
   const token = await sign({ h: inputHash, p: 0, t: Math.floor(Date.now() / 1000) });
-  return `/checkout/demo?token=${token}`;
+  return `/checkout/demo/?token=${token}`;
 }
 
 /** Marks a pending demo checkout paid (the card was already validated). Returns the paid token, or null. */

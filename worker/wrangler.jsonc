@@ -1,0 +1,22 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  // Paid/AI API Worker for the static site. Deploy: npm run api:deploy (docs/paid-launch.md).
+  "name": "gensan-zero-api",
+  "main": "src/index.ts",
+  // nodejs_compat (with a 2025-04-01+ date) also fills process.env from vars and secrets,
+  // which lib/* reads.
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
+  "vars": {
+    // demo until the owner switches to stripe (docs/paid-launch.md step 4)
+    "PAYMENTS_MODE": "demo",
+    "PRICE_JPY": "2980",
+    // The static site: Stripe returns buyers here, and only this origin may call the API.
+    "NEXT_PUBLIC_SITE_URL": "https://masahiro20.github.io/new-project",
+    "ALLOWED_ORIGINS": "https://masahiro20.github.io"
+  }
+  // Secrets (set with `npx wrangler secret put NAME -c worker/wrangler.jsonc`, never here):
+  //   DEMO_SIGNING_SECRET, ANTHROPIC_API_KEY, STRIPE_SECRET_KEY,
+  //   UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN, TURNSTILE_SECRET_KEY
+}

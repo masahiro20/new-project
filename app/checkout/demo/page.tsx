@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { aiEnabled, demoPurchase } from "@/lib/launch";
+import { aiEnabled, apiBase, demoPurchase } from "@/lib/launch";
 import { DEMO_BANNER } from "@/lib/payments/mode";
 import { PRODUCT_NAME } from "@/lib/purchase";
 import { priceJpy } from "@/lib/stripe";
@@ -38,7 +38,7 @@ export default function DemoCheckoutPage() {
           これはデモです。カード情報はブラウザの中で形式を確認するだけで、送信も保存もしません。請求も発生しません。
         </p>
         <Suspense fallback={<p className="spinner">読み込み中…</p>}>
-          <DemoCheckoutClient amountLabel={amountLabel} ai={aiEnabled()} />
+          <DemoCheckoutClient amountLabel={amountLabel} ai={aiEnabled()} apiBase={apiBase()} />
         </Suspense>
       </div>
     </section>
