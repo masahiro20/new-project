@@ -67,6 +67,30 @@ node scripts/qa-pwa.mjs --fixtures /tmp/pitch-fx   # Playwright: install criteri
 - オフラインの手動確認：`/app/` を開いて一度再読み込みし、DevTools → Network → Offline にする（または
   サーバーを止める）と、再読み込みしてもページ・サンプル・ファイルのアップロードが動き続けます。
 
+## 評価協力モード（`demo/evalmode.js`）
+
+ネイティブ話者や学習者に判定精度の検証を手伝ってもらうためのモードです。Artifact 版と PWA の両方にあります。
+
+- **既定はオフ**。「オンにする…」を押すと、保存するもの・保存しないもの・保存場所・消し方が表示され、
+  チェックを入れて同意したときだけオンになります。オンはそのページを開いている間だけです。
+- オンの間、**録音ファイルで判定したときだけ**（判定画面と「最小対で練習」の言い分け）、判定に使った部分の音声
+  （16 kHz・モノラルの wav、最長約4秒）と判定結果（合否・検出した k・理由・モーラごとの時刻と高さ・間引いた F0 列）、
+  単語、アプリのビルド番号、日時を、このブラウザの IndexedDB に保存します。合成音声のサンプルは保存しません。
+- 任意で選べる情報：話者の区分（日本語ネイティブ／学習者のレベル）、出身地域（東京方言圏／それ以外／答えない）、
+  どの型で言ったつもりか（辞書どおり／違う型＋k／わからない）。氏名・メール・元のファイル・ファイル名は保存しません。
+- 一覧で件数と各件の単語・判定を確認でき、1件ずつ、または（ページ内で確認して）すべて削除できます。
+- 「zip で書き出す」で `Pitch-eval-YYYYMMDD.zip` を保存します（Artifact では downloads 機能、PWA ではダウンロード）。
+  中身は `README.txt`（説明・録音の権利は話者にあること・開発者に渡す場合の同意文）、`manifest.json`、
+  録音ごとの `rec-NNN-wXXXX.wav` と `.json`。ページから送信することはなく、渡すかどうか・渡し方は本人が決めます。
+- 受け取った zip の wav と JSON（`word`、`intended.k`）から、`scripts/eval-real.mjs` 用のマニフェストを作れます。
+
+```sh
+node --test test/evalmode.test.js                              # zip の構造・CRC（unzip -t）、manifest、保存レコード
+node scripts/qa-evalmode.mjs --fixtures /tmp/pitch-fx          # Playwright: 同意 → 2件保存 → 削除 → 書き出し（両方の版）
+```
+
+設計の判断：`docs/decisions.md`（評価協力モード）。
+
 ## 判定のしくみ（`src/judge.js`）
 
 1. 10 ms のフレームごとに F0 を求め（pitchy/MPM、または 16 ms の SwiftF0）、信頼できないフレームを捨て、

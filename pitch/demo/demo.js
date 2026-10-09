@@ -10,6 +10,7 @@ import { mountShare } from './share.js'; // 結果の共有カード画像
 import { mountAnki } from './anki.js'; // Anki への書き出し
 import { SR, loadUtterance, judgeSamples, play } from './pipeline.js'; // shared with practice.js
 import { initPractice } from './practice.js'; // 最小対で練習
+import { mountEvalMode } from './evalmode.js'; // 評価協力モード（端末内だけに保存）
 
 const $ = (id) => document.getElementById(id);
 const DEFAULT_SURFACE = '橋';
@@ -369,7 +370,7 @@ async function analyze(samples, rate, w, source, offset = 0) {
   if (id !== runId) return;
   showResult(r, w, tr, offset);
   window.__pitchLast = { result: r, word: w, source };
-  afterJudge({ result: r, word: w, track: tr, source }); // share card + Anki session list
+  afterJudge({ result: r, word: w, track: tr, source, samples, rate }); // share card + Anki session list + 評価協力モード
 }
 
 async function runSample(kind) {
@@ -446,9 +447,11 @@ window.addEventListener('drop', (e) => e.preventDefault());
 // ---------- share card + Anki export (demo/share.js, demo/anki.js) ----------
 const shareCard = mountShare();
 const ankiExport = mountAnki({ words, byId, getCurrent: () => current });
+const evalMode = mountEvalMode({ getCurrent: () => current, getBuild: () => $('build').textContent.trim() });
 function afterJudge(e) {
   shareCard.judged(e);
   ankiExport.judged(e);
+  evalMode.judged(e); // 録音ファイルのときだけ、オンなら端末内に保存
 }
 
 renderPicks();
@@ -457,4 +460,4 @@ selectWord(current);
 runSample('correct');
 
 // ---------- 最小対で練習 (demo/practice.js) ----------
-initPractice({ words, loadUtterance, judgeSamples, play, synthesizeWord, sampleRate: SR, sampleSeed });
+initPractice({ words, loadUtterance, judgeSamples, play, synthesizeWord, sampleRate: SR, sampleSeed, onJudged: evalMode.judged });

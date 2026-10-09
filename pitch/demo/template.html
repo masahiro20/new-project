@@ -172,6 +172,29 @@ footer { font-size: .8rem; color: var(--muted); display: flex; flex-direction: c
 #drill-feedback[data-state="wrong"] { color: var(--ng); }
 #drill-score { font-size: .85rem; color: var(--muted); font-variant-numeric: tabular-nums; }
 #drill-reset { align-self: flex-start; min-height: 36px; padding: 4px 12px; font-size: .85rem; }
+/* ---- 評価協力モード (demo/evalmode.js) ---- */
+.eval-badge { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; font-size: .85rem; padding: 6px 10px; border-radius: 8px; background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.eval-badge[hidden], #eval-consent[hidden], #eval-form[hidden], #eval-clear-confirm[hidden], #eval-intent-k-wrap[hidden], #eval-unavailable[hidden], #eval-export-note[hidden], #eval-show[hidden], #eval-toggle[hidden] { display: none; }
+.eval-badge a { color: inherit; }
+#eval-state { font-weight: 600; }
+#eval-state[data-on="true"] { color: var(--ok); }
+.eval-box { display: flex; flex-direction: column; gap: 10px; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2); min-width: 0; }
+.eval-box ul { margin: 0; padding-left: 1.2em; display: grid; gap: 4px; font-size: .9rem; }
+.eval-check { display: flex; gap: 10px; align-items: flex-start; font-weight: 600; cursor: pointer; }
+.eval-check input { flex: none; width: 22px; height: 22px; margin: 2px 0 0; accent-color: var(--accent); }
+.eval-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 10px; }
+.eval-fields label { display: flex; flex-direction: column; gap: 4px; font-size: .85rem; color: var(--muted); min-width: 0; }
+.eval-fields select { width: 100%; }
+#eval-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.eval-item { display: flex; align-items: center; gap: 8px; padding: 6px 6px 6px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); min-width: 0; }
+.eval-item-text { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.eval-item [data-pass="true"] { color: var(--ok); }
+.eval-item [data-pass="false"] { color: var(--ng); }
+.eval-item-sub { display: block; }
+.eval-del { flex: none; min-height: 36px; padding: 4px 12px; font-size: .85rem; }
+.danger { background: var(--ng); color: var(--surface); border-color: var(--ng); font-weight: 600; }
+#eval-status:empty { display: none; }
+#eval-unavailable { color: var(--ng); font-size: .9rem; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; scroll-behavior: auto !important; } }
 </style>
 
@@ -181,6 +204,7 @@ footer { font-size: .8rem; color: var(--muted); display: flex; flex-direction: c
     <p>単語に「が」を付けて言った録音から声の高さを測り、下がり目（アクセント核）の位置が辞書と同じかを判定します。</p>
     <p class="privacy">音声はこの端末のブラウザ内だけで処理され、外部に送信されません。</p>
     <a class="jump" id="jump-practice" href="#practice">最小対（箸・橋・端 など）で練習する ↓</a>
+    <p class="eval-badge" id="eval-badge" hidden>評価協力モード：オン（録音をこの端末に保存中・<span id="eval-badge-count">0 件</span>）<a id="eval-badge-link" href="#evalmode">確認する ↓</a></p>
   </header>
 
   <section class="panel" aria-labelledby="h-word">
@@ -360,6 +384,78 @@ footer { font-size: .8rem; color: var(--muted); display: flex; flex-direction: c
         <button type="button" id="drill-reset" disabled>スコアをリセット</button>
       </div>
     </div>
+  </section>
+
+  <!-- 評価協力モード (demo/evalmode.js) -->
+  <section class="panel" id="evalmode" aria-labelledby="h-eval">
+    <h2 id="h-eval">評価協力モード</h2>
+    <p class="small">判定の精度を確かめるための協力用です。オンにすると、録音ファイルで判定したときの音声と結果を<b>この端末のブラウザ内だけ</b>に保存します。あとで自分で zip に書き出し、渡すかどうか・どう渡すかを自分で決められます。ページから送信されることはありません。</p>
+    <p id="eval-state" data-on="false">オフ（何も保存していません）</p>
+    <p id="eval-unavailable" hidden></p>
+    <button type="button" id="eval-toggle">オンにする…</button>
+    <div class="eval-box" id="eval-consent" hidden>
+      <ul>
+        <li><b>保存するもの：</b>判定に使った部分の音声（16 kHz の wav・最長約4秒）、単語、判定結果、下で選んだ回答（任意）、アプリのビルド番号、日時</li>
+        <li><b>保存しないもの：</b>元の録音ファイル、ファイル名、氏名やメールなど。合成音声のサンプルも保存しません</li>
+        <li><b>保存場所：</b>このブラウザの中（IndexedDB）だけ。外部には送信しません</li>
+        <li><b>消し方：</b>下の一覧で1件ずつ、または「すべて削除」。ブラウザのサイトデータを消しても消えます</li>
+      </ul>
+      <label class="eval-check" for="eval-agree"><input type="checkbox" id="eval-agree">上の内容を理解し、録音と結果をこの端末に保存することに同意します</label>
+      <div class="row">
+        <button type="button" id="eval-start" class="primary" disabled>同意してオンにする</button>
+        <button type="button" id="eval-cancel">やめる</button>
+      </div>
+    </div>
+    <div class="eval-box" id="eval-form" hidden>
+      <p class="small">任意の情報です（答えなくても保存できます）。録音ごとに、その時点の選択を保存します。</p>
+      <div class="eval-fields">
+        <label for="eval-speaker">話者の区分
+          <select id="eval-speaker">
+            <option value="">答えない</option>
+            <option value="native">日本語ネイティブ</option>
+            <option value="learner-beginner">学習者（入門・初級）</option>
+            <option value="learner-intermediate">学習者（中級）</option>
+            <option value="learner-advanced">学習者（上級）</option>
+          </select>
+        </label>
+        <label for="eval-region">出身地域
+          <select id="eval-region">
+            <option value="">答えない</option>
+            <option value="tokyo">東京方言圏</option>
+            <option value="other">それ以外</option>
+          </select>
+        </label>
+        <label for="eval-intent"><span><span id="eval-intent-word">「はしが」</span>をどの型で言ったつもりか</span>
+          <select id="eval-intent">
+            <option value="unknown">わからない</option>
+            <option value="dictionary">辞書どおり</option>
+            <option value="other">違う型で言った</option>
+          </select>
+        </label>
+        <label for="eval-intent-k" id="eval-intent-k-wrap" hidden>言った型（下がり目の位置）
+          <select id="eval-intent-k"></select>
+        </label>
+      </div>
+      <p class="muted small">「最小対で練習」の録音は、選んだターゲットの型で言ったつもりとして保存します。</p>
+      <button type="button" id="eval-off">オフにする</button>
+    </div>
+    <p id="eval-count" class="small">保存件数: 0 件</p>
+    <button type="button" id="eval-show" hidden>保存済みの録音を表示</button>
+    <ul id="eval-list" aria-label="保存した録音"></ul>
+    <div class="row">
+      <button type="button" id="eval-export" class="primary" disabled>zip で書き出す</button>
+      <button type="button" id="eval-clear" disabled>すべて削除</button>
+    </div>
+    <p class="muted small" id="eval-export-note" hidden>この画面では書き出せません。PWA 版（ブラウザで開くアプリ）で書き出してください。</p>
+    <div class="eval-box" id="eval-clear-confirm" hidden>
+      <p id="eval-clear-msg"></p>
+      <div class="row">
+        <button type="button" id="eval-clear-yes" class="danger">削除する</button>
+        <button type="button" id="eval-clear-no">やめる</button>
+      </div>
+    </div>
+    <p class="small" id="eval-status" role="status"></p>
+    <p class="muted small">書き出した zip には、中身の説明と、開発者に渡す場合の同意文（README.txt）が入ります。録音の権利は話者にあります。</p>
   </section>
 
   <details id="licenses">

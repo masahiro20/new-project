@@ -130,7 +130,8 @@ const ERROR_TEXT = {
 
 /**
  * Wire the 「最小対で練習」 section. Does nothing if the section is not in the page.
- * deps: { words, loadUtterance, judgeSamples, play, synthesizeWord, sampleRate, sampleSeed }
+ * deps: { words, loadUtterance, judgeSamples, play, synthesizeWord, sampleRate, sampleSeed, onJudged? }
+ * onJudged(e): 判定のたびに呼ぶ（評価協力モード。e = { result, word, track, source, samples, rate, practice }）
  */
 export function initPractice(deps) {
   const $ = (id) => document.getElementById(id);
@@ -284,8 +285,9 @@ export function initPractice(deps) {
     const w = t.words[0];
     lastAudio = { samples, rate };
     $('pair-replay').disabled = false;
-    const { r } = judgeSamples(samples, rate, w);
+    const { tr, r } = judgeSamples(samples, rate, w);
     if (id !== runId) return;
+    deps.onJudged?.({ result: r, word: w, track: tr, source, samples, rate, practice: { group: group.id, target: t.id, targetK: t.k, classification: r.error ? null : classifyAgainstPair(r.detectedK, group, targetId).verdict } });
     if (r.error) {
       showError(ERROR_TEXT[r.error] ?? r.error);
       window.__practiceLast = { result: r, classification: null, group: group.id, target: t.id, source };
@@ -327,7 +329,7 @@ export function initPractice(deps) {
       if (id !== runId) return;
       const via = u.decoder && u.decoder !== 'native' ? '・内蔵デコーダで読み込み' : '';
       $('pair-source').textContent = `${file.name}（全体 ${u.duration.toFixed(1)} 秒のうち ${u.start.toFixed(1)}–${u.end.toFixed(1)} 秒を判定${via}）`;
-      analyze(u.samples, u.rate, { kind: 'file', name: file.name }, id);
+      analyze(u.samples, u.rate, { kind: 'file', name: file.name, duration: u.duration, start: u.start, end: u.end, decoder: u.decoder }, id);
     } catch (e) {
       console.warn(e);
       if (id !== runId) return;
