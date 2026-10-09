@@ -5,7 +5,10 @@ import { fileURLToPath } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const g = JSON.parse(readFileSync(join(root, "data/glossary.json"), "utf8"));
-const GENRES = new Set(["general", "camera", "watch"]);
+// "camera" is the umbrella; "lens" and "film_camera" are camera subgenres and
+// must always appear together with "camera".
+const GENRES = new Set(["general", "camera", "watch", "lens", "film_camera"]);
+const SUBGENRES = { lens: "camera", film_camera: "camera" };
 const CATS = new Set(["condition", "rank", "return", "defect", "mechanism", "part", "authenticity", "seller", "accessory", "service"]);
 const RISKS = new Set(["high", "medium", "low", "info", "positive"]);
 const errors = [];
@@ -26,12 +29,16 @@ for (const e of g.entries) {
   if (!e.en || e.en.length > 40) errors.push(`${where}: en missing or > 40 chars`);
   if (!e.explain || e.explain.length > 260) errors.push(`${where}: explain missing or > 260 chars`);
   if (!Array.isArray(e.genre) || !e.genre.length || !e.genre.every((x) => GENRES.has(x))) errors.push(`${where}: bad genre`);
+  for (const [sub, parent] of Object.entries(SUBGENRES)) {
+    if (e.genre?.includes(sub) && !e.genre.includes(parent)) errors.push(`${where}: genre "${sub}" requires "${parent}"`);
+  }
   if (!CATS.has(e.category)) errors.push(`${where}: bad category ${e.category}`);
   if (!RISKS.has(e.risk)) errors.push(`${where}: bad risk ${e.risk}`);
   if (e.exclude_next !== undefined && !(Array.isArray(e.exclude_next) && e.exclude_next.every((x) => typeof x === "string" && x))) errors.push(`${where}: exclude_next must be an array of strings`);
   if (typeof e.reviewed !== "boolean") errors.push(`${where}: reviewed must be boolean`);
 }
 
+// lens / film_camera entries always carry "camera" (enforced above), so they count here.
 const specialist = g.entries.filter((e) => e.genre.includes("camera") || e.genre.includes("watch"));
 const reviewedSpecialist = specialist.filter((e) => e.reviewed);
 if (reviewedSpecialist.length < 100) errors.push(`only ${reviewedSpecialist.length} reviewed camera/watch entries (need >= 100)`);
@@ -41,4 +48,4 @@ if (errors.length) {
   process.exit(1);
 }
 const count = (k) => g.entries.filter((e) => e.genre.includes(k)).length;
-console.log(`glossary OK: ${g.entries.length} entries (camera ${count("camera")}, watch ${count("watch")}, general ${count("general")}); reviewed camera/watch ${reviewedSpecialist.length}`);
+console.log(`glossary OK: ${g.entries.length} entries (camera ${count("camera")} [lens ${count("lens")}, film ${count("film_camera")}], watch ${count("watch")}, general ${count("general")}); reviewed camera/watch ${reviewedSpecialist.length}`);

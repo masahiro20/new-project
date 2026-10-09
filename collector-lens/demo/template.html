@@ -292,7 +292,8 @@
     var score = document.getElementById("score");
     score.className = "badge lvl-" + result.score.level;
     score.textContent = result.score.label;
-    document.getElementById("genre").textContent = result.genre === "general" ? "Genre: general" : "Genre: " + result.genre;
+    var SUB = { lens: "lens", film_camera: "film camera", digital_camera: "digital camera" };
+    document.getElementById("genre").textContent = "Genre: " + result.genre + (result.subgenre ? " · " + SUB[result.subgenre] : "");
 
     var g = CollectorLens.groupForPanel(result);
     var fieldItem = function (t) { return item(t.risk, t.ja, t.en, t.explain); };

@@ -1,5 +1,5 @@
 /*
- * Collector Lens (working title) — listing analyzer.
+ * Tanuki Scout (provisional name) — listing analyzer.
  * Pure functions: text in, findings out. No DOM, no network.
  * Loaded as a classic content script (attaches to globalThis.CollectorLens)
  * and as a CommonJS module in Node tests.
@@ -190,12 +190,39 @@
     }
   ];
 
+  // Film-like words that are really screen protectors ("保護フィルム"), not camera film.
+  var FILM_DECOYS = /(?:保護|液晶|画面|ガラス)フィルム/g;
+
   function detectGenre(text) {
-    var t = normalize(text).toLowerCase();
-    var cam = (t.match(/カメラ|レンズ|一眼|シャッター|フィルム|ファインダー|絞り|nikon|canon|leica|ニコン|キヤノン|ライカ|ペンタックス|オリンパス|ミノルタ|ハッセル|mm\s?f\/?\d/g) || []).length;
+    var t = normalize(text).toLowerCase().replace(FILM_DECOYS, " ");
+    var cam = (t.match(/カメラ|レンズ|一眼|シャッター|フィルム|ファインダー|絞り|ミラーレス|デジカメ|中判|ブローニー|nikon|canon|leica|ニコン|キヤノン|ライカ|ペンタックス|オリンパス|ミノルタ|ハッセル|mm\s?f\/?\d/g) || []).length;
     var wat = (t.match(/腕時計|時計|ムーブメント|文字盤|ベゼル|リューズ|竜頭|自動巻|手巻|クオーツ|seiko|セイコー|rolex|ロレックス|omega|オメガ|グランドセイコー|citizen|シチズン/g) || []).length;
     if (cam === 0 && wat === 0) return "general";
     return cam >= wat ? "camera" : "watch";
+  }
+
+  // Camera subgenre by simple keyword counts. Only camera listings get one.
+  var LENS_RE = /単焦点|ズームレンズ|レンズ単体|レンズのみ|交換レンズ|オールドレンズ|マクロレンズ|マウント|\d\s?mm\s?f\/?\s?\d|前後キャップ|フード|絞り羽|ヘリコイド|前玉|中玉|後玉|最短撮影距離|開放f|鏡筒|鏡胴|ピントリング|フォーカスリング|ズームリング|(?:^|[^a-z])[am]f\s?レンズ/g;
+  var FILM_RE = /フィルム|レンジファインダー|二眼|中判|露出計|巻き上げ|巻上げ|巻き戻し|モルト|セレン|水銀電池|距離計|二重像|シャッター幕|布幕|ブローニー|ハーフサイズ|ハーフ判|(?:135|120|220)\s?(?:フィルム|判|film)/g;
+  var DIGITAL_RE = /デジタル|デジカメ|ミラーレス|ショット数|シャッター回数|センサー|撮像素子|バッテリー|充電器|画素|sdカード|液晶モニター|動画/g;
+  // Words that say "this is a camera body" (a body sold with a kit lens is not a lens listing).
+  var BODY_RE = /ボディ|一眼レフ|レンジファインダー|ミラーレス|カメラ本体|コンパクトカメラ|二眼レフ/g;
+
+  function countRe(t, re) { return (t.match(re) || []).length; }
+
+  /** "lens" | "film_camera" | "digital_camera" | null (not a camera, or undecided). */
+  function detectSubgenre(text) {
+    if (detectGenre(text) !== "camera") return null;
+    var t = normalize(text).toLowerCase().replace(FILM_DECOYS, " ");
+    var lens = countRe(t, LENS_RE);
+    var film = countRe(t, FILM_RE);
+    var digital = countRe(t, DIGITAL_RE);
+    // 一眼レフ (SLR) is a film hint only when other film words are present.
+    if (film > 0) film += countRe(t, /一眼レフ/g);
+    var body = countRe(t, BODY_RE);
+    if (lens > film && lens > digital && lens > body) return "lens";
+    if (film === 0 && digital === 0) return null;
+    return film >= digital ? "film_camera" : "digital_camera";
   }
 
   /**
@@ -224,7 +251,9 @@
     // An entry that appears both negated and affirmed counts as affirmed.
     all = all.filter(function (h) { return !(h.negated && seen[h.entry.id]); });
 
-    var genre = detectGenre([listing.title, listing.description].join(" "));
+    var genreText = [listing.title, listing.description].join(" ");
+    var genre = detectGenre(genreText);
+    var subgenre = genre === "camera" ? detectSubgenre(genreText) : null;
     var ids = {};
     all.forEach(function (h) { if (!h.negated) ids[h.entry.id] = true; });
     var ctx = {
@@ -246,7 +275,8 @@
         reassurances.push(item);
       } else if (e.risk === "high" || e.risk === "medium" || e.risk === "low") {
         flags.push(item);
-      } else if (genre === "general" || e.genre.indexOf(genre) >= 0 || e.genre.indexOf("general") >= 0) {
+      } else if (genre === "general" || e.genre.indexOf(genre) >= 0 || e.genre.indexOf("general") >= 0 ||
+          (subgenre && e.genre.indexOf(subgenre) >= 0)) {
         // Neutral vocabulary is shown only if it fits the item's genre:
         // "ダイヤル" is a watch dial, but also a camera's shutter-speed dial.
         terms.push(item);
@@ -271,6 +301,7 @@
 
     return {
       genre: genre,
+      subgenre: subgenre,
       condition: listing.condition ? { raw: normalize(listing.condition), terms: conditionHits.map(fieldTerm) } : null,
       returns: listing.returns ? { raw: normalize(listing.returns), terms: returnHits.map(fieldTerm) } : null,
       ranks: ranks,
@@ -333,6 +364,7 @@
   NS.findTerms = findTerms;
   NS.findRanks = findRanks;
   NS.detectGenre = detectGenre;
+  NS.detectSubgenre = detectSubgenre;
   NS.analyze = analyze;
   NS.groupForPanel = groupForPanel;
 

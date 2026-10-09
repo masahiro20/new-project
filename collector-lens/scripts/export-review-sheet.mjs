@@ -45,7 +45,16 @@ const NEEDS_CHECK = {
   kabi: "カビ＝高、くもり＝中 の区別が妥当か",
   kumori: "カビ＝高、くもり＝中 の区別が妥当か",
   tomaru: "「止まる」の誤検出",
-  homage: "危険度（中）が妥当か"
+  homage: "危険度（中）が妥当か",
+  // Lens / film camera additions (2026-10-09)
+  jissha_mikakunin: "「実写未確認」を中リスクにしてよいか（「未確認」=高 より優先される）",
+  lens_contact: "「接点不良」の誤検出（家電など）。説明文は汎用にしてある",
+  kousen_more: "「光漏れ」が液晶のバックライト漏れの意味でも出る",
+  makimodoshi_fuuryou: "「巻き戻し不良」の誤検出（カセットデッキ等）",
+  ten_kizu: "「点傷」の誤検出（家具など）と危険度（低）",
+  self_timer_fudou: "「不動」=高 より優先して低にしてよいか",
+  atom_lens: "放射性レンズの説明（発送規制の書き方）",
+  kandouhin: "「完動品」を安心材料（positive）にしてよいか"
 };
 
 function basis(e) {

@@ -49,8 +49,8 @@ function analyzeSample(s) {
 
 const byId = Object.fromEntries(SAMPLES.map((s) => [s.id, s]));
 
-test("glossary has 227 entries", () => {
-  assert.equal(CL.GLOSSARY.entries.length, 227);
+test("glossary has 281 entries", () => {
+  assert.equal(CL.GLOSSARY.entries.length, 281);
 });
 
 test("six samples: 3 camera + 3 watch, unique ids, well-formed", () => {

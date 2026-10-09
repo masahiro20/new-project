@@ -19,12 +19,13 @@
 
 Read the Japanese fine print before you bid.
 
-Tanuki Scout is for overseas collectors of vintage cameras and watches who buy from Japanese marketplaces. Open a listing and a small panel appears in the corner. It explains the seller's condition notes, shop grades and return terms in plain English, and flags wording that usually means trouble.
+Tanuki Scout is for overseas collectors of vintage cameras, lenses, film cameras and watches who buy from Japanese marketplaces. Open a listing and a small panel appears in the corner. It explains the seller's condition notes, shop grades and return terms in plain English, and flags wording that usually means trouble.
 
 What it explains
 • Condition: platform grades such as 目立った傷や汚れなし ("no noticeable marks") and what they leave out.
 • Grade: shop ranks (S / A / AB / B …) and exporter grades (Mint, Exc+++).
 • Returns: 返品不可, ノークレームノーリターン (no claims, no returns) and similar terms.
+• Lenses and film cameras: cleaning marks, coating wear, aperture and focus problems, light leaks, light seals, meter and rangefinder faults, and service notes such as "haze cleaned" or "seals replaced".
 • Warnings: junk, untested, authenticity unknown, redial, parts watch, fungus, haze, balsam separation, shutter-curtain holes and more, plus risky combinations such as "untested + no returns".
 • Seller states: reassurances such as "no fungus or haze" are listed separately and never raised as warnings.
 
@@ -40,6 +41,6 @@ Privacy
 Limitations
 • It is not an appraisal or an authenticity check. It explains what the seller wrote.
 • It is rule-based. Wording it does not know will not be flagged, so a clean panel does not mean the item is safe.
-• Cameras and watches come first; other categories are thinner.
+• Cameras, lenses, film cameras and watches come first; other categories are thinner.
 
 Tanuki Scout is independent and is not affiliated with or endorsed by any marketplace or proxy service. Marketplace names are trademarks of their owners and are used only to describe compatibility.
