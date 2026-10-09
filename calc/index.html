@@ -6,7 +6,7 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data:; form-action 'self'; base-uri 'none'">
 <meta name="referrer" content="no-referrer">
 <title>Model Switch Calculator</title>
-<meta name="description" content="What would your LLM bill be on another model? Paste your Anthropic or OpenAI usage export and compare monthly costs across Claude and GPT models. Runs entirely in your browser.">
+<meta name="description" content="What would your LLM bill be on another model? Paste your Anthropic or OpenAI usage export (or a simple CSV) and compare monthly costs across Claude, GPT and Gemini models. Runs entirely in your browser.">
 <link rel="canonical" href="https://masahiro20.github.io/new-project/calc/">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <meta name="theme-color" content="#f3f4f1" media="(prefers-color-scheme: light)">
@@ -14,7 +14,7 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Model Switch Calculator">
 <meta property="og:title" content="Model Switch Calculator — what would your LLM bill be on another model?">
-<meta property="og:description" content="Paste your Anthropic or OpenAI usage export and compare the monthly cost on every current Claude and GPT model. Free, private, runs in your browser.">
+<meta property="og:description" content="Paste your usage export and compare the monthly cost on current Claude, GPT and Gemini models. Share the result as a link that holds only totals. Free, private, runs in your browser.">
 <meta property="og:url" content="https://masahiro20.github.io/new-project/calc/">
 <meta property="og:image" content="https://masahiro20.github.io/new-project/calc/og.png">
 <meta property="og:image:width" content="1200">
@@ -23,7 +23,7 @@
 <meta property="og:locale" content="en_US">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Model Switch Calculator">
-<meta name="twitter:description" content="What would your LLM bill be on another model? Paste your usage export and compare Claude and GPT costs. Runs in your browser.">
+<meta name="twitter:description" content="What would your LLM bill be on another model? Paste your usage export and compare Claude, GPT and Gemini costs. Runs in your browser.">
 <meta name="twitter:image" content="https://masahiro20.github.io/new-project/calc/og.png">
 <meta name="twitter:image:alt" content="Model Switch Calculator: a bar chart comparing the monthly cost of the same usage on different LLMs.">
 <style>
@@ -159,6 +159,15 @@ td input[type=number]{width:84px;font:inherit;font-family:var(--font-mono);font-
 .headline .k{font-size:.78rem;color:var(--muted)}
 .headline .v{font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-size:1.35rem;font-weight:600}
 #export-fallback{min-height:120px;margin-top:8px}
+.shared-note{border-left:3px solid var(--accent);background:var(--accent-soft);padding:8px 12px;font-size:.9rem;margin-top:10px}
+.shared-note .row{margin-block:6px 0}
+details.share{margin-top:4px;font-size:.88rem}
+details.share summary{cursor:pointer;color:var(--muted)}
+details.share pre{font-family:var(--font-mono);font-size:12px;line-height:1.4;background:var(--bg);border:1px solid var(--line);border-radius:4px;
+  padding:8px 10px;margin:6px 0 0;max-height:260px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere}
+.share-warn{border-left:3px solid var(--warn);background:var(--warn-soft);padding:6px 10px;margin:6px 0 0}
+.provfilter{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:center;margin:0 0 10px;font-size:.88rem;border:0;padding:0}
+.provfilter legend{float:left;padding:0;margin-right:6px}
 .status-line{font-size:.86rem;color:var(--muted);min-height:1.4em}
 details.legacy{margin-top:12px}
 details.legacy summary{cursor:pointer;font-size:.9rem;padding:4px 0;color:var(--muted)}
@@ -218,7 +227,7 @@ footer p{margin:0 0 4px}
   <main>
   <section class="hero" aria-labelledby="hero-title">
     <h1 id="hero-title">What would your LLM bill be on another model?</h1>
-    <p class="sub">Paste your Anthropic or OpenAI usage export. See what the same traffic would cost per month on every current Claude and GPT model, side by side, at list prices checked on <span class="js-checked-on">2026-10-08</span>.</p>
+    <p class="sub">Paste your Anthropic or OpenAI usage export (or a simple CSV). See what the same traffic would cost per month on current Claude, GPT and Gemini models, side by side, at list prices checked on <span class="js-checked-on">2026-10-09</span>.</p>
     <div class="ctas">
       <a class="cta" href="#tool">Try it with sample data</a>
       <a class="cta ghost" href="#prices">See the price table</a>
@@ -228,14 +237,15 @@ footer p{margin:0 0 4px}
       <li>Free, no sign-up</li>
       <li>Anthropic &amp; OpenAI CSV / JSON exports</li>
       <li>Cache-aware cost model</li>
-      <li>Copy results as Markdown or CSV</li>
+      <li>Claude, GPT &amp; Gemini prices</li>
+      <li>Share a link with totals only</li>
     </ul>
   </section>
 
   <div id="tool" tabindex="-1">
   <div class="grid2">
     <section class="card" aria-labelledby="h-input">
-      <h2 id="h-input"><span class="step">01</span>Usage data <span id="sample-badge" class="badge sample">Sample data</span></h2>
+      <h2 id="h-input"><span class="step">01</span>Usage data <span id="sample-badge" class="badge sample">Sample data</span><span id="shared-badge" class="badge acc" hidden>Loaded from shared link</span></h2>
       <div class="drop" id="dropzone">
         <label for="usage-input" class="hint">Paste CSV or JSON here, or drop a file onto this box.</label>
         <textarea id="usage-input" spellcheck="false" aria-describedby="parse-status"></textarea>
@@ -247,6 +257,10 @@ footer p{margin:0 0 4px}
         <button type="button" id="clear-input">Clear</button>
       </div>
       <div id="parse-error" class="err" hidden></div>
+      <div id="shared-note" class="shared-note" hidden>
+        <p>These numbers come from a shared link. It holds only aggregate token totals and settings, no usage rows. Paste your own data or load a sample to replace them.</p>
+        <div class="row"><button type="button" id="clear-shared">Clear shared link</button></div>
+      </div>
     </section>
 
     <section class="card" aria-labelledby="h-summary">
@@ -271,8 +285,15 @@ footer p{margin:0 0 4px}
     <div class="row">
       <button type="button" id="copy-md">Copy as Markdown</button>
       <button type="button" id="copy-csv">Copy as CSV</button>
+      <button type="button" id="copy-link">Copy share link</button>
       <span class="status-line" id="copy-status" aria-live="polite"></span>
     </div>
+    <details class="share" id="share-details">
+      <summary>What’s in this link</summary>
+      <p class="share-warn"><b>The link reveals your usage volume.</b> It contains the token totals below (per model in the price table), the number of days, your settings, the models you compare and any prices you typed. It does not contain your pasted data, file names, dates, API keys or model names that are not in the price table (their usage is merged into “other”). Anyone with the link can see these numbers.</p>
+      <p class="hint" id="share-size"></p>
+      <pre id="share-preview"></pre>
+    </details>
     <textarea id="export-fallback" hidden readonly aria-label="Text to copy"></textarea>
     <ul class="notes" id="compare-notes"></ul>
   </section>
@@ -285,6 +306,13 @@ footer p{margin:0 0 4px}
   <section class="card" id="price-section" aria-labelledby="h-pick">
     <h2 id="h-pick"><span class="step">05</span>Models to compare <span class="hint">USD per 1M tokens, standard tier (no Batch, long-context or regional pricing)</span></h2>
     <p class="hint">Tick “Compare” to add a model to the comparison. Unverified prices are left out of totals; type a price into an unverified row to include it (shown as “Manual”).</p>
+    <fieldset class="provfilter" id="prov-filter">
+      <legend>Show:</legend>
+      <label class="opt"><input type="radio" name="provf" value="all" checked> <span>All</span></label>
+      <label class="opt"><input type="radio" name="provf" value="anthropic"> <span>Anthropic</span></label>
+      <label class="opt"><input type="radio" name="provf" value="openai"> <span>OpenAI</span></label>
+      <label class="opt"><input type="radio" name="provf" value="google"> <span>Google</span></label>
+    </fieldset>
     <div class="tablewrap"><table id="price-table"></table></div>
     <details id="legacy-details" class="legacy">
       <summary id="legacy-summary">Older models (<span id="legacy-count">0</span>)</summary>
@@ -296,16 +324,16 @@ footer p{margin:0 0 4px}
 
   <section class="block" id="prices" aria-labelledby="h-prices">
     <h2 class="sec" id="h-prices">Price table</h2>
-    <p class="lede">All models the calculator knows, in USD per 1M tokens at the standard tier. Checked <b class="js-checked-on">2026-10-08</b> against the official pricing pages. Cache write is the 5-minute write for Anthropic. “—” means the provider does not list that price.</p>
+    <p class="lede">All models the calculator knows, in USD per 1M tokens at the standard tier. Checked <b class="js-checked-on">2026-10-09</b> against the official pricing pages. Cache write is the 5-minute write for Anthropic. Gemini lists no cache-write price (it charges hourly cache storage instead). “—” means the provider does not list that price.</p>
     <div class="card" style="padding:0;border:0;background:none">
       <div class="tablewrap"><table id="static-prices">
         <thead><tr><th scope="col">Model</th><th scope="col" class="num">Input</th><th scope="col" class="num">Output</th><th scope="col" class="num">Cache read</th><th scope="col" class="num">Cache write</th><th scope="col">Status</th><th scope="col">Checked</th><th scope="col">Source</th></tr></thead>
-        <tbody id="static-prices-body"><tr><td colspan="8">The price table needs JavaScript. See the official pages: <a href="https://platform.claude.com/docs/en/about-claude/pricing" target="_blank" rel="noopener noreferrer">Anthropic pricing</a> · <a href="https://developers.openai.com/api/docs/pricing" target="_blank" rel="noopener noreferrer">OpenAI pricing</a>.</td></tr></tbody>
+        <tbody id="static-prices-body"><tr><td colspan="8">The price table needs JavaScript. See the official pages: <a href="https://platform.claude.com/docs/en/about-claude/pricing" target="_blank" rel="noopener noreferrer">Anthropic pricing</a> · <a href="https://developers.openai.com/api/docs/pricing" target="_blank" rel="noopener noreferrer">OpenAI pricing</a> · <a href="https://ai.google.dev/gemini-api/docs/pricing" target="_blank" rel="noopener noreferrer">Google Gemini pricing</a>.</td></tr></tbody>
       </table></div>
     </div>
-    <p class="hint" style="margin-top:8px">Sources: <a href="https://platform.claude.com/docs/en/about-claude/pricing" target="_blank" rel="noopener noreferrer">Anthropic pricing</a> · <a href="https://developers.openai.com/api/docs/pricing" target="_blank" rel="noopener noreferrer">OpenAI pricing</a>. Prices change; always confirm on the provider’s page before you decide.</p>
+    <p class="hint" style="margin-top:8px">Sources: <a href="https://platform.claude.com/docs/en/about-claude/pricing" target="_blank" rel="noopener noreferrer">Anthropic pricing</a> · <a href="https://developers.openai.com/api/docs/pricing" target="_blank" rel="noopener noreferrer">OpenAI pricing</a> · <a href="https://ai.google.dev/gemini-api/docs/pricing" target="_blank" rel="noopener noreferrer">Google Gemini pricing</a>. Prices change; always confirm on the provider’s page before you decide.</p>
     <details id="research-details" class="legacy">
-      <summary>Pricing research notes (as recorded on <span class="js-checked-on">2026-10-08</span>)</summary>
+      <summary>Pricing research notes (as recorded on <span class="js-checked-on">2026-10-09</span>)</summary>
       <ul class="notes" id="research-notes"></ul>
     </details>
   </section>
@@ -315,13 +343,14 @@ footer p{margin:0 0 4px}
     <p class="lede">The calculator totals your input, cache-write, cache-read and output tokens, prices each model in your data at its own list price (your “current” cost), then prices the whole bundle on every candidate model.</p>
     <div class="cols prose">
       <ul>
-        <li><b>Tokenizers differ.</b> Anthropic and OpenAI count tokens differently, so the same text gives different token counts. Cross-provider comparisons are estimates; same-provider ones are tighter.</li>
-        <li><b>Cache handling.</b> With “Keep my cache hit ratio” on, cache-read tokens are charged at the target’s cache-read price and cache-write tokens at its cache-write price. Anthropic cache writes use the 5-minute price; 1-hour writes cost 2× input. On OpenAI targets each input token is billed as exactly one of input, cached input or cache write, so writes use the listed cache-write price (or the input price when none is listed). Turn it off to price every input token at the normal input price.</li>
+        <li><b>Tokenizers differ.</b> Anthropic, OpenAI and Google count tokens differently, so the same text gives different token counts. Cross-provider comparisons are estimates; same-provider ones are tighter.</li>
+        <li><b>Cache handling.</b> With “Keep my cache hit ratio” on, cache-read tokens are charged at the target’s cache-read price and cache-write tokens at its cache-write price. Anthropic cache writes use the 5-minute price; 1-hour writes cost 2× input. On OpenAI targets each input token is billed as exactly one of input, cached input or cache write, so writes use the listed cache-write price (or the input price when none is listed). <b>Gemini</b> has no cache-write price; it bills cached tokens at a lower rate plus storage per hour. Here, cache-write tokens on Gemini targets are charged at the input price and cache storage is not included. Turn it off to price every input token at the normal input price.</li>
         <li><b>30-day normalisation</b> multiplies totals by 30 ÷ the number of days your data covers (first to last date).</li>
       </ul>
       <ul>
         <li><b>Claude Haiku 5.5</b> is priced at its tier for prompts up to 100K tokens. Prompts over 100K cost more ($0.50 input / $2.50 output / $0.05 cache read / $0.625 5-minute write per 1M).</li>
         <li><b>OpenAI</b> prices are the Standard tier for prompts up to 272K input tokens. Long-context (&gt;272K) prices are higher and not applied.</li>
+        <li><b>Gemini</b> prices are the Paid tier, Standard, text/image/video input. Gemini 3.1 Pro Preview and 2.5 Pro use the tier for prompts up to 200K tokens (over 200K is higher and not applied). Gemini 3.8 / 3.7 / 3.6 Flash use a promotional price that runs through 2026-12-31.</li>
         <li><b>Not included:</b> Batch or Flex discounts, long-context surcharges, Fast/priority modes, regional or data-residency uplifts, taxes and credits.</li>
         <li><b>Cost only.</b> Quality, latency and context limits differ between models. Test on your real tasks before you switch.</li>
       </ul>
@@ -334,12 +363,16 @@ footer p{margin:0 0 4px}
       <p>No. Parsing and maths run in JavaScript in this page. There is no backend, no analytics and no tracking, and the page’s Content-Security-Policy blocks network requests. You can load it, go offline and it still works.</p></details>
     <details><summary>Which files can I use?</summary>
       <p>Anthropic Console usage CSV, Anthropic Admin API <code>usage_report/messages</code> JSON, OpenAI usage CSV, OpenAI Admin API <code>/v1/organization/usage/completions</code> JSON, or a generic CSV with <code>date,model,input_tokens,output_tokens[,cached_input_tokens]</code>. The format is detected automatically; comma, tab and semicolon separators work.</p></details>
+    <details><summary>Can I use Google Gemini usage?</summary>
+      <p>There is no dedicated Gemini export parser. Put your Gemini token counts into the generic CSV above (for example from your own logs of <code>usageMetadata</code>: prompt tokens as <code>input_tokens</code>, candidates plus thinking tokens as <code>output_tokens</code>, cached content tokens as <code>cached_input_tokens</code>). Model names such as <code>gemini-3.8-flash</code> or <code>models/gemini-2.5-pro</code> are matched to the price table.</p></details>
+    <details><summary>What does “Copy share link” share?</summary>
+      <p>Only settings and aggregate token totals, encoded in the part of the URL after <code>#</code>, which browsers do not send to the server. Your pasted data is never put in the link. Open “What’s in this link” under the results to see exactly what it contains before you copy it. The totals do reveal how much you use, so share it only with people who may see that.</p></details>
     <details><summary>Why doesn’t “current cost” match my invoice exactly?</summary>
       <p>It uses list prices at the standard tier. Batch discounts, long-context tiers, regional uplifts, credits and taxes are not included, and some exports round token counts.</p></details>
     <details><summary>A model in my data says “not in price table”.</summary>
       <p>That usage is left out of the current cost, and the difference column is hidden so you don’t compare against a partial total. Candidate costs still include all of your tokens.</p></details>
     <details><summary>How current are the prices?</summary>
-      <p>They were checked against the official pages on <span class="js-checked-on">2026-10-08</span>. Each row links to its source. If a price is ever marked “Unverified”, it is left out of totals until you type a price in yourself.</p></details>
+      <p>They were checked against the official pages on <span class="js-checked-on">2026-10-09</span>. Each row links to its source. If a price is ever marked “Unverified”, it is left out of totals until you type a price in yourself.</p></details>
   </section>
 
   <section class="block card bg" id="budget-guard" aria-labelledby="h-bg">
@@ -367,8 +400,8 @@ footer p{margin:0 0 4px}
   </main>
 
   <footer>
-    <p>Model Switch Calculator · P2 Signal Lab. Not affiliated with Anthropic or OpenAI. Model names are trademarks of their owners.</p>
-    <p>Prices checked <span class="js-checked-on">2026-10-08</span>. Estimates only, not a guarantee of what you will be billed.</p>
+    <p>Model Switch Calculator · P2 Signal Lab. Not affiliated with Anthropic, OpenAI or Google. Model names are trademarks of their owners.</p>
+    <p>Prices checked <span class="js-checked-on">2026-10-09</span>. Estimates only, not a guarantee of what you will be billed.</p>
   </footer>
 </div>
 
@@ -381,7 +414,7 @@ footer p{margin:0 0 4px}
    Prices are USD per 1M tokens. null = unknown.
    ===================================================================== */
 const PRICES = {
-  "checkedOn": "2026-10-08",
+  "checkedOn": "2026-10-09",
   "models": [
     {
       "provider": "anthropic",
@@ -670,6 +703,138 @@ const PRICES = {
       "status": "verified",
       "source": "https://developers.openai.com/api/docs/pricing",
       "note": "o-series reasoning model (older)."
+    },
+    {
+      "provider": "google",
+      "id": "gemini-3.8-flash",
+      "name": "Gemini 3.8 Flash",
+      "input": 0.75,
+      "output": 3.75,
+      "cacheRead": 0.075,
+      "cacheWrite": null,
+      "status": "verified",
+      "source": "https://ai.google.dev/gemini-api/docs/pricing",
+      "note": "Newest Flash model on the page. Promotional price through 2026-12-31; from 2027-01-01: $1.50 / $7.50 / cached $0.15. Context-cache storage $0.50/1M tokens/hour (not modelled). Batch/Flex 50% off. Priority $1.35/$6.75."
+    },
+    {
+      "provider": "google",
+      "id": "gemini-3.5-flash-lite",
+      "name": "Gemini 3.5 Flash-Lite",
+      "input": 0.3,
+      "output": 2.5,
+      "cacheRead": 0.03,
+      "cacheWrite": null,
+      "status": "verified",
+      "source": "https://ai.google.dev/gemini-api/docs/pricing",
+      "note": "Text/image/video/audio input $0.30. Context-cache storage $1.00/1M tokens/hour (not modelled). Batch $0.15/$1.25."
+    },
+    {
+      "provider": "google",
+      "id": "gemini-3.1-pro-preview",
+      "name": "Gemini 3.1 Pro Preview",
+      "input": 2,
+      "output": 12,
+      "cacheRead": 0.2,
+      "cacheWrite": null,
+      "status": "verified",
+      "source": "https://ai.google.dev/gemini-api/docs/pricing",
+      "note": "Preview. Tier: prompts <= 200K tokens. Over 200K: $4 input / $18 output / $0.40 cached. Cache storage $4.50/1M tokens/hour (not modelled). Batch $1/$6."
+    },
+    {
+      "provider": "google",
+      "id": "gemini-3.7-flash",
+      "name": "Gemini 3.7 Flash",
+      "input": 0.75,
+      "output": 3.75,
+      "cacheRead": 0.075,
+      "cacheWrite": null,
+      "status": "verified",
+      "source": "https://ai.google.dev/gemini-api/docs/pricing",
+      "note": "Promotional price through 2026-12-31; from 2027-01-01: $1.50 / $7.50 / cached $0.15. Context-cache storage $0.50/1M tokens/hour (not modelled). Batch/Flex 50% off. Priority $1.35/$6.75."
+    },
+    {
+      "provider": "google",
+      "id": "gemini-3.6-flash",
+      "name": "Gemini 3.6 Flash",
+      "input": 0.75,
+      "output": 3.75,
+      "cacheRead": 0.075,
+      "cacheWrite": null,
+      "status": "verified",
+      "source": "https://ai.google.dev/gemini-api/docs/pricing",
+      "note": "Previous-generation Flash. Promotional price through 2026-12-31; from 2027-01-01: $1.50 / $7.50 / cached $0.15. Context-cache storage $0.50/1M tokens/hour (not modelled). Batch/Flex 50% off. Priority $1.35/$6.75."
+    },
+    {
+      "provider": "google",
+      "id": "gemini-3.5-flash",
+      "name": "Gemini 3.5 Flash",
+      "input": 1.5,
+      "output": 9,
+      "cacheRead": 0.15,
+      "cacheWrite": null,
+      "status": "verified",
+      "source": "https://ai.google.dev/gemini-api/docs/pricing",
+      "note": "Earlier Flash model. Cache storage $1.00/1M tokens/hour (not modelled). Batch $0.75/$4.50."
+    },
+    {
+      "provider": "google",
+      "id": "gemini-3.1-flash-lite",
+      "name": "Gemini 3.1 Flash-Lite",
+      "input": 0.25,
+      "output": 1.5,
+      "cacheRead": 0.025,
+      "cacheWrite": null,
+      "status": "verified",
+      "source": "https://ai.google.dev/gemini-api/docs/pricing",
+      "note": "Text/image/video rate. Audio input $0.50, cached audio $0.05. Cache storage $1.00/1M tokens/hour (not modelled)."
+    },
+    {
+      "provider": "google",
+      "id": "gemini-3-flash-preview",
+      "name": "Gemini 3 Flash Preview",
+      "input": 0.5,
+      "output": 3,
+      "cacheRead": 0.05,
+      "cacheWrite": null,
+      "status": "verified",
+      "source": "https://ai.google.dev/gemini-api/docs/pricing",
+      "note": "Legacy Flash (preview). Text/image/video rate. Audio input $1.00, cached audio $0.10."
+    },
+    {
+      "provider": "google",
+      "id": "gemini-2.5-pro",
+      "name": "Gemini 2.5 Pro",
+      "input": 1.25,
+      "output": 10,
+      "cacheRead": 0.125,
+      "cacheWrite": null,
+      "status": "verified",
+      "source": "https://ai.google.dev/gemini-api/docs/pricing",
+      "note": "Tier: prompts <= 200K tokens. Over 200K: $2.50 input / $15 output / $0.25 cached. Cache storage $4.50/1M tokens/hour (not modelled)."
+    },
+    {
+      "provider": "google",
+      "id": "gemini-2.5-flash",
+      "name": "Gemini 2.5 Flash",
+      "input": 0.3,
+      "output": 2.5,
+      "cacheRead": 0.03,
+      "cacheWrite": null,
+      "status": "verified",
+      "source": "https://ai.google.dev/gemini-api/docs/pricing",
+      "note": "Text/image/video rate. Audio input $1.00, cached audio $0.10."
+    },
+    {
+      "provider": "google",
+      "id": "gemini-2.5-flash-lite",
+      "name": "Gemini 2.5 Flash-Lite",
+      "input": 0.1,
+      "output": 0.4,
+      "cacheRead": 0.01,
+      "cacheWrite": null,
+      "status": "verified",
+      "source": "https://ai.google.dev/gemini-api/docs/pricing",
+      "note": "Text/image/video rate. Audio input $0.30, cached audio $0.03."
     }
   ],
   "notes": [
@@ -683,7 +848,13 @@ const PRICES = {
     "OpenAI columns are Input / Cached input / Cache writes / Output. The page notes that cache writes are not an extra fee: each input token is billed as exactly one of input, cached input, or cache write.",
     "OpenAI short context = <=272K input tokens; long context = >272K. Tiers: Standard, Batch, Flex, Fast (Priority processing was renamed Fast mode on 2026-07-30), Ultrafast (gpt-6-astra only). Batch and Flex are 50% of Standard for the latest models.",
     "OpenAI: data-residency and FedRAMP endpoints add a 10% uplift for models released on or after 2026-03-05.",
-    "OpenAI's page does not label tiers as flagship/mini/nano/reasoning. The page header 'Flagship models - Our latest models' covers gpt-6-astra, gpt-6.1-sol and gpt-6-luna. Other category labels in this file are inferred from the model names."
+    "OpenAI's page does not label tiers as flagship/mini/nano/reasoning. The page header 'Flagship models - Our latest models' covers gpt-6-astra, gpt-6.1-sol and gpt-6-luna. Other category labels in this file are inferred from the model names.",
+    "2026-10-09: all Anthropic and OpenAI rows were re-checked against the same official pages (Anthropic page HTML; OpenAI raw page data). No price changed since 2026-10-08.",
+    "Google Gemini prices were read on 2026-10-09 from ai.google.dev/gemini-api/docs/pricing (page 'Last updated 2026-10-07 UTC'), Paid Tier, Standard, per 1M tokens. Text/image/video input rates are used; audio input is priced higher on some models.",
+    "Gemini tiers: Pro models (3.1 Pro Preview, 2.5 Pro) list two tiers split at 200K prompt tokens; the <= 200K tier is used here. Flash and Flash-Lite models have a single tier.",
+    "Gemini context caching has two parts: a cached-token read price (used as cacheRead here) and a storage price per 1M tokens per hour. There is no separate cache-write price, so cache-write tokens are billed at the input price on Gemini targets and storage is not modelled.",
+    "Gemini 3.8 / 3.7 / 3.6 Flash: $0.75 / $3.75 / cached $0.075 is a promotional price through 2026-12-31; it becomes $1.50 / $7.50 / $0.15 on 2027-01-01. Update these rows after that date.",
+    "Not included: Gemini Live / TTS / Transcribe / image (Nano Banana) models and embeddings, which are priced per audio or image unit, plus grounding (Google Search/Maps) fees."
   ]
 };
 /* ======================== END PRICES ================================ */
@@ -699,6 +870,7 @@ const Logic = (() => {
     const m = normModel(model);
     if (/^(anthropic-|us-anthropic-|eu-anthropic-)?claude/.test(m) || m.includes("claude")) return "anthropic";
     if (/^(gpt|o\d|chatgpt|text-|davinci|babbage|codex|omni)/.test(m)) return "openai";
+    if (/^(models\/)?gemini/.test(m)) return "google";
     return null;
   }
 
@@ -1042,6 +1214,158 @@ const Logic = (() => {
 })();
 
 /* ---------------------------------------------------------------------
+   Share links (pure, no DOM). A link carries ONLY settings and aggregate
+   token totals, never pasted rows: #s=<base64url(JSON)>, versioned v:1.
+   Everything decoded is validated and clamped; strings from the link are
+   only ever used as lookup keys into PRICES, never rendered.
+   --------------------------------------------------------------------- */
+const Share = (() => {
+  const VERSION = 1;
+  const LIMITS = { hashChars: 8000, tokens: 1e15, days: 3660, price: 10000, list: 200 };
+  const TOK_KEYS = ["unc", "cw5", "cw1", "cr", "out"];
+  const PRICE_KEYS = ["input", "output", "cacheRead", "cacheWrite"];
+  const OTHER_LABEL = "(other models, not in price table)";
+  const ALPHA = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+  const has = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
+  const isObj = (o) => o != null && typeof o === "object" && !Array.isArray(o);
+
+  function utf8Bytes(str) {
+    const e = encodeURIComponent(str), out = [];
+    for (let i = 0; i < e.length; i++) {
+      if (e[i] === "%") { out.push(parseInt(e.substr(i + 1, 2), 16)); i += 2; } else out.push(e.charCodeAt(i));
+    }
+    return out;
+  }
+  function utf8String(bytes) { // throws URIError on invalid UTF-8
+    return decodeURIComponent(bytes.map((b) => "%" + (b < 16 ? "0" : "") + b.toString(16)).join(""));
+  }
+  function toB64url(bytes) {
+    let s = "";
+    for (let i = 0; i < bytes.length; i += 3) {
+      const n = (bytes[i] << 16) | ((bytes[i + 1] || 0) << 8) | (bytes[i + 2] || 0);
+      s += ALPHA[(n >> 18) & 63] + ALPHA[(n >> 12) & 63];
+      if (i + 1 < bytes.length) s += ALPHA[(n >> 6) & 63];
+      if (i + 2 < bytes.length) s += ALPHA[n & 63];
+    }
+    return s;
+  }
+  function fromB64url(s) {
+    if (!/^[A-Za-z0-9_-]*$/.test(s) || s.length % 4 === 1) throw new Error("not base64url");
+    const out = [];
+    for (let i = 0; i < s.length; i += 4) {
+      const c = [0, 1, 2, 3].map((j) => (i + j < s.length ? ALPHA.indexOf(s[i + j]) : -1));
+      const n = (c[0] << 18) | (c[1] << 12) | (Math.max(c[2], 0) << 6) | Math.max(c[3], 0);
+      out.push((n >> 16) & 255);
+      if (c[2] >= 0) out.push((n >> 8) & 255);
+      if (c[3] >= 0) out.push(n & 255);
+    }
+    return out;
+  }
+
+  // non-negative finite number, clamped to max; anything else -> null
+  const clampNum = (v, max) => (typeof v === "number" && isFinite(v) && v >= 0 ? Math.min(v, max) : null);
+  function cleanTok(o) {
+    const t = { unc: 0, cw5: 0, cw1: 0, cr: 0, out: 0 };
+    if (isObj(o)) TOK_KEYS.forEach((k) => { const v = clampNum(o[k], LIMITS.tokens); if (v != null) t[k] = Math.round(v); });
+    return t;
+  }
+  const addTok = (a, b) => { TOK_KEYS.forEach((k) => { a[k] = Math.min(LIMITS.tokens, a[k] + b[k]); }); return a; };
+  const sumTok = (t) => TOK_KEYS.reduce((s, k) => s + t[k], 0);
+  const roundTok = (t) => { const o = {}; TOK_KEYS.forEach((k) => { o[k] = Math.round(t[k] || 0); }); return o; };
+
+  // Build the payload from in-memory state. Models in the data are keyed by their
+  // price-table id; usage of models not in the table is merged into one "other" bucket,
+  // so no free-text model name from the user's data ends up in the link.
+  function build({ agg, models, selected, mode, keepCache, manual }) {
+    const byId = {}, other = { unc: 0, cw5: 0, cw1: 0, cr: 0, out: 0 };
+    for (const bm of agg.byModel) {
+      const m = Logic.matchModel(bm.model, models);
+      if (m) byId[m.id] = addTok(byId[m.id] || { unc: 0, cw5: 0, cw1: 0, cr: 0, out: 0 }, roundTok(bm.tok));
+      else addTok(other, roundTok(bm.tok));
+    }
+    const known = new Set(models.map((m) => m.id));
+    const man = {};
+    Object.keys(manual || {}).forEach((id) => {
+      if (!known.has(id) || !isObj(manual[id])) return;
+      const p = {};
+      PRICE_KEYS.forEach((k) => { const v = clampNum(manual[id][k], LIMITS.price); if (v != null) p[k] = v; });
+      if (Object.keys(p).length) man[id] = p;
+    });
+    const payload = { v: VERSION, period: mode === "raw" ? "raw" : "30d", keepCache: !!keepCache,
+      days: agg.spanDays || null, totals: roundTok(agg.totals), models: byId };
+    if (sumTok(other) > 0) payload.other = other;
+    payload.compare = [...(selected || [])].filter((id) => known.has(id));
+    if (Object.keys(man).length) payload.manual = man;
+    return payload;
+  }
+
+  function encode(payload) { return "s=" + toB64url(utf8Bytes(JSON.stringify(payload))); }
+
+  // Returns {ok:true, state, ignored} or {ok:false, error}. Never throws.
+  function decode(hash, models) {
+    try {
+      const h = String(hash == null ? "" : hash).replace(/^#/, "");
+      if (h.slice(0, 2) !== "s=") return { ok: false, error: "No shared state in this link." };
+      const b = h.slice(2);
+      if (!b.length) return { ok: false, error: "The shared link is empty." };
+      if (b.length > LIMITS.hashChars) return { ok: false, error: "The shared link is too long." };
+      let obj;
+      try { obj = JSON.parse(utf8String(fromB64url(b))); }
+      catch (e) { return { ok: false, error: "The shared link is damaged (not valid base64url JSON)." }; }
+      if (!isObj(obj)) return { ok: false, error: "The shared link has an unexpected format." };
+      if (obj.v !== VERSION) return { ok: false, error: "The shared link uses an unsupported version." };
+      const known = new Map((models || []).map((m) => [m.id, m]));
+      let ignored = 0;
+      const mix = new Map(), other = cleanTok(obj.other);
+      if (isObj(obj.models)) {
+        Object.keys(obj.models).slice(0, LIMITS.list).forEach((id) => {
+          const t = cleanTok(obj.models[id]);
+          if (!known.has(id)) { ignored++; addTok(other, t); return; }
+          mix.set(id, addTok(mix.get(id) || cleanTok(null), t));
+        });
+      }
+      const fromMix = [...mix.values()].reduce((a, t) => addTok(a, t), cleanTok(null));
+      addTok(fromMix, other);
+      if (sumTok(fromMix) === 0) addTok(other, cleanTok(obj.totals)); // totals only, no per-model mix
+      const totals = sumTok(fromMix) ? fromMix : cleanTok(obj.totals);
+      if (sumTok(totals) === 0) return { ok: false, error: "The shared link has no usage totals." };
+      const d = clampNum(obj.days, LIMITS.days);
+      const days = d != null && d >= 1 ? Math.round(d) : null;
+      let compare = null;
+      if (Array.isArray(obj.compare)) {
+        compare = new Set();
+        obj.compare.slice(0, LIMITS.list).forEach((id) => { if (typeof id === "string" && known.has(id)) compare.add(id); else ignored++; });
+      }
+      const manual = {};
+      if (isObj(obj.manual)) {
+        Object.keys(obj.manual).slice(0, LIMITS.list).forEach((id) => {
+          const src = obj.manual[id];
+          if (!known.has(id) || !isObj(src)) { ignored++; return; }
+          const p = {};
+          PRICE_KEYS.forEach((k) => { const v = clampNum(src[k], LIMITS.price); if (v != null) p[k] = v; });
+          if (Object.keys(p).length) manual[id] = p;
+        });
+      }
+      return { ok: true, ignored, state: {
+        mode: obj.period === "raw" ? "raw" : "30d", keepCache: obj.keepCache !== false, days, totals,
+        models: [...mix.entries()].map(([id, tok]) => ({ id, tok })), other: sumTok(other) ? other : null, compare, manual } };
+    } catch (e) {
+      return { ok: false, error: "The shared link could not be read." };
+    }
+  }
+
+  // Turn decoded state into the same aggregate shape Logic.aggregate() returns.
+  function toAgg(st, models) {
+    const known = new Map(models.map((m) => [m.id, m]));
+    const byModel = st.models.map(({ id, tok }) => ({ model: id, provider: known.get(id).provider, tok: { ...tok } }));
+    if (st.other) byModel.push({ model: OTHER_LABEL, provider: null, tok: { ...st.other } });
+    return { totals: { ...st.totals }, byModel, minDate: null, maxDate: null, spanDays: st.days, activeDays: null, rowCount: 0, shared: true };
+  }
+
+  return { VERSION, LIMITS, build, encode, decode, toAgg, toB64url, fromB64url, utf8Bytes, utf8String, OTHER_LABEL };
+})();
+
+/* ---------------------------------------------------------------------
    Sample data (synthetic, deterministic)
    --------------------------------------------------------------------- */
 const Samples = (() => {
@@ -1081,7 +1405,7 @@ const Samples = (() => {
   return { anthropic: anthropicCsv(), openai: openaiJson() };
 })();
 
-if (typeof module !== "undefined" && module.exports) module.exports = { Logic, Samples, PRICES };
+if (typeof module !== "undefined" && module.exports) module.exports = { Logic, Samples, PRICES, Share };
 
 /* ---------------------------------------------------------------------
    UI (English)
@@ -1095,22 +1419,25 @@ if (typeof document !== "undefined") (() => {
   const fmtInt = (v) => Math.round(v).toLocaleString("en-US");
   const fmtTok = (v) => v >= 1e9 ? (v / 1e9).toFixed(2) + "B" : v >= 1e6 ? (v / 1e6).toFixed(2) + "M" : v >= 1e3 ? (v / 1e3).toFixed(1) + "K" : fmtInt(v);
   const fmtP = (v) => v == null ? "—" : "$" + (+v).toString();
-  const PROV = { anthropic: "Anthropic", openai: "OpenAI" };
-  const SRC_LINKS = { anthropic: "Anthropic pricing", openai: "OpenAI pricing" };
+  const PROV = { anthropic: "Anthropic", openai: "OpenAI", google: "Google" };
+  const SRC_LINKS = { anthropic: "Anthropic pricing", openai: "OpenAI pricing", google: "Gemini pricing" };
 
-  const state = { parsed: null, agg: null, result: null, manual: {}, selected: new Set(), isSample: false };
+  const state = { parsed: null, agg: null, result: null, manual: {}, selected: new Set(), isSample: false, shared: false };
   // Main (current-generation) models: selected by default and shown in the main price table.
   const MAIN_IDS = ["claude-fable-5-1", "claude-opus-5-5", "claude-sonnet-5-5", "claude-haiku-5-5",
-    "gpt-6-astra", "gpt-6.1-sol", "gpt-6-luna", "gpt-5.4-mini", "gpt-5.4-nano", "o4-mini"];
+    "gpt-6-astra", "gpt-6.1-sol", "gpt-6-luna", "gpt-5.4-mini", "gpt-5.4-nano", "o4-mini",
+    "gemini-3.8-flash", "gemini-3.5-flash-lite", "gemini-3.1-pro-preview"];
   const isMain = (m) => MAIN_IDS.includes(m.id) || m.main === true;
   const defaultOn = isMain;
-  (PRICES.models || []).forEach((m) => { if (defaultOn(m)) state.selected.add(m.id); });
+  const defaultSelected = () => new Set((PRICES.models || []).filter(defaultOn).map((m) => m.id));
+  state.selected = defaultSelected();
 
   document.querySelectorAll(".js-checked-on").forEach((el) => { el.textContent = PRICES.checkedOn || "—"; });
 
   const input = $("usage-input");
 
   function setSample(which) {
+    exitShared();
     input.value = Samples[which];
     state.isSample = true;
     $("sample-badge").hidden = false;
@@ -1151,9 +1478,10 @@ if (typeof document !== "undefined") (() => {
     const p = state.parsed;
     $("parse-status").innerHTML = `Detected format: <b>${esc(p.formatLabel)}</b>` + (p.bad ? ` <span class="badge warn">Skipped ${p.bad} unreadable row${p.bad === 1 ? "" : "s"} (non-numeric values, or more columns than the header, e.g. an unquoted 1,000)</span>` : "");
     const t = a.totals;
+    const plural = (n) => `${n} day${n === 1 ? "" : "s"}`;
     $("stats").innerHTML = [
-      ["Rows", fmtInt(a.rowCount)],
-      ["Period", a.minDate ? `${a.minDate} – ${a.maxDate} (${a.spanDays} day${a.spanDays === 1 ? "" : "s"})` : "No dates", "wide"],
+      ["Rows", a.shared ? "Not shared" : fmtInt(a.rowCount)],
+      ["Period", a.minDate ? `${a.minDate} – ${a.maxDate} (${plural(a.spanDays)})` : a.shared && a.spanDays ? `${plural(a.spanDays)} (dates not shared)` : "No dates", "wide"],
       ["Input (uncached)", fmtInt(t.unc)],
       ["Cache writes", fmtInt(t.cw5 + t.cw1)],
       ["Cache reads", fmtInt(t.cr)],
@@ -1197,12 +1525,13 @@ if (typeof document !== "undefined") (() => {
     if (!r.currentComplete) notes.push(`<b>Current cost is partial.</b> It leaves out models that are unverified or not in the price table (${r.unpricedModels.map(esc).join(", ")}), covering ${(r.coverage * 100).toFixed(1)}% of tokens, so differences are not shown.`);
     if (r.excluded.length) notes.push(`<b>${r.excluded.length} model${r.excluded.length === 1 ? " has an unverified price and is" : "s have unverified prices and are"} left out of totals.</b> Type a price into step 05 to include ${r.excluded.length === 1 ? "it" : "them"}.`);
     notes.push(o.keepCache
-      ? "<b>Cache:</b> assumes you keep your current cache hit ratio. Cache-read tokens use the target’s cache-read price and cache-write tokens its cache-write price. Where no cache-write price is listed, the normal input price is used (for Anthropic: 5-minute write = input × 1.25, 1-hour write = input × 2)."
+      ? "<b>Cache:</b> assumes you keep your current cache hit ratio. Cache-read tokens use the target’s cache-read price and cache-write tokens its cache-write price. Where no cache-write price is listed, the normal input price is used (for Anthropic: 5-minute write = input × 1.25, 1-hour write = input × 2). Gemini lists no cache-write price, so its cache writes are charged at input price; Gemini’s hourly cache storage fee is not included."
       : "<b>Cache:</b> assumes no caching. All input tokens, including cache writes and reads, are priced at the normal input price.");
-    notes.push("<b>Token counts are approximate.</b> Anthropic and OpenAI use different tokenizers, so the same text yields different token counts. Treat cross-provider comparisons as estimates.");
+    notes.push("<b>Token counts are approximate.</b> Anthropic, OpenAI and Google use different tokenizers, so the same text yields different token counts. Treat cross-provider comparisons as estimates.");
     notes.push("<b>Quality and latency differ by model.</b> This table compares cost only. Evaluate on your real tasks before switching.");
-    notes.push("Standard-tier prices. Excludes Batch discounts, long-context surcharges (e.g. Haiku 5.5 over 100K tokens, OpenAI over 272K) and regional or data-residency uplifts.");
+    notes.push("Standard-tier prices. Excludes Batch discounts, long-context surcharges (e.g. Haiku 5.5 over 100K tokens, OpenAI over 272K, Gemini Pro over 200K) and regional or data-residency uplifts.");
     $("compare-notes").innerHTML = notes.map((n) => `<li>${n}</li>`).join("");
+    renderSharePreview();
   }
 
   function renderChart(r) {
@@ -1270,7 +1599,7 @@ if (typeof document !== "undefined") (() => {
       const cell = (k) => verified
         ? `<td class="num">${fmtP(m[k])}</td>`
         : `<td class="num"><span class="unv">Unverified</span><input type="number" min="0" step="any" id="mp-${i}-${k}" data-id="${esc(m.id)}" data-k="${k}" aria-label="${esc(m.name)} ${KEY_LABEL[k]} price (manual)" placeholder="${m[k] != null ? esc(m[k]) : "$"}"></td>`;
-      html += `<tr title="${esc(m.note || "")}"><td><input type="checkbox" id="cand-${i}" data-id="${esc(m.id)}" ${state.selected.has(m.id) ? "checked" : ""} aria-label="Compare ${esc(m.name)}"></td>` +
+      html += `<tr data-prov="${esc(m.provider)}" title="${esc(m.note || "")}"><td><input type="checkbox" id="cand-${i}" data-id="${esc(m.id)}" ${state.selected.has(m.id) ? "checked" : ""} aria-label="Compare ${esc(m.name)}"></td>` +
         `<td><span class="prov">${esc(PROV[m.provider] || m.provider)}</span><span class="mname">${esc(m.name)}</span> <span class="hint mono">${esc(m.id)}</span></td>` +
         cell("input") + cell("output") + cell("cacheRead") + cell("cacheWrite") +
         `<td id="pst-${i}"></td><td class="mono">${esc(m.checkedOn || PRICES.checkedOn || "—")}</td>` +
@@ -1281,11 +1610,13 @@ if (typeof document !== "undefined") (() => {
     $("legacy-details").hidden = nLegacy === 0;
     $("legacy-count").textContent = String(nLegacy);
     $("price-table-legacy").innerHTML = thead + legacy + "</tbody>";
+    applyProvFilter();
     const pn = [];
     pn.push(`Prices checked <b>${esc(PRICES.checkedOn || "—")}</b>. Hover a row for the research note.`);
     pn.push("<b>Assumptions:</b> Anthropic cache write = 5-minute cache price (1-hour write = input × 2). On OpenAI each input token is billed as exactly one of input, cached input or cache write, so cache-write tokens use the listed cache-write price (or the input price when none is listed). OpenAI prices are Standard tier, prompts up to 272K tokens.");
     pn.push("<b>Claude Haiku 5.5</b> is priced for prompts up to 100K tokens. Over 100K: input $0.50 / output $2.50 / cache read $0.05 / 5-minute write $0.625.");
-    pn.push(`Sources: <a href="https://platform.claude.com/docs/en/about-claude/pricing" target="_blank" rel="noopener noreferrer">Anthropic pricing</a> / <a href="https://developers.openai.com/api/docs/pricing" target="_blank" rel="noopener noreferrer">OpenAI pricing</a>`);
+    pn.push("<b>Gemini:</b> Paid tier, Standard, text/image/video input. Cache read = the listed context-caching price; there is no cache-write price, so cache writes are charged at input price, and hourly cache storage is not included. Gemini 3.1 Pro Preview and 2.5 Pro use the tier for prompts up to 200K tokens. Gemini 3.8 / 3.7 / 3.6 Flash prices are promotional through 2026-12-31.");
+    pn.push(`Sources: <a href="https://platform.claude.com/docs/en/about-claude/pricing" target="_blank" rel="noopener noreferrer">Anthropic pricing</a> / <a href="https://developers.openai.com/api/docs/pricing" target="_blank" rel="noopener noreferrer">OpenAI pricing</a> / <a href="https://ai.google.dev/gemini-api/docs/pricing" target="_blank" rel="noopener noreferrer">Google Gemini pricing</a>`);
     $("price-notes").innerHTML = pn.map((n) => `<li>${n}</li>`).join("");
     refreshPriceStatus();
   }
@@ -1333,7 +1664,8 @@ if (typeof document !== "undefined") (() => {
     const e = exportRows(); if (!e) return "";
     const o = opts(), a = state.agg, r = state.result;
     const lines = [`## Model Switch Calculator results`, ``,
-      `- Data: ${state.parsed.formatLabel} / ${a.rowCount} rows / ${a.minDate || "-"} to ${a.maxDate || "-"}${state.isSample ? " (sample data)" : ""}`,
+      a.shared ? `- Data: aggregate totals from a shared link / ${a.spanDays ? a.spanDays + " days" : "no period"}`
+        : `- Data: ${state.parsed.formatLabel} / ${a.rowCount} rows / ${a.minDate || "-"} to ${a.maxDate || "-"}${state.isSample ? " (sample data)" : ""}`,
       `- Totals: ${o.mode === "30d" ? "normalised to 30 days" : "raw total"} / keep cache hit ratio: ${o.keepCache ? "yes" : "no"}`,
       `- Current cost: ${fmtUSD(r.current)}${r.currentComplete ? "" : " (priced models only)"} / prices checked: ${PRICES.checkedOn || "-"}`, ``,
       `| ${e.head.join(" | ")} |`, `| ${e.head.map((_, i) => (i === 1 || i === 2 || i === 6 ? "---" : "---:")).join(" | ")} |`];
@@ -1363,16 +1695,17 @@ if (typeof document !== "undefined") (() => {
   // Events
   let t = null;
   input.addEventListener("input", () => {
+    exitShared();
     if (state.isSample) { state.isSample = false; $("sample-badge").hidden = true; }
     clearTimeout(t); t = setTimeout(run, 250);
   });
   $("sample-anthropic").addEventListener("click", () => setSample("anthropic"));
   $("sample-openai").addEventListener("click", () => setSample("openai"));
-  $("clear-input").addEventListener("click", () => { input.value = ""; state.isSample = false; $("sample-badge").hidden = true; run(); input.focus(); });
+  $("clear-input").addEventListener("click", () => { exitShared(); input.value = ""; state.isSample = false; $("sample-badge").hidden = true; run(); input.focus(); });
   function loadFile(file) {
     if (!file) return;
     const fr = new FileReader();
-    fr.onload = () => { input.value = String(fr.result || ""); state.isSample = false; $("sample-badge").hidden = true; run(); };
+    fr.onload = () => { exitShared(); input.value = String(fr.result || ""); state.isSample = false; $("sample-badge").hidden = true; run(); };
     fr.onerror = () => { const err = $("parse-error"); err.hidden = false; err.innerHTML = "<b>Couldn’t read that file.</b>"; };
     fr.readAsText(file);
   }
@@ -1385,6 +1718,7 @@ if (typeof document !== "undefined") (() => {
   const priceSection = $("price-section");
   priceSection.addEventListener("change", (e) => {
     const el = e.target;
+    if (el.type === "radio" && el.name === "provf") { applyProvFilter(); return; }
     if (el.type === "checkbox") { el.checked ? state.selected.add(el.dataset.id) : state.selected.delete(el.dataset.id); render(); }
   });
   priceSection.addEventListener("input", (e) => {
@@ -1400,8 +1734,90 @@ if (typeof document !== "undefined") (() => {
   $("copy-md").addEventListener("click", () => copy(toMarkdown(), "Markdown"));
   $("copy-csv").addEventListener("click", () => copy(toCSV(), "CSV"));
 
+  // Provider filter for the step-05 price tables
+  function applyProvFilter() {
+    const sel = document.querySelector('input[name="provf"]:checked');
+    const v = sel ? sel.value : "all";
+    document.querySelectorAll("#price-table tbody tr, #price-table-legacy tbody tr").forEach((tr) => {
+      tr.hidden = v !== "all" && tr.dataset.prov !== v;
+    });
+  }
+
+  // Share link: settings + aggregate totals only (see Share in the logic section)
+  function currentPayload() {
+    if (!state.agg) return null;
+    const o = opts();
+    return Share.build({ agg: state.agg, models: PRICES.models, selected: state.selected, mode: o.mode, keepCache: o.keepCache, manual: state.manual });
+  }
+  function shareUrl(payload) { return location.href.split("#")[0] + "#" + Share.encode(payload); }
+  function renderSharePreview() {
+    const pl = currentPayload();
+    $("copy-link").disabled = !pl;
+    if (!pl) { $("share-preview").textContent = "Nothing to share yet."; $("share-size").textContent = ""; return; }
+    $("share-preview").textContent = JSON.stringify(pl, null, 2);
+    $("share-size").textContent = `Exact contents of the link (this JSON, base64url-encoded after #s=, ${Share.encode(pl).length} characters). Token totals are raw totals for the data period: unc = uncached input, cw5 / cw1 = 5-minute / 1-hour cache writes, cr = cache reads, out = output.`;
+  }
+  function syncControls() {
+    document.querySelectorAll('#price-section input[type="checkbox"][data-id]').forEach((el) => { el.checked = state.selected.has(el.dataset.id); });
+    document.querySelectorAll('#price-section input[type="number"][data-id]').forEach((el) => {
+      const v = state.manual[el.dataset.id] && state.manual[el.dataset.id][el.dataset.k];
+      el.value = v == null ? "" : String(v);
+    });
+  }
+  function exitShared() {
+    if (!state.shared) return;
+    state.shared = false;
+    $("shared-badge").hidden = true; $("shared-note").hidden = true;
+    if (/^#s=/.test(location.hash)) history.replaceState(null, "", location.pathname + location.search);
+  }
+  function loadShared(hash) {
+    const res = Share.decode(hash, PRICES.models);
+    if (!res.ok) return res;
+    const st = res.state;
+    state.shared = true; state.isSample = false;
+    $("sample-badge").hidden = true; $("shared-badge").hidden = false; $("shared-note").hidden = false;
+    input.value = "";
+    $("period-30d").checked = st.mode === "30d"; $("period-raw").checked = st.mode === "raw";
+    $("keep-cache").checked = st.keepCache;
+    if (st.compare) state.selected = st.compare;
+    state.manual = st.manual;
+    state.parsed = { format: "shared", formatLabel: "Shared link (aggregate totals only)", rows: [], bad: 0 };
+    state.agg = Share.toAgg(st, PRICES.models);
+    $("parse-error").hidden = true;
+    renderPrices(); syncControls(); render();
+    if (res.ignored) $("parse-status").append(` · ${res.ignored} unknown item${res.ignored === 1 ? " was" : "s were"} ignored.`);
+    return res;
+  }
+  function showShareError(msg) {
+    const err = $("parse-error");
+    err.hidden = false;
+    err.textContent = "";
+    const b = document.createElement("b");
+    b.textContent = "Couldn’t open the shared link.";
+    err.append(b, "\n" + msg + " Showing sample data instead.");
+  }
+  $("copy-link").addEventListener("click", () => {
+    const pl = currentPayload();
+    $("share-details").open = true;
+    copy(pl ? shareUrl(pl) : "", "the share link (totals only)");
+  });
+  $("clear-shared").addEventListener("click", () => {
+    state.selected = defaultSelected(); state.manual = {};
+    $("period-30d").checked = true; $("keep-cache").checked = true;
+    syncControls();
+    setSample("anthropic");
+  });
+  window.addEventListener("hashchange", () => {
+    if (!/^#s=/.test(location.hash)) return;
+    const res = loadShared(location.hash);
+    if (!res.ok) showShareError(res.error);
+  });
+
   renderStaticPrices();
-  setSample("anthropic");
+  if (/^#s=/.test(location.hash)) {
+    const res = loadShared(location.hash);
+    if (!res.ok) { setSample("anthropic"); showShareError(res.error); }
+  } else setSample("anthropic");
 })();
 </script>
 <script>
