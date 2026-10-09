@@ -1,0 +1,31 @@
+--- a/app/checkout/demo/DemoCheckoutClient.tsx
++++ b/app/checkout/demo/DemoCheckoutClient.tsx
+@@ -43,7 +43,8 @@
+     setMessage(null);
+     const res = await fetch(`${apiBase}/api/checkout/demo`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ token }) });
+     const data = await res.json().catch(() => ({}));
+-    if (data.url) router.push(data.url);
++    // Only an in-app path is followed (not javascript: or //host).
++    if (typeof data.url === "string" && data.url.startsWith("/") && !data.url.startsWith("//") && !data.url.startsWith("/\\")) router.push(data.url);
+     else {
+       setMessage(data.error ?? "デモ決済を完了できませんでした。");
+       setPending(false);
+--- a/app/generate/GenerateClient.tsx
++++ b/app/generate/GenerateClient.tsx
+@@ -184,8 +184,14 @@
+     const data = await res.json().catch(() => ({}));
+     if (data.url) {
+       // Demo checkout is an in-app page (basePath-aware navigation); Stripe is an external URL.
+-      if (data.url.startsWith("/")) router.push(data.url);
+-      else window.location.href = data.url;
++      // Only an in-app path or Stripe Checkout (https) is followed; anything else (javascript:, //host) is refused.
++      const url = String(data.url);
++      if (url.startsWith("/") && !url.startsWith("//") && !url.startsWith("/\\")) router.push(url);
++      else if (/^https:\/\/checkout\.stripe\.com\//.test(url)) window.location.href = url;
++      else {
++        setMessage("決済ページを開けませんでした。");
++        setBusy(false);
++      }
+     } else {
+       setMessage(data.error ?? "決済ページを開けませんでした。");
+       setBusy(false);
