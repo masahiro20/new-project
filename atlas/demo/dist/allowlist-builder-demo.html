@@ -108,6 +108,20 @@ textarea#cfg { width: 100%; min-height: 360px; resize: vertical; border: 1px sol
 .out-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; padding-block: 10px; }
 pre.out { margin: 0; background: var(--code-bg); border: 1px solid var(--line); border-radius: 4px; padding: 12px; overflow-x: auto; max-height: 420px; line-height: 1.5; }
 .copied { color: var(--ok); font-size: 13px; }
+pre.out.wrap-md { white-space: pre-wrap; overflow-wrap: anywhere; }
+.out-warn { border-left: 3px solid var(--warn); background: var(--warn-bg); padding: 8px 12px; font-size: 13px; margin-bottom: 10px; }
+.sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.filters { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; font-size: 12.5px; }
+.chip { border: 1px solid var(--line); background: var(--panel); color: var(--muted); border-radius: 999px; padding: 1px 10px; font-size: 12.5px; }
+.chip:disabled { opacity: .45; cursor: default; }
+.chip[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--ink); font-weight: 600; }
+.sevchips { display: flex; gap: 4px; flex-wrap: wrap; }
+.sevchip { font-family: var(--font-mono); font-size: 11px; padding: 0 6px; border-radius: 3px; background: var(--code-bg); white-space: nowrap; }
+.sevchip.critical, .sevchip.high { color: var(--bad); } .sevchip.medium { color: var(--warn); } .sevchip.low, .sevchip.info { color: var(--muted); }
+details.more > summary { cursor: pointer; font-size: 12.5px; color: var(--accent); }
+details.more[open] > summary { margin-bottom: 4px; }
+.slip:focus { outline: 2px solid var(--accent); outline-offset: 2px; }
+textarea#cfg.dragover { border-color: var(--accent); border-style: dashed; background: var(--accent-soft); }
 
 .register { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: 20px; align-items: start; }
 @media (max-width: 860px) { .register { grid-template-columns: minmax(0, 1fr); } }
@@ -135,7 +149,7 @@ footer { font-size: 12.5px; color: var(--muted); border-top: 1px solid var(--lin
 
 <div class="wrap">
   <header class="top">
-    <div class="eyebrow"><span>P5 Atlas</span><span class="tag">非公開デモ</span><span class="tag">オフライン動作・外部通信なし</span><span class="tag">2026-10-08 版</span></div>
+    <div class="eyebrow"><span>P5 Atlas</span><span class="tag">非公開デモ</span><span class="tag">オフライン動作・外部通信なし</span><span class="tag">2026-10-09 版</span></div>
     <h1>Allowlist Builder デモ</h1>
     <p class="lede">.mcp.json や VS Code の mcp.json を貼り付けると、起動設定ルールでサーバーごとに approve / review / deny を判定し、承認したものだけで managed-mcp.json と allowedMcpServers を生成します。判定はすべてこのページの中で行い、入力内容はどこにも送信しません。</p>
     <p class="notice">判定は静的な「パターンを検出」した結果です。悪意や安全性を断定するものではありません。実在のプロジェクト名が出る箇所の検出も、パターンの指摘であって悪意の断定ではありません。</p>
@@ -149,15 +163,23 @@ footer { font-size: 12.5px; color: var(--muted); border-top: 1px solid var(--lin
         <div class="btnrow">
           <button class="btn" id="ex-claude" type="button">例：.mcp.json</button>
           <button class="btn" id="ex-vscode" type="button">例：VS Code mcp.json</button>
+          <button class="btn" id="load-file" type="button">ファイルを読み込む</button>
           <button class="btn" id="clear" type="button">クリア</button>
+          <input type="file" id="file" accept=".json,.jsonc,application/json" hidden>
         </div>
         <textarea id="cfg" spellcheck="false" autocomplete="off" aria-describedby="cfg-hint"></textarea>
-        <p class="hint" id="cfg-hint">mcpServers（Claude Code / Claude Desktop）と servers（VS Code）の両方に対応。コメントと末尾のカンマも読めます。入力するたびに再判定します。</p>
+        <p class="hint" id="cfg-hint">mcpServers（Claude Code / Claude Desktop）と servers（VS Code）の両方に対応。コメントと末尾のカンマも読めます。入力するたびに再判定します。ファイルはこの欄にドラッグ＆ドロップしても読み込めます（ブラウザ内で読むだけで、送信しません）。</p>
         <p class="err" id="parse-err" hidden></p>
       </div>
-      <div class="panel" aria-live="polite">
+      <div class="panel">
         <div class="section-head"><h3>判定結果</h3><span class="hint">チェックしたサーバーだけが出力に入ります</span></div>
         <div class="summary" id="summary"></div>
+        <p class="sr" id="live" role="status" aria-live="polite"></p>
+        <div class="btnrow" style="margin-bottom:10px">
+          <button class="btn" id="bulk-on" type="button">承認推奨をすべて含める</button>
+          <button class="btn" id="bulk-off" type="button">すべて外す</button>
+        </div>
+        <div class="filters" id="filters" role="group" aria-label="判定で絞り込む"></div>
         <div class="slips" id="slips"></div>
       </div>
     </div>
@@ -166,16 +188,20 @@ footer { font-size: 12.5px; color: var(--muted); border-top: 1px solid var(--lin
   <section aria-labelledby="h-out">
     <div class="section-head"><h2 id="h-out">許可リストを出力</h2><span class="step">APPROVED ONLY</span></div>
     <div class="panel">
-      <div class="tabs" role="tablist" id="tabs">
-        <button class="tab" role="tab" id="tab-managed" aria-selected="true" data-k="managed" type="button">managed-mcp.json</button>
-        <button class="tab" role="tab" id="tab-claude" aria-selected="false" data-k="claude" type="button">Claude Code allowedMcpServers</button>
-        <button class="tab" role="tab" id="tab-copilot" aria-selected="false" data-k="copilot" type="button">Copilot / VS Code allowedMcpServers</button>
+      <div class="tabs" role="tablist" id="tabs" aria-label="出力の種類">
+        <button class="tab" role="tab" id="tab-managed" aria-selected="true" aria-controls="out-panel" tabindex="0" data-k="managed" type="button">managed-mcp.json</button>
+        <button class="tab" role="tab" id="tab-claude" aria-selected="false" aria-controls="out-panel" tabindex="-1" data-k="claude" type="button">Claude Code allowedMcpServers</button>
+        <button class="tab" role="tab" id="tab-copilot" aria-selected="false" aria-controls="out-panel" tabindex="-1" data-k="copilot" type="button">Copilot / VS Code allowedMcpServers</button>
+        <button class="tab" role="tab" id="tab-decisions" aria-selected="false" aria-controls="out-panel" tabindex="-1" data-k="decisions" type="button">decisions.md</button>
       </div>
-      <div class="out-head">
-        <span class="hint" id="out-desc"></span>
-        <span class="btnrow"><span class="copied" id="copied" hidden>コピーしました</span><button class="btn primary" id="copy" type="button">コピー</button></span>
+      <div id="out-panel" role="tabpanel" aria-labelledby="tab-managed">
+        <div class="out-head">
+          <span class="hint" id="out-desc"></span>
+          <span class="btnrow"><span class="copied" id="copied" hidden>コピーしました</span><button class="btn primary" id="copy" type="button">コピー</button></span>
+        </div>
+        <p class="out-warn" id="out-warn" hidden></p>
+        <pre class="out" id="out" tabindex="0" aria-label="出力内容"></pre>
       </div>
-      <pre class="out" id="out" tabindex="0"></pre>
       <p class="hint" style="margin-top:8px" id="out-note">シークレットの直書き（env・ヘッダー・URL のクエリ・--password などの引数）は ${VAR} に置き換えてから出力します。URL のクエリを置き換えたサーバーは、serverUrl をホストとパスで照合するパターン（例：https://host/path?*）にして、実際の URL と照合できるようにします（Claude Code の serverUrl は * に対応。Copilot 側の * 対応は未確認）。引数を置き換えた stdio サーバーの serverCommand は完全一致なので、配布前に確認してください。managed-mcp.json はマシン上の全ユーザーが読めるため、値は各ユーザーの環境で設定してください。</p>
     </div>
   </section>
@@ -996,8 +1022,66 @@ footer { font-size: 12.5px; color: var(--muted); border-top: 1px solid var(--lin
     };
   }
 
+  // Markdown audit record (loosely mirrors _decisions_md in allowlist_core.py).
+  // Uses sanitized configs and redacted text only; reviewer reasons are redacted too.
+  function mdCell(s) { return redact(str(s)).replace(/\r?\n/g, ' ').replace(/\|/g, '\\|'); }
+  function mdLine(s) { return redact(str(s)).replace(/\r?\n/g, ' '); }
+  function launchOf(cfg) {
+    if (!cfg) return '';
+    if (truthy(cfg.url) && !truthy(cfg.command)) return str(truthy(cfg.type) ? cfg.type : 'http') + ' ' + str(cfg.url);
+    return argvOf(cfg).join(' ');
+  }
+  function decisionsMarkdown(items, approvedNames, opts) {
+    opts = opts || {};
+    items = items || [];
+    var reasons = opts.reasons || {};
+    var when = opts.generated || new Date().toISOString();
+    var out = buildOutputs(items, approvedNames, opts);
+    var ok = {};
+    out.included.forEach(function (n) { ok[n] = true; });
+    var cnt = { approve: 0, review: 0, deny: 0 };
+    items.forEach(function (it) { if (cnt[it.recommendation] !== undefined) cnt[it.recommendation]++; });
+    var secretsReplaced = items.some(function (it) {
+      return it.findings.some(function (f) { return f.rule === 'ATL-CR-003' || f.rule === 'ATL-CR-005'; });
+    });
+    var L = ['# Atlas Allowlist Builder - decisions / 判定記録', '',
+      '- Generated / 生成日時 (UTC): ' + when,
+      '- Tool: Allowlist Builder デモ（オフライン・起動設定ルールのみ, engine ' + API.version + '）',
+      '- Servers / サーバー: ' + items.length + '（承認推奨 ' + cnt.approve + ' / 要レビュー ' + cnt.review + ' / 拒否推奨 ' + cnt.deny + '）',
+      '- Approved / 承認: ' + out.included.length,
+      '- Secrets / シークレット: 直書きの認証情報は ${VAR} プレースホルダーに置き換えて記録しています。元の値はこの記録にも出力にも含まれません' +
+        (secretsReplaced ? '（今回の入力で置き換えあり）' : '（今回の入力では置き換えなし）'),
+      '', '判定は静的な「パターンを検出」した結果であり、悪意や安全性を断定するものではありません。', '',
+      '| Server | Atlas rec. | Decision |', '|---|---|---|'];
+    items.forEach(function (it) {
+      var dec = ok[it.name] ? 'APPROVED / 承認' : 'NOT APPROVED / 不承認';
+      if (ok[it.name] && it.recommendation !== 'approve') dec += " (reviewed '" + it.recommendation + "')";
+      L.push('| ' + mdCell(it.name) + ' | ' + it.recommendation + ' | ' + dec + ' |');
+    });
+    items.forEach(function (it) {
+      L.push('', '## ' + mdLine(it.name));
+      L.push('- Recommendation / 推奨: ' + it.recommendation + '（' + REC_LABEL[it.recommendation] + '）');
+      L.push('- Approved / 承認: ' + (ok[it.name] ? 'yes' : 'no'));
+      if (ok[it.name] && it.recommendation !== 'approve') {
+        L.push('- Reviewer reason / 承認理由: ' + (str(reasons[it.name]).trim() ? mdLine(str(reasons[it.name]).trim()).slice(0, 1000) : '(none)'));
+      }
+      L.push('- Launch (sanitized) / 起動設定: `' + mdLine(launchOf(it.sanitized)).replace(/`/g, "'") + '`');
+      var rids = [];
+      it.findings.forEach(function (f) { if (!inArr(rids, f.rule)) rids.push(f.rule); });
+      L.push('- Rule ids / ルール: ' + (rids.length ? rids.join(', ') : '(none)'));
+      if (it.sample) L.push('- Matched sample / 一致サンプル: ' + mdLine(it.sample.name || it.sample.id) + (it.sample.grade ? '（等級 ' + it.sample.grade + '）' : '') + ' - パターンの指摘であり、悪意の断定ではありません');
+      var top = (it.reasons || []).slice(0, 5);
+      if (top.length) {
+        L.push('- Top reasons / 主な根拠:');
+        top.forEach(function (r) { L.push('  - ' + mdLine(r).slice(0, 300)); });
+      }
+    });
+    return L.join('\n') + '\n';
+  }
+
   var API = {
     version: '0.1-demo',
+    decisionsMarkdown: decisionsMarkdown,
     parseConfig: parseConfig,
     evaluate: evaluate,
     buildOutputs: buildOutputs,
@@ -1101,7 +1185,9 @@ window.ATLAS_SAMPLES = {"generated":"2026-10-08T13:57:37+00:00","source":"atlas/
   }
   function pill(rec, label) { return el("span", { "class": "pill " + rec, text: label || (rec + " · " + REC_JA[rec]) }); }
 
-  var state = { items: [], approved: {}, reasons: {}, tab: "managed" };
+  var state = { items: [], approved: {}, reasons: {}, tab: "managed", filter: "all" };
+  var SEVS = ["critical", "high", "medium", "low", "info"];
+  var FINDINGS_OPEN = 3;
 
   function launchLine(cfg) {
     if (!cfg) return "";
@@ -1136,16 +1222,39 @@ window.ATLAS_SAMPLES = {"generated":"2026-10-08T13:57:37+00:00","source":"atlas/
       sum.appendChild(pill("neutral", state.items.length + " サーバー"));
       ["approve", "review", "deny"].forEach(function (r) { sum.appendChild(pill(r, REC_JA[r] + " " + c[r])); });
     }
+    $("live").textContent = state.items.length
+      ? state.items.length + " サーバーを判定：承認推奨 " + c.approve + "、要レビュー " + c.review + "、拒否推奨 " + c.deny
+      : "判定できるサーバーはありません";
+    if (state.filter !== "all" && !c[state.filter]) state.filter = "all";
+    var fb = $("filters"); fb.textContent = "";
+    fb.appendChild(el("span", { "class": "hint", text: "表示：" }));
+    [["all", "すべて", state.items.length], ["approve", "approve", c.approve], ["review", "review", c.review], ["deny", "deny", c.deny]].forEach(function (f) {
+      var b = el("button", { "class": "chip", type: "button", "aria-pressed": state.filter === f[0] ? "true" : "false", text: f[1] + " " + f[2] });
+      if (!f[2] && f[0] !== "all") b.disabled = true;
+      b.addEventListener("click", function () { state.filter = f[0]; renderSlips(); var nb = fb.querySelectorAll(".chip")[["all", "approve", "review", "deny"].indexOf(f[0])]; if (nb) nb.focus(); });
+      fb.appendChild(b);
+    });
+    fb.hidden = !state.items.length;
+    $("bulk-on").disabled = !c.approve; $("bulk-off").disabled = !state.items.length;
     var box = $("slips"); box.textContent = "";
     state.items.forEach(function (it, idx) {
       var body = el("div", { "class": "body" });
-      body.appendChild(el("div", { "class": "head" }, [el("span", { "class": "name", text: it.name }), pill(it.recommendation)]));
+      var sc = {};
+      (it.findings || []).forEach(function (f) { sc[f.sev] = (sc[f.sev] || 0) + 1; });
+      var chips = el("span", { "class": "sevchips", title: "重大度ごとの検出数" });
+      SEVS.forEach(function (k) { if (sc[k]) chips.appendChild(el("span", { "class": "sevchip " + k, text: k + " " + sc[k] })); });
+      if (!chips.childNodes.length) chips.appendChild(el("span", { "class": "sevchip", text: "検出 0" }));
+      body.appendChild(el("div", { "class": "head" }, [el("span", { "class": "name", text: it.name }), el("span", { "class": "sevchips" }, [chips, pill(it.recommendation)])]));
       body.appendChild(el("div", { "class": "launch", text: launchLine(it.sanitized || it.cfg) }));
       var ul = el("ul", { "class": "reasons" });
       (it.reasons || []).forEach(function (r) { ul.appendChild(el("li", { text: r })); });
       body.appendChild(ul);
       if (it.findings && it.findings.length) {
         var fl = el("div", { "class": "findings" });
+        var fwrap = fl;
+        if (it.findings.length > FINDINGS_OPEN) {
+          fwrap = el("details", { "class": "more" }, [el("summary", { text: "検出したパターン " + it.findings.length + " 件を表示" }), fl]);
+        }
         it.findings.forEach(function (f) {
           fl.appendChild(el("div", { "class": "finding" }, [
             el("span", { "class": "sev " + f.sev, text: f.sev }),
@@ -1153,7 +1262,7 @@ window.ATLAS_SAMPLES = {"generated":"2026-10-08T13:57:37+00:00","source":"atlas/
             el("span", null, [document.createTextNode((f.titleJa || f.title) + " "), el("span", { "class": "snip", text: (f.ptr ? f.ptr + "  " : "") + (f.snippet || "") })])
           ]));
         });
-        body.appendChild(fl);
+        body.appendChild(fwrap);
       }
       if (it.sample) {
         body.appendChild(el("div", { "class": "linked" }, [
@@ -1186,33 +1295,63 @@ window.ATLAS_SAMPLES = {"generated":"2026-10-08T13:57:37+00:00","source":"atlas/
       }
       cb.addEventListener("change", function () { state.approved[it.name] = cb.checked; renderOutputs(); });
       body.appendChild(dec);
-      box.appendChild(el("article", { "class": "slip " + it.recommendation }, [el("div", { "class": "stripe" }), body]));
+      var art = el("article", { "class": "slip " + it.recommendation, tabindex: "-1", "data-name": it.name, "aria-label": it.name + "（" + REC_JA[it.recommendation] + "）" }, [el("div", { "class": "stripe" }), body]);
+      if (state.filter !== "all" && state.filter !== it.recommendation) art.hidden = true;
+      box.appendChild(art);
     });
   }
 
   var TAB_DESC = {
     managed: "Claude Code の managed-mcp.json。承認したサーバーだけの起動設定です。",
     claude: "Claude Code の managed-settings.json に入れる allowedMcpServers。",
-    copilot: "GitHub Copilot / VS Code の企業管理設定に入れる allowedMcpServers。"
+    copilot: "GitHub Copilot / VS Code の企業管理設定に入れる allowedMcpServers。",
+    decisions: "判定記録（decisions.md）。全サーバーの推奨・承認の有無・承認理由・根拠を残す監査用の Markdown です。"
   };
+  var URL_WARN = {
+    claude: "URL のクエリにある認証情報を置き換えたサーバーがあります。serverUrl はホストとパスで照合するパターン（https://host/path?*）にしています（Claude Code の serverUrl は * に対応）。",
+    copilot: "URL のクエリにある認証情報を置き換えたサーバーがあります。serverUrl はホストとパスで照合するパターン（https://host/path?*）にしていますが、Copilot 側の * 対応は未確認です。配布前に確認してください。"
+  };
+  function approvedNames() { return Object.keys(state.approved).filter(function (n) { return state.approved[n]; }); }
   function currentOutput() {
-    var names = Object.keys(state.approved).filter(function (n) { return state.approved[n]; });
+    var names = approvedNames();
     var o = E.buildOutputs(state.items, names);
+    var urlPh = o.claudeSettings.allowedMcpServers.some(function (m) { return m.serverUrl && /\?\*$/.test(m.serverUrl); });
+    if (state.tab === "decisions") {
+      var reasons = {};
+      names.forEach(function (n) { if (state.reasons[n]) reasons[n] = state.reasons[n]; });
+      return { text: E.decisionsMarkdown(state.items, names, { reasons: reasons, generated: new Date().toISOString() }), n: o.included.length, urlPh: urlPh };
+    }
     var obj = state.tab === "managed" ? o.managedMcp : state.tab === "claude" ? o.claudeSettings : o.copilotSettings;
-    return { text: JSON.stringify(obj, null, 2) + "\n", n: names.length };
+    return { text: JSON.stringify(obj, null, 2) + "\n", n: o.included.length, urlPh: urlPh };
   }
   function renderOutputs() {
     var r;
     try { r = currentOutput(); } catch (e) { r = { text: "// 出力を生成できませんでした：" + e.message, n: 0 }; }
     $("out").textContent = r.text;
+    $("out").classList.toggle("wrap-md", state.tab === "decisions");
     $("out-desc").textContent = TAB_DESC[state.tab] + "（承認 " + r.n + " 件）";
+    var w = $("out-warn");
+    if (r.urlPh && URL_WARN[state.tab]) { w.textContent = URL_WARN[state.tab]; w.hidden = false; } else { w.textContent = ""; w.hidden = true; }
     $("copied").hidden = true;
   }
-  document.querySelectorAll(".tab").forEach(function (t) {
-    t.addEventListener("click", function () {
-      state.tab = t.getAttribute("data-k");
-      document.querySelectorAll(".tab").forEach(function (u) { u.setAttribute("aria-selected", u === t ? "true" : "false"); });
-      renderOutputs();
+  var TABS = Array.prototype.slice.call(document.querySelectorAll(".tab"));
+  function selectTab(t, focus) {
+    state.tab = t.getAttribute("data-k");
+    TABS.forEach(function (u) { var on = u === t; u.setAttribute("aria-selected", on ? "true" : "false"); u.setAttribute("tabindex", on ? "0" : "-1"); });
+    $("out-panel").setAttribute("aria-labelledby", t.id);
+    if (focus) t.focus();
+    renderOutputs();
+  }
+  TABS.forEach(function (t, i) {
+    t.addEventListener("click", function () { selectTab(t); });
+    t.addEventListener("keydown", function (ev) {
+      var j = null;
+      if (ev.key === "ArrowRight" || ev.key === "ArrowDown") j = (i + 1) % TABS.length;
+      else if (ev.key === "ArrowLeft" || ev.key === "ArrowUp") j = (i - 1 + TABS.length) % TABS.length;
+      else if (ev.key === "Home") j = 0;
+      else if (ev.key === "End") j = TABS.length - 1;
+      if (j === null) return;
+      ev.preventDefault(); selectTab(TABS[j], true);
     });
   });
   $("copy").addEventListener("click", function () {
@@ -1314,8 +1453,12 @@ window.ATLAS_SAMPLES = {"generated":"2026-10-08T13:57:37+00:00","source":"atlas/
     }
     servers[s.id] = s.config;
     $("cfg").value = JSON.stringify(obj, null, 2);
+    state.filter = "all";
     evaluate();
-    document.getElementById("h-input").scrollIntoView({ behavior: "smooth" });
+    var slip = Array.prototype.filter.call(document.querySelectorAll("#slips .slip"), function (a) { return a.getAttribute("data-name") === s.id; })[0];
+    if (slip) { slip.scrollIntoView({ behavior: "smooth", block: "center" }); slip.focus({ preventScroll: true }); var added = state.items.filter(function (x) { return x.name === s.id; })[0];
+      $("live").textContent = s.id + " を入力に追加して判定しました：" + (added ? REC_JA[added.recommendation] : ""); }
+    else document.getElementById("h-input").scrollIntoView({ behavior: "smooth" });
   }
 
   $("ex-claude").addEventListener("click", function () { $("cfg").value = EX_CLAUDE; evaluate(); });
@@ -1323,6 +1466,42 @@ window.ATLAS_SAMPLES = {"generated":"2026-10-08T13:57:37+00:00","source":"atlas/
   $("clear").addEventListener("click", function () { $("cfg").value = ""; evaluate(); $("cfg").focus(); });
   var t = null;
   $("cfg").addEventListener("input", function () { clearTimeout(t); t = setTimeout(evaluate, 200); });
+
+  // ---- local file loading (FileReader only; nothing leaves the page) ----
+  var MAX_FILE = 2 * 1024 * 1024;
+  function loadFile(f) {
+    if (!f) return;
+    var errEl = $("parse-err");
+    if (f.size > MAX_FILE) { errEl.textContent = "ファイルが大きすぎます（2 MB まで）：" + f.name; errEl.hidden = false; return; }
+    var rd = new FileReader();
+    rd.onload = function () { $("cfg").value = String(rd.result || ""); evaluate(); $("live").textContent = f.name + " を読み込みました。" + $("live").textContent; };
+    rd.onerror = function () { errEl.textContent = "ファイルを読み込めませんでした：" + f.name; errEl.hidden = false; };
+    rd.readAsText(f);
+  }
+  $("load-file").addEventListener("click", function () { $("file").click(); });
+  $("file").addEventListener("change", function () { loadFile(this.files && this.files[0]); this.value = ""; });
+  var ta = $("cfg");
+  ["dragenter", "dragover"].forEach(function (ev) { ta.addEventListener(ev, function (e) {
+    if (e.dataTransfer && Array.prototype.indexOf.call(e.dataTransfer.types || [], "Files") !== -1) { e.preventDefault(); e.dataTransfer.dropEffect = "copy"; ta.classList.add("dragover"); }
+  }); });
+  ["dragleave", "dragend"].forEach(function (ev) { ta.addEventListener(ev, function () { ta.classList.remove("dragover"); }); });
+  ta.addEventListener("drop", function (e) {
+    ta.classList.remove("dragover");
+    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) { e.preventDefault(); loadFile(e.dataTransfer.files[0]); }
+  });
+  // a file dropped next to the textarea must not navigate the page away
+  window.addEventListener("dragover", function (e) { if (e.target !== ta) e.preventDefault(); });
+  window.addEventListener("drop", function (e) { if (e.target !== ta) e.preventDefault(); });
+
+  // ---- bulk actions ----
+  $("bulk-on").addEventListener("click", function () {
+    state.items.forEach(function (it) { if (it.recommendation === "approve") state.approved[it.name] = true; });
+    renderSlips(); renderOutputs();
+  });
+  $("bulk-off").addEventListener("click", function () {
+    state.items.forEach(function (it) { state.approved[it.name] = false; });
+    renderSlips(); renderOutputs();
+  });
 
   if (!$("cfg").value) $("cfg").value = EX_CLAUDE;
   evaluate();

@@ -798,8 +798,66 @@
     };
   }
 
+  // Markdown audit record (loosely mirrors _decisions_md in allowlist_core.py).
+  // Uses sanitized configs and redacted text only; reviewer reasons are redacted too.
+  function mdCell(s) { return redact(str(s)).replace(/\r?\n/g, ' ').replace(/\|/g, '\\|'); }
+  function mdLine(s) { return redact(str(s)).replace(/\r?\n/g, ' '); }
+  function launchOf(cfg) {
+    if (!cfg) return '';
+    if (truthy(cfg.url) && !truthy(cfg.command)) return str(truthy(cfg.type) ? cfg.type : 'http') + ' ' + str(cfg.url);
+    return argvOf(cfg).join(' ');
+  }
+  function decisionsMarkdown(items, approvedNames, opts) {
+    opts = opts || {};
+    items = items || [];
+    var reasons = opts.reasons || {};
+    var when = opts.generated || new Date().toISOString();
+    var out = buildOutputs(items, approvedNames, opts);
+    var ok = {};
+    out.included.forEach(function (n) { ok[n] = true; });
+    var cnt = { approve: 0, review: 0, deny: 0 };
+    items.forEach(function (it) { if (cnt[it.recommendation] !== undefined) cnt[it.recommendation]++; });
+    var secretsReplaced = items.some(function (it) {
+      return it.findings.some(function (f) { return f.rule === 'ATL-CR-003' || f.rule === 'ATL-CR-005'; });
+    });
+    var L = ['# Atlas Allowlist Builder - decisions / 判定記録', '',
+      '- Generated / 生成日時 (UTC): ' + when,
+      '- Tool: Allowlist Builder デモ（オフライン・起動設定ルールのみ, engine ' + API.version + '）',
+      '- Servers / サーバー: ' + items.length + '（承認推奨 ' + cnt.approve + ' / 要レビュー ' + cnt.review + ' / 拒否推奨 ' + cnt.deny + '）',
+      '- Approved / 承認: ' + out.included.length,
+      '- Secrets / シークレット: 直書きの認証情報は ${VAR} プレースホルダーに置き換えて記録しています。元の値はこの記録にも出力にも含まれません' +
+        (secretsReplaced ? '（今回の入力で置き換えあり）' : '（今回の入力では置き換えなし）'),
+      '', '判定は静的な「パターンを検出」した結果であり、悪意や安全性を断定するものではありません。', '',
+      '| Server | Atlas rec. | Decision |', '|---|---|---|'];
+    items.forEach(function (it) {
+      var dec = ok[it.name] ? 'APPROVED / 承認' : 'NOT APPROVED / 不承認';
+      if (ok[it.name] && it.recommendation !== 'approve') dec += " (reviewed '" + it.recommendation + "')";
+      L.push('| ' + mdCell(it.name) + ' | ' + it.recommendation + ' | ' + dec + ' |');
+    });
+    items.forEach(function (it) {
+      L.push('', '## ' + mdLine(it.name));
+      L.push('- Recommendation / 推奨: ' + it.recommendation + '（' + REC_LABEL[it.recommendation] + '）');
+      L.push('- Approved / 承認: ' + (ok[it.name] ? 'yes' : 'no'));
+      if (ok[it.name] && it.recommendation !== 'approve') {
+        L.push('- Reviewer reason / 承認理由: ' + (str(reasons[it.name]).trim() ? mdLine(str(reasons[it.name]).trim()).slice(0, 1000) : '(none)'));
+      }
+      L.push('- Launch (sanitized) / 起動設定: `' + mdLine(launchOf(it.sanitized)).replace(/`/g, "'") + '`');
+      var rids = [];
+      it.findings.forEach(function (f) { if (!inArr(rids, f.rule)) rids.push(f.rule); });
+      L.push('- Rule ids / ルール: ' + (rids.length ? rids.join(', ') : '(none)'));
+      if (it.sample) L.push('- Matched sample / 一致サンプル: ' + mdLine(it.sample.name || it.sample.id) + (it.sample.grade ? '（等級 ' + it.sample.grade + '）' : '') + ' - パターンの指摘であり、悪意の断定ではありません');
+      var top = (it.reasons || []).slice(0, 5);
+      if (top.length) {
+        L.push('- Top reasons / 主な根拠:');
+        top.forEach(function (r) { L.push('  - ' + mdLine(r).slice(0, 300)); });
+      }
+    });
+    return L.join('\n') + '\n';
+  }
+
   var API = {
     version: '0.1-demo',
+    decisionsMarkdown: decisionsMarkdown,
     parseConfig: parseConfig,
     evaluate: evaluate,
     buildOutputs: buildOutputs,

@@ -36,3 +36,5 @@ AtlasEngine.buildOutputs(items, approvedNames:Set|Array) -> {
    claudeSettings: {"allowManagedMcpServersOnly": true, "allowedMcpServers": [matchers]},
    copilotSettings: {"allowedMcpServers": [matchers]} }   // matcher = {serverUrl} | {serverCommand:[argv]}
   - Only approved items. Deny items are never included unless approvedNames contains them AND the caller passes {allowDeny:true, reasons:{name:"..."}} (UI may not offer this).
+
+AtlasEngine.decisionsMarkdown(items, approvedNames, {reasons, generated}) -> string  // decisions.md audit record; approval resolved via buildOutputs (deny never approved); all text redacted
