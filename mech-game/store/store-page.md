@@ -93,7 +93,7 @@ GRANDSTRIDE is free to play. If you enjoyed it, a small tip (suggested $3) goes 
 
 ### Credits
 
-- Design, development: (developer name)
+- Design, development: Team GRANDSTRIDE
 - Mission controller Itsuka: radio text
 - Sound: all synthesized in real time with the Web Audio API
 - **three.js r128** — Copyright © 2010–2021 three.js authors. Released under the **MIT License**. https://github.com/mrdoob/three.js/blob/r128/LICENSE
@@ -169,7 +169,7 @@ GRANDSTRIDE is free to play. If you enjoyed it, a small tip (suggested $3) goes 
 
 ### クレジット
 
-- 企画・開発: （開発者名）
+- 企画・開発: Team GRANDSTRIDE
 - 管制官イツカ: 無線テキスト
 - 音: すべて Web Audio API でリアルタイム合成
 - **three.js r128** — Copyright © 2010–2021 three.js authors. **MIT License** で公開。https://github.com/mrdoob/three.js/blob/r128/LICENSE
@@ -289,7 +289,7 @@ itch の編集画面の生成 AI に関する項目では、**「使用してい
 
 - [ ] 品質設定（低・中・高）と FPS 表示が、アップロードするビルドに入っているか確認（文面で約束しているため）
 - [ ] タグが itch の候補に存在するか確認
-- [ ] 開発者名をクレジットに入れる
+- [x] 開発者名をクレジットに入れる（Team GRANDSTRIDE）
 - [ ] スクリーンショット 3〜5 枚（鞍座 HUD、出撃演出、殻王、OVERBEAT、評価画面）とカバー画像 630×500
 - [ ] itch のページで PC（Chrome/Edge）とスマホ（横向き・全画面）の両方で動作確認、iframe 内でマウス固定が効くか確認
 - [ ] 文面に他作品の名前・用語が入っていないか最終確認
