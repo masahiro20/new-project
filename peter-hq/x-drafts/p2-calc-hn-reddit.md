@@ -1,54 +1,62 @@
-# P2 Model Switch Calculator — HN and Reddit drafts
+# P2 Model Switch Calculator　HN・Reddit の投稿の下書き
 
-Author: Midas (2026-10-09). Status: **draft. Do not post before the owner approves.** Posting uses the owner's own HN and Reddit accounts.
-Page: https://masahiro20.github.io/new-project/calc/ (live, checked 2026-10-09; updated for calc v2: Gemini prices and share links)
+作成：Midas（2026-10-09）　状態：**下書き。オーナーの承認前は投稿しない。** 投稿はオーナー自身の HN・Reddit のアカウントで行う。
+ページ：https://masahiro20.github.io/new-project/calc/ （公開中。2026-10-09 に確認。計算機 v2 の Gemini の価格と共有リンクに合わせて更新）
+**投稿の本文は英語のまま**（海外の開発者向け）。説明はすべて日本語。
 
-## What the page actually does (every claim below comes from the live page)
-- You paste an Anthropic or OpenAI usage export (CSV or JSON) or drop in a file. The page shows what the same traffic would cost per month on each current Claude, GPT and Gemini model, side by side.
-- List prices were checked on 2026-10-09 against the official pricing pages (Anthropic, OpenAI, Google). Rows whose price isn't verified are left out of totals, and you can type in a price yourself.
-- **Runs entirely in the browser.** After the page loads it makes no network requests: no uploads, no tracking, no sign-up.
-- Cache-aware:
-  - Cache writes and reads are priced separately.
-  - A "keep my cache hit ratio" toggle controls how cache tokens are priced on the target model.
-  - 30-day normalisation.
-- You can copy the results as Markdown or CSV, or copy a share link. The link holds only settings and aggregate token totals, never the pasted rows. It does reveal your usage volume, and the page says so. Sample data is included for Anthropic and OpenAI.
-- There's no dedicated Gemini export parser. Gemini usage goes in through the simple CSV. Gemini Flash prices are promotional through 2026-12-31, as the page notes.
-- Caveats stated on the page:
-  - Tokenizers differ, so cross-provider comparisons are estimates.
-  - Prices are standard tier, with no Batch, long-context or regional pricing.
+## ページで実際にできること（すべて公開中のページで確認した内容）
+- Anthropic か OpenAI の利用データ（CSV か JSON）を貼るか、ファイルを置く。同じ使い方を、今の Claude・GPT・Gemini の各モデルで続けたら月いくらになるかを、横に並べて表示する。
+- 定価は 2026-10-09 に、各社（Anthropic、OpenAI、Google）の公式の価格ページで確認したもの。確認できていない価格は合計に入れず、自分で価格を入れることもできる。
+- **すべてブラウザの中で動く。** ページを開いた後は通信しない。アップロードも追跡も登録もない。
+- キャッシュの扱い：
+  - キャッシュの書き込みと読み出しを、別々の価格で計算する。
+  - 「キャッシュのヒット率を保つ」の切り替えで、乗り換え先でのキャッシュの価格を変えられる。
+  - 30日分に換算できる。
+- 結果は、Markdown か CSV でコピーできる。共有リンクも作れる。
+  - リンクに入るのは設定と合計のトークン数だけで、貼ったデータの行は入らない。
+  - ただし利用量の大きさは分かってしまう。ページにもそう書いてある。
+  - サンプルデータは Anthropic 用と OpenAI 用がある。
+- Gemini の利用データを直接読む機能はない。Gemini の分は、簡単な CSV の形で入れる。Gemini Flash の価格は 2026-12-31 までのキャンペーン価格（ページに記載）。
+- ページに書いてある注意：
+  - 会社ごとにトークンの数え方が違うので、会社をまたぐ比較は概算。
+  - 価格は標準の料金。まとめて処理する割引（Batch）、長い文章の割増、地域ごとの価格は含めていない。
 
-## Rules that apply
-| Place | Rules | Checked |
+## 守るルール
+| 場所 | ルール | 確認 |
 |---|---|---|
-| Show HN | The title starts with "Show HN". It must be something people can try easily, ideally with no sign-up or email. You must be the maker and available to discuss it. Landing pages and sign-up pages don't qualify, and neither do "quickly generated one-off projects". **Don't ask friends to upvote or comment.** The first comment should explain how and why you built it. | [official] https://news.ycombinator.com/showhn.html |
-| r/SideProject | Third-party guides describe it as one of the most promotion-friendly subs. Posts need a story and context; bare link drops get removed. | [secondary] https://www.indiehackers.com/post/what-subreddits-have-you-found-that-actually-allow-and-encourage-self-promotion-864d4da1cd ; current sidebar **[unverified]** |
-| r/ClaudeAI | A mod post (Apr 2026) says projects go in the **Project Showcase megathread**. Posting a showcase to the main feed needs at least 50 total karma. It refers to a "Rule 7" whose text we couldn't read. | [secondary] https://redlib.groet-infra.nl/r/ClaudeAI/comments/1sly3jm/built_with_claude_project_showcase_megathread/oo1qqsm/?context=3 ; Rule 7 **[unverified]** |
-| r/OpenAI, r/LLMDevs | Not checked. Reddit couldn't be fetched from this environment. | **[unverified]** — read the sidebar before posting, or skip |
+| Show HN | 題名は「Show HN」で始める。登録やメールアドレスなしで、すぐ試せるものに限る。作った本人が投稿し、質問に答えられること。LP、登録ページ、「急いで作った一回きりのもの」は対象外。**知人に投票やコメントを頼まない。** 最初のコメントで、なぜ・どう作ったかを説明する | ［公式］https://news.ycombinator.com/showhn.html |
+| r/SideProject | 第三者の解説では、自作の紹介を最も受け入れる板の一つ。経緯や背景を書くこと。リンクだけの投稿は消される | ［二次］https://www.indiehackers.com/post/what-subreddits-have-you-found-that-actually-allow-and-encourage-self-promotion-864d4da1cd ／今のルール欄は［未確認］ |
+| r/ClaudeAI | モデレーターの投稿（2026年4月）によると、作ったものは **Project Showcase のまとめスレッド**に出す。通常の投稿として出すには、Reddit での評価の点数（カルマ）が合計50以上必要。「ルール7」の本文は読めなかった | ［二次］https://redlib.groet-infra.nl/r/ClaudeAI/comments/1sly3jm/built_with_claude_project_showcase_megathread/oo1qqsm/?context=3 ／ルール7は［未確認］ |
+| r/OpenAI、r/LLMDevs | 確認できていない。この環境から Reddit を読めなかった | **［未確認］**。投稿の前にルール欄を読むか、使わない |
 
-**Show HN risk:** HN excludes "quickly generated one-off projects". The calculator is small, but it isn't trivial: it parses four export formats, has a cache-aware cost model and shows its price sources. The first comment should lead with that build detail, not with the launch. If the owner feels it's too thin for Show HN, post r/SideProject first and keep HN for Budget Guard.
+**Show HN の注意**
+- HN は「急いで作った一回きりのもの」を対象外にしている。
+- 計算機は小さいが、中身はある。4つの形式の利用データを読み、キャッシュを考えた費用を計算し、価格の出典も示している。
+- 最初のコメントは「公開しました」ではなく、この作りの話から始める。
+- オーナーが Show HN には薄いと感じたら、先に r/SideProject に出し、HN は Budget Guard のときに取っておく。
 
-## Order and timing (JST)
-| Day | Where | Time | Why |
+## 出す順番と時刻（日本時間）
+| 日 | 場所 | 時刻 | 理由 |
 |---|---|---|---|
-| 1 | Show HN | Tue–Thu, 22:00–23:00 JST (8–10am US Eastern) | US morning traffic. Stay on the thread for 3 hours to answer |
-| 3 | r/SideProject | 23:00 JST | A different audience; don't post the same day as HN |
-| 5 | r/ClaudeAI Project Showcase megathread (as a comment) | 23:00 JST | The megathread avoids the karma rule |
-| — | r/OpenAI / r/LLMDevs | only after reading the rules | Optional |
+| 1 | Show HN | 火〜木の 22:00〜23:00（米国東部の朝8〜10時） | 米国の朝に読まれる。3時間は質問に答えられるようにしておく |
+| 3 | r/SideProject | 23:00 | 読む人が違う。HN と同じ日には出さない |
+| 5 | r/ClaudeAI の Project Showcase まとめスレッド（コメントとして） | 23:00 | まとめスレッドならカルマの条件がかからない |
+| — | r/OpenAI、r/LLMDevs | ルールを読んでから | 任意 |
 
-One post per place. No cross-posting on the same day. Reply to every question.
+1か所に1回だけ。同じ日に複数の場所へ出さない。質問にはすべて答える。
 
 ---
 
-## 1. Show HN
+## 1. Show HN（英語）
 
-**Title** (76 chars, limit 80)
+**題名**（76字。上限80字）
 ```
 Show HN: Model Switch Calculator – price your LLM usage on every other model
 ```
 
-**URL:** https://masahiro20.github.io/new-project/calc/
+**URL：** https://masahiro20.github.io/new-project/calc/
 
-**First comment (by the owner)**
+**最初のコメント（オーナーが書く）**
 ```
 Hi HN. I built this after watching our own API bills and asking a simple question every time a cheaper model shipped: if we moved all of this traffic, what would the month actually cost?
 
@@ -64,14 +72,14 @@ A few details:
 There's sample data if you don't want to paste your own. I'd love to hear where the numbers look wrong for your workload, or which export format I'm missing.
 ```
 
-## 2. r/SideProject
+## 2. r/SideProject（英語）
 
-**Title**
+**題名**
 ```
 I made a free, browser-only calculator that reprices your real LLM usage on every Claude, GPT and Gemini model
 ```
 
-**Body**
+**本文**
 ```
 Every time a cheaper model comes out I end up doing the same spreadsheet: take last month's usage, split it into input, output and cache tokens, and multiply by a new price list. So I turned it into a page.
 
@@ -88,7 +96,7 @@ https://masahiro20.github.io/new-project/calc/
 What I'm unsure about: cross-provider comparisons are estimates because tokenizers differ. If you have a good way to handle that, I'm all ears.
 ```
 
-## 3. r/ClaudeAI — comment in the Project Showcase megathread
+## 3. r/ClaudeAI：Project Showcase まとめスレッドへのコメント（英語）
 ```
 **Model Switch Calculator** — https://masahiro20.github.io/new-project/calc/
 
@@ -99,9 +107,9 @@ How it's built: one static page, no backend. It makes no network requests after 
 Free, no sign-up. Feedback on the cost model is very welcome, especially from anyone using 1-hour cache writes.
 ```
 
-## Before approval
-- [ ] Owner: the HN and Reddit accounts are your own. New accounts are often limited, so older accounts are better.
-- [ ] Re-check the price table against the official pages on the posting day. If prices changed, update the page first.
-- [ ] Read each subreddit's current sidebar. Skip any place whose rules don't allow this.
-- [ ] Never ask anyone to upvote (HN rule).
-- [ ] Budget Guard isn't mentioned in these posts on purpose. The page itself links to it.
+## 承認の前に
+- [ ] HN と Reddit はオーナー自身のアカウント。作ったばかりのアカウントは制限されることが多いので、以前からあるアカウントの方がよい。
+- [ ] 投稿する日に、価格の表を公式ページともう一度照らし合わせる。変わっていたら、先にページを直す。
+- [ ] 各サブレディットの今のルール欄を読む。ルール上だめな場所には出さない。
+- [ ] 誰にも投票を頼まない（HN のルール）。
+- [ ] Budget Guard には、わざと触れていない。ページの中に Budget Guard へのリンクがある。
