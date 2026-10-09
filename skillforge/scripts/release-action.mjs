@@ -15,11 +15,12 @@
 //
 // Usage: node scripts/release-action.mjs [--repo <owner>/kotomark-action] [--version 1.0.0] [--no-build]
 import { execSync, spawnSync } from "node:child_process";
-import { chmodSync, copyFileSync, cpSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, copyFileSync, cpSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
-import { dirname, join, relative, resolve, sep } from "node:path";
+import { dirname, join, resolve, sep } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { bundledNotices, noticesMarkdown } from "./third-party-notices.mjs";
+import { EXPECTED, guardReleaseFolder, SIGNING_PATTERNS } from "./release-guard.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const out = join(root, "out", "kotomark-action");
@@ -147,32 +148,12 @@ console.log(`  third-party notices: ${notices.map((n) => `${n.name}@${n.version}
 
 // --- 2b. guard: exact file list + content scan (fails closed; security review A-01) -------------------------
 step("guard: file allowlist and content scan");
-const EXPECTED = [
-  "LICENSE", "README.md", "THIRD_PARTY_NOTICES.md", "USAGE-TERMS.md", "action.yml", "run.sh",
-  "dist/LICENSE", "dist/kotomark.mjs", "example/glossary.json", "example/script.csv", "example/workflow.yml",
-];
-const listFiles = (dir) =>
-  readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
-    const p = join(dir, e.name);
-    if (e.isSymbolicLink()) fail(`symlink in release folder: ${relative(out, p)}`);
-    return e.isDirectory() ? listFiles(p) : [relative(out, p).split(sep).join("/")];
-  });
-const actual = listFiles(out).sort();
-if (actual.join("\n") !== [...EXPECTED].sort().join("\n")) fail(`unexpected file list in ${out}:\n  ${actual.join("\n  ")}`);
-const FORBIDDEN = [
-  [/sourceMappingURL|"sourcesContent"/, "source map"],
-  [/^\/\/ \.\.\//m, "bundle module path outside the project (build machine layout)"],
-  [/\]\(\.\.\//, "relative link outside the release folder"],
-  [/masahiro20\/new-project|peter-hq|docs\/(?:outreach|pilot-targets|decisions|real-world-eval)|\beval\//, "reference to the private monorepo"],
-  [/(?:sk-ant-|gh[pousr]_|github_pat_|xox[abprs]-|[rs]k_live_|whsec_)[A-Za-z0-9_-]{8,}|AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----|[a-z0-9-]+\.upstash\.io/, "secret-like value"],
-  [/\bKM1\.[A-Za-z0-9_-]{40,}\.[A-Za-z0-9_-]{40,}/, "an issued license key"],
-];
+// The checks live in scripts/release-guard.mjs (tested in test/release-guard.test.ts). They fail explicitly if
+// scripts/license-issue.mjs, any key-pair generation / signing code or any private-key material is in the output.
 const localPaths = [root, homedir() + sep].filter((p) => p.length > 2); // build machine paths
-for (const f of actual) {
-  const text = readFileSync(join(out, f), "utf8");
-  for (const [re, what] of FORBIDDEN) if (re.test(text)) fail(`${f}: ${what} (${re})`);
-  for (const p of localPaths) if (text.includes(p)) fail(`${f}: contains a local absolute path (${p})`);
-}
+const problems = guardReleaseFolder(out, { localPaths });
+if (problems.length) fail(`release folder check failed:\n  ${problems.join("\n  ")}`);
+const actual = EXPECTED;
 // A-03: every bundled package's notice ships inside the bundle too (trailing comment from scripts/build-cli.mjs).
 const bundleText = readFileSync(join(out, "dist", "kotomark.mjs"), "utf8");
 for (const n of notices) if (!bundleText.includes(`${n.name} ${n.version} (${n.license})`)) fail(`dist/kotomark.mjs lacks the license notice for ${n.name} (rebuild: npm run build:action)`);
@@ -204,7 +185,8 @@ for (const dep of ["fflate", "zod"]) if (!tpn.includes(`## ${dep} `)) fail(`THIR
 console.log("  ok: LICENSE (MIT), dist/LICENSE (ELv2), USAGE-TERMS.md, THIRD_PARTY_NOTICES.md, README Licensing");
 // License keys (docs/licensing.md): only public keys may ship; the owner-only issuance tool never does.
 const shipped = readFileSync(join(out, "dist", "kotomark.mjs"), "utf8");
-if (/PRIVATE KEY/.test(shipped) || /generateKeyPair|license-signing-key/.test(shipped)) fail("bundle contains private-key or key-issuance code");
+if (/PRIVATE KEY/.test(shipped)) fail("bundle contains private-key material");
+for (const [re, what] of SIGNING_PATTERNS) if (re.test(shipped)) fail(`bundle contains ${what}`);
 if (!/kotomark-license-v1/.test(shipped) || !/"KM1\."/.test(shipped)) fail("bundle lacks the license key verifier");
 // §5.6: no path in the shipped bundle swaps the trusted keys or skips verification (the test hook is compiled out).
 if (/__KOTOMARK_TEST_HOOKS__/.test(shipped)) fail("bundle still contains the license test hook (build without scripts/build-cli.mjs options?)");

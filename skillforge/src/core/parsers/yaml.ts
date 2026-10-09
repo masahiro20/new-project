@@ -10,6 +10,7 @@ import { singleTable } from "./columns.js";
 import { langFromName, langOfCode } from "./lang.js";
 import { detectLang } from "../text.js";
 import type { Lang, Row, Table } from "../types.js";
+import { InputError, inputErrorWithFile } from "../errors.js";
 
 /** Parsed YAML node. `text` is false for plain scalars that YAML resolves to null / bool / number. */
 export type YNode =
@@ -60,7 +61,7 @@ function foldQuoted(raw: string, escapes: boolean): string {
   return out;
 }
 
-export class YamlError extends Error {}
+export class YamlError extends InputError {}
 
 class YamlParser {
   private i = 0;
@@ -592,14 +593,14 @@ export function parseYaml(text: string, file: string): { table: Table; notes: st
   try {
     doc = parseYamlDocument(text);
   } catch (e) {
-    throw new Error(`${file}: ${(e as Error).message}`);
+    throw inputErrorWithFile(e, file);
   }
   const notes = doc.notes.map((n) => `${file}: ${n}`);
   let root = doc.root;
-  if (!root || root.kind !== "map") throw new Error(`${file}: expected a YAML mapping of translation keys (a locale file such as ja.yml)${root?.kind === "seq" ? ", got a list" : ""}`);
+  if (!root || root.kind !== "map") throw new InputError(`${file}: expected a YAML mapping of translation keys (a locale file such as ja.yml)${root?.kind === "seq" ? ", got a list" : ""}`);
   let lang: Lang | undefined;
   const langKeys = root.entries.filter((e) => langOfCode(e.key) && e.value.kind === "map");
-  if (langKeys.length > 1) throw new Error(`${file}: has several locale roots (${langKeys.map((e) => e.key).join(", ")}); split it into one file per locale`);
+  if (langKeys.length > 1) throw new InputError(`${file}: has several locale roots (${langKeys.map((e) => e.key).join(", ")}); split it into one file per locale`);
   if (root.entries.length === 1 && langKeys.length === 1) {
     lang = langOfCode(langKeys[0]!.key);
     root = langKeys[0]!.value;
@@ -614,7 +615,7 @@ export function parseYaml(text: string, file: string): { table: Table; notes: st
       flatten(e.value, e.key, e.line, leaves, new Set());
     }
   }
-  if (!leaves.length) throw new Error(`${file}: no string values found`);
+  if (!leaves.length) throw new InputError(`${file}: no string values found`);
   const rows: Row[] = leaves.map((l) => ({ file, line: l.line, id: l.key, source: l.value, target: "" }));
   lang ??= langFromName(file) ?? detectLang(rows.map((r) => r.source));
   return { table: singleTable(file, "yaml", rows, lang), notes };

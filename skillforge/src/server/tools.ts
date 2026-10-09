@@ -5,12 +5,14 @@ import { draftGlossary } from "../core/draft.js";
 import { Limiter, PLANS, type Principal } from "./auth.js";
 import { judgePackets, serverJudgeEnabled } from "./judge.js";
 import { MemoryGlossaryStore, type GlossaryStore } from "./store.js";
+import { publicError, UserFacingError } from "./errors.js";
 
 /**
- * Request limits. maxTotalChars bounds the text parsed per request; the engine limits (glossary terms and characters,
+ * Request limits. maxTotalChars bounds the text parsed per request (8 M: the same as the 8 MiB request body limit,
+ * BODY_LIMITS in body.ts, B-11); the engine limits (glossary terms and characters,
  * rows, text, glossary × rows and a 20 s time budget per run) are SERVER_LIMITS in src/core/limits.ts (B-02).
  */
-export const LIMITS = { maxTables: 20, maxBytesPerTable: 5_000_000, maxTotalChars: 20_000_000, maxRows: SERVER_LIMITS.maxRows };
+export const LIMITS = { maxTables: 20, maxBytesPerTable: 5_000_000, maxTotalChars: 8_000_000, maxRows: SERVER_LIMITS.maxRows };
 
 /** Who is calling and the services the tools may use. One context per HTTP request. */
 export interface ServerContext {
@@ -82,7 +84,7 @@ function loadTables(ctx: ServerContext, args: TableArg[], glossary?: Glossary): 
   const total = args.reduce((n, t) => n + t.content.length, 0);
   if (total > LIMITS.maxTotalChars) throw new LimitError(`Files too large in total (${total} > ${LIMITS.maxTotalChars} chars). Check the script in parts.`);
   const { tables, notes } = loadInputs(args.map((t) => ({ name: t.filename, data: t.content, format: t.format as Format | undefined })));
-  if (!tables.length) throw new Error(`No string tables found in ${args.map((t) => t.filename).join(", ")}${notes.length ? ` (${notes.join("; ")})` : ""}`);
+  if (!tables.length) throw new UserFacingError(`No string tables found in ${args.map((t) => t.filename).join(", ")}${notes.length ? ` (${notes.join("; ")})` : ""}`);
   const rows = tables.reduce((n, t) => n + t.rows.length, 0);
   if (rows > LIMITS.maxRows) throw new LimitError(`Too many rows (${rows} > ${LIMITS.maxRows})`);
   // Engine limits before any rows are charged (glossary terms/characters, text size, glossary × rows).
@@ -105,7 +107,7 @@ async function loadGlossary(ctx: ServerContext, args: GlossaryArgs, sourceLang?:
   if (args.glossary) return parseGlossaryWithNotes(args.glossary.content, args.glossary.filename, { sourceLang }).glossary;
   if (!args.glossaryName) return undefined;
   const g = await ctx.store.get(ctx.principal.user, args.glossaryName);
-  if (!g) throw new Error(`No saved glossary named "${args.glossaryName}". Use list_glossaries to see what is saved.`);
+  if (!g) throw new UserFacingError(`No saved glossary named "${args.glossaryName}". Use list_glossaries to see what is saved.`);
   return g;
 }
 
@@ -141,28 +143,19 @@ async function saveGlossary(ctx: ServerContext, name: string, g: Glossary) {
     const existing = await ctx.store.list(ctx.principal.user);
     const limit = PLANS[ctx.principal.plan].glossaries;
     if (!existing.some((m) => m.name === name.trim()) && existing.length >= limit) {
-      throw new Error(`Glossary limit reached (${limit} on the ${ctx.principal.plan} plan). Delete one first.`);
+      throw new UserFacingError(`Glossary limit reached (${limit} on the ${ctx.principal.plan} plan). Delete one first.`);
     }
     return ctx.store.put(ctx.principal.user, name, g);
   });
 }
 
-const MAX_ERROR_CHARS = 1_000;
 /**
- * Tool error text (B-10): system errors (fs, crypto: they carry a `code` and may name server paths) become a generic
- * message and go to the log only; other messages are user-facing and cut to MAX_ERROR_CHARS (a zod issue list can be huge).
+ * Tool error result (B-10): only a UserFacingError's message reaches the client (cut to 1,000 chars); anything else
+ * becomes "Internal error (id …)" and is logged with that id, without its message (src/server/errors.ts).
  */
-const errorResult = (e: unknown) => {
-  const err = e as Error & { code?: unknown };
-  let text: string;
-  if (typeof err?.code === "string" && !(err instanceof LimitError)) {
-    console.error(`tool error (${err.code}): ${err.message}`);
-    text = "Internal error. Please try again later.";
-  } else {
-    const msg = String(err?.message ?? e);
-    text = msg.length > MAX_ERROR_CHARS ? `${msg.slice(0, MAX_ERROR_CHARS)}… (truncated)` : msg;
-  }
-  return { isError: true, content: [{ type: "text" as const, text }] };
+export const errorResult = (e: unknown, tool: string) => {
+  const { message, id } = publicError(e, tool);
+  return { isError: true, content: [{ type: "text" as const, text: message }], ...(id ? { _meta: { correlationId: id } } : {}) };
 };
 const ro = { readOnlyHint: true, openWorldHint: false };
 
@@ -206,7 +199,7 @@ export function buildServer(ctx: ServerContext = devContext()): McpServer {
         const md = renderMarkdown(r, { locale: (args as CheckArgs).options?.locale });
         return { content: [{ type: "text", text: r.notes.length ? `${notesText(r.notes)}\n\n${md}` : md }], structuredContent: summary };
       } catch (e) {
-        return errorResult(e);
+        return errorResult(e, "check_script");
       }
     },
   );
@@ -230,7 +223,7 @@ export function buildServer(ctx: ServerContext = devContext()): McpServer {
         if (r.notes.length) content.push({ type: "text", text: notesText(r.notes) });
         return { content, structuredContent: { packets, notes: r.notes } };
       } catch (e) {
-        return errorResult(e);
+        return errorResult(e, "get_review_packets");
       }
     },
   );
@@ -261,7 +254,7 @@ export function buildServer(ctx: ServerContext = devContext()): McpServer {
         const text = [`Draft: ${draft.glossary.terms.length} terms, ${draft.glossary.characters.length} characters`, ...lines, ...draft.notes.map((n) => `Note: ${n}`), ...inputNotes.map((n) => `Input: ${n}`)].join("\n");
         return { content: [{ type: "text", text }], structuredContent: { ...draft, inputNotes } as unknown as Record<string, unknown> };
       } catch (e) {
-        return errorResult(e);
+        return errorResult(e, "draft_glossary");
       }
     },
   );
@@ -286,7 +279,7 @@ export function buildServer(ctx: ServerContext = devContext()): McpServer {
         const text = [`Saved "${m.name}": ${m.terms} terms, ${m.characters} characters.`, ...parsed.notes.map((n) => `Note: ${n}`)].join("\n");
         return { content: [{ type: "text", text }], structuredContent: { ...m, notes: parsed.notes } };
       } catch (e) {
-        return errorResult(e);
+        return errorResult(e, "save_glossary");
       }
     },
   );
@@ -300,7 +293,7 @@ export function buildServer(ctx: ServerContext = devContext()): McpServer {
         const text = list.length ? list.map((m) => `- ${m.name}: ${m.terms} terms, ${m.characters} characters (updated ${m.updatedAt})`).join("\n") : "No saved glossaries.";
         return { content: [{ type: "text", text }], structuredContent: { glossaries: list } };
       } catch (e) {
-        return errorResult(e);
+        return errorResult(e, "list_glossaries");
       }
     },
   );
@@ -313,7 +306,7 @@ export function buildServer(ctx: ServerContext = devContext()): McpServer {
         const g = await loadGlossary(ctx, { glossaryName: name });
         return { content: [{ type: "text", text: JSON.stringify(g, null, 2) }], structuredContent: { glossary: g } };
       } catch (e) {
-        return errorResult(e);
+        return errorResult(e, "get_glossary");
       }
     },
   );
@@ -332,11 +325,11 @@ export function buildServer(ctx: ServerContext = devContext()): McpServer {
           const n = await ctx.store.deleteAll(ctx.principal.user);
           return { content: [{ type: "text", text: `Deleted ${n} glossaries.` }], structuredContent: { deleted: n } };
         }
-        if (!name) throw new Error("Give a name, or all=true");
+        if (!name) throw new UserFacingError("Give a name, or all=true");
         const ok = await ctx.store.delete(ctx.principal.user, name);
         return { content: [{ type: "text", text: ok ? `Deleted "${name}".` : `No glossary named "${name}".` }], structuredContent: { deleted: ok ? 1 : 0 } };
       } catch (e) {
-        return errorResult(e);
+        return errorResult(e, "delete_glossary");
       }
     },
   );
@@ -365,7 +358,7 @@ export function buildServer(ctx: ServerContext = devContext()): McpServer {
           structuredContent: { terms: g.terms.length, characters: g.characters.length, honorificPolicy: g.honorificPolicy ?? null, format, direction: direction ?? null, notes },
         };
       } catch (e) {
-        return errorResult(e);
+        return errorResult(e, "validate_glossary");
       }
     },
   );
@@ -395,7 +388,7 @@ export function buildServer(ctx: ServerContext = devContext()): McpServer {
           const verdicts = (await judgePackets(r.reviewPackets)).filter((v) => v.verdict === "drift");
           return { content: [{ type: "text", text: JSON.stringify(verdicts, null, 2) }], structuredContent: { verdicts } };
         } catch (e) {
-          return errorResult(e);
+          return errorResult(e, "judge_review_packets_server_side");
         }
       },
     );

@@ -149,7 +149,7 @@ export function hasDuplicateKeys(json: string): boolean {
   return false;
 }
 
-const dayStart = (d: string) => Date.parse(`${d}T00:00:00Z`) / 1000;
+const dayStart = (d: string) => (/^\d{4}-\d{2}-\d{2}$/.test(d) ? Date.parse(`${d}T00:00:00Z`) / 1000 : NaN);
 
 /** Verifies a key offline against the embedded trust anchors. Never throws; a malformed or forged key is `invalid`. */
 export function verifyLicenseKey(key: string | undefined): LicenseStatus {
@@ -208,7 +208,11 @@ export function verifyLicenseKey(key: string | undefined): LicenseStatus {
   if (p.kid !== signer) return invalid("kid mismatch");
   if (revoked.has(p.lid)) return invalid("revoked");
   const anchor = keys[signer]!;
-  if (p.iat < dayStart(anchor.from) || (anchor.until && p.iat >= dayStart(anchor.until) + 86_400)) return invalid("signed outside the key's validity period");
+  const from = dayStart(anchor.from);
+  const until = anchor.until === undefined ? Infinity : dayStart(anchor.until) + 86_400;
+  // A malformed anchor date parses to NaN, and every comparison with NaN is false: fail closed instead of skipping the check.
+  if (Number.isNaN(from) || Number.isNaN(until)) return invalid("bad trust anchor");
+  if (p.iat < from || p.iat >= until) return invalid("signed outside the key's validity period");
   if (!(p.iat <= p.nbf && p.nbf < p.exp)) return invalid("malformed payload");
   if (p.exp - p.iat > MAX_VALIDITY_SEC) return invalid("validity too long");
 

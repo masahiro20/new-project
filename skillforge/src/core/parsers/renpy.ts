@@ -19,6 +19,7 @@
 import { otherLang } from "./lang.js";
 import { detectLang } from "../text.js";
 import type { Lang, Row, Table } from "../types.js";
+import { InputError } from "../errors.js";
 
 const HEADER = /^translate\s+(\S+)\s+(.+?)\s*:\s*(?:#.*)?$/;
 const LOCATION = /^#\s*(\S+\.rpym?:\d+)\s*$/;
@@ -156,7 +157,7 @@ function statements(body: Line[]): { line: number; comment: boolean; text: strin
  */
 export function parseRenpy(text: string, file: string, opts: RenpyOptions = {}): { table: Table; notes: string[] } {
   if (!hasRenpyTranslations(text)) {
-    throw new Error(
+    throw new InputError(
       `${file}: no "translate <language> <id>:" blocks found. Kotomark reads Ren'Py translation files (game/tl/<language>/*.rpy); ` +
         `a game script with define x = Character("…") can be loaded alongside them to name the speakers.`,
     );
@@ -230,7 +231,7 @@ export function parseRenpy(text: string, file: string, opts: RenpyOptions = {}):
           old = { value: str.value, line: st.line, locs };
           locs = [];
         } else {
-          if (!old) throw new Error(`${file}:${st.line}: "new" without a preceding "old"`);
+          if (!old) throw new InputError(`${file}:${st.line}: "new" without a preceding "old"`);
           let rid = `strings:${hash8(old.value)}`;
           const dup = seenStrings.get(rid) ?? 0;
           seenStrings.set(rid, dup + 1);

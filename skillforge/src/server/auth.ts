@@ -2,11 +2,14 @@ import { createHash, randomBytes } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { envVar } from "./env.js";
+import { UserFacingError } from "../core/errors.js";
+import { utcDay, type DailyRows, type UsageFile } from "./usage.js";
 
 /**
  * Per-user API tokens and usage limits. Works with no external service: tokens live in a local JSON
- * file (only SHA-256 hashes are stored) and counters live in memory. For more than one server
- * instance, swap the limiter for a shared store (e.g. Redis) behind the same interface.
+ * file (only SHA-256 hashes are stored); the per-minute counters live in memory and the daily row counts in memory
+ * plus a file in the data directory (usage.ts). For more than one server instance, swap the limiter for a shared
+ * store (e.g. Redis) behind the same interface.
  */
 
 export type Plan = "solo" | "studio" | "dev";
@@ -44,6 +47,16 @@ export interface TokenRecord {
 
 const hashToken = (t: string) => createHash("sha256").update(t).digest("hex");
 
+/**
+ * User id of a KOTOMARK_API_TOKENS token (B-06): derived from the token itself, so reordering, adding or removing
+ * tokens never hands one token's glossaries and quota to another, and it cannot collide with tokens.json users
+ * (the env- prefix is reserved). A separate, domain-separated hash: the id says nothing about the stored token hash.
+ * Ids of the old scheme (env-<position>) are migrated on startup (src/server/migrate.ts).
+ */
+export const envUserId = (token: string) => `env-${createHash("sha256").update(`kotomark-env-user-v1\0${token}`).digest("hex").slice(0, 16)}`;
+/** The pre-B-06 id of the token at `index` in KOTOMARK_API_TOKENS. */
+export const legacyEnvUserId = (index: number) => `env-${index + 1}`;
+
 export class TokenStore {
   private records: TokenRecord[] = [];
   private byHash = new Map<string, TokenRecord>();
@@ -68,7 +81,7 @@ export class TokenStore {
       }
     }
     this.byHash = new Map(this.records.filter((r) => !r.revokedAt).map((r) => [r.hash, r]));
-    this.envTokens.forEach((t, i) => this.byHash.set(hashToken(t), { user: `env-${i + 1}`, plan: "studio", hash: hashToken(t), prefix: "", createdAt: "" }));
+    for (const t of this.envTokens) this.byHash.set(hashToken(t), { user: envUserId(t), plan: "studio", hash: hashToken(t), prefix: "", createdAt: "" });
   }
 
   /** Resolve a bearer token to a principal. Picks up tokens added by the CLI without a restart. */
@@ -82,8 +95,8 @@ export class TokenStore {
   create(user: string, plan: Plan, label?: string): { token: string; record: TokenRecord } {
     if (!this.file) throw new Error("No token file configured");
     if (!/^[\w.@+-]{1,64}$/.test(user)) throw new Error("User id must be 1–64 chars of letters, digits, . @ + - _");
-    // env-<n> belongs to KOTOMARK_API_TOKENS and dev to open mode: sharing the id would share glossaries and quotas.
-    if (/^(env-\d+|dev)$/i.test(user)) throw new Error(`User id "${user}" is reserved`);
+    // env-… belongs to KOTOMARK_API_TOKENS and dev to open mode: sharing the id would share glossaries and quotas.
+    if (/^(env-.*|dev)$/i.test(user)) throw new Error(`User id "${user}" is reserved`);
     this.reload();
     const token = `yrg_${randomBytes(32).toString("base64url")}`;
     const record: TokenRecord = { user, plan, label, hash: hashToken(token), prefix: token.slice(0, 10), createdAt: new Date().toISOString() };
@@ -119,24 +132,47 @@ export class TokenStore {
   }
 }
 
+export const envTokensFromEnv = (env = process.env) => (envVar("API_TOKENS", env) ?? "").split(",").map((t) => t.trim()).filter(Boolean);
+
 export function tokenStoreFromEnv(env = process.env): TokenStore {
   const file = envVar("TOKENS_FILE", env) ?? join(envVar("DATA_DIR", env) ?? ".kotomark-data", "tokens.json");
-  const envTokens = (envVar("API_TOKENS", env) ?? "").split(",").map((t) => t.trim()).filter(Boolean);
-  return new TokenStore(file, envTokens);
+  return new TokenStore(file, envTokensFromEnv(env));
 }
 
-export class QuotaError extends Error {
+export class QuotaError extends UserFacingError {
   constructor(message: string, readonly retryAfterSec: number) {
     super(message);
   }
 }
 
-/** In-memory limiter: a token bucket for request rate and a daily row counter per user. */
+/**
+ * Limiter: a token bucket for request rate (in memory) and a daily row counter per user (in memory, and on disk when
+ * a UsageFile is given, so a restart or Fly.io's auto-stop does not reset the daily quota).
+ */
 export class Limiter {
   private buckets = new Map<string, { tokens: number; at: number }>();
-  private rows = new Map<string, { day: string; used: number }>();
+  private rows: Map<string, DailyRows>;
 
-  constructor(private now: () => number = Date.now) {}
+  constructor(private now: () => number = Date.now, private persist?: UsageFile) {
+    this.rows = persist?.load() ?? new Map();
+  }
+
+  /** Write pending usage to disk now (shutdown). */
+  flush(): void {
+    this.persist?.flushPending();
+  }
+
+  /** Move a user's daily usage to a new id (data migration, B-06). Same-day counts are added. */
+  renameUser(from: string, to: string): boolean {
+    const u = this.rows.get(from);
+    if (!u) return false;
+    const day = utcDay(this.now());
+    const t = this.rows.get(to);
+    this.rows.set(to, { day, used: (u.day === day ? u.used : 0) + (t && t.day === day ? t.used : 0) });
+    this.rows.delete(from);
+    this.persist?.schedule(() => this.rows);
+    return true;
+  }
 
   /** Take one request from the user's bucket or throw QuotaError. */
   hit(p: Principal) {
@@ -166,6 +202,7 @@ export class Limiter {
       throw new QuotaError(`Daily quota: ${used + n} rows would exceed ${limit} on the ${p.plan} plan (resets 00:00 UTC)`, Math.ceil((midnight - this.now()) / 1000));
     }
     this.rows.set(p.user, { day, used: used + n });
+    this.persist?.schedule(() => this.rows);
   }
 
   usage(p: Principal) {

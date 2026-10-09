@@ -4,6 +4,7 @@ import { mkdir, readdir, readFile, rename, rm, writeFile } from "node:fs/promise
 import { join } from "node:path";
 import type { Glossary } from "../core/types.js";
 import { envVar } from "./env.js";
+import { UserFacingError } from "../core/errors.js";
 
 /**
  * Hosted glossaries. Scripts are never stored; glossaries are, because sharing one glossary across a
@@ -27,6 +28,21 @@ export interface GlossaryStore {
   delete(owner: string, name: string): Promise<boolean>;
   /** Remove every glossary of an owner (account deletion). Returns how many were removed. */
   deleteAll(owner: string): Promise<number>;
+  /**
+   * Move every glossary of `from` to `to` (user id migration, B-06). Idempotent: a glossary already at `to` with the
+   * same content is not copied again; one with different content is kept and the old copy is left in place (conflict).
+   */
+  moveOwner(from: string, to: string): Promise<MoveResult>;
+}
+
+export interface MoveResult {
+  moved: number;
+  /** Already at the destination with the same content (an earlier, interrupted run). */
+  alreadyThere: number;
+  /** A different glossary of the same name exists at the destination; the old one is left in place. */
+  conflicts: number;
+  /** Could not be read (wrong key, corruption); left in place. */
+  failed: number;
 }
 
 export const STORE_LIMITS = { maxNameLength: 64, maxBytes: 2_000_000 };
@@ -34,7 +50,7 @@ export const STORE_LIMITS = { maxNameLength: 64, maxBytes: 2_000_000 };
 export function validateName(name: string): string {
   const n = name.trim();
   if (!n || n.length > STORE_LIMITS.maxNameLength || /[\u0000-\u001f]/.test(n)) {
-    throw new Error(`Glossary name must be 1–${STORE_LIMITS.maxNameLength} printable characters`);
+    throw new UserFacingError(`Glossary name must be 1–${STORE_LIMITS.maxNameLength} printable characters`);
   }
   return n;
 }
@@ -69,6 +85,27 @@ export class MemoryGlossaryStore implements GlossaryStore {
     this.data.delete(owner);
     return n;
   }
+  async moveOwner(from: string, to: string): Promise<MoveResult> {
+    const r: MoveResult = { moved: 0, alreadyThere: 0, conflicts: 0, failed: 0 };
+    const src = this.data.get(from);
+    if (!src) return r;
+    const dst = this.data.get(to) ?? new Map<string, { g: Glossary; updatedAt: string }>();
+    for (const [n, e] of [...src]) {
+      const there = dst.get(n);
+      if (!there) {
+        dst.set(n, e);
+        r.moved++;
+      } else if (JSON.stringify(there.g) === JSON.stringify(e.g)) r.alreadyThere++;
+      else {
+        r.conflicts++;
+        continue;
+      }
+      src.delete(n);
+    }
+    this.data.set(to, dst);
+    if (!src.size) this.data.delete(from);
+    return r;
+  }
 }
 
 const MAGIC = Buffer.from("YG1");
@@ -78,6 +115,14 @@ const sha = (s: string) => createHash("sha256").update(s).digest("hex");
 export class FileGlossaryStore implements GlossaryStore {
   constructor(private dir: string, private key: Buffer) {
     if (key.length !== 32) throw new Error("Encryption key must be 32 bytes");
+  }
+
+  private ownerDir(owner: string) {
+    return join(this.dir, sha(`owner:${owner}`));
+  }
+
+  private aad(owner: string, nameHash: string) {
+    return Buffer.from(`${sha(`owner:${owner}`)}/${nameHash}`);
   }
 
   private paths(owner: string, name: string) {
@@ -106,7 +151,7 @@ export class FileGlossaryStore implements GlossaryStore {
     const n = validateName(name);
     const updatedAt = new Date().toISOString();
     const plain = Buffer.from(JSON.stringify({ name: n, updatedAt, glossary: g }));
-    if (plain.length > STORE_LIMITS.maxBytes) throw new Error(`Glossary too large (max ${STORE_LIMITS.maxBytes} bytes)`);
+    if (plain.length > STORE_LIMITS.maxBytes) throw new UserFacingError(`Glossary too large (max ${STORE_LIMITS.maxBytes} bytes)`);
     const { ownerDir, file, aad } = this.paths(owner, n);
     await mkdir(ownerDir, { recursive: true, mode: 0o700 });
     const tmp = `${file}.${randomBytes(4).toString("hex")}.tmp`;
@@ -160,6 +205,57 @@ export class FileGlossaryStore implements GlossaryStore {
     if (!existsSync(file)) return false;
     await rm(file);
     return true;
+  }
+
+  async moveOwner(from: string, to: string): Promise<MoveResult> {
+    const r: MoveResult = { moved: 0, alreadyThere: 0, conflicts: 0, failed: 0 };
+    const srcDir = this.ownerDir(from);
+    const dstDir = this.ownerDir(to);
+    let files: string[];
+    try {
+      files = (await readdir(srcDir)).filter((f) => f.endsWith(".yg"));
+    } catch {
+      return r;
+    }
+    for (const f of files) {
+      const n = f.slice(0, -3); // sha(name): the same under any owner; only the AAD names the owner
+      let plain: Buffer;
+      try {
+        plain = this.decrypt(await readFile(join(srcDir, f)), this.aad(from, n));
+      } catch {
+        r.failed++;
+        continue;
+      }
+      const target = join(dstDir, f);
+      if (existsSync(target)) {
+        let same = false;
+        try {
+          // Same glossary (updatedAt may differ: a put at the destination, or an earlier interrupted run).
+          const there = JSON.parse(this.decrypt(await readFile(target), this.aad(to, n)).toString("utf8")) as { glossary: Glossary };
+          same = JSON.stringify(there.glossary) === JSON.stringify((JSON.parse(plain.toString("utf8")) as { glossary: Glossary }).glossary);
+        } catch {
+          // unreadable destination: treat as a conflict, keep both
+        }
+        if (!same) {
+          r.conflicts++;
+          continue;
+        }
+        r.alreadyThere++;
+      } else {
+        await mkdir(dstDir, { recursive: true, mode: 0o700 });
+        const tmp = `${target}.${randomBytes(4).toString("hex")}.tmp`;
+        await writeFile(tmp, this.encrypt(plain, this.aad(to, n)), { mode: 0o600 });
+        await rename(tmp, target);
+        r.moved++;
+      }
+      await rm(join(srcDir, f)); // only after the destination holds the same glossary
+    }
+    try {
+      if (!(await readdir(srcDir)).length) await rm(srcDir, { recursive: true, force: true });
+    } catch {
+      // already gone
+    }
+    return r;
   }
 
   async deleteAll(owner: string) {

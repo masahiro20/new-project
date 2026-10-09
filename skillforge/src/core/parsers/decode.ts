@@ -1,5 +1,6 @@
 // Bytes → text for the text formats. Browser-safe; works without TextDecoder (falls back to fflate's UTF-8 decoder).
 import { strFromU8 } from "fflate";
+import { InputError } from "../errors.js";
 
 function utf16(b: Uint8Array, le: boolean, start: number): string {
   let out = "";
@@ -30,7 +31,7 @@ export function decodeText(data: Uint8Array, file: string): { text: string; note
       const text = new TextDecoder("shift_jis", { fatal: true }).decode(data);
       return { text, note: `${file}: not valid UTF-8; read as Shift_JIS` };
     } catch {
-      throw new Error(`${file}: not valid UTF-8 text (save it as UTF-8)`);
+      throw new InputError(`${file}: not valid UTF-8 text (save it as UTF-8)`);
     }
   }
 }

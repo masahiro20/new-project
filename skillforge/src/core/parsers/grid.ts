@@ -4,6 +4,7 @@ import { detectLang } from "../text.js";
 import type { Lang, Row, Table, TableFormat } from "../types.js";
 import { finishTable, headerList, recordToRow, resolveColumns, resolveSingleColumn, singleTable, type ColumnMap } from "./columns.js";
 import { langFromName, langOfHeader } from "./lang.js";
+import { InputError, inputErrorWithFile } from "../errors.js";
 
 export interface GridRecord {
   /** User-facing line: physical line for CSV, spreadsheet row number for XLSX. */
@@ -26,7 +27,7 @@ const unrealUnescape = (s: string) =>
 
 export function tableFromGrid(records: GridRecord[], file: string, baseFormat: "csv" | "tsv" | "xlsx", opts: GridOptions = {}): Table {
   const header = records[0];
-  if (!header) throw new Error(`${file}: empty ${baseFormat === "xlsx" ? "sheet" : "file"} (no header row)`);
+  if (!header) throw new InputError(`${file}: empty ${baseFormat === "xlsx" ? "sheet" : "file"} (no header row)`);
   const headers = header.cells.map((h) => h.trim());
   const body = records.slice(1);
   const normed = headers.map(norm);
@@ -60,7 +61,7 @@ export function tableFromGrid(records: GridRecord[], file: string, baseFormat: "
   }
 
   const single = resolveSingleColumn(headers, override);
-  if (!single) throw error instanceof Error ? new Error(`${file}: ${error.message}`) : new Error(`${file}: could not find a text column in [${headerList(headers)}]`);
+  if (!single) throw error instanceof Error ? inputErrorWithFile(error, file) : new InputError(`${file}: could not find a text column in [${headerList(headers)}]`);
   const rows: Row[] = body.map((r, idx) => {
     const row = recordToRow(toRecord(r), { ...single, target: undefined }, file, r.line, `row${idx + 1}`);
     if (unreal) {

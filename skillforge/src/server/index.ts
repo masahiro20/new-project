@@ -1,10 +1,15 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { pathToFileURL } from "node:url";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
-import { Limiter, QuotaError, tokenStoreFromEnv, type Principal } from "./auth.js";
+import { join } from "node:path";
+import { envTokensFromEnv, Limiter, QuotaError, tokenStoreFromEnv, type Principal } from "./auth.js";
+import { LargeBodyGate, readJsonBody } from "./body.js";
 import { envVar } from "./env.js";
+import { HttpError, publicError } from "./errors.js";
+import { migrateEnvUserIds } from "./migrate.js";
 import { storeFromEnv } from "./store.js";
 import { buildServer } from "./tools.js";
+import { UsageFile } from "./usage.js";
 import { clearTextCaches } from "../core/text.js";
 
 /**
@@ -21,10 +26,13 @@ export const HOST = process.env.HOST || (process.env.NODE_ENV === "production" ?
 /** Open (no-token) mode answers only requests addressed to this machine by a loopback name (DNS rebinding). */
 const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
 export const loopbackHost = (host: string | undefined) => LOOPBACK_HOSTS.has((host ?? "").toLowerCase().replace(/:\d+$/, ""));
-const MAX_BODY = 25_000_000;
+const DATA_DIR = envVar("DATA_DIR") ?? ".kotomark-data";
 const tokens = tokenStoreFromEnv();
 const store = storeFromEnv();
-const limiter = new Limiter();
+/** Per-minute limits in memory; daily row usage also in DATA_DIR/usage.json (single machine, docs/deploy.md). */
+const limiter = new Limiter(Date.now, new UsageFile(join(DATA_DIR, "usage.json")));
+/** B-11: at most 2 request bodies over 1 MiB in flight; bodies over 8 MiB are refused (src/server/body.ts). */
+const largeBodies = new LargeBodyGate();
 
 if (tokens.open && process.env.NODE_ENV === "production") {
   console.error("No API tokens configured: create one with `kotomark token create <user>` or set KOTOMARK_API_TOKENS");
@@ -45,17 +53,6 @@ function authenticate(req: IncomingMessage): Principal | undefined {
   if (tokens.open) return process.env.NODE_ENV === "production" ? undefined : { user: "dev", plan: "dev" };
   const h = req.headers.authorization ?? "";
   return h.startsWith("Bearer ") ? tokens.verify(h.slice(7).trim()) : undefined;
-}
-
-async function readJson(req: IncomingMessage): Promise<unknown> {
-  const chunks: Buffer[] = [];
-  let size = 0;
-  for await (const c of req) {
-    size += (c as Buffer).length;
-    if (size > MAX_BODY) throw Object.assign(new Error("Request body too large"), { status: 413 });
-    chunks.push(c as Buffer);
-  }
-  return JSON.parse(Buffer.concat(chunks).toString("utf8"));
 }
 
 const send = (res: ServerResponse, status: number, body: unknown) => {
@@ -83,7 +80,8 @@ export const httpServer = createServer(async (req, res) => {
       return send(res, 405, { jsonrpc: "2.0", error: { code: -32000, message: "Method not allowed" }, id: null });
     }
     limiter.hit(principal);
-    const body = await readJson(req);
+    const { body, release } = await readJsonBody(req, largeBodies);
+    res.on("close", release);
     // One HTTP request carries one JSON-RPC message: a batch (removed in MCP 2025-06-18) would run up to
     // 100 tool calls for a single rate-limit token, and in parallel.
     if (Array.isArray(body)) return send(res, 400, { jsonrpc: "2.0", error: { code: -32600, message: "Batch requests are not supported" }, id: null });
@@ -97,15 +95,38 @@ export const httpServer = createServer(async (req, res) => {
     await server.connect(transport);
     await transport.handleRequest(req, res, body);
   } catch (e) {
+    if (res.headersSent) return void publicError(e, "http"); // logs internal errors; nothing more can be sent
     if (e instanceof QuotaError) {
       res.setHeader("retry-after", String(e.retryAfterSec));
       return send(res, 429, { jsonrpc: "2.0", error: { code: -32000, message: e.message }, id: null });
     }
-    const status = (e as { status?: number }).status ?? (e instanceof SyntaxError ? 400 : 500);
-    if (!res.headersSent) send(res, status, { jsonrpc: "2.0", error: { code: -32603, message: status === 500 ? "Internal error" : (e as Error).message }, id: null });
+    // B-10: only HttpError / UserFacingError messages reach the client; anything else is "Internal error (id …)".
+    const status = e instanceof HttpError ? e.status : 500;
+    if (e instanceof HttpError && e.retryAfterSec) res.setHeader("retry-after", String(e.retryAfterSec));
+    if (e instanceof HttpError && status >= 413) res.setHeader("connection", "close"); // the unread body is not drained
+    const { message } = publicError(e, "http");
+    send(res, status, { jsonrpc: "2.0", error: { code: status === 500 ? -32603 : -32000, message }, id: null });
   }
 });
 
+/** Write pending daily usage before the process ends (Fly.io stops machines with SIGINT; docker and others with SIGTERM). */
+function installShutdown() {
+  let stopping = false;
+  const stop = (signal: string) => {
+    if (stopping) return;
+    stopping = true;
+    limiter.flush();
+    console.log(`kotomark MCP: ${signal}, usage saved; shutting down`);
+    httpServer.close(() => process.exit(0));
+    setTimeout(() => process.exit(0), 5_000).unref();
+  };
+  process.on("SIGTERM", () => stop("SIGTERM"));
+  process.on("SIGINT", () => stop("SIGINT"));
+}
+
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  // B-06: move data stored under the old positional env-<n> ids before serving any request.
+  await migrateEnvUserIds({ dataDir: DATA_DIR, envTokens: envTokensFromEnv(), store, limiter });
+  installShutdown();
   httpServer.listen(PORT, HOST, () => console.log(`kotomark MCP listening on ${HOST ?? ""}:${PORT}/mcp${tokens.open ? " (no tokens configured: open dev mode)" : ""}`));
 }

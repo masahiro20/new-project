@@ -1,6 +1,7 @@
 import { detectLang } from "../text.js";
 import type { Lang, Row, Table, TableFormat } from "../types.js";
 import { langOfHeader, otherLang } from "./lang.js";
+import { InputError } from "../errors.js";
 
 export interface ColumnMap {
   id?: string;
@@ -54,7 +55,7 @@ export function resolveColumns(headers: string[], override: ColumnMap = {}): Req
     [found.source, found.target] = [found.target, found.source];
   }
   if (!found.source || !found.target) {
-    throw new Error(
+    throw new InputError(
       `Could not find source/target columns in [${headerList(headers)}]. ` +
         `Name them e.g. "ja"/"en" or "source"/"target", or pass a column map.`,
     );

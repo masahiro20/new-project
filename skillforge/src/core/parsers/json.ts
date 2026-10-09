@@ -2,6 +2,7 @@ import { finishTable, recordToRow, resolveColumns, singleTable, type ColumnMap }
 import { langFromName, langOfCode } from "./lang.js";
 import { detectLang, looksJapanese } from "../text.js";
 import type { Lang, Row, Table } from "../types.js";
+import { InputError, inputErrorWithFile } from "../errors.js";
 
 /** Plain object plus the line its opening brace was on. */
 type LinedObject = { line: number; value: Record<string, unknown> };
@@ -20,7 +21,7 @@ function parseWithLines(text: string): unknown {
     }
   };
   const fail = (msg: string): never => {
-    throw new Error(`JSON parse error at line ${line}: ${msg}`);
+    throw new InputError(`JSON parse error at line ${line}: ${msg}`);
   };
   const str = (): string => {
     const start = i;
@@ -125,7 +126,7 @@ export function parseJson(text: string, file: string, opts: { columns?: ColumnMa
   try {
     root = parseWithLines(text);
   } catch (e) {
-    throw new Error(`${file}: ${(e as Error).message}`);
+    throw inputErrorWithFile(e, file);
   }
   if (opts.format === "i18n-json" || isLocaleFile(root, opts.columns)) return localeTable(root, file);
   let records: { rec: LinedObject; key?: string }[];
@@ -139,9 +140,9 @@ export function parseJson(text: string, file: string, opts: { columns?: ColumnMa
           .filter(([, v]) => isObj(v))
           .map(([k, v]) => ({ rec: lined(v as Record<string | symbol, unknown>), key: k }));
   } else {
-    throw new Error(`${file}: expected a JSON array or object of strings`);
+    throw new InputError(`${file}: expected a JSON array or object of strings`);
   }
-  if (!records.length) throw new Error(`${file}: no string records found`);
+  if (!records.length) throw new InputError(`${file}: no string records found`);
   const headers = [...new Set(records.flatMap((r) => Object.keys(r.rec.value)))];
   const cols = resolveColumns(headers, opts.columns);
   const rows: Row[] = records.map((r, idx) => recordToRow(r.rec.value, cols, file, r.rec.line, r.key ?? `row${idx + 1}`));
@@ -204,10 +205,10 @@ function isLocaleFile(root: unknown, columns?: ColumnMap): boolean {
 
 function localeTable(root: unknown, file: string): Table {
   const { obj, lang: wrapped } = unwrapLocale(root);
-  if (!isObj(obj)) throw new Error(`${file}: expected a JSON object of translation keys`);
+  if (!isObj(obj)) throw new InputError(`${file}: expected a JSON object of translation keys`);
   const leaves: Leaf[] = [];
   flatten(obj, "", (obj[LINE] as number) ?? 1, leaves);
-  if (!leaves.length) throw new Error(`${file}: no string values found`);
+  if (!leaves.length) throw new InputError(`${file}: no string values found`);
   const rows: Row[] = leaves.map((l) => ({ file, line: l.line, id: l.key, source: l.value, target: "" }));
   const lang = wrapped ?? langFromName(file) ?? detectLang(rows.map((r) => r.source));
   return singleTable(file, "i18n-json", rows, lang);

@@ -1,3 +1,4 @@
+import { UserFacingError } from "./errors.js";
 import type { Glossary, Table } from "./types.js";
 
 /**
@@ -40,7 +41,7 @@ export const CLI_LIMITS: EngineLimits = {
 };
 
 /** An input or run outside the limits. The message is meant for the user (no internals). */
-export class LimitError extends Error {
+export class LimitError extends UserFacingError {
   override name = "LimitError";
 }
 

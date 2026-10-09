@@ -10,6 +10,7 @@ import { isZip, parseXlsx } from "./xlsx.js";
 import { parseXliff } from "./xliff.js";
 import type { ColumnMap } from "./columns.js";
 import type { Lang, Table, TableFormat } from "../types.js";
+import { InputError } from "../errors.js";
 
 /**
  * Input format. "csv" and "json" also recognise their flavours by content (Unity/Unreal string table CSVs,
@@ -86,7 +87,7 @@ export function parseTableWithNotes(data: string | Uint8Array, file: string, opt
   let format = opts.format ?? detectFormat(file, data);
   if (typeof data !== "string" && isZip(data) && format !== "xlsx") format = "xlsx";
   if (format === "xlsx") {
-    if (typeof data === "string") throw new Error(`${file}: .xlsx must be passed as bytes (Uint8Array), not text`);
+    if (typeof data === "string") throw new InputError(`${file}: .xlsx must be passed as bytes (Uint8Array), not text`);
     return parseXlsx(data, file, opts);
   }
   const notes: string[] = [];

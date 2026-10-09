@@ -760,6 +760,19 @@ function pairKey(name) {
   }).join("/");
 }
 
+// src/core/errors.ts
+var UserFacingError = class extends Error {
+  name = "UserFacingError";
+};
+var InputError = class extends UserFacingError {
+  name = "InputError";
+};
+function inputErrorWithFile(e, file2) {
+  if (!(e instanceof UserFacingError) && !(e instanceof SyntaxError)) return e instanceof Error ? e : new Error(String(e));
+  const msg = e.message;
+  return new InputError(msg.startsWith(file2) ? msg : `${file2}: ${msg}`);
+}
+
 // src/core/parsers/columns.ts
 var ALIASES = {
   id: ["id", "key", "string_id", "stringid", "label", "キー"],
@@ -794,7 +807,7 @@ function resolveColumns(headers, override = {}) {
     [found.source, found.target] = [found.target, found.source];
   }
   if (!found.source || !found.target) {
-    throw new Error(
+    throw new InputError(
       `Could not find source/target columns in [${headerList(headers)}]. Name them e.g. "ja"/"en" or "source"/"target", or pass a column map.`
     );
   }
@@ -838,7 +851,7 @@ var norm2 = (h) => h.trim().toLowerCase().replace(/\s+/g, "_");
 var unrealUnescape = (s) => s.replace(/\\(.)/g, (_, c) => c === "n" ? "\n" : c === "r" ? "\r" : c === "t" ? "	" : c);
 function tableFromGrid(records, file2, baseFormat, opts = {}) {
   const header = records[0];
-  if (!header) throw new Error(`${file2}: empty ${baseFormat === "xlsx" ? "sheet" : "file"} (no header row)`);
+  if (!header) throw new InputError(`${file2}: empty ${baseFormat === "xlsx" ? "sheet" : "file"} (no header row)`);
   const headers = header.cells.map((h) => h.trim());
   const body = records.slice(1);
   const normed = headers.map(norm2);
@@ -869,7 +882,7 @@ function tableFromGrid(records, file2, baseFormat, opts = {}) {
     return finishTable(file2, format, rows2, cols, opts.langs);
   }
   const single = resolveSingleColumn(headers, override);
-  if (!single) throw error62 instanceof Error ? new Error(`${file2}: ${error62.message}`) : new Error(`${file2}: could not find a text column in [${headerList(headers)}]`);
+  if (!single) throw error62 instanceof Error ? inputErrorWithFile(error62, file2) : new InputError(`${file2}: could not find a text column in [${headerList(headers)}]`);
   const rows = body.map((r, idx) => {
     const row = recordToRow(toRecord(r), { ...single, target: void 0 }, file2, r.line, `row${idx + 1}`);
     if (unreal) {
@@ -931,7 +944,7 @@ function parseCsvRecords(text, delimiter = ",") {
         i2++;
       }
     }
-    if (inQuotes) throw new Error(`Unterminated quoted field starting on line ${startLine}`);
+    if (inQuotes) throw new InputError(`Unterminated quoted field starting on line ${startLine}`);
     cells.push(cell);
     if (cells.length > 1 || cells[0] !== "") out.push({ line: startLine, cells });
   }
@@ -940,7 +953,7 @@ function parseCsvRecords(text, delimiter = ",") {
 function parseCsv(text, file2, opts = {}) {
   const delimiter = opts.delimiter ?? (file2.toLowerCase().endsWith(".tsv") ? "	" : ",");
   const records = parseCsvRecords(text, delimiter);
-  if (!records.length) throw new Error(`${file2}: empty CSV`);
+  if (!records.length) throw new InputError(`${file2}: empty CSV`);
   return tableFromGrid(records, file2, delimiter === "	" ? "tsv" : "csv", opts);
 }
 
@@ -969,7 +982,7 @@ function decodeText(data, file2) {
       const text = new TextDecoder("shift_jis", { fatal: true }).decode(data);
       return { text, note: `${file2}: not valid UTF-8; read as Shift_JIS` };
     } catch {
-      throw new Error(`${file2}: not valid UTF-8 text (save it as UTF-8)`);
+      throw new InputError(`${file2}: not valid UTF-8 text (save it as UTF-8)`);
     }
   }
 }
@@ -988,7 +1001,7 @@ function parseWithLines(text) {
     }
   };
   const fail = (msg) => {
-    throw new Error(`JSON parse error at line ${line}: ${msg}`);
+    throw new InputError(`JSON parse error at line ${line}: ${msg}`);
   };
   const str = () => {
     const start = i2;
@@ -1084,7 +1097,7 @@ function parseJson(text, file2, opts = {}) {
   try {
     root = parseWithLines(text);
   } catch (e) {
-    throw new Error(`${file2}: ${e.message}`);
+    throw inputErrorWithFile(e, file2);
   }
   if (opts.format === "i18n-json" || isLocaleFile(root, opts.columns)) return localeTable(root, file2);
   let records;
@@ -1094,9 +1107,9 @@ function parseJson(text, file2, opts = {}) {
     const arr = Object.values(root).find((v) => Array.isArray(v) && v.some(isObj));
     records = arr ? arr.filter(isObj).map((o) => ({ rec: lined(o) })) : Object.entries(root).filter(([, v]) => isObj(v)).map(([k, v]) => ({ rec: lined(v), key: k }));
   } else {
-    throw new Error(`${file2}: expected a JSON array or object of strings`);
+    throw new InputError(`${file2}: expected a JSON array or object of strings`);
   }
-  if (!records.length) throw new Error(`${file2}: no string records found`);
+  if (!records.length) throw new InputError(`${file2}: no string records found`);
   const headers = [...new Set(records.flatMap((r) => Object.keys(r.rec.value)))];
   const cols = resolveColumns(headers, opts.columns);
   const rows = records.map((r, idx) => recordToRow(r.rec.value, cols, file2, r.rec.line, r.key ?? `row${idx + 1}`));
@@ -1146,10 +1159,10 @@ function isLocaleFile(root, columns) {
 }
 function localeTable(root, file2) {
   const { obj, lang: wrapped } = unwrapLocale(root);
-  if (!isObj(obj)) throw new Error(`${file2}: expected a JSON object of translation keys`);
+  if (!isObj(obj)) throw new InputError(`${file2}: expected a JSON object of translation keys`);
   const leaves = [];
   flatten(obj, "", obj[LINE] ?? 1, leaves);
-  if (!leaves.length) throw new Error(`${file2}: no string values found`);
+  if (!leaves.length) throw new InputError(`${file2}: no string values found`);
   const rows = leaves.map((l) => ({ file: file2, line: l.line, id: l.key, source: l.value, target: "" }));
   const lang = wrapped ?? langFromName(file2) ?? detectLang(rows.map((r) => r.source));
   return singleTable(file2, "i18n-json", rows, lang);
@@ -1159,7 +1172,7 @@ function localeTable(root, file2) {
 var ESCAPES = { n: "\n", t: "	", r: "\r", a: "\x07", b: "\b", f: "\f", v: "\v", '"': '"', "\\": "\\", "'": "'", "?": "?" };
 function unquote(lit, file2, line) {
   const m = /^"((?:[^"\\]|\\.)*)"\s*$/.exec(lit.trim());
-  if (!m) throw new Error(`${file2}:${line}: malformed PO string ${JSON.stringify(lit.trim().slice(0, 40))}`);
+  if (!m) throw new InputError(`${file2}:${line}: malformed PO string ${JSON.stringify(lit.trim().slice(0, 40))}`);
   return m[1].replace(/\\(x[0-9a-fA-F]{1,2}|[0-7]{1,3}|.)/g, (_, e) => {
     if (e[0] === "x") return String.fromCharCode(parseInt(e.slice(1), 16));
     if (/^[0-7]/.test(e)) return String.fromCharCode(parseInt(e, 8));
@@ -1210,7 +1223,7 @@ function parsePo(text, file2, opts = {}) {
       return;
     }
     if (l.startsWith('"')) {
-      if (!field) throw new Error(`${file2}:${ln}: string continuation without a keyword`);
+      if (!field) throw new InputError(`${file2}:${ln}: string continuation without a keyword`);
       const s = unquote(l, file2, ln);
       if (field.kind === "ctxt") cur.ctxt += s;
       else if (field.kind === "id") cur.id += s;
@@ -1219,7 +1232,7 @@ function parsePo(text, file2, opts = {}) {
       return;
     }
     const m = /^(msgctxt|msgid_plural|msgid|msgstr(?:\[(\d+)\])?)\s+(".*)$/.exec(l);
-    if (!m) throw new Error(`${file2}:${ln}: unexpected line in PO file: ${JSON.stringify(l.slice(0, 40))}`);
+    if (!m) throw new InputError(`${file2}:${ln}: unexpected line in PO file: ${JSON.stringify(l.slice(0, 40))}`);
     const kw = m[1];
     const val = unquote(m[3], file2, ln);
     if ((kw === "msgctxt" || kw === "msgid") && cur.id !== void 0 && cur.str.length) flush();
@@ -1235,14 +1248,14 @@ function parsePo(text, file2, opts = {}) {
       cur.plural = val;
       field = { kind: "plural", index: 0 };
     } else {
-      if (cur.id === void 0) throw new Error(`${file2}:${ln}: msgstr without msgid`);
+      if (cur.id === void 0) throw new InputError(`${file2}:${ln}: msgstr without msgid`);
       const index = m[2] ? Number(m[2]) : 0;
       cur.str[index] = val;
       field = { kind: "str", index };
     }
   });
   flush();
-  if (!entries.length) throw new Error(`${file2}: no PO entries found (only a header, or not a gettext file)`);
+  if (!entries.length) throw new InputError(`${file2}: no PO entries found (only a header, or not a gettext file)`);
   const nplurals = Number(/^Plural-Forms:[^\n]*?nplurals\s*=\s*(\d+)/m.exec(header ?? "")?.[1] ?? NaN);
   const rows = [];
   for (const e of entries) {
@@ -1408,7 +1421,7 @@ function statements(body) {
 }
 function parseRenpy(text, file2, opts = {}) {
   if (!hasRenpyTranslations(text)) {
-    throw new Error(
+    throw new InputError(
       `${file2}: no "translate <language> <id>:" blocks found. Kotomark reads Ren'Py translation files (game/tl/<language>/*.rpy); a game script with define x = Character("…") can be loaded alongside them to name the speakers.`
     );
   }
@@ -1478,7 +1491,7 @@ function parseRenpy(text, file2, opts = {}) {
           old = { value: str.value, line: st.line, locs };
           locs = [];
         } else {
-          if (!old) throw new Error(`${file2}:${st.line}: "new" without a preceding "old"`);
+          if (!old) throw new InputError(`${file2}:${st.line}: "new" without a preceding "old"`);
           let rid = `strings:${hash8(old.value)}`;
           const dup = seenStrings.get(rid) ?? 0;
           seenStrings.set(rid, dup + 1);
@@ -1857,7 +1870,7 @@ function foldQuoted(raw, escapes) {
   }
   return out;
 }
-var YamlError = class extends Error {
+var YamlError = class extends InputError {
 };
 var YamlParser = class {
   constructor(lines) {
@@ -2357,14 +2370,14 @@ function parseYaml(text, file2) {
   try {
     doc = parseYamlDocument(text);
   } catch (e) {
-    throw new Error(`${file2}: ${e.message}`);
+    throw inputErrorWithFile(e, file2);
   }
   const notes = doc.notes.map((n) => `${file2}: ${n}`);
   let root = doc.root;
-  if (!root || root.kind !== "map") throw new Error(`${file2}: expected a YAML mapping of translation keys (a locale file such as ja.yml)${root?.kind === "seq" ? ", got a list" : ""}`);
+  if (!root || root.kind !== "map") throw new InputError(`${file2}: expected a YAML mapping of translation keys (a locale file such as ja.yml)${root?.kind === "seq" ? ", got a list" : ""}`);
   let lang;
   const langKeys = root.entries.filter((e) => langOfCode(e.key) && e.value.kind === "map");
-  if (langKeys.length > 1) throw new Error(`${file2}: has several locale roots (${langKeys.map((e) => e.key).join(", ")}); split it into one file per locale`);
+  if (langKeys.length > 1) throw new InputError(`${file2}: has several locale roots (${langKeys.map((e) => e.key).join(", ")}); split it into one file per locale`);
   if (root.entries.length === 1 && langKeys.length === 1) {
     lang = langOfCode(langKeys[0].key);
     root = langKeys[0].value;
@@ -2379,7 +2392,7 @@ function parseYaml(text, file2) {
       flatten2(e.value, e.key, e.line, leaves, /* @__PURE__ */ new Set());
     }
   }
-  if (!leaves.length) throw new Error(`${file2}: no string values found`);
+  if (!leaves.length) throw new InputError(`${file2}: no string values found`);
   const rows = leaves.map((l) => ({ file: file2, line: l.line, id: l.key, source: l.value, target: "" }));
   lang ??= langFromName(file2) ?? detectLang(rows.map((r) => r.source));
   return { table: singleTable(file2, "yaml", rows, lang), notes };
@@ -2456,7 +2469,7 @@ var resolvePart = (target) => {
 };
 function listSheets(files, file2) {
   const wb = files["xl/workbook.xml"];
-  if (!wb) throw new Error(`${file2}: not an .xlsx workbook (xl/workbook.xml missing)`);
+  if (!wb) throw new InputError(`${file2}: not an .xlsx workbook (xl/workbook.xml missing)`);
   const wbXml = strFromU8(wb);
   const relsBytes = files["xl/_rels/workbook.xml.rels"];
   const rels = /* @__PURE__ */ new Map();
@@ -2476,24 +2489,24 @@ function listSheets(files, file2) {
     const path = (rid && rels.get(rid[1] ?? rid[2] ?? "")) ?? `xl/worksheets/sheet${n}.xml`;
     sheets.push({ name, path });
   }
-  if (!sheets.length) throw new Error(`${file2}: workbook has no sheets`);
+  if (!sheets.length) throw new InputError(`${file2}: workbook has no sheets`);
   return sheets;
 }
 function parseXlsx(data, file2, opts = {}) {
-  if (isOle(data)) throw new Error(`${file2}: legacy .xls (or encrypted workbook) is not supported; save it as .xlsx`);
-  if (!isZip(data)) throw new Error(`${file2}: not an .xlsx file (expected a ZIP container)`);
+  if (isOle(data)) throw new InputError(`${file2}: legacy .xls (or encrypted workbook) is not supported; save it as .xlsx`);
+  if (!isZip(data)) throw new InputError(`${file2}: not an .xlsx file (expected a ZIP container)`);
   let files;
   try {
     files = unzipSync(data, { filter: (f) => f.name.startsWith("xl/") && f.name.endsWith(".xml") || f.name.endsWith(".rels") });
   } catch (e) {
-    throw new Error(`${file2}: could not unzip .xlsx (${e.message})`);
+    throw new InputError(`${file2}: could not unzip .xlsx (${e.message})`);
   }
   const sheets = listSheets(files, file2);
   const ssBytes = files["xl/sharedStrings.xml"];
   const shared = ssBytes ? [...strFromU8(ssBytes).matchAll(/<(?:\w+:)?si\b[^>]*?(?:\/>|>([\s\S]*?)<\/(?:\w+:)?si>)/g)].map((m) => stringItem(m[1] ?? "")) : [];
   const read = (s) => {
     const bytes = files[s.path];
-    if (!bytes) throw new Error(`${file2}: sheet "${s.name}" is missing its data (${s.path})`);
+    if (!bytes) throw new InputError(`${file2}: sheet "${s.name}" is missing its data (${s.path})`);
     return readSheet(strFromU8(bytes), shared);
   };
   const notes = [];
@@ -2502,9 +2515,9 @@ function parseXlsx(data, file2, opts = {}) {
   if (opts.sheet !== void 0 && opts.sheet !== "") {
     const want = opts.sheet;
     chosen = typeof want === "string" ? sheets.find((s) => s.name === want) ?? sheets.find((s) => s.name.toLowerCase() === want.trim().toLowerCase()) ?? (/^\d+$/.test(want.trim()) ? sheets[Number(want) - 1] : void 0) : sheets[want - 1];
-    if (!chosen) throw new Error(`${file2}: no sheet ${JSON.stringify(want)} (sheets: ${sheets.map((s) => s.name).join(", ")})`);
+    if (!chosen) throw new InputError(`${file2}: no sheet ${JSON.stringify(want)} (sheets: ${sheets.map((s) => s.name).join(", ")})`);
     records = read(chosen);
-    if (!records.length) throw new Error(`${file2}: sheet "${chosen.name}" is empty`);
+    if (!records.length) throw new InputError(`${file2}: sheet "${chosen.name}" is empty`);
   } else {
     for (const s of sheets) {
       const r = read(s);
@@ -2514,7 +2527,7 @@ function parseXlsx(data, file2, opts = {}) {
         break;
       }
     }
-    if (!chosen || !records) throw new Error(`${file2}: all sheets are empty`);
+    if (!chosen || !records) throw new InputError(`${file2}: all sheets are empty`);
     if (sheets.length > 1) notes.push(`${file2}: read sheet "${chosen.name}" (workbook also has: ${sheets.filter((s) => s !== chosen).map((s) => s.name).join(", ")}; choose with the sheet option)`);
   }
   return { table: tableFromGrid(records, `${file2}#${chosen.name}`, "xlsx", opts), notes };
@@ -2579,7 +2592,7 @@ function parseXliff(text, file2, opts = {}) {
       maxLength: Number.isFinite(max2) && max2 > 0 ? max2 : void 0
     });
   }
-  if (!rows.length) throw new Error(`${file2}: no ${v2 ? "<unit>" : "<trans-unit>"} elements found`);
+  if (!rows.length) throw new InputError(`${file2}: no ${v2 ? "<unit>" : "<trans-unit>"} elements found`);
   return finishTable(file2, "xliff", rows, void 0, { source: opts.langs?.source ?? srcLang, target: opts.langs?.target ?? trgLang });
 }
 
@@ -2631,7 +2644,7 @@ function parseTableWithNotes(data, file2, opts = {}) {
   let format = opts.format ?? detectFormat(file2, data);
   if (typeof data !== "string" && isZip(data) && format !== "xlsx") format = "xlsx";
   if (format === "xlsx") {
-    if (typeof data === "string") throw new Error(`${file2}: .xlsx must be passed as bytes (Uint8Array), not text`);
+    if (typeof data === "string") throw new InputError(`${file2}: .xlsx must be passed as bytes (Uint8Array), not text`);
     return parseXlsx(data, file2, opts);
   }
   const notes = [];
@@ -2670,10 +2683,7 @@ function parseText(text, file2, format, opts) {
 // src/core/inputs.ts
 var MAX_LISTED = 5;
 var list = (ids) => ids.slice(0, MAX_LISTED).join(", ") + (ids.length > MAX_LISTED ? `, … (+${ids.length - MAX_LISTED})` : "");
-function withFile(e, name) {
-  const msg = e instanceof Error ? e.message : String(e);
-  return new Error(msg.startsWith(name) ? msg : `${name}: ${msg}`);
-}
+var withFile = (e, name) => inputErrorWithFile(e, name);
 function pairLabel(a, b) {
   const pa = a.split("/");
   const pb = b.split("/");
@@ -22573,7 +22583,7 @@ function parseXml(text) {
     i2 = to;
   };
   const fail = (msg) => {
-    throw new Error(`XML line ${line}: ${msg}`);
+    throw new InputError(`XML line ${line}: ${msg}`);
   };
   const addText = (t) => {
     const top = stack[stack.length - 1];
@@ -22657,8 +22667,8 @@ function parseXml(text) {
       if (!selfClosing) stack.push(el);
     }
   }
-  if (stack.length) throw new Error(`XML: <${stack[stack.length - 1].qname}> is never closed`);
-  if (!root) throw new Error("XML: no root element");
+  if (stack.length) throw new InputError(`XML: <${stack[stack.length - 1].qname}> is never closed`);
+  if (!root) throw new InputError("XML: no root element");
   return root;
 }
 var childElements = (el, ...names) => el.children.filter((c) => typeof c !== "string" && (!names.length || names.includes(c.name)));
@@ -22869,7 +22879,7 @@ function importCsv(text, file2, opts = {}) {
   const explicit = iSrc >= 0 && iTgt >= 0;
   const langs = new Set(langTerms.map((t) => t.lang));
   if (!explicit && !(langs.has("ja") && langs.has("en"))) {
-    throw new Error(
+    throw new InputError(
       `Glossary CSV needs source/ja and target/en columns (found: ${header.map((h) => h.trim()).filter(Boolean).join(", ") || "no header"})`
     );
   }
@@ -22961,9 +22971,9 @@ function importTbx(text, file2, opts = {}) {
   try {
     root = parseXml(text);
   } catch (e) {
-    throw new Error(`${file2}: ${e.message}`);
+    throw inputErrorWithFile(e, file2);
   }
-  if (!/^(martif|tbx)$/i.test(root.name)) throw new Error(`${file2}: not a TBX file (root element <${root.qname}>, expected <martif> or <tbx>)`);
+  if (!/^(martif|tbx)$/i.test(root.name)) throw new InputError(`${file2}: not a TBX file (root element <${root.qname}>, expected <martif> or <tbx>)`);
   const rootLang = langOfCode(attrOf(root, "lang"));
   const srcLang = opts.sourceLang ?? rootLang ?? "ja";
   const tgtLang = srcLang === "ja" ? "en" : "ja";
@@ -23039,11 +23049,19 @@ var GlossarySchema = external_exports.object({
   ).default([])
 });
 var EMPTY_GLOSSARY = { terms: [], characters: [] };
+var MAX_ISSUES = 10;
 function fromJson(text) {
-  const raw = JSON.parse(stripBom(text));
+  let raw;
+  try {
+    raw = JSON.parse(stripBom(text));
+  } catch (e) {
+    throw new InputError(`Invalid glossary JSON: ${e.message}`);
+  }
   const parsed = GlossarySchema.safeParse(Array.isArray(raw) ? { terms: raw } : raw);
   if (!parsed.success) {
-    throw new Error(`Invalid glossary: ${parsed.error.issues.map((i2) => `${i2.path.join(".")}: ${i2.message}`).join("; ")}`);
+    const issues = parsed.error.issues;
+    const shown = issues.slice(0, MAX_ISSUES).map((i2) => `${i2.path.join(".")}: ${i2.message}`);
+    throw new InputError(`Invalid glossary: ${shown.join("; ")}${issues.length > MAX_ISSUES ? `; … (${issues.length - MAX_ISSUES} more)` : ""}`);
   }
   return parsed.data;
 }
@@ -23056,7 +23074,7 @@ function parseGlossaryWithNotes(input2, file2 = "glossary.json", opts = {}) {
   const head = text.trimStart();
   if (lower.endsWith(".json") || /^[{[]/.test(head)) return { glossary: fromJson(text), notes: pre, format: "json", orientable: false };
   if (/\.(tbx|tbxm|xml)$/.test(lower) || head.startsWith("<")) {
-    if (!isTbx(text)) throw new Error(`${file2}: XML glossaries must be TBX (a <martif> or <tbx> root element)`);
+    if (!isTbx(text)) throw new InputError(`${file2}: XML glossaries must be TBX (a <martif> or <tbx> root element)`);
     const r2 = importTbx(text, file2, opts);
     const sum2 = `${file2}: TBX, ${r2.glossary.terms.length} term(s) read as ${r2.direction.source}→${r2.direction.target}`;
     return { ...r2, notes: [...pre, sum2, ...r2.notes], format: "tbx" };
@@ -23079,7 +23097,7 @@ var CLI_LIMITS = {
   maxChars: 5e8,
   maxGlossaryRowProduct: 2e10
 };
-var LimitError = class extends Error {
+var LimitError = class extends UserFacingError {
   name = "LimitError";
 };
 var fmt = (n) => n.toLocaleString("en-US");

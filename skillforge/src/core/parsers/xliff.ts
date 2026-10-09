@@ -1,5 +1,6 @@
 import { finishTable } from "./columns.js";
 import type { Lang, Row, Table } from "../types.js";
+import { InputError } from "../errors.js";
 
 const newlines = (s: string) => {
   let n = 0;
@@ -79,6 +80,6 @@ export function parseXliff(text: string, file: string, opts: { langs?: { source?
       maxLength: Number.isFinite(max) && max > 0 ? max : undefined,
     });
   }
-  if (!rows.length) throw new Error(`${file}: no ${v2 ? "<unit>" : "<trans-unit>"} elements found`);
+  if (!rows.length) throw new InputError(`${file}: no ${v2 ? "<unit>" : "<trans-unit>"} elements found`);
   return finishTable(file, "xliff", rows, undefined, { source: opts.langs?.source ?? srcLang, target: opts.langs?.target ?? trgLang });
 }

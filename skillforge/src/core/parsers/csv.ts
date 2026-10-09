@@ -1,6 +1,7 @@
 import type { ColumnMap } from "./columns.js";
 import { tableFromGrid } from "./grid.js";
 import type { Lang, Table } from "../types.js";
+import { InputError } from "../errors.js";
 
 /** RFC 4180 CSV (also TSV) parser that remembers the physical line each record starts on. */
 export function parseCsvRecords(text: string, delimiter = ","): { line: number; cells: string[] }[] {
@@ -46,7 +47,7 @@ export function parseCsvRecords(text: string, delimiter = ","): { line: number; 
         i++;
       }
     }
-    if (inQuotes) throw new Error(`Unterminated quoted field starting on line ${startLine}`);
+    if (inQuotes) throw new InputError(`Unterminated quoted field starting on line ${startLine}`);
     cells.push(cell);
     if (cells.length > 1 || cells[0] !== "") out.push({ line: startLine, cells });
   }
@@ -56,6 +57,6 @@ export function parseCsvRecords(text: string, delimiter = ","): { line: number; 
 export function parseCsv(text: string, file: string, opts: { columns?: ColumnMap; langs?: { source?: Lang; target?: Lang }; delimiter?: string; format?: string } = {}): Table {
   const delimiter = opts.delimiter ?? (file.toLowerCase().endsWith(".tsv") ? "\t" : ",");
   const records = parseCsvRecords(text, delimiter);
-  if (!records.length) throw new Error(`${file}: empty CSV`);
+  if (!records.length) throw new InputError(`${file}: empty CSV`);
   return tableFromGrid(records, file, delimiter === "\t" ? "tsv" : "csv", opts);
 }

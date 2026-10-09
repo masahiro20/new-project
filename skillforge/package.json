@@ -16,7 +16,7 @@
     "docs/ci.md"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json && npm run build:cli",
+    "build": "tsc -p tsconfig.json && node -e \"require('fs').rmSync('dist/cli',{recursive:true,force:true})\" && npm run build:cli",
     "build:cli": "node scripts/build-cli.mjs",
     "build:action": "npm run build:cli && node -e \"require('fs').mkdirSync('action/dist',{recursive:true});require('fs').copyFileSync('dist/kotomark.mjs','action/dist/kotomark.mjs')\"",
     "release:action": "node scripts/release-action.mjs",

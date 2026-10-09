@@ -6,3 +6,9 @@ out/
 *.tsbuildinfo
 next-env.d.ts
 .vercel
+
+# License signing keys (Atlas re-review F-01): never commit private key material anywhere in this repo
+*.pem
+*signing-key*
+*.p8
+*.pk8

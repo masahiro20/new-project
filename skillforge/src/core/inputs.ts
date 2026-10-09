@@ -1,6 +1,7 @@
 // Multi-file loading: detect + decode + parse each input, then pair single-language tables (ja.json + en.json,
 // ui_ja.csv + ui_en.csv, Unreal string tables) by key into bilingual tables. Browser-safe.
 import { detectFormat, parseTableWithNotes, type Format, type ParseOptions } from "./parsers/index.js";
+import { inputErrorWithFile } from "./errors.js";
 import { decodeText, stripBom } from "./parsers/decode.js";
 import { hasRenpyTranslations, renpyCharacters } from "./parsers/renpy.js";
 import { langFromName, otherLang, pairKey } from "./parsers/lang.js";
@@ -44,10 +45,8 @@ export interface LoadResult {
 const MAX_LISTED = 5;
 const list = (ids: string[]) => ids.slice(0, MAX_LISTED).join(", ") + (ids.length > MAX_LISTED ? `, … (+${ids.length - MAX_LISTED})` : "");
 
-function withFile(e: unknown, name: string): Error {
-  const msg = e instanceof Error ? e.message : String(e);
-  return new Error(msg.startsWith(name) ? msg : `${name}: ${msg}`);
-}
+/** The file name in front of a parse error; internal errors (bugs) stay as they are (B-10). */
+const withFile = (e: unknown, name: string): Error => inputErrorWithFile(e, name);
 
 /** "locales/ja/ui.json" + "locales/en/ui.json" → "locales/ja/ui.json+en/ui.json"; "ja.json" + "en.json" → "ja.json+en.json". */
 export function pairLabel(a: string, b: string): string {

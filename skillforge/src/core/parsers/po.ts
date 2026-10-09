@@ -2,6 +2,7 @@
 import { detectLang } from "../text.js";
 import type { Lang, Row, Table } from "../types.js";
 import { langOfCode, otherLang } from "./lang.js";
+import { InputError } from "../errors.js";
 
 interface Entry {
   line: number;
@@ -20,7 +21,7 @@ const ESCAPES: Record<string, string> = { n: "\n", t: "\t", r: "\r", a: "\x07", 
 
 function unquote(lit: string, file: string, line: number): string {
   const m = /^"((?:[^"\\]|\\.)*)"\s*$/.exec(lit.trim());
-  if (!m) throw new Error(`${file}:${line}: malformed PO string ${JSON.stringify(lit.trim().slice(0, 40))}`);
+  if (!m) throw new InputError(`${file}:${line}: malformed PO string ${JSON.stringify(lit.trim().slice(0, 40))}`);
   return m[1]!.replace(/\\(x[0-9a-fA-F]{1,2}|[0-7]{1,3}|.)/g, (_, e: string) => {
     if (e[0] === "x") return String.fromCharCode(parseInt(e.slice(1), 16));
     if (/^[0-7]/.test(e)) return String.fromCharCode(parseInt(e, 8));
@@ -89,7 +90,7 @@ export function parsePo(text: string, file: string, opts: { langs?: { source?: L
       return;
     }
     if (l.startsWith('"')) {
-      if (!field) throw new Error(`${file}:${ln}: string continuation without a keyword`);
+      if (!field) throw new InputError(`${file}:${ln}: string continuation without a keyword`);
       const s = unquote(l, file, ln);
       if (field.kind === "ctxt") cur.ctxt += s;
       else if (field.kind === "id") cur.id += s;
@@ -98,7 +99,7 @@ export function parsePo(text: string, file: string, opts: { langs?: { source?: L
       return;
     }
     const m = /^(msgctxt|msgid_plural|msgid|msgstr(?:\[(\d+)\])?)\s+(".*)$/.exec(l);
-    if (!m) throw new Error(`${file}:${ln}: unexpected line in PO file: ${JSON.stringify(l.slice(0, 40))}`);
+    if (!m) throw new InputError(`${file}:${ln}: unexpected line in PO file: ${JSON.stringify(l.slice(0, 40))}`);
     const kw = m[1]!;
     const val = unquote(m[3]!, file, ln);
     if ((kw === "msgctxt" || kw === "msgid") && cur.id !== undefined && cur.str.length) flush();
@@ -114,7 +115,7 @@ export function parsePo(text: string, file: string, opts: { langs?: { source?: L
       cur.plural = val;
       field = { kind: "plural", index: 0 };
     } else {
-      if (cur.id === undefined) throw new Error(`${file}:${ln}: msgstr without msgid`);
+      if (cur.id === undefined) throw new InputError(`${file}:${ln}: msgstr without msgid`);
       const index = m[2] ? Number(m[2]) : 0;
       cur.str[index] = val;
       field = { kind: "str", index };
@@ -122,7 +123,7 @@ export function parsePo(text: string, file: string, opts: { langs?: { source?: L
   });
   flush();
 
-  if (!entries.length) throw new Error(`${file}: no PO entries found (only a header, or not a gettext file)`);
+  if (!entries.length) throw new InputError(`${file}: no PO entries found (only a header, or not a gettext file)`);
 
   const nplurals = Number(/^Plural-Forms:[^\n]*?nplurals\s*=\s*(\d+)/m.exec(header ?? "")?.[1] ?? NaN);
   const rows: Row[] = [];

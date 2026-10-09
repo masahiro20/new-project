@@ -13,9 +13,9 @@
 //
 //   node scripts/license-issue.mjs --pubkey [--key <path>]     prints the public key entry again
 import { createHash, createPrivateKey, createPublicKey, generateKeyPairSync, randomBytes, sign } from "node:crypto";
-import { chmodSync, existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, lstatSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { basename, dirname, isAbsolute, join, relative, resolve } from "node:path";
+import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 // Keep in sync with src/cli/license.ts (test/license.test.ts verifies keys issued here).
@@ -48,15 +48,33 @@ function pubkeyEntry(publicKey, from = new Date().toISOString().slice(0, 10)) {
   const pem = publicKey.export({ type: "spki", format: "pem" }).trim();
   return `  "${keyId(publicKey)}": { key: \`${pem}\`, from: "${from}" },`;
 }
-function insideRepo(p) {
-  let real = p;
-  try {
-    real = join(realpathSync(dirname(p)), basename(p)); // follow symlinked parents
-  } catch {
-    // parent does not exist yet
+/** Nearest existing ancestor of `p`, resolved through symlinks. */
+function realAncestor(p) {
+  for (let d = p; ; d = dirname(d)) {
+    try {
+      return join(realpathSync(d), relative(d, p));
+    } catch {
+      if (dirname(d) === d) return p;
+    }
   }
+}
+/**
+ * True when `p` is inside this package or inside ANY git work tree (the monorepo root, another repository): skillforge
+ * lives in a monorepo whose root .gitignore does not ignore *.pem, so checking only this package is not enough.
+ */
+function insideRepo(p) {
+  try {
+    if (lstatSync(p).isSymbolicLink()) return true; // never write through a symlink (its target may be inside a repository)
+  } catch {
+    // does not exist yet
+  }
+  const real = realAncestor(p);
   const rel = relative(realpathSync(root), real);
-  return !rel.startsWith("..") && !isAbsolute(rel);
+  if (!rel.startsWith("..") && !isAbsolute(rel)) return true;
+  for (let d = dirname(real); ; d = dirname(d)) {
+    if (existsSync(join(d, ".git"))) return true;
+    if (dirname(d) === d) return false;
+  }
 }
 function loadPrivateKey() {
   if (!existsSync(keyPath)) fail(`no signing key at ${keyPath} (run --init first, or pass --key)`);
@@ -66,7 +84,7 @@ function loadPrivateKey() {
 }
 
 if (has("--init")) {
-  if (insideRepo(keyPath)) fail(`refusing to write the private key inside the repository (${keyPath}). Use a path outside it.`);
+  if (insideRepo(keyPath)) fail(`refusing to write the private key inside a repository or git work tree (${keyPath}). Use a path outside it.`);
   if (existsSync(keyPath) && !has("--force")) fail(`${keyPath} already exists (pass --force to replace it — keys signed with the old one stop verifying once its public key is removed)`);
   const { publicKey, privateKey } = generateKeyPairSync("ed25519");
   mkdirSync(dirname(keyPath), { recursive: true, mode: 0o700 });

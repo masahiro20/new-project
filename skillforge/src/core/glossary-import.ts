@@ -5,6 +5,7 @@ import { parseCsvRecords } from "./parsers/csv.js";
 import { langOfCode, langOfHeader } from "./parsers/lang.js";
 import { attrOf, childElements, descendants, parseXml, textContent, type XmlElement } from "./parsers/xml.js";
 import type { Glossary, GlossaryCharacter, GlossaryTerm, Lang } from "./types.js";
+import { InputError, inputErrorWithFile } from "./errors.js";
 
 type Status = "preferred" | "admitted" | "forbidden";
 interface Variant {
@@ -259,7 +260,7 @@ export function importCsv(text: string, file: string, opts: ImportOptions = {}):
   const explicit = iSrc >= 0 && iTgt >= 0;
   const langs = new Set(langTerms.map((t) => t.lang));
   if (!explicit && !(langs.has("ja") && langs.has("en"))) {
-    throw new Error(
+    throw new InputError(
       `Glossary CSV needs source/ja and target/en columns (found: ${header.map((h) => h.trim()).filter(Boolean).join(", ") || "no header"})`,
     );
   }
@@ -372,9 +373,9 @@ export function importTbx(text: string, file: string, opts: ImportOptions = {}):
   try {
     root = parseXml(text);
   } catch (e) {
-    throw new Error(`${file}: ${(e as Error).message}`);
+    throw inputErrorWithFile(e, file);
   }
-  if (!/^(martif|tbx)$/i.test(root.name)) throw new Error(`${file}: not a TBX file (root element <${root.qname}>, expected <martif> or <tbx>)`);
+  if (!/^(martif|tbx)$/i.test(root.name)) throw new InputError(`${file}: not a TBX file (root element <${root.qname}>, expected <martif> or <tbx>)`);
   const rootLang = langOfCode(attrOf(root, "lang"));
   const srcLang: Lang = opts.sourceLang ?? rootLang ?? "ja";
   const tgtLang: Lang = srcLang === "ja" ? "en" : "ja";

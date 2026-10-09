@@ -1,3 +1,4 @@
+import { InputError } from "../errors.js";
 // A small, dependency-free XML reader for glossary interchange files (TBX). Browser-safe (no node: imports).
 // Handles elements, attributes, namespace prefixes (exposed as local names), the predefined and numeric entities,
 // internal-subset <!ENTITY> declarations, CDATA, comments, processing instructions and a DOCTYPE. It is not
@@ -46,7 +47,7 @@ export function parseXml(text: string): XmlElement {
     i = to;
   };
   const fail = (msg: string): never => {
-    throw new Error(`XML line ${line}: ${msg}`);
+    throw new InputError(`XML line ${line}: ${msg}`);
   };
   const addText = (t: string) => {
     const top = stack[stack.length - 1];
@@ -134,8 +135,8 @@ export function parseXml(text: string): XmlElement {
       if (!selfClosing) stack.push(el);
     }
   }
-  if (stack.length) throw new Error(`XML: <${stack[stack.length - 1]!.qname}> is never closed`);
-  if (!root) throw new Error("XML: no root element");
+  if (stack.length) throw new InputError(`XML: <${stack[stack.length - 1]!.qname}> is never closed`);
+  if (!root) throw new InputError("XML: no root element");
   return root;
 }
 

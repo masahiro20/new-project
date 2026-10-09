@@ -2,6 +2,7 @@ import { z } from "zod";
 import { importCsv, importTbx, isTbx, sniffDelimiter } from "./glossary-import.js";
 import { decodeText, stripBom } from "./parsers/decode.js";
 import type { Glossary, Lang } from "./types.js";
+import { InputError } from "./errors.js";
 
 const list = z.array(z.string()).optional();
 
@@ -72,11 +73,21 @@ export interface GlossaryParseOptions {
   sourceLang?: Lang;
 }
 
+const MAX_ISSUES = 10;
+
 function fromJson(text: string): Glossary {
-  const raw: unknown = JSON.parse(stripBom(text));
+  let raw: unknown;
+  try {
+    raw = JSON.parse(stripBom(text));
+  } catch (e) {
+    throw new InputError(`Invalid glossary JSON: ${(e as Error).message}`);
+  }
   const parsed = GlossarySchema.safeParse(Array.isArray(raw) ? { terms: raw } : raw);
   if (!parsed.success) {
-    throw new Error(`Invalid glossary: ${parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ")}`);
+    // B-10: a large invalid glossary has thousands of issues; list the first few.
+    const issues = parsed.error.issues;
+    const shown = issues.slice(0, MAX_ISSUES).map((i) => `${i.path.join(".")}: ${i.message}`);
+    throw new InputError(`Invalid glossary: ${shown.join("; ")}${issues.length > MAX_ISSUES ? `; … (${issues.length - MAX_ISSUES} more)` : ""}`);
   }
   return parsed.data;
 }
@@ -96,7 +107,7 @@ export function parseGlossaryWithNotes(input: string | Uint8Array, file = "gloss
   const head = text.trimStart();
   if (lower.endsWith(".json") || /^[{[]/.test(head)) return { glossary: fromJson(text), notes: pre, format: "json", orientable: false };
   if (/\.(tbx|tbxm|xml)$/.test(lower) || head.startsWith("<")) {
-    if (!isTbx(text)) throw new Error(`${file}: XML glossaries must be TBX (a <martif> or <tbx> root element)`);
+    if (!isTbx(text)) throw new InputError(`${file}: XML glossaries must be TBX (a <martif> or <tbx> root element)`);
     const r = importTbx(text, file, opts);
     const sum = `${file}: TBX, ${r.glossary.terms.length} term(s) read as ${r.direction.source}→${r.direction.target}`;
     return { ...r, notes: [...pre, sum, ...r.notes], format: "tbx" };

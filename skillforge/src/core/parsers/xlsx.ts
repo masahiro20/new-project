@@ -4,6 +4,7 @@ import { strFromU8, unzipSync } from "fflate";
 import type { Lang, Table } from "../types.js";
 import type { ColumnMap } from "./columns.js";
 import { tableFromGrid, type GridRecord } from "./grid.js";
+import { InputError } from "../errors.js";
 
 export interface XlsxOptions {
   columns?: ColumnMap;
@@ -95,7 +96,7 @@ const resolvePart = (target: string): string => {
 /** The workbook's sheets in order with their XML part paths. */
 function listSheets(files: Record<string, Uint8Array>, file: string): { name: string; path: string }[] {
   const wb = files["xl/workbook.xml"];
-  if (!wb) throw new Error(`${file}: not an .xlsx workbook (xl/workbook.xml missing)`);
+  if (!wb) throw new InputError(`${file}: not an .xlsx workbook (xl/workbook.xml missing)`);
   const wbXml = strFromU8(wb);
   const relsBytes = files["xl/_rels/workbook.xml.rels"];
   const rels = new Map<string, string>();
@@ -115,26 +116,26 @@ function listSheets(files: Record<string, Uint8Array>, file: string): { name: st
     const path = (rid && rels.get(rid[1] ?? rid[2] ?? "")) ?? `xl/worksheets/sheet${n}.xml`;
     sheets.push({ name, path });
   }
-  if (!sheets.length) throw new Error(`${file}: workbook has no sheets`);
+  if (!sheets.length) throw new InputError(`${file}: workbook has no sheets`);
   return sheets;
 }
 
 /** Parses one sheet of an .xlsx workbook. `line` is the spreadsheet row number; the table file is `book.xlsx#Sheet`. */
 export function parseXlsx(data: Uint8Array, file: string, opts: XlsxOptions = {}): { table: Table; notes: string[] } {
-  if (isOle(data)) throw new Error(`${file}: legacy .xls (or encrypted workbook) is not supported; save it as .xlsx`);
-  if (!isZip(data)) throw new Error(`${file}: not an .xlsx file (expected a ZIP container)`);
+  if (isOle(data)) throw new InputError(`${file}: legacy .xls (or encrypted workbook) is not supported; save it as .xlsx`);
+  if (!isZip(data)) throw new InputError(`${file}: not an .xlsx file (expected a ZIP container)`);
   let files: Record<string, Uint8Array>;
   try {
     files = unzipSync(data, { filter: (f) => f.name.startsWith("xl/") && f.name.endsWith(".xml") || f.name.endsWith(".rels") });
   } catch (e) {
-    throw new Error(`${file}: could not unzip .xlsx (${(e as Error).message})`);
+    throw new InputError(`${file}: could not unzip .xlsx (${(e as Error).message})`);
   }
   const sheets = listSheets(files, file);
   const ssBytes = files["xl/sharedStrings.xml"];
   const shared = ssBytes ? [...strFromU8(ssBytes).matchAll(/<(?:\w+:)?si\b[^>]*?(?:\/>|>([\s\S]*?)<\/(?:\w+:)?si>)/g)].map((m) => stringItem(m[1] ?? "")) : [];
   const read = (s: { name: string; path: string }) => {
     const bytes = files[s.path];
-    if (!bytes) throw new Error(`${file}: sheet "${s.name}" is missing its data (${s.path})`);
+    if (!bytes) throw new InputError(`${file}: sheet "${s.name}" is missing its data (${s.path})`);
     return readSheet(strFromU8(bytes), shared);
   };
   const notes: string[] = [];
@@ -146,9 +147,9 @@ export function parseXlsx(data: Uint8Array, file: string, opts: XlsxOptions = {}
       typeof want === "string"
         ? (sheets.find((s) => s.name === want) ?? sheets.find((s) => s.name.toLowerCase() === want.trim().toLowerCase()) ?? (/^\d+$/.test(want.trim()) ? sheets[Number(want) - 1] : undefined))
         : sheets[want - 1];
-    if (!chosen) throw new Error(`${file}: no sheet ${JSON.stringify(want)} (sheets: ${sheets.map((s) => s.name).join(", ")})`);
+    if (!chosen) throw new InputError(`${file}: no sheet ${JSON.stringify(want)} (sheets: ${sheets.map((s) => s.name).join(", ")})`);
     records = read(chosen);
-    if (!records.length) throw new Error(`${file}: sheet "${chosen.name}" is empty`);
+    if (!records.length) throw new InputError(`${file}: sheet "${chosen.name}" is empty`);
   } else {
     for (const s of sheets) {
       const r = read(s);
@@ -158,7 +159,7 @@ export function parseXlsx(data: Uint8Array, file: string, opts: XlsxOptions = {}
         break;
       }
     }
-    if (!chosen || !records) throw new Error(`${file}: all sheets are empty`);
+    if (!chosen || !records) throw new InputError(`${file}: all sheets are empty`);
     if (sheets.length > 1) notes.push(`${file}: read sheet "${chosen.name}" (workbook also has: ${sheets.filter((s) => s !== chosen).map((s) => s.name).join(", ")}; choose with the sheet option)`);
   }
   return { table: tableFromGrid(records, `${file}#${chosen.name}`, "xlsx", opts), notes };

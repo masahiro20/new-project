@@ -4,7 +4,7 @@
 import { test, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { createHmac, generateKeyPairSync, sign, type KeyObject } from "node:crypto";
+import { createHmac, createPublicKey, generateKeyPairSync, sign, type KeyObject } from "node:crypto";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
@@ -69,9 +69,14 @@ const reason = (s: LicenseStatus) => (s.state === "invalid" ? s.reason : s.state
 test("preview switch is on, nothing secret is embedded, and the trust anchors are sane", () => {
   assert.equal(PREVIEW, true);
   assert.equal(FREE_ROWS_PER_RUN, 20_000);
-  for (const k of Object.values(LICENSE_PUBLIC_KEYS)) {
+  for (const [kid, k] of Object.entries(LICENSE_PUBLIC_KEYS)) {
     assert.doesNotMatch(k.key, /PRIVATE/);
     assert.match(k.from, /^\d{4}-\d{2}-\d{2}$/);
+    assert.ok(!Number.isNaN(Date.parse(`${k.from}T00:00:00Z`)), `${kid}: from`);
+    if (k.until !== undefined) assert.ok(/^\d{4}-\d{2}-\d{2}$/.test(k.until) && !Number.isNaN(Date.parse(`${k.until}T00:00:00Z`)), `${kid}: until`);
+    // the embedded entry is what its kid says: an ed25519 public key whose fingerprint is the kid
+    assert.equal(createPublicKey(k.key).asymmetricKeyType, "ed25519", kid);
+    assert.equal(keyId(k.key), kid, "kid must be the fingerprint of the embedded key (copy/paste or tampering)");
   }
   assert.equal(DISABLED_KIDS.size >= 0 && REVOKED_LIDS.size >= 0, true);
   assert.ok(BUILD_FLOOR > sec(Date.UTC(2026, 0, 1)) && BUILD_FLOOR * 1000 <= Date.now(), "BUILD_FLOOR is a past release date");
@@ -166,6 +171,11 @@ test("claims: validity cap, the signing key's period, revoked lid, disabled kid"
   assert.equal(reason(verifyLicenseKey(issue())), "signed outside the key's validity period", "iat before the key's first day");
   setHooks({ publicKeys: { [A.kid]: { key: A.pem, from: "2026-01-01", until: "2026-06-30" } } });
   assert.equal(reason(verifyLicenseKey(issue())), "signed outside the key's validity period", "iat after the key was retired");
+  // a typo in an anchor date must not switch the period check off (NaN compares false)
+  for (const bad of [{ from: "2026-1-1" }, { from: "2026/01/01" }, { from: "2026-01-01", until: "2026-6-30" }]) {
+    setHooks({ publicKeys: { [A.kid]: { key: A.pem, ...bad } } });
+    assert.equal(reason(verifyLicenseKey(issue())), "bad trust anchor", JSON.stringify(bad));
+  }
   setHooks({ revokedLids: new Set(["AAAAAAAAAAAAAAAAAAAAAA"]) });
   assert.equal(reason(verifyLicenseKey(issue())), "revoked");
   assert.equal(verifyLicenseKey(issue({ lid: "CCCCCCCCCCCCCCCCCCCCCC" })).state, "valid");
