@@ -40,7 +40,7 @@ One post per place. No cross-posting on the same day. Reply to every question.
 
 ## 1. Show HN
 
-**Title** (73 chars, limit 80)
+**Title** (76 chars, limit 80)
 ```
 Show HN: Model Switch Calculator – price your LLM usage on every other model
 ```
