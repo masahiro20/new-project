@@ -16,6 +16,8 @@ vi.mock("@/lib/guard/demo", async (orig) => {
 
 import { upsertEntitlement } from "@/lib/entitlements";
 import { cronBatchSize, MAX_ATTEMPTS, resetCronMemory, runCronSlice } from "@/lib/guard/cron";
+import { CHECK_INTERVAL_TIERS, intervalFor, isDue, nextCheckHour, slotOf } from "@/lib/guard/schedule";
+import { dashboardView } from "@/lib/guard/views";
 import { CONN_LOCK_SECONDS } from "@/lib/guard/service";
 import { addConnection, getLog, MAX_CONNECTIONS } from "@/lib/guard/store";
 import { createMemoryKV, type KV } from "@/lib/redis";
@@ -82,7 +84,7 @@ describe("cron slices (Cloudflare: * * * * * + CRON_BATCH_SIZE)", () => {
       now = HOUR + minute * 60_000 + 1000;
       const ops0 = stats.ops;
       const calls0 = providerCalls.n;
-      const r = await runCronSlice(kv, { now: new Date(now), batch: 2 });
+      const r = await runCronSlice(kv, { now: new Date(now), batch: 2, interval: 1 });
       runs++;
       expect(r.errors).toBe(0);
       checked += r.checked;
@@ -96,7 +98,7 @@ describe("cron slices (Cloudflare: * * * * * + CRON_BATCH_SIZE)", () => {
     for (const id of ids) expect([...stats.stateWrites].filter(([k]) => k.endsWith(id)).map(([, n]) => n)).toEqual([1]);
     expect(notices).toBe(100); // one 80% alert per connection
     // Later runs in the same hour have nothing left to do.
-    expect((await runCronSlice(kv, { now: new Date(now + 60_000), batch: 2 })).checked).toBe(0);
+    expect((await runCronSlice(kv, { now: new Date(now + 60_000), batch: 2, interval: 1 })).checked).toBe(0);
   });
 
   it("overlapping runs never check the same connection twice in an hour", async () => {
@@ -105,7 +107,7 @@ describe("cron slices (Cloudflare: * * * * * + CRON_BATCH_SIZE)", () => {
     await seed(kv, 30);
     for (let minute = 0; minute < 10; minute++) {
       now = HOUR + minute * 60_000;
-      await Promise.all([1, 2, 3, 4].map(() => runCronSlice(kv, { now: new Date(now), batch: 2 })));
+      await Promise.all([1, 2, 3, 4].map(() => runCronSlice(kv, { now: new Date(now), batch: 2, interval: 1 })));
     }
     expect(stats.stateWrites.size).toBe(30);
     expect([...stats.stateWrites.values()].every((n) => n === 1)).toBe(true);
@@ -174,5 +176,83 @@ describe("cron slices (Cloudflare: * * * * * + CRON_BATCH_SIZE)", () => {
     await kv.del("budget-guard:bg:allconns"); // data written before the index existed
     const r = await runCronSlice(kv, { now: new Date(now) }); // Vercel: no batch limit
     expect(r).toMatchObject({ initialized: true, checked: 2, skipped: 1, remaining: 0 });
+  });
+
+});
+
+/** Play `hours` hours minute by minute; returns, per connection id, the hour indexes it was checked in. */
+async function playHours(kv: KV, startHour: number, hours: number, stats: ReturnType<typeof counted>["stats"]) {
+  const checkedIn = new Map<string, number[]>();
+  for (let h = 0; h < hours; h++) {
+    resetCronMemory();
+    const before = new Map(stats.stateWrites);
+    for (let minute = 0; minute < 60; minute++) {
+      const r = await runCronSlice(kv, { now: new Date(startHour + h * 3600_000 + minute * 60_000 + 1000), batch: 2 });
+      if (!r.initialized && r.remaining === 0 && r.checked === 0) break;
+    }
+    for (const [k, n] of stats.stateWrites) {
+      const delta = n - (before.get(k) ?? 0);
+      if (delta === 0) continue;
+      expect(delta).toBe(1); // never twice in one hour
+      const id = k.slice(k.lastIndexOf(":") + 1);
+      checkedIn.set(id, [...(checkedIn.get(id) ?? []), h]);
+    }
+  }
+  return checkedIn;
+}
+
+describe("check interval by number of connections (lib/guard/schedule.ts)", () => {
+  it("tiers: ≤50 every hour, ≤95 every 2h, ≤130 3h, ≤160 4h, ≤210 6h, ≤250 8h, more 12h", () => {
+    expect([1, 50, 51, 95, 96, 130, 131, 160, 161, 210, 211, 250, 251, 1000].map((n) => intervalFor(n))).toEqual([1, 1, 2, 2, 3, 3, 4, 4, 6, 6, 8, 8, 12, 12]);
+    expect(CHECK_INTERVAL_TIERS.at(-1)?.upTo).toBe(Infinity);
+  });
+
+  it("slots spread connections evenly and nextCheckHour lands on the slot", () => {
+    const ids = Array.from({ length: 300 }, (_, i) => `conn_${i.toString(16).padStart(16, "0")}`);
+    const perSlot = [0, 0, 0];
+    for (const id of ids) perSlot[slotOf(id, 3)]++;
+    for (const n of perSlot) expect(n).toBeGreaterThan(70); // ~100 each
+    const now = new Date(HOUR + 5 * 60_000);
+    for (const id of ids.slice(0, 20)) {
+      const next = nextCheckHour(id, now, 3);
+      expect(next.getTime()).toBeGreaterThan(now.getTime());
+      expect(next.getTime() - HOUR).toBeLessThanOrEqual(3 * 3600_000);
+      expect(isDue(id, next, 3)).toBe(true);
+    }
+  });
+
+  it("100 connections (every 3h): each is checked exactly once in every 3-hour window", async () => {
+    let now = HOUR;
+    const { kv, stats } = counted(createMemoryKV(() => now));
+    const ids = await seed(kv, 100);
+    const checkedIn = await playHours(kv, HOUR, 12, stats);
+    for (const id of ids) {
+      const hours = checkedIn.get(id) ?? [];
+      expect(hours.length).toBe(4); // 12 hours / 3
+      for (let i = 1; i < hours.length; i++) expect(hours[i] - hours[i - 1]).toBe(3);
+    }
+    now = HOUR + 12 * 3600_000;
+    const view = await dashboardView(kv, { id: "cs_test_acct0", email: "a0@example.com", entitlement: {} as never });
+    expect(view.checkIntervalHours).toBe(3); // shown on the dashboard
+    expect(view.connections[0].snapshot?.nextCheckAt).toBeTruthy();
+  });
+
+  it("growing from 40 to 70 connections switches 1h → 2h; no gap longer than the new interval", async () => {
+    const now = HOUR;
+    const { kv, stats } = counted(createMemoryKV(() => now));
+    const first = await seed(kv, 40);
+    const before = await playHours(kv, HOUR, 2, stats);
+    for (const id of first) expect(before.get(id)).toEqual([0, 1]);
+    // 30 more connections on new accounts.
+    for (let a = 100; a < 110; a++) {
+      const { entitlement } = await upsertEntitlement(kv, { id: `cs_test_more${a}`, email: `m${a}@example.com`, plan: "monthly", source: "stripe" });
+      for (let c = 0; c < 3; c++) await addConnection(kv, entitlement.id, { label: `M${c}`, target, budgetUsd: 100, token: "demo" });
+    }
+    const after = await playHours(kv, HOUR + 2 * 3600_000, 6, stats);
+    for (const id of first) {
+      const hours = [1, ...(after.get(id) ?? []).map((h) => h + 2)];
+      for (let i = 1; i < hours.length; i++) expect(hours[i] - hours[i - 1]).toBeLessThanOrEqual(2);
+      expect(hours.length - 1).toBe(3); // 6 hours / 2
+    }
   });
 });

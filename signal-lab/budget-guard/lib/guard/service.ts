@@ -24,12 +24,12 @@ import {
   listConnections,
   mergeLog,
   ownerOf,
+  parseActivity,
   saveSettings,
   storeKeys,
   updateConnection,
   withConnLock,
   type AccountSettings,
-  type LogEntry,
   type Snapshot,
   type StoredConnection,
 } from "./store";
@@ -177,12 +177,14 @@ export type LockedCheck =
   | { status: "checked"; notices: Notice[] };
 
 const parse = <T>(raw: string | null): T | null => (raw === null ? null : (JSON.parse(raw) as T));
+const pickSchedule = (s: Snapshot | undefined) => (s?.intervalHours ? { intervalHours: s.intervalHours, nextCheckAt: s.nextCheckAt } : {});
 
 /**
  * One connection, end to end, under its lock: fetch spend, evaluate against this
  * month's state (notices / stop once a month), save, log, notify. Upstash commands:
- * SET NX (lock) + one MGET (entitlement, connections, state, log, settings) + one MSET
- * (state, snapshot, log) + DEL (unlock) = 4, with or without notices.
+ * SET NX (lock) + one MGET (entitlement, connections, state, activity, settings) + one
+ * MSET (state, activity = snapshot + log) + DEL (unlock) = 4 — or 1 + 5 + 2 + 1 = 9 if
+ * Upstash counts every key of MGET/MSET (worst case), with or without notices.
  */
 export async function checkConnectionLocked(
   kv: KV,
@@ -196,14 +198,16 @@ export async function checkConnectionLocked(
     notifyFetch?: FetchLike;
     /** Cron: skip if this connection was already checked in this UTC hour (and record it). */
     hour?: string;
+    /** Cron: the current check interval and next due time, stored in the snapshot for the dashboard. */
+    schedule?: { intervalHours: number; nextCheckAt: string };
   } = {},
 ): Promise<LockedCheck> {
   const r = await withConnLock(kv, connId, CONN_LOCK_SECONDS, async (): Promise<LockedCheck> => {
-    const [entRaw, connsRaw, stateRaw, logRaw, settingsRaw] = await kv.mget(
+    const [entRaw, connsRaw, stateRaw, activityRaw, settingsRaw] = await kv.mget(
       entitlementKey(acct),
       storeKeys.conns(acct),
       storeKeys.state(acct, connId),
-      storeKeys.log(acct),
+      storeKeys.activity(acct),
       storeKeys.settings(acct),
     );
     let email = opts.email ?? "";
@@ -220,6 +224,8 @@ export async function checkConnectionLocked(
 
     const notices: Notice[] = [];
     const writes: Record<string, string> = {};
+    const activity = parseActivity(activityRaw);
+    let activityChanged = false;
     let token: string | undefined;
     let fetchImpl: FetchLike | undefined;
     try {
@@ -231,20 +237,25 @@ export async function checkConnectionLocked(
     if (token !== undefined && fetchImpl) {
       const result = await checkConnection(conn, prevState, { token, fetchImpl, now, forceLimit: opts.forceLimit });
       writes[storeKeys.state(acct, conn.id)] = JSON.stringify(opts.hour ? { ...result.state, lastHour: opts.hour } : result.state);
-      writes[storeKeys.snap(acct, conn.id)] = JSON.stringify({
+      activity.snaps[conn.id] = {
         spendUsd: result.spendUsd ?? 0,
         ratio: result.evaluation?.ratio ?? 0,
         level: result.evaluation?.level ?? "ok",
         checkedAt: now.toISOString(),
         error: result.notices.find((n) => n.kind === "error")?.message,
-      } satisfies Snapshot);
+        // Keep the cron's schedule on manual checks too.
+        ...(opts.schedule ?? pickSchedule(activity.snaps[conn.id])),
+      } satisfies Snapshot;
+      activityChanged = true;
       notices.push(...result.notices);
     } else if (opts.hour) {
       writes[storeKeys.state(acct, conn.id)] = JSON.stringify({ ...(prevState ?? { period: periodKey(now) }), lastHour: opts.hour });
     }
     if (notices.length) {
-      writes[storeKeys.log(acct)] = JSON.stringify(mergeLog(parse<LogEntry[]>(logRaw) ?? [], notices.map((n) => ({ ...n, at: now.toISOString() }))));
+      activity.log = mergeLog(activity.log, notices.map((n) => ({ ...n, at: now.toISOString() })));
+      activityChanged = true;
     }
+    if (activityChanged) writes[storeKeys.activity(acct)] = JSON.stringify(activity);
     await kv.mset(writes);
     await notify(kv, acct, email, notices, opts.notifyFetch, parse<AccountSettings>(settingsRaw) ?? {});
     return { status: "checked", notices };

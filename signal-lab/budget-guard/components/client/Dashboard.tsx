@@ -6,6 +6,7 @@ import { Flash } from "@/app/(product)/app/messages";
 import { AddConnectionForm } from "@/components/guard/AddConnectionForm";
 import { SlackForm } from "@/components/guard/SlackForm";
 import { PROVIDER_INFO } from "@/lib/guard/info";
+import { intervalLabel } from "@/lib/guard/schedule";
 import type { DashboardView } from "@/lib/guard/views";
 import { AppBar } from "./AppBar";
 import { api, toSignIn } from "./http";
@@ -46,7 +47,10 @@ export function Dashboard({ labels, allowDemo }: { labels: Labels; allowDemo: bo
       <AppBar me={view.me} labels={labels} />
       <section>
         <h1>Budget Guard</h1>
-        <p className="lead">Checked every hour. Email at 80% of budget; the stop action runs at 100% when armed. Alerts go to {view.me.email}.</p>
+        <p className="lead">
+          <span data-testid="check-interval">{view.checkIntervalHours ? `Checked ${intervalLabel(view.checkIntervalHours)}` : "Checked automatically"}</span>
+          {view.checkIntervalHours && view.checkIntervalHours > 1 && " (the interval grows with the number of connections we monitor)"}. Email at 80% of budget; the stop action runs at 100% when armed. Alerts go to {view.me.email}.
+        </p>
         <Flash msg={msg} />
 
         <div className="grid" data-testid="connections">
@@ -62,6 +66,7 @@ export function Dashboard({ labels, allowDemo }: { labels: Labels; allowDemo: bo
                   <span style={{ width: `${Math.min(100, pct)}%` }} />
                 </div>
                 <p>{s ? `${pct}% · checked ${s.checkedAt.slice(0, 16).replace("T", " ")} UTC` : "Not checked yet"}</p>
+                {s?.nextCheckAt && <p className="hint">Next automatic check: {s.nextCheckAt.slice(0, 16).replace("T", " ")} UTC (or use Check now)</p>}
                 {s?.error && <p className="msg err">{s.error}</p>}
                 <p><span className={`badge mode-${c.stopMode}`}>{MODE_LABEL[c.stopMode]}</span></p>
                 <div className="actions">

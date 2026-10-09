@@ -31,6 +31,10 @@ export interface Snapshot {
   level: "ok" | "warn" | "limit";
   checkedAt: string;
   error?: string;
+  /** Check interval (hours) when the cron took this snapshot — shown on the dashboard. */
+  intervalHours?: number;
+  /** When the cron will check next (ISO). */
+  nextCheckAt?: string;
 }
 
 export interface LogEntry extends Notice {
@@ -41,8 +45,8 @@ const k = {
   accounts: () => key("bg", "accounts"),
   conns: (acct: string) => key("bg", acct, "conns"),
   state: (acct: string, id: string) => key("bg", acct, "state", id),
-  snap: (acct: string, id: string) => key("bg", acct, "snap", id),
-  log: (acct: string) => key("bg", acct, "log"),
+  /** Activity log + latest snapshot of every connection, in ONE key per account: the dashboard reads it with one command. */
+  activity: (acct: string) => key("bg", acct, "activity"),
   owner: (id: string) => key("bg", "owner", id),
   settings: (acct: string) => key("bg", acct, "settings"),
   hook: (id: string, event: string) => key("bg", "hook", id, event),
@@ -55,10 +59,20 @@ const k = {
 export const storeKeys = {
   conns: k.conns,
   state: k.state,
-  snap: k.snap,
-  log: k.log,
+  activity: k.activity,
   settings: k.settings,
 };
+
+export interface Activity {
+  log: LogEntry[];
+  snaps: Record<string, Snapshot>;
+}
+export function parseActivity(raw: string | null | undefined): Activity {
+  const a = raw ? (JSON.parse(raw) as Partial<Activity>) : {};
+  return { log: a.log ?? [], snaps: a.snaps ?? {} };
+}
+export const getActivity = async (kv: KV, acct: string) => parseActivity(await kv.get(k.activity(acct)));
+const saveActivity = (kv: KV, acct: string, a: Activity) => setJSON(kv, k.activity(acct), a);
 
 /** Newest first, capped — same order appendLog writes. */
 export function mergeLog(log: LogEntry[], entries: LogEntry[]): LogEntry[] {
@@ -147,7 +161,12 @@ export async function updateConnection(
 export async function removeConnection(kv: KV, acct: string, id: string): Promise<void> {
   const conns = await listConnections(kv, acct);
   await setJSON(kv, k.conns(acct), conns.filter((c) => c.id !== id));
-  await kv.del(k.state(acct, id), k.snap(acct, id), k.owner(id));
+  await kv.del(k.state(acct, id), k.owner(id));
+  const activity = await getActivity(kv, acct);
+  if (activity.snaps[id]) {
+    delete activity.snaps[id];
+    await saveActivity(kv, acct, activity);
+  }
   await kv.srem(k.allConns(), connRef(acct, id));
 }
 
@@ -165,15 +184,20 @@ export const claimHookEvent = (kv: KV, id: string, event: string) => kv.set(k.ho
 export const listAccounts = (kv: KV) => kv.smembers(k.accounts());
 export const getState = (kv: KV, acct: string, id: string) => getJSON<GuardState>(kv, k.state(acct, id));
 export const saveState = (kv: KV, acct: string, id: string, s: GuardState) => setJSON(kv, k.state(acct, id), s);
-export const getSnapshot = (kv: KV, acct: string, id: string) => getJSON<Snapshot>(kv, k.snap(acct, id));
-export const saveSnapshot = (kv: KV, acct: string, id: string, s: Snapshot) => setJSON(kv, k.snap(acct, id), s);
+export const getSnapshot = async (kv: KV, acct: string, id: string): Promise<Snapshot | null> => (await getActivity(kv, acct)).snaps[id] ?? null;
+export async function saveSnapshot(kv: KV, acct: string, id: string, s: Snapshot): Promise<void> {
+  const activity = await getActivity(kv, acct);
+  activity.snaps[id] = s;
+  await saveActivity(kv, acct, activity);
+}
 
 export async function appendLog(kv: KV, acct: string, entries: LogEntry[]): Promise<void> {
   if (entries.length === 0) return;
-  const log = (await getJSON<LogEntry[]>(kv, k.log(acct))) ?? [];
-  await setJSON(kv, k.log(acct), mergeLog(log, entries));
+  const activity = await getActivity(kv, acct);
+  activity.log = mergeLog(activity.log, entries);
+  await saveActivity(kv, acct, activity);
 }
 
 export async function getLog(kv: KV, acct: string): Promise<LogEntry[]> {
-  return (await getJSON<LogEntry[]>(kv, k.log(acct))) ?? [];
+  return (await getActivity(kv, acct)).log;
 }

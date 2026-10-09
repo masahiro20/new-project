@@ -1,13 +1,17 @@
 import { key, type KV } from "../redis";
 import { checkConnectionLocked } from "./service";
+import { intervalFor, isDue, nextCheckHour } from "./schedule";
 import { listConnRefs, parseConnRef, rebuildConnIndex } from "./store";
 
 // Hourly check, split into small slices so one invocation stays inside the Workers
 // Free limits (10 ms CPU, 50 subrequests) — and inside Upstash's free 500k commands a
 // month — however many connections there are.
 //
-// Every UTC hour has its own work list `bg:cron:{hour}:pending`: a "#" sentinel plus
-// every connection (`acct|connId`) copied from the index `bg:allconns`.
+// Every UTC hour has its own work list `bg:cron:{hour}:pending`: a "#<interval>" sentinel
+// plus the connections (`acct|connId`) due in this hour. With many connections each one
+// is checked every `interval` hours (lib/guard/schedule.ts: tiers by connection count, to
+// stay inside Upstash's free tier); a connection is due when its hash slot matches the
+// hour, so the load is spread evenly.
 //   - Hour start: the first run that finds the list empty wins `SET init NX` and fills it
 //     (SMEMBERS index + SADD + EXPIRE). Losers do nothing this minute.
 //   - Each run: SMEMBERS the list, then for at most `batch` items:
@@ -18,7 +22,7 @@ import { listConnRefs, parseConnRef, rebuildConnIndex } from "./store";
 //     A run that dies mid-item leaves the item in the list and its lock to expire
 //     (CONN_LOCK_SECONDS); a later run of the same hour picks it up. An item that keeps
 //     throwing is dropped for this hour after MAX_ATTEMPTS (next hour starts fresh).
-//   - When only "#" is left the hour is done; the isolate remembers that, so the rest of
+//   - When only the sentinel is left the hour is done; the isolate remembers that, so the rest of
 //     the hour's runs cost no Upstash command at all (a new isolate pays one SMEMBERS).
 // Notices and stops stay once a month: they are decided from the per-connection state
 // (evaluate.ts), which only the lock holder reads and writes.
@@ -37,7 +41,7 @@ export function cronBatchSize(env: Record<string, string | undefined> = process.
 export const MAX_ATTEMPTS = 3;
 
 const hourKey = (now: Date) => now.toISOString().slice(0, 13); // 2026-10-09T03
-const SENTINEL = "#";
+const SENTINEL_PREFIX = "#"; // "#2" = this hour's list was built with a 2-hour interval
 const keys = (hour: string) => ({
   init: key("bg", "cron", hour, "init"),
   pending: key("bg", "cron", hour, "pending"),
@@ -65,6 +69,8 @@ export type CronSliceResult = {
   errors: number;
   /** Upstash commands this run used. */
   commands: number;
+  /** Check interval (hours) of this hour's list. */
+  intervalHours: number;
 };
 
 function shuffle<T>(xs: T[]): T[] {
@@ -75,10 +81,13 @@ function shuffle<T>(xs: T[]): T[] {
   return xs;
 }
 
-/** Upstash commands one item can take (lock, MGET, MSET, unlock, SREM + error bookkeeping). */
+/** Requests one item can take (lock, MGET, MSET, unlock, SREM + error bookkeeping). */
 const KV_OPS_PER_ITEM = 7;
 
-export async function runCronSlice(rawKv: KV, opts: { now?: Date; batch?: number; maxKvOps?: number } = {}): Promise<CronSliceResult> {
+export async function runCronSlice(
+  rawKv: KV,
+  opts: { now?: Date; batch?: number; maxKvOps?: number; /** Tests: force the interval instead of the tier table. */ interval?: number } = {},
+): Promise<CronSliceResult> {
   // Count KV requests (each is one Upstash HTTP subrequest; Workers Free allows 50 per
   // run, and provider calls / mail need the rest): stop taking items near the budget.
   let kvOps = 0;
@@ -89,7 +98,7 @@ export async function runCronSlice(rawKv: KV, opts: { now?: Date; batch?: number
   const batch = Math.max(1, opts.batch ?? Infinity);
   const hour = hourKey(now);
   const k = keys(hour);
-  const result: CronSliceResult = { hour, initialized: false, checked: 0, skipped: 0, remaining: 0, notices: 0, errors: 0, commands: 0 };
+  const result: CronSliceResult = { hour, initialized: false, checked: 0, skipped: 0, remaining: 0, notices: 0, errors: 0, commands: 0, intervalHours: 1 };
   const done = () => ((result.commands = kvOps), result);
 
   if (finishedHour === hour) return done(); // 0 commands
@@ -100,12 +109,18 @@ export async function runCronSlice(rawKv: KV, opts: { now?: Date; batch?: number
     if (!(await kv.set(k.init, "1", { nx: true, ex: 120 }))) return done();
     let refs = await listConnRefs(kv);
     if (refs.length === 0 && (await rebuildConnIndex(kv)) > 0) refs = await listConnRefs(kv); // data from before the index
-    await kv.sadd(k.pending, SENTINEL, ...refs);
+    const interval = opts.interval ?? intervalFor(refs.length);
+    const due = refs.filter((ref) => isDue(parseConnRef(ref)?.id ?? ref, now, interval));
+    const sentinel = `${SENTINEL_PREFIX}${interval}`;
+    await kv.sadd(k.pending, sentinel, ...due);
     await kv.expire(k.pending, HOUR_TTL);
-    members = [SENTINEL, ...refs];
+    members = [sentinel, ...due];
     result.initialized = true;
   }
-  const pending = shuffle(members.filter((m) => m !== SENTINEL)); // shuffled: overlapping runs rarely contend
+  const sentinel = members.find((m) => m.startsWith(SENTINEL_PREFIX));
+  const interval = Math.max(1, Number(sentinel?.slice(1)) || 1);
+  result.intervalHours = interval;
+  const pending = shuffle(members.filter((m) => !m.startsWith(SENTINEL_PREFIX))); // shuffled: overlapping runs rarely contend
   if (pending.length === 0) {
     finishedHour = hour;
     return done();
@@ -118,7 +133,11 @@ export async function runCronSlice(rawKv: KV, opts: { now?: Date; batch?: number
     attempted++;
     const parsed = parseConnRef(ref);
     try {
-      const r = parsed ? await checkConnectionLocked(kv, parsed.acct, parsed.id, now, { requireEntitlement: true, hour }) : ({ status: "missing" } as const);
+      const r = parsed ? await checkConnectionLocked(kv, parsed.acct, parsed.id, now, {
+            requireEntitlement: true,
+            hour,
+            schedule: { intervalHours: interval, nextCheckAt: nextCheckHour(parsed.id, now, interval).toISOString() },
+          }) : ({ status: "missing" } as const);
       if (r.status === "busy") continue; // being checked elsewhere right now: stays in the list
       if (r.status === "checked") {
         result.checked++;

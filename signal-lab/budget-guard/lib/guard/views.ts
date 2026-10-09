@@ -4,7 +4,7 @@ import type { KV } from "../redis";
 import { siteUrl } from "../site";
 import { challengeSecret, planFor } from "./service";
 import { issueChallenge, type StopPlan } from "./stop";
-import { getSnapshot, MAX_CONNECTIONS, storeKeys, type AccountSettings, type LogEntry, type Snapshot, type StoredConnection } from "./store";
+import { getSnapshot, MAX_CONNECTIONS, parseActivity, storeKeys, type AccountSettings, type LogEntry, type Snapshot, type StoredConnection } from "./store";
 import type { ProviderId } from "./providers";
 import type { StopMode } from "./stop";
 
@@ -23,7 +23,15 @@ export type ConnView = {
   snapshot: Snapshot | null;
 };
 
-export type DashboardView = { me: Me; connections: ConnView[]; maxConnections: number; slackHint: string | null; log: LogEntry[] };
+export type DashboardView = {
+  me: Me;
+  connections: ConnView[];
+  maxConnections: number;
+  slackHint: string | null;
+  log: LogEntry[];
+  /** How often the cron checks right now (hours); null until the first scheduled check. */
+  checkIntervalHours: number | null;
+};
 
 export type ConnectionDetailView = {
   me: Me;
@@ -57,19 +65,22 @@ const connView = (c: StoredConnection, snapshot: Snapshot | null): ConnView => (
 
 const parse = <T>(raw: string | null | undefined): T | null => (raw == null ? null : (JSON.parse(raw) as T));
 
-/** Two Upstash commands (MGET connections/log/settings, MGET snapshots), whatever the number of connections. */
+/** One Upstash command (MGET connections, activity = log + snapshots, settings) — 3 if each key counts. */
 export async function dashboardView(kv: KV, account: Account): Promise<DashboardView> {
-  const [connsRaw, logRaw, settingsRaw] = await kv.mget(storeKeys.conns(account.id), storeKeys.log(account.id), storeKeys.settings(account.id));
+  const [connsRaw, activityRaw, settingsRaw] = await kv.mget(storeKeys.conns(account.id), storeKeys.activity(account.id), storeKeys.settings(account.id));
   const conns = parse<StoredConnection[]>(connsRaw) ?? [];
-  const log = parse<LogEntry[]>(logRaw) ?? [];
+  const { log, snaps: snapById } = parseActivity(activityRaw);
   const settings = parse<AccountSettings>(settingsRaw) ?? {};
-  const snaps = conns.length ? (await kv.mget(...conns.map((c) => storeKeys.snap(account.id, c.id)))).map((s) => parse<Snapshot>(s)) : [];
+  const snaps = conns.map((c) => snapById[c.id] ?? null);
+  // The interval the hourly cron used most recently (it depends on the total number of connections).
+  const latest = snaps.filter((s): s is Snapshot => !!s?.intervalHours).sort((a, b) => b.checkedAt.localeCompare(a.checkedAt))[0];
   return {
     me: meOf(account),
     connections: conns.map((c, i) => connView(c, snaps[i])),
     maxConnections: MAX_CONNECTIONS,
     slackHint: settings.slackHint ?? null,
     log,
+    checkIntervalHours: latest?.intervalHours ?? null,
   };
 }
 
