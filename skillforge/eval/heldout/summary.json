@@ -1,0 +1,338 @@
+{
+ "seed": 20261011,
+ "config": "--no-glossary",
+ "projects": {
+  "freeciv": {
+   "totals_by_rule_severity": {
+    "notation.katakana|warning": 28,
+    "placeholder.mismatch|error": 711,
+    "tag.mismatch|error": 10,
+    "untranslated.fuzzy|warning": 1972,
+    "untranslated.empty|warning": 1280,
+    "untranslated.duplicate|warning": 11
+   },
+   "warning_error_total": 4012,
+   "info_total": 0,
+   "labeled_warning_error": 60,
+   "sampled": true,
+   "warning_error": {
+    "TP": 58,
+    "FP": 2,
+    "unsure": 0,
+    "precision_excl_unsure": 0.9667,
+    "precision_unsure_as_FP": 0.9667
+   },
+   "warning_error_excl_untranslated": {
+    "TP": 11,
+    "FP": 2,
+    "unsure": 0,
+    "precision_excl_unsure": 0.8462,
+    "precision_unsure_as_FP": 0.8462
+   },
+   "per_rule": {
+    "notation.katakana": {
+     "TP": 1,
+     "FP": 0,
+     "unsure": 0,
+     "precision_excl_unsure": 1.0,
+     "precision_unsure_as_FP": 1.0
+    },
+    "placeholder.mismatch": {
+     "TP": 10,
+     "FP": 2,
+     "unsure": 0,
+     "precision_excl_unsure": 0.8333,
+     "precision_unsure_as_FP": 0.8333
+    },
+    "untranslated.empty": {
+     "TP": 20,
+     "FP": 0,
+     "unsure": 0,
+     "precision_excl_unsure": 1.0,
+     "precision_unsure_as_FP": 1.0
+    },
+    "untranslated.fuzzy": {
+     "TP": 27,
+     "FP": 0,
+     "unsure": 0,
+     "precision_excl_unsure": 1.0,
+     "precision_unsure_as_FP": 1.0
+    }
+   },
+   "info": {
+    "TP": 0,
+    "FP": 0,
+    "unsure": 0,
+    "precision_excl_unsure": null,
+    "precision_unsure_as_FP": null
+   }
+  },
+  "warzone2100": {
+   "totals_by_rule_severity": {
+    "notation.katakana|warning": 42,
+    "untranslated.empty|warning": 552,
+    "untranslated.copy|info": 1
+   },
+   "warning_error_total": 594,
+   "info_total": 1,
+   "labeled_warning_error": 60,
+   "sampled": true,
+   "warning_error": {
+    "TP": 58,
+    "FP": 0,
+    "unsure": 2,
+    "precision_excl_unsure": 1.0,
+    "precision_unsure_as_FP": 0.9667
+   },
+   "warning_error_excl_untranslated": {
+    "TP": 5,
+    "FP": 0,
+    "unsure": 2,
+    "precision_excl_unsure": 1.0,
+    "precision_unsure_as_FP": 0.7143
+   },
+   "per_rule": {
+    "notation.katakana": {
+     "TP": 5,
+     "FP": 0,
+     "unsure": 2,
+     "precision_excl_unsure": 1.0,
+     "precision_unsure_as_FP": 0.7143
+    },
+    "untranslated.empty": {
+     "TP": 53,
+     "FP": 0,
+     "unsure": 0,
+     "precision_excl_unsure": 1.0,
+     "precision_unsure_as_FP": 1.0
+    }
+   },
+   "info": {
+    "TP": 0,
+    "FP": 1,
+    "unsure": 0,
+    "precision_excl_unsure": 0.0,
+    "precision_unsure_as_FP": 0.0
+   }
+  },
+  "supertux": {
+   "totals_by_rule_severity": {
+    "notation.katakana|warning": 1,
+    "untranslated.empty|warning": 262
+   },
+   "warning_error_total": 263,
+   "info_total": 0,
+   "labeled_warning_error": 60,
+   "sampled": true,
+   "warning_error": {
+    "TP": 60,
+    "FP": 0,
+    "unsure": 0,
+    "precision_excl_unsure": 1.0,
+    "precision_unsure_as_FP": 1.0
+   },
+   "warning_error_excl_untranslated": {
+    "TP": 1,
+    "FP": 0,
+    "unsure": 0,
+    "precision_excl_unsure": 1.0,
+    "precision_unsure_as_FP": 1.0
+   },
+   "per_rule": {
+    "notation.katakana": {
+     "TP": 1,
+     "FP": 0,
+     "unsure": 0,
+     "precision_excl_unsure": 1.0,
+     "precision_unsure_as_FP": 1.0
+    },
+    "untranslated.empty": {
+     "TP": 59,
+     "FP": 0,
+     "unsure": 0,
+     "precision_excl_unsure": 1.0,
+     "precision_unsure_as_FP": 1.0
+    }
+   },
+   "info": {
+    "TP": 0,
+    "FP": 0,
+    "unsure": 0,
+    "precision_excl_unsure": null,
+    "precision_unsure_as_FP": null
+   }
+  },
+  "mastodon": {
+   "totals_by_rule_severity": {
+    "notation.katakana|warning": 15,
+    "placeholder.mismatch|error": 109,
+    "tag.mismatch|error": 29
+   },
+   "warning_error_total": 153,
+   "info_total": 0,
+   "labeled_warning_error": 60,
+   "sampled": true,
+   "warning_error": {
+    "TP": 9,
+    "FP": 51,
+    "unsure": 0,
+    "precision_excl_unsure": 0.15,
+    "precision_unsure_as_FP": 0.15
+   },
+   "warning_error_excl_untranslated": {
+    "TP": 9,
+    "FP": 51,
+    "unsure": 0,
+    "precision_excl_unsure": 0.15,
+    "precision_unsure_as_FP": 0.15
+   },
+   "per_rule": {
+    "notation.katakana": {
+     "TP": 9,
+     "FP": 0,
+     "unsure": 0,
+     "precision_excl_unsure": 1.0,
+     "precision_unsure_as_FP": 1.0
+    },
+    "placeholder.mismatch": {
+     "TP": 0,
+     "FP": 42,
+     "unsure": 0,
+     "precision_excl_unsure": 0.0,
+     "precision_unsure_as_FP": 0.0
+    },
+    "tag.mismatch": {
+     "TP": 0,
+     "FP": 9,
+     "unsure": 0,
+     "precision_excl_unsure": 0.0,
+     "precision_unsure_as_FP": 0.0
+    }
+   },
+   "info": {
+    "TP": 0,
+    "FP": 0,
+    "unsure": 0,
+    "precision_excl_unsure": null,
+    "precision_unsure_as_FP": null
+   }
+  },
+  "excalidraw": {
+   "totals_by_rule_severity": {
+    "notation.katakana|warning": 2,
+    "placeholder.mismatch|error": 3,
+    "tag.mismatch|error": 2
+   },
+   "warning_error_total": 7,
+   "info_total": 0,
+   "labeled_warning_error": 7,
+   "sampled": false,
+   "warning_error": {
+    "TP": 2,
+    "FP": 5,
+    "unsure": 0,
+    "precision_excl_unsure": 0.2857,
+    "precision_unsure_as_FP": 0.2857
+   },
+   "warning_error_excl_untranslated": {
+    "TP": 2,
+    "FP": 5,
+    "unsure": 0,
+    "precision_excl_unsure": 0.2857,
+    "precision_unsure_as_FP": 0.2857
+   },
+   "per_rule": {
+    "notation.katakana": {
+     "TP": 2,
+     "FP": 0,
+     "unsure": 0,
+     "precision_excl_unsure": 1.0,
+     "precision_unsure_as_FP": 1.0
+    },
+    "placeholder.mismatch": {
+     "TP": 0,
+     "FP": 3,
+     "unsure": 0,
+     "precision_excl_unsure": 0.0,
+     "precision_unsure_as_FP": 0.0
+    },
+    "tag.mismatch": {
+     "TP": 0,
+     "FP": 2,
+     "unsure": 0,
+     "precision_excl_unsure": 0.0,
+     "precision_unsure_as_FP": 0.0
+    }
+   },
+   "info": {
+    "TP": 0,
+    "FP": 0,
+    "unsure": 0,
+    "precision_excl_unsure": null,
+    "precision_unsure_as_FP": null
+   }
+  }
+ },
+ "pooled": {
+  "note": "unweighted pooling of labeled items (sample of 60 for projects with >60 findings)",
+  "warning_error": {
+   "TP": 187,
+   "FP": 58,
+   "unsure": 2,
+   "precision_excl_unsure": 0.7633,
+   "precision_unsure_as_FP": 0.7571
+  },
+  "warning_error_excl_untranslated": {
+   "TP": 28,
+   "FP": 58,
+   "unsure": 2,
+   "precision_excl_unsure": 0.3256,
+   "precision_unsure_as_FP": 0.3182
+  },
+  "per_rule": {
+   "notation.katakana": {
+    "TP": 18,
+    "FP": 0,
+    "unsure": 2,
+    "precision_excl_unsure": 1.0,
+    "precision_unsure_as_FP": 0.9
+   },
+   "placeholder.mismatch": {
+    "TP": 10,
+    "FP": 47,
+    "unsure": 0,
+    "precision_excl_unsure": 0.1754,
+    "precision_unsure_as_FP": 0.1754
+   },
+   "untranslated.empty": {
+    "TP": 132,
+    "FP": 0,
+    "unsure": 0,
+    "precision_excl_unsure": 1.0,
+    "precision_unsure_as_FP": 1.0
+   },
+   "untranslated.fuzzy": {
+    "TP": 27,
+    "FP": 0,
+    "unsure": 0,
+    "precision_excl_unsure": 1.0,
+    "precision_unsure_as_FP": 1.0
+   },
+   "tag.mismatch": {
+    "TP": 0,
+    "FP": 11,
+    "unsure": 0,
+    "precision_excl_unsure": 0.0,
+    "precision_unsure_as_FP": 0.0
+   }
+  },
+  "info": {
+   "TP": 0,
+   "FP": 1,
+   "unsure": 0,
+   "precision_excl_unsure": 0.0,
+   "precision_unsure_as_FP": 0.0
+  },
+  "warning_error_population_weighted_estimate_unsure_as_FP": 0.9426
+ }
+}

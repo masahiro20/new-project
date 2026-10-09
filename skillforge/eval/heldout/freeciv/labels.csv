@@ -1,0 +1,61 @@
+sample,finding,file_line,id_hash,rule,severity,side,verdict,note
+warning_error,F0015,ja.po:2814,84dc732491,notation.katakana,warning,target,TP,フィルター vs フィルタ drift in target
+warning_error,F0060,ja.po:2874,9d4a5b88c6,placeholder.mismatch,error,target,FP,positional %n$s reorder is valid gettext c-format
+warning_error,F0067,ja.po:3521,47d2d637b5,placeholder.mismatch,error,target,TP,fuzzy entry; stale unrelated target lacks %d
+warning_error,F0108,ja.po:12544,accb8a6e11,placeholder.mismatch,error,target,TP,fuzzy entry; target genuinely lacks placeholder
+warning_error,F0153,ja.po:13101,d020864284,placeholder.mismatch,error,target,TP,fuzzy entry; stale unrelated target lacks %s
+warning_error,F0164,ja.po:13194,c5146c9348,placeholder.mismatch,error,target,TP,fuzzy entry; target genuinely lacks placeholder (bullet hardcoded)
+warning_error,F0225,ja.po:13957,0a3c3b2019,placeholder.mismatch,error,target,TP,fuzzy entry; target genuinely lacks placeholder (bullet hardcoded)
+warning_error,F0281,ja.po:14778,90123004db,placeholder.mismatch,error,target,TP,fuzzy entry; target genuinely lacks placeholder (bullet hardcoded)
+warning_error,F0441,ja.po:23634,0defa1eadc,placeholder.mismatch,error,target,TP,fuzzy entry; target genuinely lacks placeholder
+warning_error,F0526,ja.po:46305,2c9b1763d3,placeholder.mismatch,error,target,TP,fuzzy entry; target genuinely lacks placeholder
+warning_error,F0576,ja.po:49677,ff6e5794a9,placeholder.mismatch,error,target,FP,positional %n$s reorder is valid gettext c-format
+warning_error,F0617,ja.po:51718,38a784fd59,placeholder.mismatch,error,target,TP,fuzzy entry; stale unrelated target lacks %s
+warning_error,F0666,ja.po:58362,1ac60fe980,placeholder.mismatch,error,target,TP,fuzzy entry; stale target lacks %s
+warning_error,F0799,ja.po:1212,435e2b5995,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0827,ja.po:1824,e7ca9b0092,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0890,ja.po:3695,fa893d87e1,untranslated.fuzzy,warning,target,TP,entry carries fuzzy flag
+warning_error,F0909,ja.po:5043,364cec3f29,untranslated.fuzzy,warning,target,TP,entry carries fuzzy flag
+warning_error,F0943,ja.po:5956,53880e6a25,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0992,ja.po:7728,affd9a870e,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F1055,ja.po:9180,9d914bfcf1,untranslated.fuzzy,warning,target,TP,entry carries fuzzy flag
+warning_error,F1143,ja.po:10369,854cf0f0cf,untranslated.fuzzy,warning,target,TP,entry carries fuzzy flag
+warning_error,F1199,ja.po:11302,6e5d841b2f,untranslated.fuzzy,warning,target,TP,entry carries fuzzy flag
+warning_error,F1247,ja.po:12444,42f375509f,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F1385,ja.po:13630,d6b1d8d215,untranslated.fuzzy,warning,target,TP,entry carries fuzzy flag
+warning_error,F1415,ja.po:13839,79b3f46ee9,untranslated.fuzzy,warning,target,TP,entry carries fuzzy flag
+warning_error,F1420,ja.po:13914,131229ad2b,untranslated.fuzzy,warning,target,TP,entry carries fuzzy flag
+warning_error,F1436,ja.po:14119,315c693ad6,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F1460,ja.po:14354,8910ed2838,untranslated.fuzzy,warning,target,TP,entry carries fuzzy flag
+warning_error,F1467,ja.po:14442,164fac083c,untranslated.fuzzy,warning,target,TP,entry carries fuzzy flag
+warning_error,F1519,ja.po:15227,9d09213869,untranslated.fuzzy,warning,target,TP,entry carries fuzzy flag
+warning_error,F1712,ja.po:18896,404d64f522,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F1847,ja.po:20684,e57016edce,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F1863,ja.po:20794,8b25d6d1ba,untranslated.fuzzy,warning,target,TP,entry carries fuzzy flag
+warning_error,F1934,ja.po:21301,5dcec862c1,untranslated.fuzzy,warning,target,TP,entry carries fuzzy flag
+warning_error,F1966,ja.po:21477,4145726049,untranslated.fuzzy,warning,target,TP,entry carries fuzzy flag
+warning_error,F2015,ja.po:21829,ec6d163c94,untranslated.fuzzy,warning,target,TP,entry carries fuzzy flag
+warning_error,F2031,ja.po:21946,2f2d210530,untranslated.fuzzy,warning,target,TP,entry carries fuzzy flag
+warning_error,F2085,ja.po:22319,7e367552b7,untranslated.fuzzy,warning,target,TP,entry carries fuzzy flag
+warning_error,F2174,ja.po:22917,51870992d2,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F2478,ja.po:31835,9966179a05,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F2499,ja.po:32524,9bd6c3999e,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F2699,ja.po:35584,8dffd8357d,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F2750,ja.po:35881,2ff25b4d26,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F2819,ja.po:36274,bebe7bf279,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F2824,ja.po:36298,927769aea7,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F2838,ja.po:36385,0f76ee8977,untranslated.fuzzy,warning,target,TP,entry carries fuzzy flag
+warning_error,F2890,ja.po:36688,3de36354b1,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F2918,ja.po:36875,dc2681e039,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F3004,ja.po:37336,16da87f34b,untranslated.fuzzy,warning,target,TP,entry carries fuzzy flag
+warning_error,F3121,ja.po:42516,1bef846c3d,untranslated.fuzzy,warning,target,TP,entry carries fuzzy flag
+warning_error,F3163,ja.po:42753,8c41922807,untranslated.fuzzy,warning,target,TP,entry carries fuzzy flag
+warning_error,F3328,ja.po:45606,609cda5a28,untranslated.fuzzy,warning,target,TP,entry carries fuzzy flag
+warning_error,F3480,ja.po:48063,078cbcaacc,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F3520,ja.po:49566,984cdb08a9,untranslated.fuzzy,warning,target,TP,entry carries fuzzy flag
+warning_error,F3545,ja.po:50454,dd1a35d501,untranslated.fuzzy,warning,target,TP,entry carries fuzzy flag
+warning_error,F3644,ja.po:51684,aeffba8338,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F3673,ja.po:51900,fa0a1dea08,untranslated.fuzzy,warning,target,TP,entry carries fuzzy flag
+warning_error,F3742,ja.po:54606,5785f21d3e,untranslated.fuzzy,warning,target,TP,entry carries fuzzy flag
+warning_error,F3887,ja.po:58325,04dc7738e1,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F3992,ja.po:59600,910cccf9f1,untranslated.fuzzy,warning,target,TP,entry carries fuzzy flag

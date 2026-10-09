@@ -1,0 +1,62 @@
+sample,finding,file_line,id_hash,rule,severity,side,verdict,note
+warning_error,F0004,ja_JP.po:2666,8a18b38ca4,notation.katakana,warning,target,TP,nakaguro drift コーナー・ウォール vs コーナーウォール
+warning_error,F0015,ja_JP.po:617,8580e5313d,notation.katakana,warning,target,unsure,nakaguro variant real but flagged line is 10x majority form
+warning_error,F0017,ja_JP.po:2039,44a2e695b0,notation.katakana,warning,target,unsure,nakaguro variant real but flagged line is 10x majority form
+warning_error,F0027,ja_JP.po:7366,e4ec05f729,notation.katakana,warning,target,TP,"nakaguro drift, 2 vs 2"
+warning_error,F0032,ja_JP.po:2995,0a223b152f,notation.katakana,warning,target,TP,プレーヤー vs プレイヤー (57x)
+warning_error,F0039,ja_JP.po:6360,18308691e1,notation.katakana,warning,target,TP,long-vowel drift デジネータ/デジネーター
+warning_error,F0041,ja_JP.po:7241,dd4332020b,notation.katakana,warning,target,TP,ワールウィンドウ wrong vs ワールウィンド
+warning_error,F0049,ja_JP.po:2957,05cc1a5b87,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0057,ja_JP.po:3004,7a6e831779,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0071,ja_JP.po:3063,2068754cbc,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0111,ja_JP.po:5062,4c37e01904,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0121,ja_JP.po:5626,cf7984eaf8,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0132,ja_JP.po:6165,9810efb561,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0144,ja_JP.po:7157,622f48684e,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0156,ja_JP.po:8119,4dc42c0b99,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0168,ja_JP.po:8201,e5de5db523,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0185,ja_JP.po:8414,da93e5ba5b,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0201,ja_JP.po:8526,04748f674c,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0208,ja_JP.po:8547,d6a467a24d,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0224,ja_JP.po:9572,3963d742db,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0226,ja_JP.po:9680,e3cf8da96c,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0228,ja_JP.po:9686,289931ec44,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0229,ja_JP.po:9689,af17e6a0bd,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0237,ja_JP.po:9869,e9e1ffb512,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0249,ja_JP.po:9938,3e127a1e81,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0252,ja_JP.po:9977,ff405d0d2a,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0265,ja_JP.po:10095,d02d574d1a,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0273,ja_JP.po:10204,bad69884ea,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0287,ja_JP.po:10570,11dc9e1952,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0292,ja_JP.po:10588,328e04a322,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0297,ja_JP.po:10615,c70999e921,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0301,ja_JP.po:10627,e4dae082e9,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0311,ja_JP.po:10657,c009d6b326,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0313,ja_JP.po:10665,68fdbcf9f7,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0329,ja_JP.po:10753,bb746319c6,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0348,ja_JP.po:10975,dd3be8e68f,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0351,ja_JP.po:10984,f85f450807,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0352,ja_JP.po:10987,8407be5d25,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0355,ja_JP.po:10996,3421dff021,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0356,ja_JP.po:10999,f8e116ec16,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0360,ja_JP.po:11011,3a7120bf8e,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0363,ja_JP.po:11020,c2547b80bd,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0366,ja_JP.po:11029,7f9762fd00,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0368,ja_JP.po:11035,26ca0b36b8,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0375,ja_JP.po:11059,a735efff46,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0381,ja_JP.po:11077,c39944cbf2,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0414,ja_JP.po:11251,82a56e15b1,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0429,ja_JP.po:11338,f11383eb04,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0463,ja_JP.po:11554,428819bf9e,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0467,ja_JP.po:11566,41dfc0a6c9,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0476,ja_JP.po:11608,fe224fe7af,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0485,ja_JP.po:11638,98f076129c,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0486,ja_JP.po:11642,a70aaaf24a,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0493,ja_JP.po:11665,90ce5340a6,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0505,ja_JP.po:11701,aa01d6a805,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0509,ja_JP.po:11714,e0d73143de,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0515,ja_JP.po:11740,69c418db2e,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0523,ja_JP.po:11765,cc459f63a7,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0545,ja_JP.po:11831,6a6be60cd1,untranslated.empty,warning,target,TP,msgstr empty
+warning_error,F0555,ja_JP.po:11861,660621830d,untranslated.empty,warning,target,TP,msgstr empty
+info,F0151,ja_JP.po:7575,8966b4a0ba,untranslated.copy,info,target,FP,command syntax; copying source is correct

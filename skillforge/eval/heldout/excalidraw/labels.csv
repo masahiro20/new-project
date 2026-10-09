@@ -1,0 +1,8 @@
+sample,finding,file_line,id_hash,rule,severity,side,verdict,note
+warning_error,F0001,ja-JP.json+en.json:485,04cb7a13d9,notation.katakana,warning,source,TP,ユーザ vs ユーザー (8x) in Japanese
+warning_error,F0002,ja-JP.json+en.json:486,a72c42b645,notation.katakana,warning,source,TP,ユーザ vs ユーザー (8x) in Japanese
+warning_error,F0003,ja-JP.json+en.json:395,00daa967ad,placeholder.mismatch,error,target,FP,ja key missing; misreported as en placeholder/tag error
+warning_error,F0004,ja-JP.json+en.json:406,42c04c5ad9,placeholder.mismatch,error,target,FP,ja key missing; misreported as en placeholder/tag error
+warning_error,F0005,ja-JP.json+en.json:671,2cdcd97c61,placeholder.mismatch,error,target,FP,ja key missing; misreported as en placeholder/tag error
+warning_error,F0006,ja-JP.json+en.json:655,b19a286f31,tag.mismatch,error,target,FP,ja key missing; misreported as en placeholder/tag error
+warning_error,F0007,ja-JP.json+en.json:668,03d2c1417c,tag.mismatch,error,target,FP,ja key missing; misreported as en placeholder/tag error

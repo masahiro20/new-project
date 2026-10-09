@@ -1,0 +1,61 @@
+sample,finding,file_line,id_hash,rule,severity,side,verdict,note
+warning_error,F0001,ja.yml+en.yml:1163,54a1ef8299,notation.katakana,warning,source,TP,real katakana variant in Japanese text
+warning_error,F0004,ja.yml+en.yml:1430,2de10c2fc8,notation.katakana,warning,source,TP,real katakana variant in Japanese text
+warning_error,F0005,ja.yml+en.yml:498,5e1451cd5e,notation.katakana,warning,source,TP,real katakana variant in Japanese text
+warning_error,F0007,ja.yml+en.yml:1980,8ce57bb83e,notation.katakana,warning,source,TP,real katakana variant in Japanese text
+warning_error,F0009,ja.yml+en.yml:137,bdbe2737f4,notation.katakana,warning,source,TP,real katakana variant in Japanese text
+warning_error,F0010,ja.yml+en.yml:210,f0a9a91d42,notation.katakana,warning,source,TP,real katakana variant in Japanese text
+warning_error,F0011,ja.yml+en.yml:214,e768a6a376,notation.katakana,warning,source,TP,real katakana variant in Japanese text
+warning_error,F0014,ja.yml+en.yml:995,d021be11f0,notation.katakana,warning,source,TP,real katakana variant in Japanese text
+warning_error,F0015,ja.yml+en.yml:1982,f927a3e808,notation.katakana,warning,source,TP,real katakana variant in Japanese text
+warning_error,F0016,ja.yml+en.yml:76,47437557bc,placeholder.mismatch,error,target,FP,ja key missing; misreported as en placeholder/tag error
+warning_error,F0018,ja.yml+en.yml:299,b2bbf03309,placeholder.mismatch,error,target,FP,ja key missing; misreported as en placeholder/tag error
+warning_error,F0021,ja.yml+en.yml:355,97fedeca56,placeholder.mismatch,error,target,FP,ja key missing; misreported as en placeholder/tag error
+warning_error,F0026,ja.yml+en.yml:447,550ae99bed,placeholder.mismatch,error,target,FP,ja has no .one plural; absent key is correct
+warning_error,F0029,ja.yml+en.yml:520,501407075b,placeholder.mismatch,error,target,FP,ja has no .one plural; absent key is correct
+warning_error,F0030,ja.yml+en.yml:548,4d9914413d,placeholder.mismatch,error,target,FP,ja key missing; misreported as en placeholder/tag error
+warning_error,F0033,ja.yml+en.yml:560,9064926a46,placeholder.mismatch,error,target,FP,ja key missing; misreported as en placeholder/tag error
+warning_error,F0037,ja.yml+en.yml:802,1a0023c6ab,placeholder.mismatch,error,target,FP,ja has no .one plural; absent key is correct
+warning_error,F0039,ja.yml+en.yml:893,9065c911f9,placeholder.mismatch,error,target,FP,ja has no .one plural; absent key is correct
+warning_error,F0041,ja.yml+en.yml:1069,5abf62c8b9,placeholder.mismatch,error,target,FP,ja key missing; misreported as en placeholder/tag error
+warning_error,F0044,ja.yml+en.yml:1118,6220fa2c73,placeholder.mismatch,error,target,FP,ja repeats %{instance}; count difference harmless
+warning_error,F0045,ja.yml+en.yml:1213,6dc60c52b8,placeholder.mismatch,error,target,FP,ja has no .one plural; absent key is correct
+warning_error,F0046,ja.yml+en.yml:1245,da0470915d,placeholder.mismatch,error,target,FP,ja has no .one plural; absent key is correct
+warning_error,F0047,ja.yml+en.yml:1246,85a015db5d,placeholder.mismatch,error,target,FP,ja key missing; misreported as en placeholder/tag error
+warning_error,F0050,ja.yml+en.yml:1351,cb972adcf1,placeholder.mismatch,error,target,FP,ja key missing; misreported as en placeholder/tag error
+warning_error,F0054,ja.yml+en.yml:1556,0c670185d8,placeholder.mismatch,error,target,FP,ja key missing; misreported as en placeholder/tag error
+warning_error,F0056,ja.yml+en.yml:1610,b325bcacb2,placeholder.mismatch,error,target,FP,ja key missing; misreported as en placeholder/tag error
+warning_error,F0058,ja.yml+en.yml:1615,60ed79ed96,placeholder.mismatch,error,target,FP,ja key missing; misreported as en placeholder/tag error
+warning_error,F0059,ja.yml+en.yml:1620,f494d56cf2,placeholder.mismatch,error,target,FP,ja key missing; misreported as en placeholder/tag error
+warning_error,F0060,ja.yml+en.yml:1621,51dd92811f,placeholder.mismatch,error,target,FP,ja key missing; misreported as en placeholder/tag error
+warning_error,F0061,ja.yml+en.yml:1623,213f8f747f,placeholder.mismatch,error,target,FP,ja key missing; misreported as en placeholder/tag error
+warning_error,F0062,ja.yml+en.yml:1624,f4d55b042b,placeholder.mismatch,error,target,FP,ja key missing; misreported as en placeholder/tag error
+warning_error,F0066,ja.yml+en.yml:1710,1004fccdaa,placeholder.mismatch,error,target,FP,ja has no .one plural; absent key is correct
+warning_error,F0070,ja.yml+en.yml:1752,1366219c78,placeholder.mismatch,error,target,FP,ja key missing; misreported as en placeholder/tag error
+warning_error,F0072,ja.yml+en.yml:1756,44cd4c7bec,placeholder.mismatch,error,target,FP,ja key missing; misreported as en placeholder/tag error
+warning_error,F0075,ja.yml+en.yml:1775,0ad479d6ba,placeholder.mismatch,error,target,FP,ja has no .one plural; absent key is correct
+warning_error,F0087,ja.yml+en.yml:1806,a0351b39f7,placeholder.mismatch,error,target,FP,ja has no .one plural; absent key is correct
+warning_error,F0089,ja.yml+en.yml:1865,31425cdee6,placeholder.mismatch,error,target,FP,ja key missing; misreported as en placeholder/tag error
+warning_error,F0092,ja.yml+en.yml:1934,c6c441be47,placeholder.mismatch,error,target,FP,ja key missing; misreported as en placeholder/tag error
+warning_error,F0093,ja.yml+en.yml:1936,85c120f421,placeholder.mismatch,error,target,FP,ja key missing; misreported as en placeholder/tag error
+warning_error,F0094,ja.yml+en.yml:1939,3581cbd849,placeholder.mismatch,error,target,FP,ja has no .one plural; absent key is correct
+warning_error,F0095,ja.yml+en.yml:1940,30fc7d2939,placeholder.mismatch,error,target,FP,ja key missing; misreported as en placeholder/tag error
+warning_error,F0099,ja.yml+en.yml:1948,4b6d844515,placeholder.mismatch,error,target,FP,ja key missing; misreported as en placeholder/tag error
+warning_error,F0101,ja.yml+en.yml:1952,3359f211bd,placeholder.mismatch,error,target,FP,ja key missing; misreported as en placeholder/tag error
+warning_error,F0107,ja.yml+en.yml:2102,c65319bdb6,placeholder.mismatch,error,target,FP,ja has no .one plural; absent key is correct
+warning_error,F0109,ja.yml+en.yml:2191,b95be86e11,placeholder.mismatch,error,target,FP,ja has no .one plural; absent key is correct
+warning_error,F0113,ja.yml+en.yml:2228,cbdbca6a60,placeholder.mismatch,error,target,FP,ja key missing; misreported as en placeholder/tag error
+warning_error,F0117,ja.yml+en.yml:2333,c6a207eadc,placeholder.mismatch,error,target,FP,ja key missing; misreported as en placeholder/tag error
+warning_error,F0118,ja.yml+en.yml:2335,41bcf4a380,placeholder.mismatch,error,target,FP,ja key missing; misreported as en placeholder/tag error
+warning_error,F0121,ja.yml+en.yml:2446,ad22507453,placeholder.mismatch,error,target,FP,ja has no .one plural; absent key is correct
+warning_error,F0123,ja.yml+en.yml:2498,e4fe89e0ac,placeholder.mismatch,error,target,FP,ja key missing; misreported as en placeholder/tag error
+warning_error,F0124,ja.yml+en.yml:2499,9be0d0c3db,placeholder.mismatch,error,target,FP,ja key missing; misreported as en placeholder/tag error
+warning_error,F0126,ja.yml+en.yml:444,4ab9dd8aaa,tag.mismatch,error,target,FP,ja has no .one plural; absent key is correct
+warning_error,F0127,ja.yml+en.yml:447,550ae99bed,tag.mismatch,error,target,FP,ja has no .one plural; absent key is correct
+warning_error,F0133,ja.yml+en.yml:1553,cb66218c37,tag.mismatch,error,target,FP,ja key missing; misreported as en placeholder/tag error
+warning_error,F0136,ja.yml+en.yml:1726,75de7ee24f,tag.mismatch,error,target,FP,ja has no .one plural; absent key is correct
+warning_error,F0137,ja.yml+en.yml:1729,2a2d81f1f7,tag.mismatch,error,target,FP,ja has no .one plural; absent key is correct
+warning_error,F0139,ja.yml+en.yml:1772,f3ef0b7e6d,tag.mismatch,error,target,FP,ja has no .one plural; absent key is correct
+warning_error,F0142,ja.yml+en.yml:1778,d672c38cc9,tag.mismatch,error,target,FP,ja has no .one plural; absent key is correct
+warning_error,F0143,ja.yml+en.yml:1781,94cb92f087,tag.mismatch,error,target,FP,ja has no .one plural; absent key is correct
+warning_error,F0152,ja.yml+en.yml:1806,a0351b39f7,tag.mismatch,error,target,FP,ja has no .one plural; absent key is correct
