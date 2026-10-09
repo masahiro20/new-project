@@ -16,3 +16,7 @@
 | `trailer-15s.gif` | 480×270, 12fps, 15.0 秒, 5.4 MB | 上の webm を GIF にしたもの（palettegen/paletteuse、128 色） | Screenshots 欄（GIF も使える）またはページ本文に貼る |
 
 撮影スクリプトは作業用 scratchpad（`media/vtime.js`, `capture*.js`）にあり、リポジトリには入れていない。
+
+## 宣伝素材（Otto 作）
+
+`../promo/` に itch のバナー（960×300）、X のヘッダー（1500×500）、縦型ショート用タイトルカード（1080×1920）があります。PNG を投稿に使ってください。
