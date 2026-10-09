@@ -24,9 +24,14 @@ export function demoPurchase(): boolean {
   return salesEnabled() && isDemoMode();
 }
 
-/** AI generation is possible (an Anthropic key is set). */
+/** Static export (GitHub Pages): no server, so nothing may call /api/*. */
+export function isStaticExport(): boolean {
+  return process.env.STATIC_EXPORT === "1";
+}
+
+/** AI generation is possible (an Anthropic key is set and there is a server to call). */
 export function aiEnabled(): boolean {
-  return Boolean(process.env.ANTHROPIC_API_KEY);
+  return !isStaticExport() && Boolean(process.env.ANTHROPIC_API_KEY);
 }
 
 export const COMING_SOON = {
