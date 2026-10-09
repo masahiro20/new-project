@@ -25,7 +25,7 @@
 | 決定記録 | [docs/decisions.md](docs/decisions.md) |
 | 次の商品の計画 | [docs/next-products.md](docs/next-products.md) |
 | 『帳簿の書 Vol.1』下書き（40p・日英） | [book/vol1-ja.pdf](book/vol1-ja.pdf)・[book/vol1-en.pdf](book/vol1-en.pdf)・[book/vol1-PLAN.md](book/vol1-PLAN.md) |
-| 第3話の脚本 | [scripts/ep03-script.md](scripts/ep03-script.md) |
+| 第3話・第4話の脚本 | [scripts/ep03-script.md](scripts/ep03-script.md)・[scripts/ep04-script.md](scripts/ep04-script.md) |
 | 市場分析・比較作品 | [docs/market-and-comps.md](docs/market-and-comps.md) |
 | レビューとショーランナー決定 | [docs/review.md](docs/review.md) |
 
