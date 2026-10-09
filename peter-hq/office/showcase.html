@@ -141,6 +141,17 @@ td a{color:var(--accent)}
 .box{border:1px solid var(--line);background:var(--panel);padding:12px 14px;display:grid;gap:6px;font-size:.88rem;border-radius:6px;min-width:0}
 .box .k{color:var(--muted);font-size:.75rem}.box .v{font-family:var(--mono);font-variant-numeric:tabular-nums}
 .err{color:var(--wait);font-size:.82rem}
+.prods{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr))}
+.prod{display:grid;gap:6px;padding:14px 16px;border:1px solid var(--line);border-left:4px solid var(--tc);border-radius:8px;background:var(--panel);min-width:0}
+.prod .pn{font-weight:700;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.prod .pn .live{font-size:.7rem;font-weight:700;padding:1px 7px;border-radius:4px;background:#1f6b48;color:#fff}
+.prod .pd{font-size:.84rem;color:#c9d1e6}
+.prod .pl{display:flex;gap:10px;flex-wrap:wrap;font-size:.84rem}
+.prod a{color:var(--accent)}
+.wins{display:grid;gap:8px}
+.win{padding:12px 14px;border:1px solid var(--line);border-radius:8px;background:var(--panel);display:grid;gap:4px;min-width:0}
+.win b{font-size:.95rem}
+.win .src2{font-family:var(--mono);font-size:.74rem;color:var(--muted);overflow-wrap:anywhere}
 @media (max-width:640px){
   .stage{aspect-ratio:4/5;min-height:0;max-height:76vh}
   .hud{max-width:calc(100% - 24px);top:50px}
@@ -185,6 +196,25 @@ td a{color:var(--accent)}
     <button class="btn pclose" type="button" id="presentClose">終了（Esc）</button>
     <div class="subt" aria-live="polite"><div class="eyebrow" id="subEyebrow"></div><div class="line" id="subLine"></div><div class="bar"><i id="subBar"></i></div></div>
   </div>
+
+  <section style="display:grid;gap:10px" aria-labelledby="prodH">
+    <div class="ihead"><h2 id="prodH">いま公開中のプロダクト</h2><span class="note">だれでも開いて試せます</span></div>
+    <div class="prods">
+      <div class="prod" style="--tc:#ffd166"><div class="pn">減算ゼロ<span class="live">公開中</span></div><div class="pd">障害福祉の事業所向けに、減算を防ぐ書類づくりを助けるサイト（無料診断・解説・書類サンプル）</div><div class="pl"><a href="https://masahiro20.github.io/new-project/" target="_blank" rel="noopener">サイトを開く ↗</a></div></div>
+      <div class="prod" style="--tc:#39c6f0"><div class="pn">AI料金の比較計算機<span class="live">公開中</span></div><div class="pd">AIの利用ログを貼ると、別のモデルに乗り換えたときの月額を比べられる（英語）</div><div class="pl"><a href="https://masahiro20.github.io/new-project/calc/" target="_blank" rel="noopener">計算機を開く ↗</a></div></div>
+      <div class="prod" style="--tc:#ff7a45"><div class="pn">Kotomark<span class="live">公開中</span></div><div class="pd">日英ゲーム台本の訳揺れ・キャラ名・敬称のぶれを見つける（日英の紹介ページとデモ）</div><div class="pl"><a href="https://masahiro20.github.io/new-project/kotomark/" target="_blank" rel="noopener">紹介ページ ↗</a><a href="https://masahiro20.github.io/new-project/kotomark/demo/" target="_blank" rel="noopener">デモ ↗</a></div></div>
+      <div class="prod" style="--tc:#ff5fa2"><div class="pn">Pitch<span class="live">公開中・無料ベータ</span></div><div class="pd">日本語の高低アクセントを、録音した声から判定する練習アプリ（英語）</div><div class="pl"><a href="https://masahiro20.github.io/new-project/pitch/" target="_blank" rel="noopener">紹介ページ ↗</a><a href="https://masahiro20.github.io/new-project/pitch/app/" target="_blank" rel="noopener">アプリ ↗</a></div></div>
+    </div>
+  </section>
+
+  <section style="display:grid;gap:10px" aria-labelledby="winH">
+    <div class="ihead"><h2 id="winH">最近の成果</h2><span class="note">数字はすべて、各チームのコミットに書かれたとおりです</span></div>
+    <div class="wins">
+      <div class="win"><b>減算ゼロ：セキュリティレビューの指摘に対応</b><div>別チーム（Atlas）のレビューで見つかった重大度「高」3件（「致命的」は0件）を含む指摘について、修正パッチ10件を適用しました。</div><div class="src2">出典：コミット eceabab（peter/p0-genzan-zero）・決定 d30</div></div>
+      <div class="win"><b>Budget Guard：セキュリティレビュー37件のうち26件を修正</b><div>同じく Atlas チームのレビューで出た37件の指摘のうち、26件を修正しました。</div><div class="src2">出典：コミット 78dcf0d（peter/p2-signal-lab）</div></div>
+      <div class="win"><b>Kotomark：配布ライセンスと価格を決定</b><div>有料化までのプレビュー期間は全員無料です。予定価格は、個人・オープンソース・3名以下のチームは無料、Studio プランは月49ドル（5席まで）、追加1席ごとに月9ドルです。</div><div class="src2">出典：コミット 92fbd24（peter/p1-skillforge）・決定 d29</div></div>
+    </div>
+  </section>
 
   <section style="display:grid;gap:10px">
     <div class="ihead"><h2>チームとAIメンバー</h2><span class="note">リーダーのAIが、役割ごとの補助AIを率いて開発します</span></div>
@@ -914,6 +944,7 @@ function buildSteps(){const out=[];const outerTeams=TEAMS.filter(t=>t.code!=="HQ
     let tx=tm.name+"："+tm.one+"。リーダーのAIと"+(tm.members.length-1)+"の補助AIのチームです。";
     tx+=s.state==="working"?"いま「"+s.recent+"」に取り組んでいます。":"直前に「"+s.recent+"」を終えました。";
     out.push({kind:"pod",code:tm.code,dur:Math.min(12,7+tx.length/40),eye:tm.code+" · "+tm.name.toUpperCase(),text:tx});}
+  out.push({kind:"wide",dur:9,eye:"公開中",text:"すでに4つを公開しています。減算ゼロ、AI料金の比較計算機、Kotomark、Pitch。どれもだれでも開いて試せます。"});
   out.push({kind:"wide",dur:9,eye:"24時間",text:"人が眠っている間も開発は止まりません。オーナーは、お金や公開が絡む判断を承認するだけです。"});
   out.push({kind:"core",code:"HQ",dur:6,eye:"デモ",text:"公開中の4つのホログラムは、実際に公開しているページの画面です。※ 稼働状況はデモ用のデータで動いています。"});
   return out;}
