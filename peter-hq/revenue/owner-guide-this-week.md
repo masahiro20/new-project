@@ -75,6 +75,14 @@
 - 0件なら「0件」とだけ。
 - 判断は本部がします。似た名前があって判断が難しい場合だけ、専門家に相談するかどうかをオーナーに聞きます。
 
+
+**本部の事前調査（2026-10-09、Web 検索のみ。商標の正式な検索ではありません）**
+- 「LEDGERBREAKER」「Ledger Breaker」「帳簿破り」と完全に同じ名前の作品・商品は、Web 検索では見つからなかった。
+- 似た名前のゲームが1つあった。**「Ledgerbound」**（保険の査定人が主人公のタクティカル RPG。2026年8月に Steam で発売、OmniMegaSuperCorp）。
+  - 名前は違い、内容も重ならない。ただ、同じゲーム・物語の分野で「Ledger」から始まるので、正式な検索ではこの名前の登録の有無も見てください。
+  - 出典：https://www.gamedeveloper.com/press-release/ledgerbound-the-fire-emblem-like-comedy-rpg-from-former-helldivers-2-leads-launches-on-august-11th-
+- 正式な確認は、上の J-PlatPat と USPTO の検索で行います。
+
 ### 3-2. 販売者の表示をどうするか決める（約15分）
 **何のため**：ネットで物を売るときは、法律（特定商取引法）で、販売者の名前・住所・電話番号などを表示する決まりがあります。
 

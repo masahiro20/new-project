@@ -40,6 +40,8 @@ Midas の投稿案：`peter-hq/x-drafts/p7-ledgerbreaker-vol0-sales.md`（発売
 | 6 | AI 使用の表示 | P7 チーム | 済。プロフィール、発売の投稿、商品ページ、PDF の奥付、サムネイルの右下に入れた | `x-posts.md` §1 |
 | 7 | ニルの仮面のデザインの見直し（独自性レビュー C-1。「強く推奨、遅くとも Vol.1 まで」） | P7 チーム | 済（`1ddda5b`「redesign Nil for originality」） | `review-originality-vol0.md` |
 
+**事前調査（Midas、Web 検索のみ）**：完全に同じ名前は見つからず。似た名前の「Ledgerbound」（2026年8月発売のタクティカル RPG）があるので、正式な検索で確認する（`owner-guide-this-week.md` 3-1）。
+
 **販売を止める条件**：1 で同じ区分に先行登録が見つかった場合。そのときは発売を延期し、P7 チームの `title-alternatives.md` から次の候補を選ぶ。
 
 ## 3. X のアカウントについて（オーナーに判断を頼む）
