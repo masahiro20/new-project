@@ -34,8 +34,19 @@ const results = [];
 const record = (id, check, ok, detail = '') => { results.push({ id, check, ok }); console.error(`${ok ? 'PASS' : 'FAIL'} ${id} ${check}${detail ? ' — ' + detail : ''}`); };
 
 // ---------------------------------------------------------------- server
-const server = spawn(process.execPath, [join(root, 'scripts/serve.mjs'), String(port), '--root', 'site'], { stdio: ['ignore', 'pipe', 'inherit'] });
-await new Promise((ok, ko) => { server.stdout.once('data', ok); server.once('exit', ko); });
+// Started and stopped around the offline phase: Chromium's context.setOffline() does not
+// cover requests a service worker makes, so "offline" here also means "server gone".
+let server;
+async function startServer() {
+  server = spawn(process.execPath, [join(root, 'scripts/serve.mjs'), String(port), '--root', 'site'], { stdio: ['ignore', 'pipe', 'inherit'] });
+  await new Promise((ok, ko) => { server.stdout.once('data', ok); server.once('exit', ko); });
+}
+async function stopServer() {
+  const done = new Promise((ok) => server.once('exit', ok));
+  server.kill();
+  await done;
+}
+await startServer();
 const base = `http://localhost:${port}/app/`;
 
 let browser;
@@ -126,14 +137,27 @@ record('precache', 'one versioned cache with index, manifest and 5 icons', cache
 // Chromium headless may or may not fire beforeinstallprompt; when it does, the button must show.
 const hint = await page.evaluate(() => ({ hint: !document.getElementById('install-hint').hidden, btn: !document.getElementById('install-btn').hidden, ios: !document.getElementById('install-ios').hidden }));
 record('hint-chromium', 'install hint: never shows iOS text on Chromium; button only with hint', !hint.ios && hint.btn === hint.hint, JSON.stringify(hint));
+// Headless Chromium does not fire beforeinstallprompt; simulate one to check the button path.
+const bip = await page.evaluate(async () => {
+  let prompted = false;
+  const e = new Event('beforeinstallprompt', { cancelable: true });
+  e.prompt = () => { prompted = true; return Promise.resolve(); };
+  e.userChoice = Promise.resolve({ outcome: 'dismissed' });
+  window.dispatchEvent(e);
+  const shown = !document.getElementById('install-hint').hidden && !document.getElementById('install-btn').hidden;
+  document.getElementById('install-btn').click();
+  return { prevented: e.defaultPrevented, shown, prompted, hiddenAfter: document.getElementById('install-hint').hidden };
+});
+record('hint-bip', 'beforeinstallprompt → button shown; click → prompt(), hint hidden', bip.prevented && bip.shown && bip.prompted && bip.hiddenAfter, JSON.stringify(bip));
 await waitSettled(page);
 
 // ---------------------------------------------------------------- offline
+await stopServer();
 await context.setOffline(true);
 const resp = await page.reload();
 record('offline-reload', 'offline reload served by the SW', resp?.ok() && resp.fromServiceWorker(), `status=${resp?.status()} fromSW=${resp?.fromServiceWorker()}`);
 await judgeChecks(page, 'offline');
-for (const path of ['index.html', '?word=w0002', 'some/deep/link']) {
+for (const path of ['index.html', '?word=w0002', 'not-a-page.html']) {
   const p2 = await context.newPage();
   const l2 = track(context, p2);
   const r2 = await p2.goto(base + path);
@@ -147,6 +171,7 @@ record('no-foreign', 'no cross-origin requests', foreign.length === 0, foreign.s
 record('console', 'zero console errors (online + offline session)', log.errors.length === 0, log.errors.slice(0, 5).join(' || '));
 if (log.warnings.length) console.error(`  (console warnings: ${log.warnings.slice(0, 3).join(' || ')})`);
 await context.close();
+await startServer();
 
 // ---------------------------------------------------------------- iOS hint, standalone, 390 px
 {
@@ -186,7 +211,7 @@ await context.close();
 }
 
 await browser.close();
-server.kill();
+await stopServer();
 const failed = results.filter((r) => !r.ok);
 console.log(`qa-pwa: ${results.length - failed.length}/${results.length} passed${failed.length ? ` — FAILED: ${failed.map((f) => f.id).join(', ')}` : ''} (screenshots in ${outDir})`);
 process.exit(failed.length ? 1 : 0);

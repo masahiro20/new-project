@@ -41,6 +41,33 @@ On the synthetic samples 14 of the 2,000 words fail their *correct* sample: acce
 3 or 1 where the next mora is a bare vowel or っ (曜日 words, 案内, 材料, 北極 …), a
 segmentation limit — see `demo-sanity.mjs` output.
 
+## Offline PWA (`site/app/`)
+
+The same page as an installable, offline-capable web app, for any static host (all URLs
+are relative, so it works under any sub-path; the landing page links to it as `./app/`).
+
+```sh
+npm run build:pwa        # build-demo content → site/app/{index.html, manifest.webmanifest, sw.js, icons/}
+npm run serve:site       # http://localhost:5174/app/  (serves site/; SW needs localhost or https)
+node scripts/qa-make-fixtures.mjs /tmp/pitch-fx    # once: synthetic .wav fixtures (outside the repo)
+node scripts/qa-pwa.mjs --fixtures /tmp/pitch-fx   # Playwright: install criteria, SW, offline judge
+```
+
+- `build-pwa.mjs` runs `build-demo.mjs` unchanged into a temp file and wraps it in a full
+  document (`lang="ja"`, `viewport-fit=cover`, light/dark `theme-color`, manifest,
+  apple-touch-icon, iOS web-app metas). The Artifact build (`dist/pitch-demo.html`) stays
+  SW-free and byte-identical.
+- `sw.js` precaches the page, manifest and icons under a cache named by a content hash
+  (rebuild → new cache, old ones deleted on activate). Precached files are cache-first;
+  navigations in the app folder get the cached page offline. Nothing cross-origin and no
+  audio is ever cached (files are decoded in the page). Serve `sw.js` with `no-cache`.
+- Icons are drawn in code (`scripts/pwa-icons.mjs`, deterministic) and committed.
+- 「ホーム画面に追加」 hint: an install button on Chrome/Android (`beforeinstallprompt`), the
+  Share → ホーム画面に追加 instruction on iOS; hidden when already standalone or dismissed.
+  Still file-picker only (no microphone).
+- Manual offline check: open `/app/`, reload once, then DevTools → Network → Offline (or
+  stop the server) and reload — the page, samples and file uploads keep working.
+
 ## How the judgement works (`src/judge.js`)
 
 1. F0 per 10 ms frame (pitchy/MPM, or SwiftF0 at 16 ms), unreliable frames dropped,
