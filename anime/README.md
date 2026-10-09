@@ -14,6 +14,9 @@
 | 見本ページ（非公開アーティファクト） | [book/sample/](book/sample/) → https://claude.ai/artifact/NCndBJNTFeYN3wFHit4oyB |
 | 販売準備（BOOTH・Ko-fi 商品ページ、サムネイル、X投稿、ショート台本） | [launch/](launch/) |
 | Vol.0 の独自性レビュー | [docs/review-originality-vol0.md](docs/review-originality-vol0.md) |
+| 第1話 絵コンテ（225カット、作画91枚） | [storyboard/ep01/](storyboard/ep01/)（[カット表](storyboard/ep01/ep01-conte.md)）→ https://claude.ai/artifact/C1NpLaAX8fqYLuiE9UWkKL |
+| Webtoon 第1話 ネーム（40コマ） | [webtoon/ep01/](webtoon/ep01/) → https://claude.ai/artifact/YGituh2DyYSpxG1K6UsHgW |
+| 代わりのタイトル案（商標の自己チェック） | [docs/title-alternatives.md](docs/title-alternatives.md) |
 | 市場分析・比較作品 | [docs/market-and-comps.md](docs/market-and-comps.md) |
 | レビューとショーランナー決定 | [docs/review.md](docs/review.md) |
 
