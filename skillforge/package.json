@@ -29,7 +29,7 @@
     "kotomark": "tsx src/cli/index.ts",
     "build:site": "npm run build:demo && node web/build-site.mjs"
   },
-  "license": "UNLICENSED",
+  "license": "Elastic-2.0",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.132.1",
     "@modelcontextprotocol/sdk": "^1.32.1",
