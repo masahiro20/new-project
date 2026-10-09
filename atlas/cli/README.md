@@ -182,3 +182,7 @@ npm test             # node:test, runs the CLI on ../scanner/tests/fixtures
 
 `npm pack` runs `npm run sync:check` first and refuses to pack stale copies.
 The scanner's own tests: `python3 -I -m unittest discover -s atlas/scanner/tests`.
+
+## License
+
+MIT — see [LICENSE](LICENSE). The scanner CLI is free to use; nothing it does depends on an Atlas account.

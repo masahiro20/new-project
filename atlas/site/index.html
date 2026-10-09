@@ -432,22 +432,22 @@
       <li>
         <span class="name">postmark-mcp</span>
         <p>An unofficial npm package that, in a later version, was reported to BCC every outgoing email to an outside address. Earlier versions looked fine; the change arrived in an update.</p>
-        <span class="src">Source: public security reporting, Sept 2025</span>
+        <span class="src">Source: <a href="https://www.koi.security/blog/postmark-mcp-npm-malicious-backdoor-email-theft" rel="noopener noreferrer">Koi Security report</a>, Sept 2025 · <a href="https://osv.dev/vulnerability/MAL-2025-47604" rel="noopener noreferrer">OSV MAL-2025-47604</a></span>
       </li>
       <li>
         <span class="name">ClawHavoc / ClawHub</span>
         <p>341+ skills on ClawHub were reported to deliver an information-stealer (AMOS). Separately, Snyk's ToxicSkills study found critical issues in 13.4% of 3,984 skills reviewed.</p>
-        <span class="src">Source: public security reporting; Snyk ToxicSkills study</span>
+        <span class="src">Source: <a href="https://snyk.io/blog/toxicskills-malicious-ai-agent-skills-clawhub/" rel="noopener noreferrer">Snyk ToxicSkills study</a> and public security reporting</span>
       </li>
       <li>
         <span class="name">CVE-2025-6514</span>
         <p>Command injection in <code>mcp-remote</code> (CVSS 9.6), a widely used bridge to remote MCP servers.</p>
-        <span class="src">Source: public CVE record (CVE-2025-6514)</span>
+        <span class="src">Source: <a href="https://www.cve.org/CVERecord?id=CVE-2025-6514" rel="noopener noreferrer">CVE-2025-6514 record</a></span>
       </li>
       <li>
         <span class="name">Tool poisoning</span>
         <p>Hidden instructions in tool descriptions that steer the agent without the user seeing them.</p>
-        <span class="src">Source: documented by Invariant Labs</span>
+        <span class="src">Source: <a href="https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks" rel="noopener noreferrer">Invariant Labs</a></span>
       </li>
     </ul>
     <p class="note">These are summaries of third-party public reporting, not Atlas findings. Atlas findings describe detected patterns, not intent. Existing scanners help, but in our review fewer than half of their flags turned out to be real risks — and a verdict you can't inspect is hard to act on.</p>
@@ -525,13 +525,7 @@ Evidence            file:line links for every finding · rule docs at {{RULES_UR
       <div class="stat"><span class="v">11 / 11</span><span class="k">positive-control cases still detected after noise reduction</span></div>
       <div class="stat"><span class="v">0</span><span class="k">lines of scanned code executed</span></div>
     </div>
-    <h3 style="margin-top:36px">The 32 remaining findings, hand-classified</h3>
-    <div class="bars" role="img" aria-label="Of 32 remaining findings: 17 attack-style patterns, 9 real but legitimate uses, 6 false positives">
-      <div class="bar-row"><span>Attack-style pattern</span><span class="bar-track"><span class="bar-fill" style="display:block;width:53%"></span></span><span class="num">17</span></div>
-      <div class="bar-row"><span>Real, legitimate use</span><span class="bar-track"><span class="bar-fill muted" style="display:block;width:28%"></span></span><span class="num">9</span></div>
-      <div class="bar-row"><span>False positive</span><span class="bar-track"><span class="bar-fill muted" style="display:block;width:19%"></span></span><span class="num">6</span></div>
-    </div>
-    <p class="note">Attack-style patterns were mostly positive controls and published demos. "Legitimate" includes npm postinstall scripts — real, but a reviewer's call. We publish our false-positive rate (6 of 32, 19%) rather than hide it. Internal test, 2026-10; not an independent audit.</p>
+    <p class="note">Every remaining finding was reviewed by hand; "real but legitimate" uses such as npm postinstall scripts are shown as evidence for a reviewer's call, not as problems. Internal test, 2026-10; not an independent audit.</p>
   </div>
 </section>
 

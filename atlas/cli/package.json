@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "Static, read-only pattern scanner for MCP servers, skills and plugins. Nothing is executed.",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "bin": {
     "atlas-scan": "bin/atlas-scan.js"
   },
