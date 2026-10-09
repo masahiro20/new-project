@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Builds the single-file game from src/: inlines audio.js before the game script.
-# Outputs:
-#   index.html                 standalone page (open directly in a browser; Three.js from cdnjs)
-#   dist/artifact.html         body-only page for the Artifact publisher (it adds its own skeleton)
-#   dist/grandstride-itch.zip  itch.io HTML5 upload: index.html at the root, Three.js r128 and
-#                              fonts bundled from vendor/, no external CDN requests
+# src/ から単一ファイルのゲームを作る（audio.js をゲームのスクリプトの前に埋め込む）。
+# 出力:
+#   index.html                 単体で開けるページ（Three.js は cdnjs から読む）
+#   dist/artifact.html         アーティファクト公開用（外側の HTML 骨組みは公開時に付く）
+#   dist/grandstride-itch.zip  itch.io 用。index.html がルートにあり、Three.js r128 とフォントを
+#                              vendor/ から同梱。外部の CDN には通信しない
 set -euo pipefail
 cd "$(dirname "$0")"
 mkdir -p dist
