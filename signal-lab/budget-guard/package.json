@@ -9,7 +9,7 @@
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "og": "vite-node --config vitest.config.ts scripts/gen-og.tsx",
-    "build:cf": "node scripts/patch-opennext.mjs && opennextjs-cloudflare build",
+    "build:cf": "node scripts/patch-opennext.mjs && BUDGET_GUARD_HOSTING=cloudflare opennextjs-cloudflare build",
     "preview": "npm run build:cf && opennextjs-cloudflare preview",
     "preview:cron": "npm run build:cf && opennextjs-cloudflare preview --test-scheduled",
     "deploy": "npm run build:cf && opennextjs-cloudflare deploy",

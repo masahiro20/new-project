@@ -99,7 +99,7 @@ Worker の `process.env` には、wrangler の vars と secrets がリクエス�
 | `CRON_SECRET` | ★ | secret | `/api/cron/check`（Vercel の cron、手動実行）の認証。Cloudflare の `scheduled()` はルートを通らないので使わない |
 | `CRON_BATCH_SIZE` | — | `wrangler.jsonc` の vars（`2`） | 1 回の cron で調べる接続数。**Vercel では設定しない**（未設定なら 1 回で全件。Vercel の cron は毎時 1 回だけなので） |
 | `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | ★（推奨） | secret | 未設定ならメモリ上の KV（`PAYMENTS_MODE=demo` のときだけ許可。§5） |
-| `RESEND_API_KEY` / `MAIL_FROM` | 任意 | secret | 未設定ならメールはログに出るだけ |
+| `RESEND_API_KEY` / `MAIL_FROM` | 任意（試用・本番では必須） | secret | 未設定ならメールはログに出るだけ。Resend の無料プランは $0/月で、月 3,000 通・1 日 100 通・独自ドメイン 3 つまで（https://resend.com/pricing 、2026-10-09 確認）。送るには自分のドメインの追加と認証が必要（https://resend.com/docs/dashboard/domains/introduction 、同日確認）。`MAIL_FROM` はそのドメインのアドレスにする |
 | `ADMIN_TOKEN` | 任意 | secret | `/api/admin/stats` |
 | `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` | stripe 時 | secret | 入れると（`PAYMENTS_MODE` 未設定なら）stripe モードになる |
 | `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` | 任意 | ビルド時 | Worker 1 つなので通常は不要 |
@@ -195,6 +195,7 @@ curl "localhost:8787/cdn-cgi/handler/scheduled?cron=*+*+*+*+*&time=1893456001000
     - cron：リストに残したまま、後の実行に回す
     - 「Check now」：409「チェック中」を返す
     - webhook：5 秒おきに最大 4 回待つ
+- **キーが無効になったとき（401・403）**：メールと Slack で接続ごとに 1 回知らせる（状態の `keyInvalidAt`）。取得が成功すると印が消え、次に無効になったらまた知らせる。月が変わっても印は残る。状態とログは同じ `MSET` で書くので、Upstash のコマンド数は変わらない（テストで 1 接続 5 コマンドのまま）。
 - **通知と停止は月 1 回**：従来どおり、接続ごとの状態（`evaluate.ts` の `warnedAt`・`limitNotifiedAt`・`stoppedAt`）で決まる。ロックの中でしか状態を読み書きしないので、重なっても 2 回目は出ない。
 - **失敗と再試行**：
   - プロバイダ API の失敗：従来どおり状態に記録し、次の時間に再試行する。停止の失敗は `stoppedAt` を書かないので、次の時間に再試行される。

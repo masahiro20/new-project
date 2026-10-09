@@ -11,6 +11,8 @@ export interface GuardState {
   stoppedAt?: string;
   /** UTC hour ("2026-10-09T03") the hourly cron last checked this connection: a second cron run of that hour skips it. */
   lastHour?: string;
+  /** Set when the provider rejected the token (401/403) and we told the user; cleared by the next successful fetch. Survives the monthly reset. */
+  keyInvalidAt?: string;
 }
 
 export interface Evaluation {
@@ -34,7 +36,9 @@ export function periodStart(date: Date): Date {
 /** Drop state from an earlier period so alerts re-arm each month. */
 export function currentState(state: GuardState | undefined, now: Date): GuardState {
   const period = periodKey(now);
-  return state?.period === period ? state : { period };
+  if (state?.period === period) return state;
+  // New month: alerts and stops re-arm, but "we already told you the key is invalid" carries over.
+  return state?.keyInvalidAt ? { period, keyInvalidAt: state.keyInvalidAt } : { period };
 }
 
 export function evaluate(

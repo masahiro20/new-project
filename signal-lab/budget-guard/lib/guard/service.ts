@@ -65,6 +65,7 @@ const SUBJECT: Record<Notice["kind"], string> = {
   "stop-test": "Stop action (test mode) would have run",
   "stop-failed": "Stop action FAILED",
   error: "Usage check failed",
+  "key-invalid": "Provider token rejected — monitoring is paused for this connection",
   "vercel-alert": "Vercel Spend Management alert",
   info: "Notice",
 };
@@ -242,7 +243,7 @@ export async function checkConnectionLocked(
         ratio: result.evaluation?.ratio ?? 0,
         level: result.evaluation?.level ?? "ok",
         checkedAt: now.toISOString(),
-        error: result.notices.find((n) => n.kind === "error")?.message,
+        error: result.notices.find((n) => n.kind === "error" || n.kind === "key-invalid")?.message,
         // Keep the cron's schedule on manual checks too.
         ...(opts.schedule ?? pickSchedule(activity.snaps[conn.id])),
       } satisfies Snapshot;

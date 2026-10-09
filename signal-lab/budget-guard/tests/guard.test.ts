@@ -140,8 +140,11 @@ describe("checkConnection", () => {
     expect(r.notices.map((n) => n.kind)).toEqual(["limit", "stop-failed"]);
     expect(r.state.stoppedAt).toBeUndefined();
   });
-  it("reports fetch errors without throwing", async () => {
-    const r = await checkConnection(conn(50, "live"), undefined, { token: "t", fetchImpl: async () => new Response("x", { status: 403 }), now });
+  it("reports fetch errors without throwing (403 = rejected token, see tests/key-invalid.test.ts)", async () => {
+    const r = await checkConnection(conn(50, "live"), undefined, { token: "t", fetchImpl: async () => new Response("x", { status: 500 }), now });
     expect(r.notices[0].kind).toBe("error");
+    const rejected = await checkConnection(conn(50, "live"), undefined, { token: "t", fetchImpl: async () => new Response("x", { status: 403 }), now });
+    expect(rejected.notices[0].kind).toBe("key-invalid");
+    expect(rejected.stop).toBeUndefined();
   });
 });

@@ -45,8 +45,8 @@
 | Cloudflare アカウント | Workers Free で可。`npx wrangler login` が要る。 | 無料 | 足りる見込み。リクエスト 10万/日、Cron Trigger 5個/アカウント（これで1個使う）、Worker サイズ非圧縮 64 MiB（現在 8.8 MiB）。 | deploy-cloudflare.md §1、§4、§7、§8.3 |
 | CPU 10 ms の制限 | isolate ごとの初回 API は 10 ms を超える（最初の API は約 168 ms）。公式に「まれな超過は許容」とある。 | 原則無料。Error 1102（`exceededCpu`）が続くときだけ Workers Paid（$5/月）。 | 足りる見込み。本番の実測は未確認。 | deploy-cloudflare.md §8.1 |
 | Upstash Redis | `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`。**デモでも本番では必須と考える。** メモリ上の KV は Workers では消えたり、見えたり見えなかったりする。 | 無料枠で可 | 足りる。無料枠は月 50 万コマンド。10 接続で月約 9 万（18%）。5人 × 最大3接続 = 15 接続でも余裕がある。上限の目安は約 104 接続。 | deploy-cloudflare.md §5、§7.1 |
-| メール送信（Resend） | `RESEND_API_KEY` / `MAIL_FROM`。未設定だとメールはログに出るだけ。80% 通知、100% 通知、停止結果、ライセンスキー、マジックリンクがすべて届かない。**試用には必須。** | 未確認 | 未確認（Resend の料金と無料枠は docs にない） | deploy-cloudflare.md §3、`lib/mail.ts` |
-| 送信元アドレスとドメイン | `MAIL_FROM` の既定値は `no-reply@example.com`。実在する送信元が要る。Resend で自分のドメインの認証が要るかは未確認。 | ドメインを持っていなければ費用がかかる可能性。金額は未確認。 | 未確認 | `lib/mail.ts`、`.env.example` |
+| メール送信（Resend） | `RESEND_API_KEY` / `MAIL_FROM`。未設定だとメールはログに出るだけ。80% 通知、100% 通知、停止結果、キー無効の通知、ライセンスキー、マジックリンクがすべて届かない。**試用には必須。** | 無料プラン $0/月：月 3,000 通、1 日 100 通、独自ドメイン 3 つまで（https://resend.com/pricing 、2026-10-09 確認） | 足りる見込み。15 接続で、1 接続あたり月数通（80%・100%・停止・キー無効は各 1 回まで）＋ライセンス・ログインのメール。1 日 100 通の上限には、同じ日に通知が集中しても届かない見込み。 | deploy-cloudflare.md §3、`lib/mail.ts` |
+| 送信元アドレスとドメイン | `MAIL_FROM` の既定値は `no-reply@example.com`。実在する送信元が要る。**Resend で送るには、自分のドメインを 1 つ以上追加して認証する必要がある**（「You must add and verify at least one domain to send emails with Resend」 https://resend.com/docs/dashboard/domains/introduction 、2026-10-09 確認）。 | ドメインを持っていなければ取得費用がかかる。金額は未確認。 | ドメインがあれば足りる | `lib/mail.ts`、`.env.example` |
 | 公開 URL | `budget-guard.<sub>.workers.dev` で動く。独自ドメインは任意（Worker → Settings → Domains & Routes）。変えたら `NEXT_PUBLIC_SITE_URL` を直して再デプロイする。 | workers.dev は無料。独自ドメインの費用は未確認。 | workers.dev で足りる | deploy-cloudflare.md §3、§10 |
 | シークレット | `PAYMENTS_MODE=demo`、`ACCESS_SECRET`（32文字以上）、`TOKEN_ENCRYPTION_KEY`（32バイト base64）、`CRON_SECRET`。`wrangler secret put` で入れる。 | 無料 | — | deploy-cloudflare.md §3 |
 | `ADMIN_TOKEN` | `/api/admin/stats` を読むのに要る（§4）。 | 無料 | — | deploy-cloudflare.md §3 |
@@ -191,7 +191,7 @@
 
 ### 4.1 指標と、見る場所
 
-コードで確認できる場所だけを書いた。管理者向けに接続数を返す API は **ない**。
+コードで確認できる場所だけを書いた。試用の指標は `GET /api/admin/stats` の `trial` にまとめて返す（`lib/guard/admin.ts`）。
 
 | 指標 | 見る場所 | 備考 |
 |---|---|---|
@@ -199,13 +199,13 @@
 | 購入の開始数 | 同 `checkout_start` | — |
 | LP の閲覧・CTA | 同 `pageview`、`cta_click` | 個人は特定しない。 |
 | 待機リストの人数 | 同 `waitlist` | — |
-| 全体の接続数 | Upstash のキー `budget-guard:bg:allconns`（集合。要素は `アカウントID\|接続ID`）の要素数 | admin API はない。Upstash の画面か CLI で見る。見る手段は未確認。 |
+| 全体の接続数・プロバイダ別・demo トークンの数 | `GET /api/admin/stats` の `trial.connections`（`total`・`byProvider`・`demoToken`） | 認証は従来どおり `Authorization: Bearer $ADMIN_TOKEN`。索引 `bg:allconns` を使い、Upstash は 3 コマンド（`lib/guard/admin.ts`）。 |
 | 本物の接続か `demo` か | 各アカウントの `budget-guard:bg:{アカウントID}:conns`（JSON）の `tokenHint`。`demo` は `••••`、本物は `先頭4…末尾4` | 試用者のダッシュボード（画面共有）でも「token …」として見える。 |
-| テストモード／live の数 | 同 `conns` の `stopMode`（`off` / `test` / `live`） | ダッシュボードのバッジ「Stop: test mode」「Stop: LIVE」でも見える。 |
+| テストモード／live の数 | `GET /api/admin/stats` の `trial.stopMode`（`off` / `test` / `live`） | ダッシュボードのバッジ「Stop: test mode」「Stop: LIVE」でも見える。 |
 | live に切り替えた数 | 同上の `live` の数。アクティビティの `Stop action ARMED (live): …` | — |
-| テスト停止の記録 | アクティビティ `budget-guard:bg:{アカウントID}:log` の `Manual test: would send …`（手動）と `TEST MODE — would have run: …`（100% 到達時） | ログは最新50件だけ残る。 |
-| 毎時チェックが回っているか | 試用者のダッシュボードの「checked … UTC」。KV では `…:snap:{接続ID}` の `checkedAt` | `npx wrangler tail budget-guard` の `[cron] … {"checked":…}`、Cloudflare の Cron Events でも全体を見られる。 |
-| チェックの失敗 | ダッシュボードの接続カードの赤いエラー。`snap` の `error` | **失敗はメールで届かない**（`notify` が `error` を送らない）。 |
+| 今月の 80% 通知・100% 到達・テスト停止 | `GET /api/admin/stats` の `trial.thisMonth`（`warned`・`reachedLimit`・`testStopRecords`・`keyInvalid`） | 80%・100% は接続ごとの状態から数える。テスト停止はアクティビティ（`budget-guard:bg:{アカウントID}:activity` の `log`。最新50件だけ残る）の `Manual test:` と `TEST MODE` を数える。 |
+| 定期チェックが回っているか | `GET /api/admin/stats` の `trial.lastCheckedAt`（最新）・`oldestCheckedAt`（いちばん古い）・`neverChecked` | 試用者のダッシュボードの「checked … UTC」でも見える。`npx wrangler tail budget-guard` の `[cron] … {"checked":…}`、Cloudflare の Cron Events でも全体を見られる。 |
+| チェックの失敗 | ダッシュボードの接続カードの赤いエラー（`activity` の `snaps.{接続ID}.error`） | キーが無効（401・403）のときは、メールと Slack で 1 回知らせる（`key-invalid`）。それ以外の失敗（500、通信エラー）はメールで届かない。 |
 | 80% 通知が出たか | アクティビティの `… passed the 80% alert line.` | 「出した」は分かる。「届いた」は、試用者に聞くか Resend 側で見る。Resend の画面での確認方法は未確認。 |
 | 100% 到達・停止の結果 | アクティビティの `budget reached.`、`Stopped: …`、`Stop failed: …` | — |
 | Slack 連携の数 | `…:settings` の `slackHint` | 任意機能。 |
@@ -225,7 +225,7 @@
 |---|---|---|---|
 | 接続の追加で `Could not read usage with this token: …` | トークンの検証（利用額の読み取り）が失敗した。Admin キーでない、別チームのトークン、ID の誤り、期限切れなど。エラー本文にプロバイダの HTTP ステータスが入る。 | キーの種類を確かめる（OpenAI は Admin キー、Anthropic は `sk-ant-admin…`）。Team ID・Project ID・Workspace ID を確かめる。 | エラー本文の HTTP ステータスを聞く（キーは聞かない）。Vercel で Member が billing charges を読めない場合の挙動は未確認。 |
 | 追加で `The demo token only works in development or with PAYMENTS_MODE=demo` | 本番が demo モードでない。 | — | `PAYMENTS_MODE` を確認する。なお `demo` トークンの接続は、ステージゲートに数えない。 |
-| 追加後、キーが無効になった（期限切れ・失効） | 毎時チェックの利用額取得が失敗する。接続カードに `Usage fetch failed: …` が出る。**メールは来ない。** | 新しいキーを発行する。今の接続を削除し、作り直す（トークンだけを差し替える機能はない）。 | 毎日の確認で、エラーの出ている人に1回だけ知らせる。 |
+| 追加後、キーが無効になった（期限切れ・失効） | 定期チェックの利用額取得が 401・403 になる。**メールで 1 回知らせる**（件名「Provider token rejected — monitoring is paused for this connection」）。Slack を登録していれば Slack にも送る。接続カードには毎回 `Usage fetch failed: …` が出る。キーが直る（取得が成功する）と、次に無効になったときにまた知らせる。月が変わっても、同じ無効のままなら再送しない。 | 新しいキーを発行する。今の接続を削除し、作り直す（トークンだけを差し替える機能はない）。 | `GET /api/admin/stats` の `trial.thisMonth.keyInvalid` で数を見る。 |
 | Check now で「This connection is being checked right now」 | 毎時チェックが同じ接続のロックを持っている（409）。 | 1分ほど待って、もう一度押す。 | — |
 | `Your plan allows 3 connections` | 1アカウント3接続まで。 | 使わない接続を削除する。 | — |
 | 通知メールが来ない | ① `RESEND_API_KEY` が未設定（ログに出るだけ）② 購入時にメールを入れず、宛先が `demo@example.com` になった ③ まだ 80% に達していない ④ 今月すでに送った（月1回だけ）⑤ 迷惑メールに入った | 迷惑メールを確かめる。ダッシュボードの「Alerts go to …」の宛先を確かめる。 | ① `npx wrangler tail` に `[mail:dev]` が出ていれば未設定。② は宛先を変える機能がない。新しいアカウントで作り直すしかない（未確認：KV の手修正で直せるか）。⑤ の対策（送信ドメインの認証など）は未確認。 |
@@ -260,7 +260,7 @@
 
 ## 7. 未確認の一覧（この文書で使ったもの）
 
-- Resend の料金・無料枠・送信ドメインの要否。
+- 独自ドメインを持っていない場合の、ドメインの取得費用（Resend の無料枠と、ドメインの認証が必要なことは確認済み。§2）。
 - 独自ドメインの費用。
 - 本番の Cloudflare での CPU 時間（ローカルの計測のみ）。
 - 各社のキーの失効の画面の場所。OpenAI の Admin キーをダッシュボードから期限付きで作れるか。
@@ -272,6 +272,6 @@
 
 ## 8. 既存文書との食い違い（要確認）
 
-- `docs/user-recruiting-plan.md` §6 は「`demo` トークンは本番では拒否される」と書いている。しかしコード（`lib/guard/demo.ts` の `demoTokensAllowed`）と `docs/deploy-cloudflare.md` §2.2 では、`PAYMENTS_MODE=demo` を明示した本番では `demo` トークンが使える。本書はコードに合わせた。
-- `content/legal/privacy.ts` のホスティングは Vercel になっている。Cloudflare に出す場合は直す必要がある（本書では編集していない）。
-- 2026-10-09 時点で、作業ツリーにコミット前の変更がある（`lib/guard/schedule.ts` など）。接続の総数に応じてチェックの間隔を延ばす変更で、50 接続までは毎時のまま。試用（最大 15 接続）では「毎時」の記述は変わらない。マージ後に本書の記述を見直す。
+- （解決済み）`docs/user-recruiting-plan.md` の「`demo` トークンは本番では拒否される」は、コードに合わせて直した（`PAYMENTS_MODE=demo` を明示した本番では使える）。
+- （解決済み）`content/legal/privacy.ts` のホスティングは、ビルド先に合わせて Cloudflare か Vercel を表示するようにした（`npm run build:cf` で Cloudflare）。プライバシーポリシーの法務上の確認事項は、別途報告している。
+- （解決済み）接続の総数に応じて確認間隔を延ばす変更（`lib/guard/schedule.ts`）はマージ済み。50 接続までは毎時のままなので、試用（最大 15 接続）では「毎時」の記述は変わらない。

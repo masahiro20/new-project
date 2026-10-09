@@ -4,6 +4,14 @@ export function siteUrl(): string {
 
 export const isProduction = () => process.env.NODE_ENV === "production";
 
+/**
+ * Where this build is hosted, for the privacy policy (a static page, so decided at build
+ * time): `npm run build:cf` sets BUDGET_GUARD_HOSTING=cloudflare; anything else is Vercel.
+ */
+export function hostingProvider(env: Record<string, string | undefined> = process.env): "Cloudflare" | "Vercel" {
+  return env.BUDGET_GUARD_HOSTING?.toLowerCase() === "cloudflare" ? "Cloudflare" : "Vercel";
+}
+
 /** True while `next build` runs (prerendering), where missing runtime secrets are expected. */
 export const isBuildPhase = () => process.env.NEXT_PHASE === "phase-production-build";
 

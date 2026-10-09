@@ -1,4 +1,4 @@
-import { adapterFor, type Target } from "./providers";
+import { adapterFor, isAuthFailure, type Target } from "./providers";
 import { currentState, evaluate, periodStart, type Evaluation, type GuardState } from "./evaluate";
 import { runStop, type FetchLike, type StopMode, type StopResult } from "./stop";
 
@@ -13,7 +13,7 @@ export interface Connection {
 }
 
 export interface Notice {
-  kind: "warn" | "limit" | "stopped" | "stop-test" | "stop-failed" | "error" | "vercel-alert" | "info";
+  kind: "warn" | "limit" | "stopped" | "stop-test" | "stop-failed" | "error" | "key-invalid" | "vercel-alert" | "info";
   connectionId: string;
   message: string;
 }
@@ -47,9 +47,21 @@ export async function checkConnection(conn: Connection, prev: GuardState | undef
   try {
     ({ spendUsd } = await adapter.fetchSpend(conn.target, deps.token, periodStart(deps.now), deps.now, deps.fetchImpl));
   } catch (err) {
-    notices.push({ kind: "error", connectionId: conn.id, message: `Usage fetch failed: ${err instanceof Error ? err.message : err}` });
+    const message = `Usage fetch failed: ${err instanceof Error ? err.message : err}`;
+    if (isAuthFailure(err) && !state.keyInvalidAt) {
+      // Mailed (and posted to Slack) once; the dashboard keeps showing the error on every failed check.
+      state.keyInvalidAt = stamp;
+      notices.push({
+        kind: "key-invalid",
+        connectionId: conn.id,
+        message: `${conn.label}: the provider rejected the token (${message.replace("Usage fetch failed: ", "")}). Budget Guard can't read spend or stop anything for this connection until you add a new token (delete the connection and add it again with a new key).`,
+      });
+    } else {
+      notices.push({ kind: "error", connectionId: conn.id, message });
+    }
     return { state, notices };
   }
+  if (state.keyInvalidAt) delete state.keyInvalidAt; // the key works again: the next failure is reported again
 
   const evaluation = evaluate(deps.forceLimit ? Math.max(spendUsd, conn.budgetUsd) : spendUsd, conn.budgetUsd, state, {
     stopEnabled: conn.stopMode !== "off",

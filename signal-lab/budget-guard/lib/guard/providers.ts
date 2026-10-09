@@ -19,9 +19,24 @@ export interface Adapter<T extends Target> {
   authHeaders(token: string): Record<string, string>;
 }
 
+/** A non-2xx answer from a provider API (keeps the status so 401/403 can be told apart). */
+export class ProviderHttpError extends Error {
+  override name = "ProviderHttpError";
+  constructor(
+    readonly host: string,
+    readonly status: number,
+    body: string,
+  ) {
+    super(`${host} ${status}: ${body.slice(0, 200)}`);
+  }
+}
+
+/** 401 / 403: the token was revoked, expired or lost the permission we need. */
+export const isAuthFailure = (err: unknown) => err instanceof ProviderHttpError && (err.status === 401 || err.status === 403);
+
 async function getJson(fetchImpl: FetchLike, url: string, headers: Record<string, string>): Promise<any> {
   const res = await fetchImpl(url, { method: "GET", headers });
-  if (!res.ok) throw new Error(`${new URL(url).host} ${res.status}: ${(await res.text()).slice(0, 200)}`);
+  if (!res.ok) throw new ProviderHttpError(new URL(url).host, res.status, await res.text());
   return res.json();
 }
 
@@ -47,7 +62,7 @@ export const vercel: Adapter<VercelTarget> = {
     const to = now.toISOString();
     const url = `https://api.vercel.com/v1/billing/charges?from=${enc(from)}&to=${enc(to)}&teamId=${enc(target.teamId)}`;
     const res = await fetchImpl(url, { method: "GET", headers: { ...this.authHeaders(token), "accept-encoding": "gzip" } });
-    if (!res.ok) throw new Error(`api.vercel.com ${res.status}: ${(await res.text()).slice(0, 200)}`);
+    if (!res.ok) throw new ProviderHttpError("api.vercel.com", res.status, await res.text());
     // JSONL (FOCUS format). BilledCost is documented as a number but the example shows a string.
     let spendUsd = 0;
     for (const line of (await res.text()).split("\n")) {
