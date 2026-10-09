@@ -269,8 +269,8 @@ html:not(.touch) #howto .tc{display:none}
 #bossTrack::after{content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(255,255,255,.6)}
 
 /* title: mission select / hangar button / daily */
-#missionSel{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
-.mcard{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:1px;min-width:0;width:min(232px,44vw);padding:7px 12px 8px;text-align:left;cursor:pointer;
+#missionSel{display:grid;grid-template-columns:repeat(3,minmax(0,232px));gap:10px;margin-top:18px;max-width:100%}
+.mcard{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:1px;min-width:0;width:auto;padding:7px 12px 8px;text-align:left;cursor:pointer;
   border:1px solid var(--line);background:rgba(5,13,19,.72);clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);transition:background .15s,border-color .15s}
 .mcard:hover,.mcard:focus-visible{background:rgba(95,242,232,.12);outline:none}
 .mcard.sel{border-color:var(--am);background:rgba(255,181,71,.14);box-shadow:inset 3px 0 0 var(--am)}
@@ -294,6 +294,7 @@ html:not(.touch) #howto .tc{display:none}
 #daily .dg.done{color:var(--gr)}
 #daily .dg.done b{color:var(--gr)}
 #daily .dg.m2 span::after{content:' [M02]';font-size:9px;color:var(--dim)}
+#daily .dg.m3 span::after{content:' [M03]';font-size:9px;color:var(--dim)}
 @media (orientation:landscape) and (min-width:700px){
   #daily{position:absolute;right:calc(var(--sr) + 12px);bottom:calc(var(--sb) + 12px);margin:0;width:min(330px,36vw)}
   #howto{max-width:min(640px,54vw)}
@@ -308,9 +309,33 @@ html:not(.touch) #howto .tc{display:none}
 }
 @media (orientation:portrait){
   #title{overflow-y:auto}
+  #missionSel{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+  .mcard{padding:6px 7px 7px}
+  .mcard .mtag{font-size:9px;letter-spacing:.06em}
+  .mcard .mname{white-space:normal;font-size:11px;line-height:1.3}
+  .mcard .mbest{font-size:9px;letter-spacing:0}
+  .mcard .mbest b{font-size:12px;margin-left:2px}
+  .mcard .mlock{white-space:normal;font-size:9px;line-height:1.3}
   html.touch #title{padding-bottom:calc(var(--sb) + 34px)}
   #howto{margin-top:12px}
 }
+
+/* MISSION 03 storm HUD: tremor scan / tower progress / sensor jam */
+#stormHud{position:absolute;left:50%;top:calc(50% + 46px);transform:translateX(-50%);text-align:center;font-family:var(--m);font-size:11px;letter-spacing:.08em;line-height:1.5;color:var(--cy);
+  text-shadow:0 0 6px rgba(95,242,232,.45);white-space:nowrap;display:none}
+#hud.storm #stormHud{display:block}
+#stormHud .sl{opacity:.85}
+#stormHud .sc{color:var(--am);text-shadow:0 0 6px rgba(255,170,60,.6)}
+#stormHud .sc.on{color:#fff}
+#stormHud .tw{color:var(--gr)}
+#stormHud .jm{color:var(--rd);animation:blink .3s steps(2) infinite}
+#hud.jam #radar{filter:contrast(1.4) brightness(1.2);animation:jamflick .17s steps(2) infinite}
+#hud.jam #gripSvg{animation:jamflick .23s steps(2) infinite}
+@keyframes jamflick{50%{opacity:.55;transform:translateX(1px)}}
+#bossBar.p3 #bossFill{background:linear-gradient(90deg,#2ad0ff,#e8f6ff)}
+#bossBar.mael #bossTrack::after{left:30%}
+#bossBar.mael #bossTrack::before{content:'';position:absolute;left:65%;top:0;bottom:0;width:1px;background:rgba(255,255,255,.6);z-index:1}
+html.touch #stormHud{top:calc(50% + 40px);font-size:10px}
 
 /* hangar */
 #hangar{position:absolute;inset:0;z-index:8;display:flex;align-items:center;justify-content:center;background:rgba(2,5,9,.8);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
@@ -389,7 +414,8 @@ html:not(.touch) #howto .tc{display:none}
       </div>
     </div>
     <div id="radio" class="panel"><div class="rh"><i></i>管制 CONTROL ／ イツカ</div><div id="radioText"></div></div>
-    <div id="radarWrap" class="panel"><canvas id="radar" width="160" height="160"></canvas><div class="lbl">索敵 RADAR 220m</div></div>
+    <div id="radarWrap" class="panel"><canvas id="radar" width="160" height="160"></canvas><div class="lbl" id="radarLbl">索敵 RADAR 220m</div></div>
+    <div id="stormHud"><div class="sl" id="shTow">観測塔 TOWERS 0/3</div><div class="sc" id="shScan"></div></div>
     <div id="reticle">
       <svg viewBox="-32 -32 64 64">
         <circle class="rc" r="14" stroke-dasharray="6 5"/>
@@ -466,6 +492,7 @@ html:not(.touch) #howto .tc{display:none}
     <div id="missionSel" role="group" aria-label="作戦選択 MISSION SELECT">
       <button type="button" class="mcard" data-m="1"><span class="mtag">MISSION 01</span><span class="mname">汀都 第七区画 防衛</span><span class="mbest">BEST<b id="hiVal">000000</b> <span id="hiRank"></span></span></button>
       <button type="button" class="mcard" data-m="2"><span class="mtag">MISSION 02</span><span class="mname">汀都 港湾区画 夜間掃討</span><span class="mbest">BEST<b id="hiVal2">000000</b> <span id="hiRank2"></span></span><span class="mlock">LOCKED ／ MISSION 01 クリアで解放</span></button>
+      <button type="button" class="mcard" data-m="3"><span class="mtag">MISSION 03</span><span class="mname">汀都 第三防潮堤外縁 嵐中観測戦</span><span class="mbest">BEST<b id="hiVal3">000000</b> <span id="hiRank3"></span></span><span class="mlock">LOCKED ／ MISSION 02 クリアで解放</span></button>
     </div>
     <div id="titleBtns">
       <button id="btnLaunch" class="btn primary" type="button">出撃<small>LAUNCH</small></button>
@@ -500,7 +527,7 @@ html:not(.touch) #howto .tc{display:none}
         <button id="hClose" class="btn" type="button">戻る<small>BACK</small></button>
         <button id="hReset" class="btn" type="button">整備データ初期化<small>RESET</small></button>
       </div>
-      <div id="hConfirm" class="hidden">強化・資材・MISSION 02 の解放を初期化します（最高スコアは残ります）。よろしいですか？
+      <div id="hConfirm" class="hidden">強化・資材・MISSION 02／03 の解放を初期化します（最高スコアは残ります）。よろしいですか？
         <button id="hYes" class="btn" type="button">初期化する</button><button id="hNo" class="btn" type="button">やめる</button></div>
     </div>
   </div>
@@ -570,6 +597,7 @@ html:not(.touch) #howto .tc{display:none}
   // 持続ノード
   var eng = null;          // エンジン（炉）
   var srv = null;          // サーボ
+  var wth = null;          // 天候（雨・風）MISSION 03
   var alarmTimer = null;
   var beatTimer = null;
   var fireVoices = 0;
@@ -819,6 +847,29 @@ html:not(.touch) #howto .tc{display:none}
     return s;
   }
 
+  // 天候：雨（高域のザー＋低いうなり）と風（帯域ノイズを LFO でうねらせる）。init で1回だけ作り、weather() はゲインだけ動かす
+  function buildWeather() {
+    var w = {};
+    w.rain = loopNoise(1);
+    w.rainHP = ctx.createBiquadFilter(); w.rainHP.type = 'highpass'; w.rainHP.frequency.value = 900;
+    w.rainLP = ctx.createBiquadFilter(); w.rainLP.type = 'lowpass'; w.rainLP.frequency.value = 7000;
+    w.rainG = ctx.createGain(); w.rainG.gain.value = 0;
+    w.rain.connect(w.rainHP); w.rainHP.connect(w.rainLP); w.rainLP.connect(w.rainG); w.rainG.connect(master);
+    w.roar = loopNoise(0.35);
+    w.roarF = ctx.createBiquadFilter(); w.roarF.type = 'lowpass'; w.roarF.frequency.value = 420;
+    w.roarG = ctx.createGain(); w.roarG.gain.value = 0;
+    w.roar.connect(w.roarF); w.roarF.connect(w.roarG); w.roarG.connect(master);
+    w.wind = loopNoise(0.5);
+    w.windF = ctx.createBiquadFilter(); w.windF.type = 'bandpass'; w.windF.frequency.value = 380; w.windF.Q.value = 1.6;
+    w.windG = ctx.createGain(); w.windG.gain.value = 0;
+    w.lfo = ctx.createOscillator(); w.lfo.type = 'sine'; w.lfo.frequency.value = 0.13;
+    w.lfoG = ctx.createGain(); w.lfoG.gain.value = 140;
+    w.lfo.connect(w.lfoG); w.lfoG.connect(w.windF.frequency);
+    w.wind.connect(w.windF); w.windF.connect(w.windG); w.windG.connect(master);
+    w.lfo.start(now());
+    return w;
+  }
+
   // ---------------------------------------------------------------- 可視性
   function onVisibility() {
     if (!ctx) return;
@@ -866,6 +917,7 @@ html:not(.touch) #howto .tc{display:none}
       ctx = c; master = m; comp = k; noiseBuf = b;
       eng = buildEngine();
       srv = buildServo();
+      wth = buildWeather();
 
       if (!visBound && typeof document !== 'undefined' && document.addEventListener) {
         document.addEventListener('visibilitychange', onVisibility);
@@ -1267,6 +1319,96 @@ html:not(.touch) #howto .tc{display:none}
     haptic(60);
   }
 
+  // ---------------------------------------------------------------- MISSION 03（嵐）
+  // 雨・風の持続音（毎フレーム呼んでよい。ノードは作らない）
+  function weather(rain01, wind01) {
+    if (!wth) return;
+    var r = clamp01(rain01), w = clamp01(wind01), t = now();
+    wth.rainG.gain.setTargetAtTime(r * 0.16, t, 0.4);
+    wth.roarG.gain.setTargetAtTime(r * 0.12, t, 0.4);
+    wth.windG.gain.setTargetAtTime(r > 0 ? 0.04 + w * 0.14 : 0, t, 0.6);
+    wth.windF.frequency.setTargetAtTime(260 + w * 420, t, 0.8);
+  }
+
+  // 雷鳴：k=1 で至近の落雷（鋭い破裂音つき）、小さいほど遠い
+  function thunder(k) {
+    k = clamp01(k == null ? 0.6 : k);
+    var t = now();
+    if (k > 0.85) {
+      noise({ t: t, dur: 0.22, gain: 0.55, type: 'highpass', f0: 1600 });
+      noise({ t: t, dur: 0.5, gain: 0.45, type: 'bandpass', f0: 2400, f1: 500, Q: 0.8 });
+    }
+    thud(t + 0.02, 70, 24, 1.6 + k, 0.5 + 0.4 * k);
+    noise({ t: t + 0.03, dur: 2.2 + k * 1.5, attack: 0.08, gain: 0.25 + 0.35 * k, type: 'lowpass', f0: 700 + k * 900, f1: 70, Q: 0.6, rate: 0.5 });
+    noise({ t: t + 0.5 + Math.random() * 0.4, dur: 1.8, attack: 0.25, gain: 0.2 * k + 0.08, type: 'lowpass', f0: 380, f1: 60, Q: 0.7, rate: 0.4 });
+    haptic(40 + 120 * k);
+  }
+
+  // 震動探知のピン：ソナーのような音。k が小さいと反応なし（弱く短い）
+  function tremorPing(k) {
+    k = clamp01(k == null ? 1 : k);
+    var t = now();
+    thud(t, 90, 40, 0.3, 0.35);
+    tone({ type: 'sine', f0: 1180, f1: 1090, t: t + 0.02, dur: 0.5 + 0.4 * k, gain: 0.07 + 0.06 * k });
+    if (k > 0.5) tone({ type: 'sine', f0: 590, t: t + 0.08, dur: 0.9, gain: 0.05, attack: 0.02 });
+  }
+
+  // 霧殻：霧を出す前のさえずり（高い3連＋低いうなり）
+  function hazeChirp() {
+    var t = now();
+    for (var i = 0; i < 3; i++) {
+      tone({ type: 'triangle', f0: 1700 + i * 260, f1: 2500 + i * 260, t: t + i * 0.11, dur: 0.08, gain: 0.05,
+        filter: { type: 'bandpass', f: 2200, Q: 2 } });
+    }
+    tone({ type: 'sine', f0: 210, f1: 170, t: t, dur: 1.2, attack: 0.1, gain: 0.06 });
+  }
+
+  // 計器異常に入った瞬間の砂嵐
+  function jam() {
+    var t = now();
+    noise({ t: t, dur: 0.3, gain: 0.12, type: 'bandpass', f0: 2600, Q: 1.2 });
+    tone({ type: 'square', f0: 120, t: t, dur: 0.12, gain: 0.03, filter: { type: 'lowpass', f: 900 } });
+  }
+
+  // 観測塔の起動：電源が入って上がっていく音＋2つのベル
+  function towerOnline() {
+    var t = now();
+    tone({ type: 'sawtooth', f0: 90, f1: 360, t: t, dur: 0.7, attack: 0.05, gain: 0.08, slide: 0.6, filter: { type: 'lowpass', f: 600, f1: 2400 } });
+    noise({ t: t, dur: 0.6, attack: 0.1, gain: 0.08, type: 'bandpass', f0: 400, f1: 2400, Q: 1.5 });
+    tone({ type: 'triangle', f0: 880, t: t + 0.65, dur: 0.4, gain: 0.07 });
+    tone({ type: 'triangle', f0: 1320, t: t + 0.8, dur: 0.6, gain: 0.07 });
+    metalRing(t + 0.65, 440, 0.8, 0.05);
+  }
+
+  // 渦殻王が泥の下で浮上の準備：低い地鳴り＋泡
+  function maelRumble(dur) {
+    var d = Math.max(0.4, Math.min(3, +dur || 1.5));
+    var t = now();
+    tone({ type: 'sawtooth', f0: 34, f1: 52, t: t, dur: d, attack: 0.2, gain: 0.28, slide: d, filter: { type: 'lowpass', f: 160, f1: 320 } });
+    noise({ t: t, dur: d, attack: 0.2, gain: 0.3, type: 'lowpass', f0: 180, f1: 420, Q: 0.8, rate: 0.4 });
+    for (var i = 0; i < 6; i++) {
+      tone({ type: 'sine', f0: 180 + Math.random() * 260, f1: 420 + Math.random() * 300, t: t + Math.random() * d, dur: 0.07, gain: 0.04 });
+    }
+    haptic(Math.round(d * 120));
+  }
+
+  // 渦殻王の浮上（突き上げ）：泥と水しぶき
+  function maelBurst() {
+    var t = now();
+    thud(t, 75, 22, 1.3, 1.0);
+    noise({ t: t, dur: 1.3, gain: 0.55, type: 'lowpass', f0: 3200, f1: 260, Q: 0.6 });
+    noise({ t: t + 0.05, dur: 0.9, attack: 0.05, gain: 0.25, type: 'highpass', f0: 2200 });
+    creak(t + 0.15, 60, 0.9, 0.08, 0);
+  }
+
+  // 渦殻王が雷を呼ぶ：予告円のあいだ高まるパチパチ
+  function stormCall(dur) {
+    var d = Math.max(0.5, Math.min(3, +dur || 2));
+    var t = now();
+    noise({ t: t, dur: d, attack: d * 0.8, gain: 0.16, type: 'bandpass', f0: 700, f1: 3400, Q: 2, slide: d });
+    tone({ type: 'square', f0: 70, f1: 150, t: t, dur: d, attack: 0.3, gain: 0.05, slide: d, filter: { type: 'lowpass', f: 400 } });
+  }
+
   // ---------------------------------------------------------------- 公開
   function guard(fn, allowWhenStopped) {
     return function () {
@@ -1305,7 +1447,16 @@ html:not(.touch) #howto .tc{display:none}
     ramImpact: guard(ramImpact),
     bossShift: guard(bossShift),
     shockwave: guard(shockwave),
-    upgrade: guard(upgrade)
+    upgrade: guard(upgrade),
+    weather: guard(weather, true),
+    thunder: guard(thunder),
+    tremorPing: guard(tremorPing),
+    hazeChirp: guard(hazeChirp),
+    jam: guard(jam),
+    towerOnline: guard(towerOnline),
+    maelRumble: guard(maelRumble),
+    maelBurst: guard(maelBurst),
+    stormCall: guard(stormCall)
   };
 })();
 
@@ -1495,7 +1646,7 @@ const world = new THREE.Group(); scene.add(world);
   ground.rotation.x = -Math.PI/2; world.add(ground);
   // sea
   const sea = new THREE.Mesh(new THREE.PlaneGeometry(6000,6000), new THREE.MeshPhongMaterial({color:0x040912, specular:0x3a5577, shininess:60, fog:false}));
-  sea.rotation.x = -Math.PI/2; sea.position.y = -1.5; scene.add(sea); // shared (the port quay drops to it)
+  sea.rotation.x = -Math.PI/2; sea.position.y = -1.5; scene.add(sea); world.userData.sea = sea; // shared (the port quay drops to it)
   // sky dome
   const skyMat = new THREE.ShaderMaterial({
     side:THREE.BackSide, depthWrite:false, fog:false,
@@ -1522,7 +1673,8 @@ const world = new THREE.Group(); scene.add(world);
       const w = rand(); if (w < .6){ c[i*3]=1; c[i*3+1]=.62; c[i*3+2]=.3; } else if (w < .85){ c[i*3]=.5; c[i*3+1]=.8; c[i*3+2]=1; } else { c[i*3]=1; c[i*3+1]=.25; c[i*3+2]=.2; }
     }
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(p,3)); g.setAttribute('color', new THREE.BufferAttribute(c,3));
-    scene.add(new THREE.Points(g, new THREE.PointsMaterial({size:2.2, sizeAttenuation:false, vertexColors:true, fog:false, transparent:true, opacity:.85}))); // shared
+    const shore = new THREE.Points(g, new THREE.PointsMaterial({size:2.2, sizeAttenuation:false, vertexColors:true, fog:false, transparent:true, opacity:.85}));
+    scene.add(shore); world.userData.shore = shore; // shared (hidden in the MISSION 03 storm)
   }
   // street lamps
   {
@@ -1794,7 +1946,7 @@ function buildPort(){
   for (let i = 0; i < 7; i++){ const m = new THREE.Mesh(new THREE.PlaneGeometry(260, 60), mistMat); m.rotation.x = -Math.PI/2; m.position.set(-400 + i*130, 3 + i % 3, -240 - (i % 2) * 50); grp.add(m); mists.push(m); }
   decoMeshes.push(...mists);
   return {
-    name:'port', group:grp, grid, fogCol:0x0d171c, fogMul:1.25, bg:0x050a0e, hemi:1.1, moon:0.75, bldg:[whEntry, contEntry],
+    name:'port', group:grp, grid, rect:PORT, fogCol:0x0d171c, fogMul:1.25, bg:0x050a0e, hemi:1.1, moon:0.75, bldg:[whEntry, contEntry],
     setDeco(on){ for (const m of decoMeshes) m.visible = on; },
     clampPlayer(pos){
       let hit = null;
@@ -1813,19 +1965,227 @@ function buildPort(){
     },
   };
 }
+/* ---- MISSION 03 stage: 汀都 第三防潮堤外縁・干潟区画 (storm tidal flat) ----
+   Flat mud (y = 0), ±260 square, wave walls on every side, sea wall to the north. ~40 transmission pylons
+   (one InstancedMesh), 3 observation towers (the only other colliders), rain (one Points object whose drops
+   are moved entirely in the vertex shader inside a box that follows the camera) and lightning.
+   Fog density is NOT taken from the quality preset (visibility is the gameplay here): see stormFog(). */
+const STORM = {minX:-260, maxX:260, minZ:-260, maxZ:260};
+const STORM_TOWERS = [{id:'A', x:-110, z:10}, {id:'B', x:125, z:-70}, {id:'C', x:-45, z:-185}];
+const STORM_FOG_COL = 0x1b2530, STORM_FLASH_COL = 0x8b9bb2;
+const RAIN_MAX = 3000;            // drawn count = RAIN_MAX * Q.fx (low 40%)
+const TOWER_R = 25, TOWER_T = 4;  // link radius (m) / seconds of bracing to bring a tower online
+// Storm runtime state (weather, tremor scan, towers, haze). Reset per mission by resetStorm(); weather is a debug override.
+const SW = {weather:'storm', vis:90, visT:90, flashT:0, flashK:0, afterT:0, lightningIn:6, thunderIn:-1, thunderK:0, flashes:0, flashNew:false, rt:0,
+  scanT:0, braceT:0, haze:0, jam:false, towersDone:0, towers:[], nearTower:null, windA:0.6, wind:0.5, tremorLeg:-1, tremorK:0,
+  saidBrace:false, saidPin:false, saidFlash:false, saidHaze:false, saidTowersLeft:false};
+function visToFog(v){ return Math.sqrt(3) / v; } // FogExp2 reaches ~95% at distance v
+function stormFog(){ return SW.weather === 'clear' ? 0.0034 : visToFog(lerp(SW.vis, 400, SW.flashK)); }
+function stormLit(){ return SW.flashT > 0 || SW.afterT > 0; } // lightning flash + 1.2s afterglow
+function triggerLightning(near){
+  SW.flashT = 0.4; SW.afterT = 1.2; SW.flashes++; SW.flashNew = true;
+  SW.thunderIn = near ? 0.03 : rnd(0.35, 1.5); SW.thunderK = near ? 1 : rnd(0.45, 0.8);
+  if (STAGES.storm) STAGES.storm.newFlash();
+}
+function buildStorm(){
+  const grp = new THREE.Group(); grp.visible = false; scene.add(grp);
+  const grid = new Map();
+  for (const b of BAY_COLS) addCollider(Object.assign({}, b), grid);
+  const rand = mulberry32(2093);
+  const dummy = new THREE.Object3D(), mA = new THREE.Matrix4(), mB = new THREE.Matrix4();
+  const box = new THREE.BoxGeometry(1,1,1);
+  // wet mud + puddles
+  const mud = canvasTex(128,128,(g)=>{
+    g.fillStyle = '#23272b'; g.fillRect(0,0,128,128);
+    for (let i = 0; i < 70; i++){ g.fillStyle = crand() < .5 ? 'rgba(10,14,18,.35)' : 'rgba(70,78,84,.18)'; g.beginPath(); g.ellipse(crand()*128, crand()*128, 3 + crand()*14, 2 + crand()*6, crand()*3, 0, Math.PI*2); g.fill(); }
+    g.strokeStyle = 'rgba(0,0,0,.35)'; g.lineWidth = 1.2;
+    for (let y = 6; y < 128; y += 11){ g.beginPath(); for (let x = 0; x <= 128; x += 8) g.lineTo(x, y + Math.sin(x * 0.09 + y) * 2.5); g.stroke(); }
+  });
+  mud.wrapS = mud.wrapT = THREE.RepeatWrapping; mud.repeat.set(1600/44, 1600/44);
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(1600, 1600), new THREE.MeshPhongMaterial({color:0x7e8892, map:mud, specular:0x2a3844, shininess:24}));
+  ground.rotation.x = -Math.PI/2; grp.add(ground);
+  {
+    const n = 70, im = new THREE.InstancedMesh(new THREE.CircleGeometry(1, 18), new THREE.MeshPhongMaterial({color:0x0b131b, specular:0x9ab0c8, shininess:90, transparent:true, opacity:.8, depthWrite:false, polygonOffset:true, polygonOffsetFactor:-1}), n);
+    for (let i = 0; i < n; i++){ const s = 4 + rand()*16; dummy.position.set(rnd(-1,1)*300, 0.05, rnd(-1,1)*300); dummy.rotation.set(-Math.PI/2, 0, rand()*3); dummy.scale.set(s, s*(0.3 + rand()*0.5), 1); dummy.updateMatrix(); im.setMatrixAt(i, dummy.matrix); }
+    grp.add(im);
+  }
+  // sea wall (north) and the surf walls on the four bounds
+  const wall = new THREE.Mesh(new THREE.BoxGeometry(1400, 24, 10), new THREE.MeshLambertMaterial({color:0x2a3036})); wall.position.set(0, 7, -290); grp.add(wall);
+  const surfMat = new THREE.MeshBasicMaterial({color:0x9fb2c0, transparent:true, opacity:.16, depthWrite:false, side:THREE.DoubleSide});
+  const surf = [];
+  for (let i = 0; i < 4; i++){
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(560, 18), surfMat);
+    const a = i * Math.PI / 2; m.position.set(Math.sin(a) * 270, 6, Math.cos(a) * 270); m.rotation.y = a; grp.add(m); surf.push(m);
+  }
+  // transmission pylons (lattice: 4 legs, braces, cross-arms). One InstancedMesh, nearest first so bldR can drop the far ones.
+  const pyl = [];
+  const okAt = (x, z) => !(Math.abs(x) < 46 && z > -10 && z < 160) && STORM_TOWERS.every(t => Math.hypot(t.x - x, t.z - z) > 42);
+  for (let x = -440; x <= 440; x += 52){ const z = -118 + rnd(-5, 5); if (okAt(x, z)) pyl.push({x, z, h:52 + rand()*12, ry:0.05, lean:0}); }
+  for (let k = -6; k <= 6; k++){ const x = 30 + k * 46, z = 70 + k * 44 + rnd(-6, 6); if (okAt(x, z)) pyl.push({x, z, h:46 + rand()*10, ry:-0.74, lean:0}); }
+  for (let i = 0; i < 12; i++){ const a = rand() * Math.PI * 2, r = 120 + rand() * 360, x = Math.cos(a) * r, z = Math.sin(a) * r; if (okAt(x, z)) pyl.push({x, z, h:40 + rand()*20, ry:rand()*3, lean:rand() < .4 ? rnd(-0.18, 0.18) : 0}); }
+  const pieces = [];
+  for (const p of pyl){
+    p.dc = Math.hypot(p.x, p.z);
+    const h = p.h, w = 2.6, parts = [];
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) parts.push([sx*w, h/2, sz*w, 0.8, h, 0.8]);
+    for (const f of [0.3, 0.55, 0.8]) for (const sz of [-1, 1]) parts.push([0, h*f, sz*w, w*2 + 0.8, 0.5, 0.5]);
+    parts.push([0, h*0.86, 0, 20, 1, 1], [0, h*0.97, 0, 12, 0.8, 0.8], [0, h + 3, 0, 0.6, 6, 0.6]);
+    dummy.position.set(p.x, 0, p.z); dummy.rotation.set(p.lean, p.ry, p.lean * 0.4); dummy.scale.set(1,1,1); dummy.updateMatrix(); mA.copy(dummy.matrix);
+    for (const q of parts){ dummy.position.set(q[0], q[1], q[2]); dummy.rotation.set(0,0,0); dummy.scale.set(q[3], q[4], q[5]); dummy.updateMatrix(); pieces.push({dc:p.dc, m:mB.multiplyMatrices(mA, dummy.matrix).clone()}); }
+    if (Math.abs(p.x) < 275 && Math.abs(p.z) < 275) addCollider({minX:p.x - 3.6, maxX:p.x + 3.6, minZ:p.z - 3.6, maxZ:p.z + 3.6, h}, grid);
+  }
+  pieces.sort((a, b) => a.dc - b.dc);
+  const pim = new THREE.InstancedMesh(box, new THREE.MeshLambertMaterial({color:0x3b424a}), pieces.length);
+  pieces.forEach((q, i) => pim.setMatrixAt(i, q.m)); pim.instanceMatrix.needsUpdate = true; grp.add(pim);
+  const pylEntry = {im:pim, full:pieces.length, within:(r) => { let n = 0; while (n < pieces.length && pieces[n].dc <= r) n++; return n; }};
+  {
+    const p = new Float32Array(pyl.length * 3); pyl.forEach((q, i) => { p[i*3] = q.x; p[i*3+1] = q.h + 6; p[i*3+2] = q.z; });
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(p, 3));
+    var aviMat = new THREE.PointsMaterial({color:0xff2a20, size:7, map:glowTex, transparent:true, depthWrite:false, blending:THREE.AdditiveBlending});
+    grp.add(new THREE.Points(g, aviMat));
+  }
+  // observation towers: half-sunk shaft, platform, rotating lamp + beam (beam/glow ignore fog so they guide you), link ring on the mud
+  const shaftG = new THREE.CylinderGeometry(3.4, 4.6, 46, 12); shaftG.translate(0, 23, 0);
+  const baseG = new THREE.CylinderGeometry(7.5, 8.5, 4, 14); const platG = new THREE.CylinderGeometry(6.2, 6.2, 1.4, 14);
+  const beamG = new THREE.CylinderGeometry(0.3, 8, 70, 10, 1, true); beamG.translate(0, 35, 0); beamG.rotateZ(-Math.PI / 2);
+  const ringG = new THREE.RingGeometry(TOWER_R - 1.2, TOWER_R, 56); ringG.rotateX(-Math.PI / 2);
+  const towerMat = new THREE.MeshLambertMaterial({color:0x4a535c});
+  const towers = STORM_TOWERS.map((T, i) => {
+    const tg = new THREE.Group(); tg.position.set(T.x, 0, T.z); tg.rotation.set(0.03 * (i - 1), i, 0.035); grp.add(tg);
+    tg.add(new THREE.Mesh(shaftG, towerMat));
+    const b = new THREE.Mesh(baseG, towerMat); b.position.y = 0.8; tg.add(b);
+    const pl = new THREE.Mesh(platG, towerMat); pl.position.y = 46; tg.add(pl);
+    const lampMat = new THREE.MeshBasicMaterial({color:0x5a1810});
+    const lamp = new THREE.Mesh(box, lampMat); lamp.position.y = 48.6; lamp.scale.set(3, 3.2, 3); tg.add(lamp);
+    const rotor = new THREE.Group(); rotor.position.y = 48.6; tg.add(rotor);
+    const beamMat = new THREE.MeshBasicMaterial({color:0xff5a3a, transparent:true, opacity:.05, blending:THREE.AdditiveBlending, depthWrite:false, fog:false, side:THREE.DoubleSide});
+    rotor.add(new THREE.Mesh(beamG, beamMat));
+    const gp = new THREE.BufferGeometry(); gp.setAttribute('position', new THREE.BufferAttribute(new Float32Array([0, 48.6, 0]), 3));
+    const glowMat = new THREE.PointsMaterial({color:0xff4a2a, size:26, map:glowTex, transparent:true, depthWrite:false, blending:THREE.AdditiveBlending, fog:false});
+    tg.add(new THREE.Points(gp, glowMat));
+    const ringMat = new THREE.MeshBasicMaterial({color:0xffb547, transparent:true, opacity:.3, depthWrite:false, fog:false, blending:THREE.AdditiveBlending});
+    const ring = new THREE.Mesh(ringG, ringMat); ring.position.set(T.x, 0.15, T.z); grp.add(ring);
+    addCollider({minX:T.x - 5, maxX:T.x + 5, minZ:T.z - 5, maxZ:T.z + 5, h:50}, grid);
+    return {T, rotor, lampMat, beamMat, glowMat, ringMat};
+  });
+  const towerLight = new THREE.PointLight(0xff5a3a, 0, 130, 2); grp.add(towerLight); // one shared light at the nearest tower (deco)
+  // rain
+  const rp = new Float32Array(RAIN_MAX * 3), ra = new Float32Array(RAIN_MAX);
+  for (let i = 0; i < RAIN_MAX; i++){ rp[i*3] = rand() * 110; rp[i*3+1] = rand() * 70; rp[i*3+2] = rand() * 110; ra[i] = rand(); }
+  const rainGeo = new THREE.BufferGeometry(); rainGeo.setAttribute('position', new THREE.BufferAttribute(rp, 3)); rainGeo.setAttribute('aR', new THREE.BufferAttribute(ra, 1));
+  const rainMat = new THREE.ShaderMaterial({
+    uniforms:{uT:{value:0}, uCam:{value:new THREE.Vector3()}, uWind:{value:new THREE.Vector2()}, uScale:{value:500}, uFlash:{value:0}, uSlant:{value:0.2}},
+    vertexShader:'uniform float uT; uniform vec3 uCam; uniform vec2 uWind; uniform float uScale; uniform float uFlash; attribute float aR; varying float vA;'+
+      'void main(){ vec3 B = vec3(110.0, 70.0, 110.0); vec3 p = position; float y = mod(p.y - uT * (46.0 + aR * 18.0), B.y);'+
+      'vec2 xz = mod(p.xz + uWind * uT * (0.8 + aR * 0.4) - uCam.xz, B.xz) - B.xz * 0.5 + uCam.xz;'+
+      'vec4 mv = modelViewMatrix * vec4(xz.x, uCam.y - 20.0 + y, xz.y, 1.0); float d = max(1.0, -mv.z);'+
+      'gl_PointSize = clamp(2.2 * uScale / d, 2.0, 44.0); vA = (0.22 + 0.3 * aR) * smoothstep(105.0, 12.0, d) * (1.0 + uFlash * 2.2); gl_Position = projectionMatrix * mv; }',
+    fragmentShader:'uniform float uSlant; varying float vA; void main(){ vec2 c = gl_PointCoord - 0.5; float x = c.x - c.y * uSlant;'+
+      'float a = (1.0 - smoothstep(0.01, 0.04, abs(x))) * (1.0 - smoothstep(0.3, 0.5, abs(c.y))); if (a < 0.02) discard; gl_FragColor = vec4(0.72, 0.8, 0.9, a * vA); }',
+    transparent:true, depthWrite:false,
+  });
+  const rain = new THREE.Points(rainGeo, rainMat); rain.frustumCulled = false; rain.renderOrder = 3; grp.add(rain);
+  // lightning: sky flash sheet (not on LOW), a distant silhouette only the flash reveals
+  const skyFlash = new THREE.Mesh(new THREE.PlaneGeometry(1000, 320), new THREE.MeshBasicMaterial({color:0xc0d0ff, transparent:true, opacity:0, blending:THREE.AdditiveBlending, depthWrite:false, fog:false}));
+  skyFlash.visible = false; grp.add(skyFlash);
+  const shadow = new THREE.Mesh(EG.sph, new THREE.MeshBasicMaterial({color:0x06090d, transparent:true, opacity:0, depthWrite:false, fog:false}));
+  shadow.position.set(260, 6, -360); shadow.scale.set(80, 26, 105); shadow.visible = false; grp.add(shadow);
+  // gameplay effect pools (no allocation during play): haze clouds, strike circles, emerge ring, bolts
+  const cloudG = new THREE.SphereGeometry(1, 18, 10);
+  const clouds = []; for (let i = 0; i < 4; i++){ const m = new THREE.Mesh(cloudG, new THREE.MeshBasicMaterial({color:0x8d979e, transparent:true, opacity:0, depthWrite:false, side:THREE.DoubleSide})); m.visible = false; m.renderOrder = 1; grp.add(m); clouds.push({m, active:false, owner:null, x:0, y:0, z:0, r:0, k:0}); }
+  const circG = new THREE.CircleGeometry(1, 36); circG.rotateX(-Math.PI / 2);
+  const circles = []; for (let i = 0; i < 3; i++){ const m = new THREE.Mesh(circG, new THREE.MeshBasicMaterial({color:0xff3a2a, transparent:true, opacity:0, depthWrite:false, fog:false, blending:THREE.AdditiveBlending})); m.visible = false; m.renderOrder = 2; grp.add(m); circles.push(m); }
+  const wrG = new THREE.RingGeometry(0.82, 1, 48); wrG.rotateX(-Math.PI / 2);
+  const waterRing = new THREE.Mesh(wrG, new THREE.MeshBasicMaterial({color:0x9fd8ff, transparent:true, opacity:0, depthWrite:false, fog:false, blending:THREE.AdditiveBlending})); waterRing.visible = false; waterRing.renderOrder = 2; grp.add(waterRing);
+  const boltG = new THREE.BoxGeometry(1.4, 1, 1.4); boltG.translate(0, 0.5, 0);
+  const bolts = []; for (let i = 0; i < 3; i++){ const m = new THREE.Mesh(boltG, new THREE.MeshBasicMaterial({color:0xeef4ff, transparent:true, opacity:.95, depthWrite:false, fog:false, blending:THREE.AdditiveBlending})); m.visible = false; m.scale.set(1, 220, 1); grp.add(m); bolts.push({m, t:0}); }
+  let deco = true;
+  const fogC = new THREE.Color(), flashC = new THREE.Color(STORM_FLASH_COL), baseC = new THREE.Color(STORM_FOG_COL), clearC = new THREE.Color(FOG_COL);
+  return {
+    name:'storm', group:grp, grid, fogCol:STORM_FOG_COL, fogFixed:true, bg:STORM_FOG_COL, hemi:0.85, moon:0.3, sky:false, sea:false, ash:false, rect:STORM,
+    bldg:[pylEntry], fx:{clouds, circles, waterRing, bolts},
+    setDeco(on){ deco = on; towerLight.visible = on; if (!on) skyFlash.visible = false; },
+    setFx(fx){ rainGeo.setDrawRange(0, Math.round(RAIN_MAX * fx)); },
+    get rainCount(){ return Math.min(RAIN_MAX, rainGeo.drawRange.count); },
+    setScale(s){ rainMat.uniforms.uScale.value = s; },
+    newFlash(){ const a = rnd(0, Math.PI * 2); skyFlash.position.set(camera.position.x + Math.sin(a) * 720, 170, camera.position.z + Math.cos(a) * 720); skyFlash.lookAt(camera.position.x, 120, camera.position.z); },
+    reset(){
+      for (const c of clouds){ c.active = false; c.owner = null; c.m.visible = false; }
+      for (const m of circles) m.visible = false;
+      waterRing.visible = false; for (const b of bolts){ b.m.visible = false; b.t = 0; }
+    },
+    clampPlayer(pos){
+      let hit = null;
+      if (pos.x < STORM.minX){ pos.x = STORM.minX; hit = 'bound'; } else if (pos.x > STORM.maxX){ pos.x = STORM.maxX; hit = 'bound'; }
+      if (pos.z < STORM.minZ){ pos.z = STORM.minZ; hit = 'bound'; } else if (pos.z > STORM.maxZ){ pos.z = STORM.maxZ; hit = 'bound'; }
+      return hit;
+    },
+    clampEnemy(p){ p.x = clamp(p.x, STORM.minX - 10, STORM.maxX + 10); p.z = clamp(p.z, STORM.minZ - 10, STORM.maxZ + 10); },
+    inBounds(x, z, m){ m = m || 0; return x > STORM.minX - 10 + m && x < STORM.maxX + 10 - m && z > STORM.minZ - 10 + m && z < STORM.maxZ + 10 - m; },
+    update(t, dt){
+      const clear = SW.weather === 'clear';
+      SW.rt += dt;
+      // wind veers slowly with gusts
+      SW.windA += dt * 0.02 * Math.sin(t * 0.05);
+      SW.wind = clamp(0.5 + 0.3 * Math.sin(t * 0.23) + 0.2 * Math.sin(t * 0.71 + 1.3), 0, 1);
+      if (!clear){ SW.lightningIn -= dt; if (SW.lightningIn <= 0){ SW.lightningIn = rnd(9, 14); triggerLightning(false); } }
+      if (SW.flashT > 0) SW.flashT = Math.max(0, SW.flashT - dt); else SW.afterT = Math.max(0, SW.afterT - dt);
+      const ft = SW.flashT / 0.4;
+      SW.flashK = SW.flashT > 0 ? clamp(Math.sqrt(ft) * (0.72 + 0.28 * Math.sin(t * 95)) + (ft > 0.7 ? 0.15 : 0), 0, 1) : 0;
+      if (SW.thunderIn > 0){ SW.thunderIn -= dt; if (SW.thunderIn <= 0) snd('thunder', SW.thunderK); }
+      SW.vis = approach(SW.vis, SW.visT, dt * 30);
+      scene.fog.density = stormFog();
+      fogC.copy(clear ? clearC : baseC).lerp(flashC, SW.flashK * 0.6);
+      scene.fog.color.copy(fogC); scene.background.copy(fogC);
+      hemi.intensity = 0.85 + SW.flashK * 2.4; moon.intensity = 0.3 + SW.flashK * 0.8;
+      const u = world.userData; u.sky.visible = clear; u.stars.visible = clear;
+      // rain
+      rain.visible = !clear;
+      const ru = rainMat.uniforms, ws = 5 + 13 * SW.wind;
+      ru.uT.value = SW.rt; ru.uCam.value.copy(camera.position); ru.uWind.value.set(Math.cos(SW.windA) * ws, Math.sin(SW.windA) * ws); ru.uFlash.value = SW.flashK;
+      const e = camera.matrixWorld.elements; ru.uSlant.value = clamp((ru.uWind.value.x * e[0] + ru.uWind.value.y * e[2]) / 52, -0.6, 0.6);
+      skyFlash.visible = deco && SW.flashK > 0.02; skyFlash.material.opacity = SW.flashK * 0.55;
+      shadow.visible = SW.flashK > 0.05 && !G.lordSpawned; shadow.material.opacity = SW.flashK * 0.8;
+      aviMat.opacity = Math.sin(t * 2.1) > 0.3 ? 1 : 0.15;
+      for (let i = 0; i < 4; i++) surf[i].position.y = 5 + Math.sin(t * 0.9 + i * 1.7) * 2.5;
+      // towers: red & slow until linked, cyan & fast when online
+      let near = null, nd = 1e9;
+      for (let i = 0; i < towers.length; i++){
+        const o = towers[i], st = SW.towers[i], on = !!(st && st.done), prog = st ? st.prog : 0;
+        o.rotor.rotation.y += dt * (on ? 1.6 : 0.5);
+        o.lampMat.color.setHex(on ? 0x8ffff4 : (prog > 0 && Math.sin(t * 10) > 0 ? 0xffb547 : 0x5a1810));
+        o.beamMat.color.setHex(on ? 0x5ff2e8 : 0xff5a3a); o.beamMat.opacity = on ? 0.09 : 0.045;
+        o.glowMat.color.setHex(on ? 0x5ff2e8 : 0xff4a2a); o.glowMat.size = on ? 34 : 24 + Math.sin(t * 3 + i) * 4;
+        o.ringMat.color.setHex(on ? 0x5ff2e8 : 0xffb547); o.ringMat.opacity = on ? 0.12 : 0.22 + 0.18 * Math.abs(Math.sin(t * 2 + i)) + prog * 0.3;
+        const dd = Math.hypot(o.T.x - camera.position.x, o.T.z - camera.position.z); if (dd < nd){ nd = dd; near = o; }
+      }
+      if (near){ towerLight.position.set(near.T.x, 46, near.T.z); const on = SW.towers[towers.indexOf(near)] && SW.towers[towers.indexOf(near)].done; towerLight.color.setHex(on ? 0x5ff2e8 : 0xff5a3a); towerLight.intensity = on ? 1.6 : 0.7; }
+      for (const b of bolts){ if (!b.m.visible) continue; b.t -= dt; b.m.material.opacity = Math.max(0, b.t / 0.22) * (0.7 + 0.3 * Math.sin(t * 120)); if (b.t <= 0) b.m.visible = false; }
+    },
+  };
+}
 let stage = STAGES.city;
 function setStage(name){
-  if (!STAGES[name]){ if (name !== 'port') return; STAGES.port = buildPort(); applyStageQuality(STAGES.port); }
+  if (!STAGES[name]){
+    if (name === 'port') STAGES.port = buildPort(); else if (name === 'storm') STAGES.storm = buildStorm(); else return;
+    applyStageQuality(STAGES[name]); onResize();
+  }
   stage = STAGES[name];
   for (const k in STAGES) STAGES[k].group.visible = STAGES[k] === stage;
   colGrid = stage.grid;
-  scene.fog.color.setHex(stage.fogCol); scene.fog.density = Q.fog * stage.fogMul;
+  scene.fog.color.setHex(stage.fogCol); scene.fog.density = stageFog();
   scene.background.setHex(stage.bg);
   hemi.intensity = stage.hemi || 0.75; moon.intensity = stage.moon || 0.55;
+  // shared sky / stars / shore lights / sea / embers: the storm hides them (fog colour is the sky there)
+  const u = world.userData, sky = stage.sky !== false;
+  u.sky.visible = sky; u.stars.visible = sky; u.shore.visible = sky; u.sea.visible = stage.sea !== false; ash.pts.visible = stage.ash !== false;
 }
+// Fog density of the active stage. The storm's is fixed by game state only (never by the quality preset).
+function stageFog(){ return stage.fogFixed ? stormFog() : Q.fog * stage.fogMul; }
 function applyStageQuality(st){
   for (const b of st.bldg) b.im.count = Q.bldR === Infinity ? b.full : b.within(Q.bldR);
   st.setDeco(Q.deco);
+  if (st.setFx) st.setFx(Q.fx);
 }
 
 /* ================= player mech (HEKATON) ================= */
@@ -2005,6 +2365,8 @@ const EM = {
   red: new THREE.MeshBasicMaterial({color:0xff2a2a}),
   weak: new THREE.MeshBasicMaterial({color:0xffb020}),
   ring: new THREE.MeshBasicMaterial({color:0xff3a3a, transparent:true, opacity:.8, blending:THREE.AdditiveBlending, depthWrite:false}),
+  haze: new THREE.MeshLambertMaterial({color:0x8a949b}),
+  hazeRing: new THREE.MeshBasicMaterial({color:0xcfe4ee, transparent:true, opacity:.55, blending:THREE.AdditiveBlending, depthWrite:false}),
 };
 const EG = {
   sph: new THREE.SphereGeometry(1, 10, 7),
@@ -2012,6 +2374,7 @@ const EG = {
   oct: new THREE.OctahedronGeometry(1, 0),
   torus: new THREE.TorusGeometry(5, 0.35, 6, 24),
   cone: new THREE.ConeGeometry(1, 1, 6),
+  cyl: new THREE.CylinderGeometry(1, 1, 1, 10),
 };
 function part(parent, geo, mat, x,y,z, sx,sy,sz, rx,ry,rz){
   const m = new THREE.Mesh(geo, mat); m.position.set(x,y,z); m.scale.set(sx,sy,sz); if (rx||ry||rz) m.rotation.set(rx||0, ry||0, rz||0); parent.add(m); return m;
@@ -2083,13 +2446,16 @@ function makeRammer(){
     part(body, EG.box, glowMat, sx*5.3,4.2,0, 1.2,3.6,8.5, 0,0,sx*-0.15);  // side plates
   }
   const weak = part(body, EG.sph, weakMat, 0,5.2,-7.6, 2.2,2.2,1.6);
+  // charge tell: an additive glow that ignores fog, so the wind-up still reads through the MISSION 03 storm / haze
+  const tellMat = new THREE.MeshBasicMaterial({color:0xff3018, transparent:true, opacity:0, blending:THREE.AdditiveBlending, depthWrite:false, fog:false});
+  const tell = part(body, EG.sph, tellMat, 0,5.4,7.4, 3.4,3.4,3.4); tell.visible = false;
   const legsArr = [];
   for (const sx of [-1,1]) for (const z of [-3.2, 3.2]){
     const pivot = new THREE.Group(); pivot.position.set(sx*4.6, 3, z); body.add(pivot);
     part(pivot, EG.box, EM.dark, sx*1.6, -1.2, 0, 1.4, 3.8, 1.4, 0, 0, sx*-0.35);
     legsArr.push({pivot, s:sx, z});
   }
-  return {g, body, legs:legsArr, glowMat, weakMat, weak, mats:[glowMat, weakMat]};
+  return {g, body, legs:legsArr, glowMat, weakMat, weak, tell, tellMat, mats:[glowMat, weakMat, tellMat]};
 }
 // 双殻王 TWINSHELL（殻王の一種。MISSION 02 のボス）: two clamshell halves armour its core.
 // Phase 1: the shell only opens to vent after a barrage / charge (core takes heavy damage only then).
@@ -2126,38 +2492,81 @@ function makeTwin(){
   }
   return {g, body, core, coreMat, ribs, ribMat, shells, shellMat, legs:legsArr, mats:[coreMat, ribMat, shellMat]};
 }
+// 霧殻 HAZE（MISSION 03）: floater variant that drifts ~25m from you at 20m up and, after a 1.5s white pulse,
+// spreads a 45m ash-fog cloud (pooled in the storm stage) that jams the instruments. Never shoots.
+function makeHaze(){
+  const g = new THREE.Group(), body = new THREE.Group(); g.add(body);
+  const coreMat = new THREE.MeshBasicMaterial({color:0x9fb4c4});
+  part(body, EG.oct, EM.haze, 0,0,0, 3,3.8,3);
+  part(body, EG.sph, coreMat, 0,0,2, 1.4,1.4,1.4);
+  const ring = part(body, EG.torus, EM.hazeRing, 0,0,0, 1.1,1.1,1.6, Math.PI/2,0,0);
+  for (let k = 0; k < 4; k++){ const a = k/4*Math.PI*2; part(body, EG.cone, EM.shell2, Math.cos(a)*2.4, -3.6, Math.sin(a)*2.4, 0.7, 2.6, 0.7, Math.PI, 0, 0); }
+  return {g, body, ring, coreMat, mats:[coreMat]};
+}
+// 渦殻王 MAELSHELL（殻王の一種。MISSION 03 のボス）: swims under the mud. Spiral shell, three intake vents on the back (weak points).
+function makeMael(){
+  const g = new THREE.Group(), body = new THREE.Group(); g.add(body);
+  const shellMat = new THREE.MeshLambertMaterial({color:0x3c464d, emissive:0x000000});
+  const ventMat = new THREE.MeshBasicMaterial({color:0x1a0e06});
+  part(body, EG.sph, EM.dark, 0,5,0, 15,5,19);
+  part(body, EG.sph, shellMat, 0,8,-1, 14,7.5,17);
+  for (let k = 0; k < 4; k++) part(body, EG.torus, EM.shell2, 0, 12 + k*1.7, -3 + k*0.8, 2.3 - k*0.5, 2.3 - k*0.5, 2.2, Math.PI/2,0,0);
+  for (let k = 0; k < 12; k++){ const a = k/12*Math.PI*2; part(body, EG.cone, EM.dark, Math.sin(a)*13.5, 7, Math.cos(a)*16.5, 1.3, 5 + (k%2)*2.5, 1.3, Math.cos(a)*1.1, 0, -Math.sin(a)*1.1); }
+  part(body, EG.box, EM.shell2, 0,6,17, 8,5,6);
+  for (const sx of [-1,1]){
+    part(body, EG.box, EM.orange, sx*2.4,7.4,20.1, 1.6,0.7,0.4);
+    part(body, EG.cone, EM.dark, sx*3.4,4.4,22, 1.2,6,1.2, Math.PI/2.2,0,sx*0.3);
+  }
+  const vents = [];
+  for (const [x, y, z] of [[-4.6,13.4,-7], [0,14.6,-10], [4.6,13.4,-7]]){ vents.push(part(body, EG.cyl, ventMat, x,y,z, 1.9,1.6,1.9)); part(body, EG.torus, EM.dark, x,y + 0.7,z, 0.46,0.46,1.4, Math.PI/2,0,0); }
+  const legsArr = [];
+  for (const sx of [-1,1]) for (const z of [-9, 0, 9]){
+    const pivot = new THREE.Group(); pivot.position.set(sx*11, 6, z); body.add(pivot);
+    part(pivot, EG.box, EM.dark, sx*6, 0, 0, 12, 2.2, 2.2, 0, 0, sx*0.35);
+    part(pivot, EG.box, EM.shell2, sx*12, -3.6, 0, 2.2, 9, 2.2, 0, 0, sx*-0.25);
+    legsArr.push({pivot, s:sx, z});
+  }
+  return {g, body, shellMat, ventMat, vents, legs:legsArr, mats:[shellMat, ventMat]};
+}
 const ENEMY_DEF = {
   beetle: {hp:4, r:5.2, cy:3, score:800},
   floater: {hp:5, r:5, cy:0, score:900},
   lord: {hp:90, r:15, cy:10, score:6000},
   rammer: {hp:9, r:6, cy:4.5, score:1100},
   twin: {hp:170, r:16, cy:11, score:10000},
+  haze: {hp:3, r:5, cy:0, score:900},       // 60% of a floater
+  mael: {hp:221, r:18, cy:10, score:14000}, // 1.3x TWINSHELL
 };
-const BOSS_TYPES = {lord:true, twin:true};
-const ENEMY_NAMES = {beetle:'甲虫型', floater:'浮遊型', rammer:'突進型', lord:'殻王', twin:'双殻王'};
+const BOSS_TYPES = {lord:true, twin:true, mael:true};
+const GROUND_TYPES = {beetle:true, rammer:true, lord:true, twin:true, mael:true}; // picked up by the tremor scan (floaters / haze are not)
+const ENEMY_NAMES = {beetle:'甲虫型', floater:'浮遊型', rammer:'突進型', lord:'殻王', twin:'双殻王', haze:'霧殻', mael:'渦殻王'};
+const BOSS_LABEL = {lord:'殻王 SHELL LORD', twin:'双殻王 TWINSHELL', mael:'渦殻王 MAELSHELL'};
+const MAKERS = {beetle:makeBeetle, floater:makeFloater, rammer:makeRammer, twin:makeTwin, lord:makeLord, haze:makeHaze, mael:makeMael};
 const enemies = [];
 const WEAK_LOCAL = new THREE.Vector3(0,12,15.4);
 // ground warning line for charges (shared geometry: unit strip pointing +z from the origin)
 const warnGeo = new THREE.PlaneGeometry(1, 1); warnGeo.rotateX(-Math.PI/2); warnGeo.translate(0, 0, 0.5);
-function makeWarnLine(){
-  const m = new THREE.Mesh(warnGeo, new THREE.MeshBasicMaterial({color:0xff2a1a, transparent:true, opacity:0, blending:THREE.AdditiveBlending, depthWrite:false, side:THREE.DoubleSide}));
+function makeWarnLine(noFog){
+  const m = new THREE.Mesh(warnGeo, new THREE.MeshBasicMaterial({color:0xff2a1a, transparent:true, opacity:0, blending:THREE.AdditiveBlending, depthWrite:false, side:THREE.DoubleSide, fog:!noFog}));
   m.visible = false; m.renderOrder = 2; scene.add(m); return m;
 }
 function spawnEnemy(type, x, z){
   const def = ENEMY_DEF[type];
-  const model = type === 'beetle' ? makeBeetle() : type === 'floater' ? makeFloater() : type === 'rammer' ? makeRammer() : type === 'twin' ? makeTwin() : makeLord();
+  const model = (MAKERS[type] || makeLord)();
   const e = {type, model, g:model.g, hp:def.hp, maxHp:def.hp, r:def.r, cy:def.cy, alive:true, t:Math.random()*10, state:'chase', st:0,
     fireT: rnd(1.5, 3), orbit: Math.random() < .5 ? -1 : 1, dir:new THREE.Vector3(), vel:new THREE.Vector3(), hitFlash:0};
-  if (type === 'rammer'){ e.state = 'approach'; e.cd = rnd(2.5, 4); e.line = makeWarnLine(); }
+  if (type === 'rammer'){ e.state = 'approach'; e.cd = rnd(2.5, 4); e.line = makeWarnLine(!!stage.fogFixed); }
   if (type === 'twin'){ e.state = 'walk'; e.phase = 1; e.open = 0; e.openT = 0; e.atkCD = 3; e.atkN = 0; e.line = makeWarnLine(); e.waves = []; }
-  e.g.position.set(x, type === 'floater' ? 24 : 0, z);
+  if (type === 'haze'){ e.state = 'drift'; e.st = rnd(1.5, 3); e.cloud = null; }
+  if (type === 'mael'){ e.state = 'dive'; e.phase = 1; e.st = 4; e.sub = true; e.y = MAEL_SUB_Y; e.open = 0; e.ang = 0; e.atkCD = 2; e.atkN = 0; e.vol = 0; e.volT = 0; e.tx = x; e.tz = z; }
+  e.g.position.set(x, type === 'floater' ? 24 : type === 'haze' ? 20 : type === 'mael' ? MAEL_SUB_Y : 0, z);
   scene.add(e.g); enemies.push(e);
   // spawn flare
-  for (let k = 0; k < 30; k++) emit(FX, x + rnd(-3,3), rnd(0,6), z + rnd(-3,3), rnd(-4,4), rnd(10,30), rnd(-4,4), 1,.4,.12,.9, rnd(2,4), rnd(.6,1.2), 1, 0, 1);
+  if (type !== 'mael') for (let k = 0; k < 30; k++) emit(FX, x + rnd(-3,3), rnd(0,6), z + rnd(-3,3), rnd(-4,4), rnd(10,30), rnd(-4,4), 1,.4,.12,.9, rnd(2,4), rnd(.6,1.2), 1, 0, 1);
   return e;
 }
 function enemyCenter(e, out){
-  if (e.type === 'floater') return out.copy(e.g.position);
+  if (e.type === 'floater' || e.type === 'haze') return out.copy(e.g.position);
   return out.set(e.g.position.x, e.g.position.y + e.cy, e.g.position.z);
 }
 function weakPoint(e, out){
@@ -2165,8 +2574,16 @@ function weakPoint(e, out){
   if (e.type === 'lord') return out.copy(WEAK_LOCAL).applyMatrix4(e.g.matrixWorld);
   if (e.type === 'rammer') return e.model.weak.getWorldPosition(out);
   if (e.type === 'twin') return e.model.core.getWorldPosition(out);
+  if (e.type === 'mael'){
+    // the intake vent closest to where the cannon is looking
+    const vs = e.model.vents; let best = 0, bs = -2;
+    mvDir.set(0,0,-1).applyQuaternion(camera.quaternion);
+    for (let i = 0; i < vs.length; i++){ vs[i].getWorldPosition(mvA); const s2 = mvB.subVectors(mvA, camera.position).normalize().dot(mvDir); if (s2 > bs){ bs = s2; best = i; } }
+    return vs[best].getWorldPosition(out);
+  }
   return enemyCenter(e, out);
 }
+const mvA = new THREE.Vector3(), mvB = new THREE.Vector3(), mvDir = new THREE.Vector3();
 // Weak point currently exposed? {r: hit radius, mul: damage multiplier} or null.
 function weakInfo(e){
   if (e.type === 'lord') return {r:4.2, mul:3};
@@ -2176,6 +2593,11 @@ function weakInfo(e){
     if (e.phase === 2) return {r:5, mul:2.5};
     return e.open > 0.45 ? {r:5.5, mul:3} : null;
   }
+  if (e.type === 'mael'){
+    if (e.sub || e.state === 'shift' || e.state === 'shift3') return null;
+    if (e.phase === 2) return stormLit() ? {r:3.8, mul:3} : null; // vents only show in the lightning
+    return e.open > 0.5 ? {r:3.8, mul:3} : null;
+  }
   return null;
 }
 // damage multiplier for a hit on the body (not the weak point)
@@ -2183,6 +2605,7 @@ function bodyMul(e){
   if (e.type === 'lord') return 0.5;
   if (e.type === 'rammer') return e.state === 'stunned' ? 2 : 0.6;
   if (e.type === 'twin') return e.state === 'transform' ? 0 : e.phase === 2 ? 0.5 : 0.12;
+  if (e.type === 'mael') return (e.sub || e.state === 'shift' || e.state === 'shift3') ? 0 : e.phase === 2 ? 0.25 : 0.15;
   return 1;
 }
 function aimPoint(e, out){ return weakInfo(e) ? weakPoint(e, out) : enemyCenter(e, out); }
@@ -2201,11 +2624,15 @@ const G = {
   lock:null, lockPrev:null,
 };
 const SPAWN_ORDER = ['beetle','beetle','floater','beetle','floater','beetle','beetle','floater','beetle','floater','beetle','floater'];
+const SPAWN_ORDER_3 = ['beetle','beetle','beetle','beetle','floater','beetle','haze','rammer','floater','beetle','haze','rammer','beetle','floater'];
 const SPAWN_ORDER_2 = ['beetle','beetle','floater','rammer','beetle','floater','beetle','rammer','floater','beetle','rammer','beetle','floater','rammer','beetle','floater'];
 // Terms added in game.html (not in world-bible.md; original names, defined here):
 //   衝角殻 RAMSHELL = 突進型の灰殻 / 双殻王 TWINSHELL = 二枚の殻を持つ殻王（MISSION 02 のボス）/ 汀都 港湾区画 = MISSION 02 の舞台
 //   整備 HANGAR = 機体強化画面 / 資材 PARTS = 作戦報酬（強化に使う）/ 横跳び SIDESTEP = 跳躍＋左右の横移動
 //   今日の作戦目標 DAILY = 日替わり目標 / 連続出撃 STREAK = 連続ログイン日数
+//   (MISSION 03, docs/mission-03.md) 汀都 第三防潮堤外縁・干潟区画 = MISSION 03 の舞台 / 霧殻 HAZE = 灰の霧で計器を乱す浮遊型
+//   渦殻王 MAELSHELL = 干潟の泥の下を泳ぐ殻王（MISSION 03 のボス）/ 震動探知 TREMOR SCAN = 踏み据えて脚で地面の震えを読む索敵
+//   観測塔 OBSERVATION TOWER = そばで踏み据えて電力を分けると起動し、視界とレーダーが広がる
 // Missions. M01 numbers are the original tuning (do not change: MISSION 01 must stay clearable without upgrades).
 const MISSIONS = {
   1: {id:1, tag:'MISSION 01', name:'汀都 第七区画 防衛', stage:'city', time:180, order:SPAWN_ORDER, boss:'lord', killPts:800, bossPts:6000,
@@ -2214,6 +2641,10 @@ const MISSIONS = {
   2: {id:2, tag:'MISSION 02', name:'汀都 港湾区画 夜間掃討', stage:'port', time:240, order:SPAWN_ORDER_2, boss:'twin', killPts:850, bossPts:10000,
       ranks:[30000, 23000, 15000], partsMul:1.3, firstBonus:400, hiKey:'grandstride_m2_hiscore', rankKey:'grandstride_m2_hirank', maxAlive:[4,6],
       brief:'4分以内に灰殻16体と双殻王を撃破。<br>突進型は溜めの赤い光が合図──横跳びで躱す。<br>激突して止まった背面が弱点。'},
+  3: {id:3, tag:'MISSION 03', name:'汀都 第三防潮堤外縁 嵐中観測戦', stage:'storm', time:300, order:SPAWN_ORDER_3, boss:'mael', killPts:900, bossPts:14000,
+      towers:3, towerPts:1500,
+      ranks:[42500, 33500, 23500], partsMul:1.6, firstBonus:550, hiKey:'grandstride_m3_hiscore', rankKey:'grandstride_m3_hirank', maxAlive:[4,5],
+      brief:'5分以内に灰殻14体を撃破し、観測塔3基を起動。最後に渦殻王。<br>止まって踏み据えると震動探知──レーダーが広がる。<br>塔のそばで4秒踏み据えると起動。'},
 };
 let M = MISSIONS[1];
 const RANK_NAMES = ['S','A','B','C'];
@@ -2238,7 +2669,7 @@ function loadSave(){
   if (!d || typeof d !== 'object' || d.v !== SAVE_V) return s;
   s.parts = Math.max(0, Math.floor(+d.parts || 0));
   for (const k of UP_KEYS) s.up[k] = clamp(Math.floor(+(d.up && d.up[k]) || 0), 0, UP_MAX);
-  if (d.cleared && typeof d.cleared === 'object') s.cleared = {1:!!d.cleared[1], 2:!!d.cleared[2]};
+  if (d.cleared && typeof d.cleared === 'object') s.cleared = {1:!!d.cleared[1], 2:!!d.cleared[2], 3:!!d.cleared[3]};
   s.launched = !!d.launched;
   if (d.daily && typeof d.daily === 'object' && typeof d.daily.date === 'string') s.daily = d.daily;
   if (d.streak && typeof d.streak === 'object') s.streak = {last:String(d.streak.last || ''), n:Math.max(0, Math.floor(+d.streak.n || 0))};
@@ -2247,7 +2678,9 @@ function loadSave(){
 let SAVE = loadSave();
 function writeSave(){ try { localStorage.setItem(SAVE_KEY, JSON.stringify(SAVE)); } catch(e){} }
 let sessionDebug = false; // set by debug upgrade / parts hooks: every later run in this page is marked debug (no records saved)
-function m2Unlocked(){ return !!SAVE.cleared[1]; }
+// MISSION n unlocks when MISSION n-1 has been cleared (MISSION 01 is always open)
+function mUnlocked(id){ id = +id; return id === 1 || (!!MISSIONS[id] && !!SAVE.cleared[id - 1]); }
+function m2Unlocked(){ return mUnlocked(2); }
 function upEffects(up){
   return {gripMax:100 + 8*up.legs, gripRegen:1 + 0.12*up.legs, turnMul:1 + 0.05*up.legs,
     heatMul:1 - 0.07*up.core, coolMul:1 + 0.1*up.core, dashSpd:25 + 1.2*up.core,
@@ -2269,7 +2702,8 @@ function calcReward(m, win, score, rank, first){
 
 /* ---- daily operations (今日の作戦目標) + streak ----
    3 goals per local date, chosen deterministically from the date. Counting goals accumulate over the day; "clear with…"
-   goals must be met in one run. At most one goal that needs MISSION 02. Debug runs never count. */
+   goals must be met in one run. At most one mission-specific goal (field m) in total, and none for a mission that is
+   still locked. Debug runs never count. */
 const DAILY_POOL = [
   {id:'kills',   n:[20,30], r:80,  txt:(n) => '灰殻を合計' + n + '体撃破', val:(s) => s.killsTotal},
   {id:'beetle',  n:[10,16], r:70,  txt:(n) => '甲虫型を' + n + '体撃破', val:(s) => s.kills.beetle},
@@ -2282,9 +2716,12 @@ const DAILY_POOL = [
   {id:'rankA',   n:[1,1],   r:110, once:true, txt:() => 'ランクA以上でクリア', val:(s) => s.win && (s.rank === 'S' || s.rank === 'A') ? 1 : 0},
   {id:'acc',     n:[55,65], r:90,  once:true, txt:(n) => '命中率' + n + '%以上でクリア', val:(s, n) => s.win && s.acc * 100 >= n ? 1 : 0},
   {id:'time',    n:[45,60], r:90,  once:true, txt:(n) => '残り' + n + '秒以上でクリア', val:(s, n) => s.win && s.timeLeft >= n ? 1 : 0},
-  {id:'rammer',  n:[4,6],   r:100, m2:true, txt:(n) => '突進型を' + n + '体撃破', val:(s) => s.kills.rammer},
-  {id:'crash',   n:[3,5],   r:100, m2:true, txt:(n) => '突進型を' + n + '回 激突させる', val:(s) => s.rammerCrashes},
-  {id:'wave',    n:[2,3],   r:120, m2:true, txt:(n) => '跳躍で衝撃波を' + n + '回回避', val:(s) => s.waveDodges},
+  {id:'rammer',  n:[4,6],   r:100, m:2, txt:(n) => '突進型を' + n + '体撃破', val:(s) => s.kills.rammer},
+  {id:'crash',   n:[3,5],   r:100, m:2, txt:(n) => '突進型を' + n + '回 激突させる', val:(s) => s.rammerCrashes},
+  {id:'wave',    n:[2,3],   r:120, m:2, txt:(n) => '跳躍で衝撃波を' + n + '回回避', val:(s) => s.waveDodges},
+  {id:'haze',    n:[2,3],   r:110, m:3, txt:(n) => '霧殻を' + n + '体撃破', val:(s) => s.kills.haze},
+  {id:'scan',    n:[4,6],   r:90,  m:3, txt:(n) => '震動探知を' + n + '回成功', val:(s) => s.scans},
+  {id:'flash',   n:[5,10],  r:120, m:3, txt:(n) => '雷光中に弱点へ' + n + '回命中', val:(s) => s.flashHits},
 ];
 const DAILY_ALL_BONUS = 100;
 let debugDate = null;
@@ -2294,14 +2731,14 @@ function shiftDate(ds, days){ const [y, m, d] = ds.split('-').map(Number); retur
 function hashStr(str){ let h = 2166136261; for (let i = 0; i < str.length; i++){ h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
 function genDaily(ds){
   const r = mulberry32(hashStr('grandstride/' + ds));
-  const pool = DAILY_POOL.slice(); const goals = []; let m2 = 0;
+  const pool = DAILY_POOL.slice(); const goals = []; let ms = 0;
   while (goals.length < 3 && pool.length){
     const i = Math.floor(r() * pool.length); const d = pool.splice(i, 1)[0];
-    if (d.m2 && m2 >= 1) continue;
-    if (d.m2) m2++;
+    if (d.m && (ms >= 1 || !mUnlocked(d.m))) continue;
+    if (d.m) ms++;
     const span = d.n[1] - d.n[0];
     const n = span >= 5 ? d.n[0] + 5 * Math.floor(r() * (Math.floor(span / 5) + 1)) : d.n[0] + Math.floor(r() * (span + 1));
-    goals.push({id:d.id, n, target:d.once ? 1 : n, reward:d.r, m2:!!d.m2});
+    goals.push({id:d.id, n, target:d.once ? 1 : n, reward:d.r, m2:d.m === 2, m:d.m || 0});
   }
   return goals;
 }
@@ -2336,7 +2773,9 @@ function applyDaily(st){
   if (!SAVE.daily.allDone && SAVE.daily.goals.every(g => g.done)){ SAVE.daily.allDone = true; SAVE.parts += DAILY_ALL_BONUS; out.push({text:'本日の目標 すべて達成', reward:DAILY_ALL_BONUS}); }
   return out;
 }
-function newRunStats(){ return {kills:{beetle:0, floater:0, rammer:0}, killsTotal:0, overbeats:0, weakHits:0, bossKills:0, rammerCrashes:0, waveDodges:0, win:false, dmg:0, rank:'C', acc:0, timeLeft:0}; }
+function newRunStats(){ return {kills:{beetle:0, floater:0, rammer:0, haze:0}, killsTotal:0, overbeats:0, weakHits:0, bossKills:0, rammerCrashes:0, waveDodges:0,
+  scans:0, flashHits:0, towers:0, win:false, dmg:0, rank:'C', acc:0, timeLeft:0}; }
+function goalMission(g){ return g.m || (g.m2 ? 2 : 0); }
 G.st = newRunStats();
 
 const P = {};
@@ -2427,10 +2866,11 @@ function showOnly(ids){
 }
 function hiscoreOf(m){ return parseInt(store.get(m.hiKey, '0'), 10) || 0; }
 function hiscore(){ return hiscoreOf(MISSIONS[1]); }
-let selMission = parseInt(store.get('grandstride_mission', '1'), 10) === 2 ? 2 : 1;
+let selMission = (function(){ const v = parseInt(store.get('grandstride_mission', '1'), 10); return MISSIONS[v] ? v : 1; })();
 function selectMission(id, quiet){
-  if (id === 2 && !m2Unlocked()){
-    if (!quiet){ setText($('titleNote'), 'MISSION 02 は MISSION 01 をクリアすると解放されます。'); snd('uiClick'); }
+  if (!MISSIONS[id]) return false;
+  if (!mUnlocked(id)){
+    if (!quiet){ setText($('titleNote'), 'MISSION 0' + id + ' は MISSION 0' + (id - 1) + ' をクリアすると解放されます。'); snd('uiClick'); }
     return false;
   }
   selMission = id; store.set('grandstride_mission', id);
@@ -2439,15 +2879,17 @@ function selectMission(id, quiet){
   return true;
 }
 function refreshTitle(){
-  if (selMission === 2 && !m2Unlocked()) selMission = 1;
+  if (!mUnlocked(selMission)) selMission = 1;
   setText($('hiVal'), String(hiscore()).padStart(6, '0'));
   setText($('hiRank'), store.get('grandstride_hirank', '') ? 'RANK ' + store.get('grandstride_hirank', '') : '');
   setText($('hiVal2'), String(hiscoreOf(MISSIONS[2])).padStart(6, '0'));
   setText($('hiRank2'), store.get('grandstride_m2_hirank', '') ? 'RANK ' + store.get('grandstride_m2_hirank', '') : '');
+  setText($('hiVal3'), String(hiscoreOf(MISSIONS[3])).padStart(6, '0'));
+  setText($('hiRank3'), store.get('grandstride_m3_hirank', '') ? 'RANK ' + store.get('grandstride_m3_hirank', '') : '');
   document.querySelectorAll('.mcard').forEach(b => {
     const id = +b.dataset.m; const on = id === selMission;
     b.classList.toggle('sel', on); b.setAttribute('aria-pressed', on ? 'true' : 'false');
-    b.classList.toggle('locked', id === 2 && !m2Unlocked());
+    b.classList.toggle('locked', !mUnlocked(id));
   });
   $('briefText').innerHTML = MISSIONS[selMission].brief;
   setText($('tParts'), '◆' + SAVE.parts);
@@ -2458,7 +2900,8 @@ function renderDaily(){
   const d = SAVE.daily, el = $('daily');
   let h = '<div class="dh">今日の作戦目標 DAILY<span>STREAK ' + SAVE.streak.n + '日</span></div>';
   for (const g of d.goals){
-    h += '<div class="dg' + (g.done ? ' done' : '') + (g.m2 ? ' m2' : '') + '"><span>' + (g.done ? '✓ ' : '') + goalText(g) + '</span><b>' +
+    const gm = goalMission(g);
+    h += '<div class="dg' + (g.done ? ' done' : '') + (gm ? ' m' + gm : '') + '"><span>' + (g.done ? '✓ ' : '') + goalText(g) + '</span><b>' +
       (g.done ? '達成 +' + g.reward : g.prog + '/' + g.target + ' ◆' + g.reward) + '</b></div>';
   }
   if (d.allDone) h += '<div class="dg done"><span>全目標達成ボーナス</span><b>+' + DAILY_ALL_BONUS + '</b></div>';
@@ -2472,13 +2915,13 @@ function goTitle(){
   hull.visible = true; rig.position.set(0,0,0); rig.rotation.set(0, Math.PI*0.15, 0);
   for (let i = 0; i < 4; i++){ legs[i].local.copy(FOOT_REST[i]); poseLeg(i); }
   setBayOpen(0); bayLight.intensity = 0;
-  if (selMission === 2 && !m2Unlocked()) selMission = 1;
+  if (!mUnlocked(selMission)) selMission = 1;
   setStage(MISSIONS[selMission].stage);
   exitLock(); refreshTitle();
   if (streakNote){ setText($('titleNote'), streakNote); streakNote = ''; }
 }
 let audioInited = false;
-function initAudio(){ if (!audioInited){ audioInited = true; snd('init'); snd('setMaster', (parseInt(store.get('grandstride_vol','80'),10) || 0) / 100); } }
+function initAudio(){ if (!audioInited){ audioInited = true; snd('init'); weatherSnd.r = -1; snd('setMaster', (parseInt(store.get('grandstride_vol','80'),10) || 0) / 100); } }
 
 function clearMission(){
   for (const e of enemies) removeEnemy(e);
@@ -2497,19 +2940,23 @@ function clearMission(){
   hudEl.tint.classList.remove('on'); hudEl.ob.classList.remove('on'); hudEl.resPanel.classList.remove('ob');
   hudEl.flash.style.opacity = 0; hudEl.lock.classList.remove('on');
   hudEl.hud.classList.remove('boss');
+  resetStorm();
 }
 function resetMission(id){
   if (id) M = MISSIONS[id] || MISSIONS[1];
   clearMission();
   setStage(M.stage);
   resetPlayer();
-  Object.assign(G, {t:0, timeLeft:M.time, kills:0, spawned:0, lordSpawned:false, lordDead:false, lordTimer:-1, spawnT:2.5, ending:0, win:false, debugUsed:sessionDebug, st:newRunStats()});
+  Object.assign(G, {t:0, timeLeft:M.time, kills:0, spawned:0, lordSpawned:false, lordDead:false, lordTimer:-1, spawnT:2.5, ending:0, win:false,
+    debugUsed:sessionDebug || (M.stage === 'storm' && SW.weather !== 'storm'), st:newRunStats()});
   hull.visible = false;
   rig.position.copy(P.pos); rig.rotation.set(0,0,0);
   for (let i = 0; i < 4; i++){ legs[i].local.copy(FOOT_REST[i]); poseLeg(i); }
   input.fire = false; input.boost = false; input.fireTap = false;
   setText($('mnTag'), M.tag); setText($('mnName'), M.name);
-  setText($('bossName').firstChild, M.boss === 'twin' ? '双殻王 TWINSHELL' : '殻王 SHELL LORD');
+  setText($('bossName').firstChild, BOSS_LABEL[M.boss] || BOSS_LABEL.lord);
+  bossEl.bar.classList.toggle('mael', M.boss === 'mael');
+  hudEl.hud.classList.toggle('storm', M.stage === 'storm');
 }
 const launchSeq = {t:0, bootIdx:0, said:false, called:false, clunk:false, short:false};
 const BOOT_LINES = [
@@ -2553,7 +3000,10 @@ function beginPlay(){
   if (P.res < 40) P.res = 40;
   P.resStep = Math.floor(P.res / 25);
   clearRadio();
-  if (M.id === 2){
+  if (M.id === 3){
+    say('管制イツカより鞍士へ。第三防潮堤の外、干潟区画。制限時間5分、灰殻14体と観測塔3基。', {});
+    say('視界はほぼゼロ。目は当てにしないで。あなたには脚が四本あるでしょう', {});
+  } else if (M.id === 2){
     say('管制イツカより鞍士へ。汀都 港湾区画、夜間掃討を開始。制限時間4分、灰殻16体と大型反応1。', {});
     say('霧が濃い。コンテナの陰に注意して。突進型は、溜めの赤い光が合図です。', {});
   } else {
@@ -2565,7 +3015,7 @@ function beginPlay(){
 function pauseGame(){
   if (G.state !== 'play' || G.ending > 0) return;
   G.state = 'paused'; showOnly(['pause']);
-  snd('engine', 0, 0, false); snd('servo', 0); setAlarm(false);
+  snd('engine', 0, 0, false); snd('servo', 0); snd('weather', 0, 0); weatherSnd.r = weatherSnd.w = 0; setAlarm(false);
   if (P.overbeat) snd('overbeat', false);
   input.fire = false; keys.clear(); exitLock();
 }
@@ -2583,10 +3033,10 @@ function endMission(win){
   if (P.overbeat){ P.overbeat = false; snd('overbeat', false); }
   if (win){
     snd('victory');
-    say(M.id === 2 ? '双殻王の沈黙を確認。港湾区画、掃討完了。…よく帰ってきました、ヘカトン。' : '殻王の沈黙を確認。第七区画、防衛成功です。おかえりなさい、ヘカトン。', {urgent:true});
+    say(M.id === 3 ? '反応消失。防潮堤の灯りが戻りました。……帰投して。脈、まだ速いですよ' : M.id === 2 ? '双殻王の沈黙を確認。港湾区画、掃討完了。…よく帰ってきました、ヘカトン。' : '殻王の沈黙を確認。第七区画、防衛成功です。おかえりなさい、ヘカトン。', {urgent:true});
   } else {
     snd('defeat');
-    say(P.armor <= 0 ? 'ヘカトン、応答を！ 装甲限界…鞍士、脱出を！' : (M.id === 2 ? '時間切れです。港湾区画から撤退してください。' : '時間切れです。第七区画、防衛線を放棄…撤退してください。'), {urgent:true});
+    say(P.armor <= 0 ? 'ヘカトン、応答を！ 装甲限界…鞍士、脱出を！' : (M.id === 3 ? '時間切れです。嵐が強すぎる──干潟から撤退してください。' : M.id === 2 ? '時間切れです。港湾区画から撤退してください。' : '時間切れです。第七区画、防衛線を放棄…撤退してください。'), {urgent:true});
   }
 }
 function showResult(){
@@ -2597,7 +3047,8 @@ function showResult(){
   const win = G.win, total = M.order.length;
   const used = Math.max(0, M.time - G.timeLeft);
   const acc = P.shots ? P.hits / P.shots : 0;
-  let score = G.kills * M.killPts + (G.lordDead ? M.bossPts : 0) + (win ? Math.round(G.timeLeft * 30) : 0) + Math.round(acc * 3000) + Math.round(P.maxRes * 15) - Math.round(P.dmgTaken * 8);
+  const towersOn = M.towers ? SW.towersDone : 0;
+  let score = G.kills * M.killPts + (G.lordDead ? M.bossPts : 0) + towersOn * (M.towerPts || 0) + (win ? Math.round(G.timeLeft * 30) : 0) + Math.round(acc * 3000) + Math.round(P.maxRes * 15) - Math.round(P.dmgTaken * 8);
   score = Math.max(0, score);
   const R = M.ranks;
   let rank = score >= R[0] ? 'S' : score >= R[1] ? 'A' : score >= R[2] ? 'B' : 'C';
@@ -2618,18 +3069,18 @@ function showResult(){
   // rewards / progress (never from debug runs)
   const first = win && !SAVE.cleared[M.id];
   const rew = calcReward(M, win, score, rank, first);
-  let daily = [], unlocked = false;
-  const st = Object.assign(G.st, {win, dmg:P.dmgTaken, rank, acc, timeLeft:G.timeLeft});
+  let daily = [], unlocked = 0;
+  const st = Object.assign(G.st, {win, dmg:P.dmgTaken, rank, acc, timeLeft:G.timeLeft, towers:towersOn});
   if (!debug){
     ensureDaily();
     SAVE.parts += rew.total;
-    if (win){ if (M.id === 1 && !SAVE.cleared[1]) unlocked = true; SAVE.cleared[M.id] = true; }
+    if (win){ if (MISSIONS[M.id + 1] && !SAVE.cleared[M.id]) unlocked = M.id + 1; SAVE.cleared[M.id] = true; }
     daily = applyDaily(st);
     writeSave();
   }
   let h = '<div class="pp"><small>獲得資材 PARTS</small>+' + rew.total + (debug ? ' <small>(DEBUG — 未保存)</small>' : '') + '</div>';
   h += '<div class="why">スコア ' + rew.base + (rew.rank ? ' ＋ ランク ' + rew.rank : '') + (rew.first ? ' ＋ 初回クリア ' + rew.first : '') + '　／　所持 ◆' + SAVE.parts + '</div>';
-  if (unlocked) h += '<div class="unl">MISSION 02「汀都 港湾区画 夜間掃討」解放 UNLOCKED</div>';
+  if (unlocked) h += '<div class="unl">' + MISSIONS[unlocked].tag + '「' + MISSIONS[unlocked].name + '」解放 UNLOCKED</div>';
   for (const d of daily) h += '<div class="dly">今日の作戦目標 達成：' + d.text + '　資材 +' + d.reward + '</div>';
   const nc = cheapestUp();
   const nxt = [];
@@ -2639,7 +3090,7 @@ function showResult(){
   else nxt.push('最高ランク S');
   h += '<div class="nxt">' + nxt.join('　／　') + '</div>';
   $('rewards').innerHTML = h;
-  G.lastResult = {win, score, rank, debug, mission:M.id, parts:rew.total, partsDetail:rew, daily, unlocked,
+  G.lastResult = {win, score, rank, debug, mission:M.id, parts:rew.total, partsDetail:rew, daily, unlocked:!!unlocked, unlockedMission:unlocked || null, towers:towersOn,
     kills:G.kills + (G.lordDead ? 1 : 0), accuracy:acc, maxResonance:P.maxRes, damageTaken:P.dmgTaken, time:used};
   showOnly(['result']);
   try { $('btnRetry').focus({preventScroll:true}); } catch(e){}
@@ -2674,8 +3125,10 @@ window.addEventListener('keydown', (e) => {
   }
   if (G.state === 'title'){
     const onBtn = document.activeElement && document.activeElement.tagName === 'BUTTON';
-    if (e.code === 'ArrowLeft' || e.code === 'Digit1'){ if (selectMission(1)) snd('uiClick'); e.preventDefault(); }
-    else if (e.code === 'ArrowRight' || e.code === 'Digit2'){ initAudio(); if (selectMission(2)) snd('uiClick'); e.preventDefault(); }
+    if (e.code === 'Digit1'){ if (selectMission(1)) snd('uiClick'); e.preventDefault(); }
+    else if (e.code === 'ArrowLeft'){ if (selMission > 1 && selectMission(selMission - 1)) snd('uiClick'); e.preventDefault(); }
+    else if (e.code === 'ArrowRight'){ initAudio(); if (selMission < 3 && selectMission(selMission + 1)) snd('uiClick'); e.preventDefault(); }
+    else if (e.code === 'Digit2' || e.code === 'Digit3'){ initAudio(); if (selectMission(+e.code.slice(5))) snd('uiClick'); e.preventDefault(); }
     else if (e.code === 'KeyH'){ initAudio(); snd('uiClick'); openHangar('title'); e.preventDefault(); }
     else if ((e.code === 'Enter' || e.code === 'Space') && !onBtn && !e.repeat){ initAudio(); snd('uiClick'); startLaunch(selMission); e.preventDefault(); }
     return;
@@ -2775,7 +3228,7 @@ $('hYes').addEventListener('click', () => {
   SAVE = defaultSave(); SAVE.daily = keep.daily; SAVE.streak = keep.streak; SAVE.launched = keep.launched;
   writeSave(); snd('explosion', 0.3);
   $('hConfirm').classList.add('hidden'); $('hReset').classList.remove('hidden');
-  if (selMission === 2) selectMission(1, true);
+  if (selMission !== 1) selectMission(1, true);
   renderHangar(); setText($('hMsg'), '整備データを初期化しました。');
 });
 /* ---- hangar (整備) ---- */
@@ -2903,7 +3356,7 @@ function updBullets(dt){
     b.m.position.copy(b.pos); b.m.quaternion.setFromUnitVectors(ZAX, V1.copy(b.vel).normalize());
     let hit = false;
     for (const e of enemies){
-      if (!e.alive) continue;
+      if (!e.alive || e.sub) continue;
       const wi = weakInfo(e);
       if (wi){
         weakPoint(e, tmpW);
@@ -2927,9 +3380,13 @@ function damageEnemy(e, dmg, p, weak, mul){
   snd('hitEnemy');
   hitT = 0.15;
   P.res = Math.min(100, P.res + (weak ? 1.6 : armored ? 0.3 : 1.1));
-  if (weak){ popup('弱点命中 WEAK POINT ×' + (mul || 3)); G.st.weakHits++; }
-  else if (armored && e.state !== 'transform' && G.t - armoredPopT > 2.5){ armoredPopT = G.t; popup('装甲 ARMORED — 殻が開くのを待て'); }
+  if (weak){ popup('弱点命中 WEAK POINT ×' + (mul || 3)); G.st.weakHits++; if (M.stage === 'storm' && stormLit()) G.st.flashHits++; }
+  else if (armored && e.state !== 'transform' && G.t - armoredPopT > 2.5){ armoredPopT = G.t; popup(e.type === 'mael' ? (e.phase === 2 ? '装甲 ARMORED — 吸気口は雷光の間だけ見える' : '装甲 ARMORED — 浮上して開く吸気口を狙え') : '装甲 ARMORED — 殻が開くのを待て'); }
   if (e.type === 'twin' && e.phase === 1 && e.state !== 'transform' && e.hp <= e.maxHp / 2){ e.hp = e.maxHp / 2; twinTransform(e); return; }
+  if (e.type === 'mael'){
+    if (e.phase === 1 && e.state !== 'shift' && e.hp <= e.maxHp * 0.65){ e.hp = e.maxHp * 0.65; maelShift(e, 2); return; }
+    if (e.phase === 2 && e.state !== 'shift3' && e.hp <= e.maxHp * 0.30){ e.hp = e.maxHp * 0.30; maelShift(e, 3); return; }
+  }
   if (e.hp <= 0) killEnemy(e);
 }
 function killEnemy(e){
@@ -2946,14 +3403,23 @@ function killEnemy(e){
   P.res = Math.min(100, P.res + 6);
   if (big){
     G.lordDead = true; G.st.bossKills++;
-    popup(e.type === 'twin' ? '双殻王 撃破 TWINSHELL DESTROYED +' + M.bossPts : '殻王 撃破 SHELL LORD DESTROYED +6000');
-    if (e.type === 'twin') setTimeout(() => { if (G.state === 'play' || G.state === 'result') explode(V1.copy(tmpC).add(V2.set(rnd(-10,10), rnd(2,12), rnd(-10,10))), 1); }, 750);
+    popup(e.type === 'mael' ? '渦殻王 撃破 MAELSHELL DESTROYED +' + M.bossPts : e.type === 'twin' ? '双殻王 撃破 TWINSHELL DESTROYED +' + M.bossPts : '殻王 撃破 SHELL LORD DESTROYED +6000');
+    if (e.type === 'mael'){ hideMaelFx(); SW.visT = 90 + 20 * SW.towersDone; }
+    if (e.type === 'twin' || e.type === 'mael') setTimeout(() => { if (G.state === 'play' || G.state === 'result') explode(V1.copy(tmpC).add(V2.set(rnd(-10,10), rnd(2,12), rnd(-10,10))), 1); }, 750);
     endMission(true);
+  } else if (e.summoned){
+    // haze called in by MAELSHELL: not one of the mission's targets (no kill count / points), still counts for the daily goals
+    popup('霧殻 撃破 HAZE DOWN'); G.st.kills[e.type] = (G.st.kills[e.type] || 0) + 1; G.st.killsTotal++;
+    say('霧殻、撃破。霧が晴れます。', {key:'hazekill', cd:10});
   } else {
     G.kills++; popup('撃破 DESTROYED +' + (M.id === 1 ? ENEMY_DEF[e.type].score : M.killPts));
     G.st.kills[e.type] = (G.st.kills[e.type] || 0) + 1; G.st.killsTotal++;
     const left = M.order.length - G.kills;
-    if (M.id === 1){
+    if (M.id === 3){
+      if (e.type === 'haze') say('霧殻、撃破。霧が晴れます。', {key:'hazekill', cd:10});
+      if (left === 7) say('残り7体。観測塔の起動も忘れずに。', {});
+      else if (left === 1) say(SW.towersDone < 3 ? '残り1体。観測塔は、あと' + (3 - SW.towersDone) + '基。' : '残り1体。……干潟の下で、何かが動いています。', {});
+    } else if (M.id === 1){
       if (left === 8) say('灰殻、残り8体。いいリズムです。', {});
       else if (left === 4) say('残り4体！ このまま押し切って。', {});
       else if (left === 1) say('残り1体。…待って、地下から大きな反応が。', {});
@@ -2982,12 +3448,14 @@ function hurt(amount, src, extraGrip){
   const lz = -Math.sin(P.heading) * rel.x - Math.cos(P.heading) * rel.z; // forward
   const leg = (lz >= 0 ? 0 : 2) + (lx >= 0 ? 1 : 0);
   P.grip[leg] = Math.max(0, P.grip[leg] - 6 - amount * 0.8);
+  SW.hitLeg = leg; SW.hitLegT = 0.9; // the jammed grip gauge still shakes on the side that was hit
   if (extraGrip){ for (let i = 0; i < 4; i++) P.grip[i] = Math.max(0, P.grip[i] - extraGrip * (i === leg ? 1.6 : 1)); }
   // direction indicator
   const ang = Math.atan2(lx, lz);
   hudEl.dmgDir.style.transform = 'rotate(' + ang + 'rad)'; dmgDirT = 1;
   snd('damage', clamp(amount / 20, 0.1, 1)); snd('haptic', Math.round(60 + amount * 8));
   if (P.armor < 30) say('装甲残り僅か！ 距離を取って！', {key:'armor', cd:15});
+  else if (SW.jam && M.stage === 'storm') say('計器が読めなくても、脚は嘘をつきません。揺れた側が敵の方角', {key:'jamhit', cd:25});
   if (P.armor <= 0) endMission(false);
 }
 
@@ -3059,7 +3527,7 @@ function updEnemies(dt){
       if (e.state === 'recoil'){
         e.st -= dt; p.x -= nx * 16 * dt; p.z -= nz * 16 * dt; if (e.st <= 0) e.state = 'chase';
       } else {
-        const sp = d < 50 ? 30 : 19, ox = p.x, oz = p.z;
+        const sp = d < 50 ? 30 : (stage.fogFixed && d > 100 ? 12 : 19), ox = p.x, oz = p.z; // MISSION 03: far crawlers creep (found by the tremor scan)
         if (e.slideT > 0){ e.slideT -= dt; e.dir.set(-nz * e.orbit, 0, nx * e.orbit); }
         else { e.dir.x = lerp(e.dir.x, nx, Math.min(1, dt * 2.5)); e.dir.z = lerp(e.dir.z, nz, Math.min(1, dt * 2.5)); }
         const l = Math.hypot(e.dir.x, e.dir.z) || 1;
@@ -3118,6 +3586,10 @@ function updEnemies(dt){
       updRammer(e, dt, d, nx, nz);
     } else if (e.type === 'twin'){
       updTwin(e, dt, d, nx, nz, dx, dz);
+    } else if (e.type === 'haze'){
+      updHaze(e, dt, d, nx, nz);
+    } else if (e.type === 'mael'){
+      updMael(e, dt, d, nx, nz, dx, dz);
     }
     // keep in arena
     stage.clampEnemy(p);
@@ -3139,7 +3611,8 @@ function spawnPos(dist){
   if (stage !== STAGES.city){
     for (let tries = 0; tries < 30; tries++){
       const a = Math.random() * Math.PI * 2, d = dist * 0.8 + rnd(0, 50);
-      const x = clamp(P.pos.x + Math.sin(a) * d, PORT.minX + 12, PORT.maxX - 12), z = clamp(P.pos.z + Math.cos(a) * d, PORT.minZ + 12, PORT.maxZ - 12);
+      const R = stage.rect || PORT;
+      const x = clamp(P.pos.x + Math.sin(a) * d, R.minX + 12, R.maxX - 12), z = clamp(P.pos.z + Math.cos(a) * d, R.minZ + 12, R.maxZ - 12);
       if (clearAt(x, z, 9) && Math.hypot(x - P.pos.x, z - P.pos.z) > 75) return [x, z];
     }
     return [P.pos.x > 0 ? -150 : 150, -120];
@@ -3170,7 +3643,8 @@ function updSpawns(dt){
     spawnEnemy(type, x, z);
     G.spawned++;
     G.spawnT = G.spawned < 4 ? 0.8 : 2.6;
-    if (G.spawned === 1) say('灰殻の反応、' + bearingName(x, z) + 'から接近。甲虫型です。', {key:'spawn', cd:8});
+    if (G.spawned === 1 && M.id !== 3) say('灰殻の反応、' + bearingName(x, z) + 'から接近。甲虫型です。', {key:'spawn', cd:8});
+    else if (type === 'haze' && !SW.saidHaze){ SW.saidHaze = true; say('計器にノイズ──霧殻です。砂嵐の真ん中にいる。撃てば晴れます', {urgent:true}); }
     else if (type === 'rammer' && M.order.indexOf('rammer') === G.spawned - 1){
       say('新しい型──突進型（衝角殻）、' + bearingName(x, z) + '！ 止まって赤く光ったら突っ込んできます。溜めの光を見たら横へ！', {urgent:true});
       say(isTouch ? '横跳びは 跳躍ボタン＋スティック左右。壁に激突させれば、背中の弱点が開きます。' : '横跳びは Space＋A/D。壁やコンテナに激突させれば、背中の弱点が開きます。', {});
@@ -3178,7 +3652,9 @@ function updSpawns(dt){
     else if (type === 'rammer') say('突進型、' + bearingName(x, z) + '方向。溜めの光に注意。', {key:'ram', cd:14});
     else if (type === 'floater') say('浮遊型、' + bearingName(x, z) + '方向。光弾に注意して。', {key:'float', cd:14});
   }
-  if (G.kills >= total && !G.lordSpawned){
+  const towersOk = !M.towers || SW.towersDone >= M.towers;
+  if (G.kills >= total && !G.lordSpawned && !towersOk && !SW.saidTowersLeft){ SW.saidTowersLeft = true; say('灰殻は全機撃破。残りの観測塔を起動して。大型反応はその後です。', {}); }
+  if (G.kills >= total && !G.lordSpawned && towersOk){
     if (G.lordTimer < 0) G.lordTimer = 2.5;
     G.lordTimer -= dt;
     if (G.lordTimer <= 0) spawnBoss();
@@ -3193,17 +3669,21 @@ function spawnBoss(){
     // facing the arena edge, the clamp above can pull the spawn to ~25m (on top of the player); spawn toward the centre instead
     if (Math.hypot(x - P.pos.x, z - P.pos.z) < 120){ const pr = Math.hypot(P.pos.x, P.pos.z) || 1; x = P.pos.x - P.pos.x / pr * 150; z = P.pos.z - P.pos.z / pr * 150; }
   } else {
-    let ok = false;
+    let ok = false; const R = stage.rect || PORT;
     for (let k = 0; k < 40 && !ok; k++){
       const a = Math.atan2(fx, fz) + (k ? rnd(-1.6, 1.6) : 0), d = k ? rnd(90, 170) : 140;
-      x = clamp(P.pos.x + Math.sin(a) * d, PORT.minX + 20, PORT.maxX - 20); z = clamp(P.pos.z + Math.cos(a) * d, PORT.minZ + 15, PORT.maxZ - 20);
+      x = clamp(P.pos.x + Math.sin(a) * d, R.minX + 20, R.maxX - 20); z = clamp(P.pos.z + Math.cos(a) * d, R.minZ + 15, R.maxZ - 20);
       ok = clearAt(x, z, 16) && Math.hypot(x - P.pos.x, z - P.pos.z) > 70;
     }
     if (!ok){ x = 0; z = P.pos.z > -40 ? -140 : 40; }
   }
   const e = spawnEnemy(M.boss, x, z); e.fireT = 4;
   P.trauma = 0.7;
-  if (M.boss === 'twin'){
+  if (M.boss === 'mael'){
+    e.ang = Math.atan2(x - P.pos.x, z - P.pos.z); e.orbit = Math.random() < .5 ? -1 : 1;
+    say('干潟の下に超大型反応──渦殻王。泥の中を泳いでいます。脚圧計が震えたら跳んで', {urgent:true});
+    popup('警告 MAELSHELL APPROACHING');
+  } else if (M.boss === 'twin'){
     say('超大型反応──殻王「双殻王（ツインシェル）」！ 二枚の殻が開いた瞬間だけ、中の中枢を狙って！', {urgent:true});
     say('殻は弾幕や突進のあと、排熱のために開きます。そこが勝負です。', {});
     popup('警告 TWINSHELL APPROACHING');
@@ -3290,6 +3770,7 @@ function updRammer(e, dt, d, nx, nz){
   }
   e.glow = lerp(e.glow || 0, glow, Math.min(1, dt * 10));
   m.glowMat.emissive.setRGB(e.glow * 0.95, e.glow * 0.08, e.glow * 0.04);
+  m.tell.visible = e.glow > 0.03; m.tellMat.opacity = e.glow * (0.55 + 0.3 * Math.sin(e.t * 30));
   m.weakMat.color.setHex(e.state === 'stunned' ? (Math.sin(e.t * 16) > 0 ? 0xffd040 : 0xff8a20) : 0x3a2208);
   const walk = (e.state === 'approach' || e.state === 'recoil') ? 10 : e.state === 'charge' ? 26 : 0;
   for (const L of m.legs) L.pivot.rotation.x = walk ? Math.sin(e.t * walk + L.z + (L.s > 0 ? Math.PI : 0)) * 0.5 : 0;
@@ -3461,6 +3942,292 @@ function updTwin(e, dt, d, nx, nz, dx, dz){
   if ((walking || e.state === 'charge') && Math.floor(e.t * 2) !== Math.floor((e.t - dt) * 2) && d < 200){ P.trauma = Math.min(1, P.trauma + 0.06); dustBurst(p.x + rnd(-10,10), p.z + rnd(-10,10), 3, 1.4); }
 }
 
+/* ---- HAZE (霧殻) AI ---- */
+function hazeCloud(owner){
+  const st = STAGES.storm; if (!st) return null;
+  const c = st.fx.clouds.find(x => !x.active); if (!c) return null;
+  Object.assign(c, {active:true, owner, x:owner.g.position.x, y:owner.g.position.y, z:owner.g.position.z, r:2, k:1}); c.m.visible = true;
+  return c;
+}
+function updHaze(e, dt, d, nx, nz){
+  const p = e.g.position, m = e.model;
+  let radial = 0; if (d > 34) radial = 11; else if (d < 20) radial = -9;
+  const tx = -nz * e.orbit, tz = nx * e.orbit;
+  p.x += (nx * radial + tx * 5) * dt; p.z += (nz * radial + tz * 5) * dt;
+  p.y = 20 + Math.sin(e.t * 1.1) * 2;
+  e.g.lookAt(P.pos.x, P.y + 12, P.pos.z);
+  m.ring.rotation.z += dt * 1.5;
+  e.st -= dt;
+  if (e.state === 'drift'){
+    m.coreMat.color.setHex(0x9fb4c4);
+    if (e.st <= 0 && d < 150){ e.state = 'pulse'; e.st = 1.5; snd('hazeChirp'); }
+  } else if (e.state === 'pulse'){
+    // 1.5s tell before the fog: white pulsing + chirp
+    const on = Math.sin(e.t * 22) > 0; m.coreMat.color.setHex(on ? 0xffffff : 0x9fb4c4);
+    m.body.scale.setScalar(1 + (on ? 0.12 : 0));
+    if (Math.random() < dt * 20) emit(FX, p.x + rnd(-3,3), p.y, p.z + rnd(-3,3), rnd(-4,4), rnd(-2,2), rnd(-4,4), .85,.9,.95,.6, rnd(2,4), .5, 1, 0, 1);
+    if (e.st <= 0){ e.state = 'fog'; e.cloud = hazeCloud(e); }
+  } else {
+    m.coreMat.color.setHex(0x6f8090);
+    if (Math.random() < dt * 8) emit(SMOKE, p.x + rnd(-3,3), p.y - 3, p.z + rnd(-3,3), rnd(-3,3), rnd(-6,-2), rnd(-3,3), .55,.58,.6, .3, rnd(4,7), rnd(1.2,2), 2, 0, 0.5);
+  }
+}
+
+/* ---- MAELSHELL (渦殻王) AI ----
+   Phase 1 (100-65%): swims under the mud, surfaces every 6-8s with an up-thrust (r22, damage + every leg's grip -18).
+     Tell: the grip gauge of the leg nearest to it shakes + a water ring on the mud; jump to dodge (counted as waveDodges).
+     After surfacing the three back vents stay open 3s (weak point).
+   Phase 2 (65-30%): walks the surface, visibility drops to ~50m; calls lightning (2s warning circles) or fires an
+     8-shot volley. The vents can only be hit while the lightning lights them (flash + 1.2s afterglow).
+   Phase 3 (30-0%): dives and surfaces every ~3s, calls in two haze; up-thrust + 4-shot volley. */
+const MAEL_SUB_Y = -24;
+const MAEL = {
+  1: {dive:[6, 8], tell:1.6, up:3.0, swim:24, riseR:22, riseDmg:22, riseGrip:18, volley:0},
+  2: {walk:9, callT:2.0, strikeR:9, strikeDmg:18, shots:8},
+  3: {dive:[3, 3], tell:1.25, up:2.6, swim:30, riseR:22, riseDmg:22, riseGrip:18, volley:4},
+};
+// which leg (0 FL, 1 FR, 2 RL, 3 RR) faces the point (x, z) — same mapping as hurt()
+function legToward(x, z){
+  const rx = x - P.pos.x, rz = z - P.pos.z;
+  const lx = Math.cos(P.heading) * rx - Math.sin(P.heading) * rz, lz = -Math.sin(P.heading) * rx - Math.cos(P.heading) * rz;
+  return (lz >= 0 ? 0 : 2) + (lx >= 0 ? 1 : 0);
+}
+function hideMaelFx(){
+  const st = STAGES.storm; if (!st) return;
+  st.fx.waterRing.visible = false; for (const c of st.fx.circles) c.visible = false;
+  SW.tremorK = 0;
+}
+function maelShot(e){
+  const p = e.g.position;
+  const dx = P.pos.x - p.x, dz = P.pos.z - p.z, d = Math.hypot(dx, dz) || 1;
+  const from = V1.set(p.x + dx / d * 12, p.y + 16, p.z + dz / d * 12);
+  fireEnemyShot(from, V2.set(P.pos.x + rnd(-4,4), P.y + 12, P.pos.z + rnd(-4,4)), 62, 7);
+  sparks(from, 6, [1,.3,.4], 10);
+}
+// push the mech out of the shell (it surfaces right under you); straight back when you are dead centre
+const MAEL_PUSH_R = 24;
+function maelKnock(p, r){
+  let dx = P.pos.x - p.x, dz = P.pos.z - p.z, d = Math.hypot(dx, dz);
+  if (d >= r) return false;
+  if (d < 0.5){ dx = Math.sin(P.heading); dz = Math.cos(P.heading); d = 1; } // heading 0 faces -z, so this is "behind"
+  P.pos.x = p.x + dx / d * r; P.pos.z = p.z + dz / d * r;
+  pushOut(P.pos, 10); stage.clampPlayer(P.pos);
+  return true;
+}
+function maelRise(e, C){
+  const p = e.g.position;
+  e.state = 'rise'; e.st = 0.45; e.sub = false;
+  p.x = e.tx; p.z = e.tz;
+  hideMaelFx();
+  const hd = Math.hypot(P.pos.x - p.x, P.pos.z - p.z);
+  if (hd < C.riseR && G.ending <= 0){
+    if (P.y < 2.2){ hurt(C.riseDmg, V1.set(p.x, 0, p.z), C.riseGrip); P.trauma = 1; P.v *= 0.3; }
+    else { G.st.waveDodges++; popup('突き上げ 回避 DODGE'); P.res = Math.min(100, P.res + 5); }
+  }
+  maelKnock(p, MAEL_PUSH_R + 4);
+  for (let k = 0; k < 40; k++){ const a = Math.random() * Math.PI * 2, s = rnd(4, 16); emit(SMOKE, p.x + Math.cos(a) * 6, 1, p.z + Math.sin(a) * 6, Math.cos(a) * s, rnd(10, 26), Math.sin(a) * s, .42,.47,.5, .6, rnd(3, 6), rnd(1, 1.8), 1.8, 14, 0.8); }
+  dustBurst(p.x, p.z, 14, 2.2);
+  snd('maelBurst'); snd('haptic', 160); P.trauma = Math.min(1, P.trauma + 0.6);
+  e.vol = C.volley || 0; e.volT = 0.6;
+}
+function maelShift(e, n){
+  if (e.sub){ e.sub = false; if (e.state === 'tell'){ e.g.position.x = e.tx; e.g.position.z = e.tz; } }
+  e.state = n === 2 ? 'shift' : 'shift3'; e.st = n === 2 ? 2.5 : 2.2; e.called = false; e.vol = 0;
+  hideMaelFx(); e.strikes = null;
+  snd('bossShift'); P.trauma = 0.8;
+  if (n === 2){
+    say('嵐が濃くなる。吸気口は雷が鳴った瞬間だけ見えます。数えて、待って、撃つ', {urgent:true});
+    popup('警告 嵐の目 EYE OF THE STORM');
+  } else {
+    say('霧殻を呼びました。先に落とすか、浮いてくる所で待つか。任せます', {urgent:true});
+    popup('警告 渦 MAELSTROM');
+  }
+}
+function maelCall(e){
+  const st = STAGES.storm;
+  e.state = 'call'; e.st = MAEL[2].callT;
+  e.strikes = [[P.pos.x, P.pos.z]];
+  for (let k = 0; k < 2; k++){ const a = rnd(0, Math.PI * 2), r = rnd(14, 28); e.strikes.push([clamp(P.pos.x + Math.cos(a) * r, STORM.minX, STORM.maxX), clamp(P.pos.z + Math.sin(a) * r, STORM.minZ, STORM.maxZ)]); }
+  if (st) e.strikes.forEach((q, i) => { const c = st.fx.circles[i]; c.visible = true; c.position.set(q[0], 0.18, q[1]); c.scale.set(MAEL[2].strikeR, 1, MAEL[2].strikeR); });
+  snd('stormCall', MAEL[2].callT);
+  say('落雷、来ます！ 赤い円から出て！', {key:'mcall', cd:16});
+}
+function maelStrike(e){
+  const st = STAGES.storm, C = MAEL[2];
+  triggerLightning(true);
+  (e.strikes || []).forEach((q, i) => {
+    if (st){ const b = st.fx.bolts[i]; b.m.position.set(q[0], 0, q[1]); b.m.visible = true; b.t = 0.22; st.fx.circles[i].visible = false; }
+    explode(V1.set(q[0], 2, q[1]), 0.35); dustBurst(q[0], q[1], 8, 1.8);
+    if (Math.hypot(P.pos.x - q[0], P.pos.z - q[1]) < C.strikeR && G.ending <= 0){ hurt(C.strikeDmg, V1.set(q[0], 0, q[1])); P.trauma = 1; }
+  });
+  e.strikes = null;
+}
+function updMael(e, dt, d, nx, nz, dx, dz){
+  const p = e.g.position, m = e.model, C = MAEL[e.phase], st = STAGES.storm;
+  e.st -= dt;
+  let walking = false, wantOpen = 0;
+  if (e.state === 'dive'){
+    e.sub = true; e.y = approach(e.y, MAEL_SUB_Y, dt * 40);
+    e.ang += dt * C.swim / 70 * e.orbit;
+    const tx = P.pos.x + Math.sin(e.ang) * 70, tz = P.pos.z + Math.cos(e.ang) * 70;
+    const mx = tx - p.x, mz = tz - p.z, ml = Math.hypot(mx, mz) || 1, sp = Math.min(ml, C.swim * 1.4 * dt);
+    p.x += mx / ml * sp; p.z += mz / ml * sp;
+    if (Math.random() < dt * 10) emit(SMOKE, p.x + rnd(-6,6), 0.5, p.z + rnd(-6,6), 0, rnd(1,3), 0, .32,.36,.38, .5, rnd(2,4), rnd(.8,1.4), 1.5, 0, 1);
+    if (e.st <= 0){
+      e.state = 'tell'; e.st = C.tell; e.tx = P.pos.x; e.tz = P.pos.z;
+      SW.tremorLeg = legToward(p.x, p.z);
+      snd('maelRumble', C.tell);
+      if (st){ st.fx.waterRing.visible = true; st.fx.waterRing.position.set(e.tx, 0.2, e.tz); }
+    }
+  } else if (e.state === 'tell'){
+    e.sub = true;
+    const k = 1 - Math.max(0, e.st) / C.tell;
+    p.x = lerp(p.x, e.tx, Math.min(1, dt * 3)); p.z = lerp(p.z, e.tz, Math.min(1, dt * 3));
+    SW.tremorK = 1;
+    P.trauma = Math.max(P.trauma, 0.12 + 0.25 * k);
+    if (st){ const r = C.riseR * (0.55 + 0.45 * k); st.fx.waterRing.scale.set(r, 1, r); st.fx.waterRing.material.opacity = 0.35 + 0.45 * Math.abs(Math.sin(e.t * 12)); }
+    if (Math.random() < dt * 30){ const a = Math.random() * Math.PI * 2, r = rnd(0, C.riseR); emit(SMOKE, e.tx + Math.cos(a) * r, 0.4, e.tz + Math.sin(a) * r, 0, rnd(2,5), 0, .45,.5,.55, .45, rnd(1.5,3), .6, 1, 0, 1); }
+    if (e.st <= 0) maelRise(e, C);
+  } else if (e.state === 'rise'){
+    e.y = approach(e.y, 0, dt * 60); wantOpen = 0.6;
+    if (e.y >= 0){ e.state = 'up'; e.st = C.up; }
+  } else if (e.state === 'up'){
+    wantOpen = 1;
+    e.g.lookAt(P.pos.x, 0, P.pos.z);
+    if (e.vol > 0){ e.volT -= dt; if (e.volT <= 0){ e.vol--; e.volT = 0.2; maelShot(e); } }
+    if (e.st <= 0){ e.state = 'sink'; e.st = 0.8; }
+  } else if (e.state === 'sink'){
+    e.y = approach(e.y, MAEL_SUB_Y, dt * 36);
+    if (e.st <= 0){ e.state = 'dive'; e.sub = true; e.st = rnd(C.dive[0], C.dive[1]); e.ang = Math.atan2(p.x - P.pos.x, p.z - P.pos.z); }
+  } else if (e.state === 'walk'){
+    e.sub = false; e.y = approach(e.y, 0, dt * 30);
+    const ox = p.x, oz = p.z;
+    if (e.slideT > 0){ e.slideT -= dt; p.x += -nz * e.orbit * C.walk * dt; p.z += nx * e.orbit * C.walk * dt; } // unstick(): slide along a pylon / tower
+    else if (d > 70){ p.x += nx * C.walk * dt; p.z += nz * C.walk * dt; }
+    else if (d < 45){ p.x -= nx * C.walk * 0.7 * dt; p.z -= nz * C.walk * 0.7 * dt; }
+    else { p.x += -nz * e.orbit * C.walk * 0.6 * dt; p.z += nx * e.orbit * C.walk * 0.6 * dt; }
+    walking = true;
+    pushOut(p, 14); unstick(e, p, ox, oz, C.walk * 0.6 * dt, dt);
+    e.g.lookAt(P.pos.x, 0, P.pos.z);
+    e.atkCD -= dt;
+    if (e.atkCD <= 0 && G.ending <= 0){ if (e.atkN++ % 2 === 0) maelCall(e); else { e.state = 'volley'; e.vol = C.shots; e.volT = 0.3; } }
+  } else if (e.state === 'call'){
+    e.g.lookAt(P.pos.x, 0, P.pos.z);
+    const k = 1 - Math.max(0, e.st) / C.callT;
+    if (st) for (const c of st.fx.circles) if (c.visible) c.material.opacity = 0.15 + 0.45 * k * (0.6 + 0.4 * Math.sin(e.t * 26));
+    m.shellMat.emissive.setRGB(0.15 * k, 0.2 * k, 0.35 * k);
+    if (e.st <= 0){ maelStrike(e); e.state = 'walk'; e.atkCD = 2.4; }
+  } else if (e.state === 'volley'){
+    e.g.lookAt(P.pos.x, 0, P.pos.z);
+    e.volT -= dt; if (e.volT <= 0 && e.vol > 0){ e.vol--; e.volT = 0.14; maelShot(e); }
+    if (e.vol <= 0 && e.volT <= 0){ e.state = 'walk'; e.atkCD = 2.0; }
+  } else if (e.state === 'shift' || e.state === 'shift3'){
+    e.sub = false; e.y = approach(e.y, 0, dt * 40);
+    m.body.position.x = Math.sin(e.t * 50) * 0.5; P.trauma = Math.max(P.trauma, 0.3);
+    if (Math.random() < dt * 3) explode(V1.set(p.x + rnd(-12,12), rnd(6,16), p.z + rnd(-12,12)), 0.3);
+    if (e.state === 'shift3' && !e.called && e.st < 1.2){
+      e.called = true;
+      for (const s of [-1, 1]){ const a = Math.atan2(nx, nz) + s * 1.2; const h = spawnEnemy('haze', clamp(p.x + Math.sin(a) * 34, STORM.minX + 10, STORM.maxX - 10), clamp(p.z + Math.cos(a) * 34, STORM.minZ + 10, STORM.maxZ - 10)); h.summoned = true; h.st = 0.4; }
+    }
+    if (e.st <= 0){
+      m.body.position.x = 0;
+      if (e.state === 'shift'){ e.phase = 2; e.state = 'walk'; e.atkCD = 1.2; e.atkN = 0; }
+      else { e.phase = 3; e.state = 'sink'; e.st = 0.8; }
+    }
+  }
+  p.y = e.y;
+  e.g.visible = e.y > MAEL_SUB_Y + 3;
+  // keep the mech out of the surfaced body
+  if (!e.sub && e.y > -8 && maelKnock(p, MAEL_PUSH_R)) P.v *= 0.5;
+  // vents: orange while open (phase 1/3); in phase 2 only the lightning shows them
+  e.open = approach(e.open, wantOpen, dt * 3);
+  if (e.phase === 2 && e.state !== 'shift'){ const l = stormLit() ? 0.75 + 0.25 * Math.sin(e.t * 30) : 0.04; m.ventMat.color.setRGB(0.55 * l + 0.05, 0.95 * l + 0.03, l + 0.02); }
+  else { const b = e.open > 0.5 ? 0.6 + Math.sin(e.t * 10) * 0.25 : 0.12 * e.open; m.ventMat.color.setRGB(b + 0.1, 0.5 * b + 0.05, 0.1 * b + 0.02); }
+  if (e.state !== 'call') m.shellMat.emissive.setRGB(SW.flashK * 0.12, SW.flashK * 0.14, SW.flashK * 0.2);
+  const ls = walking ? 5 : 0;
+  for (const L of m.legs) L.pivot.rotation.x = ls ? Math.sin(e.t * ls + L.z * 0.3 + (L.s > 0 ? Math.PI : 0)) * 0.25 : 0;
+  if (walking && Math.floor(e.t * 2) !== Math.floor((e.t - dt) * 2) && d < 200){ P.trauma = Math.min(1, P.trauma + 0.06); dustBurst(p.x + rnd(-10,10), p.z + rnd(-10,10), 3, 1.4); }
+}
+
+/* ---- MISSION 03 gameplay: tremor scan, observation towers, haze fog / sensor jam, visibility ---- */
+// The "standing firm" condition (also the grip-regen condition): grounded, not dashing, slow, barely turning.
+// still = really planted (the tremor scan / tower link): also nearly stopped and no move / turn input.
+function isBracing(still){
+  const ok = P.grounded && !P.dashing && Math.abs(P.v) < 7 && Math.abs(P.effTurn) < 0.35;
+  if (!still) return ok;
+  return ok && Math.abs(P.v) < 2 && Math.abs(input.fwd) < 0.1 && Math.abs(input.turn) < 0.1;
+}
+function radarRange(){
+  if (M.stage !== 'storm') return 220;
+  return SW.scanT > 0 ? 300 : 120 + 20 * SW.towersDone;
+}
+function resetStorm(){
+  Object.assign(SW, {vis:90, visT:90, scanT:0, braceT:0, haze:0, jam:false, towersDone:0, nearTower:null, tremorLeg:-1, tremorK:0, hitLeg:-1, hitLegT:0,
+    saidBrace:false, saidPin:false, saidFlash:false, saidHaze:false, saidTowersLeft:false, flashNew:false, flashes:0, lightningIn:rnd(5, 8)});
+  SW.towers = STORM_TOWERS.map(t => ({id:t.id, x:t.x, z:t.z, prog:0, done:false, said:false}));
+  hudEl.hud.classList.remove('jam');
+  if (STAGES.storm) STAGES.storm.reset();
+}
+function activateTower(t){
+  if (t.done) return;
+  t.done = true; t.prog = 1; SW.towersDone++; G.st.towers = SW.towersDone;
+  const left = (M.towers || 3) - SW.towersDone;
+  say(left > 0 ? '観測塔、復旧。視界が少し戻ります。残り' + left + '基' : '観測塔、全基復旧。視界が戻ります。……大型反応に備えて', {});
+  popup('観測塔' + t.id + ' 起動 TOWER ONLINE +' + (M.towerPts || 0));
+  snd('towerOnline'); snd('haptic', 90);
+  P.res = Math.min(100, P.res + 8);
+}
+const stormEl = {tow:$('shTow'), scan:$('shScan'), lbl:$('radarLbl')};
+function updStorm(dt){
+  const st = STAGES.storm;
+  const still = isBracing(true) && G.ending <= 0;
+  // tremor scan: 1.2s planted -> ping (radar 300m for 4s, ground types only). Moving / jumping resets the charge.
+  SW.braceT = still ? SW.braceT + dt : 0;
+  if (SW.scanT > 0) SW.scanT = Math.max(0, SW.scanT - dt);
+  if (SW.braceT >= 1.2 && SW.scanT <= 0){
+    SW.braceT = 0; SW.scanT = 4;
+    let n = 0;
+    for (const e of enemies) if (e.alive && GROUND_TYPES[e.type] && Math.hypot(e.g.position.x - P.pos.x, e.g.position.z - P.pos.z) <= 300) n++;
+    snd('tremorPing', n ? 1 : 0.4); snd('haptic', 30);
+    if (n){ G.st.scans++; popup('震動探知 TREMOR SCAN — ' + n + ' 反応'); if (!SW.saidPin){ SW.saidPin = true; say('拾えた。……その脈拍で落ち着いていられるなら、上出来です', {}); } }
+  }
+  // observation towers: within 25m, planted for 4s (progress pauses when you move away)
+  let near = null, nd = 1e9;
+  for (const t of SW.towers){ if (t.done) continue; const dd = Math.hypot(t.x - P.pos.x, t.z - P.pos.z); if (dd < nd){ nd = dd; near = t; } }
+  if (near && nd < 48 && !near.said){ near.said = true; say('観測塔です。そばで踏み据えて4秒、機体の電力を分けてあげて', {key:'tower', cd:20}); }
+  SW.nearTower = near && nd <= TOWER_R ? near : null;
+  if (SW.nearTower && still){ near.prog = Math.min(1, near.prog + dt / TOWER_T); if (near.prog >= 1) activateTower(near); }
+  // haze clouds: follow their haze, clear in 3s once it is shot down
+  let hz = 0;
+  if (st) for (const c of st.fx.clouds){
+    if (!c.active) continue;
+    if (c.owner && c.owner.alive){ const op = c.owner.g.position; c.x = lerp(c.x, op.x, Math.min(1, dt * 1.5)); c.z = lerp(c.z, op.z, Math.min(1, dt * 1.5)); c.y = op.y; c.r = Math.min(45, c.r + dt * 24); }
+    else { c.k -= dt / 3; c.r = Math.max(2, c.r - dt * 6); if (c.k <= 0){ c.active = false; c.owner = null; c.m.visible = false; continue; } }
+    c.m.position.set(c.x, 7, c.z); c.m.scale.set(c.r, c.r * 0.5, c.r); c.m.material.opacity = 0.2 * c.k * clamp(c.r / 20, 0, 1);
+    hz = Math.max(hz, clamp((c.r - Math.hypot(P.pos.x - c.x, P.pos.z - c.z)) / 8, 0, 1) * c.k);
+  }
+  SW.haze = hz;
+  const jam = hz > 0.4;
+  if (jam && !SW.jam) snd('jam');
+  SW.jam = jam; hudEl.hud.classList.toggle('jam', jam);
+  // visibility target: 90m + 20m per tower; MAELSHELL phase 2 drowns it to 50m, phase 3 holds it at 90m
+  const bo = enemies.find(x => x.alive && x.type === 'mael');
+  SW.visT = bo && (bo.phase === 2 || bo.state === 'shift') ? 50 : bo && (bo.phase === 3 || bo.state === 'shift3') ? 90 : 90 + 20 * SW.towersDone;
+  if (!bo || bo.state !== 'tell') SW.tremorK = Math.max(0, SW.tremorK - dt * 4);
+  SW.hitLegT = Math.max(0, (SW.hitLegT || 0) - dt);
+  // radio
+  if (!SW.saidBrace && G.t > 5){ SW.saidBrace = true; say('止まって、踏み据えて。脚が地面の震えを拾います。レーダーを見て', {}); }
+  if (SW.flashNew){ SW.flashNew = false; if (!SW.saidFlash && G.t > 6){ SW.saidFlash = true; say('今の光、見えましたね。次の雷で撃って', {}); } }
+  // HUD lines
+  setText(stormEl.tow, '観測塔 TOWERS ' + SW.towersDone + '/' + (M.towers || 3) + '　視界 VIS ' + Math.round(lerp(SW.vis, 400, SW.flashK)) + 'm');
+  let txt = '', cls = 'sc';
+  if (SW.nearTower){ txt = '観測塔' + SW.nearTower.id + ' 接続 LINK ' + Math.round(SW.nearTower.prog * 100) + '%' + (still ? '' : ' — 止まって踏み据え'); cls = 'sc tw'; }
+  else if (SW.jam){ txt = '計器異常 SENSOR JAM — 砂嵐の中心を撃て'; cls = 'sc jm'; }
+  else if (SW.scanT > 0){ txt = '震動探知 PING ' + SW.scanT.toFixed(1) + 's'; cls = 'sc on'; }
+  else if (SW.braceT > 0.15){ const n = Math.min(5, Math.floor(SW.braceT / 1.2 * 5)); txt = '震動探知 TREMOR SCAN ' + '■'.repeat(n) + '□'.repeat(5 - n); }
+  setText(stormEl.scan, txt); setAttr(stormEl.scan, 'class', cls);
+}
+
 /* ================= player update ================= */
 function updPlayer(dt){
   const kbF = (keys.has('f') ? 1 : 0) - (keys.has('b') ? 1 : 0);
@@ -3549,7 +4316,7 @@ function updPlayer(dt){
     let drain = 0, regen = 0;
     if (tr > 0.3 && outer) drain += (tr - 0.3) * 24;
     if (P.dashing) drain += 9;
-    if (!P.dashing && P.grounded){ regen = ((Math.abs(P.v) < 7 && tr < 0.35) ? 13 : 2.5) * P.gripRegen; }
+    if (!P.dashing && P.grounded){ regen = (isBracing() ? 13 : 2.5) * P.gripRegen; }
     P.grip[i] = clamp(P.grip[i] - drain * dt + regen * dt, 0, P.gripMax);
     if (P.grip[i] <= 0 && !P.gripLock[i]){ P.gripLock[i] = true; P.trauma = Math.min(1, P.trauma + 0.25); snd('haptic', 80); say('脚圧ゼロ、' + LEG_NAMES[i] + '脚！ 転倒の危険、速度を落として！', {key:'grip', cd:8}); }
     if (P.gripLock[i] && P.grip[i] >= 30) P.gripLock[i] = false;
@@ -3665,10 +4432,11 @@ function occluded(from, to, d){
 }
 function updLock(){
   aimDir.set(0,0,-1).applyQuaternion(camera.quaternion);
+  if (SW.jam && M.stage === 'storm'){ G.lock = null; hudEl.lock.classList.remove('on'); return; } // haze fog: the lock-on drops
   const maxAng = P.overbeat ? 0.16 : 0.1;
   let best = null, bestA = maxAng;
   for (const e of enemies){
-    if (!e.alive) continue;
+    if (!e.alive || e.sub) continue;
     const c = aimPoint(e, tmpC);
     V1.subVectors(c, camera.position); const d = V1.length(); if (d > 260) continue;
     const a = Math.acos(clamp(V1.dot(aimDir) / d, -1, 1)) - (BOSS_TYPES[e.type] ? 0.05 : 0);
@@ -3724,11 +4492,25 @@ function updHUD(dt){
   updBossBar();
   setText(hudEl.spd, String(Math.round(Math.abs(P.v) * 3.6)));
   // grip
+  const storm = M.stage === 'storm' && G.state !== 'title';
   for (let i = 0; i < 4; i++){
-    const g = P.grip[i], c = gripColor(g, P.gripLock[i] || g <= 0);
+    const g = P.grip[i];
+    let c = gripColor(g, P.gripLock[i] || g <= 0), shake = 0;
+    if (storm && SW.jam){
+      // haze fog: the numbers are lost, only a hit still shakes its leg
+      c = Math.random() < 0.5 ? '#6d8692' : '#34444c';
+      if (SW.hitLegT > 0 && i === SW.hitLeg){ c = Math.sin(G.t * 40) > 0 ? '#ff3b3b' : '#ffffff'; shake = 3; }
+      setText(hudEl.gn[i], LEG_NAMES[i] + ' ---'); setAttr(hudEl.gn[i], 'class', '');
+    } else {
+      setText(hudEl.gn[i], LEG_NAMES[i] + ' ' + String(Math.round(g)).padStart(3, ' '));
+      setAttr(hudEl.gn[i], 'class', (P.gripLock[i] || g <= 0) ? 'zero' : g < 30 ? 'low' : '');
+    }
+    if (storm && SW.tremorK > 0){
+      // MAELSHELL about to surface: the leg nearest to it trembles and blinks
+      if (i === SW.tremorLeg){ c = Math.sin(G.t * 30) > 0 ? '#ffffff' : '#ffb547'; shake = 4 * SW.tremorK; } else shake = Math.max(shake, 1.2 * SW.tremorK);
+    }
     setAttr(hudEl.gf[i], 'fill', c); setAttr(hudEl.gl[i], 'stroke', c);
-    setText(hudEl.gn[i], LEG_NAMES[i] + ' ' + String(Math.round(g)).padStart(3, ' '));
-    setAttr(hudEl.gn[i], 'class', (P.gripLock[i] || g <= 0) ? 'zero' : g < 30 ? 'low' : '');
+    setAttr(hudEl.gf[i], 'transform', shake ? 'translate(' + rnd(-shake, shake).toFixed(1) + ',' + rnd(-shake, shake).toFixed(1) + ')' : 'translate(0,0)');
     const lift = P.lp[i] < 0.4 && Math.abs(P.v) > 1 ? 1.25 : 1;
     setAttr(hudEl.gf[i], 'r', lift > 1 ? '9' : '7');
   }
@@ -3771,10 +4553,14 @@ function updBossBar(){
   if (!bo) return;
   setSty(bossEl.fill, 'width', clamp(bo.hp / bo.maxHp * 100, 0, 100).toFixed(1) + '%');
   bossEl.bar.classList.toggle('p2', bo.phase === 2);
-  setText(bossEl.ph, bo.type === 'twin' ? (bo.state === 'transform' ? 'TRANSFORM' : 'PHASE ' + bo.phase) : '');
+  bossEl.bar.classList.toggle('p3', bo.phase === 3);
+  setText(bossEl.ph, bo.type === 'twin' ? (bo.state === 'transform' ? 'TRANSFORM' : 'PHASE ' + bo.phase) :
+    bo.type === 'mael' ? (bo.state === 'shift' || bo.state === 'shift3' ? 'SHIFT' : 'PHASE ' + bo.phase + (bo.sub ? ' 潜行' : '')) : '');
 }
 function drawRadar(dt){
-  const c = radarCtx, W = 160, R = 74, range = 220;
+  const c = radarCtx, W = 160, R = 74, range = radarRange();
+  const storm = M.stage === 'storm', baseR = storm ? 120 + 20 * SW.towersDone : range;
+  setText(stormEl.lbl, '索敵 RADAR ' + range + 'm' + (storm && SW.scanT > 0 ? ' PING' : ''));
   radarSweep = (radarSweep + dt * 2.2) % (Math.PI * 2);
   c.clearRect(0,0,W,W);
   c.save(); c.translate(W/2, W/2);
@@ -3789,12 +4575,42 @@ function drawRadar(dt){
   for (const e of enemies){
     if (!e.alive) continue;
     const rx = e.g.position.x - P.pos.x, rz = e.g.position.z - P.pos.z;
+    const big = !!BOSS_TYPES[e.type];
+    let pinged = false;
+    if (storm){
+      // storm: no edge markers; ground types beyond the base range only show up during a tremor-scan ping; haze = static
+      if (e.type === 'haze') continue;
+      const dist = Math.hypot(rx, rz);
+      pinged = SW.scanT > 0 && !!GROUND_TYPES[e.type] && dist <= 300;
+      if (!big && dist > baseR && !pinged) continue;
+    }
     const right = ch * rx - sh * rz, fwd = -sh * rx - ch * rz;
     let x = right / range * R, y = -fwd / range * R; const l = Math.hypot(x, y);
     const out = l > R; if (out){ x *= R / l; y *= R / l; }
-    const big = !!BOSS_TYPES[e.type];
     c.fillStyle = big ? (Math.sin(G.t * 10) > 0 ? '#ffb020' : '#ff5020') : e.type === 'floater' ? '#ff3b5b' : e.type === 'rammer' ? (e.state === 'windup' || e.state === 'charge' ? (Math.sin(G.t * 30) > 0 ? '#ffffff' : '#ff2020') : '#d65aff') : '#ff8a2a';
-    c.beginPath(); c.arc(x, y, big ? 6 : out ? 2.5 : 3.6, 0, Math.PI * 2); c.fill();
+    if (storm && big && e.sub){ c.strokeStyle = c.fillStyle; c.lineWidth = 2; c.beginPath(); c.arc(x, y, 6, 0, Math.PI * 2); c.stroke(); }
+    else { c.beginPath(); c.arc(x, y, big ? 6 : out ? 2.5 : 3.6, 0, Math.PI * 2); c.fill(); }
+    if (pinged && !big){ c.strokeStyle = 'rgba(255,181,71,.8)'; c.lineWidth = 1; c.beginPath(); c.arc(x, y, 4 + (1 - (SW.scanT % 1)) * 7, 0, Math.PI * 2); c.stroke(); }
+  }
+  if (storm){
+    // observation towers (always shown, clamped to the rim)
+    for (const t of SW.towers){
+      const rx = t.x - P.pos.x, rz = t.z - P.pos.z, right = ch * rx - sh * rz, fwd = -sh * rx - ch * rz;
+      let x = right / range * R, y = -fwd / range * R; const l = Math.hypot(x, y); if (l > R){ x *= R / l; y *= R / l; }
+      c.strokeStyle = c.fillStyle = t.done ? '#5ff2e8' : '#ffb547'; c.lineWidth = 1.5;
+      if (t.done) c.fillRect(x - 3.5, y - 3.5, 7, 7); else c.strokeRect(x - 3.5, y - 3.5, 7, 7);
+    }
+    // haze: static centred on it (that is how you find it)
+    for (const e of enemies){
+      if (!e.alive || e.type !== 'haze') continue;
+      const rx = e.g.position.x - P.pos.x, rz = e.g.position.z - P.pos.z, right = ch * rx - sh * rz, fwd = -sh * rx - ch * rz;
+      const x = right / range * R, y = -fwd / range * R; if (Math.hypot(x, y) > R * 1.25) continue;
+      for (let k = 0; k < 46; k++){ const a = Math.random() * Math.PI * 2, rr = Math.pow(Math.random(), 1.6) * 18; c.fillStyle = Math.random() < .5 ? 'rgba(220,235,240,.75)' : 'rgba(120,150,160,.6)'; c.fillRect(x + Math.cos(a) * rr, y + Math.sin(a) * rr, 2, 1.5); }
+    }
+    if (SW.jam){
+      for (let k = 0; k < 120; k++){ c.fillStyle = Math.random() < .5 ? 'rgba(200,220,228,.45)' : 'rgba(60,80,90,.6)'; c.fillRect(rnd(-R, R), rnd(-R, R), rnd(1, 4), 1); }
+      for (let k = 0; k < 3; k++){ c.fillStyle = 'rgba(200,230,240,.18)'; c.fillRect(-R, rnd(-R, R), R * 2, rnd(1, 3)); }
+    }
   }
   c.restore();
 }
@@ -3882,7 +4698,12 @@ function updAmbient(dt){
   }
   boomLight.intensity = Math.max(0, boomLight.intensity - dt * 10);
   muzzleLight.intensity = Math.max(0, muzzleLight.intensity - dt * 30);
+  // weather sound (persistent rain / wind voices in MechAudio, gain only; sent when it changes)
+  const stormOn = stage === STAGES.storm && SW.weather === 'storm';
+  const wr = stormOn ? (G.state === 'play' || G.state === 'launch' ? 0.9 : 0.55) : 0, ww = stormOn ? SW.wind : 0;
+  if (Math.abs(wr - weatherSnd.r) > 0.02 || Math.abs(ww - weatherSnd.w) > 0.04){ weatherSnd.r = wr; weatherSnd.w = ww; snd('weather', wr, ww); }
 }
+const weatherSnd = {r:-1, w:-1};
 let lastNear = 1e9;
 function updPlay(dt){
   G.t += dt;
@@ -3897,6 +4718,7 @@ function updPlay(dt){
   const near = updEnemies(G.ending > 0 ? dt * 0.3 : dt);
   if (near < 70 && lastNear >= 70) say('灰殻、至近距離！ 接近してきます！', {key:'near', cd:12});
   lastNear = near;
+  if (M.stage === 'storm' && stage === STAGES.storm) updStorm(dt);
   updBullets(dt); updEnemyShots(dt); updDebris(dt);
   updCamera(dt);
   updLock();
@@ -3944,6 +4766,7 @@ function onResize(){
   camera.updateProjectionMatrix();
   const s = h * PR / (2 * Math.tan(camera.fov * Math.PI / 360));
   for (const S of particleSystems){ S.mat.uniforms.uScale.value = s; S.mat.uniforms.uMax.value = Math.max(48, h * PR * 0.22); }
+  if (STAGES.storm) STAGES.storm.setScale(s);
 }
 window.addEventListener('resize', onResize);
 window.addEventListener('orientationchange', () => setTimeout(onResize, 200));
@@ -3966,7 +4789,7 @@ function applyQuality(name){
   // antialias is fixed at renderer creation (see above); everything below switches live
   PR = Math.min(window.devicePixelRatio || 1, Q.pr); lowFpsSecs = 0;
   renderer.setPixelRatio(PR);
-  scene.fog.density = Q.fog * stage.fogMul;
+  scene.fog.density = stageFog();
   camera.far = Q.far; // projection matrix is rebuilt in onResize()
   const u = world.userData;
   u.sky.scale.setScalar(Q.skyScale); u.stars.scale.setScalar(Q.skyScale);
@@ -4018,12 +4841,39 @@ window.__GAME = {
   get showFps(){ return showFps; },
   setShowFps: (on) => { setShowFps(on); return showFps; },
   start(){ return startMissionNow(M.id); },
-  // Start MISSION id (1|2) straight into play (no launch sequence). Works even if MISSION 02 is still locked.
-  startMission(id){ id = +id === 2 ? 2 : 1; return startMissionNow(id); },
+  // Start MISSION id (1|2|3) straight into play (no launch sequence). Works even if the mission is still locked.
+  startMission(id){ id = MISSIONS[+id] ? +id : 1; return startMissionNow(id); },
   get missionId(){ return M.id; },
   get selectedMission(){ return selMission; },
   selectMission: (id) => selectMission(+id, true),
   get m2Unlocked(){ return m2Unlocked(); },
+  get m3Unlocked(){ return mUnlocked(3); },
+  // MISSION 03 weather / instruments (null unless the storm stage is active)
+  get storm(){
+    if (stage !== STAGES.storm) return null;
+    return {fog:scene.fog.density, visibility:Math.round(lerp(SW.vis, 400, SW.flashK)), baseVisibility:Math.round(SW.vis), lightningIn:+SW.lightningIn.toFixed(2),
+      flashing:SW.flashT > 0, lit:stormLit(), radarRange:radarRange(), scanT:+SW.scanT.toFixed(2), braceT:+SW.braceT.toFixed(2), hazeLevel:+SW.haze.toFixed(2),
+      jam:SW.jam, weather:SW.weather, wind:+SW.wind.toFixed(2), rainDrops:STAGES.storm.rainCount, rainMax:RAIN_MAX, towersDone:SW.towersDone,
+      tremorLeg:SW.tremorK > 0 ? SW.tremorLeg : -1, scans:G.st.scans, flashHits:G.st.flashHits};
+  },
+  get towers(){ return stage === STAGES.storm ? SW.towers.map(t => ({id:t.id, x:t.x, z:t.z, prog:+t.prog.toFixed(3), done:t.done})) : []; },
+  debugActivateTower(i){
+    if (G.state !== 'play' || M.stage !== 'storm') return false;
+    const t = SW.towers[+i]; if (!t) return false;
+    G.debugUsed = true; activateTower(t); return true;
+  },
+  debugLightning(){
+    if (stage !== STAGES.storm) return false;
+    if (G.state === 'play' || G.state === 'paused') G.debugUsed = true;
+    triggerLightning(false); SW.lightningIn = rnd(9, 14); return true;
+  },
+  // 'clear' is a look-dev switch: while it is on, every MISSION 03 run is a debug run (no records)
+  debugSetWeather(w){
+    if (w !== 'clear' && w !== 'storm') return false;
+    SW.weather = w; if (G.state === 'play' || G.state === 'paused') G.debugUsed = true;
+    if (stage === STAGES.storm) scene.fog.density = stageFog();
+    return SW.weather;
+  },
   get upgrades(){ return Object.assign({}, SAVE.up); },
   get upgradeEffects(){ return upEffects(SAVE.up); },
   get parts(){ return SAVE.parts; },
@@ -4045,7 +4895,8 @@ window.__GAME = {
   },
   get boss(){
     const e = enemies.find(x => x.alive && BOSS_TYPES[x.type]);
-    return e ? {type:e.type, phase:e.phase || 1, hp:e.hp, maxHp:e.maxHp, state:e.state, open:e.type === 'twin' ? +e.open.toFixed(2) : null, x:e.g.position.x, z:e.g.position.z} : null;
+    return e ? {type:e.type, phase:e.phase || 1, hp:e.hp, maxHp:e.maxHp, state:e.state, open:(e.type === 'twin' || e.type === 'mael') ? +e.open.toFixed(2) : null, sub:!!e.sub,
+      weak:!!weakInfo(e), x:e.g.position.x, y:e.g.position.y, z:e.g.position.z} : null;
   },
   debugSpawnBoss(){
     if (G.state !== 'play' || G.ending > 0) return false;
@@ -4057,14 +4908,23 @@ window.__GAME = {
     spawnBoss();
     return true;
   },
-  debugBossPhase2(){
+  // Spawn the boss if needed and jump to phase n (TWINSHELL 1-2, MAELSHELL 1-3; SHELL LORD has only phase 1). Debug run.
+  debugBossPhase(n){
+    n = Math.round(+n || 1);
     if (!this.debugSpawnBoss()) return false;
-    const b = enemies.find(x => x.alive && x.type === 'twin');
-    if (!b) return false; // MISSION 01's SHELL LORD has a single phase
-    if (b.phase === 1 && b.state !== 'transform'){ b.hp = b.maxHp / 2; twinTransform(b); }
-    return true;
+    const b = enemies.find(x => x.alive && BOSS_TYPES[x.type]);
+    if (!b) return false;
+    if (b.type === 'twin'){ if (n < 1 || n > 2) return false; if (n === 2 && b.phase === 1 && b.state !== 'transform'){ b.hp = b.maxHp / 2; twinTransform(b); } return true; }
+    if (b.type === 'mael'){
+      if (n < 1 || n > 3) return false;
+      const cur = b.state === 'shift' ? 2 : b.state === 'shift3' ? 3 : b.phase;
+      if (n > cur){ if (n === 3 && b.phase === 1) b.phase = 2; b.hp = b.maxHp * (n === 2 ? 0.65 : 0.30); maelShift(b, n); }
+      return true;
+    }
+    return n === 1;
   },
-  get daily(){ ensureDaily(); return {date:SAVE.daily.date, goals:SAVE.daily.goals.map(g => ({id:g.id, text:goalText(g), prog:g.prog, target:g.target, done:g.done, reward:g.reward, m2:g.m2})), allDone:SAVE.daily.allDone, streak:SAVE.streak.n}; },
+  debugBossPhase2(){ return this.debugBossPhase(2); },
+  get daily(){ ensureDaily(); return {date:SAVE.daily.date, goals:SAVE.daily.goals.map(g => ({id:g.id, text:goalText(g), prog:g.prog, target:g.target, done:g.done, reward:g.reward, m2:!!g.m2, m:goalMission(g)})), allDone:SAVE.daily.allDone, streak:SAVE.streak.n}; },
   debugSetDate(ds){
     if (ds != null && !/^\d{4}-\d{2}-\d{2}$/.test(String(ds))) return false;
     debugDate = ds == null ? null : String(ds);
@@ -4103,7 +4963,7 @@ window.__GAME = {
     return {x:P.pos.x, y:P.y, z:P.pos.z, heading:P.heading, speed:P.v, armor:P.armor, armorMax:P.armorMax, gripMax:P.gripMax, heat:P.heat, overheated:P.overheated,
       resonance:P.res, overbeat:P.overbeat, grip:P.grip.slice(), kills:G.kills, shots:P.shots, hits:P.hits, grounded:P.grounded};
   },
-  get mission(){ return {id:M.id, total:M.order.length, timeLeft:G.timeLeft, kills:G.kills, spawned:G.spawned, lordSpawned:G.lordSpawned, lordDead:G.lordDead,
+  get mission(){ return {id:M.id, total:M.order.length, timeLeft:G.timeLeft, kills:G.kills, spawned:G.spawned, lordSpawned:G.lordSpawned, lordDead:G.lordDead, towersDone:M.towers ? SW.towersDone : null,
       enemiesAlive:enemies.filter(e => e.alive).length, ending:G.ending > 0, win:G.win}; },
   get result(){ return G.lastResult || null; },
   get enemies(){ return enemies.filter(e => e.alive).map(e => ({type:e.type, x:e.g.position.x, y:e.g.position.y, z:e.g.position.z, hp:e.hp, state:e.state})); },
@@ -4112,7 +4972,8 @@ window.__GAME = {
 // pre-compile every material once so the first spawn / shot does not hitch
 (function warmup(){
   try{
-    const extra = [makeRammer(), makeTwin()];
+    const extra = [makeRammer(), makeTwin(), makeHaze(), makeMael()];
+    extra[0].tell.visible = true;
     const tmp = [makeBeetle().g, makeFloater().g, makeLord().g].concat(extra.map(m => m.g));
     tmp.forEach((g, i) => { g.position.set(i * 30, 0, -40); scene.add(g); });
     const pools = bullets.map(b => b.m).concat(eShots.map(s => s.m), flashPool.map(f => f.m));

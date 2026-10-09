@@ -18,6 +18,7 @@
   // 持続ノード
   var eng = null;          // エンジン（炉）
   var srv = null;          // サーボ
+  var wth = null;          // 天候（雨・風）MISSION 03
   var alarmTimer = null;
   var beatTimer = null;
   var fireVoices = 0;
@@ -267,6 +268,29 @@
     return s;
   }
 
+  // 天候：雨（高域のザー＋低いうなり）と風（帯域ノイズを LFO でうねらせる）。init で1回だけ作り、weather() はゲインだけ動かす
+  function buildWeather() {
+    var w = {};
+    w.rain = loopNoise(1);
+    w.rainHP = ctx.createBiquadFilter(); w.rainHP.type = 'highpass'; w.rainHP.frequency.value = 900;
+    w.rainLP = ctx.createBiquadFilter(); w.rainLP.type = 'lowpass'; w.rainLP.frequency.value = 7000;
+    w.rainG = ctx.createGain(); w.rainG.gain.value = 0;
+    w.rain.connect(w.rainHP); w.rainHP.connect(w.rainLP); w.rainLP.connect(w.rainG); w.rainG.connect(master);
+    w.roar = loopNoise(0.35);
+    w.roarF = ctx.createBiquadFilter(); w.roarF.type = 'lowpass'; w.roarF.frequency.value = 420;
+    w.roarG = ctx.createGain(); w.roarG.gain.value = 0;
+    w.roar.connect(w.roarF); w.roarF.connect(w.roarG); w.roarG.connect(master);
+    w.wind = loopNoise(0.5);
+    w.windF = ctx.createBiquadFilter(); w.windF.type = 'bandpass'; w.windF.frequency.value = 380; w.windF.Q.value = 1.6;
+    w.windG = ctx.createGain(); w.windG.gain.value = 0;
+    w.lfo = ctx.createOscillator(); w.lfo.type = 'sine'; w.lfo.frequency.value = 0.13;
+    w.lfoG = ctx.createGain(); w.lfoG.gain.value = 140;
+    w.lfo.connect(w.lfoG); w.lfoG.connect(w.windF.frequency);
+    w.wind.connect(w.windF); w.windF.connect(w.windG); w.windG.connect(master);
+    w.lfo.start(now());
+    return w;
+  }
+
   // ---------------------------------------------------------------- 可視性
   function onVisibility() {
     if (!ctx) return;
@@ -314,6 +338,7 @@
       ctx = c; master = m; comp = k; noiseBuf = b;
       eng = buildEngine();
       srv = buildServo();
+      wth = buildWeather();
 
       if (!visBound && typeof document !== 'undefined' && document.addEventListener) {
         document.addEventListener('visibilitychange', onVisibility);
@@ -715,6 +740,96 @@
     haptic(60);
   }
 
+  // ---------------------------------------------------------------- MISSION 03（嵐）
+  // 雨・風の持続音（毎フレーム呼んでよい。ノードは作らない）
+  function weather(rain01, wind01) {
+    if (!wth) return;
+    var r = clamp01(rain01), w = clamp01(wind01), t = now();
+    wth.rainG.gain.setTargetAtTime(r * 0.16, t, 0.4);
+    wth.roarG.gain.setTargetAtTime(r * 0.12, t, 0.4);
+    wth.windG.gain.setTargetAtTime(r > 0 ? 0.04 + w * 0.14 : 0, t, 0.6);
+    wth.windF.frequency.setTargetAtTime(260 + w * 420, t, 0.8);
+  }
+
+  // 雷鳴：k=1 で至近の落雷（鋭い破裂音つき）、小さいほど遠い
+  function thunder(k) {
+    k = clamp01(k == null ? 0.6 : k);
+    var t = now();
+    if (k > 0.85) {
+      noise({ t: t, dur: 0.22, gain: 0.55, type: 'highpass', f0: 1600 });
+      noise({ t: t, dur: 0.5, gain: 0.45, type: 'bandpass', f0: 2400, f1: 500, Q: 0.8 });
+    }
+    thud(t + 0.02, 70, 24, 1.6 + k, 0.5 + 0.4 * k);
+    noise({ t: t + 0.03, dur: 2.2 + k * 1.5, attack: 0.08, gain: 0.25 + 0.35 * k, type: 'lowpass', f0: 700 + k * 900, f1: 70, Q: 0.6, rate: 0.5 });
+    noise({ t: t + 0.5 + Math.random() * 0.4, dur: 1.8, attack: 0.25, gain: 0.2 * k + 0.08, type: 'lowpass', f0: 380, f1: 60, Q: 0.7, rate: 0.4 });
+    haptic(40 + 120 * k);
+  }
+
+  // 震動探知のピン：ソナーのような音。k が小さいと反応なし（弱く短い）
+  function tremorPing(k) {
+    k = clamp01(k == null ? 1 : k);
+    var t = now();
+    thud(t, 90, 40, 0.3, 0.35);
+    tone({ type: 'sine', f0: 1180, f1: 1090, t: t + 0.02, dur: 0.5 + 0.4 * k, gain: 0.07 + 0.06 * k });
+    if (k > 0.5) tone({ type: 'sine', f0: 590, t: t + 0.08, dur: 0.9, gain: 0.05, attack: 0.02 });
+  }
+
+  // 霧殻：霧を出す前のさえずり（高い3連＋低いうなり）
+  function hazeChirp() {
+    var t = now();
+    for (var i = 0; i < 3; i++) {
+      tone({ type: 'triangle', f0: 1700 + i * 260, f1: 2500 + i * 260, t: t + i * 0.11, dur: 0.08, gain: 0.05,
+        filter: { type: 'bandpass', f: 2200, Q: 2 } });
+    }
+    tone({ type: 'sine', f0: 210, f1: 170, t: t, dur: 1.2, attack: 0.1, gain: 0.06 });
+  }
+
+  // 計器異常に入った瞬間の砂嵐
+  function jam() {
+    var t = now();
+    noise({ t: t, dur: 0.3, gain: 0.12, type: 'bandpass', f0: 2600, Q: 1.2 });
+    tone({ type: 'square', f0: 120, t: t, dur: 0.12, gain: 0.03, filter: { type: 'lowpass', f: 900 } });
+  }
+
+  // 観測塔の起動：電源が入って上がっていく音＋2つのベル
+  function towerOnline() {
+    var t = now();
+    tone({ type: 'sawtooth', f0: 90, f1: 360, t: t, dur: 0.7, attack: 0.05, gain: 0.08, slide: 0.6, filter: { type: 'lowpass', f: 600, f1: 2400 } });
+    noise({ t: t, dur: 0.6, attack: 0.1, gain: 0.08, type: 'bandpass', f0: 400, f1: 2400, Q: 1.5 });
+    tone({ type: 'triangle', f0: 880, t: t + 0.65, dur: 0.4, gain: 0.07 });
+    tone({ type: 'triangle', f0: 1320, t: t + 0.8, dur: 0.6, gain: 0.07 });
+    metalRing(t + 0.65, 440, 0.8, 0.05);
+  }
+
+  // 渦殻王が泥の下で浮上の準備：低い地鳴り＋泡
+  function maelRumble(dur) {
+    var d = Math.max(0.4, Math.min(3, +dur || 1.5));
+    var t = now();
+    tone({ type: 'sawtooth', f0: 34, f1: 52, t: t, dur: d, attack: 0.2, gain: 0.28, slide: d, filter: { type: 'lowpass', f: 160, f1: 320 } });
+    noise({ t: t, dur: d, attack: 0.2, gain: 0.3, type: 'lowpass', f0: 180, f1: 420, Q: 0.8, rate: 0.4 });
+    for (var i = 0; i < 6; i++) {
+      tone({ type: 'sine', f0: 180 + Math.random() * 260, f1: 420 + Math.random() * 300, t: t + Math.random() * d, dur: 0.07, gain: 0.04 });
+    }
+    haptic(Math.round(d * 120));
+  }
+
+  // 渦殻王の浮上（突き上げ）：泥と水しぶき
+  function maelBurst() {
+    var t = now();
+    thud(t, 75, 22, 1.3, 1.0);
+    noise({ t: t, dur: 1.3, gain: 0.55, type: 'lowpass', f0: 3200, f1: 260, Q: 0.6 });
+    noise({ t: t + 0.05, dur: 0.9, attack: 0.05, gain: 0.25, type: 'highpass', f0: 2200 });
+    creak(t + 0.15, 60, 0.9, 0.08, 0);
+  }
+
+  // 渦殻王が雷を呼ぶ：予告円のあいだ高まるパチパチ
+  function stormCall(dur) {
+    var d = Math.max(0.5, Math.min(3, +dur || 2));
+    var t = now();
+    noise({ t: t, dur: d, attack: d * 0.8, gain: 0.16, type: 'bandpass', f0: 700, f1: 3400, Q: 2, slide: d });
+    tone({ type: 'square', f0: 70, f1: 150, t: t, dur: d, attack: 0.3, gain: 0.05, slide: d, filter: { type: 'lowpass', f: 400 } });
+  }
+
   // ---------------------------------------------------------------- 公開
   function guard(fn, allowWhenStopped) {
     return function () {
@@ -753,6 +868,15 @@
     ramImpact: guard(ramImpact),
     bossShift: guard(bossShift),
     shockwave: guard(shockwave),
-    upgrade: guard(upgrade)
+    upgrade: guard(upgrade),
+    weather: guard(weather, true),
+    thunder: guard(thunder),
+    tremorPing: guard(tremorPing),
+    hazeChirp: guard(hazeChirp),
+    jam: guard(jam),
+    towerOnline: guard(towerOnline),
+    maelRumble: guard(maelRumble),
+    maelBurst: guard(maelBurst),
+    stormCall: guard(stormCall)
   };
 })();
