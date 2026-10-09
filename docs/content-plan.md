@@ -8,15 +8,15 @@
 
 | 順 | 狙う語 | slug | 状態 |
 |---|---|---|---|
-| 1 | 個別支援計画 書き方 例文 放課後等デイサービス | kobetsu-shien-keikaku-kakikata | 第1弾（執筆中） |
-| 2 | 安全計画 放課後等デイサービス ひな形 | anzen-keikaku-jidou | 第1弾（執筆中） |
-| 3 | ヒヤリハット 報告書 書き方 障害福祉 例文 | hiyari-hatto-houkokusho | 第1弾（執筆中） |
-| 4 | 虐待防止 セルフチェックリスト 職員 | gyakutai-boushi-self-check | 第1弾（執筆中） |
-| 5 | 感染症 対策委員会 障害福祉 議事録 | kansen-taisaku-iinkai | 第1弾（執筆中） |
-| 6 | 障害福祉 年間研修計画 例 | nenkan-kenshu-keikaku | 第2弾 |
-| 7 | 非常災害対策計画 避難訓練 障害福祉 | hijou-saigai-keikaku | 第2弾 |
-| 8 | 苦情解決 体制 障害福祉 掲示 | kujou-kaiketsu | 第2弾 |
-| 9 | 事故報告書 書き方 放課後等デイサービス 市町村 | jiko-houkoku | 第2弾 |
-| 10 | 送迎 置き去り防止 安全装置 放課後等デイサービス | sougei-anzen-souchi | 第2弾（安全計画のページと重ならない範囲で） |
+| 1 | 個別支援計画 書き方 例文 放課後等デイサービス | kobetsu-shien-keikaku-kakikata | 第1弾（制度チェック中） |
+| 2 | 安全計画 放課後等デイサービス ひな形 | anzen-keikaku-jidou | 第1弾（制度チェック中） |
+| 3 | ヒヤリハット 報告書 書き方 障害福祉 例文 | hiyari-hatto-houkokusho | 第1弾（制度チェック中） |
+| 4 | 虐待防止 セルフチェックリスト 職員 | gyakutai-boushi-self-check | 第1弾（済） |
+| 5 | 感染症 対策委員会 障害福祉 議事録 | kansen-taisaku-iinkai | 第1弾（済） |
+| 6 | 障害福祉 年間研修計画 例 | nenkan-kenshu-keikaku | 第2弾（執筆中） |
+| 7 | 非常災害対策計画 避難訓練 障害福祉 | hijou-saigai-keikaku | 第2弾（執筆中） |
+| 8 | 苦情解決 体制 障害福祉 掲示 | kujou-kaiketsu | 第2弾（執筆中） |
+| 9 | 事故報告書 書き方 放課後等デイサービス 市町村 | jiko-houkoku | 第2弾（執筆中） |
+| 10 | 送迎 置き去り防止 安全装置 放課後等デイサービス | sougei-anzen-souchi | 第2弾（執筆中。安全計画のページと重ならない範囲で） |
 
 公開のペースは集客計画の「新しいページは週4本まで」に合わせる（第1弾5本は今週・来週に分けて公開してもよい。公開は本部の再公開に従う）。
