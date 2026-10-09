@@ -68,6 +68,32 @@
 - 大手（Keywords、PTW/Side、Lionbridge など）：試作品の試用には向かない。
 - Ryu's Office、Dangen Entertainment：公式サイトを確認できなかった。
 
+### 2-B. Midas の候補リストから追加（2026-10-09）
+
+> 本部の売上担当 Midas の候補リストから、リーダー Forge の判断で追加した分です（既存の行・番号は変えていません）。連絡先は 2026-10-09 に公開ページを開いて確かめ、公開の窓口だけを載せています（個人のアドレスは載せない）。下書きは `outreach-drafts.md` の #11〜13 と「保留」、3章（団体への相談）。
+
+| # | 名前 | 区分 | 国 | 既存の行との関係 | 公開の連絡経路（2026-10-09 確認） | 扱い | 予想される懸念 |
+|---|---|---|---|---|---|---|---|
+| 32 | PLAYISM | b | 日本 | **#6 Active Gaming Media と同じ会社**（PLAYISM は AGM のレーベル。サイトのフッターに ©Active Gaming Media Inc.） | https://playism.com/en/contact/ の Developer/Business Contact Form（Game User 用フォームは使わない） | #6 と合わせて**1社1通**。AGM フォームか PLAYISM フォームのどちらか一方だけ（既定は AGM） | 二重連絡、自社ツールとの競合 |
+| 12 再掲 | Phoenixx（株式会社Phoenixx） | b | 日本（東京都武蔵野市） | 既存の #12（補欠）を第1弾に追加 | https://phoenixx.ne.jp/contactus/ （区分「ビジネス（ゲーム）」）。**Midas 案の phoenixx.co.jp は名古屋の不動産会社で別会社。使わない** | 下書き #11（日本語） | 翻訳が外注の可能性、返信に2週間ほど |
+| 33 | Ysbryd Games | b | 【未検証：プライバシーポリシーは英国法人、フッターはシンガポール法人の名称】 | 新規 | 一般窓口 hello@ysbryd.net（ysbryd.net の Contact Us に掲載） | 下書き #12（英語）。GDPR / PECR 前提 | 日本語版を出しているか不明、窓口は主にゲームの売り込み向け |
+| 14 再掲 | MangaGamer（運営：Japan Animation Contents） | b | 日本（東京都台東区。about.php で確認、米国ではない） | 既存の #14 を第1弾に追加 | https://blog.mangagamer.org/contact-us/ （フォームは保守中、案内先は support@ のみ） | 下書き #13（英語、作品名なし）。**窓口は要判断**（フォーム復旧待ち、または support@ を使うか） | 成人向けカタログ（ルール：全年齢の作品だけ、または作品名なし） |
+| 34 | DANGEN Entertainment | b | 日本（大阪） | 「外した候補」に記載済み（公式サイト未確認） | ゲーム応募（持ち込み）用の窓口しか見つからず | **保留**（一般窓口が見つかるまで。応募窓口は使わない） | — |
+| 35 | JAST USA | b | 米国（サンディエゴ） | 新規 | 未確認 | **保留**（米国：CAN-SPAM の住所表記が決まるまで。成人向けカタログ） | 成人向け |
+
+### 2-C. 団体・コミュニティ（試用の募集の場があるかを尋ねるだけ。Midas 案で追加、2026-10-09）
+
+会員に直接声をかけず、団体の公開窓口に「お試しの案内をしてよい場があるか」を1回だけ尋ねます。文面は `outreach-drafts.md` の3章。
+
+| # | 団体 | 言語 | 公開の連絡経路（2026-10-09 確認） | 注意 |
+|---|---|---|---|---|
+| G1 | IGDA Localization SIG | EN | https://igda.org/?p=1591 のフォーム | 役員個人には連絡しない |
+| G2 | IGDA日本 | JA | info@igda.jp（igda.jp に掲載。イベント情報・プレスリリース用と記載） | 相談に使ってよいかオーナー判断。SIG-Glocalization は内容未確認 |
+| G3 | JAT（日本翻訳者協会）／JATENT | EN（JA可） | https://jat.org/contact のフォーム（区分「Special Interest Groups (SIGs)」） | 「JATENT」の名称はサイト上で未確認【未検証】 |
+| G4 | JTF（日本翻訳連盟） | JA | https://www.jtf.jp/inquiry | フォームの中身は未確認【未検証】。有料の広告掲載ページあり |
+| G5 | Women in Localization | EN | contact@womeninlocalization.com（Contact Us に掲載） | 米国拠点の可能性。CAN-SPAM の判断が決まるまで保留を推奨 |
+| G6 | BitSummit | JA | https://www.bitsummit.org/ja/contact/ のフォーム | 作品の応募窓口は使わない。スポンサー枠は費用の判断が必要 |
+
 ---
 
 ## 3. 最初に声をかける10件（第1弾の案）
@@ -88,6 +114,8 @@
 | 10 | Middlebury Institute（MIIS） | d | 日本語の翻訳課程とゲームローカライズの授業がある。授業の演習で使ってもらえれば、一度に複数人の意見が集まる | 1（学術向けに書き換え、英語版） |
 
 **補欠：** Phoenixx（#12）、Frognation（#11、連絡経路を確認できたら）、The Battle for Wesnoth 日本語チーム（#21、PO がそのまま読めるので非商用の意見集めに向く）。
+
+**Midas 案の追加（2026-10-09）：** 上の10件に加え、Phoenixx（#12、補欠から繰り上げ）・Ysbryd Games（#33）・MangaGamer（#14、窓口は要判断）の下書きを作りました。PLAYISM（#32）は #6 と同じ会社なので1通に数えます。DANGEN・JAST は保留。団体への相談は「2-C」。
 
 **ステージゲート（外部の試用者5名）について：** 返信率を2〜3割と見ると、10件で2〜3名です。第1弾の返信を見て、2週間後に補欠と表の11位以降から第2弾を決める想定です。
 

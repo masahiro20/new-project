@@ -1,10 +1,11 @@
-# Kotomark（仮称）第1弾 初回連絡の下書き（10件）
+# Kotomark（仮称）第1弾 初回連絡の下書き（10件＋Midas 案の追加3件）
 
 > **社内用の下書きです。まだ誰にも送っていません。** 送信・連絡・アカウント作成は一切していません。
-> 宛先は `pilot-targets.md` の「3. 最初に声をかける10件」です。文面の約束は `outreach-templates.md`・`pilot-guide.md`・`data-policy.md` と食い違わないように書いています。
+> 宛先は `pilot-targets.md` の「3. 最初に声をかける10件」と、「2-B. Midas の候補リストから追加」です。文面の約束は `outreach-templates.md`・`pilot-guide.md`・`data-policy.md` と食い違わないように書いています。
 > 各社の公開ページは 2026-10-09 に開いて、文面で触れた事実を確かめました（各候補の「確認した事実」欄）。
 >
 > **変更履歴**
+> - 2026-10-09 Midas 案を統合（候補追加、"台本/script" を精度の文から切り離す（製品の説明では使用可）、英語署名の統一、8-4 英語版、団体への相談）
 > - 2026-10-09 本部判断を反映（精度の数字を本文へ、米国宛て2通は保留、Shiravune は DM 短縮版）
 
 ---
@@ -14,15 +15,23 @@
 | # | 宛先 | 言語 | 経路（公開の業務窓口） | 文面で触れる事実（確認元） | 想定形式 | 主なリスク | 本文の長さ（精度の数字） | 承認 |
 |---|---|---|---|---|---|---|---|---|
 | 1 | Impetus（インピタス） | JA | 見積もり・問い合わせフォーム https://www.impetus.jp/for-clients-quotes | ENDER LILIES / ENDER MAGNOLIA などの実績、LQA（impetus.jp） | XLSX / CSV / XLIFF | 大手案件のNDA | 393字（数字あり） | [ ] |
-| 2 | Lemnisca LLC | EN | サイト内フォーム https://lemnisca.net/#contact | Raging Loop・Root Double の翻訳・編集・QA（lemnisca.net） | XLSX / CSV、KAG・Tyrano `.ks` | 依頼元とのNDA、成人向けの取引先、CAN-SPAM（住所） | 166語（数字なし） | [ ] **保留（米国の住所表記の問題が片付くまで）** |
-| 3 | 8-4, Ltd. | JA | 一般窓口 info@8-4.jp（https://8-4.jp/about-us/ に掲載） | 2005年設立、Fire Emblem Warriors: Three Hopes 英語版（8-4.jp） | XLSX / CSV / XLIFF | 任天堂など大手のNDA、外部ツール方針 | 395字（数字あり） | [ ] |
-| 4 | Fruitbat Factory | EN | 一般窓口 info@fruitbatfactory.com（about.html に掲載） | 2012年から日本のゲームに特化、Unity / KiriKiri / Tyrano（about.html） | KAG・Tyrano `.ks`、Unity CSV | GDPR（拠点未検証）、`.ks` の配置条件 | 169語（数字あり） | [ ] |
+| 2 | Lemnisca LLC | EN | サイト内フォーム https://lemnisca.net/#contact | Raging Loop・Root Double の翻訳・編集・QA（lemnisca.net） | XLSX / CSV、KAG・Tyrano `.ks` | 依頼元とのNDA、成人向けの取引先、CAN-SPAM（住所） | 167語（数字なし） | [ ] **保留（米国の住所表記の問題が片付くまで）** |
+| 3 | 8-4, Ltd. | JA／EN（どちらか1通） | 一般窓口 info@8-4.jp（https://8-4.jp/about-us/ に掲載） | 2005年設立、Fire Emblem Warriors: Three Hopes 英語版（8-4.jp） | XLSX / CSV / XLIFF | 任天堂など大手のNDA、外部ツール方針 | 3-A 日本語版 395字／3-B 英語版 160語（どちらも数字あり） | [ ] |
+| 4 | Fruitbat Factory | EN | 一般窓口 info@fruitbatfactory.com（about.html に掲載） | 2012年から日本のゲームに特化、Unity / KiriKiri / Tyrano（about.html） | KAG・Tyrano `.ks`、Unity CSV | GDPR（拠点未検証）、`.ks` の配置条件 | 171語（数字あり） | [ ] |
 | 5 | Shiravune | JA | 公式 X の DM（業務DMを受け付けている場合のみ） | 東京拠点、うたわれるもの PC版（shiravune.com/about） | XLSX / CSV、Ren'Py / `.ks` | 成人向けタイトルあり、窓口がSNSのみ | **DM短縮版 261字を送る**（数字あり）／長い版 391字は参考 | [ ] |
-| 6 | Active Gaming Media | JA | 問い合わせフォーム https://www.activegamingmedia.com/index.php/contact/ （区分「その他」） | 2026-10-06 告知「アナザーエデン ビギンズ」LQA担当（公式トップ） | XLSX / CSV / XLIFF、Unity / Unreal CSV | 社内ツール審査、クライアントNDA、自社ツールとの競合 | 396字（数字あり） | [ ] |
+| 6 | Active Gaming Media | JA | 問い合わせフォーム https://www.activegamingmedia.com/index.php/contact/ （区分「その他」） | 2026-10-06 告知「アナザーエデン ビギンズ」LQA担当（公式トップ） | XLSX / CSV / XLIFF、Unity / Unreal CSV | 社内ツール審査、クライアントNDA、自社ツールとの競合 | 396字（数字あり） | [ ] ※PLAYISM（同じ会社）とはどちらか1通 |
 | 7 | Chorus Worldwide | JA | 問い合わせフォーム https://chorusworldwide.com/jp-contact/ （区分「ビジネスに関するお問い合わせ」） | コーヒートーク の日本展開（フォームの作品一覧、about-us） | Unity CSV / XLSX / i18n JSON | 開発元との契約で台本を出せない | 396字（数字あり） | [ ] |
-| 8 | Kakehashi Games（架け橋ゲームズ） | JA | 会社案内の一般メール（https://www.kakehashigames.com/about-us.html。表示はブラウザで確認） | 海外インディーの日本語化・日本展開、Cairn の配信（公式トップ） | CSV / XLSX / i18n JSON / .po / Unity CSV | 翻訳が外注の可能性 | 395字（数字あり） | [ ] |
-| 9 | Shloc Ltd | EN | 一般窓口 mail@shloc.com（https://www.shloc.com/en/contact） | DEATH STRANDING 2 の JP > EN Localization、ロンドン・東京拠点（shloc.com） | XLSX / CSV / XLIFF | AAAの機密、GDPR / PECR（英国） | 174語（数字あり） | [ ] |
-| 10 | Middlebury Institute（MIIS） | EN | 大学の公開窓口（下記の注意。プログラム事務局の窓口を要確認） | 2024-05-09 記事：学生8名が LocJam 6 で英→日翻訳、用語と口調を統一 | CSV / XLSX / XLIFF / .po | 大学の承認、FERPA、授業日程、CAN-SPAM | 159語（数字なし） | [ ] **保留（米国の住所表記の問題が片付くまで）** |
+| 8 | Kakehashi Games（架け橋ゲームズ） | JA | 会社案内の一般メール（https://www.kakehashigames.com/about-us.html。表示はブラウザで確認） | 海外インディーの日本語化・日本展開、Cairn の配信（公式トップ） | CSV / XLSX / i18n JSON / .po / Unity CSV | 翻訳が外注の可能性 | 399字（数字あり） | [ ] |
+| 9 | Shloc Ltd | EN | 一般窓口 mail@shloc.com（https://www.shloc.com/en/contact） | DEATH STRANDING 2 の JP > EN Localization、ロンドン・東京拠点（shloc.com） | XLSX / CSV / XLIFF | AAAの機密、GDPR / PECR（英国） | 176語（数字あり） | [ ] |
+| 10 | Middlebury Institute（MIIS） | EN | 大学の公開窓口（下記の注意。プログラム事務局の窓口を要確認） | 2024-05-09 記事：学生8名が LocJam 6 で英→日翻訳、用語と口調を統一 | CSV / XLSX / XLIFF / .po | 大学の承認、FERPA、授業日程、CAN-SPAM | 160語（数字なし） | [ ] **保留（米国の住所表記の問題が片付くまで）** |
+| 6' | PLAYISM（AGM のレーベル。**#6 と同じ会社**）— Midas 案 | （#6 の文面を書き換えて使う） | Developer/Business Contact Form https://playism.com/en/contact/ | — | — | #6 との二重連絡 | 下書きなし（#6 か PLAYISM のどちらか1通だけ） | — |
+| 11 | Phoenixx（株式会社Phoenixx）— Midas 案 | JA | 問い合わせフォーム https://phoenixx.ne.jp/contactus/ （区分「ビジネス（ゲーム）」。※phoenixx.co.jp は別会社） | 2019年設立のインディーパブリッシャー、日本→世界・世界→日本アジアの展開（phoenixx.ne.jp） | CSV / XLSX / JSON | 翻訳が外注の可能性、返信に2週間 | 391字（数字あり） | [ ] |
+| 12 | Ysbryd Games — Midas 案 | EN | 一般窓口 hello@ysbryd.net（ysbryd.net の Contact Us に掲載） | Polish（QA・workflow help）の支援、VA-11 HALL-A・WORLD OF HORROR（ysbryd.net） | CSV / XLSX / XLIFF / .po / JSON / Ren'Py | GDPR / PECR（英国法人と記載、所在地未確定）、日本語版の有無が不明 | 170語（数字あり） | [ ] |
+| 13 | MangaGamer — Midas 案 | EN | **要判断**：blog.mangagamer.org/contact-us/（フォーム保守中、案内先は support@ のみ） | 日本のノベルの英語ローカライズ・販売（about.php。運営は東京の Japan Animation Contents） | XLSX / CSV、`.ks`、Ren'Py | 成人向けカタログ（作品名なし）、窓口がサポート用 | 161語（数字あり） | [ ] **要判断（窓口）** |
+| — | DANGEN Entertainment — Midas 案 | — | ゲーム応募用の窓口しか見つからず | — | — | — | 下書きなし | **保留** |
+| — | JAST USA — Midas 案 | — | — | — | — | 米国（CAN-SPAM）、成人向け | 下書きなし | **保留** |
+
+団体への相談（3章）：IGDA Localization SIG（EN 115語）、IGDA日本（JA 289字）、JAT（EN 117語）、JTF（JA 285字）、Women in Localization（EN 116語、保留を推奨）、BitSummit（JA 319字）。各 オーナー承認: [ ]。
 
 ---
 
@@ -30,21 +39,23 @@
 
 1. **1通ずつオーナーの承認を取ってから送ります。** 宛先と文面の両方を確認し、各候補の「オーナー承認: [ ]」に印が付いたものだけ送ります。一斉送信・BCC送信はしません。
 2. **差し込みを埋めます。** `{{demo_link}}`（公開共有の設定にしたデモURL。社内URL・トークン付きURLは不可）、`{{contact}}`（返信先。**現在未提供**のため、決まるまで送信不可）、`{{sender_name}}`。送る前に `{{` が残っていないことを確認します。
-3. **特定電子メール法（日本：#1, 3, 5, 6, 7, 8）：** 広告・宣伝にあたりうるため、相手がアドレスを公表している業務窓口に限り、「営業お断り」等の記載がないことを送信直前にもう一度確認します（2026-10-09 時点では10件とも該当記載は見当たりませんでした）。本文に送信者名・連絡先・配信停止の方法を必ず入れます。
-4. **CAN-SPAM（米国：#2, #10。2026-10-09 本部判断で2通とも保留）：** 送信者の明記、配信停止の方法、申し出から10営業日以内の停止に加え、**送信者の所在地（郵便の住所）**の記載が必要になる場合があります。署名に住所を足すかは送信前に法務・オーナーが判断します。
-5. **GDPR / PECR（英国・EU：#4, #9）：** 公開されている業務用の窓口だけに送ります（個人のアドレスは推測しない・使わない）。連絡の根拠（正当な利益）を説明できるようにし、削除の求めがあれば連絡先リストからも消します。
+3. **特定電子メール法（日本：#1, 3, 5, 6, 7, 8, 11, 13）：** 広告・宣伝にあたりうるため、相手がアドレスを公表している業務窓口に限り、「営業お断り」等の記載がないことを送信直前にもう一度確認します（2026-10-09 時点では10件とも、追加の #11・#13 も該当記載は見当たりませんでした）。本文に送信者名・連絡先・配信停止の方法を必ず入れます。
+4. **CAN-SPAM（米国：#2, #10。2026-10-09 本部判断で2通とも保留。Midas 案の JAST も米国のため下書きを作らず保留）：** 送信者の明記、配信停止の方法、申し出から10営業日以内の停止に加え、**送信者の所在地（郵便の住所）**の記載が必要になる場合があります。署名に住所を足すかは送信前に法務・オーナーが判断します。
+5. **GDPR / PECR（英国・EU：#4, #9, #12）：** 公開されている業務用の窓口だけに送ります（個人のアドレスは推測しない・使わない）。連絡の根拠（正当な利益）を説明できるようにし、削除の求めがあれば連絡先リストからも消します。
 6. **フォームとDM：** 問い合わせフォームは用意された区分（「その他」「ビジネス」）を使い、サポート窓口・採用窓口には送りません。DMは業務用アカウントがDMを受け付けている場合だけです。コミュニティの公開の場には投稿しません。
-7. **成人向けの取引先（#2, #5）：** 文面で触れる作品は全年齢と確認できたものだけにします（送信前に年齢区分を再確認）。当社の資料に成人向けの内容を入れません。
+7. **成人向けの取引先（#2, #5, #13）：** 文面で触れる作品は全年齢と確認できたものだけにします（送信前に年齢区分を再確認）。当社の資料に成人向けの内容を入れません。
 8. **NDA・機密：** こちらから台本の送付を求めません。試用は付属サンプルか、相手が選んだNDAに触れない抜粋で、ブラウザ版デモ（処理はブラウザ内、アップロードなし）で行ってもらいます。受け取るのは「ラベルをコピー（CSV）」の内容だけで、原文・訳文の列は既定で空になります。デモの画面は 2026-10-09 時点で日本語だけなので、英語の相手には英語の手順を添えるか通話を勧めます（#2 のメモ参照）。
 9. **数字（2026-10-09 本部承認：本文に入れる）：** 文面に入れてよい精度の数字は、**調整に使っていないデータ（2回目）の値だけ**で、表現は次の文言に限ります（件数と条件を必ずセットで書き、「約97%」だけを抜き出さない）。
    - 日本語：「調整に使っていないオープンソース6本（ゲーム3・アプリ3）の翻訳で、抜き取った警告・エラー297件中287件が実際の問題でした（約97%、自社のAI評価者による判定）。」
    - 英語："On six open-source projects we never tuned on (3 games, 3 apps), 287 of 297 sampled warnings/errors were real issues (about 97%; judged in-house by an AI evaluator)."
    - 日→英の相手（#3, #4, #5, #9）だけ、括弧内に「、主に英→日」／"; mostly EN→JA"（#9 は "mostly EN→JA strings"）を足してよい。これ以外の言い換えはしません。
    - **使わない表現：** 本部案の「調整に使っていないゲーム台本297件で287件を正しく判定（約97%）」は**事実と違うので使いません**。297件は6つのオープンソース（ゲーム3・アプリ3）から抜き取った警告・エラーで、対象は主に UI・翻訳文字列（.po・YAML・JSON）と Ren'Py のデモ1本であり、ゲーム台本ではありません。判定はAI評価者1名（人の確認はまだ、再現率は未測定）で、指摘の大半は未翻訳の検出です。調整に使ったデータの 190/190 も**使いません**。
-   - 入れた文面：#1, 3, 4, 5, 6, 7, 8, 9。#2・#10（米国宛て）は保留中のため数字は入れていません（保留が解けて送る場合も、入れるなら上の英語の文言だけ）。
+   - **「台本」/"script" の使い分け（2026-10-09 Midas 案・本部の補足）：** 製品の説明（「ゲームの台本・翻訳ファイルの一貫性を検査する」"checks game scripts and translation files"）では使ってよい。ただし**精度の文では使わず**、297件が台本で測った数字だと読める書き方（「台本で97%」「scripts … 287 of 297」など）はしません。精度の文は上の文言（オープンソース6本の翻訳＝翻訳ファイル）のままにします。形式を示すときは Ren'Py の翻訳ファイル、TyranoScript/KAG の .ks シナリオファイルのように具体的に書いてかまいません。
+   - 入れた文面：#1, 3（日本語版・英語版とも）, 4, 5, 6, 7, 8, 9, 11, 12, 13。#2・#10（米国宛て）は保留中のため数字は入れていません（保留が解けて送る場合も、入れるなら上の英語の文言だけ）。団体への相談（3章）には数字を入れていません。
 10. **追いかけは1回まで：** 返信がなければ、**7〜10日後に1回だけ**、`outreach-templates.md` の 3-B（元のスレッドへの返信）を送ります。その後は連絡しません。（テンプレートの「1〜2週間」より短めの、この下書き用の取り決めです。）
-11. **断られた・停止を求められたら：** すぐ `pilot-targets.md` の該当行に「連絡不要」と書き、二度と送りません。
-12. **文字数：** 各文面は英語180語以内、日本語400字以内（署名を含む本文。件名・改行は除き、差し込みは1字と数える）に収めています。Shiravune の DM 短縮版は280字以内です。現在の長さは「0. 一覧」の表にあります。書き換えたら数え直してください。
+11. **同じ会社・グループには1通だけ：** Active Gaming Media（#6）と PLAYISM は同じ会社（PLAYISM は AGM のレーベル）なので、どちらか一方の窓口だけに送り、追いかけも合わせて1回です（既定は #6 の AGM フォーム）。
+12. **断られた・停止を求められたら：** すぐ `pilot-targets.md` の該当行に「連絡不要」と書き、二度と送りません。
+13. **文字数：** 各文面は英語180語以内、日本語400字以内（署名を含む本文。件名・改行は除き、差し込みは1字と数える）に収めています。Shiravune の DM 短縮版は280字以内です。現在の長さは「0. 一覧」の表にあります。書き換えたら数え直してください。
 
 ---
 
@@ -93,7 +104,7 @@ One small ask: spend about 30 minutes with the browser demo ({{demo_link}}) on t
 
 If you'd rather not hear from us again, reply "no thanks" and we won't contact you further.
 
-{{sender_name}}, Kotomark 開発チーム
+{{sender_name}}, Kotomark development team
 {{contact}}
 ```
 
@@ -107,7 +118,9 @@ If you'd rather not hear from us again, reply "no thanks" and we won't contact y
 
 ---
 
-### 3. 8-4, Ltd. — 日本語
+### 3. 8-4, Ltd. — 日本語版／英語版（どちらか1通だけ。オーナーが選ぶ）
+
+#### 3-A. 日本語版
 
 **件名：** 日英ゲーム台本の一貫性チェック（試作品）お試しのお願い
 
@@ -126,11 +139,30 @@ Kotomark 開発チーム {{sender_name}}
 {{contact}}
 ```
 
+#### 3-B. English version
+
+**Subject:** JA↔EN consistency checker (prototype): could 8-4 tell us where it's wrong?
+
+```text
+Hello 8-4 team,
+
+I'm {{sender_name}} from the Kotomark development team. Your site describes Japanese-to-English and English-to-Japanese localization since 2005, including the English localization of Fire Emblem Warriors: Three Hopes, so your judgement would mean a lot to us.
+
+Kotomark (working name) is an early prototype that checks game scripts and translation files for term, katakana, character-name, honorific and voice drift, with file:line references. It reads XLSX/CSV and XLIFF. On six open-source projects we never tuned on (3 games, 3 apps; mostly EN→JA), 287 of 297 sampled warnings/errors were real issues (about 97%; judged in-house by an AI evaluator).
+
+One small ask: about 30 minutes with the browser demo ({{demo_link}}) on the bundled sample or an NDA-safe excerpt, then send the text from the "ラベルをコピー（CSV）" (copy labels) button. A 20-minute call works too. Nothing is uploaded. Free, no obligation.
+
+If you'd rather not hear from us again, reply "no thanks" and we won't contact you further.
+
+{{sender_name}}, Kotomark development team
+{{contact}}
+```
+
 **オーナー向けメモ**
 - **なぜこの相手か：** 2005年設立の東京の老舗で、日→英・英→日の両方向（8-4.jp/about-us で明記）。現場の目が厳しく、誤検出の指摘に価値がある。
 - **確認した事実（2026-10-09）：** about-us に "Established: Oct. 5, 2005"、Japanese-to-English / English-to-Japanese localization。トップページに "8-4 worked on the English localization of Fire Emblem Warriors: Three Hopes"。
 - **経路：** about-us に掲載の一般窓口 info@8-4.jp（General Inquiries）。媒体・採用・サポート用の別アドレスには送らない。
-- **リスク：** 任天堂・カプコンなど大手案件のNDA、外部ツールの利用方針が厳しい可能性。英語話者の多い会社なので、**英語版に差し替える選択肢**あり（Lemnisca の文面を 8-4 向けに直す）。日本語で送るか英語で送るかはオーナー判断。
+- **リスク：** 任天堂・カプコンなど大手案件のNDA、外部ツールの利用方針が厳しい可能性。英語話者の多い会社なので、2026-10-09 に**英語版（3-B）を追加**した（Midas 案）。日本語版（3-A）と英語版のどちらで送るかはオーナー判断で、**送るのは片方だけ**（両方送ると二重の連絡になる）。英語版を選ぶ場合、デモの画面が日本語だけである点はルール8のとおり。
 - **オーナー承認: [ ]**
 
 ---
@@ -144,13 +176,13 @@ Hello Fruitbat Factory team,
 
 I'm {{sender_name}} from the Kotomark development team. Your About page says you've focused on Japanese games since 2012 and specialise in Unity, KiriKiri and Tyrano projects, so I thought our prototype might fit your workflow.
 
-Kotomark (working name) is an early prototype that checks a whole JA→EN script for term, katakana, character-name, honorific and voice drift, with file:line references. It reads KAG/TyranoScript .ks files (one copy per language), Unity string-table CSVs and XLSX/CSV. On six open-source projects we never tuned on (3 games, 3 apps; mostly EN→JA), 287 of 297 sampled warnings/errors were real issues (about 97%; judged in-house by an AI evaluator).
+Kotomark (working name) is an early prototype that checks JA→EN scripts and translation files for term, katakana, character-name, honorific and voice drift, with file:line references. It reads KAG/TyranoScript .ks files (one copy per language), Unity string-table CSVs and XLSX/CSV. On six open-source projects we never tuned on (3 games, 3 apps; mostly EN→JA), 287 of 297 sampled warnings/errors were real issues (about 97%; judged in-house by an AI evaluator).
 
 One small ask: about 30 minutes with the browser demo ({{demo_link}}) on the bundled sample or a safe excerpt, then send the text from the "ラベルをコピー（CSV）" (copy labels) button. A 20-minute call is fine instead. Nothing is uploaded. Free, no obligation.
 
 If you'd rather not hear from us again, reply "no thanks" and we won't contact you further.
 
-{{sender_name}}, Kotomark 開発チーム
+{{sender_name}}, Kotomark development team
 {{contact}}
 ```
 
@@ -224,6 +256,7 @@ Kotomark 開発チーム {{sender_name}}
 - **確認した事実（2026-10-09）：** 公式トップのお知らせに 2026.10.06「『アナザーエデン ビギンズ』のLQAを弊社が担当いたしました！」。サービスに「LQA・QA」「ゲーム翻訳・ローカライズ」。
 - **経路：** https://www.activegamingmedia.com/index.php/contact/ のフォーム。区分は「その他」（「ローカライズ…（お見積りのご依頼）」は見積もり用なので使わない）。個人情報の取扱いへの同意が必要。営業お断りの記載なし。
 - **リスク：** 社内のツール導入審査、クライアントのNDA。自社で翻訳サービスを持つため競合と見られる可能性。中規模なので担当部署に回るまで時間がかかる前提。
+- **別経路（Midas 案で追加、同じ会社）：** PLAYISM（AGM のパブリッシングレーベル）の Developer/Business Contact Form（https://playism.com/en/contact/ 。2026-10-09 確認：フォームは「Game User」と「Developer/Business」の2種、メールアドレスの掲載なし、営業お断りの記載なし、フッターに ©Active Gaming Media Inc.・PLAYISM は同社の登録商標と明記）。**同じ会社なので、送るのは AGM フォームか PLAYISM フォームのどちらか1通だけ**（既定は AGM フォーム。PLAYISM 側に送る場合は文面の告知の部分を PLAYISM のパブリッシングに合わせて書き換え、オーナー承認を取り直す）。Game User 用フォームには送らない。
 - **オーナー承認: [ ]**
 
 ---
@@ -265,7 +298,7 @@ Kotomark 開発チーム {{sender_name}}
 
 突然のご連絡失礼します。Kotomark 開発チームの{{sender_name}}です。「Cairn」など海外インディーの日本語化と日本展開を拝見しました。
 
-Kotomark（仮称）は、英日の台本の用語・表記・キャラ名・敬称・口調の揺れを「ファイル名:行番号」付きで示す試作品で、CSV・XLSX・JSON・.poなどを読めます。調整に使っていないオープンソース6本（ゲーム3・アプリ3）の翻訳で、抜き取った警告・エラー297件中287件が実際の問題でした（約97%、自社のAI評価者による判定）。外注翻訳の納品チェックに使えるかも伺いたいです。
+Kotomark（仮称）は、英日の翻訳ファイルの用語・表記・キャラ名・敬称・口調の揺れを「ファイル名:行番号」付きで示す試作品で、CSV・XLSX・JSON・.poなどを読めます。調整に使っていないオープンソース6本（ゲーム3・アプリ3）の翻訳で、抜き取った警告・エラー297件中287件が実際の問題でした（約97%、自社のAI評価者による判定）。外注翻訳の納品チェックに使えるかも伺いたいです。
 
 デモ（{{demo_link}}）で付属サンプルか抜粋を30分試し、「ラベルをコピー（CSV）」の内容をお送りいただけませんか。お電話でも結構です。台本はアップロードされず、無料です。
 
@@ -293,13 +326,13 @@ Hello Shloc team,
 
 I'm {{sender_name}} from the Kotomark development team. Your site lists JP > EN localization on DEATH STRANDING 2: ON THE BEACH, and I'd value the judgement of a team working at that level.
 
-Kotomark (working name) is an early prototype that reads a whole JA↔EN script and flags term, katakana, character-name, honorific and voice drift with file:line references. It reads XLSX/CSV and XLIFF. On six open-source projects we never tuned on (3 games, 3 apps; mostly EN→JA strings), 287 of 297 sampled warnings/errors were real issues (about 97%; judged in-house by an AI evaluator). It's untested on JA→EN scripts and still has false positives.
+Kotomark (working name) is an early prototype that reads JA↔EN scripts and translation files and flags term, katakana, character-name, honorific and voice drift with file:line references. It reads XLSX/CSV and XLIFF. On six open-source projects we never tuned on (3 games, 3 apps; mostly EN→JA strings), 287 of 297 sampled warnings/errors were real issues (about 97%; judged in-house by an AI evaluator). It's untested on JA→EN scripts and still has false positives.
 
 Your projects are confidential, so I'm not asking for any project text. One small ask: 30 minutes with the browser demo ({{demo_link}}) on its bundled sample, then send the text from the "ラベルをコピー（CSV）" (copy labels) button; or a 20-minute call. Nothing is uploaded. Free, no obligation.
 
 If you'd rather not hear from us again, reply "no thanks" and we won't contact you further.
 
-{{sender_name}}, Kotomark 開発チーム
+{{sender_name}}, Kotomark development team
 {{contact}}
 ```
 
@@ -327,7 +360,7 @@ Could you forward this to a faculty member in Translation and Localization Manag
 
 If you'd rather not hear from us again, reply "no thanks" and we won't contact you further.
 
-{{sender_name}}, Kotomark 開発チーム
+{{sender_name}}, Kotomark development team
 {{contact}}
 ```
 
@@ -341,7 +374,222 @@ If you'd rather not hear from us again, reply "no thanks" and we won't contact y
 
 ---
 
-## 3. 送信前の最終チェック（1通ごと）
+### 11. Phoenixx（株式会社Phoenixx）— 日本語（Midas 案で追加）
+
+**件名：** ゲームの台本・翻訳ファイルの一貫性チェック（試作品）お試しのお願い
+
+```text
+株式会社Phoenixx ご担当者様
+
+突然のご連絡失礼します。Kotomark 開発チームの{{sender_name}}です。日本のクリエイターの海外展開と、海外作品の日本・アジア展開の取り組みを拝見しました。
+
+Kotomark（仮称）は、ゲームの翻訳ファイルの用語・表記・キャラ名・敬称・口調の揺れを「ファイル名:行番号」付きで示す試作品で、CSV・XLSX・JSONなどを読めます。調整に使っていないオープンソース6本（ゲーム3・アプリ3）の翻訳で、抜き取った警告・エラー297件中287件が実際の問題でした（約97%、自社のAI評価者による判定）。
+
+デモ（{{demo_link}}）で付属サンプルかNDA外の抜粋を30分試し、「ラベルをコピー（CSV）」の内容をお送りいただけませんか。お電話でも結構です。データはアップロードされず、無料です。
+
+今後のご連絡が不要でしたら「不要」とご返信ください。
+
+Kotomark 開発チーム {{sender_name}}
+{{contact}}
+```
+
+**オーナー向けメモ**
+- **なぜこの相手か：** 2019年設立のインディーゲームのパブリッシャーで、「日本のクリエイターを世界へ」と、海外作品の日本・アジア展開の両方を掲げる（phoenixx.ne.jp）。タイトル数が多く、日英の両方向の翻訳ファイルを扱っているはず。`pilot-targets.md` の #12（補欠）を Midas 案で第1弾に追加。
+- **確認した事実（2026-10-09）：** 公式トップ（https://phoenixx.ne.jp/ ）に 2019年設立のインディーゲームパブリッシャー、本社は東京都武蔵野市、事業はゲーム（パブリッシング・企画・開発）・マネジメント・イベント（OSAKA INDIE GAMES SUMMIT 2026 を開催）。作品一覧は多数あるが、どれを自社で翻訳したかの記載は無いので、文面では作品名に触れていない。
+- **経路：** https://phoenixx.ne.jp/contactus/ のフォーム、区分は「ビジネス（ゲーム）」（「ゲーム内容」「ゲームの不具合」「HYDE RUN」は選ばない）。同意のチェックが必須。営業お断りの記載なし。返信まで2週間ほどかかるとの記載があるため、**追いかけはルール10の7〜10日ではなく3週間後を目安にする**のがよい（オーナー判断）。
+- **注意（経路の取り違え）：** Midas 案にあった https://phoenixx.co.jp/contact.html は**別の会社**（名古屋市東区の不動産会社）のページだった（2026-10-09 確認）。**そちらには送らない。**
+- **リスク：** 翻訳を外注している可能性（窓口の担当者が翻訳の当事者でないかもしれない）。東方Project の二次創作作品など権利関係の複雑な作品があるため、作品名には触れない。
+- **オーナー承認: [ ]**
+
+---
+
+### 12. Ysbryd Games — English（Midas 案で追加）
+
+**Subject:** Do any of your titles ship in Japanese? A free consistency check (prototype)
+
+```text
+Hello Ysbryd team,
+
+I'm {{sender_name}} from the Kotomark development team. Your site describes the "Polish" support you give developers, including QA and workflow help, across titles such as VA-11 HALL-A and WORLD OF HORROR.
+
+Kotomark (working name) is an early prototype that checks EN↔JA game scripts and translation files for term, katakana, character-name, honorific and voice drift, with file:line references. It reads CSV/XLSX, XLIFF, gettext .po, i18n JSON and Ren'Py translation files. On six open-source projects we never tuned on (3 games, 3 apps), 287 of 297 sampled warnings/errors were real issues (about 97%; judged in-house by an AI evaluator).
+
+If any of your titles ship in Japanese, one small ask: about 30 minutes with the browser demo ({{demo_link}}) on the bundled sample or an NDA-safe excerpt, then send the text from the "ラベルをコピー（CSV）" (copy labels) button. A 20-minute call works too. Nothing is uploaded. Free, no obligation.
+
+If you'd rather not hear from us again, reply "no thanks" and we won't contact you further.
+
+{{sender_name}}, Kotomark development team
+{{contact}}
+```
+
+**オーナー向けメモ**
+- **なぜこの相手か：** インディーゲームのパブリッシャーで、開発者への支援に「Polish」（QA・作業の流れの手助け・アドバイザー）を掲げる。英語圏の作品を多言語で出す立場なので、英→日の翻訳ファイルの納品チェックとしての意見がもらえる可能性。
+- **確認した事実（2026-10-09）：** ysbryd.net のトップに Contact Us 欄があり、Email のリンクとして hello@ysbryd.net を掲載（会社の一般窓口）。作品一覧に VA-11 HALL-A、WORLD OF HORROR、Demonschool など。支援内容に Funding / Polish（QA、workflow help、advisors）/ Visibility。**日本語版を自社で出しているかはサイトに記載なし**なので、文面は「日本語で出している作品があれば」とした。
+- **経路：** hello@ysbryd.net（サイト掲載の一般窓口）。X・Facebook の DM は使わない。
+- **所在地：** 住所の記載なし。プライバシーポリシーは "Ysbryd Games Worldwide Limited, a United Kingdom company"、フッターは "© Ysbryd Games Pte Ltd."（シンガポール法人の名称）で、どちらか確定しない。**GDPR / 英国 PECR を前提に扱う**（業務窓口だけ、削除の求めには即対応）。
+- **リスク：** サイトに「連絡のいちばんの方法は、こちらから声をかけたくなる良いゲームを作ること」とあり、主にゲームの売り込みを想定した窓口。返信が無くても追いかけは1回まで。日本語版が無ければ試用の意味が薄い。
+- **オーナー承認: [ ]**
+
+---
+
+### 13. MangaGamer — English（Midas 案で追加）
+
+**Subject:** A consistency checker for JA→EN visual novel text (prototype, free to try)
+
+```text
+Hello MangaGamer team,
+
+I'm {{sender_name}} from the Kotomark development team. MangaGamer localizes and publishes Japanese visual novels in English, and long-form JA→EN text is exactly where I'd value a practitioner's view.
+
+Kotomark (working name) is an early prototype that checks game scripts and translation files for term, katakana, character-name, honorific and voice drift, with file:line references. It reads XLSX/CSV, KAG/TyranoScript .ks scenario files and Ren'Py translation files. On six open-source projects we never tuned on (3 games, 3 apps; mostly EN→JA), 287 of 297 sampled warnings/errors were real issues (about 97%; judged in-house by an AI evaluator). It is untested on JA→EN novels.
+
+One small ask: about 30 minutes with the browser demo ({{demo_link}}) on its bundled sample, then send the text from the "ラベルをコピー（CSV）" (copy labels) button. A 20-minute call works too. Nothing is uploaded. Free, no obligation.
+
+If you'd rather not hear from us again, reply "no thanks" and we won't contact you further.
+
+{{sender_name}}, Kotomark development team
+{{contact}}
+```
+
+**オーナー向けメモ**
+- **なぜこの相手か：** 日本のビジュアルノベルの日→英ローカライズと販売で、文章量が非常に多い。用語・キャラ名・敬称・口調は Kotomark の検査項目そのもの。`pilot-targets.md` の #14 を Midas 案で第1弾に追加。
+- **確認した事実（2026-10-09）：** mangagamer.com/about.php に運営会社 Japan Animation Contents Inc.、住所は**東京都台東区雷門**（日本）。よって米国ではなく、CAN-SPAM の保留の対象外。**日本の特定電子メール法**を前提に扱う。
+- **成人向け（ルール7）：** カタログの中心が成人向けのため、**文面では作品名に一切触れていない**。全年齢と確認できた作品も挙げない。当社のサンプル・資料に成人向けの内容を入れない。試用は付属サンプルだけを頼み、抜粋は求めていない。
+- **経路：** **要判断（送る前にオーナーが決める）。** about.php の「Publish with Us」から辿る https://blog.mangagamer.org/contact-us/ は、2026-10-09 時点で「フォームは保守中」とあり、「すべての問い合わせは support (at) mangagamer.com へ」と案内している。公開されている唯一のアドレスがサポート用で、ルール6（サポート窓口には送らない）に当たりうる。**フォームの復旧を待ってフォームから送る**のが安全。support@ に送るかはオーナー判断。
+- **リスク：** 成人向け作品が中心で、当社のブランド上の配慮が必要。台本は開発元の権利物。JA→EN のノベルでの検証はまだ無い（文面にも明記）。
+- **オーナー承認: [ ]** **要判断（窓口：フォーム復旧待ち、または support@ を使うかの判断）**
+
+---
+
+### 保留（Midas 案の候補のうち、下書きを作らなかったもの）
+
+- **DANGEN Entertainment（大阪）：** 2026-10-09 に確認できた公開の窓口は、ゲームの応募（パブリッシングの持ち込み）用だけで、業務の一般窓口が見つからなかった。応募窓口を試用の依頼に使わない。一般窓口が見つかるまで保留。
+- **JAST USA（米国・サンディエゴ）：** 米国のため、#2・#10 と同じく CAN-SPAM の住所表記の問題が片付くまで保留。成人向けカタログが中心のため、再開する場合もルール7（全年齢の作品だけ、または作品名なし）を適用。
+
+---
+
+## 3. 団体・コミュニティへの相談（試用の募集の場があるか尋ねる）
+
+> Midas 案で追加（2026-10-09）。**会員に直接声をかけるのではなく**、「試作品のお試しを会員に案内してよい場・チャンネルがあるか」を団体の公開窓口に1回だけ尋ねるための文面です。
+> - 会員個人・役員個人には連絡しません（名簿やSNSで見つけても使わない）。団体の掲示板・SNS・Slack などに無断で投稿しません。
+> - 案内してよい場があると言われても、その場の規約（広告料・事前審査など）に従い、内容はあらためてオーナーの承認を取ります。
+> - 精度の数字は入れていません。追いかけは1回まで、「不要」と言われたら `pilot-targets.md` に記録して二度と送りません。
+> - 文字数の上限は下書きと同じ（日本語400字・英語180語）。長さは各文面の見出しに書いています。
+
+### 3-1. IGDA Localization SIG — English（115語）
+
+- **経路：** IGDA の LocSIG ページのフォーム https://igda.org/?p=1591 （2026-10-09 確認：「このフォームで LocSIG に連絡を」、活動・参加・パートナーシップの相談を受け付けると記載。名前・メール・電話・本文の欄）。共同議長など個人の連絡先は使わない。
+- **規制：** IGDA は国際団体（米国の非営利団体）。勧誘ではなく問い合わせだが、送信者名と配信停止の一文を入れた。
+- **オーナー承認: [ ]**
+
+```text
+Hello IGDA Localization SIG,
+
+I'm {{sender_name}} from the Kotomark development team. We're building an early prototype that checks game scripts and translation files (JA↔EN) for terminology, character-name, honorific and voice consistency, and we're looking for a few localization practitioners who would try it for free and tell us where it's wrong.
+
+We don't want to contact members directly or post anywhere uninvited. Is there an appropriate venue or channel (a newsletter, a community board, a meetup slot) where an invitation like this would be welcome? If not, a simple "no" is perfectly fine.
+
+If you'd rather not hear from us again, just say so and we won't contact you further.
+
+{{sender_name}}, Kotomark development team
+{{contact}}
+```
+
+### 3-2. IGDA日本（NPO法人国際ゲーム開発者協会日本）— 日本語（289字）
+
+- **経路：** 公式サイト https://www.igda.jp/ に掲載の info@igda.jp（2026-10-09 確認）。**ただしサイト上は「イベント情報・プレスリリースの掲載依頼」の宛先として書かれている**ので、相談に使ってよいかは送る前にオーナーが判断する。専門部会に SIG-Glocalization があるが、内容と窓口は未確認（部会ごとのアドレスは推測しない）。
+- **オーナー承認: [ ]**
+
+```text
+IGDA日本 ご担当者様
+
+突然のご連絡失礼します。Kotomark 開発チームの{{sender_name}}です。ゲームの台本・翻訳ファイル（日英）の用語・キャラ名・敬称・口調の揺れを検査する試作品を作っており、無料で試して「どこが間違っているか」を教えてくださる方を数名探しています。
+
+会員の皆さまへ個別にご連絡したり、許可なく投稿したりするつもりはありません。こうしたお試しの募集をご案内してよい場（お知らせ欄、SIG の会合など）がございましたら、お教えいただけませんか。適当な場がなければ、その旨だけでも幸いです。
+
+今後のご連絡が不要でしたら「不要」とご返信ください。
+
+Kotomark 開発チーム {{sender_name}}
+{{contact}}
+```
+
+### 3-3. JAT（日本翻訳者協会）／エンターテインメント分科会（JATENT）— English（117語）
+
+- **経路：** https://jat.org/contact のフォーム（2026-10-09 確認：名前・メール・件名・本文、英語・日本語どちらでも可、本文1,000字まで）。宛先区分は **「Special Interest Groups (SIGs)」** を選ぶ。翻訳者の募集ではないので求人フォームは使わない。会員個人には連絡しない。
+- **注意：** トップページに分科会の例として "entertainment" はあるが、「JATENT」という名称はサイト上で確認できなかった【未検証】。文面では "your entertainment SIG" と書いた。英語で書いたが、日本語に差し替えてもよい（オーナー判断）。
+- **オーナー承認: [ ]**
+
+```text
+Hello JAT team,
+
+I'm {{sender_name}} from the Kotomark development team. We're building an early prototype that checks game scripts and translation files (JA↔EN) for terminology, character-name, honorific and voice consistency, and we're looking for a few game translators who would try it for free and tell us where it's wrong.
+
+We don't want to contact members directly or post anywhere uninvited. Could you tell us whether your entertainment SIG, or JAT more broadly, has an appropriate venue or channel where an invitation like this would be welcome? If not, a simple "no" is perfectly fine.
+
+If you'd rather not hear from us again, just say so and we won't contact you further.
+
+{{sender_name}}, Kotomark development team
+{{contact}}
+```
+
+### 3-4. JTF（一般社団法人日本翻訳連盟）— 日本語（285字）
+
+- **経路：** 公式サイト https://www.jtf.jp/ の「お問い合わせ」https://www.jtf.jp/inquiry 。**フォームの中身（区分・営業お断りの有無）は自動取得で確認できなかった【未検証】**ので、送る前にブラウザで開いて確かめる。サイトには「広告掲載について」https://www.jtf.jp/insertion もあり、有料の告知枠が正式な場である可能性（その場合はオーナーが費用を判断）。
+- **オーナー承認: [ ]**
+
+```text
+日本翻訳連盟 ご担当者様
+
+突然のご連絡失礼します。Kotomark 開発チームの{{sender_name}}です。ゲームの台本・翻訳ファイル（日英）の用語・表記・キャラ名・敬称・口調の揺れを検査する試作品を作っており、無料で試して誤りを教えてくださる翻訳者の方を数名探しています。
+
+会員の皆さまへ個別にご連絡したり、許可なく投稿したりするつもりはありません。こうしたお試しの募集をご案内してよい場（会報、告知欄、部会など）がございましたら、お教えいただけませんか。有料の掲載枠のみでしたら、その旨だけでも幸いです。
+
+今後のご連絡が不要でしたら「不要」とご返信ください。
+
+Kotomark 開発チーム {{sender_name}}
+{{contact}}
+```
+
+### 3-5. Women in Localization — English（116語）
+
+- **経路：** 公式サイトの Contact Us（https://www.womeninlocalization.com/contact-us ）に掲載の団体の一般窓口 contact@womeninlocalization.com（2026-10-09 確認：48時間以内に返信と記載）。支部（chapter）の役員個人には連絡しない。日本の支部の有無は未確認。
+- **規制：** 米国（カリフォルニア）拠点の可能性が高い。勧誘ではなく問い合わせだが、#2・#10 と同じく**CAN-SPAM の住所表記の判断が決まるまで保留を推奨**（オーナー判断）。
+- **オーナー承認: [ ]**
+
+```text
+Hello Women in Localization team,
+
+I'm {{sender_name}} from the Kotomark development team. We're building an early prototype that checks game scripts and translation files (JA↔EN) for terminology, character-name, honorific and voice consistency, and we're looking for a few localization professionals who would try it for free and tell us where it's wrong.
+
+We don't want to contact members directly or post anywhere uninvited. Is there an appropriate venue or channel (a newsletter, a chapter event, a community board) where an invitation like this would be welcome? If not, a simple "no" is perfectly fine.
+
+If you'd rather not hear from us again, just say so and we won't contact you further.
+
+{{sender_name}}, Kotomark development team
+{{contact}}
+```
+
+### 3-6. BitSummit（BitSummit 実行委員会）— 日本語（319字）
+
+- **経路：** https://www.bitsummit.org/ja/contact/ のフォーム（2026-10-09 確認：名前・メール・件名・本文、区分なし、メールアドレスの掲載なし、営業お断りの記載なし）。スポンサー・メディア向けの別ページがあり、出展・スポンサー枠が正式な場である可能性（費用が絡む場合はオーナー判断）。作品の応募窓口には送らない。
+- **オーナー承認: [ ]**
+
+```text
+BitSummit 実行委員会 ご担当者様
+
+突然のご連絡失礼します。Kotomark 開発チームの{{sender_name}}です。ゲームの台本・翻訳ファイル（日英）の用語・キャラ名・敬称・口調の揺れを検査する試作品を作っており、無料で試して「どこが間違っているか」を教えてくださるインディー開発者・ローカライズ担当の方を数名探しています。
+
+出展者の皆さまへ個別にご連絡したり、許可なく投稿したりするつもりはありません。こうしたお試しの募集をご案内してよい場（出展者向けのお知らせ、交流の場など）がございましたら、お教えいただけませんか。適当な場がなければ、その旨だけでも幸いです。
+
+今後のご連絡が不要でしたら「不要」とご返信ください。
+
+Kotomark 開発チーム {{sender_name}}
+{{contact}}
+```
+
+---
+
+## 4. 送信前の最終チェック（1通ごと）
 
 - [ ] オーナー承認の印がある
 - [ ] `{{demo_link}}` `{{contact}}` `{{sender_name}}` を差し替え、`{{` が残っていない（`{{contact}}` は未提供なので、決まるまで送れない）
@@ -349,5 +597,7 @@ If you'd rather not hear from us again, reply "no thanks" and we won't contact y
 - [ ] 宛先は公開の業務窓口で、営業お断りの記載が無いことを当日に再確認した
 - [ ] 触れた作品・事実を当日にもう一度公式ページで確かめた（成人向けでないことも）
 - [ ] 配信停止の一文と送信者名が入っている（米国宛ては住所の要否を確認した）
-- [ ] 精度の数字は送信ルール9の文言どおり（オープンソース6本・ゲーム3・アプリ3、抜き取った警告・エラー297件中287件、約97%、自社のAI評価者による判定）で、件数と条件が揃っている。「ゲーム台本」とは書いていない。190/190 は使っていない
+- [ ] 精度の数字は送信ルール9の文言どおり（オープンソース6本・ゲーム3・アプリ3、抜き取った警告・エラー297件中287件、約97%、自社のAI評価者による判定）で、件数と条件が揃っている。精度の文で「ゲーム台本」「scripts」で測ったとは書いていない（製品の説明での「台本」は可）。190/190 は使っていない
+- [ ] 同じ会社・グループにすでに送っていない（AGM と PLAYISM はどちらか1通、8-4 は日本語版か英語版の1通）
+- [ ] 団体への相談（3章）は「案内してよい場があるか」を尋ねるだけで、会員個人に連絡していない
 - [ ] 送信日を記録し、7〜10日後のフォローアップ（1回だけ）の予定を入れた
