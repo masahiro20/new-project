@@ -3,12 +3,12 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { glossaryToJson, loadInputs, parseGlossaryWithNotes, renderMarkdown, runChecks, type ColumnMap, type Format, type Glossary, type Lang, type Locale, type Severity, type Table } from "../core/index.js";
 import { draftGlossary } from "../core/draft.js";
+import { CLI_LIMITS, enforceLimits } from "../core/limits.js";
 import { atOrAbove, renderJUnit } from "../core/junit.js";
 import { findingsToLabelCsv, renderScore, scoreLabels } from "../core/pilot.js";
-import { PLANS, tokenStoreFromEnv, type Plan } from "../server/auth.js";
 import { discoverGlossary, expandArgs, readInputs, UsageError } from "./inputs.js";
 import { filterBySeverity, renderGithub, summarize } from "./output.js";
-import { formatLicenseStatus, gateRun, licenseWarnings, loadLicense } from "./license.js";
+import { formatLicenseStatus, licenseForRun, loadLicense } from "./license.js";
 
 const USAGE = `Usage:
   kotomark check <file|dir>... [options]                                  consistency check (CI-ready)
@@ -17,8 +17,6 @@ const USAGE = `Usage:
   kotomark glossary convert <in.csv|in.tsv|in.tbx> [--source-lang ja|en] [--out glossary.json]
                                                                           termbase export → Kotomark JSON
   kotomark score <labels.csv> [--known known.csv] [--out score.md]       precision (and recall) from a labeled sheet
-  kotomark token create <user> [--plan solo|studio] [--label text]        prints the token once
-  kotomark token list | kotomark token revoke <user|token-prefix>
   kotomark license status [--license-key KEY]                            offline license key status
 
 check options:
@@ -84,6 +82,11 @@ function parseColumns(spec: string | undefined): ColumnMap | undefined {
 }
 
 function main(argv: string[]): number {
+  if (argv[0] === "token") {
+    // Operator commands live outside the public bundle (security review A-04).
+    console.error("kotomark: `token` is an operator command of the hosted server: run it in the server container (`kotomark token …`) or from a checkout (`npm run admin -- token …`).");
+    return 2;
+  }
   const { values, positionals } = parseArgs({
     args: argv,
     allowPositionals: true,
@@ -104,8 +107,6 @@ function main(argv: string[]): number {
       locale: { type: "string" },
       out: { type: "string", short: "o" },
       known: { type: "string" },
-      plan: { type: "string" },
-      label: { type: "string" },
       "max-terms": { type: "string" },
       "source-lang": { type: "string" },
       "license-key": { type: "string" },
@@ -153,17 +154,25 @@ function main(argv: string[]): number {
     for (const t of tables) rows[t.sourceLang] += t.rows.length;
     return readGlossary(gPath, rows.en > rows.ja ? "en" : "ja");
   };
+  let licensedTo: string | undefined;
   const loadTables = (): Table[] => {
     const files = expandArgs(args, gPath ? [gPath] : []);
     const { tables, notes } = loadInputs(readInputs(files), { format: inputFormat as Format | undefined, columns: parseColumns(values.columns), sheet, pairSource: forcedSourceLang });
     for (const n of notes) console.error(`note: ${n}`);
     if (!tables.length) throw new UsageError("No tables could be read from the inputs.");
-    // Offline license check (no network). Preview: never blocks; only a given-but-bad key is mentioned.
-    const license = loadLicense({ flag: values["license-key"] });
-    for (const w of licenseWarnings(license)) console.error(`kotomark: ${w}`);
-    const gate = gateRun(tables.reduce((n, t) => n + t.rows.length, 0), license);
-    if (!gate.ok) throw new UsageError(gate.message);
+    // The run's limit decision: offline license verification (no network) and the free-tier row limit, in one place.
+    // Preview: never blocks; only a given-but-bad key is mentioned. The key is never printed.
+    const license = licenseForRun(tables.reduce((n, t) => n + t.rows.length, 0), { flag: values["license-key"] });
+    for (const w of license.warnings) console.error(`kotomark: ${w}`);
+    if (!license.gate.ok) throw new UsageError(license.gate.message);
+    licensedTo = license.licensedTo;
     return tables;
+  };
+  /** Glossary for the tables, within the CLI's (generous) engine limits. */
+  const glossaryFor = (tables: Table[]): Glossary | undefined => {
+    const g = loadGlossary(tables);
+    enforceLimits(tables, g, CLI_LIMITS);
+    return g;
   };
 
   switch (cmd) {
@@ -173,7 +182,7 @@ function main(argv: string[]): number {
       const minSeverity = values["no-info"] && !values["min-severity"] ? "warning" : oneOf<Severity>("--min-severity", values["min-severity"], SEVERITIES, "info");
       const junitFailOn = oneOf<Severity | "never">("--junit-fail-on", values["junit-fail-on"], [...SEVERITIES, "never"], failOn === "never" ? "warning" : failOn);
       const tables = loadTables();
-      const full = runChecks(tables, loadGlossary(tables), { rules: !values["no-rules"], wideAsTwo: values.wide, locale });
+      const full = runChecks(tables, glossaryFor(tables), { rules: !values["no-rules"], wideAsTwo: values.wide, locale });
       const shown = filterBySeverity(full, minSeverity);
       let text: string;
       switch (outputFormat) {
@@ -187,7 +196,7 @@ function main(argv: string[]): number {
           text = renderGithub(shown, { locale });
           break;
         default:
-          text = renderMarkdown(shown, { locale });
+          text = renderMarkdown(shown, { locale, licensedTo });
       }
       emit(text, values.out);
       // Gating looks at every finding, not only the ones shown by --min-severity.
@@ -202,7 +211,7 @@ function main(argv: string[]): number {
       if (!args.length) break;
       const max = values["max-terms"] ? Number.parseInt(values["max-terms"], 10) : undefined;
       const tables = loadTables();
-      const draft = draftGlossary(tables, loadGlossary(tables), { maxTerms: max });
+      const draft = draftGlossary(tables, glossaryFor(tables), { maxTerms: max });
       emit(JSON.stringify(draft.glossary, null, 2), values.out);
       for (const n of draft.notes) console.error(`note: ${n}`);
       console.error(`${draft.glossary.terms.length} terms, ${draft.glossary.characters.length} characters drafted from ${draft.entries.length} candidates — review before use.`);
@@ -211,7 +220,7 @@ function main(argv: string[]): number {
     case "labels": {
       if (!args.length || !values.out) break;
       const tables = loadTables();
-      const result = runChecks(tables, loadGlossary(tables));
+      const result = runChecks(tables, glossaryFor(tables));
       emit(findingsToLabelCsv(result, tables), values.out);
       console.error(`${result.findings.length} findings written to ${values.out}. Fill the "verdict" column with TP / FP (or 正 / 誤).`);
       return 0;
@@ -234,27 +243,6 @@ function main(argv: string[]): number {
       if (args[0] !== "status" || args.length !== 1) break;
       console.log(formatLicenseStatus(loadLicense({ flag: values["license-key"] })));
       return 0;
-    }
-    case "token": {
-      const store = tokenStoreFromEnv();
-      const [sub, target] = args;
-      if (sub === "create" && target) {
-        const plan = (values.plan ?? "solo") as Plan;
-        if (!(plan in PLANS) || plan === "dev") throw new UsageError(`Unknown plan "${plan}" (solo | studio)`);
-        const { token, record } = store.create(target, plan, values.label);
-        console.log(token);
-        console.error(`Created token ${record.prefix}… for ${record.user} (${record.plan}). It is shown only once.`);
-        return 0;
-      }
-      if (sub === "list") {
-        for (const r of store.list()) console.log(`${r.prefix}…  ${r.user}  ${r.plan}  ${r.createdAt}${r.revokedAt ? `  REVOKED ${r.revokedAt}` : ""}${r.label ? `  ${r.label}` : ""}`);
-        return 0;
-      }
-      if (sub === "revoke" && target) {
-        console.log(`Revoked ${store.revoke(target)} token(s).`);
-        return 0;
-      }
-      break;
     }
   }
   console.error(USAGE);

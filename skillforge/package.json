@@ -24,6 +24,7 @@
     "test": "node --import tsx --test test/*.test.ts",
     "check:sample": "tsx src/cli/index.ts check samples/ja-en/script.csv --glossary samples/ja-en/glossary.json",
     "serve": "tsx src/server/index.ts",
+    "admin": "tsx src/server/admin.ts",
     "start": "node dist/server/index.js",
     "build:demo": "node web/build-demo.mjs",
     "kotomark": "tsx src/cli/index.ts",
@@ -33,7 +34,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.132.1",
     "@modelcontextprotocol/sdk": "^1.32.1",
-    "fflate": "^0.8.2",
+    "fflate": "^0.8.3",
     "zod": "^4.6.5"
   },
   "devDependencies": {

@@ -130,7 +130,7 @@ ch3_120,honorific,様の訳し方が他と違う
 
 1. 協力者ごとにトークンを発行する（プラグイン版の場合）。
    ```bash
-   KOTOMARK_DATA_DIR=/srv/kotomark npx tsx src/cli/index.ts token create pilot-01 --plan studio --label "pilot: 〇〇さん"
+   KOTOMARK_DATA_DIR=/srv/kotomark npx tsx src/server/admin.ts token create pilot-01 --plan studio --label "pilot: 〇〇さん"
    ```
    - 表示されたトークンは1回しか出ません。安全な経路で渡します。
    - 試用が終わったら `token revoke pilot-01` で失効させ、`delete_glossary all` 相当で用語集も消します。

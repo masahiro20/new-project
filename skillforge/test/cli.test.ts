@@ -224,12 +224,17 @@ test("legacy --format <input format> still sets the input format", () => {
   assert.equal(JSON.parse(j.stdout).tables[0].format, "csv");
 });
 
-test("token subcommands still work from the bundle", () => {
+test("token management is not in the public bundle; the server's admin entry has it (A-04)", () => {
   const data = mkdtempSync(join(tmp, "data-"));
   const env = { ...process.env, KOTOMARK_DATA_DIR: data };
-  const run = (args: string[]) => spawnSync(process.execPath, [bin, ...args], { cwd: root, encoding: "utf8", env });
-  const c = run(["token", "create", "alice", "--plan", "studio"]);
+  const viaBundle = spawnSync(process.execPath, [bin, "token", "create", "alice", "--plan", "studio"], { cwd: root, encoding: "utf8", env });
+  assert.equal(viaBundle.status, 2);
+  assert.match(viaBundle.stderr, /operator command/);
+  assert.doesNotMatch(readFileSync(bin, "utf8"), /TokenStore|yrg_|KOTOMARK_API_TOKENS/);
+  const admin = (args: string[]) => spawnSync(process.execPath, ["--import", "tsx", join(root, "src/server/admin.ts"), ...args], { cwd: root, encoding: "utf8", env });
+  const c = admin(["token", "create", "alice", "--plan", "studio"]);
   assert.equal(c.status, 0, c.stderr);
   assert.ok(c.stdout.trim().length > 10);
-  assert.match(run(["token", "list"]).stdout, /alice\s+studio/);
+  assert.match(admin(["token", "list"]).stdout, /alice\s+studio/);
+  assert.equal(admin(["token", "create", "bob", "--plan", "dev"]).status, 2);
 });

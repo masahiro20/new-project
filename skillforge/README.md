@@ -71,7 +71,7 @@ npm run check:sample           # CLI report for samples/ja-en
 npx tsx src/cli/index.ts check samples/en-ja/ui.xlf --glossary samples/en-ja/glossary.json
 
 npm run serve                  # MCP on http://localhost:8787/mcp (no auth in dev)
-KOTOMARK_API_TOKENS=secret1 NODE_ENV=production npm run build && npm start
+KOTOMARK_API_TOKENS=$(openssl rand -hex 32) KOTOMARK_ENCRYPTION_KEY=$(openssl rand -base64 32) NODE_ENV=production npm run build && npm start
 ```
 
 - `npm test`：全テスト（読み込み、検査、回帰、用語集の下書き、保存と認証、CLI、MCP の通し）。
@@ -145,15 +145,15 @@ kotomark draft <files|dirs...> [--glossary existing.json] --out draft.json   # g
 kotomark glossary convert <in.csv|in.tsv|in.tbx> [--source-lang ja|en] --out glossary.json   # termbase → Kotomark JSON
 kotomark labels <files|dirs...> --glossary g.json --out labels.csv            # labeling sheet for the pilot
 kotomark score labels.csv [--known known.csv]                                 # precision / recall
-kotomark token create <user> --plan solo|studio                               # per-user API token (shown once)
-kotomark token list | token revoke <user|prefix>
+kotomark token create <user> --plan solo|studio                               # server container only: per-user API token (shown once)
+kotomark token list | token revoke <user|prefix>                              # (from a checkout: npm run admin -- token …)
 ```
 
 - `draft`：台本から用語集の下書きを作ります。
 - `glossary convert`：用語ベース（CSV/TSV/TBX）を Kotomark の JSON に変換します。
 - `labels`：試用で印を付けるための表を書き出します。
 - `score`：適合率（precision）と再現率（recall）を集計します。
-- `token create`：利用者ごとの API トークンを発行します（表示は1回だけ）。`token list` で一覧、`token revoke` で失効。
+- `token create`：利用者ごとの API トークンを発行します（表示は1回だけ）。`token list` で一覧、`token revoke` で失効。サーバー運用者向けのコマンドなので、公開する CLI・Action のバンドルには入っていません。サーバーのコンテナの中の `kotomark token …`、またはリポジトリで `npm run admin -- token …` として使います。
 - `license status`：ライセンスキー（`--license-key` / `KOTOMARK_LICENSE_KEY` / `~/.kotomark/license`、通信なしで検証）の状態を表示します。プレビュー期間中はキー不要で全機能が無料です。仕組みと発行方法は [docs/licensing.md](docs/licensing.md)。
 
 ## アカウント・保存・利用制限

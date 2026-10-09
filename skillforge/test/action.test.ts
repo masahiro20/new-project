@@ -127,7 +127,7 @@ test("multi-line paths with spaces; bad input → exit 2", () => {
 });
 
 test("license-key: masked first, passed to the CLI only via the environment, never echoed", () => {
-  const key = "KOTOMARK-1.eyJ2IjoxfQ.c2lnbmF0dXJl";
+  const key = "KM1.eyJ2IjoxfQ.c2lnbmF0dXJl";
   const r = runAction({ ...SAMPLE, "fail-on": "never", "license-key": `  ${key}\n` });
   assert.equal(r.code, 0, r.stderr);
   const lines = r.stdout.split("\n");

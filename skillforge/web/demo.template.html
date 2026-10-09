@@ -243,6 +243,9 @@ details.packets > summary .n { font-family: var(--font-mono); font-size: 13px; c
 .fb-msg:empty { display: none; }
 
 footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule); font-size: 13px; color: var(--ink-3); display: grid; gap: 4px; }
+.third-party-notices summary { cursor: pointer; }
+.third-party-notices pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; max-height: 18em; overflow: auto; }
+.third-party-notices h3 { font-size: 13px; margin: 10px 0 4px; }
 
 @media (prefers-reduced-motion: no-preference) {
   button, .chip, .vbtn { transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease; }
@@ -350,6 +353,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
   <footer>
     <p data-i18n="footer.1">すべての処理はこのブラウザ内で行われます。台本や用語集はどこにもアップロードされません。<span class="en">Everything runs in your browser; nothing is uploaded.</span></p>
     <p data-i18n="footer.2">Kotomark（仮称） — 作業名です。指摘メッセージと Markdown レポートは日本語・英語を切り替えられます（「指摘の言語」）。<span class="en">Messages and the Markdown report are available in Japanese or English.</span></p>
+    <!--KOTOMARK_NOTICES-->
   </footer>
 </div>
 

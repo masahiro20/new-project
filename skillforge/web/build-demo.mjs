@@ -7,12 +7,14 @@ import { build } from "esbuild";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { bundledNotices, noticesHtml } from "../scripts/third-party-notices.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, "..");
 
 const ENGINE_MARKER = "<!--KOTOMARK_ENGINE-->";
 const SAMPLES_MARKER = "/*KOTOMARK_SAMPLES*/null";
+const NOTICES_MARKER = "<!--KOTOMARK_NOTICES-->";
 
 function arg(name, fallback) {
   const i = process.argv.indexOf(name);
@@ -66,8 +68,10 @@ function replaceOnce(haystack, marker, replacement, what) {
 }
 
 async function main() {
-  const result = await build({ ...ENGINE_BUILD_OPTIONS, write: false, logLevel: "warning" });
+  const result = await build({ ...ENGINE_BUILD_OPTIONS, write: false, metafile: true, logLevel: "warning" });
   const bundle = result.outputFiles[0].text;
+  // The minified engine drops the bundled libraries' license comments: show their notices on the page (A-03).
+  const notices = bundledNotices(result.metafile, root);
   mkdirSync(dirname(bundlePath), { recursive: true });
   writeFileSync(bundlePath, bundle);
 
@@ -79,12 +83,15 @@ async function main() {
   if (/<!--/.test(safeBundle)) throw new Error("build-demo: engine bundle contains \"<!--\"; cannot inline it safely");
   let html = replaceOnce(template, ENGINE_MARKER, `<script>${safeBundle}</script>`, "engine");
   html = replaceOnce(html, SAMPLES_MARKER, samplesJson(), "samples");
+  html = replaceOnce(html, NOTICES_MARKER, noticesHtml(notices), "third-party notices");
+  for (const n of notices) if (!html.includes(`${n.name} ${n.version} (${n.license})`)) throw new Error(`build-demo: notice for ${n.name} missing`);
 
   mkdirSync(dirname(outPath), { recursive: true });
   writeFileSync(outPath, html);
   const kb = (n) => `${(n / 1024).toFixed(1)} KB`;
   console.log(`engine  ${kb(Buffer.byteLength(bundle))} -> ${bundlePath}`);
   console.log(`demo    ${kb(Buffer.byteLength(html))} -> ${outPath}`);
+  console.log(`notices ${notices.map((n) => `${n.name}@${n.version}`).join(", ") || "(no bundled packages)"}`);
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

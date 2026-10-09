@@ -61,6 +61,8 @@ if (lp.includes("KOTOMARK_CONTACT")) throw new Error("build-site: contact marker
 lp = lp.replace(PRIVATE_EVAL_LINK, "");
 lp = lp.replace(/\s*<!-- TODO before launch: the repo is private[^>]*-->/, "");
 lp = lp.replace(/\s*<!-- TODO before going live:[\s\S]*?-->/, "");
+// Internal notes (draft status, source docs, checklists) must not ship: drop every remaining HTML comment.
+lp = lp.replace(/[ \t]*<!--[\s\S]*?-->[ \t]*\n?/g, "");
 
 // The demo file is a fragment (the artifact host adds the skeleton). Its leading run of head-only elements
 // (<title>, <style>, <meta>, <link>, comments) goes into <head>; everything from the first other element on is the body.
@@ -96,7 +98,7 @@ ${demoParts.body}
 
 for (const [name, html] of [["index.html", lp], ["demo/index.html", demo]]) {
   if (/https?:\/\/fonts\.g/.test(html)) throw new Error(`build-site: external font reference left in ${name}`);
-  if (/\{\{[^}]*\}\}|pilot@example\.com|masahiro20\/new-project|claude\.ai\/artifact/.test(html)) throw new Error(`build-site: placeholder or private link left in ${name}`);
+  if (/\{\{[^}]*\}\}|pilot@example\.com|masahiro20\/new-project|claude\.ai\/artifact|docs\/[\w-]+\.md|NOT PUBLISHED/.test(html)) throw new Error(`build-site: placeholder or private link left in ${name}`);
   const file = join(out, name);
   mkdirSync(dirname(file), { recursive: true });
   writeFileSync(file, html);

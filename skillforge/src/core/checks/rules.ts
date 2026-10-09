@@ -1,4 +1,5 @@
 import { BRACKET_WORD, displayLength, nothingToTranslate, isRenpyText, KAG_STYLE_TAG, PLACEHOLDER, placeholderText, RENPY_PACING_TAGS, RENPY_TAG, RENPY_TAG_NAMES, hideRenpyEscapes, visibleText } from "../text.js";
+import { checkBudget } from "../limits.js";
 import { messages, type RubyProblem } from "../i18n.js";
 import type { Finding, Locale, Row, Side, Table } from "../types.js";
 
@@ -262,6 +263,7 @@ export function checkRules(tables: Table[], opts: { wideAsTwo?: boolean; locale?
     const bilingual = !t.singleLang && t.rows.some((r) => r.target.trim());
     const kept = bilingual && t.targetLang === "ja" && t.sourceLang === "en" ? keptLatinWords(t) : undefined;
     for (const [ri, row] of t.rows.entries()) {
+      checkBudget();
       // A key present in only one file of a locale pair: nothing to compare. Absent from the translation → untranslated
       // (unless it is a plural form Japanese does not need); absent from the source → an extra key (info).
       if (row.missing) {

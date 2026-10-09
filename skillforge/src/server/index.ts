@@ -2,6 +2,7 @@ import { createServer, type IncomingMessage, type ServerResponse } from "node:ht
 import { pathToFileURL } from "node:url";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { Limiter, QuotaError, tokenStoreFromEnv, type Principal } from "./auth.js";
+import { envVar } from "./env.js";
 import { storeFromEnv } from "./store.js";
 import { buildServer } from "./tools.js";
 import { clearTextCaches } from "../core/text.js";
@@ -15,8 +16,11 @@ import { clearTextCaches } from "../core/text.js";
  * legacy KOTOMARK_API_TOKENS. With no tokens configured the server runs open, but only outside production.
  */
 const PORT = Number(process.env.PORT ?? 8787);
-/** Bind address: HOST if set; all interfaces in production (container behind the host's proxy); Node's default otherwise. */
-export const HOST = process.env.HOST || (process.env.NODE_ENV === "production" ? "0.0.0.0" : undefined);
+/** Bind address: HOST if set; all interfaces in production (container behind the host's proxy); loopback otherwise. */
+export const HOST = process.env.HOST || (process.env.NODE_ENV === "production" ? "0.0.0.0" : "127.0.0.1");
+/** Open (no-token) mode answers only requests addressed to this machine by a loopback name (DNS rebinding). */
+const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
+export const loopbackHost = (host: string | undefined) => LOOPBACK_HOSTS.has((host ?? "").toLowerCase().replace(/:\d+$/, ""));
 const MAX_BODY = 25_000_000;
 const tokens = tokenStoreFromEnv();
 const store = storeFromEnv();
@@ -26,9 +30,19 @@ if (tokens.open && process.env.NODE_ENV === "production") {
   console.error("No API tokens configured: create one with `kotomark token create <user>` or set KOTOMARK_API_TOKENS");
   process.exit(1);
 }
+/** B-13: environment tokens are shared secrets typed by hand; refuse guessable ones in production. */
+export const MIN_ENV_TOKEN_LENGTH = 24;
+if (process.env.NODE_ENV === "production") {
+  const weak = (envVar("API_TOKENS") ?? "").split(",").map((t) => t.trim()).filter((t) => t && t.length < MIN_ENV_TOKEN_LENGTH);
+  if (weak.length) {
+    console.error(`KOTOMARK_API_TOKENS has ${weak.length} token(s) shorter than ${MIN_ENV_TOKEN_LENGTH} characters; use random values (e.g. openssl rand -hex 32) or \`kotomark token create\`.`);
+    process.exit(1);
+  }
+}
 
 function authenticate(req: IncomingMessage): Principal | undefined {
-  if (tokens.open) return { user: "dev", plan: "dev" };
+  // Open dev mode never applies in production, even if every token disappears at runtime (tokens.json emptied).
+  if (tokens.open) return process.env.NODE_ENV === "production" ? undefined : { user: "dev", plan: "dev" };
   const h = req.headers.authorization ?? "";
   return h.startsWith("Bearer ") ? tokens.verify(h.slice(7).trim()) : undefined;
 }
@@ -57,6 +71,7 @@ export const httpServer = createServer(async (req, res) => {
   res.on("finish", () => console.log(`${req.method} ${url.pathname} ${res.statusCode} user=${user} ${Date.now() - started}ms`));
   try {
     if (url.pathname !== "/mcp") return send(res, 404, { error: "not found" });
+    if (tokens.open && !loopbackHost(req.headers.host)) return send(res, 403, { error: "open dev mode accepts only localhost requests" });
     const principal = authenticate(req);
     if (!principal) {
       res.setHeader("www-authenticate", 'Bearer realm="kotomark"');
@@ -69,6 +84,9 @@ export const httpServer = createServer(async (req, res) => {
     }
     limiter.hit(principal);
     const body = await readJson(req);
+    // One HTTP request carries one JSON-RPC message: a batch (removed in MCP 2025-06-18) would run up to
+    // 100 tool calls for a single rate-limit token, and in parallel.
+    if (Array.isArray(body)) return send(res, 400, { jsonrpc: "2.0", error: { code: -32600, message: "Batch requests are not supported" }, id: null });
     const server = buildServer({ principal, store, limiter });
     const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: true });
     res.on("close", () => {

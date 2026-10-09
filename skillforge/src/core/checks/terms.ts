@@ -1,7 +1,9 @@
-import { containsPhrase, countBy, enPhraseRegex, isInterjection, KATAKANA_RUN, katakanaKey, looksJapanese, ref, singularOf, textOf, visibleText } from "../text.js";
+import { containsPhrase, countBy, enPhraseRegex, isInterjection, KATAKANA_RUN, katakanaKey, looksJapanese, normalizeApostrophes, ref, singularOf, textOf, visibleText } from "../text.js";
+import { checkBudget } from "../limits.js";
 import { messages } from "../i18n.js";
+import { AnchorMatcher, foldCase, phraseAnchor } from "../matcher.js";
 import { hiraganaToKatakana } from "./names.js";
-import type { Finding, Glossary, Locale, ReviewPacket, Side, Table, UsageSummary } from "../types.js";
+import type { Finding, Glossary, Lang, Locale, ReviewPacket, Side, Table, UsageSummary } from "../types.js";
 
 const isAllCaps = (s: string) => /[A-Z].*[A-Z]/.test(s) && !/[a-z]/.test(s);
 
@@ -34,33 +36,59 @@ export function checkTerms(tables: Table[], g: Glossary, locale: Locale = "en"):
   const usage: UsageSummary[] = [];
   const srcHas = (text: string, phrase: string, lang: Table["sourceLang"]) =>
     lang === "ja" ? containsPhrase(text, phrase, "ja") : enSourceHas(text, phrase);
-  // Which terms each row's source contains, for longest-match-wins.
-  const matched = new Map<Table, boolean[][]>();
-  for (const t of tables) {
-    matched.set(t, t.rows.map((row) => {
+  const termLang: Lang[] = g.terms.map((t) => (looksJapanese(t.source) ? "ja" : "en"));
+  // B-02: one Aho-Corasick pass per row finds the few terms worth the exact (regex) test, instead of terms × rows.
+  const sourceIndex = { ja: termIndex(g, termLang, "ja"), en: termIndex(g, termLang, "en") };
+  const fold = (s: string) => foldCase(normalizeApostrophes(s));
+  // Longer terms that contain each term ("Block Modifiers" for "Modifiers"), found the same way.
+  const longer: number[][] = g.terms.map(() => []);
+  g.terms.forEach((o, oi) => {
+    const lang = termLang[oi]!;
+    for (const ti of sourceIndex[lang].find(fold(o.source))) {
+      const term = g.terms[ti]!;
+      if (oi !== ti && o.source.length > term.source.length && containsPhrase(o.source, term.source, lang)) longer[ti]!.push(oi);
+    }
+  });
+  // Per table: which terms each row's source contains (longest-match-wins), the rows per term, and the rows whose
+  // target may contain one of the term's forbidden variants.
+  const perTable = tables.map((t) => {
+    const rowTerms = new Map<number, Set<number>>();
+    const hitRows = new Map<number, number[]>();
+    const forbRows = new Map<number, number[]>();
+    const idx = sourceIndex[t.sourceLang];
+    const forb = forbiddenIndex(g, termLang, t.sourceLang, t.targetLang);
+    t.rows.forEach((row, ri) => {
+      checkBudget();
       const src = visibleText(row.source);
-      return g.terms.map((term) => looksJapanese(term.source) === (t.sourceLang === "ja") && srcHas(src, term.source, t.sourceLang));
-    }));
-  }
+      for (const ti of idx.find(fold(src))) {
+        if (!srcHas(src, g.terms[ti]!.source, t.sourceLang)) continue;
+        let set = rowTerms.get(ri);
+        if (!set) rowTerms.set(ri, (set = new Set()));
+        set.add(ti);
+        push(hitRows, ti, ri);
+      }
+      if (forb.size && row.target.trim()) for (const ti of forb.find(fold(visibleText(row.target)))) push(forbRows, ti, ri);
+    });
+    for (const list of hitRows.values()) list.sort((a, b) => a - b);
+    for (const list of forbRows.values()) list.sort((a, b) => a - b);
+    return { rowTerms, hitRows, forbRows };
+  });
   g.terms.forEach((term, ti) => {
     const group = `${term.source} → ${term.target}`;
     const counts: Record<string, number> = {};
     const approved = [term.target, ...(term.allowed ?? [])];
-    // Longer terms that contain this one ("Block Modifiers" for "Modifiers").
-    const longer = g.terms
-      .map((o, oi) => ({ o, oi }))
-      .filter(({ o, oi }) => oi !== ti && o.source.length > term.source.length && looksJapanese(o.source) === looksJapanese(term.source) &&
-        containsPhrase(o.source, term.source, looksJapanese(term.source) ? "ja" : "en"))
-      .map(({ oi }) => oi);
-    for (const t of tables) {
+    tables.forEach((t, tIdx) => {
       // A JA→EN glossary says nothing about an EN→JA table (and vice versa); see glossaryDirection().
-      if (looksJapanese(term.source) !== (t.sourceLang === "ja")) continue;
-      const rowHits = matched.get(t)!;
-      t.rows.forEach((row, ri) => {
-        if (!row.target.trim()) return;
+      if (termLang[ti] !== t.sourceLang) return;
+      const { rowTerms, hitRows, forbRows } = perTable[tIdx]!;
+      for (const ri of mergeSorted(hitRows.get(ti) ?? [], forbRows.get(ti) ?? [])) {
+        checkBudget();
+        const row = t.rows[ri]!;
+        if (!row.target.trim()) continue;
         const tgt = visibleText(row.target);
         const forbiddenHit = (term.forbidden ?? []).find((f) => containsPhrase(tgt, f, t.targetLang));
-        if (rowHits[ri]![ti]) {
+        const hits = rowTerms.get(ri);
+        if (hits?.has(ti)) {
           // English: an inflected form (Renoted for Renote) counts unless a forbidden variant is on the line, so
           // a forbidden variant that is itself an inflection of the approved rendering is still reported.
           const strict = t.targetLang === "ja";
@@ -79,7 +107,7 @@ export function checkTerms(tables: Table[], g: Glossary, locale: Locale = "en"):
           } else if (t.targetLang === "ja" && !looksJapanese(term.source) && [term.source, singularOf(term.source)].some((f) => containsPhrase(tgt, f, "en"))) {
             // Kept in English in the translation (a product, class or key name), in any case (VSync / VSYNC).
             counts[term.source] = (counts[term.source] ?? 0) + 1;
-          } else if (longer.some((oi) => rowHits[ri]![oi])) {
+          } else if (longer[ti]!.some((oi) => hits.has(oi))) {
             // The longer term owns this span and reports on it.
           } else {
             counts["(not found)"] = (counts["(not found)"] ?? 0) + 1;
@@ -99,8 +127,8 @@ export function checkTerms(tables: Table[], g: Glossary, locale: Locale = "en"):
             found: forbiddenHit, expected: term.target,
           });
         }
-      });
-    }
+      }
+    });
     if (Object.keys(counts).length) usage.push({ category: "term", group, counts });
   });
   return { findings, usage };
@@ -208,6 +236,7 @@ export function checkNotation(tables: Table[], locale: Locale = "en", g?: Glossa
     const side: Side | undefined = t.sourceLang === "ja" ? "source" : t.targetLang === "ja" ? "target" : undefined;
     if (!side) continue;
     for (const row of t.rows) {
+      checkBudget();
       const seen = new Set<string>();
       const text = visibleText(textOf(row, side));
       for (const m of text.matchAll(KATAKANA_RUN)) {
@@ -303,13 +332,15 @@ function containsWord(compound: string, word: string): boolean {
  */
 export function unglossariedTermPackets(tables: Table[], g: Glossary, minRows = 3): ReviewPacket[] {
   const known = new Set([...g.terms.map((t) => t.source), ...g.characters.flatMap((c) => [c.ja, ...(c.aliases?.ja ?? [])])]);
+  const isKnown = knownWordTest([...known]);
   const byTerm = new Map<string, { t: Table; rowIdx: number }[]>();
   for (const t of tables) {
     if (t.sourceLang !== "ja") continue;
     t.rows.forEach((row, rowIdx) => {
+      checkBudget();
       const words = new Set(visibleText(row.source).match(/[ァ-ヴー]{3,}|[一-鿿]{3,}/g) ?? []);
       for (const w of words) {
-        if ([...known].some((k) => k.includes(w) || w.includes(k))) continue;
+        if (isKnown(w)) continue;
         const arr = byTerm.get(w) ?? [];
         arr.push({ t, rowIdx });
         byTerm.set(w, arr);
@@ -331,4 +362,76 @@ export function unglossariedTermPackets(tables: Table[], g: Glossary, minRows = 
         return { ref: ref(r), id: r.id, speaker: r.speaker, source: r.source, target: r.target };
       }),
     }));
+}
+
+function push(map: Map<number, number[]>, key: number, value: number) {
+  const list = map.get(key);
+  if (list) list.push(value);
+  else map.set(key, [value]);
+}
+
+/** Union of two ascending lists, ascending, without duplicates. */
+function mergeSorted(a: number[], b: number[]): number[] {
+  if (!b.length) return a;
+  if (!a.length) return b;
+  const out: number[] = [];
+  let i = 0;
+  let j = 0;
+  while (i < a.length || j < b.length) {
+    const x = j >= b.length || (i < a.length && a[i]! <= b[j]!) ? a[i++]! : b[j++]!;
+    if (out[out.length - 1] !== x) out.push(x);
+  }
+  return out;
+}
+
+/** Prefilter over the source side of the terms in one language; `find` returns glossary term indices. */
+function termIndex(g: Glossary, termLang: Lang[], lang: Lang): { find: (folded: string) => number[]; size: number } {
+  const ids = g.terms.map((_, i) => i).filter((i) => termLang[i] === lang);
+  const m = new AnchorMatcher(ids.map((i) => phraseAnchor(g.terms[i]!.source, lang)));
+  return { find: (folded) => m.find(folded).map((k) => ids[k]!), size: ids.length };
+}
+
+/** Prefilter over the forbidden variants (in the target language) of the terms whose source is in `sourceLang`. */
+function forbiddenIndex(g: Glossary, termLang: Lang[], sourceLang: Lang, targetLang: Lang): { find: (folded: string) => number[]; size: number } {
+  const owners: number[] = [];
+  const anchors: string[] = [];
+  g.terms.forEach((term, ti) => {
+    if (termLang[ti] !== sourceLang) return;
+    for (const f of term.forbidden ?? []) {
+      if (!f) continue; // containsPhrase never matches an empty phrase
+      owners.push(ti);
+      anchors.push(phraseAnchor(f, targetLang));
+    }
+  });
+  const m = new AnchorMatcher(anchors);
+  return { find: (folded) => [...new Set(m.find(folded).map((k) => owners[k]!))], size: owners.length };
+}
+
+const SHORT_WORD = 16;
+
+/**
+ * `w => known.some((k) => k.includes(w) || w.includes(k))` for words that are one katakana or one kanji run (the
+ * candidates of unglossariedTermPackets), without scanning the whole glossary per word (B-02): `w.includes(k)` via an
+ * Aho-Corasick pass over w, `k.includes(w)` via a set of the short substrings of the same-script runs in the known
+ * terms (a longer w is looked up in the joined terms). Memoized per word.
+ */
+function knownWordTest(known: string[]): (w: string) => boolean {
+  const inWord = new AnchorMatcher(known);
+  const parts = new Set<string>();
+  for (const k of known) {
+    for (const m of k.matchAll(/[ァ-ヴー]{3,}|[一-鿿]{3,}/g)) {
+      const run = m[0];
+      for (let i = 0; i + 3 <= run.length; i++) for (let n = 3; n <= SHORT_WORD && i + n <= run.length; n++) parts.add(run.slice(i, i + n));
+    }
+  }
+  const joined = known.join("\n");
+  const memo = new Map<string, boolean>();
+  return (w) => {
+    let v = memo.get(w);
+    if (v === undefined) {
+      v = inWord.find(w).length > 0 || (w.length <= SHORT_WORD ? parts.has(w) : joined.includes(w));
+      memo.set(w, v);
+    }
+    return v;
+  };
 }

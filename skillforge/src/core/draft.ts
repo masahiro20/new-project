@@ -1,4 +1,5 @@
 import { containsPhrase, katakanaKey, looksJapanese, ref, visibleText } from "./text.js";
+import { checkBudget } from "./limits.js";
 import type { Glossary, GlossaryCharacter, GlossaryTerm, Lang, Row, Table } from "./types.js";
 
 export interface DraftEntry {
@@ -336,6 +337,7 @@ export function draftGlossary(tables: Table[], existing?: Glossary, opts: DraftO
   for (const t of tables) {
     const bilingual = t.sourceLang !== t.targetLang;
     for (const row of t.rows) {
+      checkBudget();
       const sp = row.speaker?.trim();
       if (sp && !SYSTEM_LABEL.test(sp)) labels.set(sp, (labels.get(sp) ?? 0) + 1);
       if (!bilingual || row.fuzzy || !row.source.trim() || !row.target.trim()) continue;
@@ -419,6 +421,7 @@ export function draftGlossary(tables: Table[], existing?: Glossary, opts: DraftO
     const rowsByKey = new Map<string, number[]>();
     const surfaces = new Map<string, Map<string, number>>();
     for (const i of idx) {
+      checkBudget();
       for (const g of srcOf(i).values()) {
         // English source: capitalized phrases only; a single word must never appear lowercase.
         if (!srcJa && (!g.cap || (!g.key.includes(" ") && lowerWords.has(g.key)))) continue;
@@ -443,7 +446,12 @@ export function draftGlossary(tables: Table[], existing?: Glossary, opts: DraftO
     }
     const kept = [...cands].filter((k) => !covered.has(k));
 
-    const fresh = kept.filter((key) => !stop.has(key) && !knownList.some((k) => looksJapanese(k) === srcJa && contains(k, key, srcLang)));
+    // `knownList.some((k) => looksJapanese(k) === srcJa && contains(k, key, srcLang))` as one substring search over the
+    // joined keys (B-02: candidates × glossary terms was quadratic). \u0000 never occurs in a key.
+    const sameLang = knownList.filter((k) => looksJapanese(k) === srcJa);
+    const joined = srcJa ? sameLang.join("\u0000") : sameLang.map((k) => ` ${k} `).join("\u0000");
+    const inKnown = (key: string) => sameLang.length > 0 && joined.includes(srcJa ? key : ` ${key} `);
+    const fresh = kept.filter((key) => !stop.has(key) && !inKnown(key));
     fresh.sort((a, b) => rowsByKey.get(b)!.length - rowsByKey.get(a)!.length || (a < b ? -1 : 1));
 
     // Align more candidates than we keep, so recurring everyday words can't crowd out real terms.

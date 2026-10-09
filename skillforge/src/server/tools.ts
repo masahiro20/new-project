@@ -1,12 +1,16 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { loadInputs, parseGlossaryWithNotes, renderMarkdown, runChecks, type CheckResult, type Format, type Glossary, type Lang, type Locale, type Severity, type Table } from "../core/index.js";
+import { enforceLimits, LimitError, loadInputs, parseGlossaryWithNotes, renderMarkdown, runChecks, SERVER_LIMITS, withTimeBudget, type CheckResult, type Format, type Glossary, type Lang, type Locale, type Severity, type Table } from "../core/index.js";
 import { draftGlossary } from "../core/draft.js";
 import { Limiter, PLANS, type Principal } from "./auth.js";
-import { judgePacket, serverJudgeEnabled } from "./judge.js";
+import { judgePackets, serverJudgeEnabled } from "./judge.js";
 import { MemoryGlossaryStore, type GlossaryStore } from "./store.js";
 
-export const LIMITS = { maxTables: 20, maxBytesPerTable: 5_000_000, maxRows: 100_000 };
+/**
+ * Request limits. maxTotalChars bounds the text parsed per request; the engine limits (glossary terms and characters,
+ * rows, text, glossary × rows and a 20 s time budget per run) are SERVER_LIMITS in src/core/limits.ts (B-02).
+ */
+export const LIMITS = { maxTables: 20, maxBytesPerTable: 5_000_000, maxTotalChars: 20_000_000, maxRows: SERVER_LIMITS.maxRows };
 
 /** Who is calling and the services the tools may use. One context per HTTP request. */
 export interface ServerContext {
@@ -17,10 +21,14 @@ export interface ServerContext {
 
 export const devContext = (): ServerContext => ({ principal: { user: "dev", plan: "dev" }, store: new MemoryGlossaryStore(), limiter: new Limiter() });
 
+/** Bounds for the small string / array arguments (file contents are bounded by LIMITS.maxBytesPerTable). */
+const ARG_LIMITS = { filename: 512, name: 64, subjects: 100 };
+
 const TableInput = z.object({
-  filename: z.string().describe("Original file name, e.g. ch1.csv or locales/ja.json — used for line references, format detection and pairing single-language files (ja.json + en.json) by key."),
+  filename: z.string().max(ARG_LIMITS.filename).describe("Original file name, e.g. ch1.csv or locales/ja.json — used for line references, format detection and pairing single-language files (ja.json + en.json) by key."),
   content: z
     .string()
+    .max(LIMITS.maxBytesPerTable)
     .describe("Full file text: CSV/TSV, JSON, XLIFF 1.2/2.0, gettext PO, a locale JSON/YAML, a Unity/Unreal string table CSV, a Ren'Py tl/*.rpy file, or a KAG/TyranoScript scenario (.ks; one file per language, e.g. scenario/ja/first.ks + scenario/en/first.ks, paired by label)."),
   format: z
     .enum(["csv", "tsv", "json", "xliff", "po", "i18n-json", "unity-csv", "unreal-csv", "yaml", "renpy", "ks"])
@@ -30,13 +38,13 @@ const TableInput = z.object({
 
 const GlossarySource = {
   glossary: z
-    .object({ filename: z.string().optional(), content: z.string() })
+    .object({ filename: z.string().max(ARG_LIMITS.filename).optional(), content: z.string().max(LIMITS.maxBytesPerTable) })
     .optional()
     .describe(
       "Glossary JSON (terms + characters + voice profiles), a CSV/TSV term list (Kotomark columns or a Crowdin/Phrase-style termbase export) " +
         "or TBX. Give the filename (e.g. terms.tbx) so the format is detected; TBX and ja/en-column CSVs are read in the script's direction.",
     ),
-  glossaryName: z.string().optional().describe("Name of a glossary saved with save_glossary (used when `glossary` is not given)."),
+  glossaryName: z.string().max(ARG_LIMITS.name).optional().describe("Name of a glossary saved with save_glossary (used when `glossary` is not given)."),
 };
 
 const SourceLangArg = z
@@ -67,14 +75,18 @@ type CheckArgs = GlossaryArgs & { tables: TableArg[]; options?: { rules?: boolea
  * charged to the caller's daily quota after parsing (nothing is charged if parsing fails). `notes` says how the
  * files were read and paired.
  */
-function loadTables(ctx: ServerContext, args: TableArg[]): { tables: Table[]; notes: string[] } {
+function loadTables(ctx: ServerContext, args: TableArg[], glossary?: Glossary): { tables: Table[]; notes: string[] } {
   for (const t of args) {
-    if (t.content.length > LIMITS.maxBytesPerTable) throw new Error(`${t.filename}: file too large (max ${LIMITS.maxBytesPerTable} chars)`);
+    if (t.content.length > LIMITS.maxBytesPerTable) throw new LimitError(`${t.filename}: file too large (max ${LIMITS.maxBytesPerTable} chars)`);
   }
+  const total = args.reduce((n, t) => n + t.content.length, 0);
+  if (total > LIMITS.maxTotalChars) throw new LimitError(`Files too large in total (${total} > ${LIMITS.maxTotalChars} chars). Check the script in parts.`);
   const { tables, notes } = loadInputs(args.map((t) => ({ name: t.filename, data: t.content, format: t.format as Format | undefined })));
   if (!tables.length) throw new Error(`No string tables found in ${args.map((t) => t.filename).join(", ")}${notes.length ? ` (${notes.join("; ")})` : ""}`);
   const rows = tables.reduce((n, t) => n + t.rows.length, 0);
-  if (rows > LIMITS.maxRows) throw new Error(`Too many rows (${rows} > ${LIMITS.maxRows})`);
+  if (rows > LIMITS.maxRows) throw new LimitError(`Too many rows (${rows} > ${LIMITS.maxRows})`);
+  // Engine limits before any rows are charged (glossary terms/characters, text size, glossary × rows).
+  enforceLimits(tables, glossary, SERVER_LIMITS);
   ctx.limiter.consumeRows(ctx.principal, rows);
   return { tables, notes };
 }
@@ -99,25 +111,59 @@ async function loadGlossary(ctx: ServerContext, args: GlossaryArgs, sourceLang?:
 
 export async function check(ctx: ServerContext, args: CheckArgs): Promise<CheckResult & { notes: string[] }> {
   // The glossary is validated before any rows are charged, then read in the tables' direction.
-  await loadGlossary(ctx, args);
-  const { tables, notes } = loadTables(ctx, args.tables);
+  const { tables, notes } = loadTables(ctx, args.tables, await loadGlossary(ctx, args));
   const glossary = await loadGlossary(ctx, args, scriptSourceLang(tables));
-  const result = runChecks(tables, glossary, { rules: args.options?.rules, wideAsTwo: args.options?.wideAsTwo, locale: args.options?.locale });
+  enforceLimits(tables, glossary, SERVER_LIMITS);
+  // Synchronous: the time budget stops a run that would hold the event loop (and every other tenant) too long.
+  const result = withTimeBudget(SERVER_LIMITS.timeBudgetMs, () =>
+    runChecks(tables, glossary, { rules: args.options?.rules, wideAsTwo: args.options?.wideAsTwo, locale: args.options?.locale }),
+  );
   const order: Severity[] = ["error", "warning", "info"];
   const min = order.indexOf(args.options?.minSeverity ?? "info");
   return { ...result, findings: result.findings.filter((f) => order.indexOf(f.severity) <= min), notes };
 }
 
-async function saveGlossary(ctx: ServerContext, name: string, g: Glossary) {
-  const existing = await ctx.store.list(ctx.principal.user);
-  const limit = PLANS[ctx.principal.plan].glossaries;
-  if (!existing.some((m) => m.name === name.trim()) && existing.length >= limit) {
-    throw new Error(`Glossary limit reached (${limit} on the ${ctx.principal.plan} plan). Delete one first.`);
-  }
-  return ctx.store.put(ctx.principal.user, name, g);
+/** Per-user queue: the glossary count check and the write happen together (B-08: concurrent saves could exceed the plan limit). */
+const saveQueues = new Map<string, Promise<unknown>>();
+function serialized<T>(user: string, fn: () => Promise<T>): Promise<T> {
+  const prev = saveQueues.get(user) ?? Promise.resolve();
+  const next = prev.then(fn, fn);
+  const tail = next.catch(() => undefined);
+  saveQueues.set(user, tail);
+  void tail.then(() => saveQueues.get(user) === tail && saveQueues.delete(user));
+  return next;
 }
 
-const errorResult = (e: unknown) => ({ isError: true, content: [{ type: "text" as const, text: (e as Error).message }] });
+async function saveGlossary(ctx: ServerContext, name: string, g: Glossary) {
+  if (g.terms.length > SERVER_LIMITS.maxTerms) throw new LimitError(`Too many glossary terms (${g.terms.length} > ${SERVER_LIMITS.maxTerms}).`);
+  if (g.characters.length > SERVER_LIMITS.maxCharacters) throw new LimitError(`Too many glossary characters (${g.characters.length} > ${SERVER_LIMITS.maxCharacters}).`);
+  return serialized(ctx.principal.user, async () => {
+    const existing = await ctx.store.list(ctx.principal.user);
+    const limit = PLANS[ctx.principal.plan].glossaries;
+    if (!existing.some((m) => m.name === name.trim()) && existing.length >= limit) {
+      throw new Error(`Glossary limit reached (${limit} on the ${ctx.principal.plan} plan). Delete one first.`);
+    }
+    return ctx.store.put(ctx.principal.user, name, g);
+  });
+}
+
+const MAX_ERROR_CHARS = 1_000;
+/**
+ * Tool error text (B-10): system errors (fs, crypto: they carry a `code` and may name server paths) become a generic
+ * message and go to the log only; other messages are user-facing and cut to MAX_ERROR_CHARS (a zod issue list can be huge).
+ */
+const errorResult = (e: unknown) => {
+  const err = e as Error & { code?: unknown };
+  let text: string;
+  if (typeof err?.code === "string" && !(err instanceof LimitError)) {
+    console.error(`tool error (${err.code}): ${err.message}`);
+    text = "Internal error. Please try again later.";
+  } else {
+    const msg = String(err?.message ?? e);
+    text = msg.length > MAX_ERROR_CHARS ? `${msg.slice(0, MAX_ERROR_CHARS)}… (truncated)` : msg;
+  }
+  return { isError: true, content: [{ type: "text" as const, text }] };
+};
 const ro = { readOnlyHint: true, openWorldHint: false };
 
 /** Build an MCP server for one request. Scripts are processed in memory only and never stored or logged. */
@@ -172,7 +218,7 @@ export function buildServer(ctx: ServerContext = devContext()): McpServer {
       description:
         "Return the lines the rule engine cannot judge alone (character voice, recurring terms missing from the glossary), " +
         "grouped into packets with instructions. Judge them yourself and report drift with the given refs.",
-      inputSchema: { ...CheckInput, subjects: z.array(z.string()).optional().describe("Only return packets whose subject contains one of these strings.") },
+      inputSchema: { ...CheckInput, subjects: z.array(z.string().max(ARG_LIMITS.name * 4)).max(ARG_LIMITS.subjects).optional().describe("Only return packets whose subject contains one of these strings.") },
       annotations: ro,
     },
     async (args) => {
@@ -205,10 +251,10 @@ export function buildServer(ctx: ServerContext = devContext()): McpServer {
     },
     async (args) => {
       try {
-        await loadGlossary(ctx, args);
-        const { tables, notes: inputNotes } = loadTables(ctx, args.tables);
+        const { tables, notes: inputNotes } = loadTables(ctx, args.tables, await loadGlossary(ctx, args));
         const existing = await loadGlossary(ctx, args, scriptSourceLang(tables));
-        const draft = draftGlossary(tables, existing, { maxTerms: args.maxTerms });
+        enforceLimits(tables, existing, SERVER_LIMITS);
+        const draft = withTimeBudget(SERVER_LIMITS.timeBudgetMs, () => draftGlossary(tables, existing, { maxTerms: args.maxTerms }));
         const lines = draft.entries
           .slice(0, 40)
           .map((e) => `- ${e.source} → ${e.target ?? "?"} (${Math.round(e.confidence * 100)}%, ${e.rows} rows; ${Object.entries(e.renderings).map(([k, v]) => `${k} ×${v}`).join(", ")})`);
@@ -227,8 +273,8 @@ export function buildServer(ctx: ServerContext = devContext()): McpServer {
       description: "Save (or replace) a glossary under a name for this account. Stored encrypted; can be deleted at any time with delete_glossary.",
       inputSchema: {
         name: z.string().min(1).max(64),
-        content: z.string().describe("Glossary JSON, CSV/TSV (Kotomark columns or a Crowdin/Phrase termbase export) or TBX."),
-        filename: z.string().optional().describe("Original file name, e.g. terms.tbx or glossary.csv — used for format detection."),
+        content: z.string().max(LIMITS.maxBytesPerTable).describe("Glossary JSON, CSV/TSV (Kotomark columns or a Crowdin/Phrase termbase export) or TBX."),
+        filename: z.string().max(ARG_LIMITS.filename).optional().describe("Original file name, e.g. terms.tbx or glossary.csv — used for format detection."),
         sourceLang: SourceLangArg,
       },
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
@@ -261,7 +307,7 @@ export function buildServer(ctx: ServerContext = devContext()): McpServer {
 
   server.registerTool(
     "get_glossary",
-    { title: "Get saved glossary", description: "Return a saved glossary as JSON.", inputSchema: { name: z.string() }, annotations: ro },
+    { title: "Get saved glossary", description: "Return a saved glossary as JSON.", inputSchema: { name: z.string().max(ARG_LIMITS.name) }, annotations: ro },
     async ({ name }) => {
       try {
         const g = await loadGlossary(ctx, { glossaryName: name });
@@ -277,7 +323,7 @@ export function buildServer(ctx: ServerContext = devContext()): McpServer {
     {
       title: "Delete glossary",
       description: "Permanently delete one saved glossary, or all of this account's glossaries with all=true. Confirm with the user first.",
-      inputSchema: { name: z.string().optional(), all: z.boolean().optional() },
+      inputSchema: { name: z.string().max(ARG_LIMITS.name).optional(), all: z.boolean().optional() },
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
     },
     async ({ name, all }) => {
@@ -301,8 +347,8 @@ export function buildServer(ctx: ServerContext = devContext()): McpServer {
       title: "Validate glossary",
       description: "Parse a glossary and report what was understood (term and character counts, honorific policy) or the validation errors.",
       inputSchema: {
-        content: z.string().describe("Glossary JSON, CSV/TSV (Kotomark columns or a Crowdin/Phrase termbase export) or TBX."),
-        filename: z.string().optional().describe("Original file name, e.g. terms.tbx — used for format detection."),
+        content: z.string().max(LIMITS.maxBytesPerTable).describe("Glossary JSON, CSV/TSV (Kotomark columns or a Crowdin/Phrase termbase export) or TBX."),
+        filename: z.string().max(ARG_LIMITS.filename).optional().describe("Original file name, e.g. terms.tbx — used for format detection."),
         sourceLang: SourceLangArg,
       },
       annotations: ro,
@@ -346,7 +392,7 @@ export function buildServer(ctx: ServerContext = devContext()): McpServer {
       async (args) => {
         try {
           const r = await check(ctx, args as CheckArgs);
-          const verdicts = (await Promise.all(r.reviewPackets.map(judgePacket))).flat().filter((v) => v.verdict === "drift");
+          const verdicts = (await judgePackets(r.reviewPackets)).filter((v) => v.verdict === "drift");
           return { content: [{ type: "text", text: JSON.stringify(verdicts, null, 2) }], structuredContent: { verdicts } };
         } catch (e) {
           return errorResult(e);

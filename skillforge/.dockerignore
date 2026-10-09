@@ -1,23 +1,15 @@
-# Only package*.json, tsconfig.json, scripts/build-cli.mjs, src/ and deploy/*.sh are needed.
-node_modules
-dist
-.git
-.gitignore
-.kotomark-data
-.env
-.env.*
-*.tsbuildinfo
-action
-docs
-eval
-lp
-plugin
-samples
-site
-test
-web
-.github-example
-deploy/*.example
-README.md
-Dockerfile
-.dockerignore
+# Allowlist (security review A-07): exclude everything, then re-include only what the Dockerfile COPYs.
+*
+!package.json
+!package-lock.json
+!tsconfig.json
+!scripts/build-cli.mjs
+!scripts/third-party-notices.mjs
+!src/
+!deploy/docker-entrypoint.sh
+!deploy/kotomark-cli.sh
+# Never, wherever they are (even under src/).
+**/.env
+**/.env.*
+**/*.pem
+**/*signing-key*

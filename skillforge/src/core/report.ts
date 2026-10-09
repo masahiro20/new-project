@@ -13,13 +13,18 @@ const usageLine = (counts: Record<string, number>) =>
     .map(([k, n]) => `${k} ×${n}`)
     .join(" · ");
 
-export function renderMarkdown(r: CheckResult, opts: { includeInfo?: boolean; includePackets?: boolean; locale?: Locale } = {}): string {
+/**
+ * `licensedTo`: the licensee name from a valid license key (CLI only). Shown under the heading so a report traces back
+ * to its license; the key itself never appears in any report.
+ */
+export function renderMarkdown(r: CheckResult, opts: { includeInfo?: boolean; includePackets?: boolean; locale?: Locale; licensedTo?: string } = {}): string {
   const L = reportLabels(opts.locale);
   const TITLES = L.titles;
   const includeInfo = opts.includeInfo ?? true;
   const findings = includeInfo ? r.findings : r.findings.filter((f) => f.severity !== "info");
   const out: string[] = [];
   out.push(`# ${L.heading}`, "");
+  if (opts.licensedTo) out.push(`Licensed to ${opts.licensedTo.replace(/[\u0000-\u001f\u007f`*_<>[\]|\\]/g, "").slice(0, 100)}`, "");
   for (const t of r.tables) out.push(L.tableLine(t.file, t.format.toUpperCase(), t.rows, t.sourceLang, t.targetLang));
   out.push(L.glossaryLine(r.glossary.terms, r.glossary.characters), "");
 

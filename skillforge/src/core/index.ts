@@ -8,3 +8,4 @@ export { runChecks } from "./engine.js";
 export { renderMarkdown } from "./report.js";
 export { draftGlossary, type DraftEntry, type GlossaryDraft, type DraftOptions } from "./draft.js";
 export { findingsToLabelCsv, scoreLabels, renderScore } from "./pilot.js";
+export { enforceLimits, withTimeBudget, checkBudget, LimitError, SERVER_LIMITS, CLI_LIMITS, type EngineLimits } from "./limits.js";

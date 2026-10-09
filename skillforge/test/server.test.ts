@@ -137,6 +137,16 @@ test("ja.json + en.json are paired by key in check_script, get_review_packets an
   await a.close();
 });
 
+test("JSON-RPC batches are refused, so one rate-limit token buys one tool call", async () => {
+  const res = await fetch(`${base}/mcp`, {
+    method: "POST",
+    headers: { "content-type": "application/json", accept: "application/json, text/event-stream", authorization: "Bearer test-token" },
+    body: JSON.stringify(Array.from({ length: 3 }, (_, i) => ({ jsonrpc: "2.0", id: i, method: "tools/call", params: { name: "get_usage", arguments: {} } }))),
+  });
+  assert.equal(res.status, 400);
+  assert.match(JSON.stringify(await res.json()), /Batch requests are not supported/);
+});
+
 test("rate limit returns 429 with Retry-After (solo plan: 30/min)", async () => {
   let last = 0;
   let retry: string | null = null;
@@ -170,4 +180,18 @@ test("access log never contains script or glossary text", () => {
   for (const needle of ["魔導石", "Mana Stone", "Lisette", "script.csv", "ember"]) {
     assert.ok(!logged.some((l) => l.includes(needle)), `log leaked "${needle}"`);
   }
+});
+
+test("over-long strings and arrays are rejected by the input schema", async () => {
+  const client = await connect();
+  const tooLong = [
+    { name: "check_script", arguments: { ...input, tables: [{ filename: "x".repeat(600), content: "id,ja,en\n" }] } },
+    { name: "get_review_packets", arguments: { ...input, subjects: Array.from({ length: 101 }, () => "a") } },
+    { name: "get_glossary", arguments: { name: "n".repeat(65) } },
+  ];
+  for (const call of tooLong) {
+    const res = await client.callTool(call).catch((e: Error) => ({ isError: true, content: [{ type: "text", text: e.message }] }));
+    assert.ok(res.isError, call.name);
+  }
+  await client.close();
 });

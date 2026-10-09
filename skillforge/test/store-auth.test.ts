@@ -41,6 +41,27 @@ test("file store: wrong key or moved file fails to decrypt", async () => {
   await assert.rejects(new FileGlossaryStore(dir, randomBytes(32)).get("alice", "g"));
 });
 
+test("file store: an unreadable file is listed (and counted) without breaking list or account deletion (B-15)", async () => {
+  const dir = tmp();
+  const key = randomBytes(32);
+  await new FileGlossaryStore(dir, randomBytes(32)).put("alice", "old-key", glossary);
+  const s = new FileGlossaryStore(dir, key);
+  await s.put("alice", "good", glossary);
+  const errors: string[] = [];
+  const orig = console.error;
+  console.error = (m: string) => errors.push(m);
+  try {
+    const list = await s.list("alice");
+    assert.equal(list.length, 2);
+    assert.ok(list.some((m) => m.name === "good") && list.some((m) => m.name.startsWith("(unreadable")));
+    assert.equal(await s.deleteAll("alice"), 2);
+    assert.deepEqual(await s.list("alice"), []);
+  } finally {
+    console.error = orig;
+  }
+  assert.ok(errors.length >= 1);
+});
+
 test("store from env: production without a key refuses; dev generates a key file", () => {
   assert.throws(() => storeFromEnv({ NODE_ENV: "production", KOTOMARK_DATA_DIR: tmp() }), /KOTOMARK_ENCRYPTION_KEY/);
   const dir = tmp();
@@ -62,6 +83,8 @@ test("tokens: only hashes stored, verify, revoke, hot reload", () => {
   assert.equal(a.revoke("alice"), 1);
   assert.equal(b.verify(token), undefined);
   assert.throws(() => a.create("bad user!", "solo"));
+  assert.throws(() => a.create("env-1", "solo"), /reserved/, "would share KOTOMARK_API_TOKENS' first user");
+  assert.throws(() => a.create("dev", "solo"), /reserved/);
 });
 
 test("limiter: request bucket refills over time; daily row quota resets at UTC midnight", () => {
@@ -109,4 +132,12 @@ test("env: KOTOMARK_* is read, legacy YURAGI_* is a fallback, KOTOMARK_* wins", 
   assert.equal(envVar("DATA_DIR", { YURAGI_DATA_DIR: "old" }), "old");
   assert.equal(envVar("DATA_DIR", { KOTOMARK_DATA_DIR: "new", YURAGI_DATA_DIR: "old" }), "new");
   assert.equal(envVar("DATA_DIR", {}), undefined);
+});
+
+test("tokens: open re-reads the token file (a token created after start ends open mode)", () => {
+  const file = join(tmp(), "tokens.json");
+  const server = new TokenStore(file);
+  assert.equal(server.open, true);
+  new TokenStore(file).create("alice", "solo");
+  assert.equal(server.open, false);
 });

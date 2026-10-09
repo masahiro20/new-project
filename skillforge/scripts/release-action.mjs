@@ -2,21 +2,24 @@
 // Assembles the thin GitHub Action repository (option B in docs/repo-migration.md) into out/kotomark-action/:
 //
 //   action.yml  run.sh  README.md  LICENSE (MIT)  USAGE-TERMS.md  THIRD_PARTY_NOTICES.md
-//   dist/kotomark.mjs  dist/LICENSE (ELv2)  example/{script.csv,glossary.json}
+//   dist/kotomark.mjs  dist/LICENSE (ELv2)  example/{script.csv,glossary.json,workflow.yml}
 //
 // 1. rebuilds the bundle with `npm run build:action` (skip with --no-build)
 // 2. copies the action files; README.md gets its `uses:` paths rewritten to <repo>@v<major> and a Licensing
 //    section; writes the license files (HQ decision d29) and THIRD_PARTY_NOTICES.md for the bundled deps
+// 2b. guard (security review A-01): the output must be exactly the expected file list (no symlinks) and no file may
+//    contain source maps, build-machine paths, links outside the folder, private-monorepo references or secret-like values
 // 3. verifies the license files, then the bundle from the release folder and from an isolated temp copy (no node_modules anywhere
 //    up the tree): `--help` and a `check` on the bundled example
 // 4. prints the git commands for the release — it never runs git, creates repos or pushes.
 //
 // Usage: node scripts/release-action.mjs [--repo <owner>/kotomark-action] [--version 1.0.0] [--no-build]
 import { execSync, spawnSync } from "node:child_process";
-import { chmodSync, copyFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { dirname, join, resolve } from "node:path";
+import { chmodSync, copyFileSync, cpSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { homedir, tmpdir } from "node:os";
+import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { bundledNotices, noticesMarkdown } from "./third-party-notices.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const out = join(root, "out", "kotomark-action");
@@ -46,8 +49,22 @@ if (!args.includes("--no-build")) {
 }
 const bundle = join(root, "action", "dist", "kotomark.mjs");
 if (!existsSync(bundle)) fail(`bundle missing: ${bundle} (run npm run build:action)`);
+if (args.includes("--no-build")) {
+  // A-06: the committed bundle must match what the current source builds to (no stale or hand-edited engine).
+  const { buildCli } = await import(pathToFileURL(join(root, "scripts", "build-cli.mjs")).href);
+  const tmpBuild = mkdtempSync(join(tmpdir(), "kotomark-rebuild-"));
+  try {
+    const fresh = readFileSync(await buildCli(join(tmpBuild, "kotomark.mjs")));
+    if (!fresh.equals(readFileSync(bundle))) fail("--no-build: action/dist/kotomark.mjs differs from a fresh build of the source (run npm run build:action)");
+  } finally {
+    rmSync(tmpBuild, { recursive: true, force: true });
+  }
+}
 
 // --- 2. assemble ----------------------------------------------------------------------------------
+// Allowlist: every source copied into the public folder. Symlinks are refused (copyFileSync would follow them).
+const SOURCES = ["action/action.yml", "action/run.sh", "action/README.md", "action/dist/kotomark.mjs", "samples/ja-en/script.csv", "samples/ja-en/glossary.json", ".github-example/kotomark.yml", "licenses/MIT.txt", "licenses/ELASTIC-LICENSE-2.0.txt", "licenses/KOTOMARK-USAGE-TERMS.md"];
+for (const s of SOURCES) if (lstatSync(join(root, s)).isSymbolicLink()) fail(`refusing to publish a symlink: ${s}`);
 step(`assemble ${out}`);
 rmSync(out, { recursive: true, force: true });
 mkdirSync(join(out, "dist"), { recursive: true });
@@ -60,13 +77,19 @@ copyFileSync(bundle, join(out, "dist", "kotomark.mjs"));
 chmodSync(join(out, "dist", "kotomark.mjs"), 0o755);
 copyFileSync(join(root, "samples", "ja-en", "script.csv"), join(out, "example", "script.csv"));
 copyFileSync(join(root, "samples", "ja-en", "glossary.json"), join(out, "example", "glossary.json"));
+// A-02: the README's sample workflow link must work in the public repo, so ship the workflow itself.
+writeFileSync(
+  join(out, "example", "workflow.yml"),
+  readFileSync(join(root, ".github-example", "kotomark.yml"), "utf8").replace(/masahiro20\/new-project\/skillforge\/action@\S+/g, `${repo}@${major}`),
+);
 
 // README: point `uses:` at the dedicated repo and drop the "where it lives" notes about the monorepo.
 let readme = readFileSync(join(root, "action", "README.md"), "utf8");
 readme = readme
   .replaceAll("masahiro20/new-project/skillforge/action@<ref>", `${repo}@${major}`)
   .replace(/^> \*\*置き場所について。\*\*[\s\S]*?\n(?=\n)/m, `> 固定したい場合は、タグではなくコミット SHA を指定してください：\`uses: ${repo}@<commit-sha> # ${major}\`\n`)
-  .replace(/^> \*\*Where it lives\.\*\*[\s\S]*?\n(?=\n)/m, `> To pin exactly, use a commit SHA instead of the tag: \`uses: ${repo}@<commit-sha> # ${major}\`\n`);
+  .replace(/^> \*\*Where it lives\.\*\*[\s\S]*?\n(?=\n)/m, `> To pin exactly, use a commit SHA instead of the tag: \`uses: ${repo}@<commit-sha> # ${major}\`\n`)
+  .replaceAll("../.github-example/kotomark.yml", "example/workflow.yml");
 if (readme.includes("masahiro20/new-project")) console.warn("  warning: README.md still mentions masahiro20/new-project — review it by hand.");
 readme = `${readme.trimEnd()}
 
@@ -117,34 +140,43 @@ copyFileSync(join(root, "licenses", "KOTOMARK-USAGE-TERMS.md"), join(out, "USAGE
 const { build } = await import("esbuild");
 const { CLI_BUILD_OPTIONS } = await import(pathToFileURL(join(root, "scripts", "build-cli.mjs")).href);
 const meta = (await build({ ...CLI_BUILD_OPTIONS, outfile: join(out, "dist", ".meta.mjs"), write: false, metafile: true, logLevel: "silent" })).metafile;
-const pkgDirs = new Map(); // name -> dir
-for (const input of Object.keys(meta.inputs)) {
-  const m = input.match(/^(.*node_modules\/)((?:@[^/]+\/)?[^/]+)\//);
-  if (m && !m[2].startsWith(".")) pkgDirs.set(`${m[1]}${m[2]}`, m[2]);
-}
-const notices = [];
-for (const [rel, name] of [...pkgDirs].sort((a, b) => a[1].localeCompare(b[1]))) {
-  const dir = resolve(root, rel);
-  const pkg = JSON.parse(readFileSync(join(dir, "package.json"), "utf8"));
-  const licFile = readdirSync(dir).find((f) => /^(licen[cs]e|copying)(\.(md|txt))?$/i.test(f));
-  if (!licFile) fail(`no license file in ${rel} (bundled into dist/kotomark.mjs)`);
-  notices.push({ name, version: pkg.version, license: pkg.license ?? "UNKNOWN", text: readFileSync(join(dir, licFile), "utf8").trim() });
-}
+const notices = bundledNotices(meta, root); // throws on a missing license file or a license outside the allowlist
 if (notices.length === 0) fail("esbuild metafile lists no bundled node_modules packages — expected at least fflate and zod");
-for (const n of notices) if (!/^(MIT|ISC|BSD-[23]-Clause|Apache-2\.0|0BSD)$/.test(n.license)) fail(`bundled package ${n.name} has license "${n.license}" — review before releasing`);
-writeFileSync(
-  join(out, "THIRD_PARTY_NOTICES.md"),
-  `# Third-party notices
-
-\`dist/kotomark.mjs\` bundles the following third-party packages. Each is distributed under its own license,
-reproduced below. (Generated by scripts/release-action.mjs from the esbuild metafile.)
-
-| Package | Version | License |
-|---|---|---|
-${notices.map((n) => `| ${n.name} | ${n.version} | ${n.license} |`).join("\n")}
-${notices.map((n) => `\n## ${n.name} ${n.version} (${n.license})\n\n\`\`\`\n${n.text}\n\`\`\`\n`).join("")}`,
-);
+writeFileSync(join(out, "THIRD_PARTY_NOTICES.md"), noticesMarkdown(notices, "dist/kotomark.mjs"));
 console.log(`  third-party notices: ${notices.map((n) => `${n.name}@${n.version} (${n.license})`).join(", ")}`);
+
+// --- 2b. guard: exact file list + content scan (fails closed; security review A-01) -------------------------
+step("guard: file allowlist and content scan");
+const EXPECTED = [
+  "LICENSE", "README.md", "THIRD_PARTY_NOTICES.md", "USAGE-TERMS.md", "action.yml", "run.sh",
+  "dist/LICENSE", "dist/kotomark.mjs", "example/glossary.json", "example/script.csv", "example/workflow.yml",
+];
+const listFiles = (dir) =>
+  readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
+    const p = join(dir, e.name);
+    if (e.isSymbolicLink()) fail(`symlink in release folder: ${relative(out, p)}`);
+    return e.isDirectory() ? listFiles(p) : [relative(out, p).split(sep).join("/")];
+  });
+const actual = listFiles(out).sort();
+if (actual.join("\n") !== [...EXPECTED].sort().join("\n")) fail(`unexpected file list in ${out}:\n  ${actual.join("\n  ")}`);
+const FORBIDDEN = [
+  [/sourceMappingURL|"sourcesContent"/, "source map"],
+  [/^\/\/ \.\.\//m, "bundle module path outside the project (build machine layout)"],
+  [/\]\(\.\.\//, "relative link outside the release folder"],
+  [/masahiro20\/new-project|peter-hq|docs\/(?:outreach|pilot-targets|decisions|real-world-eval)|\beval\//, "reference to the private monorepo"],
+  [/(?:sk-ant-|gh[pousr]_|github_pat_|xox[abprs]-|[rs]k_live_|whsec_)[A-Za-z0-9_-]{8,}|AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----|[a-z0-9-]+\.upstash\.io/, "secret-like value"],
+  [/\bKM1\.[A-Za-z0-9_-]{40,}\.[A-Za-z0-9_-]{40,}/, "an issued license key"],
+];
+const localPaths = [root, homedir() + sep].filter((p) => p.length > 2); // build machine paths
+for (const f of actual) {
+  const text = readFileSync(join(out, f), "utf8");
+  for (const [re, what] of FORBIDDEN) if (re.test(text)) fail(`${f}: ${what} (${re})`);
+  for (const p of localPaths) if (text.includes(p)) fail(`${f}: contains a local absolute path (${p})`);
+}
+// A-03: every bundled package's notice ships inside the bundle too (trailing comment from scripts/build-cli.mjs).
+const bundleText = readFileSync(join(out, "dist", "kotomark.mjs"), "utf8");
+for (const n of notices) if (!bundleText.includes(`${n.name} ${n.version} (${n.license})`)) fail(`dist/kotomark.mjs lacks the license notice for ${n.name} (rebuild: npm run build:action)`);
+console.log(`  ${actual.length} files, all expected; no forbidden content; bundle carries ${notices.length} third-party notice(s)`);
 
 // --- 3. verify ------------------------------------------------------------------------------------
 function run(cwd, cliArgs, okCodes = [0]) {
@@ -173,7 +205,18 @@ console.log("  ok: LICENSE (MIT), dist/LICENSE (ELv2), USAGE-TERMS.md, THIRD_PAR
 // License keys (docs/licensing.md): only public keys may ship; the owner-only issuance tool never does.
 const shipped = readFileSync(join(out, "dist", "kotomark.mjs"), "utf8");
 if (/PRIVATE KEY/.test(shipped) || /generateKeyPair|license-signing-key/.test(shipped)) fail("bundle contains private-key or key-issuance code");
-if (!/KOTOMARK-1\./.test(shipped)) fail("bundle lacks the license key verifier");
+if (!/kotomark-license-v1/.test(shipped) || !/"KM1\."/.test(shipped)) fail("bundle lacks the license key verifier");
+// §5.6: no path in the shipped bundle swaps the trusted keys or skips verification (the test hook is compiled out).
+if (/__KOTOMARK_TEST_HOOKS__/.test(shipped)) fail("bundle still contains the license test hook (build without scripts/build-cli.mjs options?)");
+if (!/^\/\*! Kotomark engine — .*Elastic License 2\.0/m.test(shipped)) fail("bundle lacks the ELv2 license header");
+// A-04: operator-only token management stays out of the public bundle.
+if (/TokenStore|yrg_|KOTOMARK_API_TOKENS/.test(shipped)) fail("bundle contains server token management (A-04)");
+{
+  const floor = Number(/BUILD_FLOOR = ([\d_]+)/.exec(readFileSync(join(root, "src", "cli", "license-pubkey.ts"), "utf8"))?.[1]?.replaceAll("_", ""));
+  const ageDays = (Date.now() / 1000 - floor) / 86_400;
+  if (!(ageDays >= 0)) fail("BUILD_FLOOR in src/cli/license-pubkey.ts is in the future or unreadable");
+  if (ageDays > 180) console.warn(`  warning: BUILD_FLOOR is ${Math.round(ageDays)} days old — bump it to the release date (clock-rollback check, docs/licensing.md).`);
+}
 console.log("  ok: bundle has the offline license verifier and no signing material");
 
 step("verify: node dist/kotomark.mjs --help (release folder)");

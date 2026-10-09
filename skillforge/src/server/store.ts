@@ -140,10 +140,17 @@ export class FileGlossaryStore implements GlossaryStore {
     }
     const out: StoredGlossaryMeta[] = [];
     for (const f of files) {
-      const blob = await readFile(join(ownerDir, f));
-      const aad = Buffer.from(`${sha(`owner:${owner}`)}/${f.slice(0, -3)}`);
-      const e = JSON.parse(this.decrypt(blob, aad).toString("utf8")) as { name: string; updatedAt: string; glossary: Glossary };
-      out.push(meta(e.name, e.glossary, e.updatedAt));
+      try {
+        const blob = await readFile(join(ownerDir, f));
+        const aad = Buffer.from(`${sha(`owner:${owner}`)}/${f.slice(0, -3)}`);
+        const e = JSON.parse(this.decrypt(blob, aad).toString("utf8")) as { name: string; updatedAt: string; glossary: Glossary };
+        out.push(meta(e.name, e.glossary, e.updatedAt));
+      } catch (err) {
+        // B-15: one unreadable file (wrong key, corruption) must not break listing or account deletion. It still counts
+        // towards the plan's glossary limit.
+        console.error(`glossary store: cannot read ${f.slice(0, 12)}… (${(err as Error).message})`);
+        out.push({ name: `(unreadable ${f.slice(0, 8)})`, terms: 0, characters: 0, updatedAt: "" });
+      }
     }
     return out.sort((a, b) => a.name.localeCompare(b.name));
   }
@@ -157,8 +164,13 @@ export class FileGlossaryStore implements GlossaryStore {
 
   async deleteAll(owner: string) {
     const { ownerDir } = this.paths(owner, "");
-    const n = (await this.list(owner)).length;
-    await rm(ownerDir, { recursive: true, force: true });
+    let n = 0;
+    try {
+      n = (await readdir(ownerDir)).filter((f) => f.endsWith(".yg")).length;
+    } catch {
+      return 0;
+    }
+    await rm(ownerDir, { recursive: true, force: true }); // B-15: delete first; never depends on decrypting
     return n;
   }
 }

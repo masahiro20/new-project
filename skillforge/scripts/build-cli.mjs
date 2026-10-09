@@ -4,6 +4,7 @@
 //
 // Usage: node scripts/build-cli.mjs [--out <path>]
 import { build } from "esbuild";
+import { bundledNotices, noticesComment } from "./third-party-notices.mjs";
 import { chmodSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -21,12 +22,33 @@ export const CLI_BUILD_OPTIONS = {
   charset: "utf8",
   legalComments: "none",
   external: ["@anthropic-ai/sdk", "@modelcontextprotocol/sdk"],
-  // Lets bundled CommonJS dependencies call require() for node built-ins inside an ESM bundle.
-  banner: { js: 'import { createRequire as __kotomarkCreateRequire } from "node:module"; const require = __kotomarkCreateRequire(import.meta.url);' },
+  // License header (security review §5.6), then: lets bundled CommonJS dependencies call require() for node built-ins
+  // inside an ESM bundle.
+  banner: {
+    js:
+      "/*! Kotomark engine — Copyright (c) 2026 The Kotomark team. Licensed under the Elastic License 2.0 (see dist/LICENSE).\n" +
+      " * You may not move, change, disable, or circumvent the license key functionality, or remove or obscure this notice.\n" +
+      " * Third-party notices are at the end of this file. */\n" +
+      'import { createRequire as __kotomarkCreateRequire } from "node:module"; const require = __kotomarkCreateRequire(import.meta.url);',
+  },
+  // Production builds compile the license verifier's test hook out (src/cli/license.ts): no flag, variable, file or
+  // global can swap the trusted public keys, the revocation lists or the clock in a shipped bundle.
+  define: { __KOTOMARK_TEST_HOOKS__: "undefined" },
 };
 
+/**
+ * Two passes: the first (nothing written) lists the node_modules packages that end up in the bundle, the
+ * second appends their license texts as a trailing comment, so every copy of the bundle carries them (A-03).
+ */
+export async function cliBuildOptionsWithNotices() {
+  const { metafile } = await build({ ...CLI_BUILD_OPTIONS, outfile: resolve(root, "dist/.meta.mjs"), write: false, metafile: true, logLevel: "silent" });
+  const notices = bundledNotices(metafile, root);
+  return { options: { ...CLI_BUILD_OPTIONS, footer: { js: noticesComment(notices, "kotomark.mjs") } }, notices };
+}
+
 export async function buildCli(outfile = resolve(root, "dist/kotomark.mjs")) {
-  await build({ ...CLI_BUILD_OPTIONS, outfile, logLevel: "warning" });
+  const { options } = await cliBuildOptionsWithNotices();
+  await build({ ...options, outfile, logLevel: "warning" });
   chmodSync(outfile, 0o755);
   return outfile;
 }

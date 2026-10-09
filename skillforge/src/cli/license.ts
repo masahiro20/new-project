@@ -1,14 +1,24 @@
-import { createHash, createPublicKey, verify } from "node:crypto";
+import { createHash, createPublicKey, verify, type KeyObject } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import { LICENSE_PUBLIC_KEYS } from "./license-pubkey.js";
+import { z } from "zod";
+import { BUILD_FLOOR, DISABLED_KIDS, LICENSE_PUBLIC_KEYS, REVOKED_LIDS, type TrustedKey } from "./license-pubkey.js";
 
 /**
- * Offline license keys (HQ decision d29). Node-only on purpose: src/core stays browser-safe and free of
- * this. No network calls — a key is verified against the ed25519 public keys embedded in the bundle.
+ * Offline license keys (HQ decision d29; design requirements: security review §5, docs/licensing.md). Node-only on
+ * purpose: src/core stays browser-safe and free of this. No network calls.
  *
- *   KOTOMARK-1.<base64url(JSON payload)>.<base64url(ed25519 signature over "KOTOMARK-1.<payload part>")>
+ *   KM1.<base64url(payload JSON bytes)>.<base64url(64-byte ed25519 signature)>
+ *
+ * - The version prefix pins the algorithm: KM1 = ed25519 over "kotomark-license-v1\0" + the payload bytes (domain
+ *   separation: no signature made for another purpose verifies here). Nothing in the key can choose an algorithm or a
+ *   key (no alg / jwk / x5u; unknown fields are rejected).
+ * - The signature is checked on the received bytes first; only a verified payload is decoded and parsed, then validated
+ *   strictly (zod strict object, no duplicate JSON keys, known features only, integer seconds, bounded validity).
+ * - Clock: a clock behind this release's BUILD_FLOOR, or behind the key's iat, counts as rolled back.
+ * - Revocation: DISABLED_KIDS and REVOKED_LIDS ship in each release (offline keys cannot be revoked instantly).
+ * - The verdict is taken in licenseForRun(), the function that decides the run's row limit; nothing else verifies.
  */
 
 /**
@@ -21,23 +31,41 @@ export const PREVIEW = true;
 /** Free tier limit once the preview ends: rows (strings) checked in one run. */
 export const FREE_ROWS_PER_RUN = 20_000;
 
-export const KEY_PREFIX = "KOTOMARK-1.";
+export const KEY_PREFIX = "KM1.";
+export const SIGNING_CONTEXT = "kotomark-license-v1\u0000";
 export const LICENSE_ENV = "KOTOMARK_LICENSE_KEY";
+/** Whole key, in characters. */
+export const MAX_KEY_LENGTH = 2048;
+/** Longest allowed exp − iat (13 months + margin). */
+export const MAX_VALIDITY_SEC = 400 * 86_400;
+/** Tolerated clock difference between the issuer and the user. */
+export const CLOCK_SKEW_SEC = 3600;
+export const KNOWN_FEATURES = ["large-runs"] as const;
 
-export interface LicensePayload {
-  v: 1;
-  /** Signing key id; selects the embedded public key. */
-  kid: string;
-  /** License id (for support and records). */
-  lic: string;
-  org: string;
-  plan: "studio";
-  seats: number;
-  /** Issued at / expires at, Unix seconds. */
-  iat: number;
-  exp: number;
-  features: string[];
-}
+// eslint-disable-next-line no-control-regex
+const NO_CONTROL = /^[^\u0000-\u001f\u007f-\u009f]*$/;
+const sec = z.number().int().min(0).max(2 ** 40);
+
+const PayloadSchema = z.strictObject({
+  v: z.literal(1),
+  /** Signing key id ("k-" + 12 hex digits of SHA-256 over the public key's SPKI DER). */
+  kid: z.string().regex(/^k-[0-9a-f]{12}$/),
+  /** License id: 128 random bits, base64url. */
+  lid: z.string().regex(/^[A-Za-z0-9_-]{22}$/),
+  /** Customer id in the issuer's records. */
+  sub: z.string().regex(/^[A-Za-z0-9][A-Za-z0-9_.:@-]{0,63}$/),
+  /** Licensee name, shown as "Licensed to <name>" in reports. */
+  name: z.string().min(1).max(100).regex(NO_CONTROL),
+  plan: z.enum(["studio"]),
+  features: z.array(z.enum(KNOWN_FEATURES)).max(KNOWN_FEATURES.length),
+  limits: z.strictObject({ seats: z.number().int().min(1).max(10_000) }),
+  /** Issued at / not before / expires at, Unix seconds. */
+  iat: sec,
+  nbf: sec,
+  exp: sec,
+});
+
+export type LicensePayload = z.infer<typeof PayloadSchema>;
 
 export type LicenseSource = "flag" | "env" | "file";
 
@@ -52,57 +80,145 @@ export function keyId(publicKeyPem: string): string {
   return `k-${createHash("sha256").update(der).digest("hex").slice(0, 12)}`;
 }
 
-const B64URL = /^[A-Za-z0-9_-]+$/;
-
-function validPayload(p: unknown): p is LicensePayload {
-  if (!p || typeof p !== "object") return false;
-  const o = p as Record<string, unknown>;
-  return (
-    o.v === 1 &&
-    typeof o.kid === "string" &&
-    typeof o.lic === "string" &&
-    typeof o.org === "string" &&
-    o.plan === "studio" &&
-    Number.isInteger(o.seats) && (o.seats as number) > 0 &&
-    Number.isFinite(o.iat) &&
-    Number.isFinite(o.exp) &&
-    Array.isArray(o.features) && o.features.every((f) => typeof f === "string")
-  );
-}
-
-export interface VerifyOptions {
-  /** kid → PEM public key. Default: the embedded LICENSE_PUBLIC_KEYS. */
-  publicKeys?: Readonly<Record<string, string>>;
-  /** Current time in ms (default Date.now()). */
+/**
+ * Test-only trust overrides. `__KOTOMARK_TEST_HOOKS__` is a free identifier that test code may set on globalThis;
+ * every production build (scripts/build-cli.mjs) replaces it with `undefined` at compile time, so the shipped bundle has
+ * no path — flag, environment variable, file or global — that swaps the public keys, the revocation lists or the clock.
+ */
+export interface LicenseTestHooks {
+  publicKeys?: Readonly<Record<string, TrustedKey>>;
+  disabledKids?: ReadonlySet<string>;
+  revokedLids?: ReadonlySet<string>;
+  /** Current time, ms. */
   now?: number;
+  /** Unix seconds. */
+  buildFloor?: number;
+}
+declare const __KOTOMARK_TEST_HOOKS__: LicenseTestHooks | undefined;
+function testHooks(): LicenseTestHooks | undefined {
+  return typeof __KOTOMARK_TEST_HOOKS__ === "undefined" ? undefined : __KOTOMARK_TEST_HOOKS__;
 }
 
-/** Verifies a key offline. Never throws; a malformed or forged key is `invalid`, an old one `expired`. */
-export function verifyLicenseKey(key: string | undefined, opts: VerifyOptions = {}): LicenseStatus {
+const B64URL = /^[A-Za-z0-9_-]+$/;
+/** Strict base64url: the canonical encoding only (no padding, no stray bits), so one key has one spelling. */
+function decodeB64url(s: string): Buffer | undefined {
+  if (!B64URL.test(s) || s.length % 4 === 1) return undefined;
+  const b = Buffer.from(s, "base64url");
+  return b.toString("base64url") === s ? b : undefined;
+}
+
+const keyObjects = new Map<string, KeyObject | null>();
+function ed25519Key(pem: string): KeyObject | null {
+  let k = keyObjects.get(pem);
+  if (k === undefined) {
+    try {
+      const obj = createPublicKey(pem);
+      k = obj.asymmetricKeyType === "ed25519" ? obj : null; // any other key type is never used
+    } catch {
+      k = null;
+    }
+    keyObjects.set(pem, k);
+  }
+  return k;
+}
+
+/** True when the JSON text (already known to be valid) has an object with the same key twice. */
+export function hasDuplicateKeys(json: string): boolean {
+  const stack: { keys: Set<string> | null; expectKey: boolean }[] = [];
+  for (let i = 0; i < json.length; i++) {
+    const c = json[i];
+    if (c === "{") stack.push({ keys: new Set(), expectKey: true });
+    else if (c === "[") stack.push({ keys: null, expectKey: false });
+    else if (c === "}" || c === "]") stack.pop();
+    else if (c === ",") {
+      const top = stack[stack.length - 1];
+      if (top?.keys) top.expectKey = true;
+    } else if (c === '"') {
+      let j = i + 1;
+      while (json[j] !== '"') j += json[j] === "\\" ? 2 : 1;
+      const top = stack[stack.length - 1];
+      if (top?.keys && top.expectKey) {
+        const key = JSON.parse(json.slice(i, j + 1)) as string;
+        if (top.keys.has(key)) return true;
+        top.keys.add(key);
+        top.expectKey = false;
+      }
+      i = j;
+    }
+  }
+  return false;
+}
+
+const dayStart = (d: string) => Date.parse(`${d}T00:00:00Z`) / 1000;
+
+/** Verifies a key offline against the embedded trust anchors. Never throws; a malformed or forged key is `invalid`. */
+export function verifyLicenseKey(key: string | undefined): LicenseStatus {
   if (!key?.trim()) return { state: "none" };
   const k = key.trim();
-  if (!k.startsWith(KEY_PREFIX)) return { state: "invalid", reason: "unknown format" };
+  const invalid = (reason: string): LicenseStatus => ({ state: "invalid", reason });
+  if (k.length > MAX_KEY_LENGTH) return invalid("too long");
+  if (!k.startsWith(KEY_PREFIX)) return invalid("unknown format");
   const parts = k.slice(KEY_PREFIX.length).split(".");
-  if (parts.length !== 2 || !parts.every((s) => B64URL.test(s))) return { state: "invalid", reason: "malformed" };
-  const [body, sig] = parts as [string, string];
-  let payload: unknown;
-  try {
-    payload = JSON.parse(Buffer.from(body, "base64url").toString("utf8"));
-  } catch {
-    return { state: "invalid", reason: "malformed payload" };
+  if (parts.length !== 2) return invalid("malformed");
+  const body = decodeB64url(parts[0]!);
+  const sig = decodeB64url(parts[1]!);
+  if (!body || !sig) return invalid("malformed");
+  if (sig.length !== 64) return invalid("malformed signature");
+
+  const hooks = testHooks();
+  const keys = hooks?.publicKeys ?? LICENSE_PUBLIC_KEYS;
+  const disabled = hooks?.disabledKids ?? DISABLED_KIDS;
+  const revoked = hooks?.revokedLids ?? REVOKED_LIDS;
+
+  // 1. Signature over the received bytes, before anything reads them.
+  const signed = Buffer.concat([Buffer.from(SIGNING_CONTEXT, "utf8"), body]);
+  let signer: string | undefined;
+  for (const kid of Object.keys(keys).sort()) {
+    if (disabled.has(kid)) continue;
+    const pub = ed25519Key(keys[kid]!.key);
+    if (!pub) continue;
+    let ok = false;
+    try {
+      ok = verify(null, signed, pub, sig);
+    } catch {
+      ok = false;
+    }
+    if (ok) {
+      signer = kid;
+      break;
+    }
   }
-  if (!validPayload(payload)) return { state: "invalid", reason: "malformed payload" };
-  const keys = opts.publicKeys ?? LICENSE_PUBLIC_KEYS;
-  const pem = Object.hasOwn(keys, payload.kid) ? keys[payload.kid] : undefined;
-  if (!pem) return { state: "invalid", reason: "unknown kid" };
-  let ok = false;
+  if (!signer) return invalid("bad signature");
+
+  // 2. Only now decode and parse the payload, strictly.
+  let raw: unknown;
+  let text: string;
   try {
-    ok = verify(null, Buffer.from(KEY_PREFIX + body, "utf8"), createPublicKey(pem), Buffer.from(sig, "base64url"));
+    text = new TextDecoder("utf-8", { fatal: true }).decode(body);
+    raw = JSON.parse(text);
   } catch {
-    ok = false;
+    return invalid("malformed payload");
   }
-  if (!ok) return { state: "invalid", reason: "bad signature" };
-  return { state: payload.exp * 1000 <= (opts.now ?? Date.now()) ? "expired" : "valid", payload };
+  if (hasDuplicateKeys(text)) return invalid("malformed payload");
+  const parsed = PayloadSchema.safeParse(raw);
+  if (!parsed.success) return invalid("malformed payload");
+  const p = parsed.data;
+
+  // 3. Claims.
+  if (p.kid !== signer) return invalid("kid mismatch");
+  if (revoked.has(p.lid)) return invalid("revoked");
+  const anchor = keys[signer]!;
+  if (p.iat < dayStart(anchor.from) || (anchor.until && p.iat >= dayStart(anchor.until) + 86_400)) return invalid("signed outside the key's validity period");
+  if (!(p.iat <= p.nbf && p.nbf < p.exp)) return invalid("malformed payload");
+  if (p.exp - p.iat > MAX_VALIDITY_SEC) return invalid("validity too long");
+
+  // 4. Time. The clock is the user's, so it is checked against what we know cannot be in the future.
+  const now = Math.floor((hooks?.now ?? Date.now()) / 1000);
+  if (now < (hooks?.buildFloor ?? BUILD_FLOOR) - CLOCK_SKEW_SEC) return invalid("system clock is set before this release");
+  if (now < p.iat - CLOCK_SKEW_SEC) return invalid("issued in the future (check the system clock)");
+  if (now < p.nbf) return invalid("not yet valid");
+  if (p.exp <= now) return { state: "expired", payload: p };
+  return { state: "valid", payload: p };
 }
 
 export interface KeySources {
@@ -112,7 +228,7 @@ export interface KeySources {
   home?: string;
 }
 
-/** Finds the key: --license-key > $KOTOMARK_LICENSE_KEY > ~/.kotomark/license. */
+/** Finds the key: --license-key > $KOTOMARK_LICENSE_KEY > ~/.kotomark/license. Only finds it; never interprets it. */
 export function resolveLicenseKey(src: KeySources = {}): { key: string; source: LicenseSource } | undefined {
   if (src.flag?.trim()) return { key: src.flag.trim(), source: "flag" };
   const env = (src.env ?? process.env)[LICENSE_ENV];
@@ -127,13 +243,13 @@ export function resolveLicenseKey(src: KeySources = {}): { key: string; source: 
 }
 
 /** Resolves and verifies in one go. */
-export function loadLicense(src: KeySources = {}, opts: VerifyOptions = {}): LicenseStatus {
+export function loadLicense(src: KeySources = {}): LicenseStatus {
   const found = resolveLicenseKey(src);
   if (!found) return { state: "none" };
-  return { ...verifyLicenseKey(found.key, opts), source: found.source } as LicenseStatus;
+  return { ...verifyLicenseKey(found.key), source: found.source } as LicenseStatus;
 }
 
-const day = (sec: number) => new Date(sec * 1000).toISOString().slice(0, 10);
+const day = (s: number) => new Date(s * 1000).toISOString().slice(0, 10);
 
 /** Warnings for stderr. Never contains the key itself; empty when there is nothing to say (no nagging). */
 export function licenseWarnings(status: LicenseStatus, preview = PREVIEW): string[] {
@@ -157,6 +273,29 @@ export function gateRun(rows: number, status: LicenseStatus, preview = PREVIEW):
   };
 }
 
+export interface RunLicense {
+  status: LicenseStatus;
+  warnings: string[];
+  gate: GateResult;
+  /** Licensee name for the report, when the key is valid. */
+  licensedTo?: string;
+}
+
+/**
+ * The engine's limit decision for one run: finds the key, verifies it and decides whether `rows` may be checked.
+ * This is the one place a run's key is verified (the Action's run.sh and the argument parser only pass it along).
+ * A bad or expired key falls back to the free tier; it never aborts a run that the free tier allows.
+ */
+export function licenseForRun(rows: number, src: KeySources = {}, preview = PREVIEW): RunLicense {
+  const status = loadLicense(src);
+  return {
+    status,
+    warnings: licenseWarnings(status, preview),
+    gate: gateRun(rows, status, preview),
+    licensedTo: status.state === "valid" ? status.payload.name : undefined,
+  };
+}
+
 const SOURCE_LABEL: Record<LicenseSource, string> = { flag: "--license-key", env: LICENSE_ENV, file: "~/.kotomark/license" };
 
 /** Text for `kotomark license status`. */
@@ -173,10 +312,10 @@ export function formatLicenseStatus(status: LicenseStatus, opts: { preview?: boo
     const days = Math.round((p.exp * 1000 - now) / 86_400_000);
     lines.push(
       `  status:   ${status.state}`,
-      `  license:  ${p.lic}`,
-      `  org:      ${p.org}`,
+      `  licensee: ${p.name} (${p.sub})`,
+      `  license:  ${p.lid}`,
       `  plan:     ${p.plan}`,
-      `  seats:    ${p.seats}`,
+      `  seats:    ${p.limits.seats}`,
       `  expires:  ${day(p.exp)} (${status.state === "expired" ? `${-days} day(s) ago` : `in ${days} day(s)`})`,
     );
     if (p.features.length) lines.push(`  features: ${p.features.join(", ")}`);

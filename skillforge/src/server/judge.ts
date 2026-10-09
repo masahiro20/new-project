@@ -28,6 +28,45 @@ export interface JudgeVerdict {
   suggestion?: string;
 }
 
+/** Cost bounds for one judge_review_packets_server_side call (each packet is one model request). */
+export const JUDGE_LIMITS = { maxPackets: 20, concurrency: 4 };
+
+/**
+ * Judge packets with bounded fan-out: too many packets is an error before any model call, and at most
+ * `concurrency` requests run at once. One packet that cannot be judged fails the whole call.
+ */
+export async function judgePackets(packets: ReviewPacket[], judge: (p: ReviewPacket) => Promise<JudgeVerdict[]> = judgePacket): Promise<JudgeVerdict[]> {
+  if (packets.length > JUDGE_LIMITS.maxPackets) {
+    throw new Error(`Too many review packets for server-side judging (${packets.length} > ${JUDGE_LIMITS.maxPackets}); narrow the input or judge the packets yourself`);
+  }
+  const out: JudgeVerdict[][] = [];
+  for (let i = 0; i < packets.length; i += JUDGE_LIMITS.concurrency) {
+    out.push(...(await Promise.all(packets.slice(i, i + JUDGE_LIMITS.concurrency).map(judge))));
+  }
+  return out.flat();
+}
+
+/**
+ * Keep only well-formed verdicts about refs that are in the packet: the packet text is untrusted, so the
+ * model's answer must not be able to report lines that were never sent.
+ */
+export function parseVerdicts(packet: ReviewPacket, text: string): JudgeVerdict[] {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    throw new Error(`Server-side judging returned malformed output for "${packet.subject}"`);
+  }
+  const findings = (parsed as { findings?: unknown })?.findings;
+  if (!Array.isArray(findings)) throw new Error(`Server-side judging returned malformed output for "${packet.subject}"`);
+  const refs = new Set(packet.lines.map((l) => l.ref));
+  return findings.flatMap((f): JudgeVerdict[] => {
+    const v = f as Partial<JudgeVerdict>;
+    if (typeof v?.ref !== "string" || !refs.has(v.ref) || (v.verdict !== "drift" && v.verdict !== "ok") || typeof v.reason !== "string") return [];
+    return [{ ref: v.ref, verdict: v.verdict, reason: v.reason, ...(typeof v.suggestion === "string" ? { suggestion: v.suggestion } : {}) }];
+  });
+}
+
 export async function judgePacket(packet: ReviewPacket): Promise<JudgeVerdict[]> {
   const apiKey = envVar("ANTHROPIC_API_KEY");
   if (!apiKey) throw new Error("Server-side judging is disabled (KOTOMARK_ANTHROPIC_API_KEY not set).");
@@ -67,8 +106,9 @@ export async function judgePacket(packet: ReviewPacket): Promise<JudgeVerdict[]>
     system: SYSTEM,
     messages: [{ role: "user", content: JSON.stringify(packet) }],
   });
-  if (response.stop_reason === "refusal") return [];
+  // A refusal or a cut-off answer is "not judged", never "no drift".
+  if (response.stop_reason !== "end_turn") throw new Error(`Server-side judging could not judge "${packet.subject}" (${response.stop_reason})`);
   const text = response.content.find((b) => b.type === "text");
-  if (!text || text.type !== "text") return [];
-  return (JSON.parse(text.text) as { findings: JudgeVerdict[] }).findings;
+  if (!text || text.type !== "text") throw new Error(`Server-side judging returned no answer for "${packet.subject}"`);
+  return parseVerdicts(packet, text.text);
 }

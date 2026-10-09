@@ -55,6 +55,7 @@ export class TokenStore {
 
   /** True when no token source is configured at all (local development). */
   get open(): boolean {
+    this.reload();
     return !this.envTokens.length && !this.records.length;
   }
 
@@ -81,6 +82,8 @@ export class TokenStore {
   create(user: string, plan: Plan, label?: string): { token: string; record: TokenRecord } {
     if (!this.file) throw new Error("No token file configured");
     if (!/^[\w.@+-]{1,64}$/.test(user)) throw new Error("User id must be 1–64 chars of letters, digits, . @ + - _");
+    // env-<n> belongs to KOTOMARK_API_TOKENS and dev to open mode: sharing the id would share glossaries and quotas.
+    if (/^(env-\d+|dev)$/i.test(user)) throw new Error(`User id "${user}" is reserved`);
     this.reload();
     const token = `yrg_${randomBytes(32).toString("base64url")}`;
     const record: TokenRecord = { user, plan, label, hash: hashToken(token), prefix: token.slice(0, 10), createdAt: new Date().toISOString() };

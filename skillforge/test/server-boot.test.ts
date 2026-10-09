@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
-import { mkdtempSync } from "node:fs";
+import { mkdtempSync, writeFileSync } from "node:fs";
 import { createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -36,7 +36,7 @@ function boot(env: Record<string, string>) {
 
 test("production server listens on $PORT/$HOST and serves /healthz without auth", async () => {
   const port = await freePort();
-  const s = boot({ PORT: String(port), HOST: "127.0.0.1", KOTOMARK_API_TOKENS: "t1", KOTOMARK_ENCRYPTION_KEY: randomBytes(32).toString("base64") });
+  const s = boot({ PORT: String(port), HOST: "127.0.0.1", KOTOMARK_API_TOKENS: randomBytes(24).toString("hex"), KOTOMARK_ENCRYPTION_KEY: randomBytes(32).toString("base64") });
   try {
     await s.listening;
     const health = await fetch(`http://127.0.0.1:${port}/healthz`);
@@ -60,4 +60,33 @@ test("production server refuses to start without tokens or without an encryption
   noKey.listening.catch(() => {});
   assert.notEqual(await noKey.exited, 0);
   assert.match(noKey.output(), /KOTOMARK_ENCRYPTION_KEY must be set/);
+
+  const weak = boot({ PORT: String(await freePort()), KOTOMARK_API_TOKENS: "secret1", KOTOMARK_ENCRYPTION_KEY: randomBytes(32).toString("base64") });
+  weak.listening.catch(() => {});
+  assert.notEqual(await weak.exited, 0);
+  assert.match(weak.output(), /shorter than 24 characters/);
+});
+
+test("production server fails closed when tokens.json is emptied while it runs", async () => {
+  const port = await freePort();
+  const dataDir = mkdtempSync(join(tmpdir(), "kotomark-boot-"));
+  const record = { user: "alice", plan: "solo", hash: "0".repeat(64), prefix: "yrg_000000", createdAt: "2026-01-01T00:00:00Z" };
+  writeFileSync(join(dataDir, "tokens.json"), JSON.stringify([record]));
+  const s = boot({ PORT: String(port), HOST: "127.0.0.1", KOTOMARK_DATA_DIR: dataDir, KOTOMARK_ENCRYPTION_KEY: randomBytes(32).toString("base64") });
+  try {
+    await s.listening;
+    writeFileSync(join(dataDir, "tokens.json"), "[]");
+    for (const authorization of ["Bearer anything", ""]) {
+      const res = await fetch(`http://127.0.0.1:${port}/mcp`, {
+        method: "POST",
+        headers: { "content-type": "application/json", accept: "application/json, text/event-stream", ...(authorization ? { authorization } : {}) },
+        body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "ping" }),
+      });
+      assert.equal(res.status, 401);
+      await res.arrayBuffer();
+    }
+  } finally {
+    s.child.kill();
+    await s.exited;
+  }
 });

@@ -3,7 +3,7 @@
     "kotomark": {
       "type": "http",
       "url": "${KOTOMARK_MCP_URL:-http://localhost:8787/mcp}",
-      "headers": { "Authorization": "Bearer ${KOTOMARK_TOKEN:-dev}" }
+      "headers": { "Authorization": "Bearer ${KOTOMARK_TOKEN:-}" }
     }
   }
 }

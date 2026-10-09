@@ -10,7 +10,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --ignore-scripts --no-audit --no-fund
 COPY tsconfig.json ./
-COPY scripts/build-cli.mjs scripts/
+COPY scripts/build-cli.mjs scripts/third-party-notices.mjs scripts/
 COPY src ./src
 RUN npm run build
 
