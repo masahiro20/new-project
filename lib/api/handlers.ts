@@ -8,7 +8,7 @@ import { PARTS } from "../parts";
 import { createCheckout, isPaid } from "../payments";
 import { payDemoCheckout } from "../payments/demo";
 import { GENERATIONS_PER_PURCHASE, PURCHASE_VALID_DAYS } from "../purchase";
-import { allow, clientIp, ipKey } from "../ratelimit";
+import { allow, checkLimit, clientIp, ipKey } from "../ratelimit";
 import { verifyTurnstile } from "../turnstile";
 
 // Request handlers for the paid/AI API. Shared by the Next.js route handlers (app/api/*)
@@ -18,6 +18,13 @@ const textStream = (stream: ReadableStream<Uint8Array>) =>
   new Response(stream, { headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" } });
 
 const generator = () => (aiMock() ? streamMock : streamDocuments);
+
+/**
+ * The shared counter (Upstash) could not be reached and the limit fails closed. Nothing was generated;
+ * the request was refused before any AI call (a count may still be used only if Upstash timed out after counting).
+ */
+const busy = () =>
+  Response.json({ error: "一時的に混み合っています。少し待ってからもう一度お試しください（書類の作成は行われていません）。" }, { status: 503 });
 
 /** Demo generations per IP per hour (default 6 = 2 sets). Raise only for a quality run (DEMO_GENERATE_PER_HOUR). */
 function demoGeneratePerHour(): number {
@@ -42,13 +49,13 @@ export async function handlePreview(request: Request): Promise<Response> {
   if (!(await verifyTurnstile(parsed.data.turnstileToken ?? undefined, clientIp(request)))) {
     return Response.json({ error: "ロボットでないことの確認ができませんでした。もう一度お試しください。" }, { status: 403 });
   }
-  if (!(await allow(`preview:${ipKey(request)}`, 3, 60 * 60 * 1000, { failClosed: true }))) {
-    return Response.json({ error: "無料お試しは1時間に3回までです。" }, { status: 429 });
-  }
+  const perIp = await checkLimit(`preview:${ipKey(request)}`, 3, 60 * 60 * 1000, { failClosed: true });
+  if (perIp === "unavailable") return busy();
+  if (perIp === "limited") return Response.json({ error: "無料お試しは1時間に3回までです。" }, { status: 429 });
   // Site-wide daily budget, so rotating addresses cannot run up unbounded free AI cost.
-  if (!(await allow("preview:global", Number(process.env.PREVIEW_PER_DAY) || 300, 24 * 60 * 60 * 1000, { failClosed: true }))) {
-    return Response.json({ error: "本日の無料お試しは上限に達しました。明日またお試しください。" }, { status: 429 });
-  }
+  const daily = await checkLimit("preview:global", Number(process.env.PREVIEW_PER_DAY) || 300, 24 * 60 * 60 * 1000, { failClosed: true });
+  if (daily === "unavailable") return busy();
+  if (daily === "limited") return Response.json({ error: "本日の無料お試しは上限に達しました。明日またお試しください。" }, { status: 429 });
   return textStream(generator()("preview", parsed.data.input));
 }
 
@@ -105,13 +112,19 @@ export async function handleGenerate(request: Request): Promise<Response> {
   const demo = demoPurchase();
   const realAi = !aiMock() && (!demo || demoAllowsRealAi());
   // Demo purchases cost nothing to make, so cap them per IP as well (each purchase runs 3 sets).
-  if (demo && !(await allow(`demo-generate:${ipKey(request)}`, demoGeneratePerHour(), 60 * 60 * 1000, { failClosed: realAi }))) {
-    return Response.json({ error: "デモの作成は1時間に2セットまでです。" }, { status: 429 });
+  if (demo) {
+    const demoLimit = await checkLimit(`demo-generate:${ipKey(request)}`, demoGeneratePerHour(), 60 * 60 * 1000, { failClosed: realAi });
+    if (demoLimit === "unavailable") return busy();
+    if (demoLimit === "limited") return Response.json({ error: "デモの作成は1時間に2セットまでです。" }, { status: 429 });
   }
   // One purchase may generate at most GENERATIONS_PER_PURCHASE times in total (d30), so a single
   // payment can't run up unbounded API cost. Counted per session across all sets; with real AI the
   // count must be shared (Upstash), so a missing store refuses rather than allowing per-instance counts.
-  if (!(await allow(`generate:${sessionId}`, GENERATIONS_PER_PURCHASE, PURCHASE_VALID_DAYS * 24 * 60 * 60 * 1000, { failClosed: realAi }))) {
+  const perPurchase = await checkLimit(`generate:${sessionId}`, GENERATIONS_PER_PURCHASE, PURCHASE_VALID_DAYS * 24 * 60 * 60 * 1000, {
+    failClosed: realAi,
+  });
+  if (perPurchase === "unavailable") return busy();
+  if (perPurchase === "limited") {
     return Response.json(
       { error: `この購入で作成できる回数（合計${GENERATIONS_PER_PURCHASE}回）の上限に達しました。お問い合わせください。` },
       { status: 429 },

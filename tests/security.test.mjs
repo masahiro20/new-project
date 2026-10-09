@@ -200,7 +200,9 @@ test("SEC-03: when Redis fails, limits guarding free AI spend fail closed", asyn
       assert.equal(await rl.allow("t:open", 3, 60_000), true, "paid paths keep the per-instance fallback");
       const before = anthropicHits;
       const res = await h.handlePreview(req({ input, turnstileToken: "tok" }, "203.0.113.30"));
-      assert.equal(res.status, 429, "preview refused instead of the per-instance counter");
+      assert.equal(res.status, 503, "preview refused instead of the per-instance counter");
+      assert.match((await res.json()).error, /一時的に混み合っています.*作成は行われていません/, "an outage is not reported as a reached limit");
+      assert.equal(await rl.checkLimit("t:closed2", 3, 60_000, { failClosed: true }), "unavailable");
       assert.equal(anthropicHits, before);
     }),
   );

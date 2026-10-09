@@ -64,11 +64,21 @@ async function allowInRedis(key: string, limit: number, windowMs: number): Promi
  * counter, which barely limits on Workers (requests spread over many short-lived isolates).
  * RATE_LIMIT_ALLOW_MEMORY=1 opts back into the in-memory fallback (e.g. a local test with a real key).
  */
-export async function allow(key: string, limit: number, windowMs: number, opts: { failClosed?: boolean } = {}): Promise<boolean> {
+export async function checkLimit(
+  key: string,
+  limit: number,
+  windowMs: number,
+  opts: { failClosed?: boolean } = {},
+): Promise<"ok" | "limited" | "unavailable"> {
   const shared = await allowInRedis(key, limit, windowMs);
-  if (shared !== null) return shared;
-  if (opts.failClosed && process.env.ANTHROPIC_API_KEY && process.env.RATE_LIMIT_ALLOW_MEMORY !== "1") return false;
-  return allowInMemory(key, limit, windowMs);
+  if (shared !== null) return shared ? "ok" : "limited";
+  // The store is down: refusing here is not the caller's limit being reached, so say so (callers show a retry message).
+  if (opts.failClosed && process.env.ANTHROPIC_API_KEY && process.env.RATE_LIMIT_ALLOW_MEMORY !== "1") return "unavailable";
+  return allowInMemory(key, limit, windowMs) ? "ok" : "limited";
+}
+
+export async function allow(key: string, limit: number, windowMs: number, opts: { failClosed?: boolean } = {}): Promise<boolean> {
+  return (await checkLimit(key, limit, windowMs, opts)) === "ok";
 }
 
 /** Client IP as set by the hosting proxy: Cloudflare sets cf-connecting-ip, Vercel x-real-ip. */
