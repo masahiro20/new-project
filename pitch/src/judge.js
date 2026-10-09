@@ -17,9 +17,10 @@ export const DEFAULTS = {
   minStep: 1.2, // semitones; a smaller H/L contrast counts as "flat"
   maxDeclination: 0.6, // semitones per mora of natural downdrift the fit may absorb
   energyFloorDb: -30, // energy span threshold, relative to the loud frames
-  noiseMarginDb: 10, // … and at least this far above the noise floor (10th percentile of frame energies)
+  noiseMarginDb: 6, // … and at least this far above the noise floor (10th percentile of frame energies)
   bridgeGapS: 0.08, // the start may cross one silent gap this short (stop closure after a devoiced mora)
   tailDropDb: 6, // the utterance ends where the last syllable's energy has fallen this far (reverb tails)
+  maxPauseS: 0.5, // voiced stretches further apart than this are separate sounds (keep the loudest)
   onsetRiseDb: 6, // energy rise (within 50 ms) that marks the onset of the last syllable
   segmentation: 'auto', // 'auto' = use energy/voicing cues when available, 'equal' = equal slots
   evidenceWeight: 1.0, // reward for putting a boundary on a cue (vs. the duration prior)
@@ -102,34 +103,67 @@ function fitTemplate(values, pattern, maxDecl) {
 }
 
 /**
+ * Voiced frames of the utterance itself. Voiced runs separated by more than
+ * maxPauseS of unvoiced frames are separate stretches (no word-internal
+ * voiceless stretch — っ, a devoiced mora, a stop closure — is that long); the
+ * stretch with the most energy is the utterance, like pickUtterance does on
+ * the raw audio. Otherwise a background voice (a café, a TV) picked up half a
+ * second before or after the word would stretch the span over it.
+ * @returns {number[]} indices of the voiced frames that belong to it
+ */
+function mainVoicedRegion(track, st, o) {
+  const idx = st.flatMap((v, i) => (Number.isNaN(v) ? [] : [i]));
+  if (idx.length === 0) return idx;
+  const groups = [[idx[0]]];
+  for (let k = 1; k < idx.length; k++) {
+    if (track.times[idx[k]] - track.times[idx[k - 1]] > o.maxPauseS) groups.push([]);
+    groups[groups.length - 1].push(idx[k]);
+  }
+  if (groups.length === 1) return idx;
+  const mass = (g) => g.reduce((m, i) => m + (track.energyDb ? 10 ** (track.energyDb[i] / 10) : 1), 0);
+  return groups.reduce((best, g) => (mass(g) > mass(best) ? g : best));
+}
+
+/**
  * Start/end of the utterance, as frame indices [i, j].
  *
  * 1. Start from the voiced span (first to last voiced frame).
- * 2. Voicing alone misses a devoiced first mora (し in した), so extend to where
- *    the energy starts, by at most ~one mora. "Energy" means clearly above both
- *    the loud frames − 30 dB and the recording's own noise floor (low percentile
- *    of the frame energies) + noiseMarginDb: otherwise, in a noisy recording every
- *    frame counts as sound and both ends always run out the full mora.
- *    Going backwards, a short silent gap (≤ bridgeGapS: the closure of a voiceless
- *    stop, as in し|た) is crossed when there is sound again before it, because a
- *    devoiced mora is nearly always followed by a voiceless consonant.
- * 3. The end is where the last syllable's energy has fallen tailDropDb below its
- *    own level (see finalDecayEnd), even if the pitch tracker still reports voice
- *    there: in a room, the reverberant tail keeps the last pitch alive for
- *    0.1–0.5 s after the voice has stopped.
+ * 2. End: cut the final decay (finalDecayEnd). In a room the pitch tracker keeps
+ *    hearing the last pitch in the reverberant tail for 0.1–0.5 s after the
+ *    voice has stopped; the energy shows where it stopped.
+ * 3. Start: voicing alone misses a devoiced first mora (し in した) and the
+ *    voiceless onset of the first consonant, so extend backwards over sound, by
+ *    at most ~one mora. "Sound" = above both the loud frames − 30 dB and the
+ *    recording's own noise floor (10th percentile of the frame energies) +
+ *    noiseMarginDb. A devoiced mora is nearly always followed by a voiceless
+ *    consonant, so one silent gap of up to bridgeGapS (a stop closure, し|た) may
+ *    be crossed. The extension must begin with an onset — a rise of at least
+ *    onsetRiseDb over the median of the 50 ms before it — because a mora has a beginning and
+ *    background noise does not: without this, in a noisy recording (or one whose
+ *    automatic gain lifts the noise before the voice) the start always ran the
+ *    full mora early.
+ * 4. Isolated words only (no が): extend the end over a devoiced final mora the
+ *    same way, ending at an offset (a fall of onsetRiseDb).
  */
 function utteranceSpan(track, voicedIdx, slots, o) {
   const a = voicedIdx[0], z = voicedIdx[voicedIdx.length - 1];
   if (!track.energyDb) return [a, z];
-  const T = track.times, db = track.energyDb;
+  const T = track.times, db = track.energyDb, last = db.length - 1;
   const fin = [...db].filter(Number.isFinite).sort((x, y) => x - y);
   const ref = fin[Math.floor(fin.length * 0.95)];
   const floor = fin[Math.floor(fin.length * 0.1)];
   const thr = Math.max(ref + o.energyFloorDb, floor + o.noiseMarginDb);
   const on = db.map((d) => d >= thr);
-  const maxExt = (T[z] - T[a]) / Math.max(1, slots - 1);
+  const j0 = Math.max(a, finalDecayEnd(db, a, z, ref, o));
+  // Room for one devoiced mora plus the voiceless start (closure, burst) of the next.
+  const maxExt = (1.5 * (T[j0] - T[a])) / Math.max(1, slots - 1);
+  const rise = (x, dir) => { // energy at x vs. the median of the 50 ms before (dir −1) / after (dir +1) it
+    const w = [];
+    for (let y = x + dir; y !== x + 6 * dir && y >= 0 && y <= last; y += dir) w.push(db[y]);
+    return w.length ? db[x] - median(w) : -Infinity;
+  };
 
-  // Start: extend backwards over sound, crossing at most one short silent gap.
+  // Start: extend backwards over sound, crossing at most one short silent gap…
   let i = a, gap = 0, bridged = 0;
   for (let x = a - 1; x >= 0; x--) {
     if (on[x]) {
@@ -140,26 +174,32 @@ function utteranceSpan(track, voicedIdx, slots, o) {
       if (gap > o.bridgeGapS || bridged > 0) break; // one closure at most
     }
   }
-  // End: extend over sound (a devoiced final mora; no gap crossing), then cut the final decay.
-  let j = z;
-  while (j < db.length - 1 && on[j + 1] && T[j + 1] - T[z] <= maxExt) j++;
-  j = Math.max(i, finalDecayEnd(db, i, j, ref, o));
-  return [i, j];
+  // …and keep it only from the earliest onset inside it.
+  let s = a;
+  for (let x = i; x < a; x++) if (on[x] && rise(x, -1) >= o.onsetRiseDb) { s = x; break; }
+
+  // End (isolated words only): the same, forwards, without gap crossing.
+  let j = j0;
+  if (!o.particle) {
+    let e = j0;
+    while (e < last && on[e + 1] && T[e + 1] - T[j0] <= maxExt) e++;
+    for (let x = e; x > j0; x--) if (rise(x, 1) >= o.onsetRiseDb) { j = x; break; }
+  }
+  return [s, j];
 }
 
 /**
  * Last frame before the final decay: the end of the last syllable.
  * The last syllable starts at the last onset, i.e. the latest frame whose
  * energy rose at least onsetRiseDb above the lowest of the 50 ms before it
- * (が always has one: the g closure or nasal [ŋ] dips 6–20 dB). From there,
- * follow the running maximum; the end is the frame before the energy first
- * falls tailDropDb below it. With 32 ms energy frames an abrupt stop reaches
- * −3 dB right at the offset, so on clean speech this moves the end by a frame
- * or two at most. In a room the voice stops with a drop of a few dB (the direct
- * sound ends) and then decays at the room's rate while the pitch tracker still
- * hears the last pitch for 0.1–0.5 s; that tail is cut off. Only frames within
- * 25 dB of the loud frames count, so the fluctuations of a deep tail are never
- * taken for an onset.
+ * (が always has one: the g closure or nasal [ŋ] dips 6–20 dB); L = the loudest
+ * frame from there on. The end is the last frame still within tailDropDb of L.
+ * With 32 ms energy frames an abrupt stop reaches −3 dB right at the offset,
+ * so on clean speech this moves the end by a frame or two at most. In a room
+ * the voice stops with a drop of a few dB (the direct sound ends) and then
+ * decays at the room's rate while the pitch tracker still hears the last pitch;
+ * that tail is cut off. Only frames within 25 dB of the loud frames count, so
+ * the fluctuations of a deep tail are never taken for an onset.
  */
 function finalDecayEnd(db, i0, j, ref, o) {
   const lowest = ref - 25;
@@ -281,7 +321,7 @@ export function judge(track, word, opts = {}) {
   const n = word.morae.length;
   const slots = o.particle ? n + 1 : n; // + が
   const st = cleanTrack(track, o);
-  const voicedIdx = st.flatMap((v, i) => (Number.isNaN(v) ? [] : [i]));
+  const voicedIdx = mainVoicedRegion(track, st, o);
   if (voicedIdx.length < 10) return { error: 'no-voice', st };
 
   const [i0, i1] = utteranceSpan(track, voicedIdx, slots, o);
