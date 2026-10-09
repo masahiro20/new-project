@@ -1,0 +1,7 @@
+file_line,id,category,note
+misskey.csv:2057,f65d0eca88,rules,EN target ends with a trailing space (JA has none); no whitespace rule
+misskey.csv:1015,8deddb8374,rules,[targeted] trailing space in EN target
+misskey.csv:1311,99d58dc18f,rules,[targeted] trailing newline in EN target
+misskey.csv:2619,55fc8feaf3,rules,[targeted] trailing space in EN target
+misskey.csv:34,c3bec6bcbc,term,"[targeted] config A/B: サーバー rendered ""server"" x104 / ""instance"" x44 is not reported at warning level without a hand glossary (B only as info among 739 draft infos)"
+misskey.csv:186,2da4d0979b,accuracy,"[targeted] EN is stale: source rewritten (enabled-state, Drive quota) but EN still describes the disabled state. Out of rule scope; caught only incidentally by term.missing in B/C"

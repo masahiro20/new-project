@@ -1,0 +1,19 @@
+{
+  "terms": [
+    { "source": "リノート", "target": "Renote", "note": "Misskey product term" },
+    { "source": "ノート", "target": "note", "allowed": ["post"], "note": "Misskey product term (a post)" },
+    { "source": "リアクション", "target": "reaction" },
+    { "source": "サーバー", "target": "server", "note": "JA standardised on サーバー (formerly インスタンス); EN 'instance' not listed as allowed on purpose" },
+    { "source": "連合", "target": "federation", "allowed": ["federated", "Fediverse", "federate"] },
+    { "source": "ドライブ", "target": "Drive" },
+    { "source": "アンテナ", "target": "antenna" },
+    { "source": "クリップ", "target": "clip" },
+    { "source": "チャンネル", "target": "channel" },
+    { "source": "センシティブ", "target": "sensitive" },
+    { "source": "タイムライン", "target": "timeline" },
+    { "source": "絵文字", "target": "emoji" }
+  ],
+  "characters": [
+    { "id": "ai", "ja": "藍", "en": "Ai", "note": "Misskey mascot" }
+  ]
+}

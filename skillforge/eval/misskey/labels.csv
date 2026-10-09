@@ -1,0 +1,142 @@
+config,file_line,id,rule,severity,verdict,cause,note
+A,misskey.csv:2979,e045ed3c61,notation.katakana,warning,TP,,JA source katakana variant
+A,misskey.csv:2395,5b30a50f96,notation.katakana,warning,TP,,JA source katakana variant
+A,misskey.csv:366,41199f822d,notation.katakana,warning,TP,,JA source katakana variant
+A,misskey.csv:368,3157fea8bd,notation.katakana,warning,TP,,JA source katakana variant
+A,misskey.csv:1389,ea5bfd6773,notation.katakana,warning,TP,,JA source katakana variant
+A,misskey.csv:1957,e62dadb444,notation.katakana,warning,TP,,JA source katakana variant
+A,misskey.csv:1601,848a8ea2fe,untranslated.empty,warning,TP,,new strings not yet translated on Crowdin
+A,misskey.csv:1602,7025781fbc,untranslated.empty,warning,TP,,new strings not yet translated on Crowdin
+A,misskey.csv:1603,d79b125b52,untranslated.empty,warning,TP,,new strings not yet translated on Crowdin
+A,misskey.csv:1604,8117fb4e00,untranslated.empty,warning,TP,,new strings not yet translated on Crowdin
+A,misskey.csv:1605,04568cb0e6,untranslated.empty,warning,TP,,new strings not yet translated on Crowdin
+A,misskey.csv:1606,1c8f561aab,untranslated.empty,warning,TP,,new strings not yet translated on Crowdin
+A,misskey.csv:1607,b4cf2a1fbd,untranslated.empty,warning,TP,,new strings not yet translated on Crowdin
+A,misskey.csv:1608,4300be00fa,untranslated.empty,warning,TP,,new strings not yet translated on Crowdin
+A,misskey.csv:1609,7b1edd2721,untranslated.empty,warning,TP,,new strings not yet translated on Crowdin
+A,misskey.csv:1610,04334b54a3,untranslated.empty,warning,TP,,new strings not yet translated on Crowdin
+A,misskey.csv:1611,ac6b01f0f3,untranslated.empty,warning,TP,,new strings not yet translated on Crowdin
+A,misskey.csv:1612,9e97599ef5,untranslated.empty,warning,TP,,new strings not yet translated on Crowdin
+A,misskey.csv:1613,195be5cbce,untranslated.empty,warning,TP,,new strings not yet translated on Crowdin
+A,misskey.csv:1614,14602469b5,untranslated.empty,warning,TP,,new strings not yet translated on Crowdin
+A,misskey.csv:2771,175292a3ae,untranslated.empty,warning,TP,,new strings not yet translated on Crowdin
+B,misskey.csv:2435,17ae8b6c95,term.missing,info,FP,acceptable synonym,application vs app
+B,misskey.csv:791,74d1fa3460,term.missing,info,FP,term legitimately omitted,
+B,misskey.csv:243,a60179d47f,term.missing,info,TP,,"legacy EN ""instance"" for サーバー"
+B,misskey.csv:252,c30a4e34ab,term.missing,info,TP,,"legacy ""instance"""
+B,misskey.csv:280,f540b72880,term.missing,info,TP,,"legacy ""instance"""
+B,misskey.csv:384,7704a1da30,term.missing,info,TP,,"legacy ""instance"""
+B,misskey.csv:2139,0765e524ff,term.missing,info,TP,,"legacy ""instance"""
+B,misskey.csv:1748,048a19caf0,term.missing,info,FP,bad draft term,データ→data; EN has database
+B,misskey.csv:1846,e29e288d69,term.missing,info,FP,"EN inflection/derivation not matched (plural, -ed/-ing, compound)","draft target ""notes"" vs note"
+B,misskey.csv:1850,dc4791aa28,term.missing,info,FP,"EN inflection/derivation not matched (plural, -ed/-ing, compound)",
+B,misskey.csv:1893,b7d945422d,term.missing,info,FP,"EN inflection/derivation not matched (plural, -ed/-ing, compound)",
+B,misskey.csv:2281,59ebe073fd,term.missing,info,FP,"EN inflection/derivation not matched (plural, -ed/-ing, compound)",
+B,misskey.csv:2398,dda5b42b5e,term.missing,info,FP,"EN inflection/derivation not matched (plural, -ed/-ing, compound)",moderation note
+B,misskey.csv:2851,023769048c,term.missing,info,FP,"EN inflection/derivation not matched (plural, -ed/-ing, compound)",
+B,misskey.csv:310,dd78a840c4,term.missing,info,FP,"EN inflection/derivation not matched (plural, -ed/-ing, compound)",files vs file
+B,misskey.csv:1723,a8b8bc37ee,term.missing,info,FP,acceptable synonym,添付ファイル→attachment
+B,misskey.csv:1727,7d1054d35b,term.missing,info,FP,"EN inflection/derivation not matched (plural, -ed/-ing, compound)",
+B,misskey.csv:2693,ef2a8ced4c,term.missing,info,FP,"EN inflection/derivation not matched (plural, -ed/-ing, compound)",
+B,misskey.csv:641,1cdea8a31b,term.missing,info,FP,"EN inflection/derivation not matched (plural, -ed/-ing, compound)",unfollows
+B,misskey.csv:2889,3d8182fb51,term.missing,info,FP,"EN inflection/derivation not matched (plural, -ed/-ing, compound)",plugins vs plugin
+B,misskey.csv:411,9a6230516a,term.missing,info,FP,acceptable synonym,page→tab
+B,misskey.csv:251,6605d2708a,term.missing,info,FP,"EN inflection/derivation not matched (plural, -ed/-ing, compound)",hostnames
+B,misskey.csv:257,dfcc07e9a0,term.missing,info,FP,"EN inflection/derivation not matched (plural, -ed/-ing, compound)",hostnames
+B,misskey.csv:1530,54ff6fc46a,term.missing,info,unsure,,メッセージ rendered as chats (product rename)
+B,misskey.csv:255,f18fd86e17,term.missing,info,FP,bad draft term,"メディア→""sensitive media"""
+B,misskey.csv:791,74d1fa3460,term.missing,info,FP,term legitimately omitted,
+B,misskey.csv:1032,dd5b923795,term.missing,info,FP,term legitimately omitted,
+B,misskey.csv:1166,dcf121a578,term.missing,info,FP,"EN inflection/derivation not matched (plural, -ed/-ing, compound)",usernames
+B,misskey.csv:2483,0e42ac2684,term.missing,info,unsure,,"term ok to omit, but EN ""Today's"" mistranslates もうすぐ"
+B,misskey.csv:2839,0c37f1fcdc,term.missing,info,FP,term legitimately omitted,
+B,misskey.csv:1093,acfb4170ff,term.missing,info,FP,"EN inflection/derivation not matched (plural, -ed/-ing, compound)",reacted
+B,misskey.csv:2714,88a858bd08,term.missing,info,FP,"EN inflection/derivation not matched (plural, -ed/-ing, compound)",reacted
+B,misskey.csv:186,2da4d0979b,term.missing,info,TP,,EN is stale: describes the disabled state of a rewritten source
+B,misskey.csv:327,1a0564aa8f,term.missing,info,FP,acceptable paraphrase,
+B,misskey.csv:3249,c2dbed2a00,term.missing,info,FP,"EN inflection/derivation not matched (plural, -ed/-ing, compound)",Draft vs drafts
+B,misskey.csv:1079,4124cc1379,term.missing,info,FP,bad draft term,入力→Enter
+B,misskey.csv:2122,1615654881,term.missing,info,FP,bad draft term,
+B,misskey.csv:2973,de3fc0dae2,term.missing,info,FP,bad draft term,
+B,misskey.csv:1717,9eac273be0,term.missing,info,TP,,"公開範囲 rendered ""display settings"" instead of Visibility"
+B,misskey.csv:299,906319b1ae,term.missing,info,FP,acceptable synonym,remove
+B,misskey.csv:2124,d272424ac2,term.missing,info,FP,"EN inflection/derivation not matched (plural, -ed/-ing, compound)",deletion
+B,misskey.csv:2812,2fa475dbe9,term.missing,info,FP,"EN inflection/derivation not matched (plural, -ed/-ing, compound)",invitation-only
+B,misskey.csv:1664,d983154834,term.missing,info,FP,acceptable paraphrase,
+B,misskey.csv:631,9d90ea3387,term.missing,info,FP,"EN inflection/derivation not matched (plural, -ed/-ing, compound)",Update vs updated
+B,misskey.csv:924,071d9310b6,term.missing,info,FP,acceptable paraphrase,
+B,misskey.csv:1186,0a25ba5991,term.missing,info,FP,"EN inflection/derivation not matched (plural, -ed/-ing, compound)",
+B,misskey.csv:2510,735bd0c7e6,term.missing,info,FP,"EN inflection/derivation not matched (plural, -ed/-ing, compound)",
+B,misskey.csv:2820,f7a1a9a973,term.missing,info,FP,term legitimately omitted,
+B,misskey.csv:1811,142a19c4ac,term.missing,info,FP,"EN inflection/derivation not matched (plural, -ed/-ing, compound)",migrated
+B,misskey.csv:2198,77d5410fbf,term.missing,info,FP,acceptable paraphrase,Owned
+B,misskey.csv:2775,f87d61e76a,term.missing,info,FP,"EN inflection/derivation not matched (plural, -ed/-ing, compound)",detailed
+B,misskey.csv:97,525dcf769d,term.missing,info,FP,"EN inflection/derivation not matched (plural, -ed/-ing, compound)",added
+B,misskey.csv:2883,5b8a7ee14a,term.missing,info,FP,acceptable paraphrase,
+B,misskey.csv:749,b8a7974c69,term.missing,info,FP,"EN inflection/derivation not matched (plural, -ed/-ing, compound)",Reportee
+B,misskey.csv:2809,b7f76cf29d,term.missing,info,FP,"EN inflection/derivation not matched (plural, -ed/-ing, compound)",report
+B,misskey.csv:693,33a3dac249,term.missing,info,FP,"EN inflection/derivation not matched (plural, -ed/-ing, compound)",Notification
+B,misskey.csv:733,cdfe29b50f,term.missing,info,FP,"EN inflection/derivation not matched (plural, -ed/-ing, compound)",
+B,misskey.csv:1236,c93b5201f1,term.missing,info,FP,"EN inflection/derivation not matched (plural, -ed/-ing, compound)",notifying
+B,misskey.csv:1243,f5ed943520,term.missing,info,FP,"EN inflection/derivation not matched (plural, -ed/-ing, compound)",
+B,misskey.csv:2742,8b69b24fb9,term.missing,info,FP,"EN inflection/derivation not matched (plural, -ed/-ing, compound)",
+C,misskey.csv:34,c3bec6bcbc,term.missing,warning,TP,,"legacy EN ""instance"" for サーバー (glossary: server)"
+C,misskey.csv:213,4e275cd52e,term.missing,warning,TP,,"legacy EN ""instance"" for サーバー (glossary: server)"
+C,misskey.csv:220,d95f464bc9,term.missing,warning,TP,,"legacy EN ""instance"" for サーバー (glossary: server)"
+C,misskey.csv:229,bc35fe36f9,term.missing,warning,TP,,"legacy EN ""instance"" for サーバー (glossary: server)"
+C,misskey.csv:250,e0ffea6cac,term.missing,warning,TP,,"legacy EN ""instance"" for サーバー (glossary: server)"
+C,misskey.csv:252,c30a4e34ab,term.missing,warning,TP,,"legacy EN ""instance"" for サーバー (glossary: server)"
+C,misskey.csv:280,f540b72880,term.missing,warning,TP,,"legacy EN ""instance"" for サーバー (glossary: server)"
+C,misskey.csv:385,2fa7c4b29a,term.missing,warning,TP,,"legacy EN ""instance"" for サーバー (glossary: server)"
+C,misskey.csv:756,4a90b66ad1,term.missing,warning,TP,,"legacy EN ""instance"" for サーバー (glossary: server)"
+C,misskey.csv:820,77c557307e,term.missing,warning,FP,acceptable paraphrase,"server restart → ""Misskey restart"""
+C,misskey.csv:853,6853b576ff,term.missing,warning,TP,,"legacy EN ""instance"" for サーバー (glossary: server)"
+C,misskey.csv:881,6e43baa5c8,term.missing,warning,TP,,"legacy EN ""instance"" for サーバー (glossary: server)"
+C,misskey.csv:971,2a6c45e85a,term.missing,warning,TP,,"legacy EN ""instance"" for サーバー (glossary: server)"
+C,misskey.csv:972,81fed30867,term.missing,warning,TP,,"legacy EN ""instance"" for サーバー (glossary: server)"
+C,misskey.csv:1031,d5dda09bb4,term.missing,warning,TP,,"legacy EN ""instance"" for サーバー (glossary: server)"
+C,misskey.csv:1097,cf62b98578,term.missing,warning,TP,,"legacy EN ""instance"" for サーバー (glossary: server)"
+C,misskey.csv:1098,85920fa980,term.missing,warning,TP,,"legacy EN ""instance"" for サーバー (glossary: server)"
+C,misskey.csv:1103,88a1c100f8,term.missing,warning,TP,,"legacy EN ""instance"" for サーバー (glossary: server)"
+C,misskey.csv:1133,bf27f8cb44,term.missing,warning,TP,,"legacy EN ""instance"" for サーバー (glossary: server)"
+C,misskey.csv:1736,762ef5afdb,term.missing,warning,FP,term legitimately omitted,
+C,misskey.csv:1744,32d1b8dd3c,term.missing,warning,TP,,"legacy EN ""instance"" for サーバー (glossary: server)"
+C,misskey.csv:1790,a54749e57c,term.missing,warning,FP,term legitimately omitted,
+C,misskey.csv:1951,3f07392cf8,term.missing,warning,TP,,"legacy EN ""instance"" for サーバー (glossary: server)"
+C,misskey.csv:1976,04b30ef679,term.missing,warning,TP,,"legacy EN ""instance"" for サーバー (glossary: server)"
+C,misskey.csv:2139,0765e524ff,term.missing,warning,TP,,"legacy EN ""instance"" for サーバー (glossary: server)"
+C,misskey.csv:2212,ce115fcec7,term.missing,warning,TP,,"legacy EN ""instance"" for サーバー (glossary: server)"
+C,misskey.csv:2214,7bff15fb60,term.missing,warning,TP,,"legacy EN ""instance"" for サーバー (glossary: server)"
+C,misskey.csv:2550,93659c21d5,term.missing,warning,TP,,"legacy EN ""instance"" for サーバー (glossary: server)"
+C,misskey.csv:2850,5d538d9463,term.missing,warning,TP,,"legacy EN ""instance"" for サーバー (glossary: server)"
+C,misskey.csv:186,2da4d0979b,term.missing,warning,TP,,EN is stale (source rewritten)
+C,misskey.csv:194,76074936ef,term.missing,warning,FP,term legitimately omitted,
+C,misskey.csv:1834,1fa74e8abc,term.missing,warning,FP,word-internal match,Supernote
+C,misskey.csv:145,02f478cc07,term.missing,warning,FP,"EN inflection/derivation not matched (plural, -ed/-ing, compound)",reacting
+C,misskey.csv:1093,acfb4170ff,term.missing,warning,FP,"EN inflection/derivation not matched (plural, -ed/-ing, compound)",
+C,misskey.csv:1352,2574655f04,term.missing,warning,FP,"EN inflection/derivation not matched (plural, -ed/-ing, compound)",
+C,misskey.csv:1959,b0cd49389c,term.missing,warning,FP,"EN inflection/derivation not matched (plural, -ed/-ing, compound)",React
+C,misskey.csv:2714,88a858bd08,term.missing,warning,FP,"EN inflection/derivation not matched (plural, -ed/-ing, compound)",reacted
+C,misskey.csv:127,3a19188076,term.missing,warning,FP,"EN inflection/derivation not matched (plural, -ed/-ing, compound)",Renoted
+C,misskey.csv:128,09c1a865cf,term.missing,warning,FP,"EN inflection/derivation not matched (plural, -ed/-ing, compound)",
+C,misskey.csv:129,1ce4c89da5,term.missing,warning,FP,"EN inflection/derivation not matched (plural, -ed/-ing, compound)",
+C,misskey.csv:1713,035dc1706e,term.missing,warning,FP,"EN inflection/derivation not matched (plural, -ed/-ing, compound)",
+C,misskey.csv:273,4f2daac27d,term.missing,warning,FP,"EN inflection/derivation not matched (plural, -ed/-ing, compound)",Federating
+C,misskey.csv:2549,88f648da44,term.missing,warning,FP,"EN inflection/derivation not matched (plural, -ed/-ing, compound)",Defederate
+C,misskey.csv:2395,5b30a50f96,notation.katakana,warning,TP,,
+C,misskey.csv:1389,ea5bfd6773,notation.katakana,warning,TP,,
+C,misskey.csv:1957,e62dadb444,notation.katakana,warning,TP,,
+C,misskey.csv:1601,848a8ea2fe,untranslated.empty,warning,TP,,
+C,misskey.csv:1602,7025781fbc,untranslated.empty,warning,TP,,
+C,misskey.csv:1603,d79b125b52,untranslated.empty,warning,TP,,
+C,misskey.csv:1604,8117fb4e00,untranslated.empty,warning,TP,,
+C,misskey.csv:1605,04568cb0e6,untranslated.empty,warning,TP,,
+C,misskey.csv:1606,1c8f561aab,untranslated.empty,warning,TP,,
+C,misskey.csv:1607,b4cf2a1fbd,untranslated.empty,warning,TP,,
+C,misskey.csv:1608,4300be00fa,untranslated.empty,warning,TP,,
+C,misskey.csv:1609,7b1edd2721,untranslated.empty,warning,TP,,
+C,misskey.csv:1611,ac6b01f0f3,untranslated.empty,warning,TP,,
+C,misskey.csv:1612,9e97599ef5,untranslated.empty,warning,TP,,
+C,misskey.csv:1613,195be5cbce,untranslated.empty,warning,TP,,
+C,misskey.csv:1614,14602469b5,untranslated.empty,warning,TP,,
+C,misskey.csv:2771,175292a3ae,untranslated.empty,warning,TP,,
