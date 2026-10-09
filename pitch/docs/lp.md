@@ -1,5 +1,7 @@
 <!-- P3 Pitch — waitlist landing page copy (draft, NOT published). Owner approval needed before going live. -->
 
+> **Built page:** `pitch/site/index.html` (+ `site/assets/site.css`) — static English LP adapted from this draft for the **free beta** (no pricing, no waitlist form, CTA → `./app/`, no accuracy claim). Not live: going live still needs **owner approval + a domain**.
+
 # Hear where your pitch drops.
 
 **Pitch checks your Japanese pitch accent from your own voice — mora by mora — and tells you if the drop is in the right place.**
