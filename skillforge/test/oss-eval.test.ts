@@ -69,9 +69,9 @@ test("real markup is still checked: attributes, closing pairs, known tags, added
   assert.deepEqual(rules(r), ["tag.mismatch", "tag.mismatch", "tag.mismatch", "tag.mismatch"]);
 });
 
-test("emphasis dropped in a Japanese target is a warning, not a tag error", () => {
+test("emphasis dropped in a Japanese target is info, not a tag error", () => {
   const r = runChecks([rows([["my <i>friend</i>", "我が友"]])]);
-  assert.deepEqual(r.findings.map((f) => [f.rule, f.severity]), [["tag.emphasis-dropped", "warning"]]);
+  assert.deepEqual(r.findings.map((f) => [f.rule, f.severity]), [["tag.emphasis-dropped", "info"]]);
 });
 
 // ---------- 3. PO plurals, speakers, fuzzy ----------

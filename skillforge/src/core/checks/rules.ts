@@ -144,7 +144,7 @@ export function checkRules(tables: Table[], opts: { wideAsTwo?: boolean; locale?
       const td = diff(st.list, tt.list);
       const emphasisOnly = t.targetLang === "ja" && !td.extra.length && td.missing.every((x) => EMPHASIS_TAGS.has(x.replace(/[</>]/g, "").toLowerCase()));
       if (td.missing.length && emphasisOnly) {
-        out.push({ category: "tag", severity: "warning", rule: "tag.emphasis-dropped", ...base(row, "target"), message: msg.tagEmphasisDropped(td.missing) });
+        out.push({ category: "tag", severity: "info", rule: "tag.emphasis-dropped", ...base(row, "target"), message: msg.tagEmphasisDropped(td.missing) });
       } else if (td.missing.length || td.extra.length) {
         out.push({
           category: "tag", severity: "error", rule: "tag.mismatch", ...base(row, "target"),

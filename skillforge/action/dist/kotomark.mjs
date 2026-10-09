@@ -21230,6 +21230,464 @@ function date4(params) {
   return _coercedDate(ZodDate, params);
 }
 
+// src/core/parsers/xml.ts
+var PREDEFINED = { lt: "<", gt: ">", amp: "&", quot: '"', apos: "'" };
+var localName = (q2) => q2.slice(q2.indexOf(":") + 1);
+function decodeEntities(s, entities, depth = 0) {
+  if (!s.includes("&")) return s;
+  return s.replace(/&(#x[0-9a-fA-F]+|#[0-9]+|[A-Za-z_][\w.\-]*);/g, (all, ref2) => {
+    if (ref2[0] === "#") {
+      const cp = ref2[1] === "x" || ref2[1] === "X" ? parseInt(ref2.slice(2), 16) : parseInt(ref2.slice(1), 10);
+      return Number.isFinite(cp) && cp > 0 && cp <= 1114111 ? String.fromCodePoint(cp) : all;
+    }
+    if (ref2 in PREDEFINED) return PREDEFINED[ref2];
+    if (ref2 in entities && depth < 4) return decodeEntities(entities[ref2], entities, depth + 1);
+    return all;
+  });
+}
+function parseXml(text) {
+  const src = text.charCodeAt(0) === 65279 ? text.slice(1) : text;
+  const entities = {};
+  const stack = [];
+  let root;
+  let i2 = 0;
+  let line = 1;
+  const advance = (to) => {
+    for (let k = i2; k < to; k++) if (src.charCodeAt(k) === 10) line++;
+    i2 = to;
+  };
+  const fail = (msg) => {
+    throw new Error(`XML line ${line}: ${msg}`);
+  };
+  const addText = (t) => {
+    const top = stack[stack.length - 1];
+    if (top && t) top.children.push(t);
+  };
+  while (i2 < src.length) {
+    const lt = src.indexOf("<", i2);
+    if (lt < 0) {
+      if (stack.length && src.slice(i2).trim()) addText(decodeEntities(src.slice(i2), entities));
+      advance(src.length);
+      break;
+    }
+    if (lt > i2) {
+      addText(decodeEntities(src.slice(i2, lt), entities));
+      advance(lt);
+    }
+    if (src.startsWith("<!--", i2)) {
+      const end = src.indexOf("-->", i2 + 4);
+      if (end < 0) fail("unterminated comment");
+      advance(end + 3);
+    } else if (src.startsWith("<![CDATA[", i2)) {
+      const end = src.indexOf("]]>", i2 + 9);
+      if (end < 0) fail("unterminated CDATA section");
+      addText(src.slice(i2 + 9, end));
+      advance(end + 3);
+    } else if (src.startsWith("<?", i2)) {
+      const end = src.indexOf("?>", i2 + 2);
+      if (end < 0) fail("unterminated processing instruction");
+      advance(end + 2);
+    } else if (src.startsWith("<!DOCTYPE", i2) || src.startsWith("<!doctype", i2)) {
+      let k = i2 + 9;
+      let depth = 0;
+      for (; k < src.length; k++) {
+        const ch = src[k];
+        if (ch === "[") depth++;
+        else if (ch === "]") depth--;
+        else if (ch === '"' || ch === "'") {
+          const close = src.indexOf(ch, k + 1);
+          if (close < 0) break;
+          k = close;
+        } else if (ch === ">" && depth <= 0) break;
+      }
+      if (k >= src.length) fail("unterminated DOCTYPE");
+      const decl = src.slice(i2, k + 1);
+      for (const m of decl.matchAll(/<!ENTITY\s+([A-Za-z_][\w.\-]*)\s+(?:"([^"]*)"|'([^']*)')\s*>/g)) entities[m[1]] ??= m[2] ?? m[3] ?? "";
+      advance(k + 1);
+    } else if (src.startsWith("</", i2)) {
+      const end = src.indexOf(">", i2);
+      if (end < 0) fail("unterminated end tag");
+      const qname = src.slice(i2 + 2, end).trim();
+      const top = stack.pop();
+      if (!top) fail(`unexpected </${qname}>`);
+      if (top.qname !== qname) fail(`</${qname}> does not close <${top.qname}>`);
+      advance(end + 1);
+    } else {
+      let k = i2 + 1;
+      let quote = "";
+      for (; k < src.length; k++) {
+        const ch = src[k];
+        if (quote) {
+          if (ch === quote) quote = "";
+        } else if (ch === '"' || ch === "'") quote = ch;
+        else if (ch === ">") break;
+      }
+      if (k >= src.length) fail("unterminated start tag");
+      const selfClosing = src[k - 1] === "/";
+      const body = src.slice(i2 + 1, selfClosing ? k - 1 : k);
+      const nameMatch = /^[^\s/>]+/.exec(body);
+      if (!nameMatch) fail("missing element name");
+      const qname = nameMatch[0];
+      const attrs2 = {};
+      for (const m of body.slice(qname.length).matchAll(/([^\s=]+)\s*=\s*(?:"([^"]*)"|'([^']*)')/g)) {
+        attrs2[m[1]] = decodeEntities((m[2] ?? m[3] ?? "").replace(/[\t\n\r]/g, " "), entities);
+      }
+      const el = { qname, name: localName(qname), attrs: attrs2, children: [], line };
+      const parent = stack[stack.length - 1];
+      if (parent) parent.children.push(el);
+      else if (root) fail(`second root element <${qname}>`);
+      else root = el;
+      advance(k + 1);
+      if (!selfClosing) stack.push(el);
+    }
+  }
+  if (stack.length) throw new Error(`XML: <${stack[stack.length - 1].qname}> is never closed`);
+  if (!root) throw new Error("XML: no root element");
+  return root;
+}
+var childElements = (el, ...names) => el.children.filter((c) => typeof c !== "string" && (!names.length || names.includes(c.name)));
+function textContent(el) {
+  let out = "";
+  for (const c of el.children) out += typeof c === "string" ? c : textContent(c);
+  return out;
+}
+function attrOf(el, name) {
+  if (name in el.attrs) return el.attrs[name];
+  for (const [k, v] of Object.entries(el.attrs)) if (localName(k) === name) return v;
+  return void 0;
+}
+function descendants(el, ...names) {
+  const out = [];
+  const walk2 = (e) => {
+    for (const c of e.children) {
+      if (typeof c === "string") continue;
+      if (names.includes(c.name)) out.push(c);
+      walk2(c);
+    }
+  };
+  walk2(el);
+  return out;
+}
+
+// src/core/glossary-import.ts
+var MAX_NOTES = 12;
+var Notes = class {
+  constructor(file2) {
+    this.file = file2;
+  }
+  file;
+  list = [];
+  extra = 0;
+  add(msg) {
+    if (this.list.length < MAX_NOTES) this.list.push(`${this.file}: ${msg}`);
+    else this.extra++;
+  }
+  done() {
+    return this.extra ? [...this.list, `${this.file}: … and ${this.extra} more note(s)`] : this.list;
+  }
+};
+var clean = (s) => s.replace(/\s+/g, " ").trim();
+var uniq = (xs) => [...new Set(xs)];
+function statusOf(value) {
+  const v = value.trim().toLowerCase();
+  if (!v || v === "-") return void 0;
+  if (/deprecat|forbid|supersed|obsolete|not[\s_-]*recommended|reject|banned|do[\s_-]*not[\s_-]*use|禁止|非推奨|使用不可|^ng$/.test(v)) return "forbidden";
+  if (/admit|allow|accept|permit|synonym|variant|secondary|許容|容認/.test(v)) return "admitted";
+  if (/prefer|approv|standard|recommend|official|normative|legal|regulat|main|推奨|優先|正式|^ok$/.test(v)) return "preferred";
+  return "unknown";
+}
+var TRUTHY = /^(true|yes|y|1|x|✓|✔|〇|○|●|はい|forbidden|deprecated|ng|禁止)$/i;
+var FALSY = /^(false|no|n|0|-|いいえ|ok)$/i;
+function buildTerms(concepts, srcKey, tgtKey, notes) {
+  const bySource = /* @__PURE__ */ new Map();
+  let noSource = 0;
+  for (const c of concepts) {
+    const srcs = uniq((c.sides[srcKey] ?? []).filter((v) => v.status !== "forbidden").map((v) => v.text));
+    const tgts = [
+      ...(c.sides[tgtKey] ?? []).map((v) => ({ text: v.text, status: v.status ?? c.rowStatus })),
+      ...(c.allowed ?? []).map((text) => ({ text, status: "admitted" })),
+      ...(c.forbidden ?? []).map((text) => ({ text, status: "forbidden" }))
+    ];
+    if (!srcs.length) {
+      if (tgts.length) noSource++;
+      continue;
+    }
+    if (!tgts.length) continue;
+    const note = c.notes.any ?? c.notes[srcKey] ?? c.notes[tgtKey];
+    for (const s of srcs) {
+      const acc = bySource.get(s) ?? { variants: [], line: c.line };
+      acc.variants.push(...tgts);
+      acc.note ??= note;
+      bySource.set(s, acc);
+    }
+  }
+  if (noSource) notes.add(`${noSource} entr${noSource === 1 ? "y has" : "ies have"} no usable ${keyName(srcKey)} term; skipped`);
+  const terms = [];
+  for (const [source, acc] of bySource) {
+    const preferred = uniq(acc.variants.filter((v) => v.status === void 0 || v.status === "preferred").map((v) => v.text));
+    const admitted = uniq(acc.variants.filter((v) => v.status === "admitted").map((v) => v.text));
+    const approved = uniq([...preferred, ...admitted]);
+    const target = preferred[0] ?? admitted[0];
+    const forbiddenAll = uniq(acc.variants.filter((v) => v.status === "forbidden").map((v) => v.text));
+    if (!target) {
+      notes.add(`"${source}" (line ${acc.line}) has only deprecated/forbidden translations (${forbiddenAll.join(", ")}); skipped`);
+      continue;
+    }
+    if (preferred.length > 1) notes.add(`"${source}" has several preferred translations (${preferred.join(", ")}); using "${target}", the others are allowed`);
+    const clash = forbiddenAll.filter((f) => approved.includes(f));
+    if (clash.length) notes.add(`"${source}": ${clash.map((x2) => `"${x2}"`).join(", ")} is both approved and forbidden; kept as approved`);
+    const allowed = approved.filter((a) => a !== target);
+    const forbidden = forbiddenAll.filter((f) => !approved.includes(f));
+    const term = { source, target };
+    if (allowed.length) term.allowed = allowed;
+    if (forbidden.length) term.forbidden = forbidden;
+    if (acc.note) term.note = acc.note;
+    terms.push(term);
+  }
+  return terms;
+}
+var keyName = (k) => k === "src" ? "source" : k === "tgt" ? "target" : k === "ja" ? "Japanese" : "English";
+var IGNORED_FIELD = /part[\s_-]*of[\s_-]*speech|\bpos\b|gender|^type$|url|lemma|figure|subject|abbreviation|plural|image|created|updated|modified|author|^id$|domain|grammatical|品詞|^language$/i;
+function fieldOf(raw) {
+  const f = raw.trim().toLowerCase().replace(/^concept[\s_-]+/, "");
+  if (!f || /^(term|terms|text|word|source|target|translation|用語|訳語|原文|訳文)$/.test(f)) return "term";
+  if (/^(description|definition|note|notes|comment|comments|context|usage|remark|remarks|explanation|info|備考|説明|定義|注記|メモ|用法)$/.test(f)) return "note";
+  if (/^((term|usage|administrative|admin|approval)[\s_-]*)?(status|state)$|^(状態|ステータス)$/.test(f)) return "status";
+  if (/^(forbidden|deprecated|ng|禁止|do[\s_-]*not[\s_-]*use|not[\s_-]*allowed)$/.test(f)) return "flag";
+  if (IGNORED_FIELD.test(f)) return "ignore";
+  return "ignore";
+}
+var LANG_WORD = "ja|jp|jpn|en|eng|japanese|english|日本語|英語";
+function classify(header, hasLangColumns) {
+  const h = header.replace(/^﻿/, "").trim();
+  const lower = h.toLowerCase();
+  const br = /^(.*?)\s*[[(（]\s*([^\])）]+?)\s*[\])）]\s*$/.exec(h);
+  if (br && /^[A-Za-z]{2,3}([-_][A-Za-z0-9]+)*$/.test(br[2])) {
+    const lang = langOfCode(br[2]);
+    const base2 = br[1].trim();
+    let field2 = fieldOf(base2);
+    if (field2 === "ignore" && !IGNORED_FIELD.test(base2) && (langOfHeader(base2) || /^[A-Za-z\s()]+$/.test(base2))) field2 = "term";
+    if (!base2) field2 = "term";
+    return { kind: "lang", lang, code: br[2], field: field2 };
+  }
+  const pre = new RegExp(`^(${LANG_WORD})(?:[-_][A-Za-z]{2})?[\\s_:\\-・]+(.+)$`, "i").exec(h);
+  const suf = new RegExp(`^(.+?)[\\s_:\\-・]+(${LANG_WORD})$`, "i").exec(h);
+  const split = pre ? { lang: pre[1], rest: pre[2] } : suf ? { lang: suf[2], rest: suf[1] } : void 0;
+  if (split) {
+    const lang = langOfCode(split.lang);
+    const field2 = fieldOf(split.rest);
+    if (lang && field2 !== "ignore") return { kind: "lang", lang, code: split.lang, field: field2 };
+  }
+  const whole = langOfHeader(h);
+  if (whole) return { kind: "lang", lang: whole, code: h, field: "term" };
+  if (/^[a-z]{2}([-_][A-Za-z0-9]{2,4})?$/i.test(h) && !/^(id|no|ng|ok)$/i.test(h)) return { kind: "lang", lang: void 0, code: h, field: "term" };
+  if (/^(type|kind|種別|区分)$/.test(lower)) return { kind: "type" };
+  if (/^(source|source[\s_-]*term|原文|原語|元)$/.test(lower) || lower === "term" && !hasLangColumns(h)) return { kind: "src" };
+  if (/^(target|target[\s_-]*term|translation|訳語|訳文|訳)$/.test(lower)) return { kind: "tgt" };
+  if (/^(allowed|aliases|alias|synonyms|variants|許容|別表記)$/.test(lower)) return { kind: "allowed" };
+  if (/^(forbidden|ng|禁止|deprecated|do[\s_-]*not[\s_-]*use)$/.test(lower)) return { kind: "forbidden" };
+  const field = fieldOf(lower);
+  if (field === "status") return { kind: "status" };
+  if (field === "note") return { kind: "note" };
+  return { kind: "ignore" };
+}
+var splitList = (s) => (s ?? "").split(/[;；|]/).map((x2) => x2.trim()).filter(Boolean);
+function sniffDelimiter(text, file2) {
+  if (/\.tsv$|\.tab$/i.test(file2)) return "	";
+  if (/\.csv$/i.test(file2)) {
+    const first2 = text.replace(/^﻿/, "").split(/\r?\n/, 1)[0] ?? "";
+    return !first2.includes(",") && first2.includes("	") ? "	" : ",";
+  }
+  const first = text.replace(/^﻿/, "").split(/\r?\n/, 1)[0] ?? "";
+  return (first.match(/\t/g)?.length ?? 0) > (first.match(/,/g)?.length ?? 0) ? "	" : ",";
+}
+function importCsv(text, file2, opts = {}) {
+  const notes = new Notes(file2);
+  const delimiter = sniffDelimiter(text, file2);
+  const recs = parseCsvRecords(text, delimiter);
+  const headerRec = recs.shift();
+  const header = headerRec?.cells ?? [];
+  const anyLang = header.some((h) => {
+    const c = classify(h, () => false);
+    return c.kind === "lang" && c.field === "term" && !!c.lang;
+  });
+  const cols = header.map((h) => classify(h, () => anyLang));
+  const idx = (kind) => cols.findIndex((c) => c.kind === kind);
+  let iSrc = idx("src");
+  let iTgt = idx("tgt");
+  const iType = idx("type");
+  const iAllowed = idx("allowed");
+  const iForbidden = idx("forbidden");
+  const iStatus = idx("status");
+  const noteCols = cols.map((c, i2) => c.kind === "note" ? i2 : -1).filter((i2) => i2 >= 0);
+  const cell = (r, i2) => i2 >= 0 ? (r.cells[i2] ?? "").trim() : "";
+  const termCols = [];
+  const langNotes = [];
+  const otherLangs = /* @__PURE__ */ new Set();
+  cols.forEach((c, i2) => {
+    if (c.kind !== "lang") return;
+    if (!c.lang) {
+      if (c.field === "term") otherLangs.add(c.code);
+      return;
+    }
+    if (c.field === "term") termCols.push({ i: i2, lang: c.lang, status: -1, flag: -1 });
+    else if (c.field === "note") langNotes.push({ i: i2, lang: c.lang });
+    else if (c.field === "status" || c.field === "flag") {
+      const owner = [...termCols].reverse().find((t) => t.lang === c.lang) ?? void 0;
+      const pending = owner ?? { i: -1, lang: c.lang, status: -1, flag: -1 };
+      if (c.field === "status") pending.status = i2;
+      else pending.flag = i2;
+      if (!owner) termCols.push(pending);
+    }
+  });
+  for (const p of termCols.filter((t) => t.i < 0)) {
+    const owner = termCols.find((t) => t.i >= 0 && t.lang === p.lang);
+    if (owner) {
+      if (owner.status < 0) owner.status = p.status;
+      if (owner.flag < 0) owner.flag = p.flag;
+    }
+  }
+  const langTerms = termCols.filter((t) => t.i >= 0);
+  if (iSrc >= 0 && iTgt < 0 && langTerms.length) iTgt = langTerms.find((t) => t.lang === "en")?.i ?? langTerms[0].i;
+  if (iTgt >= 0 && iSrc < 0 && langTerms.length) iSrc = langTerms.find((t) => t.lang === "ja")?.i ?? langTerms[0].i;
+  const explicit = iSrc >= 0 && iTgt >= 0;
+  const langs = new Set(langTerms.map((t) => t.lang));
+  if (!explicit && !(langs.has("ja") && langs.has("en"))) {
+    throw new Error(
+      `Glossary CSV needs source/ja and target/en columns (found: ${header.map((h) => h.trim()).filter(Boolean).join(", ") || "no header"})`
+    );
+  }
+  if (otherLangs.size) notes.add(`ignored columns for other languages (${[...otherLangs].join(", ")})`);
+  const forbiddenValues = iForbidden >= 0 ? recs.map((r) => cell(r, iForbidden)).filter(Boolean) : [];
+  const forbiddenIsFlag = forbiddenValues.length > 0 && forbiddenValues.every((v) => TRUTHY.test(v) || FALSY.test(v));
+  const unknownStatus = /* @__PURE__ */ new Set();
+  const statusFrom = (r, statusCol, flagCol) => {
+    if (flagCol >= 0 && TRUTHY.test(cell(r, flagCol))) return "forbidden";
+    if (statusCol < 0) return void 0;
+    const s = statusOf(cell(r, statusCol));
+    if (s === "unknown") {
+      unknownStatus.add(cell(r, statusCol));
+      return void 0;
+    }
+    return s;
+  };
+  const locked = explicit || iType >= 0 || iAllowed >= 0 || iForbidden >= 0 && !forbiddenIsFlag;
+  const firstLang = langTerms.find((t) => t.lang === "ja" || t.lang === "en")?.lang ?? "ja";
+  const srcLang = locked ? "ja" : opts.sourceLang ?? firstLang;
+  const srcKey = explicit ? "src" : srcLang;
+  const tgtKey = explicit ? "tgt" : srcLang === "ja" ? "en" : "ja";
+  const concepts = [];
+  const characters = [];
+  const jaCol = explicit ? iSrc : langTerms.find((t) => t.lang === "ja")?.i ?? -1;
+  const enCol = explicit ? iTgt : langTerms.find((t) => t.lang === "en")?.i ?? -1;
+  for (const r of recs) {
+    if (iType >= 0 && /^(character|char|name|キャラ)/i.test(cell(r, iType))) {
+      const ja2 = cell(r, jaCol);
+      const en2 = cell(r, enCol);
+      if (!ja2 || !en2) continue;
+      characters.push({ id: en2.toLowerCase(), ja: ja2, en: en2, aliases: { en: splitList(cell(r, iAllowed)) }, forbidden: { en: splitList(cell(r, iForbidden)) } });
+      continue;
+    }
+    const c = { line: r.line, sides: {}, notes: {} };
+    if (explicit) {
+      if (cell(r, iSrc)) c.sides.src = [{ text: cell(r, iSrc) }];
+      if (cell(r, iTgt)) c.sides.tgt = [{ text: cell(r, iTgt) }];
+    } else {
+      for (const t of langTerms) {
+        const text2 = cell(r, t.i);
+        if (!text2) continue;
+        (c.sides[t.lang] ??= []).push({ text: text2, status: statusFrom(r, t.status, t.flag) });
+      }
+    }
+    c.rowStatus = statusFrom(r, iStatus, forbiddenIsFlag ? iForbidden : -1);
+    if (iAllowed >= 0) c.allowed = splitList(cell(r, iAllowed));
+    if (iForbidden >= 0 && !forbiddenIsFlag) c.forbidden = splitList(cell(r, iForbidden));
+    const general = noteCols.map((i2) => cell(r, i2)).find(Boolean);
+    if (general) c.notes.any = general;
+    for (const n of langNotes) if (cell(r, n.i)) c.notes[n.lang] ??= cell(r, n.i);
+    if (Object.keys(c.sides).length) concepts.push(c);
+  }
+  if (unknownStatus.size) notes.add(`unrecognised status value(s) treated as preferred: ${[...unknownStatus].slice(0, 5).join(", ")}`);
+  const terms = buildTerms(concepts, srcKey, tgtKey, notes);
+  return {
+    glossary: { terms, characters },
+    notes: notes.done(),
+    direction: explicit ? { source: "source", target: "target" } : { source: srcLang, target: srcLang === "ja" ? "en" : "ja" },
+    orientable: !locked
+  };
+}
+var STATUS_TYPES = /^(administrativeStatus|normativeAuthorization|usageStatus|termStatus)$/i;
+function tbxStatus(group2, unknown2) {
+  const el = descendants(group2, "termNote").find((n) => STATUS_TYPES.test(attrOf(n, "type") ?? "")) ?? descendants(group2, "administrativeStatus", "normativeAuthorization", "usageStatus")[0];
+  if (!el) return void 0;
+  const v = clean(textContent(el));
+  const s = statusOf(v);
+  if (s === "unknown") {
+    unknown2.add(v);
+    return void 0;
+  }
+  return s;
+}
+function tbxNote(el) {
+  const pool = childElements(el).flatMap((c) => /Grp$/.test(c.name) && !/^(termGrp|termCompGrp)$/.test(c.name) ? childElements(c) : [c]);
+  const pick2 = (pred) => {
+    const e = pool.find(pred);
+    return e ? clean(textContent(e)) || void 0 : void 0;
+  };
+  return pick2((e) => e.name === "descrip" && /definition/i.test(attrOf(e, "type") ?? "")) ?? pick2((e) => e.name === "definition") ?? pick2((e) => e.name === "note") ?? pick2((e) => e.name === "descrip" && /context|explanation/i.test(attrOf(e, "type") ?? ""));
+}
+function isTbx(text) {
+  return /<(?:[\w.-]+:)?(martif|tbx)[\s>]/i.test(text.slice(0, 4096));
+}
+function importTbx(text, file2, opts = {}) {
+  const notes = new Notes(file2);
+  let root;
+  try {
+    root = parseXml(text);
+  } catch (e) {
+    throw new Error(`${file2}: ${e.message}`);
+  }
+  if (!/^(martif|tbx)$/i.test(root.name)) throw new Error(`${file2}: not a TBX file (root element <${root.qname}>, expected <martif> or <tbx>)`);
+  const rootLang = langOfCode(attrOf(root, "lang"));
+  const srcLang = opts.sourceLang ?? rootLang ?? "ja";
+  const tgtLang = srcLang === "ja" ? "en" : "ja";
+  const otherLangs = /* @__PURE__ */ new Set();
+  const unknown2 = /* @__PURE__ */ new Set();
+  const concepts = [];
+  const entries = descendants(root, "termEntry", "conceptEntry");
+  for (const entry of entries) {
+    const c = { line: entry.line, sides: {}, notes: {} };
+    const entryNote = tbxNote(entry);
+    if (entryNote) c.notes.any = entryNote;
+    for (const ls of descendants(entry, "langSet", "langSec")) {
+      const code = attrOf(ls, "lang") ?? "";
+      const lang = langOfCode(code);
+      if (!lang) {
+        otherLangs.add(code || "(no xml:lang)");
+        continue;
+      }
+      const lsNote = tbxNote(ls);
+      if (lsNote) c.notes[lang] ??= lsNote;
+      let groups = descendants(ls, "tig", "ntig", "termSec");
+      if (!groups.length) groups = [ls];
+      for (const g of groups) {
+        const termEl = descendants(g, "term")[0];
+        const t = termEl ? clean(textContent(termEl)) : "";
+        if (!t) continue;
+        (c.sides[lang] ??= []).push({ text: t, status: tbxStatus(g, unknown2) });
+        const gNote = g === ls ? void 0 : tbxNote(g);
+        if (gNote) c.notes[lang] ??= gNote;
+      }
+    }
+    if (c.sides.ja || c.sides.en) concepts.push(c);
+  }
+  if (!entries.length) notes.add("no termEntry/conceptEntry elements found");
+  if (otherLangs.size) notes.add(`ignored languages: ${[...otherLangs].join(", ")}`);
+  if (unknown2.size) notes.add(`unrecognised administrativeStatus value(s) treated as preferred: ${[...unknown2].slice(0, 5).join(", ")}`);
+  const terms = buildTerms(concepts, srcLang, tgtLang, notes);
+  return { glossary: { terms, characters: [] }, notes: notes.done(), direction: { source: srcLang, target: tgtLang }, orientable: true };
+}
+
 // src/core/glossary.ts
 var list2 = external_exports.array(external_exports.string()).optional();
 var GlossarySchema = external_exports.object({
@@ -21264,46 +21722,36 @@ var GlossarySchema = external_exports.object({
   ).default([])
 });
 var EMPTY_GLOSSARY = { terms: [], characters: [] };
-var split = (s) => (s ?? "").split(/[;；|]/).map((x2) => x2.trim()).filter(Boolean);
-function fromCsv(text) {
-  const recs = parseCsvRecords(text);
-  const header = recs.shift()?.cells.map((h) => h.trim().toLowerCase()) ?? [];
-  const col = (...names) => header.findIndex((h) => names.includes(h));
-  const iType = col("type", "kind", "種別");
-  const iSrc = col("source", "ja", "japanese", "原文");
-  const iTgt = col("target", "en", "english", "訳語");
-  const iAllowed = col("allowed", "aliases", "許容");
-  const iForbidden = col("forbidden", "ng", "禁止");
-  const iNote = col("note", "notes", "備考");
-  if (iSrc < 0 || iTgt < 0) throw new Error("Glossary CSV needs source/ja and target/en columns");
-  const g = { terms: [], characters: [] };
-  for (const r of recs) {
-    const c = (i2) => i2 >= 0 ? (r.cells[i2] ?? "").trim() : "";
-    if (!c(iSrc) || !c(iTgt)) continue;
-    if (/^(character|char|name|キャラ)/i.test(c(iType))) {
-      g.characters.push({
-        id: c(iTgt).toLowerCase(),
-        ja: c(iSrc),
-        en: c(iTgt),
-        aliases: { en: split(c(iAllowed)) },
-        forbidden: { en: split(c(iForbidden)) }
-      });
-    } else {
-      g.terms.push({ source: c(iSrc), target: c(iTgt), allowed: split(c(iAllowed)), forbidden: split(c(iForbidden)), note: c(iNote) || void 0 });
-    }
-  }
-  return g;
-}
-function parseGlossary(text, file2 = "glossary.json") {
-  if (!text.trim()) return EMPTY_GLOSSARY;
-  const isJson = file2.toLowerCase().endsWith(".json") || /^\s*[{[]/.test(text);
-  if (!isJson) return fromCsv(text);
-  const raw = JSON.parse(text.replace(/^﻿/, ""));
+function fromJson(text) {
+  const raw = JSON.parse(stripBom(text));
   const parsed = GlossarySchema.safeParse(Array.isArray(raw) ? { terms: raw } : raw);
   if (!parsed.success) {
     throw new Error(`Invalid glossary: ${parsed.error.issues.map((i2) => `${i2.path.join(".")}: ${i2.message}`).join("; ")}`);
   }
   return parsed.data;
+}
+function parseGlossaryWithNotes(input2, file2 = "glossary.json", opts = {}) {
+  const decoded = typeof input2 === "string" ? { text: input2 } : decodeText(input2, file2);
+  const text = stripBom(decoded.text);
+  const pre = decoded.note ? [decoded.note] : [];
+  if (!text.trim()) return { glossary: EMPTY_GLOSSARY, notes: pre, format: /\.json$/i.test(file2) ? "json" : "csv", orientable: false };
+  const lower = file2.toLowerCase();
+  const head = text.trimStart();
+  if (lower.endsWith(".json") || /^[{[]/.test(head)) return { glossary: fromJson(text), notes: pre, format: "json", orientable: false };
+  if (/\.(tbx|tbxm|xml)$/.test(lower) || head.startsWith("<")) {
+    if (!isTbx(text)) throw new Error(`${file2}: XML glossaries must be TBX (a <martif> or <tbx> root element)`);
+    const r2 = importTbx(text, file2, opts);
+    const sum2 = `${file2}: TBX, ${r2.glossary.terms.length} term(s) read as ${r2.direction.source}→${r2.direction.target}`;
+    return { ...r2, notes: [...pre, sum2, ...r2.notes], format: "tbx" };
+  }
+  const r = importCsv(text, file2, opts);
+  const format = sniffDelimiter(text, file2) === "	" ? "tsv" : "csv";
+  const sum = r.orientable ? [`${file2}: ${r.glossary.terms.length} term(s) read as ${r.direction.source}→${r.direction.target}`] : [];
+  return { ...r, notes: [...pre, ...sum, ...r.notes], format };
+}
+function glossaryToJson(g) {
+  const empty = (v) => v === void 0 || Array.isArray(v) && v.length === 0 || !!v && typeof v === "object" && !Array.isArray(v) && Object.values(v).every(empty);
+  return JSON.stringify(g, (k, v) => k !== "" && k !== "terms" && empty(v) ? void 0 : v, 2);
 }
 
 // src/core/i18n.ts
@@ -21859,9 +22307,7 @@ function checkVoice(tables, g, minLines = 3, locale = "en") {
       const polite = pol.filter((x2) => x2.p === "polite").length;
       usage.push({ category: "voice", group: `${name}: politeness`, counts: { polite, plain: pol.length - polite } });
       const expected = profile.ja?.politeness;
-      const majority = polite >= pol.length - polite ? "polite" : "plain";
-      const ratio = Math.max(polite, pol.length - polite) / pol.length;
-      const want = expected ?? (pol.length >= 4 && ratio >= 0.75 ? majority : void 0);
+      const want = expected;
       if (want) {
         for (const { l, p } of pol) {
           if (p === want) continue;
@@ -22131,7 +22577,7 @@ ${row.target}`;
       const td2 = diff(st.list, tt.list);
       const emphasisOnly = t.targetLang === "ja" && !td2.extra.length && td2.missing.every((x2) => EMPHASIS_TAGS.has(x2.replace(/[</>]/g, "").toLowerCase()));
       if (td2.missing.length && emphasisOnly) {
-        out.push({ category: "tag", severity: "warning", rule: "tag.emphasis-dropped", ...base(row, "target"), message: msg.tagEmphasisDropped(td2.missing) });
+        out.push({ category: "tag", severity: "info", rule: "tag.emphasis-dropped", ...base(row, "target"), message: msg.tagEmphasisDropped(td2.missing) });
       } else if (td2.missing.length || td2.extra.length) {
         out.push({
           category: "tag",
@@ -23172,13 +23618,18 @@ var USAGE = `Usage:
   kotomark check <file|dir>... [options]                                  consistency check (CI-ready)
   kotomark draft <file|dir>... [--glossary existing.json] [--max-terms N] [--out draft.json]
   kotomark labels <file|dir>... [--glossary g.json] --out labels.csv      export findings as a labeling sheet
+  kotomark glossary convert <in.csv|in.tsv|in.tbx> [--source-lang ja|en] [--out glossary.json]
+                                                                          termbase export → Kotomark JSON
   kotomark score <labels.csv> [--known known.csv] [--out score.md]       precision (and recall) from a labeled sheet
   kotomark token create <user> [--plan solo|studio] [--label text]        prints the token once
   kotomark token list | kotomark token revoke <user|token-prefix>
 
 check options:
-  -g, --glossary <file>        glossary (JSON or CSV). Default: ./kotomark.glossary.json, ./glossary.json
-                               or ./kotomark.glossary.csv if present. --no-glossary disables the lookup.
+  -g, --glossary <file>        glossary: Kotomark JSON, CSV/TSV (Kotomark columns or a termbase export
+                               such as Crowdin/Phrase) or TBX. Default: ./kotomark.glossary.json,
+                               ./glossary.json or ./kotomark.glossary.csv if present. --no-glossary
+                               disables the lookup. TBX and ja/en-column CSVs are read in the script's
+                               direction (--source-lang ja|en to force it).
   --format md|json|junit|github  report format (default md). --json = --format json.
   --input-format <fmt>         force the input format (csv|tsv|json|xliff|xlsx|po|i18n-json|
                                unity-csv|unreal-csv); default: detected from extension + content.
@@ -23247,6 +23698,7 @@ function main(argv) {
       plan: { type: "string" },
       label: { type: "string" },
       "max-terms": { type: "string" },
+      "source-lang": { type: "string" },
       help: { type: "boolean", short: "h" }
     }
   });
@@ -23275,7 +23727,18 @@ function main(argv) {
     return found;
   };
   const gPath = cmd === "check" || cmd === "draft" || cmd === "labels" ? glossaryPath() : void 0;
-  const loadGlossary = () => gPath ? parseGlossary(readFileSync3(gPath, "utf8"), gPath) : void 0;
+  const forcedSourceLang = values["source-lang"] === void 0 ? void 0 : oneOf("--source-lang", values["source-lang"], ["ja", "en"], "ja");
+  const readGlossary = (path, sourceLang) => {
+    const { glossary, notes } = parseGlossaryWithNotes(readFileSync3(path), path, { sourceLang: forcedSourceLang ?? sourceLang });
+    for (const n of notes) console.error(`note: ${n}`);
+    return glossary;
+  };
+  const loadGlossary = (tables) => {
+    if (!gPath) return void 0;
+    const rows = { ja: 0, en: 0 };
+    for (const t of tables) rows[t.sourceLang] += t.rows.length;
+    return readGlossary(gPath, rows.en > rows.ja ? "en" : "ja");
+  };
   const loadTables = () => {
     const files = expandArgs(args, gPath ? [gPath] : []);
     const { tables, notes } = loadInputs(readInputs(files), { format: inputFormat, columns: parseColumns(values.columns), sheet });
@@ -23290,7 +23753,7 @@ function main(argv) {
       const minSeverity = values["no-info"] && !values["min-severity"] ? "warning" : oneOf("--min-severity", values["min-severity"], SEVERITIES, "info");
       const junitFailOn = oneOf("--junit-fail-on", values["junit-fail-on"], [...SEVERITIES, "never"], failOn === "never" ? "warning" : failOn);
       const tables = loadTables();
-      const full = runChecks(tables, loadGlossary(), { rules: !values["no-rules"], wideAsTwo: values.wide, locale });
+      const full = runChecks(tables, loadGlossary(tables), { rules: !values["no-rules"], wideAsTwo: values.wide, locale });
       const shown = filterBySeverity(full, minSeverity);
       let text;
       switch (outputFormat) {
@@ -23317,7 +23780,8 @@ function main(argv) {
     case "draft": {
       if (!args.length) break;
       const max2 = values["max-terms"] ? Number.parseInt(values["max-terms"], 10) : void 0;
-      const draft = draftGlossary(loadTables(), loadGlossary(), { maxTerms: max2 });
+      const tables = loadTables();
+      const draft = draftGlossary(tables, loadGlossary(tables), { maxTerms: max2 });
       emit(JSON.stringify(draft.glossary, null, 2), values.out);
       for (const n of draft.notes) console.error(`note: ${n}`);
       console.error(`${draft.glossary.terms.length} terms, ${draft.glossary.characters.length} characters drafted from ${draft.entries.length} candidates — review before use.`);
@@ -23326,9 +23790,17 @@ function main(argv) {
     case "labels": {
       if (!args.length || !values.out) break;
       const tables = loadTables();
-      const result = runChecks(tables, loadGlossary());
+      const result = runChecks(tables, loadGlossary(tables));
       emit(findingsToLabelCsv(result, tables), values.out);
       console.error(`${result.findings.length} findings written to ${values.out}. Fill the "verdict" column with TP / FP (or 正 / 誤).`);
+      return 0;
+    }
+    case "glossary": {
+      const [sub, input2] = args;
+      if (sub !== "convert" || !input2 || args.length !== 2) break;
+      const g = readGlossary(input2);
+      emit(glossaryToJson(g), values.out);
+      console.error(`${g.terms.length} terms, ${g.characters.length} characters${values.out ? ` written to ${values.out}` : ""} — review before use.`);
       return 0;
     }
     case "score": {

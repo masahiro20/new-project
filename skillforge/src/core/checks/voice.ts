@@ -227,9 +227,10 @@ export function checkVoice(tables: Table[], g: Glossary, minLines = 3, locale: L
       const polite = pol.filter((x) => x.p === "polite").length;
       usage.push({ category: "voice", group: `${name}: politeness`, counts: { polite, plain: pol.length - polite } });
       const expected = profile.ja?.politeness;
-      const majority = polite >= pol.length - polite ? "polite" : "plain";
-      const ratio = Math.max(polite, pol.length - polite) / pol.length;
-      const want = expected ?? (pol.length >= 4 && ratio >= 0.75 ? majority : undefined);
+      // Only check politeness against a profile: on real scripts, majority-based guesses flagged
+      // battle cries, orders and feminine speech (0/26 precision in the OSS eval). The usage tally
+      // and the review packet still show the split.
+      const want = expected;
       if (want) {
         for (const { l, p } of pol) {
           if (p === want) continue;

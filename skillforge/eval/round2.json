@@ -1,0 +1,1337 @@
+{
+ "round": 2,
+ "date": "2026-10-09",
+ "engineCommit": "a1a8fe1367e6323a1eb8e6bd0131f1c185b377e1",
+ "engineTreeClean": true,
+ "sampling": {
+  "seed": 20261010,
+  "method": "python random.Random(seed): if n<=50 label all; else per rule (sorted) pick min(3,n_rule), then fill to 50 from remaining; one fresh RNG per file+config",
+  "maxPerConfig": 50
+ },
+ "precisionDefinition": "tp/(tp+fp), unsure excluded. precision = raw over labeled sample; precisionWeighted = per-rule precision weighted by rule population (corrects stratification); equals raw when all findings labeled",
+ "configs": {
+  "A": "check --no-glossary --fail-on never",
+  "B": "draft --out d.json; check --glossary d.json --fail-on never"
+ },
+ "inputSha256Verified": true,
+ "projects": {
+  "stk": {
+   "A": {
+    "findings": 164,
+    "bySeverity": {
+     "warning": 164
+    },
+    "byRule": {
+     "notation.katakana": 4,
+     "untranslated.empty": 160
+    },
+    "sampled": 50,
+    "labels": {
+     "tp": 50,
+     "fp": 0,
+     "unsure": 0
+    },
+    "precision": 1.0,
+    "precisionWeighted": 1.0,
+    "warnErr": {
+     "findings": 164,
+     "tp": 50,
+     "fp": 0,
+     "unsure": 0,
+     "precision": 1.0,
+     "precisionWeighted": 1.0
+    },
+    "perRule": {
+     "notation.katakana": {
+      "n": 4,
+      "severity": "warning",
+      "tp": 4,
+      "fp": 0,
+      "unsure": 0,
+      "precision": 1.0
+     },
+     "untranslated.empty": {
+      "n": 160,
+      "severity": "warning",
+      "tp": 46,
+      "fp": 0,
+      "unsure": 0,
+      "precision": 1.0
+     }
+    }
+   },
+   "B": {
+    "findings": 177,
+    "bySeverity": {
+     "info": 13,
+     "warning": 164
+    },
+    "byRule": {
+     "term.missing": 13,
+     "notation.katakana": 4,
+     "untranslated.empty": 160
+    },
+    "sampled": 50,
+    "labels": {
+     "tp": 48,
+     "fp": 1,
+     "unsure": 1
+    },
+    "precision": 0.98,
+    "precisionWeighted": 0.976,
+    "warnErr": {
+     "findings": 164,
+     "tp": 46,
+     "fp": 0,
+     "unsure": 0,
+     "precision": 1.0,
+     "precisionWeighted": 1.0
+    },
+    "perRule": {
+     "term.missing": {
+      "n": 13,
+      "severity": "info",
+      "tp": 2,
+      "fp": 1,
+      "unsure": 1,
+      "precision": 0.667
+     },
+     "notation.katakana": {
+      "n": 4,
+      "severity": "warning",
+      "tp": 4,
+      "fp": 0,
+      "unsure": 0,
+      "precision": 1.0
+     },
+     "untranslated.empty": {
+      "n": 160,
+      "severity": "warning",
+      "tp": 42,
+      "fp": 0,
+      "unsure": 0,
+      "precision": 1.0
+     }
+    }
+   }
+  },
+  "pixelorama": {
+   "A": {
+    "findings": 8,
+    "bySeverity": {
+     "warning": 7,
+     "info": 1
+    },
+    "byRule": {
+     "notation.katakana": 5,
+     "untranslated.copy": 1,
+     "untranslated.empty": 2
+    },
+    "sampled": 8,
+    "labels": {
+     "tp": 7,
+     "fp": 1,
+     "unsure": 0
+    },
+    "precision": 0.875,
+    "precisionWeighted": 0.875,
+    "warnErr": {
+     "findings": 7,
+     "tp": 7,
+     "fp": 0,
+     "unsure": 0,
+     "precision": 1.0,
+     "precisionWeighted": 1.0
+    },
+    "perRule": {
+     "notation.katakana": {
+      "n": 5,
+      "severity": "warning",
+      "tp": 5,
+      "fp": 0,
+      "unsure": 0,
+      "precision": 1.0
+     },
+     "untranslated.copy": {
+      "n": 1,
+      "severity": "info",
+      "tp": 0,
+      "fp": 1,
+      "unsure": 0,
+      "precision": 0.0
+     },
+     "untranslated.empty": {
+      "n": 2,
+      "severity": "warning",
+      "tp": 2,
+      "fp": 0,
+      "unsure": 0,
+      "precision": 1.0
+     }
+    }
+   },
+   "B": {
+    "findings": 13,
+    "bySeverity": {
+     "info": 6,
+     "warning": 7
+    },
+    "byRule": {
+     "term.missing": 5,
+     "notation.katakana": 5,
+     "untranslated.copy": 1,
+     "untranslated.empty": 2
+    },
+    "sampled": 13,
+    "labels": {
+     "tp": 11,
+     "fp": 1,
+     "unsure": 1
+    },
+    "precision": 0.917,
+    "precisionWeighted": 0.923,
+    "warnErr": {
+     "findings": 7,
+     "tp": 7,
+     "fp": 0,
+     "unsure": 0,
+     "precision": 1.0,
+     "precisionWeighted": 1.0
+    },
+    "perRule": {
+     "term.missing": {
+      "n": 5,
+      "severity": "info",
+      "tp": 4,
+      "fp": 0,
+      "unsure": 1,
+      "precision": 1.0
+     },
+     "notation.katakana": {
+      "n": 5,
+      "severity": "warning",
+      "tp": 5,
+      "fp": 0,
+      "unsure": 0,
+      "precision": 1.0
+     },
+     "untranslated.copy": {
+      "n": 1,
+      "severity": "info",
+      "tp": 0,
+      "fp": 1,
+      "unsure": 0,
+      "precision": 0.0
+     },
+     "untranslated.empty": {
+      "n": 2,
+      "severity": "warning",
+      "tp": 2,
+      "fp": 0,
+      "unsure": 0,
+      "precision": 1.0
+     }
+    }
+   }
+  },
+  "luanti": {
+   "A": {
+    "findings": 22,
+    "bySeverity": {
+     "warning": 22
+    },
+    "byRule": {
+     "notation.katakana": 22
+    },
+    "sampled": 22,
+    "labels": {
+     "tp": 22,
+     "fp": 0,
+     "unsure": 0
+    },
+    "precision": 1.0,
+    "precisionWeighted": 1.0,
+    "warnErr": {
+     "findings": 22,
+     "tp": 22,
+     "fp": 0,
+     "unsure": 0,
+     "precision": 1.0,
+     "precisionWeighted": 1.0
+    },
+    "perRule": {
+     "notation.katakana": {
+      "n": 22,
+      "severity": "warning",
+      "tp": 22,
+      "fp": 0,
+      "unsure": 0,
+      "precision": 1.0
+     }
+    }
+   },
+   "B": {
+    "findings": 24,
+    "bySeverity": {
+     "info": 2,
+     "warning": 22
+    },
+    "byRule": {
+     "term.missing": 2,
+     "notation.katakana": 22
+    },
+    "sampled": 24,
+    "labels": {
+     "tp": 22,
+     "fp": 2,
+     "unsure": 0
+    },
+    "precision": 0.917,
+    "precisionWeighted": 0.917,
+    "warnErr": {
+     "findings": 22,
+     "tp": 22,
+     "fp": 0,
+     "unsure": 0,
+     "precision": 1.0,
+     "precisionWeighted": 1.0
+    },
+    "perRule": {
+     "term.missing": {
+      "n": 2,
+      "severity": "info",
+      "tp": 0,
+      "fp": 2,
+      "unsure": 0,
+      "precision": 0.0
+     },
+     "notation.katakana": {
+      "n": 22,
+      "severity": "warning",
+      "tp": 22,
+      "fp": 0,
+      "unsure": 0,
+      "precision": 1.0
+     }
+    }
+   }
+  },
+  "godot-editor": {
+   "A": {
+    "findings": 79,
+    "bySeverity": {
+     "warning": 79
+    },
+    "byRule": {
+     "notation.katakana": 79
+    },
+    "sampled": 50,
+    "labels": {
+     "tp": 50,
+     "fp": 0,
+     "unsure": 0
+    },
+    "precision": 1.0,
+    "precisionWeighted": 1.0,
+    "warnErr": {
+     "findings": 79,
+     "tp": 50,
+     "fp": 0,
+     "unsure": 0,
+     "precision": 1.0,
+     "precisionWeighted": 1.0
+    },
+    "perRule": {
+     "notation.katakana": {
+      "n": 79,
+      "severity": "warning",
+      "tp": 50,
+      "fp": 0,
+      "unsure": 0,
+      "precision": 1.0
+     }
+    }
+   },
+   "B": {
+    "findings": 115,
+    "bySeverity": {
+     "info": 36,
+     "warning": 79
+    },
+    "byRule": {
+     "term.missing": 36,
+     "notation.katakana": 79
+    },
+    "sampled": 50,
+    "labels": {
+     "tp": 42,
+     "fp": 6,
+     "unsure": 2
+    },
+    "precision": 0.875,
+    "precisionWeighted": 0.875,
+    "warnErr": {
+     "findings": 79,
+     "tp": 33,
+     "fp": 0,
+     "unsure": 0,
+     "precision": 1.0,
+     "precisionWeighted": 1.0
+    },
+    "perRule": {
+     "term.missing": {
+      "n": 36,
+      "severity": "info",
+      "tp": 9,
+      "fp": 6,
+      "unsure": 2,
+      "precision": 0.6
+     },
+     "notation.katakana": {
+      "n": 79,
+      "severity": "warning",
+      "tp": 33,
+      "fp": 0,
+      "unsure": 0,
+      "precision": 1.0
+     }
+    }
+   }
+  },
+  "wesnoth-httt": {
+   "A": {
+    "findings": 43,
+    "bySeverity": {
+     "warning": 13,
+     "info": 30
+    },
+    "byRule": {
+     "notation.katakana": 1,
+     "voice.first-person": 2,
+     "voice.politeness": 28,
+     "tag.emphasis-dropped": 2,
+     "untranslated.fuzzy": 5,
+     "untranslated.empty": 5
+    },
+    "sampled": 43,
+    "labels": {
+     "tp": 12,
+     "fp": 28,
+     "unsure": 3
+    },
+    "precision": 0.3,
+    "precisionWeighted": 0.302,
+    "warnErr": {
+     "findings": 13,
+     "tp": 11,
+     "fp": 2,
+     "unsure": 0,
+     "precision": 0.846,
+     "precisionWeighted": 0.846
+    },
+    "perRule": {
+     "notation.katakana": {
+      "n": 1,
+      "severity": "warning",
+      "tp": 1,
+      "fp": 0,
+      "unsure": 0,
+      "precision": 1.0
+     },
+     "voice.first-person": {
+      "n": 2,
+      "severity": "info",
+      "tp": 1,
+      "fp": 0,
+      "unsure": 1,
+      "precision": 1.0
+     },
+     "voice.politeness": {
+      "n": 28,
+      "severity": "info",
+      "tp": 0,
+      "fp": 26,
+      "unsure": 2,
+      "precision": 0.0
+     },
+     "tag.emphasis-dropped": {
+      "n": 2,
+      "severity": "warning",
+      "tp": 0,
+      "fp": 2,
+      "unsure": 0,
+      "precision": 0.0
+     },
+     "untranslated.fuzzy": {
+      "n": 5,
+      "severity": "warning",
+      "tp": 5,
+      "fp": 0,
+      "unsure": 0,
+      "precision": 1.0
+     },
+     "untranslated.empty": {
+      "n": 5,
+      "severity": "warning",
+      "tp": 5,
+      "fp": 0,
+      "unsure": 0,
+      "precision": 1.0
+     }
+    }
+   },
+   "B": {
+    "findings": 48,
+    "bySeverity": {
+     "info": 35,
+     "warning": 13
+    },
+    "byRule": {
+     "term.missing": 5,
+     "notation.katakana": 1,
+     "voice.first-person": 2,
+     "voice.politeness": 28,
+     "tag.emphasis-dropped": 2,
+     "untranslated.fuzzy": 5,
+     "untranslated.empty": 5
+    },
+    "sampled": 48,
+    "labels": {
+     "tp": 15,
+     "fp": 29,
+     "unsure": 4
+    },
+    "precision": 0.341,
+    "precisionWeighted": 0.349,
+    "warnErr": {
+     "findings": 13,
+     "tp": 11,
+     "fp": 2,
+     "unsure": 0,
+     "precision": 0.846,
+     "precisionWeighted": 0.846
+    },
+    "perRule": {
+     "term.missing": {
+      "n": 5,
+      "severity": "info",
+      "tp": 3,
+      "fp": 1,
+      "unsure": 1,
+      "precision": 0.75
+     },
+     "notation.katakana": {
+      "n": 1,
+      "severity": "warning",
+      "tp": 1,
+      "fp": 0,
+      "unsure": 0,
+      "precision": 1.0
+     },
+     "voice.first-person": {
+      "n": 2,
+      "severity": "info",
+      "tp": 1,
+      "fp": 0,
+      "unsure": 1,
+      "precision": 1.0
+     },
+     "voice.politeness": {
+      "n": 28,
+      "severity": "info",
+      "tp": 0,
+      "fp": 26,
+      "unsure": 2,
+      "precision": 0.0
+     },
+     "tag.emphasis-dropped": {
+      "n": 2,
+      "severity": "warning",
+      "tp": 0,
+      "fp": 2,
+      "unsure": 0,
+      "precision": 0.0
+     },
+     "untranslated.fuzzy": {
+      "n": 5,
+      "severity": "warning",
+      "tp": 5,
+      "fp": 0,
+      "unsure": 0,
+      "precision": 1.0
+     },
+     "untranslated.empty": {
+      "n": 5,
+      "severity": "warning",
+      "tp": 5,
+      "fp": 0,
+      "unsure": 0,
+      "precision": 1.0
+     }
+    }
+   }
+  },
+  "wesnoth-lib": {
+   "A": {
+    "findings": 205,
+    "bySeverity": {
+     "warning": 202,
+     "error": 3
+    },
+    "byRule": {
+     "notation.katakana": 10,
+     "placeholder.mismatch": 2,
+     "tag.mismatch": 1,
+     "untranslated.empty": 94,
+     "untranslated.fuzzy": 98
+    },
+    "sampled": 50,
+    "labels": {
+     "tp": 50,
+     "fp": 0,
+     "unsure": 0
+    },
+    "precision": 1.0,
+    "precisionWeighted": 1.0,
+    "warnErr": {
+     "findings": 205,
+     "tp": 50,
+     "fp": 0,
+     "unsure": 0,
+     "precision": 1.0,
+     "precisionWeighted": 1.0
+    },
+    "perRule": {
+     "notation.katakana": {
+      "n": 10,
+      "severity": "warning",
+      "tp": 4,
+      "fp": 0,
+      "unsure": 0,
+      "precision": 1.0
+     },
+     "placeholder.mismatch": {
+      "n": 2,
+      "severity": "error",
+      "tp": 2,
+      "fp": 0,
+      "unsure": 0,
+      "precision": 1.0
+     },
+     "tag.mismatch": {
+      "n": 1,
+      "severity": "error",
+      "tp": 1,
+      "fp": 0,
+      "unsure": 0,
+      "precision": 1.0
+     },
+     "untranslated.empty": {
+      "n": 94,
+      "severity": "warning",
+      "tp": 18,
+      "fp": 0,
+      "unsure": 0,
+      "precision": 1.0
+     },
+     "untranslated.fuzzy": {
+      "n": 98,
+      "severity": "warning",
+      "tp": 25,
+      "fp": 0,
+      "unsure": 0,
+      "precision": 1.0
+     }
+    }
+   },
+   "B": {
+    "findings": 214,
+    "bySeverity": {
+     "info": 9,
+     "warning": 202,
+     "error": 3
+    },
+    "byRule": {
+     "term.missing": 9,
+     "notation.katakana": 10,
+     "placeholder.mismatch": 2,
+     "tag.mismatch": 1,
+     "untranslated.empty": 94,
+     "untranslated.fuzzy": 98
+    },
+    "sampled": 50,
+    "labels": {
+     "tp": 48,
+     "fp": 1,
+     "unsure": 1
+    },
+    "precision": 0.98,
+    "precisionWeighted": 0.986,
+    "warnErr": {
+     "findings": 205,
+     "tp": 46,
+     "fp": 0,
+     "unsure": 0,
+     "precision": 1.0,
+     "precisionWeighted": 1.0
+    },
+    "perRule": {
+     "term.missing": {
+      "n": 9,
+      "severity": "info",
+      "tp": 2,
+      "fp": 1,
+      "unsure": 1,
+      "precision": 0.667
+     },
+     "notation.katakana": {
+      "n": 10,
+      "severity": "warning",
+      "tp": 4,
+      "fp": 0,
+      "unsure": 0,
+      "precision": 1.0
+     },
+     "placeholder.mismatch": {
+      "n": 2,
+      "severity": "error",
+      "tp": 2,
+      "fp": 0,
+      "unsure": 0,
+      "precision": 1.0
+     },
+     "tag.mismatch": {
+      "n": 1,
+      "severity": "error",
+      "tp": 1,
+      "fp": 0,
+      "unsure": 0,
+      "precision": 1.0
+     },
+     "untranslated.empty": {
+      "n": 94,
+      "severity": "warning",
+      "tp": 21,
+      "fp": 0,
+      "unsure": 0,
+      "precision": 1.0
+     },
+     "untranslated.fuzzy": {
+      "n": 98,
+      "severity": "warning",
+      "tp": 18,
+      "fp": 0,
+      "unsure": 0,
+      "precision": 1.0
+     }
+    }
+   }
+  }
+ },
+ "pooled": {
+  "A": {
+   "all": {
+    "tp": 191,
+    "fp": 29,
+    "unsure": 3,
+    "precisionSample": 0.868,
+    "precisionWeighted": 0.94,
+    "findingsCovered": 521
+   },
+   "we": {
+    "tp": 190,
+    "fp": 2,
+    "unsure": 0,
+    "precisionSample": 0.99,
+    "precisionWeighted": 0.996,
+    "findingsCovered": 490
+   }
+  },
+  "B": {
+   "all": {
+    "tp": 186,
+    "fp": 40,
+    "unsure": 9,
+    "precisionSample": 0.823,
+    "precisionWeighted": 0.905,
+    "findingsCovered": 591
+   },
+   "we": {
+    "tp": 165,
+    "fp": 2,
+    "unsure": 0,
+    "precisionSample": 0.988,
+    "precisionWeighted": 0.996,
+    "findingsCovered": 490
+   }
+  }
+ },
+ "perRulePooledDeduped": {
+  "notation.katakana": {
+   "tp": 97,
+   "fp": 0,
+   "unsure": 0,
+   "precision": 1.0
+  },
+  "untranslated.empty": {
+   "tp": 115,
+   "fp": 0,
+   "unsure": 0,
+   "precision": 1.0
+  },
+  "term.missing": {
+   "tp": 20,
+   "fp": 11,
+   "unsure": 6,
+   "precision": 0.645
+  },
+  "untranslated.copy": {
+   "tp": 0,
+   "fp": 1,
+   "unsure": 0,
+   "precision": 0.0
+  },
+  "voice.first-person": {
+   "tp": 1,
+   "fp": 0,
+   "unsure": 1,
+   "precision": 1.0
+  },
+  "voice.politeness": {
+   "tp": 0,
+   "fp": 26,
+   "unsure": 2,
+   "precision": 0.0
+  },
+  "tag.emphasis-dropped": {
+   "tp": 0,
+   "fp": 2,
+   "unsure": 0,
+   "precision": 0.0
+  },
+  "untranslated.fuzzy": {
+   "tp": 41,
+   "fp": 0,
+   "unsure": 0,
+   "precision": 1.0
+  },
+  "placeholder.mismatch": {
+   "tp": 2,
+   "fp": 0,
+   "unsure": 0,
+   "precision": 1.0
+  },
+  "tag.mismatch": {
+   "tp": 1,
+   "fp": 0,
+   "unsure": 0,
+   "precision": 1.0
+  }
+ },
+ "round1": {
+  "stk": {
+   "A": {
+    "tp": 3,
+    "fp": 1,
+    "unsure": 0,
+    "findings": 4,
+    "precision": 0.75
+   },
+   "B": {
+    "tp": 11,
+    "fp": 6,
+    "unsure": 1,
+    "findings": 18,
+    "precision": 0.647
+   }
+  },
+  "pixelorama": {
+   "A": {
+    "tp": 4,
+    "fp": 0,
+    "unsure": 0,
+    "findings": 4,
+    "precision": 1.0
+   },
+   "B": {
+    "tp": 12,
+    "fp": 18,
+    "unsure": 1,
+    "findings": 31,
+    "precision": 0.4
+   }
+  },
+  "luanti": {
+   "A": {
+    "tp": 13,
+    "fp": 2,
+    "unsure": 0,
+    "findings": 15,
+    "precision": 0.867
+   },
+   "B": {
+    "tp": 13,
+    "fp": 18,
+    "unsure": 1,
+    "findings": 32,
+    "precision": 0.419
+   }
+  },
+  "godot-editor": {
+   "A": {
+    "tp": 63,
+    "fp": 17,
+    "unsure": 0,
+    "findings": 99,
+    "precision": 0.787
+   },
+   "B": {
+    "tp": 29,
+    "fp": 50,
+    "unsure": 1,
+    "findings": 229,
+    "precision": 0.367
+   }
+  },
+  "wesnoth-httt": {
+   "A": {
+    "tp": 1,
+    "fp": 3,
+    "unsure": 0,
+    "findings": 4,
+    "precision": 0.25
+   },
+   "B": {
+    "tp": 2,
+    "fp": 19,
+    "unsure": 2,
+    "findings": 23,
+    "precision": 0.095
+   }
+  },
+  "wesnoth-lib": {
+   "A": {
+    "tp": 11,
+    "fp": 17,
+    "unsure": 0,
+    "findings": 28,
+    "precision": 0.393
+   },
+   "B": {
+    "tp": 17,
+    "fp": 52,
+    "unsure": 3,
+    "findings": 72,
+    "precision": 0.246
+   }
+  }
+ },
+ "misses": {
+  "items": [
+   {
+    "project": "stk",
+    "file_line": "ja.po:4151",
+    "category": "untranslated",
+    "targeted": false,
+    "caughtA": true,
+    "caughtB": true,
+    "rulesB": [
+     "untranslated.empty"
+    ]
+   },
+   {
+    "project": "stk",
+    "file_line": "ja.po:6126",
+    "category": "untranslated",
+    "targeted": false,
+    "caughtA": true,
+    "caughtB": true,
+    "rulesB": [
+     "untranslated.empty"
+    ]
+   },
+   {
+    "project": "stk",
+    "file_line": "ja.po:6618",
+    "category": "untranslated",
+    "targeted": false,
+    "caughtA": true,
+    "caughtB": true,
+    "rulesB": [
+     "untranslated.empty"
+    ]
+   },
+   {
+    "project": "stk",
+    "file_line": "ja.po:6884",
+    "category": "untranslated",
+    "targeted": false,
+    "caughtA": true,
+    "caughtB": true,
+    "rulesB": [
+     "untranslated.empty"
+    ]
+   },
+   {
+    "project": "stk",
+    "file_line": "ja.po:2643",
+    "category": "notation",
+    "targeted": false,
+    "caughtA": false,
+    "caughtB": false,
+    "rulesB": []
+   },
+   {
+    "project": "stk",
+    "file_line": "ja.po:2655",
+    "category": "term",
+    "targeted": false,
+    "caughtA": false,
+    "caughtB": false,
+    "rulesB": []
+   },
+   {
+    "project": "stk",
+    "file_line": "ja.po:4240",
+    "category": "term",
+    "targeted": false,
+    "caughtA": false,
+    "caughtB": false,
+    "rulesB": []
+   },
+   {
+    "project": "stk",
+    "file_line": "ja.po:5642",
+    "category": "term",
+    "targeted": false,
+    "caughtA": false,
+    "caughtB": false,
+    "rulesB": []
+   },
+   {
+    "project": "stk",
+    "file_line": "ja.po:5652",
+    "category": "notation",
+    "targeted": false,
+    "caughtA": true,
+    "caughtB": true,
+    "rulesB": [
+     "notation.katakana"
+    ]
+   },
+   {
+    "project": "stk",
+    "file_line": "ja.po:6392",
+    "category": "term",
+    "targeted": false,
+    "caughtA": false,
+    "caughtB": false,
+    "rulesB": []
+   },
+   {
+    "project": "pixelorama",
+    "file_line": "ja_JP.po:1426",
+    "category": "untranslated",
+    "targeted": false,
+    "caughtA": false,
+    "caughtB": false,
+    "rulesB": []
+   },
+   {
+    "project": "pixelorama",
+    "file_line": "ja_JP.po:1363",
+    "category": "term",
+    "targeted": false,
+    "caughtA": false,
+    "caughtB": false,
+    "rulesB": []
+   },
+   {
+    "project": "pixelorama",
+    "file_line": "ja_JP.po:3326",
+    "category": "term",
+    "targeted": false,
+    "caughtA": false,
+    "caughtB": false,
+    "rulesB": []
+   },
+   {
+    "project": "pixelorama",
+    "file_line": "ja_JP.po:3393",
+    "category": "term",
+    "targeted": false,
+    "caughtA": false,
+    "caughtB": false,
+    "rulesB": []
+   },
+   {
+    "project": "pixelorama",
+    "file_line": "ja_JP.po:3675",
+    "category": "term",
+    "targeted": false,
+    "caughtA": false,
+    "caughtB": false,
+    "rulesB": []
+   },
+   {
+    "project": "luanti",
+    "file_line": "luanti.po:3559",
+    "category": "notation",
+    "targeted": false,
+    "caughtA": false,
+    "caughtB": false,
+    "rulesB": []
+   },
+   {
+    "project": "luanti",
+    "file_line": "luanti.po:5624",
+    "category": "term",
+    "targeted": false,
+    "caughtA": false,
+    "caughtB": false,
+    "rulesB": []
+   },
+   {
+    "project": "luanti",
+    "file_line": "luanti.po:5826",
+    "category": "notation",
+    "targeted": false,
+    "caughtA": true,
+    "caughtB": true,
+    "rulesB": [
+     "notation.katakana"
+    ]
+   },
+   {
+    "project": "luanti",
+    "file_line": "luanti.po:878",
+    "category": "term",
+    "targeted": false,
+    "caughtA": false,
+    "caughtB": false,
+    "rulesB": []
+   },
+   {
+    "project": "godot-editor",
+    "file_line": "ja.po:2020",
+    "category": "notation",
+    "targeted": false,
+    "caughtA": false,
+    "caughtB": false,
+    "rulesB": []
+   },
+   {
+    "project": "godot-editor",
+    "file_line": "ja.po:9423",
+    "category": "term",
+    "targeted": false,
+    "caughtA": false,
+    "caughtB": false,
+    "rulesB": []
+   },
+   {
+    "project": "godot-editor",
+    "file_line": "ja.po:16351",
+    "category": "term",
+    "targeted": false,
+    "caughtA": false,
+    "caughtB": false,
+    "rulesB": []
+   },
+   {
+    "project": "wesnoth-httt",
+    "file_line": "httt/ja.po:7591",
+    "category": "name",
+    "targeted": false,
+    "caughtA": false,
+    "caughtB": true,
+    "rulesB": [
+     "term.missing"
+    ]
+   },
+   {
+    "project": "wesnoth-httt",
+    "file_line": "httt/ja.po:5282",
+    "category": "name",
+    "targeted": false,
+    "caughtA": false,
+    "caughtB": false,
+    "rulesB": []
+   },
+   {
+    "project": "wesnoth-httt",
+    "file_line": "httt/ja.po:8396",
+    "category": "notation",
+    "targeted": false,
+    "caughtA": false,
+    "caughtB": false,
+    "rulesB": []
+   },
+   {
+    "project": "wesnoth-httt",
+    "file_line": "httt/ja.po:8533",
+    "category": "notation",
+    "targeted": false,
+    "caughtA": false,
+    "caughtB": false,
+    "rulesB": []
+   },
+   {
+    "project": "wesnoth-lib",
+    "file_line": "lib/ja.po:2971",
+    "category": "untranslated",
+    "targeted": false,
+    "caughtA": true,
+    "caughtB": true,
+    "rulesB": [
+     "untranslated.empty"
+    ]
+   },
+   {
+    "project": "wesnoth-lib",
+    "file_line": "lib/ja.po:2995",
+    "category": "untranslated",
+    "targeted": false,
+    "caughtA": true,
+    "caughtB": true,
+    "rulesB": [
+     "untranslated.empty"
+    ]
+   },
+   {
+    "project": "wesnoth-lib",
+    "file_line": "lib/ja.po:3074",
+    "category": "untranslated",
+    "targeted": false,
+    "caughtA": true,
+    "caughtB": true,
+    "rulesB": [
+     "untranslated.empty"
+    ]
+   },
+   {
+    "project": "wesnoth-lib",
+    "file_line": "lib/ja.po:3101",
+    "category": "untranslated",
+    "targeted": false,
+    "caughtA": true,
+    "caughtB": true,
+    "rulesB": [
+     "untranslated.empty"
+    ]
+   },
+   {
+    "project": "wesnoth-lib",
+    "file_line": "lib/ja.po:7409",
+    "category": "untranslated",
+    "targeted": false,
+    "caughtA": true,
+    "caughtB": true,
+    "rulesB": [
+     "untranslated.fuzzy"
+    ]
+   },
+   {
+    "project": "wesnoth-lib",
+    "file_line": "lib/ja.po:8385",
+    "category": "untranslated",
+    "targeted": false,
+    "caughtA": true,
+    "caughtB": true,
+    "rulesB": [
+     "untranslated.fuzzy"
+    ]
+   },
+   {
+    "project": "wesnoth-lib",
+    "file_line": "lib/ja.po:8446",
+    "category": "untranslated",
+    "targeted": false,
+    "caughtA": true,
+    "caughtB": true,
+    "rulesB": [
+     "untranslated.fuzzy"
+    ]
+   },
+   {
+    "project": "wesnoth-lib",
+    "file_line": "lib/ja.po:9896",
+    "category": "untranslated",
+    "targeted": false,
+    "caughtA": true,
+    "caughtB": true,
+    "rulesB": [
+     "untranslated.fuzzy"
+    ]
+   },
+   {
+    "project": "wesnoth-lib",
+    "file_line": "lib/ja.po:5080",
+    "category": "notation",
+    "targeted": false,
+    "caughtA": false,
+    "caughtB": false,
+    "rulesB": []
+   },
+   {
+    "project": "wesnoth-httt",
+    "file_line": "httt/ja.po:2306",
+    "category": "name",
+    "targeted": true,
+    "caughtA": false,
+    "caughtB": true,
+    "rulesB": [
+     "term.missing"
+    ]
+   },
+   {
+    "project": "wesnoth-httt",
+    "file_line": "httt/ja.po:8478",
+    "category": "name",
+    "targeted": true,
+    "caughtA": false,
+    "caughtB": false,
+    "rulesB": []
+   }
+  ],
+  "summary": {
+   "stk": {
+    "n": 10,
+    "caughtA": 5,
+    "caughtB": 5
+   },
+   "pixelorama": {
+    "n": 5,
+    "caughtA": 0,
+    "caughtB": 0
+   },
+   "luanti": {
+    "n": 4,
+    "caughtA": 1,
+    "caughtB": 1
+   },
+   "godot-editor": {
+    "n": 3,
+    "caughtA": 0,
+    "caughtB": 0
+   },
+   "wesnoth-httt": {
+    "n": 4,
+    "caughtA": 0,
+    "caughtB": 1
+   },
+   "wesnoth-lib": {
+    "n": 9,
+    "caughtA": 8,
+    "caughtB": 8
+   },
+   "wesnoth-httt (targeted)": {
+    "n": 2,
+    "caughtA": 0,
+    "caughtB": 1
+   }
+  },
+  "note": "caught = any finding on that entry line, each manually checked to address the recorded miss"
+ },
+ "engineTreeNote": "All runs 02:31-02:32 UTC on a clean tree at HEAD. src/core/parsers/xml.ts and glossary-import.ts appeared at 02:33 (another session, not in the run)."
+}

@@ -1,0 +1,459 @@
+file,config,file_line,rule,severity,verdict,note
+stk,A,ja.po:5652,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+stk,A,ja.po:4262,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+stk,A,ja.po:5208,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+stk,A,ja.po:1705,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+stk,A,ja.po:1035,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,A,ja.po:1060,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,A,ja.po:2383,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,A,ja.po:2427,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,A,ja.po:3115,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,A,ja.po:3506,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,A,ja.po:3566,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,A,ja.po:3775,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,A,ja.po:3987,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,A,ja.po:3991,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,A,ja.po:3995,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,A,ja.po:4019,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,A,ja.po:4039,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,A,ja.po:4087,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,A,ja.po:4100,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,A,ja.po:4115,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,A,ja.po:4120,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,A,ja.po:4131,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,A,ja.po:4146,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,A,ja.po:4151,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,A,ja.po:4155,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,A,ja.po:4160,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,A,ja.po:4417,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,A,ja.po:4425,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,A,ja.po:4446,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,A,ja.po:5012,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,A,ja.po:5454,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,A,ja.po:5828,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,A,ja.po:5973,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,A,ja.po:5981,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,A,ja.po:6071,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,A,ja.po:6075,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,A,ja.po:6117,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,A,ja.po:6241,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,A,ja.po:6521,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,A,ja.po:6574,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,A,ja.po:6578,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,A,ja.po:6583,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,A,ja.po:6601,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,A,ja.po:6639,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,A,ja.po:6644,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,A,ja.po:6776,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,A,ja.po:6889,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,A,ja.po:6909,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,A,ja.po:6914,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,A,ja.po:7012,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,B,ja.po:1583,term.missing,info,TP,Egg hunt 卵狩り vs エッグハント; mode name split 3/2
+stk,B,ja.po:3640,term.missing,info,unsure,only spacing differs: マウス ボタン vs マウスボタン
+stk,B,ja.po:4718,term.missing,info,TP,普通レース vs majority ノーマルレース
+stk,B,ja.po:5208,term.missing,info,FP,product name legitimately omitted in paraphrase
+stk,B,ja.po:5652,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+stk,B,ja.po:4262,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+stk,B,ja.po:5208,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+stk,B,ja.po:1705,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+stk,B,ja.po:1030,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,B,ja.po:1035,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,B,ja.po:1055,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,B,ja.po:1848,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,B,ja.po:2378,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,B,ja.po:2492,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,B,ja.po:3548,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,B,ja.po:3621,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,B,ja.po:3627,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,B,ja.po:3775,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,B,ja.po:3841,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,B,ja.po:3970,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,B,ja.po:3991,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,B,ja.po:3995,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,B,ja.po:4043,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,B,ja.po:4062,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,B,ja.po:4087,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,B,ja.po:4094,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,B,ja.po:4100,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,B,ja.po:4110,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,B,ja.po:4126,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,B,ja.po:4136,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,B,ja.po:4146,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,B,ja.po:4160,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,B,ja.po:4425,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,B,ja.po:4970,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,B,ja.po:5104,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,B,ja.po:5110,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,B,ja.po:5454,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,B,ja.po:5695,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,B,ja.po:5817,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,B,ja.po:5823,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,B,ja.po:5981,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,B,ja.po:6075,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,B,ja.po:6122,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,B,ja.po:6557,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,B,ja.po:6614,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,B,ja.po:6776,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,B,ja.po:6894,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,B,ja.po:6904,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,B,ja.po:6914,untranslated.empty,warning,TP,msgstr genuinely empty
+stk,B,ja.po:6919,untranslated.empty,warning,TP,msgstr genuinely empty
+pixelorama,A,ja_JP.po:2538,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+pixelorama,A,ja_JP.po:69,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+pixelorama,A,ja_JP.po:2098,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+pixelorama,A,ja_JP.po:756,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+pixelorama,A,ja_JP.po:2134,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+pixelorama,A,ja_JP.po:1416,untranslated.copy,info,FP,copyright line legitimately left in English
+pixelorama,A,ja_JP.po:2712,untranslated.empty,warning,TP,msgstr genuinely empty
+pixelorama,A,ja_JP.po:3089,untranslated.empty,warning,TP,msgstr genuinely empty
+pixelorama,B,ja_JP.po:2467,term.missing,info,TP,曲線ツール vs majority カーブツール
+pixelorama,B,ja_JP.po:4125,term.missing,info,TP,Hexagonal misspelled ヘキサナール; file uses 六角形
+pixelorama,B,ja_JP.po:552,term.missing,info,unsure,Merge split マージ 4 / 結合 3; draft picked minority
+pixelorama,B,ja_JP.po:466,term.missing,info,TP,Perspective 視点 vs 透視投影 elsewhere
+pixelorama,B,ja_JP.po:3568,term.missing,info,TP,Sort 並び替え vs ソート x8
+pixelorama,B,ja_JP.po:2538,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+pixelorama,B,ja_JP.po:69,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+pixelorama,B,ja_JP.po:2098,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+pixelorama,B,ja_JP.po:756,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+pixelorama,B,ja_JP.po:2134,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+pixelorama,B,ja_JP.po:1416,untranslated.copy,info,FP,copyright line legitimately left in English
+pixelorama,B,ja_JP.po:2712,untranslated.empty,warning,TP,msgstr genuinely empty
+pixelorama,B,ja_JP.po:3089,untranslated.empty,warning,TP,msgstr genuinely empty
+luanti,A,luanti.po:50,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+luanti,A,luanti.po:1502,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+luanti,A,luanti.po:2746,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+luanti,A,luanti.po:4627,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+luanti,A,luanti.po:5421,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+luanti,A,luanti.po:4142,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+luanti,A,luanti.po:3322,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+luanti,A,luanti.po:7085,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+luanti,A,luanti.po:7795,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+luanti,A,luanti.po:3106,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+luanti,A,luanti.po:7938,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+luanti,A,luanti.po:6189,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+luanti,A,luanti.po:4393,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+luanti,A,luanti.po:4450,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+luanti,A,luanti.po:4910,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+luanti,A,luanti.po:4940,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+luanti,A,luanti.po:4961,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+luanti,A,luanti.po:4990,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+luanti,A,luanti.po:5826,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+luanti,A,luanti.po:7641,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+luanti,A,luanti.po:6093,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+luanti,A,luanti.po:4106,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+luanti,B,luanti.po:4631,term.missing,info,FP,draft pair misaligned: Horizontal -> 垂直加速度
+luanti,B,luanti.po:7861,term.missing,info,FP,歩く速度 legit paraphrase of Walking
+luanti,B,luanti.po:50,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+luanti,B,luanti.po:1502,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+luanti,B,luanti.po:2746,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+luanti,B,luanti.po:4627,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+luanti,B,luanti.po:5421,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+luanti,B,luanti.po:4142,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+luanti,B,luanti.po:3322,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+luanti,B,luanti.po:7085,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+luanti,B,luanti.po:7795,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+luanti,B,luanti.po:3106,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+luanti,B,luanti.po:7938,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+luanti,B,luanti.po:6189,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+luanti,B,luanti.po:4393,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+luanti,B,luanti.po:4450,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+luanti,B,luanti.po:4910,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+luanti,B,luanti.po:4940,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+luanti,B,luanti.po:4961,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+luanti,B,luanti.po:4990,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+luanti,B,luanti.po:5826,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+luanti,B,luanti.po:7641,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+luanti,B,luanti.po:6093,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+luanti,B,luanti.po:4106,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,A,ja.po:9582,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,A,ja.po:9744,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,A,ja.po:9760,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,A,ja.po:15947,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,A,ja.po:4673,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,A,ja.po:4765,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,A,ja.po:4944,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,A,ja.po:5488,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,A,ja.po:5829,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,A,ja.po:6291,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,A,ja.po:8031,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,A,ja.po:8403,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,A,ja.po:17891,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,A,ja.po:18006,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,A,ja.po:11549,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,A,ja.po:3150,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,A,ja.po:3159,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,A,ja.po:2409,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,A,ja.po:5532,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,A,ja.po:6504,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,A,ja.po:7628,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,A,ja.po:15050,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,A,ja.po:11567,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,A,ja.po:11582,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,A,ja.po:5249,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,A,ja.po:10085,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,A,ja.po:17293,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,A,ja.po:17281,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,A,ja.po:17302,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,A,ja.po:20317,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,A,ja.po:3020,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,A,ja.po:5306,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,A,ja.po:6101,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,A,ja.po:6108,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,A,ja.po:13452,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,A,ja.po:14596,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,A,ja.po:14605,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,A,ja.po:20245,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,A,ja.po:3616,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,A,ja.po:3645,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,A,ja.po:3683,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,A,ja.po:3721,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,A,ja.po:5164,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,A,ja.po:5246,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,A,ja.po:8314,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,A,ja.po:13811,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,A,ja.po:1314,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,A,ja.po:20012,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,A,ja.po:5121,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,A,ja.po:18999,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,B,ja.po:1356,term.missing,info,TP,class name AnimationPlayer transliterated; kept elsewhere
+godot-editor,B,ja.po:19139,term.missing,info,FP,"polysemy: Forward axis, not Forward+ renderer"
+godot-editor,B,ja.po:15630,term.missing,info,TP,class name GridMap transliterated; kept elsewhere
+godot-editor,B,ja.po:15654,term.missing,info,TP,class name GridMap transliterated; kept elsewhere
+godot-editor,B,ja.po:10853,term.missing,info,unsure,Lock as 固定 vs ロック x20; Pin also 固定
+godot-editor,B,ja.po:838,term.missing,info,FP,Min correctly translated 最小値
+godot-editor,B,ja.po:901,term.missing,info,FP,Min correctly translated 最小
+godot-editor,B,ja.po:11427,term.missing,info,FP,Perspective FOV legit 視野角
+godot-editor,B,ja.po:7071,term.missing,info,FP,Reset to Default legit デフォルトに戻す
+godot-editor,B,ja.po:14701,term.missing,info,FP,Reset to Default legit デフォルトに戻す
+godot-editor,B,ja.po:16594,term.missing,info,unsure,Auto Shrink as 伸縮; arguable
+godot-editor,B,ja.po:14811,term.missing,info,TP,Sony transliterated ソニー; Latin Sony x12
+godot-editor,B,ja.po:14817,term.missing,info,TP,Sony transliterated ソニー; Latin Sony x12
+godot-editor,B,ja.po:9506,term.missing,info,TP,class name TileMap transliterated; kept elsewhere
+godot-editor,B,ja.po:9611,term.missing,info,TP,class name TileMap transliterated; kept elsewhere
+godot-editor,B,ja.po:13483,term.missing,info,TP,setting name Unique Name: ユニーク名 vs 固有名
+godot-editor,B,ja.po:5771,term.missing,info,TP,Xcode project omitted; meaning lost
+godot-editor,B,ja.po:9730,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,B,ja.po:15947,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,B,ja.po:4673,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,B,ja.po:4765,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,B,ja.po:4944,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,B,ja.po:5369,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,B,ja.po:5488,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,B,ja.po:5680,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,B,ja.po:6291,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,B,ja.po:8031,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,B,ja.po:17882,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,B,ja.po:17891,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,B,ja.po:3150,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,B,ja.po:7188,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,B,ja.po:6504,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,B,ja.po:15050,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,B,ja.po:5249,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,B,ja.po:16088,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,B,ja.po:17302,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,B,ja.po:20317,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,B,ja.po:20325,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,B,ja.po:5306,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,B,ja.po:12948,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,B,ja.po:14599,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,B,ja.po:14605,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,B,ja.po:3645,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,B,ja.po:3721,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,B,ja.po:6108,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,B,ja.po:8314,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,B,ja.po:13811,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,B,ja.po:1314,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,B,ja.po:8191,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+godot-editor,B,ja.po:18999,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+wesnoth-httt,A,httt/ja.po:1633,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+wesnoth-httt,A,httt/ja.po:505,voice.first-person,info,TP,Delfador 私 in one line vs わし 66x
+wesnoth-httt,A,httt/ja.po:2256,voice.politeness,info,FP,greeting without verb ending; not plain
+wesnoth-httt,A,httt/ja.po:4029,voice.politeness,info,FP,rebuke to hostile dwarf; intentional register
+wesnoth-httt,A,httt/ja.po:4047,voice.politeness,info,FP,angry outburst; intentional
+wesnoth-httt,A,httt/ja.po:4888,voice.politeness,info,FP,addressing enemy Li'sar; intentional
+wesnoth-httt,A,httt/ja.po:5327,voice.politeness,info,FP,sarcastic retort; intentional
+wesnoth-httt,A,httt/ja.po:5536,voice.politeness,info,FP,teasing お嬢ちゃん; intentional
+wesnoth-httt,A,httt/ja.po:5742,voice.politeness,info,unsure,short plain agreement; could be either
+wesnoth-httt,A,httt/ja.po:6813,voice.politeness,info,unsure,plain reply; register shift plausible
+wesnoth-httt,A,httt/ja.po:8808,voice.politeness,info,FP,grieving monologue; intentional
+wesnoth-httt,A,httt/ja.po:821,voice.politeness,info,FP,battle cry to own troops
+wesnoth-httt,A,httt/ja.po:1697,voice.politeness,info,FP,command to subordinate
+wesnoth-httt,A,httt/ja.po:1987,voice.politeness,info,FP,exclamation; natural plain
+wesnoth-httt,A,httt/ja.po:2044,voice.politeness,info,FP,sentry challenge; natural plain
+wesnoth-httt,A,httt/ja.po:2511,voice.politeness,info,FP,addressing own men
+wesnoth-httt,A,httt/ja.po:2679,voice.politeness,info,FP,addressing own men
+wesnoth-httt,A,httt/ja.po:2806,voice.politeness,info,FP,exclamation/relief; natural
+wesnoth-httt,A,httt/ja.po:2991,voice.politeness,info,FP,exclamation; natural
+wesnoth-httt,A,httt/ja.po:3056,voice.politeness,info,FP,interjection only
+wesnoth-httt,A,httt/ja.po:6164,voice.politeness,info,FP,exclamation only
+wesnoth-httt,A,httt/ja.po:6347,voice.politeness,info,FP,orders to troops
+wesnoth-httt,A,httt/ja.po:6400,voice.politeness,info,FP,stern rebuke; intentional
+wesnoth-httt,A,httt/ja.po:6463,voice.politeness,info,FP,casual to Li'sar; intentional
+wesnoth-httt,A,httt/ja.po:6468,voice.politeness,info,FP,casual to Li'sar; intentional
+wesnoth-httt,A,httt/ja.po:6605,voice.politeness,info,FP,order to group
+wesnoth-httt,A,httt/ja.po:6981,voice.politeness,info,FP,exclamation/monologue
+wesnoth-httt,A,httt/ja.po:7959,voice.politeness,info,FP,exclamation; natural
+wesnoth-httt,A,httt/ja.po:7575,voice.politeness,info,FP,feminine わ/かしら register misread as plain
+wesnoth-httt,A,httt/ja.po:2178,voice.first-person,info,unsure,Reglok 俺 in rallying cry; may be intentional
+wesnoth-httt,A,httt/ja.po:2178,voice.politeness,info,FP,rallying cry
+wesnoth-httt,A,httt/ja.po:8755,tag.emphasis-dropped,warning,FP,"<i> emphasis dropped; harmless in JA, should be info"
+wesnoth-httt,A,httt/ja.po:8764,tag.emphasis-dropped,warning,FP,"<i> emphasis dropped; harmless in JA, should be info"
+wesnoth-httt,A,httt/ja.po:26,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-httt,A,httt/ja.po:33,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-httt,A,httt/ja.po:43,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-httt,A,httt/ja.po:51,untranslated.empty,warning,TP,msgstr genuinely empty
+wesnoth-httt,A,httt/ja.po:117,untranslated.empty,warning,TP,msgstr genuinely empty
+wesnoth-httt,A,httt/ja.po:122,untranslated.empty,warning,TP,msgstr genuinely empty
+wesnoth-httt,A,httt/ja.po:8608,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-httt,A,httt/ja.po:9036,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-httt,A,httt/ja.po:9074,untranslated.empty,warning,TP,msgstr genuinely empty
+wesnoth-httt,A,httt/ja.po:9079,untranslated.empty,warning,TP,msgstr genuinely empty
+wesnoth-httt,B,httt/ja.po:7591,term.missing,info,TP,Asheviere misspelled Ashaviere (round-1 miss)
+wesnoth-httt,B,httt/ja.po:7886,term.missing,info,TP,Dark Queen 邪悪な女王 vs 闇の女王
+wesnoth-httt,B,httt/ja.po:2306,term.missing,info,TP,Garard misspelled Garald (round-1 targeted miss)
+wesnoth-httt,B,httt/ja.po:4642,term.missing,info,unsure,descriptive lost general vs scenario title
+wesnoth-httt,B,httt/ja.po:7548,term.missing,info,FP,Wesnoth omitted in legit paraphrase
+wesnoth-httt,B,httt/ja.po:1633,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+wesnoth-httt,B,httt/ja.po:505,voice.first-person,info,TP,Delfador 私 in one line vs わし 66x
+wesnoth-httt,B,httt/ja.po:2256,voice.politeness,info,FP,greeting without verb ending; not plain
+wesnoth-httt,B,httt/ja.po:4029,voice.politeness,info,FP,rebuke to hostile dwarf; intentional register
+wesnoth-httt,B,httt/ja.po:4047,voice.politeness,info,FP,angry outburst; intentional
+wesnoth-httt,B,httt/ja.po:4888,voice.politeness,info,FP,addressing enemy Li'sar; intentional
+wesnoth-httt,B,httt/ja.po:5327,voice.politeness,info,FP,sarcastic retort; intentional
+wesnoth-httt,B,httt/ja.po:5536,voice.politeness,info,FP,teasing お嬢ちゃん; intentional
+wesnoth-httt,B,httt/ja.po:5742,voice.politeness,info,unsure,short plain agreement; could be either
+wesnoth-httt,B,httt/ja.po:6813,voice.politeness,info,unsure,plain reply; register shift plausible
+wesnoth-httt,B,httt/ja.po:8808,voice.politeness,info,FP,grieving monologue; intentional
+wesnoth-httt,B,httt/ja.po:821,voice.politeness,info,FP,battle cry to own troops
+wesnoth-httt,B,httt/ja.po:1697,voice.politeness,info,FP,command to subordinate
+wesnoth-httt,B,httt/ja.po:1987,voice.politeness,info,FP,exclamation; natural plain
+wesnoth-httt,B,httt/ja.po:2044,voice.politeness,info,FP,sentry challenge; natural plain
+wesnoth-httt,B,httt/ja.po:2511,voice.politeness,info,FP,addressing own men
+wesnoth-httt,B,httt/ja.po:2679,voice.politeness,info,FP,addressing own men
+wesnoth-httt,B,httt/ja.po:2806,voice.politeness,info,FP,exclamation/relief; natural
+wesnoth-httt,B,httt/ja.po:2991,voice.politeness,info,FP,exclamation; natural
+wesnoth-httt,B,httt/ja.po:3056,voice.politeness,info,FP,interjection only
+wesnoth-httt,B,httt/ja.po:6164,voice.politeness,info,FP,exclamation only
+wesnoth-httt,B,httt/ja.po:6347,voice.politeness,info,FP,orders to troops
+wesnoth-httt,B,httt/ja.po:6400,voice.politeness,info,FP,stern rebuke; intentional
+wesnoth-httt,B,httt/ja.po:6463,voice.politeness,info,FP,casual to Li'sar; intentional
+wesnoth-httt,B,httt/ja.po:6468,voice.politeness,info,FP,casual to Li'sar; intentional
+wesnoth-httt,B,httt/ja.po:6605,voice.politeness,info,FP,order to group
+wesnoth-httt,B,httt/ja.po:6981,voice.politeness,info,FP,exclamation/monologue
+wesnoth-httt,B,httt/ja.po:7959,voice.politeness,info,FP,exclamation; natural
+wesnoth-httt,B,httt/ja.po:7575,voice.politeness,info,FP,feminine わ/かしら register misread as plain
+wesnoth-httt,B,httt/ja.po:2178,voice.first-person,info,unsure,Reglok 俺 in rallying cry; may be intentional
+wesnoth-httt,B,httt/ja.po:2178,voice.politeness,info,FP,rallying cry
+wesnoth-httt,B,httt/ja.po:8755,tag.emphasis-dropped,warning,FP,"<i> emphasis dropped; harmless in JA, should be info"
+wesnoth-httt,B,httt/ja.po:8764,tag.emphasis-dropped,warning,FP,"<i> emphasis dropped; harmless in JA, should be info"
+wesnoth-httt,B,httt/ja.po:26,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-httt,B,httt/ja.po:33,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-httt,B,httt/ja.po:43,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-httt,B,httt/ja.po:51,untranslated.empty,warning,TP,msgstr genuinely empty
+wesnoth-httt,B,httt/ja.po:117,untranslated.empty,warning,TP,msgstr genuinely empty
+wesnoth-httt,B,httt/ja.po:122,untranslated.empty,warning,TP,msgstr genuinely empty
+wesnoth-httt,B,httt/ja.po:8608,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-httt,B,httt/ja.po:9036,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-httt,B,httt/ja.po:9074,untranslated.empty,warning,TP,msgstr genuinely empty
+wesnoth-httt,B,httt/ja.po:9079,untranslated.empty,warning,TP,msgstr genuinely empty
+wesnoth-lib,A,lib/ja.po:2486,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+wesnoth-lib,A,lib/ja.po:3778,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+wesnoth-lib,A,lib/ja.po:3636,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+wesnoth-lib,A,lib/ja.po:5920,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+wesnoth-lib,A,lib/ja.po:7948,placeholder.mismatch,error,TP,$count missing (fuzzy entry; duplicates fuzzy finding)
+wesnoth-lib,A,lib/ja.po:9914,placeholder.mismatch,error,TP,stale fuzzy msgstr uses $key| (duplicates fuzzy finding)
+wesnoth-lib,A,lib/ja.po:4132,tag.mismatch,error,TP,stale fuzzy msgstr adds <b> (duplicates fuzzy finding)
+wesnoth-lib,A,lib/ja.po:2358,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-lib,A,lib/ja.po:2560,untranslated.empty,warning,TP,msgstr genuinely empty
+wesnoth-lib,A,lib/ja.po:2966,untranslated.empty,warning,TP,msgstr genuinely empty
+wesnoth-lib,A,lib/ja.po:2978,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-lib,A,lib/ja.po:3069,untranslated.empty,warning,TP,msgstr genuinely empty
+wesnoth-lib,A,lib/ja.po:3085,untranslated.empty,warning,TP,msgstr genuinely empty
+wesnoth-lib,A,lib/ja.po:3119,untranslated.empty,warning,TP,msgstr genuinely empty
+wesnoth-lib,A,lib/ja.po:3226,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-lib,A,lib/ja.po:3280,untranslated.empty,warning,TP,msgstr genuinely empty
+wesnoth-lib,A,lib/ja.po:3328,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-lib,A,lib/ja.po:3494,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-lib,A,lib/ja.po:4106,untranslated.empty,warning,TP,msgstr genuinely empty
+wesnoth-lib,A,lib/ja.po:4146,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-lib,A,lib/ja.po:4153,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-lib,A,lib/ja.po:4165,untranslated.empty,warning,TP,msgstr genuinely empty
+wesnoth-lib,A,lib/ja.po:4224,untranslated.empty,warning,TP,msgstr genuinely empty
+wesnoth-lib,A,lib/ja.po:4262,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-lib,A,lib/ja.po:4269,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-lib,A,lib/ja.po:4283,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-lib,A,lib/ja.po:4322,untranslated.empty,warning,TP,msgstr genuinely empty
+wesnoth-lib,A,lib/ja.po:4458,untranslated.empty,warning,TP,msgstr genuinely empty
+wesnoth-lib,A,lib/ja.po:4780,untranslated.empty,warning,TP,msgstr genuinely empty
+wesnoth-lib,A,lib/ja.po:4800,untranslated.empty,warning,TP,msgstr genuinely empty
+wesnoth-lib,A,lib/ja.po:4811,untranslated.empty,warning,TP,msgstr genuinely empty
+wesnoth-lib,A,lib/ja.po:5166,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-lib,A,lib/ja.po:5296,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-lib,A,lib/ja.po:5881,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-lib,A,lib/ja.po:6215,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-lib,A,lib/ja.po:6477,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-lib,A,lib/ja.po:6583,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-lib,A,lib/ja.po:7342,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-lib,A,lib/ja.po:7760,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-lib,A,lib/ja.po:7870,untranslated.empty,warning,TP,msgstr genuinely empty
+wesnoth-lib,A,lib/ja.po:7898,untranslated.empty,warning,TP,msgstr genuinely empty
+wesnoth-lib,A,lib/ja.po:7974,untranslated.empty,warning,TP,msgstr genuinely empty
+wesnoth-lib,A,lib/ja.po:8452,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-lib,A,lib/ja.po:8527,untranslated.empty,warning,TP,msgstr genuinely empty
+wesnoth-lib,A,lib/ja.po:8873,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-lib,A,lib/ja.po:8895,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-lib,A,lib/ja.po:9344,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-lib,A,lib/ja.po:9730,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-lib,A,lib/ja.po:9906,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-lib,A,lib/ja.po:9914,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-lib,B,lib/ja.po:4297,term.missing,info,TP,fuzzy msgstr wrong (画像); duplicates fuzzy finding
+wesnoth-lib,B,lib/ja.po:278,term.missing,info,TP,Icy Cobbles 氷畳; other Cobbles 石畳
+wesnoth-lib,B,lib/ja.po:9802,term.missing,info,unsure,(MP) dropped in fuzzy entry
+wesnoth-lib,B,lib/ja.po:9668,term.missing,info,FP,draft pair misaligned: Terrain Transitions -> 自動更新
+wesnoth-lib,B,lib/ja.po:2486,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+wesnoth-lib,B,lib/ja.po:3636,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+wesnoth-lib,B,lib/ja.po:5920,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+wesnoth-lib,B,lib/ja.po:6781,notation.katakana,warning,TP,real katakana long-vowel/spelling drift
+wesnoth-lib,B,lib/ja.po:7948,placeholder.mismatch,error,TP,$count missing (fuzzy entry; duplicates fuzzy finding)
+wesnoth-lib,B,lib/ja.po:9914,placeholder.mismatch,error,TP,stale fuzzy msgstr uses $key| (duplicates fuzzy finding)
+wesnoth-lib,B,lib/ja.po:4132,tag.mismatch,error,TP,stale fuzzy msgstr adds <b> (duplicates fuzzy finding)
+wesnoth-lib,B,lib/ja.po:805,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-lib,B,lib/ja.po:2349,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-lib,B,lib/ja.po:2966,untranslated.empty,warning,TP,msgstr genuinely empty
+wesnoth-lib,B,lib/ja.po:2978,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-lib,B,lib/ja.po:3069,untranslated.empty,warning,TP,msgstr genuinely empty
+wesnoth-lib,B,lib/ja.po:3128,untranslated.empty,warning,TP,msgstr genuinely empty
+wesnoth-lib,B,lib/ja.po:3244,untranslated.empty,warning,TP,msgstr genuinely empty
+wesnoth-lib,B,lib/ja.po:3251,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-lib,B,lib/ja.po:3256,untranslated.empty,warning,TP,msgstr genuinely empty
+wesnoth-lib,B,lib/ja.po:3275,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-lib,B,lib/ja.po:3316,untranslated.empty,warning,TP,msgstr genuinely empty
+wesnoth-lib,B,lib/ja.po:3586,untranslated.empty,warning,TP,msgstr genuinely empty
+wesnoth-lib,B,lib/ja.po:4172,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-lib,B,lib/ja.po:4219,untranslated.empty,warning,TP,msgstr genuinely empty
+wesnoth-lib,B,lib/ja.po:4224,untranslated.empty,warning,TP,msgstr genuinely empty
+wesnoth-lib,B,lib/ja.po:4229,untranslated.empty,warning,TP,msgstr genuinely empty
+wesnoth-lib,B,lib/ja.po:4262,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-lib,B,lib/ja.po:4283,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-lib,B,lib/ja.po:4322,untranslated.empty,warning,TP,msgstr genuinely empty
+wesnoth-lib,B,lib/ja.po:4818,untranslated.empty,warning,TP,msgstr genuinely empty
+wesnoth-lib,B,lib/ja.po:4829,untranslated.empty,warning,TP,msgstr genuinely empty
+wesnoth-lib,B,lib/ja.po:4834,untranslated.empty,warning,TP,msgstr genuinely empty
+wesnoth-lib,B,lib/ja.po:5166,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-lib,B,lib/ja.po:6049,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-lib,B,lib/ja.po:6215,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-lib,B,lib/ja.po:6461,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-lib,B,lib/ja.po:6818,untranslated.empty,warning,TP,msgstr genuinely empty
+wesnoth-lib,B,lib/ja.po:7342,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-lib,B,lib/ja.po:7382,untranslated.empty,warning,TP,msgstr genuinely empty
+wesnoth-lib,B,lib/ja.po:7386,untranslated.empty,warning,TP,msgstr genuinely empty
+wesnoth-lib,B,lib/ja.po:7409,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-lib,B,lib/ja.po:7914,untranslated.empty,warning,TP,msgstr genuinely empty
+wesnoth-lib,B,lib/ja.po:7928,untranslated.empty,warning,TP,msgstr genuinely empty
+wesnoth-lib,B,lib/ja.po:8527,untranslated.empty,warning,TP,msgstr genuinely empty
+wesnoth-lib,B,lib/ja.po:8684,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-lib,B,lib/ja.po:8775,untranslated.empty,warning,TP,msgstr genuinely empty
+wesnoth-lib,B,lib/ja.po:9362,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-lib,B,lib/ja.po:9736,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
+wesnoth-lib,B,lib/ja.po:9914,untranslated.fuzzy,warning,TP,entry genuinely fuzzy
