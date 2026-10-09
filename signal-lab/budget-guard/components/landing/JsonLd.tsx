@@ -11,7 +11,7 @@ export function JsonLd() {
       url: siteUrl(),
       applicationCategory: "BusinessApplication",
       operatingSystem: "Web",
-      offers: config.pricing.plans.map((p) => ({
+      offers: config.pricing.plans.filter((p) => !p.comingSoon).map((p) => ({
         "@type": "Offer",
         name: p.label,
         price: String(toMajorUnits(p.amount)),

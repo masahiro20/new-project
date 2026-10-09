@@ -18,6 +18,9 @@ import "./.open-next/server-functions/default/handler.mjs";
 import { cronBatchSize, runCronSlice } from "./lib/guard/cron";
 import { getKV } from "./lib/redis";
 import { runStartupChecks } from "./lib/startup-checks";
+// @ts-ignore generated after the build (scripts/security-headers.mjs cf): per-page CSP + common headers
+import policies from "./.open-next/security-headers.json";
+import { cspForPath } from "./lib/security-headers.mjs";
 
 type Env = Record<string, unknown>;
 type Ctx = { waitUntil(p: Promise<unknown>): void; passThroughOnException(): void };
@@ -29,6 +32,12 @@ let startupChecked: string | null | undefined;
 function startupProblem(): string | null {
   if (startupChecked === undefined) {
     try {
+      // A deployed Worker is always production (Atlas re-check #3): NODE_ENV=development/test would turn
+      // off every secret check, so a vars/secret that sets it to anything else is a configuration error.
+      // Read through a variable: wrangler replaces the literal `process.env.NODE_ENV` at bundle time
+      // ("development" under `wrangler dev`), which is not the runtime value the checks use.
+      const runtimeNodeEnv = (process.env as Record<string, string | undefined>)["NODE_" + "ENV"];
+      if (runtimeNodeEnv !== "production") throw new Error(`NODE_ENV must be "production" on Workers (got "${runtimeNodeEnv}"); remove the NODE_ENV var/secret`);
       runStartupChecks(process.env);
       startupChecked = null;
     } catch (err) {
@@ -88,8 +97,34 @@ function refuseIfMisconfigured(env: Env): Response | null {
   return new Response("Server misconfigured. The operator has been notified in the logs.", { status: 500, headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" } });
 }
 
+type Policies = { routes: Record<string, string>; fallback: string; nonHtml: string; common: Record<string, string> };
+
+/**
+ * Security headers on every Worker response — pages served from the cache included (lib/security-headers.mjs).
+ * HTML gets its page's CSP (hashes of that page's inline scripts), anything else the "load nothing" CSP.
+ * Files the assets binding serves directly get theirs from .open-next/assets/_headers.
+ */
+let missWarned = false;
+function withSecurityHeaders(request: Request, res: Response): Response {
+  const out = new Response(res.body, res);
+  const p = policies as Policies;
+  for (const [k, v] of Object.entries(p.common)) out.headers.set(k, v);
+  const html = (out.headers.get("content-type") ?? "").includes("text/html");
+  // The hashes come from the prerendered HTML. A page rendered at runtime instead (cache miss — e.g.
+  // the static-assets cache wasn't populated: deploy with `npm run deploy`, preview with
+  // `npm run preview`) can carry different inline scripts, which this CSP would block. Say so.
+  if (html && out.headers.get("x-nextjs-cache") === "MISS" && !missWarned) {
+    missWarned = true;
+    console.error("[csp] a page was rendered at runtime (cache MISS): its inline scripts may not match the build-time CSP hashes. Populate the cache (opennextjs-cloudflare deploy / preview / populateCache).");
+  }
+  out.headers.set("Content-Security-Policy", html ? cspForPath(p, new URL(request.url).pathname) : p.nonHtml);
+  out.headers.delete("X-Security-Headers");
+  return out;
+}
+
 export default {
-  fetch: (request: Request, env: Env, ctx: Ctx) => refuseIfMisconfigured(env) ?? (handler as OpenNextHandler).fetch(withClientIp(request), env, ctx),
+  fetch: async (request: Request, env: Env, ctx: Ctx) =>
+    withSecurityHeaders(request, refuseIfMisconfigured(env) ?? (await (handler as OpenNextHandler).fetch(withClientIp(request), env, ctx))),
   async scheduled(controller: ScheduledController, env: Env) {
     await runCron(controller, env);
   },

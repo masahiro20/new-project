@@ -105,6 +105,15 @@ export function parseConnRef(ref: string): { acct: string; id: string } | null {
 export const listConnRefs = (kv: KV) => kv.smembers(k.allConns());
 /** Connections with the offline demo token (R3-02). */
 export const listDemoConnRefs = (kv: KV) => kv.smembers(k.demoConns());
+
+/**
+ * Most demo-token connections the index may hold (Atlas re-check #5). The cron drops lapsed ones only
+ * as it reaches them (2 checks an hour → 48 a day) while up to 50 demo purchases a day × 3
+ * connections can come in, so without a cap the index (one SMEMBERS every hour) would only grow.
+ * At the cap, adding a demo connection is refused until the cron or the retention sweep frees room.
+ */
+export const DEMO_INDEX_MAX = 600;
+export const demoIndexFull = async (kv: KV) => (await kv.scard(k.demoConns())) >= DEMO_INDEX_MAX;
 const indexOf = (demo: boolean | undefined) => (demo ? k.demoConns() : k.allConns());
 
 /** Cron: a connection found to use the demo token in the real index (data from before R3-02) moves to the demo index. */

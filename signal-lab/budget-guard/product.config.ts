@@ -1,4 +1,5 @@
 import type { ProductConfigInput } from "./lib/config";
+import { checkCadence } from "./lib/guard/schedule";
 
 // Budget Guard. Prices are a stage-2 proposal and still need owner approval.
 const product = {
@@ -22,7 +23,8 @@ const product = {
         amount: 900,
         mode: "subscription",
         interval: "month",
-        features: ["Up to 3 monitored connections", "Hourly checks", "80% alert + 100% stop action", "Test mode for every stop"],
+        // The check interval stretches with the total number of connections (lib/guard/schedule.ts).
+        features: ["Up to 3 monitored connections", checkCadence(), "80% alert + 100% stop action", "Test mode for every stop"],
         highlight: true,
       },
       {
@@ -31,7 +33,10 @@ const product = {
         amount: 7900,
         mode: "subscription",
         interval: "year",
-        features: ["Everything in Monthly", "Two months free"],
+        // Not sold yet: Stripe yearly billing has never been tried end to end (no account yet).
+        // Owner's rule: keep only what really works. /api/checkout and the demo checkout refuse it.
+        comingSoon: true,
+        features: ["Everything in Monthly"],
       },
     ],
   },
@@ -83,7 +88,7 @@ const product = {
     paymentTiming: "ご注文時にクレジットカードで決済され、以後、各更新日に自動で決済されます。",
     deliveryTiming: "決済完了後、直ちにご利用いただけます。",
     refundPolicy: "提供開始後の返金はお受けしておりません。ただし、当方の不具合でご利用いただけない場合は全額返金します。",
-    cancellationPolicy: "アプリ内の「Billing」からいつでも解約できます。解約後も期間末日までご利用いただけ、日割りでの返金はありません。",
+    cancellationPolicy: "ダッシュボード上部の「Manage billing」からいつでも解約できます。解約後も期間末日までご利用いただけ、日割りでの返金はありません。",
     effectiveDate: "2026-10-08",
   },
 } satisfies ProductConfigInput;

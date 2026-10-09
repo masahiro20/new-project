@@ -137,7 +137,7 @@ describe("demo checkout", () => {
 
   it("demo portal cancels and reactivates", async () => {
     const kv = createMemoryKV();
-    const record = await createDemoCheckout(kv, "yearly");
+    const record = await createDemoCheckout(kv, "monthly");
     await payDemoCheckout(kv, record.id, goodCard, { now: NOW });
     const checkout = await createDemoProvider(() => kv).getCompletedCheckout(record.id);
     await fulfillCheckout(kv, checkout!, "demo");

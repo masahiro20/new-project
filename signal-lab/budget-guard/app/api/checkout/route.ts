@@ -2,7 +2,7 @@ import { z } from "zod";
 import { CONSENT_REQUIRED_ERROR, newConsent } from "@/lib/consent";
 import { forbiddenOrigin, sameOrigin } from "@/lib/api";
 import { track } from "@/lib/analytics";
-import { config, getPlan } from "@/lib/config";
+import { config, getPlan, purchasablePlan } from "@/lib/config";
 import { getPaymentProvider, PaymentsConfigError } from "@/lib/payments";
 import { clientIp, rateLimit } from "@/lib/ratelimit";
 import { getKV } from "@/lib/redis";
@@ -15,6 +15,8 @@ export async function POST(request: Request) {
   const parsed = schema.safeParse(await request.json().catch(() => null));
   const plan = parsed.success ? getPlan(parsed.data.plan) : undefined;
   if (!parsed.success || !plan) return Response.json({ error: "invalid plan" }, { status: 400 });
+  // Shown as "coming soon" (e.g. yearly: Stripe yearly billing not yet verified) — not for sale.
+  if (!purchasablePlan(plan.id)) return Response.json({ error: "plan not available yet" }, { status: 400 });
   // Privacy Policy (incl. transfer abroad) + Terms: the checkbox next to the buy button.
   if (parsed.data.consent !== true) return Response.json({ error: CONSENT_REQUIRED_ERROR, consentRequired: true }, { status: 400 });
 

@@ -7,10 +7,10 @@ Stripe のキーを環境変数に入れるだけで、コードを変えずに�
 
 | `PAYMENTS_MODE` | `STRIPE_SECRET_KEY` | 動作 |
 |---|---|---|
-| 未設定 | 未設定 | **demo** |
-| 未設定 | 設定あり | **stripe** |
+| 未設定 | 未設定 | 開発（NODE_ENV が development・test）では **demo**。**production では起動しない**（500。明示が必須。Atlas R2-06 の条件） |
+| 未設定 | 設定あり | 開発では **stripe**。**production では起動しない**（同上） |
 | `demo` | どちらでも | **demo**（`NODE_ENV=production` でも動く） |
-| `stripe` | 設定あり | **stripe** |
+| `stripe` | 設定あり | **stripe**（production では `STRIPE_WEBHOOK_SECRET` も必須。秘密の値の規則は docs/deploy-cloudflare.md §3.1） |
 | `stripe` | 未設定 | **エラー**。起動時（`instrumentation.ts`）にエラーを記録し、以後すべてのリクエストが 500 になる（フェイルクローズ。プロセス自体は終了しない） |
 | その他の値 | — | **エラー** |
 
@@ -84,7 +84,7 @@ interface PaymentProvider {
    - `STRIPE_WEBHOOK_SECRET=whsec_…`
      - Webhook の送信先は `https://<host>/api/stripe/webhook`。
      - 受け取るイベントは `checkout.session.completed`、`checkout.session.async_payment_succeeded`、`customer.subscription.updated`、`customer.subscription.deleted`、`invoice.payment_failed`、`invoice.paid`（購入記録の7年保存に必要。docs/legal-changes.md §2.4）、`charge.refunded`。
-   - `PAYMENTS_MODE` は**未設定のまま**にするか、`stripe` にする。`demo` が残っていると、キーがあっても demo のまま。
+   - `PAYMENTS_MODE=stripe` と**明示する**。production では未設定だと起動しない（すべてのリクエストが 500）。`demo` が残っていると、キーがあっても demo のまま。
 3. **価格IDは使わない。** `lib/payments/stripe.ts` が `product.config.ts` の `pricing.plans`（`amount` / `mode` / `interval`）から `price_data` をその場で作る。Stripe 側で商品を作る必要はない。
 4. 本番では、次も必須（従来どおり）。
    - `NEXT_PUBLIC_SITE_URL`
@@ -92,8 +92,12 @@ interface PaymentProvider {
    - `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`
    - `TOKEN_ENCRYPTION_KEY`
    - `CRON_SECRET`
-5. 再デプロイすると、起動ログに `[payments] mode=stripe` と出る。バナーは消える。
-6. live キー（`sk_live_…`）に替えるときも、変えるのは環境変数だけ。
+5. **アクセス Cookie の名前を `__Host-` 付きに変える**（Atlas R2-08 の条件。stripe に切り替える前に行う）。
+   - `lib/config.ts` の `ACCESS_COOKIE` を `__Host-${config.slug}_access` にし、`lib/access.ts` の `accessCookieOptions()` の `secure` を常に `true` にする（`__Host-` の Cookie は Secure・`Path=/`・Domain なしでないと、ブラウザが保存しない）。
+   - **全員がログアウトされる**（古い名前の Cookie は読まれなくなる）。利用者には、ライセンスキーかマジックリンクで入り直してもらう。利用者が少ない今のうちに行う。
+   - ローカルの http（`next start`、workerd）では、ブラウザが localhost の Secure Cookie を受け付けるかを確かめる（Chrome・Firefox は受け付ける）。
+6. 再デプロイすると、起動ログに `[payments] mode=stripe` と出る。バナーは消える。
+7. live キー（`sk_live_…`）に替えるときも、変えるのは環境変数だけ。
 
 ## 6. ほかのプロジェクトへ移す（例：リポジトリ直下の P0「減算ゼロ」）
 

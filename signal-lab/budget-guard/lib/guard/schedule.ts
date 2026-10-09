@@ -21,6 +21,31 @@ export const CHECK_INTERVAL_TIERS: readonly IntervalTier[] = [
   { upTo: Infinity, hours: 12 }, // beyond ~225: still not guaranteed to fit — upgrade Upstash (see docs)
 ];
 
+/**
+ * How often connections are checked, for the pricing card — built from CHECK_INTERVAL_TIERS so it
+ * changes with the tiers. "Connections" is the total over all customers (not per account).
+ * e.g. "Checked every 1–12 hours depending on total load (hourly up to 50 connections across all users)"
+ */
+export function checkCadence(tiers: readonly IntervalTier[] = CHECK_INTERVAL_TIERS): string {
+  const hours = tiers.map((t) => t.hours);
+  const min = Math.min(...hours);
+  const max = Math.max(...hours);
+  const first = tiers[0];
+  if (min === max) return min === 1 ? "Hourly checks" : `Checked every ${min} hours`;
+  const every = min === 1 ? "hourly" : `every ${first.hours} hours`;
+  return `Checked every ${min}–${max} hours depending on total load (${every} up to ${first.upTo} connections across all users)`;
+}
+
+/** Japanese version of checkCadence() (docs/lp.md summary, the Japanese experience demo). */
+export function checkCadenceJa(tiers: readonly IntervalTier[] = CHECK_INTERVAL_TIERS): string {
+  const hours = tiers.map((t) => t.hours);
+  const min = Math.min(...hours);
+  const max = Math.max(...hours);
+  if (min === max) return min === 1 ? "毎時チェック" : `${min} 時間ごとにチェック`;
+  const every = tiers[0].hours === 1 ? "毎時" : `${tiers[0].hours} 時間ごと`;
+  return `全利用者の接続数の合計に応じて ${min}〜${max} 時間ごとに確認（合計 ${tiers[0].upTo} 接続までは${every}）`;
+}
+
 export function intervalFor(connections: number, tiers: readonly IntervalTier[] = CHECK_INTERVAL_TIERS): number {
   return (tiers.find((t) => connections <= t.upTo) ?? tiers[tiers.length - 1]).hours;
 }

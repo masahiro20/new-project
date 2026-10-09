@@ -180,3 +180,28 @@
   - Upstash を有料プランにする。
 - **確かめ方：** cron の結果の `intervalHours` が 12 になったら、この条件に達している。
 - **R3-02 のテストの修正（33cd603 の後）：** demo の接続を順番に回すテストが、3 回に 2 回落ちていた。原因は、周期の数を平均の件数で決めていたこと。乱数の ID で、時間の枠ごとの件数がばらつく。実装の `pickDemo` は決定的に全件を回ることを、別のテストで確かめた。件数が 2 以下のときに入力の順番がそのまま出ていた点も直した。詳しくは docs/qa-ren-bg.md §1。
+
+## 11. Atlas の再確認（d660cbf、peter/p5-atlas の 6516794）への対応
+
+**再確認の結果：合格。**
+- #1〜#3 は直っていた。R3-03・R2-05 は仕様どおり。medium 以上の新しい穴は無かった。
+- Atlas 側でも、22 ファイル・255 件のテストと typecheck が通った。追加の PoC 9 件も合格だった。
+- 見送った 8 件の判定は前回どおり妥当。
+- 残っていたのは、次の 5 件（文書 1・情報 4）。
+
+| # | 重要度 | 指摘 | 対応 |
+|---|---|---|---|
+| 1 | low | docs/demo-payments.md §5 の「`PAYMENTS_MODE` は未設定のままでよい」と §1 の表が古い（production では明示が必須で、手順どおりだと 500）。README の `npm start` の例に、必須の秘密が足りない | 直した。§1 の表に「production では未設定だと起動しない」を書いた。§5 は `PAYMENTS_MODE=stripe` の明示にした。R2-08 の条件（Cookie を `__Host-` 付きの名前に変える手順と、全員がログアウトされること）を、切り替えの手順に入れた。README の例は、`npm run cf:dev-vars` で作った `.dev.vars` を読み込んで起動する形にした |
+| 2 | info | 開発用の固定値の末尾を変えた値や、順に並んだ文字・バイトが通る | 直した。仮の値の判定に `do-not-use` を足した。隣り合う文字（鍵ならバイト）の半分以上が 1 つずつ増える・減る値（abcdef…、0123…、00 01 02…）も拒否する。ランダムな値で誤って拒否しないことは、200 回の試行で確かめた |
+| 3 | info | NODE_ENV を development・test にすると、すべての検査を素通りできる | 直した。Worker では、`NODE_ENV` が `production` 以外なら起動時チェックで拒否する（全リクエスト 500、cron は失敗として記録）。vars で上書きすること自体は wrangler 側で禁止できないので、拒否する形にし、docs/deploy-cloudflare.md §3 でも禁止と明記した。Vercel・`next start` では NODE_ENV はホスティング側が production に決める |
+| 4 | info | 以前の例の鍵で動かしていた環境の移行手順が無い | 書いた（docs/deploy-cloudflare.md §3.2）。鍵が公開されていた前提で、各社のキーを失効させ、新しい秘密を入れ、接続を作り直す。`TOKEN_ENCRYPTION_KEY_PREVIOUS` には古い鍵を入れない |
+| 5 | info | demo の索引から外せるのは 1 日 48 件までで、流入が上回ると索引が増える | 直した。demo の索引に上限（600 件、`DEMO_INDEX_MAX`）を設けた。上限に達すると、demo のトークンでの接続の追加を 503 で断る。追加のコストは `SCARD` 1 回だけで、cron の確認の枠（1 時間 2 件）は変えていない |
+
+テストは `tests/security-regressions.test.ts` の「Atlas re-check (d660cbf)」。
+
+## 12. セキュリティヘッダー（Ren の QA の CSP の指摘、リーダーの判断で対応）
+
+- 全ページに次を付けた：CSP（ページごとのインラインスクリプトの hash、`frame-ancestors 'none'`）、`X-Content-Type-Options`、`Referrer-Policy`、`Permissions-Policy`、`X-Frame-Options`。
+- Vercel・`next start`・Cloudflare（キャッシュから返すページと静的アセットを含む）のどの経路でも付く。
+- nonce ではなく hash にした理由と、確かめた結果は docs/deploy-cloudflare.md §8.2.2 に書いた。
+- テストは `tests/security-headers.test.ts`。特商法の解約方法のボタン名も「Manage billing」に合わせた（`tests/tokushoho-label.test.ts`）。

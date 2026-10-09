@@ -14,7 +14,14 @@ const ja = {
     invalid: "メールアドレスを確認してください。",
     limited: "しばらく時間をおいてから再度お試しください。",
   },
-  price: { oneTime: "買い切り", month: "/月", year: "/年", popular: "おすすめ", taxIncl: "（税込）" },
+  price: {
+    oneTime: "買い切り",
+    month: "/月",
+    year: "/年",
+    popular: "おすすめ",
+    taxIncl: "（税込）",
+    comingSoon: { month: "月払いは準備中", year: "年払いは準備中", oneTime: "準備中" },
+  },
   confirm: {
     title: "ご購入前の最終確認",
     price: "価格",
@@ -90,7 +97,14 @@ const en: Dict = {
     invalid: "Please check your email address.",
     limited: "Too many attempts. Please try again later.",
   },
-  price: { oneTime: "one-time", month: "/mo", year: "/yr", popular: "Popular", taxIncl: "" },
+  price: {
+    oneTime: "one-time",
+    month: "/mo",
+    year: "/yr",
+    popular: "Popular",
+    taxIncl: "",
+    comingSoon: { month: "Monthly billing coming soon", year: "Annual billing coming soon", oneTime: "Coming soon" },
+  },
   confirm: {
     title: "Before you buy",
     price: "Price",

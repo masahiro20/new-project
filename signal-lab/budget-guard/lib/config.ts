@@ -22,6 +22,8 @@ const planSchema = z
     interval: z.enum(["month", "year"]).optional(),
     features: z.array(text(120)).default([]),
     highlight: z.boolean().default(false),
+    /** Shown but not for sale yet: no buy button, refused by /api/checkout and the demo checkout. */
+    comingSoon: z.boolean().default(false),
   })
   .refine((p) => (p.mode === "subscription") === (p.interval !== undefined), {
     message: "interval is required for subscription plans and not allowed for payment plans",
@@ -116,6 +118,12 @@ export const ACCESS_COOKIE = `${config.slug}_access`;
 
 export function getPlan(id: string): Plan | undefined {
   return config.pricing.plans.find((p) => p.id === id);
+}
+
+/** A plan that can be bought now (exists and isn't "coming soon"). */
+export function purchasablePlan(id: string): Plan | undefined {
+  const plan = getPlan(id);
+  return plan && !plan.comingSoon ? plan : undefined;
 }
 
 export const toMajorUnits = (amount: number, currency = config.pricing.currency) => (ZERO_DECIMAL.has(currency) ? amount : amount / 100);

@@ -43,6 +43,7 @@ export function mapSubscriptionStatus(status: Stripe.Subscription.Status): Entit
 }
 
 export async function createCheckoutUrl(plan: Plan, opts: { email?: string; consent?: ConsentRecord } = {}): Promise<string> {
+  if (plan.comingSoon) throw new Error(`plan "${plan.id}" is not available yet`); // e.g. yearly: not verified with Stripe
   // The consent given on /pricing travels with the session and lands on the entitlement.
   const metadata = {
     product: config.slug,

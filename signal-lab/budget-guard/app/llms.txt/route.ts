@@ -7,7 +7,7 @@ export const dynamic = "force-static";
 export function GET() {
   const base = siteUrl();
   const plans = config.pricing.plans
-    .map((p) => `- ${p.label}: ${formatAmount(p.amount)}${p.interval ? ` / ${p.interval}` : ""}`)
+    .map((p) => (p.comingSoon ? `- ${p.label}: coming soon (not for sale yet)` : `- ${p.label}: ${formatAmount(p.amount)}${p.interval ? ` / ${p.interval}` : ""}`))
     .join("\n");
   const body = `# ${config.name}
 

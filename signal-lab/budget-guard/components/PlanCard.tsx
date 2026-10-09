@@ -8,6 +8,16 @@ import { WaitlistForm } from "./WaitlistForm";
 /** One pricing plan. In waitlist mode the buy button becomes a waitlist form. */
 export function PlanCard({ plan }: { plan: Plan }) {
   const sub = plan.mode === "subscription" && plan.interval;
+  if (plan.comingSoon) {
+    // Not for sale yet (product.config.ts): no price, no buy button. The API refuses it too.
+    return (
+      <div className="card plan" data-testid={`plan-${plan.id}-coming-soon`}>
+        <h3>{plan.label}</h3>
+        <p className="hint"><strong>{t.price.comingSoon[sub ? plan.interval! : "oneTime"]}</strong></p>
+        {plan.features.length > 0 && <ul>{plan.features.map((f) => <li key={f}>{f}</li>)}</ul>}
+      </div>
+    );
+  }
   return (
     <div className={`card plan${plan.highlight ? " highlight" : ""}`}>
       {plan.highlight && <span className="badge">{t.price.popular}</span>}

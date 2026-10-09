@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { badRequest, forbiddenOrigin, json, readJson, sameOrigin } from "@/lib/api";
-import { formatAmount, getPlan } from "@/lib/config";
+import { formatAmount, getPlan, purchasablePlan } from "@/lib/config";
 import { CONSENT_REQUIRED_ERROR, hasConsentFlag, newConsent } from "@/lib/consent";
 import { t } from "@/lib/i18n";
 import { DEMO_CHECKOUTS_PER_DAY, getDemoCheckout, isDemoCheckoutId, payDemoCheckout } from "@/lib/payments/demo";
@@ -50,6 +50,9 @@ export async function POST(request: Request) {
   if (Number(await kv.get(paidToday)) >= DEMO_CHECKOUTS_PER_DAY) {
     return json({ error: "本日のデモ購入の受付は終了しました。明日もう一度お試しください / Demo sign-ups are closed for today." }, 429);
   }
+  // A checkout of a plan that is "coming soon" (e.g. yearly) can't be paid, even if one was created earlier.
+  const pending = await getDemoCheckout(kv, id);
+  if (pending && !purchasablePlan(pending.planId)) return badRequest("このプランはまだ購入できません / This plan is not available yet.");
   const rawEmail = String(body.email ?? "").trim().toLowerCase();
   const email = rawEmail ? emailSchema.safeParse(rawEmail) : null;
   if (email && !email.success) return badRequest("メールアドレスを確認してください / Check the email address.");

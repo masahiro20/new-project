@@ -5,7 +5,9 @@ import { config, formatAmount, hasSubscription } from "@/lib/config";
 export const metadata: Metadata = { title: "特定商取引法に基づく表記", robots: { index: false } };
 
 const L = config.legal;
+// Only plans for sale now (a "coming soon" plan has no price to state yet).
 const prices = config.pricing.plans
+  .filter((p) => !p.comingSoon)
   .map((p) => `${p.label}：${formatAmount(p.amount, config.pricing.currency, "ja")}${p.interval ? (p.interval === "month" ? "／月" : "／年") : ""}（税込）`)
   .join("\n");
 

@@ -31,7 +31,7 @@ import { ProviderHttpError } from "@/lib/guard/providers";
 import { redactSecrets } from "@/lib/guard/redact";
 import { resetCronMemory, runCronSlice } from "@/lib/guard/cron";
 import { checkConnectionLocked, providerFetch } from "@/lib/guard/service";
-import { addConnection, appendLog, getConnection, getLog, getState, removeConnection, saveState, updateConnection } from "@/lib/guard/store";
+import { addConnection, appendLog, DEMO_INDEX_MAX, getConnection, getLog, getState, removeConnection, saveState, updateConnection } from "@/lib/guard/store";
 import { createDemoCheckout, DEMO_CHECKOUTS_PER_DAY } from "@/lib/payments/demo";
 import { createMemoryKV, getKV, upstashErrorMessage } from "@/lib/redis";
 
@@ -609,5 +609,35 @@ describe("R2-05: a Stripe purchase doesn't take over the email index of a valid 
     await setStatus(kv, paid, "canceled");
     await upsertEntitlement(kv, { id: "demo_laterBBBBBBBBBBBBBBBBB", email: "x@example.com", plan: "monthly", source: "demo" });
     expect((await findByEmail(kv, "x@example.com"))?.id).toBe("cs_test_paidX");
+  });
+});
+
+describe("Atlas re-check (d660cbf): info items", () => {
+  it("#2 'do-not-use' values and runs of consecutive characters / bytes are refused in production", () => {
+    const prod = { NODE_ENV: "production", PAYMENTS_MODE: "demo" };
+    expect(() => accessSecret({ ...prod, ACCESS_SECRET: "signal-lab-dev-secret-do-not-use-in-production-0001" })).toThrow(/placeholder/);
+    expect(() => accessSecret({ ...prod, ACCESS_SECRET: "abcdefghijklmnopqrstuvwxyz0123456789" })).toThrow(/consecutive/);
+    expect(() => accessSecret({ ...prod, ACCESS_SECRET: "0123456789:;<=>?@ABCDEFGHIJKLMNOPQRS" })).toThrow(/consecutive/);
+    const seqKey = Buffer.from(Array.from({ length: 32 }, (_, i) => i)).toString("base64");
+    expect(() => encryptionKey({ ...prod, TOKEN_ENCRYPTION_KEY: seqKey } as NodeJS.ProcessEnv)).toThrow(/consecutive bytes/);
+    // Random values pass (many draws: a false positive would show here).
+    for (let i = 0; i < 200; i++) {
+      expect(accessSecret({ ...prod, ACCESS_SECRET: randomBytes(32).toString("base64url") }).length).toBeGreaterThan(0);
+      expect(encryptionKey({ ...prod, TOKEN_ENCRYPTION_KEY: randomBytes(32).toString("base64") } as NodeJS.ProcessEnv).length).toBe(32);
+    }
+  });
+
+  it("#5 the demo index is capped: at DEMO_INDEX_MAX, adding a demo connection is refused (503)", async () => {
+    const kv = getKV();
+    const { entitlement } = await upsertEntitlement(kv, { id: "cs_test_cap5", email: "cap5@example.com", plan: "monthly", source: "stripe", consent: newConsent("checkout") });
+    const cookie = await signAccessToken({ sub: entitlement.id, plan: entitlement.plan });
+    const filler = Array.from({ length: DEMO_INDEX_MAX }, (_, i) => `acct_fill|conn_${i.toString(16).padStart(16, "0")}`);
+    await kv.sadd("budget-guard:bg:democonns", ...filler);
+    const body = { provider: "openai", label: "demo-cap", budgetUsd: "100", projectId: "proj_1", token: "demo", consent: true };
+    expect((await addConn(req("/api/app/connections", { body, cookie }))).status).toBe(503);
+    await kv.srem("budget-guard:bg:democonns", ...filler); // room again (the cron / retention sweep frees it)
+    const fresh = req("/api/app/connections", { body, cookie });
+    fresh.headers.set("x-forwarded-for", "10.55.0.1"); // the R1-10 test above used up the default IP's attempts
+    expect((await addConn(fresh)).status).toBe(201);
   });
 });

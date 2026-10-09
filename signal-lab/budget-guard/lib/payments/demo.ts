@@ -1,6 +1,6 @@
 import { CROCKFORD } from "../license";
 import type { ConsentRecord } from "../consent";
-import { getPlan } from "../config";
+import { getPlan, purchasablePlan } from "../config";
 import { getEntitlement, setStatus, type Entitlement } from "../entitlements";
 import { getJSON, getKV, key, setJSON, type KV } from "../redis";
 import { validateCard, type CardInput } from "./card";
@@ -44,6 +44,7 @@ function newDemoId(): string {
 
 export async function createDemoCheckout(kv: KV, planId: string, email?: string, consent?: ConsentRecord): Promise<DemoCheckout> {
   if (!getPlan(planId)) throw new Error(`unknown plan "${planId}"`);
+  if (!purchasablePlan(planId)) throw new Error(`plan "${planId}" is not available yet`);
   const record: DemoCheckout = { id: newDemoId(), planId, email: email || DEMO_EMAIL, status: "pending", createdAt: new Date().toISOString(), ...(consent && { consent }) };
   await setJSON(kv, recordKey(record.id), record, { ex: PENDING_TTL_SECONDS });
   return record;

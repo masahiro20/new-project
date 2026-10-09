@@ -31,7 +31,19 @@ const PUBLISHED = new Set([
 ]);
 /** sha256 of the published values, to also catch them base64-decoded (keys). */
 const PUBLISHED_KEYS = new Set([createHash("sha256").update("budget-guard-dev-only-key").digest("hex")]);
-const PLACEHOLDER = /dummy|change[-_ ]?me|replace[-_ ]?me|__generate|example|placeholder|xxxx|not[-_ ]a[-_ ]real|your[-_ ]?(secret|token|key)/i;
+const PLACEHOLDER = /dummy|change[-_ ]?me|replace[-_ ]?me|__generate|example|placeholder|xxxx|not[-_ ]a[-_ ]real|do[-_ ]?not[-_ ]?use|your[-_ ]?(secret|token|key)/i;
+
+/**
+ * Runs of consecutive codes (abcdef…, 0123…, bytes 00 01 02…): at least half of the neighbouring
+ * pairs step by exactly +1 or −1. A random value has about 1 such pair in 32 (bytes: 1 in 128), so
+ * this costs nothing for real secrets and catches hand-typed sequences (Atlas re-check #2).
+ */
+export function isSequential(codes: ArrayLike<number>): boolean {
+  if (codes.length < 8) return false;
+  let steps = 0;
+  for (let i = 1; i < codes.length; i++) if (Math.abs(codes[i] - codes[i - 1]) === 1) steps++;
+  return steps >= (codes.length - 1) / 2;
+}
 
 function weakString(value: string, min = MIN_SECRET_LENGTH): string | null {
   if (!value.trim()) return "is empty";
@@ -39,6 +51,7 @@ function weakString(value: string, min = MIN_SECRET_LENGTH): string | null {
   if (PLACEHOLDER.test(value)) return "looks like a placeholder";
   if (value.length < min) return `is shorter than ${min} characters`;
   if (new Set(value).size < 10) return "has too few distinct characters";
+  if (isSequential([...value].map((c) => c.charCodeAt(0)))) return "is a run of consecutive characters";
   return null;
 }
 
@@ -49,6 +62,7 @@ export function keyProblem(raw: string): string | null {
   if (key.length !== 32) return "must be 32 bytes, base64-encoded";
   if (PUBLISHED.has(raw) || PUBLISHED_KEYS.has(key.toString("hex"))) return "is a published example value";
   if (new Set(key).size < 8) return "is not random (too few distinct bytes)";
+  if (isSequential(key)) return "is not random (a run of consecutive bytes)";
   return null;
 }
 

@@ -9,7 +9,7 @@
 この節はオーナー向けの説明で、LP には載せない。LP の本文（英語）は海外の顧客向けなので英語のまま。
 
 - **ステータス：** オーナー／本部レビュー用の下書き。未公開。
-- **価格は案：** 下の Pricing の金額（Monthly $9／月、Yearly $79／年）は **案で、承認待ち**。確定ではない。
+- **価格は案：** 下の Pricing の金額（Monthly $9／月）は **案で、承認待ち**。確定ではない。Yearly は「年払いは準備中」で、購入できない（Stripe での年払いを一度も確かめていないため。2026-10-09 のピーターの判断）。
 - **出典：** 主張の根拠は `README.md`、`product.config.ts`、`lib/guard/info.ts`、`docs/provider-apis.md`。
 - **守ったルール：** 実績の数字・ユーザー数・推薦文・ロゴは出さない。未実装の機能は「Coming later」にだけ書く。
 
@@ -24,7 +24,7 @@
 | Safety | テストモードが既定。ライブ化には 3 つの確認（リクエスト一覧・5 分で切れる署名付き確認・ラベル入力）。戻すのはワンクリック。失敗は記録・通知・再試行。トークンは AES-256-GCM で暗号化。最小権限の発行手順を案内。正直な注意：どの社にも読み取り専用のコストキーはない。 |
 | How it compares | 各社の標準機能との比較表。1 社だけなら標準の上限から始めるべきと明記。Budget Guard の違いは、複数社の一元表示、事前にテストできる停止、細かい対象指定。標準機能の方が優れる点（プロバイダ側で強制、毎時より速い、第三者に管理キーを渡さない）も書いている。 |
 | Alerts | 80% でメール（接続ごとに月 1 回）、Slack の incoming webhook、Vercel Spend Management の webhook で即時チェック。Vercel の通知だけでは止めず、その場で利用額を取り直して Budget Guard の予算で判定する。Vercel の 100% 通知だけで止めたい人は、接続ごとのオプトイン「Vercel の 100% 通知でも止める」をオンにする（初期値はオフ。オンにするには live への切り替えと同じ確認が要る）。 |
-| Pricing | **案・承認待ち。** Monthly $9／月（監視接続 3 つまで、毎時チェック、80% 通知と 100% 停止、テストモード）、Yearly $79／年（2 か月分お得）。いつでも解約でき、支払済み期間の終わりまで使える。 |
+| Pricing | **案・承認待ち。** Monthly $9／月（監視接続 3 つまで、全利用者の接続数の合計に応じて 1〜12 時間ごとに確認（合計 50 接続までは毎時）、80% 通知と 100% 停止、テストモード）。Yearly は「年払いは準備中」で購入できない。いつでも解約でき、支払済み期間の終わりまで使える。 |
 | FAQ | 必要なキー、管理者キーが要る理由、データの鮮度（日単位・途中集計）、100% で即止まるわけではないこと、通知だけの使い方、テストモードの中身、停止の戻し方（ユーザー自身が操作、ワンクリック復旧は未実装）、月替わりの動作、保存するデータと削除、標準機能の代わりではないこと。 |
 | Coming later | 未実装：ワンクリック復旧、利用状況グラフ、Slack 以外の汎用 webhook、対応プロバイダの追加（例：Cloudflare、GCP。範囲は未定）。 |
 | Final CTA | 次の想定外の請求の前に、ハードな停止を。初期段階の製品なので、ウェイトリストに登録してもらい、準備ができたら招待する。使い捨てのプロジェクトでテストモードから試せる。 |
@@ -126,10 +126,12 @@ The providers' own controls are good, and they're free. If you only use one prov
 
 | Plan | Price | Includes |
 |---|---|---|
-| **Monthly** | **$9 / month** | Up to 3 monitored connections · Hourly checks · 80% alert + 100% stop action · Test mode for every stop |
-| **Yearly** | **$79 / year** | Everything in Monthly · Two months free |
+| **Monthly** | **$9 / month** | Up to 3 monitored connections · Checked every 1–12 hours depending on total load (hourly up to 50 connections across all users) · 80% alert + 100% stop action · Test mode for every stop |
+| **Yearly** | *Annual billing coming soon* | Everything in Monthly (not for sale yet) |
 
-Cancel anytime from Billing. You keep access until the end of the paid period.
+Cancel anytime from Manage billing. You keep access until the end of the paid period.
+
+<!-- The check-frequency phrase is checkCadence() in lib/guard/schedule.ts (built from CHECK_INTERVAL_TIERS); tests/pricing.test.ts fails if this copy differs. -->
 
 ---
 

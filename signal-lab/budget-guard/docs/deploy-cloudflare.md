@@ -98,7 +98,7 @@ Worker の `process.env` には、wrangler の vars と secrets がリクエス�
 | `ACCESS_SECRET` | ★ | secret | 32 文字以上で、ランダムな値（`openssl rand -base64 32`）。§3.1 の規則で検査する |
 | `TOKEN_ENCRYPTION_KEY` | ★ | secret | 32 バイトのランダムな値を base64 で（`openssl rand -base64 32`）。§3.1 |
 | `TOKEN_ENCRYPTION_KEY_PREVIOUS` | — | secret | 鍵のローテーション用。以前の鍵（カンマ区切り、それぞれ 32 バイトの base64）。復号にだけ使う。全接続を新しい鍵で保存し直したら消す。§3.1 |
-| `NODE_ENV` | — | `wrangler.jsonc` の vars（`production`） | Worker の実行時には誰も設定しないため（OpenNext はビルド時に文字どおりの `process.env.NODE_ENV` を置き換えるだけ）、vars で入れる。`cf-prelude.ts` でも未設定なら `production` にする（R1-11） |
+| `NODE_ENV` | — | `wrangler.jsonc` の vars（`production`） | Worker の実行時には誰も設定しないため（OpenNext はビルド時に文字どおりの `process.env.NODE_ENV` を置き換えるだけ）、vars で入れる。`cf-prelude.ts` でも、未設定なら `production` にする（R1-11）。**`production` 以外は禁止**：development・test にすると秘密の値の検査がすべて外れるので、Worker は `production` 以外の値を見ると起動時チェックで拒否する（全リクエスト 500、cron は失敗として記録）。vars や secret で `NODE_ENV` を上書きしないこと |
 | `CRON_SECRET` | ★ | secret | `/api/cron/check`（Vercel の cron、手動実行）の認証。Cloudflare の `scheduled()` はルートを通らないので使わない |
 | `CRON_BATCH_SIZE` | — | `wrangler.jsonc` の vars（`2`） | 1 回の cron で調べる接続数。**Vercel では設定しない**（未設定なら 1 回で全件。Vercel の cron は毎時 1 回だけなので） |
 | `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | ★（推奨） | secret | 未設定ならメモリ上の KV（`PAYMENTS_MODE=demo` のときだけ許可。§5） |
@@ -142,6 +142,15 @@ npx wrangler secret put CRON_SECRET
 npx wrangler secret put UPSTASH_REDIS_REST_URL
 npx wrangler secret put UPSTASH_REDIS_REST_TOKEN
 ```
+
+### 3.2 以前の例の鍵で動かしていた環境の移行
+`.dev.vars.example` の以前の値（全ゼロの `TOKEN_ENCRYPTION_KEY`、`local-dummy-…` の `ACCESS_SECRET`・`CRON_SECRET`）は公開されている。この値で動かしていた環境は、今のコードでは起動しない（§3.1）。
+
+1. **鍵が公開されていた前提で扱う。** その鍵で暗号化して保存したトークン・Slack の URL・Vercel webhook の秘密は、KV を読めた人なら誰でも復号できた。
+2. **各社で、接続に使っていたキーを失効させる。** Vercel はトークンを削除する。OpenAI・Anthropic は Admin キーを revoke する。Slack は incoming webhook を作り直す。Vercel の Spend Management の webhook の秘密も作り直す。
+3. **新しい秘密の値を入れる。** `openssl rand -base64 32` で `ACCESS_SECRET`・`TOKEN_ENCRYPTION_KEY`・`CRON_SECRET` を作り、`wrangler secret put` する。`TOKEN_ENCRYPTION_KEY_PREVIOUS` には古い鍵を**入れない**（公開された鍵で復号できる状態を残さないため。全ゼロの鍵はどのみち拒否される）。
+4. **接続を作り直す。** 保存済みのトークンは新しい鍵では復号できない。cron はその接続を `tokenErrors` として数え、呼び出しを失敗にする（R1-01）。利用者に、接続を削除して、新しいキーで追加し直してもらう。Slack の URL と webhook の秘密も入れ直してもらう。
+5. **全員のセッションが切れる。** `ACCESS_SECRET` が変わると、発行済みの Cookie は無効になる。ライセンスキーかマジックリンクで入り直してもらう（公開された値で偽造された Cookie も、これで無効になる）。
 
 ## 4. バンドルサイズ（2026-10-09 計測、`npm run cf:size`）
 | 状態 | Total Upload（非圧縮） | gzip |
@@ -323,6 +332,9 @@ curl "localhost:8787/cdn-cgi/handler/scheduled?cron=*+*+*+*+*&time=1893456001000
 - cron は毎分、1 回 2 件。空振りの分は、すべて新しい isolate（1 コマンド）とする最悪の場合。すべての確認を、通知ありと同じコストで数える。
 - 人数 ＝ 接続数 ÷ 2。1 人が 1 日 10 回ダッシュボードを開く（API＋ページビュー）。
 - demo のトークンの接続（`bg:democonns`）は、1 時間に最大 2 件を確認する分を常に足す（demo のトークンが使えない本番では 0 件だが、安全側に数える）。
+- demo の索引は最大 600 件（`DEMO_INDEX_MAX`）。cron が索引から外せるのは 1 日 48 件（1 時間に 2 件）まで。一方、demo の接続は 1 日最大 150 件（デモ購入 50 件 × 3 接続）増えうる。上限が無いと、毎時の `SMEMBERS` で読む索引が増え続ける（Atlas の再確認 #5）。
+  - 上限に達すると、demo のトークンでの接続の追加を 503 で断る。
+  - 空きは、cron が試用の終わった接続を外すか、保存期間の掃除（アカウントの削除）でできる。
 - LP のページビューは 1 日 1,000 回。
 - 数えていないもの：購入、ログイン、「Check now」、Vercel webhook（いずれも 1 回 数〜10 コマンド程度）。
 
@@ -490,6 +502,39 @@ cron の列には、demo の接続の確認（1 時間に最大 2 件、最悪�
 
 - 起動時間：`wrangler check startup` で、待ち時間を除く CPU は約 135 ms（`(program)` を含めて約 185 ms）。チェックが動くようになっても、上限の 1 秒に対して十分小さい。
 - 正常な設定のときも、`StaticAssetsIncrementalCache: Failed to set to read-only cache` が出る。今回の変更の前からあり、静的ページのキャッシュを書き込めないという通知で、表示には影響しない。
+
+### 8.2.2 セキュリティヘッダー（CSP など）
+- **付けるもの：**
+  - `Content-Security-Policy`
+  - `X-Content-Type-Options: nosniff`
+  - `Referrer-Policy: same-origin`（`app/layout.tsx` の `<meta name="referrer">` と同じ）
+  - `Permissions-Policy`（camera・microphone・geolocation・payment・usb・browsing-topics を無効）
+  - `X-Frame-Options: DENY`
+  - 中身は `lib/security-headers.mjs` にまとめた。
+- **CSP の方式（nonce ではなく hash）：**
+  - nonce は使っていない。全ページが静的（ビルド時に生成）で、nonce を入れる「リクエストごとの描画」が無いため。Next.js の nonce は動的な描画のときだけ付く（`node_modules/next/dist/docs/01-app/02-guides/content-security-policy.md`）。
+  - nonce のために全ページを動的にすると、無料プランの 10 ms CPU をページの表示ごとに使う。
+  - 代わりに、各ページのインラインスクリプト（Turbopack の起動と RSC のデータ）の sha256 を、ビルドした HTML から**ページごとに**計算して、`script-src` に並べる。スクリプトに `'unsafe-inline'` は使わない。
+  - HTML の `style` 属性（`<html>` の CSS 変数など）は、`style-src-attr 'unsafe-hashes'` に hash を並べて許可する。エラーページの `<style>` は `style-src-elem` に hash を並べる。
+- **CSP の中身：**
+  - `default-src 'self'`
+  - 外部への接続先は無い。画像・フォント・fetch はすべて同じオリジン。
+  - `form-action` には `https://billing.stripe.com` だけを足した。「Manage billing」のフォームが `/api/portal` に送られ、Stripe の請求ポータルへ 303 でリダイレクトするため。Stripe Checkout へは、スクリプトでページを移るだけなので、CSP の対象外。
+  - `frame-ancestors 'none'`、`object-src 'none'`、`base-uri 'none'`。
+  - `upgrade-insecure-requests` は付けない。ローカルの http（`next start`、workerd）で、同じオリジンの読み込みが https に変わって壊れるため。本番はどちらのホスティングも https だけ。
+  - API の応答とファイルには、何も読み込ませない CSP（`default-src 'none'; frame-ancestors 'none'; …`）を付ける。
+- **付け方（どの経路で返るページにも付くように）：**
+  - **Vercel・`next start`：** `npm run build` のあとに `scripts/security-headers.mjs next` が、ヘッダーの規則を `.next/routes-manifest.json` に書く。Next.js と Vercel は、静的ページを含むすべての応答にこの規則を当てる。規則の順番：全体（共通のヘッダー＋404 用の CSP）→ `/api/*` → 各ページ。同じ名前のヘッダーは後の規則が勝つので、1 つの応答に CSP は 1 つだけになる。
+  - **Cloudflare：** `npm run build:cf` のあとに `scripts/security-headers.mjs cf` が、`.open-next/security-headers.json`（ページごとの CSP）を書く。`cf-worker.ts` が、Worker のすべての応答（キャッシュから返すページも）にヘッダーを付ける。Worker を通らずに静的アセット（`/_next/static/…`、画像）として返るファイルには、`.open-next/assets/_headers` で付ける。
+- **注意：hash はビルドした HTML から作る。**
+  - ページを実行時に描き直すと（キャッシュに無いとき）、インラインスクリプトの中身が変わり、CSP がそれを止めてしまう。
+  - Cloudflare では、静的ページのキャッシュ（`cdn-cgi/_next_cache`）を、`opennextjs-cloudflare deploy`・`preview`・`populateCache` が入れる。`npm run deploy` か `npm run preview` を使うこと。`wrangler dev` を直接使うときは、先に `npx opennextjs-cloudflare populateCache local` を実行する。
+  - 実行時に描いたページ（`x-nextjs-cache: MISS`）を見つけると、Worker はログに `[csp] …` と出す。
+- **確かめたこと**（2026-10-09、Playwright・Chromium）：`next start` と workerd（キャッシュを入れたもの）の両方で、次を通した。
+  - 全ページ：`/`、`/pricing`、`/access`、`/success`、`/app`、`/app/c`、`/checkout/demo`、`/checkout/demo/portal`、`/legal/*`、404。
+  - 流れ：デモ購入 → ライセンスでログイン → ダッシュボード → 接続の追加 → 停止の画面（テスト実行、live への切り替え、Vercel 100% のオプトインのオンとオフ）→「Manage billing」→ デモの請求管理。
+  - 結果：どの文書にも 4 つのヘッダーが付いていた。CSP 違反は 0 件、コンソールのエラーは 0 件（未ログインの 401 など、想定どおりのものを除く）。
+  - 逆の確認：インラインのスクリプトを差し込むと、`script-src-elem` で止まる。
 
 ### 8.3 制限の一覧
 | 制限（Free） | 値 | この app への影響 |

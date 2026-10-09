@@ -1072,9 +1072,11 @@ select{border:1px solid var(--line);border-radius:4px;background:var(--surface);
   var DEMO_YY = 26, DEMO_MM = 10; // demo clock: 2026-10
   var PLANS = {
     monthly: { name: 'Monthly', price: '$9', per: '/月', perLong: '月額 $9', renew: function () { return '2026-11-' + pad(S.day); },
-      feats: ['監視する接続 3つまで', '毎時チェック', '80%通知 + 100%で停止', 'すべての停止にテストモード'] },
-    yearly: { name: 'Yearly', price: '$79', per: '/年', perLong: '年額 $79', renew: function () { return '2027-10-' + pad(S.day); },
-      feats: ['Monthly のすべて', '2か月分お得'] }
+      // 確認の頻度の文言は lib/guard/schedule.ts の checkCadenceJa() と同じ（tests/pricing.test.ts で確かめる）
+      feats: ['監視する接続 3つまで', '全利用者の接続数の合計に応じて 1〜12 時間ごとに確認（合計 50 接続までは毎時）', '80%通知 + 100%で停止', 'すべての停止にテストモード'] },
+    // 年払いは準備中（Stripe での年払いを確かめていないため。製品の product.config.ts の comingSoon と同じ）。購入できない。
+    yearly: { name: 'Yearly', comingSoon: true, price: '', per: '', perLong: '年払いは準備中', renew: function () { return '2027-10-' + pad(S.day); },
+      feats: ['Monthly のすべて'] }
   };
   var payTimer = null;
 
@@ -1148,6 +1150,7 @@ select{border:1px solid var(--line);border-radius:4px;background:var(--surface);
     }
     if (a === 'buy-monthly' || a === 'buy-yearly') {
       if (S.plan.tier !== 'free') return;
+      if (PLANS[a.slice(4)].comingSoon) return; // 年払いは準備中
       b.pick = a.slice(4); b.view = 'checkout'; b.manage = false; b.confirmCancel = false;
       clearCheckout(); renderBilling();
       $('checkout-form').scrollIntoView({ block: 'nearest' });
@@ -1250,6 +1253,7 @@ select{border:1px solid var(--line);border-radius:4px;background:var(--surface);
           '<div class="price">' + price + (per ? '<small>' + per + '</small>' : '') + '</div><ul>' + feats.map(function (f) { return '<li>' + f + '</li>'; }).join('') + '</ul>' + btn + '</div>';
       };
       var buyBtn = function (tier) {
+        if (PLANS[tier] && PLANS[tier].comingSoon) return '<button class="btn" type="button" disabled id="buy-' + tier + '">準備中</button>';
         if (pl.tier === tier) return '<button class="btn" type="button" disabled id="buy-' + tier + '">利用中</button>';
         if (paid) return '<button class="btn" type="button" disabled id="buy-' + tier + '" title="解約後に購入できます">購入(解約後)</button>';
         return '<button class="btn primary" type="button" data-bill="buy-' + tier + '" id="buy-' + tier + '">購入</button>';
@@ -1257,8 +1261,8 @@ select{border:1px solid var(--line);border-radius:4px;background:var(--surface);
       plans = '<div class="plans">' +
         card('free', '無料', '$0', '', ['80%のメール・Slack通知', '停止の実行はなし(通知のみ)'], '') +
         card('monthly', 'Monthly', '$9', '/月', PLANS.monthly.feats, buyBtn('monthly')) +
-        card('yearly', 'Yearly', '$79', '/年', PLANS.yearly.feats, buyBtn('yearly')) +
-        '</div><p class="note">料金は案で、承認待ちです。製品ではいつでも Billing から解約できます。</p>';
+        card('yearly', 'Yearly', '<small>年払いは準備中</small>', '', PLANS.yearly.feats, buyBtn('yearly')) +
+        '</div><p class="note">料金は案で、承認待ちです。年払いは準備中で、まだ購入できません。製品ではいつでも「Manage billing」から解約できます。</p>';
     }
     $('bill-plans').innerHTML = plans;
 

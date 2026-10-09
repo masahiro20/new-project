@@ -46,11 +46,11 @@
 | 低 | demo のトークンの拒否が「cannot open token」と記録され、鍵の喪失（R1-01）と見分けがつかない | 取り込み（提案を実装） | 復号できたのに使えないトークンは、`token refused`（warn）と記録する。cron の `tokenErrors`（運営者への警報）にも数えない。鍵の喪失は今までどおり `cannot open token`（error） |
 | 低 | ライセンスでのログインで、Stripe に届かないと 500 | 取り込み（提案を実装） | 503 と「少し待って再試行」を返す。間違ったキーのたびに Stripe を検索する点は、IP ごとに 10 分 10 回の制限があるので、そのままにした |
 | 低 | 自前ホストの `next start` では、`x-forwarded-for` を変えてレート制限を回避できる | 提案のまま | Vercel と Cloudflare（`cf-connecting-ip` に固定）では影響がない。自前ホストは想定していない。自前ホストに広げるときに、README に注意書きを足す |
-| 低 | LP の「Hourly checks」と、最長 12 時間に延びる実装が合っていない | 提案のまま（オーナーの判断待ち） | 料金表は「案・承認待ち」（docs/lp.md）なので、文言はオーナーが決める。規約には最長 12 時間と書いてある。案：「Hourly checks (up to every 12 hours at high load)」 |
-| 低 | 料金の「Two months free」が実際の差額（$29、約 3.2 か月分）と合わない | 提案のまま（オーナーの判断待ち） | 同上。案：「Save $29 a year」 |
-| 情報 | 特商法の解約方法の「Billing」と、実際のボタン名「Manage billing」が違う | 提案のまま | 法務文書なので、ライターに回す（コーディネーター経由） |
+| 低 | LP の「Hourly checks」と、最長 12 時間に延びる実装が合っていない | ピーターの判断で対応済み | 料金表の文言を、段階表（`CHECK_INTERVAL_TIERS`）から作るようにした（`checkCadence()`）。今は「Checked every 1–12 hours depending on total load (hourly up to 50 connections across all users)」。50 接続は全利用者の合計と明記した。段階を変えると文言も変わる。docs/lp.md と体験デモの写しは、テストで一致を確かめる |
+| 低 | 料金の「Two months free」が実際の差額（$29、約 3.2 か月分）と合わない | ピーターの判断で対応済み | 文言は削除した。Stripe での年払いを一度も確かめていないため、Yearly は「Annual billing coming soon」（年払いは準備中）として購入できなくした（プランの `comingSoon`。`/api/checkout` とデモ決済も 400 で拒否） |
+| 情報 | 特商法の解約方法の「Billing」と、実際のボタン名「Manage billing」が違う | リーダーの判断で対応済み | `product.config.ts` の解約方法を「ダッシュボード上部の「Manage billing」」にした。ボタンの文言（`t.access.billing`）と一致することをテストで確かめる。docs/lp.md の「Cancel anytime from Billing」も直した |
 | 情報 | プライバシーポリシーの「ライセンスキーは残さない」と、Stripe の customer metadata に残ることが合わない | 提案のまま（専門家確認） | privacy.ts はライターの担当。コーディネーター経由で回す |
-| 情報 | 応答ヘッダーに CSP・frame-ancestors が無く、停止ページを iframe に埋め込める | 提案のまま | 停止の操作は、署名付きの確認とラベルの入力が要るので、クリックジャッキングだけでは実行できない。Cloudflare では静的ページを Workers の外の Assets が返すので、`next.config.ts` だけでは全ページに付かない。`_headers` と合わせて別の作業で入れる |
+| 情報 | 応答ヘッダーに CSP・frame-ancestors が無く、停止ページを iframe に埋め込める | リーダーの判断で対応済み | 全ページに CSP（ページごとの hash、`frame-ancestors 'none'`）、`nosniff`、`Referrer-Policy`、`Permissions-Policy` を付けた。Cloudflare では Worker と `_headers` で付けるので、静的ページにも付く（docs/deploy-cloudflare.md §8.2.2） |
 | 情報 | demo の portal で解約すると、即時に使えなくなる（規約は「期間末日まで」） | 提案のまま | 試用なので許容（Ren の判定どおり） |
 
 ## 3. 確認
