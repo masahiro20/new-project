@@ -342,8 +342,9 @@ export function mountShare() {
       status.textContent = '共有できませんでした。画像を長押し（右クリック）で保存してください。';
     }
   });
-  dl.addEventListener('click', () => {
-    if (file) saveBlob(file, CARD_FILENAME);
+  dl.addEventListener('click', async () => {
+    if (!file) return;
+    if (!(await saveBlob(file, CARD_FILENAME))) status.textContent = '保存しませんでした。画像を長押し（右クリック）でも保存できます。';
   });
 
   return {

@@ -125,11 +125,27 @@ export function failedWords(session) {
 
 // ---------- saving files ----------
 /** Downloads work in a top-level page (PWA, normal browser), not in the sandboxed Artifact iframe. */
+// In the claude.ai artifact viewer, plain downloads are blocked; the `downloads`
+// capability asks the viewer to confirm a save instead. Elsewhere (PWA, plain
+// browser) a top-level page uses an <a download> link.
+let hostSaver = null;
+export const saverReady = (async () => {
+  try {
+    if (typeof window !== 'undefined' && window.claude?.use) hostSaver = await window.claude.use('downloads');
+  } catch { hostSaver = null; }
+  return hostSaver;
+})();
+
 export function downloadCapable() {
+  if (hostSaver) return true;
   try { return window.top === window.self && typeof document.createElement('a').download === 'string'; } catch { return false; }
 }
 
-export function saveBlob(blob, name) {
+/** Save a file. Resolves true when handed over, false when declined/unavailable. */
+export async function saveBlob(blob, name) {
+  if (hostSaver) {
+    try { await hostSaver.save({ filename: name, data: blob }); return true; } catch { return false; }
+  }
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -139,6 +155,7 @@ export function saveBlob(blob, name) {
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 10000);
+  return true;
 }
 
 // ---------- UI ----------
@@ -168,8 +185,8 @@ export function mountAnki(ctx) {
     return failedWords(session);
   };
   const extraTags = (s) => (s === 'pairs' ? ['pitch::minimal-pair'] : s === 'failed' ? ['pitch::failed'] : []);
-  const canDownload = downloadCapable();
-  $('anki-download').hidden = !canDownload;
+  $('anki-download').hidden = !downloadCapable();
+  saverReady.then(() => { $('anki-download').hidden = !downloadCapable(); });
   const text = $('anki-text');
 
   function refresh() {
@@ -190,10 +207,12 @@ export function mountAnki(ctx) {
 
   const tsv = () => buildAnkiTsv(pick(scope.value), { tags: extraTags(scope.value) });
 
-  $('anki-download').addEventListener('click', () => {
+  $('anki-download').addEventListener('click', async () => {
     const t = tsv();
-    saveBlob(new Blob([t], { type: 'text/plain;charset=utf-8' }), ANKI_FILENAME);
-    $('anki-status').textContent = `${ANKI_FILENAME} を保存しました。Anki の「ファイル → 読み込む」で選んでください。`;
+    const ok = await saveBlob(new Blob([t], { type: 'text/plain;charset=utf-8' }), ANKI_FILENAME);
+    $('anki-status').textContent = ok
+      ? `${ANKI_FILENAME} を保存しました。Anki の「ファイル → 読み込む」で選んでください。`
+      : '保存しませんでした。下の「テキストをコピー」も使えます。';
   });
 
   $('anki-copy').addEventListener('click', async () => {

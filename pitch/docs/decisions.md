@@ -26,3 +26,6 @@ Short, dated notes. Newest at the bottom of each section.
 
 ## 2026-10-09 — "wrong" sample avoids drops on っ/ん/ー (Kana)
 - `wrongK` no longer picks a downstep on a special mora. A drop on っ is inaudible (no F0), so after the segmentation fix (っ slots carry no pitch) such a sample is indistinguishable from flat and is not a meaningful wrong reading (筆者 [1,0] used k=2). The judge itself is unchanged by this; only which contrast the demo plays as "wrong".
+
+## 2026-10-09 — Saving files from the artifact (Kana)
+- The artifact declares the `downloads` capability; `saveBlob` uses `claude.use("downloads").save()` when present (viewer confirms), else an `<a download>` link on top-level pages (PWA/browser). Copy and image preview stay as fallbacks.
