@@ -132,7 +132,8 @@ test('removeHum：50/60 Hz のハムとその倍音を見つけて除き、ハ�
   assert.deepEqual(clean.removed, []);
   assert.equal(clean.samples, audio); // そのまま返す
   for (const f of [50, 60]) {
-    const x = audio.map((v, i) => v + hum(audio.length, f, 5, audio, 7)[i]);
+    const hm = hum(audio.length, f, 5, audio, 7);
+    const x = audio.map((v, i) => v + hm[i]);
     const r = removeHum(x, SR);
     const near = (g) => r.removed.some((h) => Math.abs(h - g) < 1);
     assert.ok(near(f) && near(2 * f) && near(3 * f) || (near(f) && near(2 * f)), `${f} Hz: ${r.removed.map((h) => h.toFixed(1))}`);
@@ -151,7 +152,8 @@ test('電源ハム SNR 5 dB でも判定できる（50 Hz は声なし、60 Hz �
   for (const f of [50, 60]) {
     for (const [kana, k] of [['はし', 2], ['さくら', 0], ['いのち', 1]]) {
       const { audio } = synthesizeWord(splitMorae(kana), k, { baseHz: 140, seed: 5 });
-      const x = audio.map((v, i) => v + hum(audio.length, f, 5, audio, 8)[i]);
+      const hm = hum(audio.length, f, 5, audio, 8);
+      const x = audio.map((v, i) => v + hm[i]);
       const r = judge(extractF0(PitchDetector, x, SR), word(kana, k));
       assert.equal(r.error, undefined, `${f} Hz ${kana}`);
       assert.equal(r.pass, true, `${f} Hz ${kana}: detected ${r.detectedK}`);
