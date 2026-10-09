@@ -160,6 +160,24 @@ td a{color:var(--accent)}
 .today .rep{font-size:.86rem;color:#c9d1e6;overflow-wrap:anywhere}
 .today .rep button{font:inherit;font-size:.8rem;background:none;border:0;color:var(--accent);cursor:pointer;padding:0;text-decoration:underline;text-underline-offset:3px}
 @media (max-width:640px){.today .tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.wrap>.today{order:2}}
+.rev{display:grid;gap:10px}
+.rev .tot{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:baseline;font-size:.88rem}
+.rev .tot b{font-family:var(--display);font-weight:400;font-size:1.4rem;color:var(--gold)}
+.rv{display:grid;gap:6px;padding:12px 14px;border:1px solid var(--line);border-left:4px solid var(--tc);border-radius:8px;background:var(--panel);min-width:0}
+.rv .hd2{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.rv .hd2 .code{font-family:var(--mono);font-size:.72rem;color:var(--muted)}
+.rv .hd2 .src3{margin-left:auto;font-size:.7rem;color:var(--muted)}
+.steps{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;margin:2px 0}
+.steps span{font-size:.7rem;text-align:center;padding:4px 2px;border-radius:4px;background:var(--panel2);color:var(--muted);border:1px solid var(--line);overflow-wrap:anywhere}
+.steps span.done{background:rgba(62,224,143,.14);color:var(--live);border-color:rgba(62,224,143,.35)}
+.steps span.now{background:rgba(245,185,66,.18);color:var(--gold);border-color:var(--gold);font-weight:700}
+.rv .nx2{font-size:.86rem;overflow-wrap:anywhere}
+.rv .nx2 .whom{display:inline-block;white-space:nowrap;font-size:.7rem;font-weight:700;padding:1px 7px;border-radius:4px;margin-right:6px;border:1px solid currentColor}
+.rv .nx2 .whom.owner{color:var(--wait)}.rv .nx2 .whom.team{color:var(--accent)}
+.rv .tg{font-size:.78rem;color:var(--muted);overflow-wrap:anywhere}
+.rv .tg em{font-style:normal;color:#c9d1e6}
+.rv.hold{opacity:.7}
+@media (max-width:640px){.steps span{font-size:.62rem}}
 .decs{display:grid;gap:10px}
 .dfilt{display:flex;gap:6px;flex-wrap:wrap}
 .dfilt button{font:inherit;font-family:var(--mono);font-size:.75rem;padding:3px 10px;border-radius:999px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);cursor:pointer}
@@ -285,6 +303,12 @@ td a{color:var(--accent)}
   <section style="display:grid;gap:10px">
     <div class="ihead"><h2>チームとメンバー</h2><span class="note">部下はリーダーの中で動く補助AI（サブエージェント）。稼働はリーダーの記録に含まれます</span></div>
     <div class="teams" id="teams"></div>
+  </section>
+
+  <section class="rev" id="rev">
+    <div class="ihead"><h2>収益への道のり</h2><span class="note">段階は本部の判断。目標は見込み（Midas の標準値）で、実績ではありません</span></div>
+    <div class="tot" id="revTot"></div>
+    <div id="revList" class="rev"></div>
   </section>
 
   <section class="road" id="road">
@@ -439,7 +463,7 @@ function liveOf(code){const pj=PROJECTS[code.toLowerCase()];if(!pj||!/公開中/
 function openLive(code){const L=liveOf(code);if(!L||!L.url)return;const a=document.createElement("a");a.href=L.url;a.target="_blank";a.rel="noopener";document.body.append(a);a.click();a.remove();}
 const yen=n=>"¥"+Math.round(Number(n)||0).toLocaleString("ja-JP");
 let REVENUE={state:"loading"};
-function renderRevenue(){const b=document.getElementById("revN"),sub=document.getElementById("revSub");if(!b)return;
+function renderRevenue(){if(typeof renderRevenueRoad==="function")try{renderRevenueRoad();}catch(e){}const b=document.getElementById("revN"),sub=document.getElementById("revSub");if(!b)return;
   if(REVENUE.state==="loading"){b.textContent="—";sub.textContent="確認中";return;}
   if(REVENUE.state==="error"){b.textContent="—";sub.textContent="収益データを読み込めません";return;}
   if(REVENUE.state==="none"){b.textContent="¥0";sub.textContent="まだ売上なし";return;}
@@ -1053,7 +1077,7 @@ function render(){
   if(mode==="live"){b.textContent="実測";src.append("データ：",b," Claude Code の作業記録から1分ごとに取得");}
   else if(mode==="report"){b.className="rep";b.textContent="報告値";src.append("データ：",b," ピーターの巡回記録（実測に接続できないため）");}
   else src.textContent="データ：接続中…";
-  renderRoad();renderInbox();renderToday();renderDecisions();
+  renderRoad();renderInbox();renderToday();renderDecisions();renderRevenueRoad();
   if(W3)W3.updateSigns();
 }
 // team nav
@@ -1123,6 +1147,41 @@ function renderToday(){if(!document.getElementById("today"))return;
     const b=el("button",null,"全文を読む");b.type="button";b.addEventListener("click",()=>{showReport(today);document.getElementById("reports").scrollIntoView({behavior:"smooth"});});rep.append(b);}
   else rep.textContent=REPORTS.files[today]?"届いています。下の「夜の報告」で読めます。":"まだ届いていません（22時ごろに届きます）";
   document.getElementById("todayNote").textContent=ready?"本部の記録・承認ボックス・夜の報告から自動で集計":"読み込み中…";}
+
+// ---------- road to revenue ----------
+// Stage per product: 0 無料公開, 1 計測, 2 有料の準備, 3 課金開始, 4 初売上 (-1 = まだ無料公開の前, null = 保留).
+// projects/<id>.revenue = {stage, next, who:"owner"|"team"} in the db overrides these defaults (as of 2026-10-09).
+const REV_STEPS=["無料公開","計測","有料の準備","課金開始","初売上"];
+const REV_DEFAULT={
+  P0:{stage:1,next:"アクセス解析を入れて、無料診断と見本の保存を数える。診断30件か公開14日で有料版へ（d10）",who:"team"},
+  P1:{stage:2,next:"問い合わせ用のメールアドレスを用意し、優先度Aの12社に声をかける（価格は d29）",who:"owner"},
+  P2:{stage:1,next:"計算機の訪問の数え方を決め、Budget Guard の待機リストを本物にする（d19）",who:"team"},
+  P3:{stage:1,next:"人の声で精度を測る。合格率90%以上で有料化を検討",who:"team"},
+  P4:{stage:null,next:"保留中（弁護士確認と商標調査の判断待ち）",who:"owner"},
+  P5:{stage:null,next:"精度改善は凍結中（d24）",who:"team"},
+  P7:{stage:-1,next:"商標の確認と BOOTH・Ko-fi の登録（10/16まで）→ 10/22 発売",who:"owner"},
+  P8:{stage:-1,next:"itch.io に登録して、10/13 に無料公開し投げ銭を受け付ける",who:"owner"}};
+let REV_TARGETS=[];
+(async()=>{try{const r=await fetch("revenue/targets.csv");if(!r.ok)return;const t=await r.text();const L=t.trim().split(/\r?\n/);const h=L.shift().split(",");
+  REV_TARGETS=L.map(l=>{const c=l.split(",");const o={};h.forEach((k,i)=>o[k]=c[i]);return o;});renderRevenueRoad();}catch(e){}})();
+function renderRevenueRoad(){const list=document.getElementById("revList"),tot=document.getElementById("revTot");if(!list)return;
+  tot.textContent="";const all=REV_TARGETS.find(r=>r.project==="全体"&&/売上/.test(r.metric));
+  const act=REVENUE.state==="ok"?yen(REVENUE.v.totalJpy):REVENUE.state==="none"?"¥0":"—";
+  tot.append(document.createTextNode("売上の実績"),el("b",null,act));
+  if(all)tot.append(document.createTextNode("　30日の標準目標（見込み）："+yen(all.target)+"（"+all.week_ending.slice(5).replace("-","/")+"まで）"));
+  list.textContent="";
+  const rows=TEAMS.filter(t=>t.code!=="HQ").map(tm=>{const pj=PROJECTS[tm.code.toLowerCase()]||{};const o=Object.assign({},REV_DEFAULT[tm.code]||{stage:-1,next:"記録なし",who:"team"},pj.revenue||{});
+    const pend=pendingFor(tm.code);if(pend.length)o.who="owner";return{tm,pj,o,pend,fromDb:!!pj.revenue};});
+  rows.sort((a,b)=>(b.o.stage??-2)-(a.o.stage??-2));
+  for(const r of rows){const d=el("div","rv"+(r.o.stage==null?" hold":""));d.style.setProperty("--tc",r.tm.color);
+    const hd=el("div","hd2");hd.append(el("span","code",r.tm.code),el("b",null,r.pj.name||r.tm.name),el("span","src3",r.fromDb?"チームの記録":"本部の判断（10/9）"));d.append(hd);
+    const st=el("div","steps");REV_STEPS.forEach((n,i)=>{const s2=el("span",r.o.stage==null?"":i<r.o.stage?"done":i===r.o.stage?"now":"",n);st.append(s2);});d.append(st);
+    if(r.o.stage===-1)d.append(el("div","tg","まだ無料公開の前です"));if(r.o.stage==null)d.append(el("div","tg","保留中"));
+    const nx=el("div","nx2");nx.append(el("span","whom "+(r.o.who==="owner"?"owner":"team"),r.o.who==="owner"?"オーナー待ち":"チームが進める"),document.createTextNode(r.o.next||""));d.append(nx);
+    if(r.pend.length)d.append(el("div","tg","承認ボックス："+r.pend.map(a=>"「"+a.title+"」").join("、")));
+    const tg=REV_TARGETS.filter(t=>t.project===r.tm.code);
+    if(tg.length){const t=el("div","tg");t.append(document.createTextNode("見込み（標準値）："));tg.forEach((x,i)=>{t.append(el("em",null,x.metric+" "+Number(x.target).toLocaleString("ja-JP")+x.unit.replace(/\(累計\)|/g,"").replace(/^件$/,"件").replace(/^円$/,"円")+"（"+x.week_ending.slice(5).replace("-","/")+"まで）"));if(i<tg.length-1)t.append(document.createTextNode("、"));});d.append(t);}
+    list.append(d);}}
 
 // ---------- decision log ----------
 let DEC_F="all";
