@@ -1,4 +1,4 @@
-# Atlas scanner v1
+# Atlas scanner v1（v1.1）
 
 読み取り専用の静的スキャナー。検査対象の import・実行・インストール・ビルドは一切しない。
 
@@ -21,6 +21,15 @@
    - **TP-001：** 同じ説明文の中に TP-002 または TP-004 もあれば critical に上げる。
    - **文脈 `ci`：** 新設した（重み 0.3）。
    - **test の判定を広げた：** `*_test.go`、`*_tests.rs`、`test_*.py`、`test-*/` もテストとして扱う。
+
+## v1.1：誤検知を減らす規則
+どれも「抑制」ではなく **medium への格下げ**（`review: true` と `why` を付ける）にとどめる。作者が書き換えられる手がかりだけで、配布されるコードの critical を消せないようにするため。リポジトリ名・パッケージ名による許可リストは使わない。
+
+- **脅威・ルールの一覧（`string:catalog`）：** dict／オブジェクトリテラルの `description` の値で、同じ dict に `severity`・`risk`・`threat`・`taxonomy`・`cwe`・`mitre`・`remediation`・`mitigation`・`owasp`・`aitech` などのキーがあるものは、攻撃文を引用する一覧の項目とみなす（`ast_py.CATALOG_KEYS`、`js/ast_dump.cjs` の `CATALOG_KEYS`）。TP-*／SK-001 は medium に下げる。否定語はツール説明文と同じく strict で判定する。`name`・`category` だけの dict（ツール定義の一覧）は対象外。**タグ＋隠蔽／認証情報の組み合わせがあれば、従来どおり critical に上げる**（`severity` キーを足しても逃げられない）。
+- **出力整形用のタグ：** ツール説明文以外の文字列で、TP-001 のタグが対になって閉じ、その中身が整形の指示（output、format、list、numbers、new lines など）だけで、同じ文字列に隠蔽・認証情報・上書き・送信の語（hide、secret、do not tell、ignore、credential、token、ssh、send、upload、curl、URL など）や TP-002〜005・SK-001 の一致がなければ medium に下げる。
+- **Rust・Go の簡易トークナイザー（`lex_spans`）：** 文字列リテラル（複数行の `"..."`、`r#"..."#`、Go の `` `...` ``）とコメント（入れ子の `/* */` を含む）の範囲を求める。文字列内の案内文は `string~` として扱う（RF-001 は low）。ただし同じ文の手前（直前の `;`・`{`・`}` まで）に `Command::new`・`exec` などがあれば下げない。`description =`・`WithDescription(` の直後の文字列は説明文（`string:desc`）とする。
+- **正直さを求める「〜と言うな」：** TP-002 の直後が主張（`it will work`、`X is open`、`that ... is impossible` など）で、同じ節に `unless`・`until`・`without verifying` などの確認条件があり、文中に隠蔽・送信・認証情報の語がなく、目的語が `this`・`about ...`・`anything` でないものは medium に下げる（例：「アカウントなしで動くとユーザーに言うな」）。
+- **テストのパスを追加：** `__fixtures__/`、`mocks/`、`cypress/`、`playwright/`、`.storybook/`、`*.stories.*`、`*.bench.*`、`*_spec.rb`、`src/test/`、`FooTest.java`／`FooTests.cs` など。`demo*`・`*-docs/` のような名前は配布物の本体であることがあるため、広げていない。
 
 ## 使い方
 ```sh
@@ -79,3 +88,5 @@ python3 -I atlas/scanner/oci.py ghcr.io/github/github-mcp-server --json r.json
 python3 -I atlas/scanner/oci.py mcp/time --no-layers        # config だけ
 ```
 - 結果の finding は scan.py と同じ形で、`source: "oci"` が付く。zstd 圧縮のレイヤーは Python 3.14 未満では読めないため、`skipped-format` として注記する。
+
+- **v1.1.1：** Rust/Go の文字列で「実行の文脈」を判定するとき、同じ文のうちコード部分だけを見る（コメントと文字列の中身を除く）。対象は `Command::new`・`exec.Command`・`.spawn(` などの実行呼び出しに限った。ドキュメントコメント中の「system」やバッククォートで、案内文が critical に戻るのを防ぐ。

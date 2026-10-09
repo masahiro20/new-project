@@ -18,6 +18,11 @@ const MAX_BYTES = 1_000_000;
 const DESC_KEYS = new Set(["description", "desc", "instructions", "prompt", "systemPrompt", "system_prompt", "title", "summary"]);
 const PATTERN_METHODS = new Set(["match", "matchAll", "test", "search", "replace", "replaceAll", "includes", "startsWith", "endsWith", "indexOf", "split", "exec"]);
 const PATTERN_NAME = /pattern|regex|regexp|signature|rules?$|keywords?|indicators?|blocklist|denylist|blacklist|suspicious|dangerous|attack|payload|injection/i;
+// v1.1: keys that mark an object literal as a threat / detection-rule catalog entry
+// ({severity, description}) rather than a tool definition. Kept in sync with ast_py.CATALOG_KEYS.
+const CATALOG_KEYS = new Set(["severity", "risk", "risk_level", "riskLevel", "threat", "threat_type", "threatType", "threat_name",
+  "taxonomy", "cwe", "cve", "mitre", "mitre_attack", "attack_id", "technique", "remediation", "mitigation", "owasp",
+  "aitech", "aisubtech", "scanner_category"].map((k) => k.toLowerCase()));
 const SEND_SINKS = /^(fetch|post|put|send|write|log|info|debug|warn|error|request|axios|got)$/;
 
 function scriptKind(file) {
@@ -79,7 +84,12 @@ function analyse(file, text) {
     if (!p) return "plain";
     if (ts.isPropertyAssignment(p) && p.initializer === node) {
       const k = p.name && (p.name.text || "");
-      if (DESC_KEYS.has(k)) return "desc";
+      if (DESC_KEYS.has(k)) {
+        const obj = p.parent;
+        const sib = obj && ts.isObjectLiteralExpression(obj) && obj.properties.some((q) => q.name &&
+          CATALOG_KEYS.has(String(q.name.text || "").toLowerCase()));
+        return sib ? "catalog" : "desc";
+      }
       if (PATTERN_NAME.test(k)) return "pattern";
     }
     if (ts.isVariableDeclaration(p) && p.initializer === node && ts.isIdentifier(p.name)) {

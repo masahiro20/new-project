@@ -1,0 +1,241 @@
+{
+ "scope": "live findings, ctx in src/skill, sev in high/critical",
+ "total_in_scope": 24,
+ "labelled_in_scope": {
+  "attack": 17,
+  "legit": 7,
+  "fp": 0
+ },
+ "unlabelled_new": 0,
+ "fp_rate_labelled_only": 0.0,
+ "fp_rate_note": "fp / total_in_scope; unlabelled new hits are counted in the denominator only. Upper bound if every new hit were fp: see fp_rate_upper_bound.",
+ "fp_rate_upper_bound": 0.0,
+ "recall": {
+  "attack": "17/17",
+  "legit": "7/9",
+  "attack_plus_legit": "24/26",
+  "attack_plus_legit_ratio": 0.9231
+ },
+ "baseline": {
+  "attack": 17,
+  "legit": 9,
+  "fp": 6
+ },
+ "match_tiers": {
+  "exact": 24
+ },
+ "new_unlabelled": [],
+ "disappeared": [
+  {
+   "label": "fp",
+   "repo": "JaxonAI__dsail",
+   "rule": "ATL-TP-002",
+   "file": "src/dsail/mcp_proxy.py",
+   "line": 41,
+   "snippet": "the link. Repeat that link to the user. Never tell the user a review panel is",
+   "fate": "downgraded to medium (do-not-tell phrase guards an unverified claim (honesty), not concealment; review)"
+  },
+  {
+   "label": "legit",
+   "repo": "OOBE-PROTOCOL__sap-mcp",
+   "rule": "ATL-TP-002",
+   "file": "skills/sap-mcp/SKILL.md",
+   "line": 92,
+   "snippet": "- Do not tell the user that all-agent enumeration is impossible unless",
+   "fate": "downgraded to medium (do-not-tell phrase guards an unverified claim (honesty), not concealment; review)"
+  },
+  {
+   "label": "fp",
+   "repo": "cisco-ai-defense__mcp-scanner",
+   "rule": "ATL-TP-003",
+   "file": "mcpscanner/threats/threats.py",
+   "line": 48,
+   "snippet": "\"description\": 'Explicit attempts to override, replace, or modify the model\\'s system instructions, operational directives, or behavioral guidelines through dir",
+   "fate": "downgraded to medium (quoted in a threat/rule catalog entry (description next to severity/taxonomy keys); review)"
+  },
+  {
+   "label": "fp",
+   "repo": "cisco-ai-defense__mcp-scanner",
+   "rule": "ATL-TP-003",
+   "file": "mcpscanner/threats/threats.py",
+   "line": 89,
+   "snippet": "\"description\": 'Explicit attempts to override, replace, or modify the model\\'s system instructions, operational directives, or behavioral guidelines through dir",
+   "fate": "downgraded to medium (quoted in a threat/rule catalog entry (description next to severity/taxonomy keys); review)"
+  },
+  {
+   "label": "fp",
+   "repo": "cisco-ai-defense__mcp-scanner",
+   "rule": "ATL-TP-003",
+   "file": "mcpscanner/threats/threats.py",
+   "line": 321,
+   "snippet": "\"description\": 'Explicit attempts to override, replace, or modify the model\\'s system instructions, operational directives, or behavioral guidelines through dir",
+   "fate": "downgraded to medium (quoted in a threat/rule catalog entry (description next to severity/taxonomy keys); review)"
+  },
+  {
+   "label": "fp",
+   "repo": "firelock-ai__kin",
+   "rule": "ATL-RF-001",
+   "file": "crates/kin-cli/src/daemon_client.rs",
+   "line": 4533,
+   "snippet": "curl -fsSL https://get.kinlab.dev/install | sh",
+   "fate": "downgraded to low (install hint text in a string (not executed here))"
+  },
+  {
+   "label": "legit",
+   "repo": "hanshs474__kavel-mcp",
+   "rule": "ATL-TP-002",
+   "file": "skills/kavel-image/SKILL.md",
+   "line": 91,
+   "snippet": "call fails at every setting. Do not build a video path on this skill and do not",
+   "fate": "downgraded to medium (do-not-tell phrase guards an unverified claim (honesty), not concealment; review)"
+  },
+  {
+   "label": "fp",
+   "repo": "wonderwhy-er__DesktopCommanderMCP",
+   "rule": "ATL-TP-001",
+   "file": "src/tools/prompts.ts",
+   "line": 297,
+   "snippet": "response += `<INSTRUCTION>Output options for user exactly as provided without missing numbers.",
+   "fate": "downgraded to medium (pseudo-XML tag used as an output-format delimiter (no concealment/credential content in the string); review)"
+  }
+ ],
+ "fixtures": {
+  "required": [
+   {
+    "fixture": "pos",
+    "file": "poison_tool.py",
+    "rule": "ATL-OB-003",
+    "min_sev": "high",
+    "detected": true
+   },
+   {
+    "fixture": "pos",
+    "file": "poison_tool.py",
+    "rule": "ATL-CR-001",
+    "min_sev": "high",
+    "detected": true
+   },
+   {
+    "fixture": "pos",
+    "file": "poison_tool.py",
+    "rule": "ATL-TP-001",
+    "min_sev": "high",
+    "detected": true
+   },
+   {
+    "fixture": "pos",
+    "file": "poison_tool.py",
+    "rule": "ATL-TP-002",
+    "min_sev": "high",
+    "detected": true
+   },
+   {
+    "fixture": "pos",
+    "file": "poison_tool.py",
+    "rule": "ATL-TP-004",
+    "min_sev": "high",
+    "detected": true
+   },
+   {
+    "fixture": "pos",
+    "file": "server.ts",
+    "rule": "ATL-OB-003",
+    "min_sev": "high",
+    "detected": true
+   },
+   {
+    "fixture": "pos",
+    "file": "server.ts",
+    "rule": "ATL-CR-001",
+    "min_sev": "high",
+    "detected": true
+   },
+   {
+    "fixture": "pos",
+    "file": "server.ts",
+    "rule": "ATL-TP-001",
+    "min_sev": "high",
+    "detected": true
+   },
+   {
+    "fixture": "pos",
+    "file": "server.ts",
+    "rule": "ATL-TP-003",
+    "min_sev": "high",
+    "detected": true
+   },
+   {
+    "fixture": "pos",
+    "file": "server.ts",
+    "rule": "ATL-TP-004",
+    "min_sev": "high",
+    "detected": true
+   },
+   {
+    "fixture": "pos",
+    "file": "skill/SKILL.md",
+    "rule": "ATL-RF-001",
+    "min_sev": "high",
+    "detected": true
+   },
+   {
+    "fixture": "pos",
+    "file": "skill/SKILL.md",
+    "rule": "ATL-SK-001",
+    "min_sev": "high",
+    "detected": true
+   },
+   {
+    "fixture": "pos2",
+    "file": "SKILL.md",
+    "rule": "ATL-RF-001",
+    "min_sev": "high",
+    "detected": true
+   },
+   {
+    "fixture": "pos",
+    "file": "poison_tool.py",
+    "rule": "ATL-TP-005",
+    "detected": true
+   },
+   {
+    "fixture": "pos",
+    "file": "poison_tool.py",
+    "rule": "ATL-CE-001",
+    "detected": true
+   },
+   {
+    "fixture": "pos",
+    "file": "poison_tool.py",
+    "rule": "ATL-NW-001",
+    "detected": true
+   },
+   {
+    "fixture": "pos",
+    "file": "server.ts",
+    "rule": "ATL-CE-001",
+    "detected": true
+   },
+   {
+    "fixture": "pos",
+    "file": "server.ts",
+    "rule": "ATL-NW-001",
+    "detected": true
+   }
+  ],
+  "negatives": [
+   {
+    "fixture": "neg",
+    "high_or_critical_live": [],
+    "ok": true
+   },
+   {
+    "fixture": "neg2",
+    "high_or_critical_live": [],
+    "ok": true
+   }
+  ],
+  "ok": true,
+  "recall": "18/18"
+ }
+}

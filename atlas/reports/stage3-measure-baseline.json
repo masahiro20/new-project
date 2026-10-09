@@ -1,0 +1,168 @@
+{
+ "scope": "live findings, ctx in src/skill, sev in high/critical",
+ "total_in_scope": 32,
+ "labelled_in_scope": {
+  "attack": 17,
+  "legit": 9,
+  "fp": 6
+ },
+ "unlabelled_new": 0,
+ "fp_rate_labelled_only": 0.1875,
+ "fp_rate_note": "fp / total_in_scope; unlabelled new hits are counted in the denominator only. Upper bound if every new hit were fp: see fp_rate_upper_bound.",
+ "fp_rate_upper_bound": 0.1875,
+ "recall": {
+  "attack": "17/17",
+  "legit": "9/9",
+  "attack_plus_legit": "26/26",
+  "attack_plus_legit_ratio": 1.0
+ },
+ "baseline": {
+  "attack": 17,
+  "legit": 9,
+  "fp": 6
+ },
+ "match_tiers": {
+  "exact": 32
+ },
+ "new_unlabelled": [],
+ "disappeared": [],
+ "fixtures": {
+  "required": [
+   {
+    "fixture": "pos",
+    "file": "poison_tool.py",
+    "rule": "ATL-OB-003",
+    "min_sev": "high",
+    "detected": true
+   },
+   {
+    "fixture": "pos",
+    "file": "poison_tool.py",
+    "rule": "ATL-CR-001",
+    "min_sev": "high",
+    "detected": true
+   },
+   {
+    "fixture": "pos",
+    "file": "poison_tool.py",
+    "rule": "ATL-TP-001",
+    "min_sev": "high",
+    "detected": true
+   },
+   {
+    "fixture": "pos",
+    "file": "poison_tool.py",
+    "rule": "ATL-TP-002",
+    "min_sev": "high",
+    "detected": true
+   },
+   {
+    "fixture": "pos",
+    "file": "poison_tool.py",
+    "rule": "ATL-TP-004",
+    "min_sev": "high",
+    "detected": true
+   },
+   {
+    "fixture": "pos",
+    "file": "server.ts",
+    "rule": "ATL-OB-003",
+    "min_sev": "high",
+    "detected": true
+   },
+   {
+    "fixture": "pos",
+    "file": "server.ts",
+    "rule": "ATL-CR-001",
+    "min_sev": "high",
+    "detected": true
+   },
+   {
+    "fixture": "pos",
+    "file": "server.ts",
+    "rule": "ATL-TP-001",
+    "min_sev": "high",
+    "detected": true
+   },
+   {
+    "fixture": "pos",
+    "file": "server.ts",
+    "rule": "ATL-TP-003",
+    "min_sev": "high",
+    "detected": true
+   },
+   {
+    "fixture": "pos",
+    "file": "server.ts",
+    "rule": "ATL-TP-004",
+    "min_sev": "high",
+    "detected": true
+   },
+   {
+    "fixture": "pos",
+    "file": "skill/SKILL.md",
+    "rule": "ATL-RF-001",
+    "min_sev": "high",
+    "detected": true
+   },
+   {
+    "fixture": "pos",
+    "file": "skill/SKILL.md",
+    "rule": "ATL-SK-001",
+    "min_sev": "high",
+    "detected": true
+   },
+   {
+    "fixture": "pos2",
+    "file": "SKILL.md",
+    "rule": "ATL-RF-001",
+    "min_sev": "high",
+    "detected": true
+   },
+   {
+    "fixture": "pos",
+    "file": "poison_tool.py",
+    "rule": "ATL-TP-005",
+    "detected": true
+   },
+   {
+    "fixture": "pos",
+    "file": "poison_tool.py",
+    "rule": "ATL-CE-001",
+    "detected": true
+   },
+   {
+    "fixture": "pos",
+    "file": "poison_tool.py",
+    "rule": "ATL-NW-001",
+    "detected": true
+   },
+   {
+    "fixture": "pos",
+    "file": "server.ts",
+    "rule": "ATL-CE-001",
+    "detected": true
+   },
+   {
+    "fixture": "pos",
+    "file": "server.ts",
+    "rule": "ATL-NW-001",
+    "detected": true
+   }
+  ],
+  "negatives": [
+   {
+    "fixture": "neg",
+    "high_or_critical_live": [],
+    "ok": true
+   },
+   {
+    "fixture": "neg2",
+    "high_or_critical_live": [],
+    "ok": true
+   }
+  ],
+  "ok": true,
+  "recall": "18/18"
+ }
+}

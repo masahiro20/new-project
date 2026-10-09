@@ -143,14 +143,19 @@ MEDIA_B64 = ("iVBORw0KGgo", "/9j/", "R0lGOD", "UklGR", "AAABAA", "T2dnUw", "d09G
              "JVBERi0", "AAAAIGZ0eXA", "AAAAHGZ0eXA", "SUQz", "GkXfo", "AGFzbQ")
 
 
+SEV_RANK = {"critical": 4, "high": 3, "medium": 2, "low": 1, "info": 0}
+
+
 # ---------------------------------------------------------------------------
 def ctx_of(rel):
     p = rel.lower().replace("\\", "/")
     base = p.rsplit("/", 1)[-1]
     if base == "skill.md":
         return "skill"
-    if re.search(r"(^|/)(tests?|__tests__|__mocks__|spec|specs|e2e|fixtures?|testdata|test_data|evals?|benchmarks?|testing|test-[\w-]+|test_[\w-]+)(/|$)"
-                 r"|\.(test|spec)\.|(^|/)test_[^/]+\.py$|_tests?\.(py|go|rs|rb|ts|js)$|(^|/)tests?\.rs$|conftest\.py$", p):
+    if re.search(r"(^|/)(tests?|__tests__|__mocks__|__fixtures__|mocks?|spec|specs|e2e|fixtures?|testdata|test_data|evals?|benchmarks?|testing"
+                 r"|test-[\w-]+|test_[\w-]+|cypress|playwright|\.storybook)(/|$)"
+                 r"|\.(test|spec|stories|bench)\.|(^|/)test_[^/]+\.py$|_tests?\.(py|go|rs|rb|ts|js)$|_spec\.rb$|(^|/)tests?\.rs$|conftest\.py$"
+                 r"|(^|/)src/test/", p) or re.search(r"(^|/)\w*[a-z0-9]Tests?\.(java|kt|cs)$", rel.replace("\\", "/")):
         return "test"
     if re.search(r"(^|/)(examples?|samples?|demos?|playground)(/|$)", p):
         return "example"
@@ -301,6 +306,161 @@ def utf16_spans_to_py(text, spans):
     return [(conv(a), conv(b), k, r) for a, b, k, r in spans]
 
 
+# ---------------------------------------------------------------------------
+# v1.1: lightweight tokenizer for Rust and Go (no AST available). It only finds string
+# literal and comment ranges -- including multi-line "..." and raw r#"..."# / `...`
+# strings -- so text rules can tell guidance text in a message string from code.
+LEX_EXT = {".rs", ".go"}
+_LEX_DESC_BEFORE = re.compile(r"(description|desc|instructions?)\s*[:=(]\s*$|with_?description\(\s*$", re.I)
+
+
+def lex_spans(text, ext):
+    """Return [(start, end, kind, role)] for strings/comments in Rust or Go source.
+
+    kind "string" (role "lexdesc" when the literal follows `description =` / `Description:` /
+    `WithDescription(` on the same line, else "lexplain") or "comment" (role "lex").
+    Best effort: on anything unexpected it stops and returns what it has.
+    """
+    spans = []
+    n = len(text)
+    i = 0
+    rust = ext == ".rs"
+    ident = re.compile(r"[A-Za-z0-9_]")
+
+    def str_role(start):
+        ls = text.rfind("\n", 0, start) + 1
+        return "lexdesc" if _LEX_DESC_BEFORE.search(text[ls:start]) else "lexplain"
+    while i < n:
+        c = text[i]
+        if c == "/" and text.startswith("//", i):
+            e = text.find("\n", i)
+            e = n if e == -1 else e
+            spans.append((i, e, "comment", "lex"))
+            i = e
+            continue
+        if c == "/" and text.startswith("/*", i):
+            depth, j = 1, i + 2
+            while j < n and depth:
+                if rust and text.startswith("/*", j):
+                    depth += 1; j += 2
+                elif text.startswith("*/", j):
+                    depth -= 1; j += 2
+                else:
+                    j += 1
+            spans.append((i, j, "comment", "lex"))
+            i = j
+            continue
+        if rust and c in "rb" and (i == 0 or not ident.match(text[i - 1])):
+            m = re.compile(r"b?r(#*)\"").match(text, i)
+            if m:
+                close = '"' + m.group(1)
+                e = text.find(close, m.end())
+                e = n if e == -1 else e + len(close)
+                spans.append((i, e, "string", str_role(i)))
+                i = e
+                continue
+            if text.startswith('b"', i):
+                i += 1
+                c = '"'
+        if c == '"':
+            j = i + 1
+            while j < n and text[j] != '"':
+                if text[j] == "\\":
+                    j += 1
+                elif text[j] == "\n" and not rust:
+                    break  # Go interpreted strings are single-line
+                j += 1
+            spans.append((i, min(j + 1, n), "string", str_role(i)))
+            i = j + 1
+            continue
+        if c == "`" and not rust:
+            e = text.find("`", i + 1)
+            e = n if e == -1 else e + 1
+            spans.append((i, e, "string", str_role(i)))
+            i = e
+            continue
+        if c == "'":
+            m = re.compile(r"'(\\(x[0-9A-Fa-f]{2}|u\{[0-9A-Fa-f]{1,6}\}|.)|[^\\'\n])'").match(text, i)
+            i = m.end() if m else i + 1  # char literal, or a Rust lifetime ('a)
+            continue
+        i += 1
+    return spans
+
+
+# v1.1: pseudo-XML tag used as an output-format delimiter.
+_TAG_PAIR = re.compile(r"<\s*(IMPORTANT|SYSTEM|INSTRUCTIONS?|HIDDEN|SECRET|ADMIN|OVERRIDE)\s*>(.*?)<\s*/\s*\1\s*>", re.S)
+FORMAT_CUE = re.compile(r"\b(output|format(ted|ting)?|display|print|render|list|respond|reply|layout|exactly\s+as|new\s*lines?"
+                        r"|numbers?|numbered|bullets?|markdown|table|columns?|json|indent(ation)?)\b", re.I)
+# concealment / credential / override / exfiltration vocabulary: if any of it is in the same
+# string, the tag is not "just formatting".
+CONCEAL_CUE = re.compile(r"\b(hide|hidden|secret(ly)?|silent(ly)?|conceal|covert|without\s+(telling|informing|notifying|asking)"
+                         r"|(do\s+not|don'?t|never)\s+(tell|inform|mention|notify|alert|reveal|show|disclose|let)"
+                         r"|ignore|disregard|override|bypass|credentials?|passwords?|tokens?|api[_ -]?keys?|private\s+keys?|ssh"
+                         r"|sen[dt]|sending|upload\w*|exfiltrat\w*|transmit\w*|forward\w*|shar(e|ed|ing)|collect\w*|track(ed|ing)?"
+                         r"|log(ged|ging)|stor(e|ed|ing)|record(ed|ing)|sidenote|curl|wget)\b|https?://", re.I)
+_PHRASE_RULES = [r["re"] for r in R if r["id"] in ("ATL-TP-002", "ATL-TP-003", "ATL-TP-004", "ATL-TP-005", "ATL-SK-001")]
+
+
+def format_tag_only(body):
+    """True if every TP-001 tag pair in `body` wraps output-formatting guidance and the whole
+    string carries no concealment / credential / override / exfiltration content."""
+    pairs = list(_TAG_PAIR.finditer(body))
+    if not pairs or CONCEAL_CUE.search(body) or any(rx.search(body) for rx in _PHRASE_RULES):
+        return False
+    if re.search(SENS_PATH, body, re.I):
+        return False
+    return all(FORMAT_CUE.search(m.group(2)) for m in pairs)
+
+
+# v1.1: "do not tell the user <claim> unless <verified>" -- an honesty guard, not concealment.
+HONESTY_GUARD = re.compile(r"\bunless\b|\buntil\b|\bwithout\s+(first\s+)?(verifying|checking|confirming|testing)\b"
+                           r"|\b(will|would|can|could|does|do)\s+(not\s+)?(work|succeed|run|pass)\b"
+                           r"|\b(is|are|was|were|has\s+been|have\s+been)\s+(not\s+)?(impossible|possible|open|ready|done|complete|completed"
+                           r"|fixed|working|available|supported|unsupported|finished|successful|resolved)\b", re.I)
+HONESTY_BAD_START = re.compile(r"^\s*(about|anything|what|how|where|why|when|of|regarding|this|it\b(?!\s+(will|would|is|was|works|can)))", re.I)
+
+
+def honesty_guard(text, a, b):
+    """True if a TP-002 match at [a,b) asks the agent not to assert an unverified claim
+    (e.g. "do not tell the user it will work without an account", "never tell the user the
+    panel is open unless the tool returned a link") rather than to hide something."""
+    if re.search(r"\bthis\b", text[a:b], re.I):
+        return False  # "do not mention this to the user" -- concealment of an action
+    # sentence that contains the match: from the previous sentence end / blank line / list bullet
+    st = max(text.rfind(". ", 0, a), text.rfind("\n\n", 0, a), text.rfind("\n- ", 0, a), text.rfind("\n* ", 0, a))
+    sentence_head = text[st + 1 if st >= 0 else 0:a]
+    tail = text[b:b + 220]
+    m = re.search(r"[.;!?](\s|$)|\n\s*\n|\n\s*[-*] ", tail)
+    clause = tail[:m.start()] if m else tail
+    if HONESTY_BAD_START.search(clause):
+        return False
+    whole = sentence_head + text[a:b] + clause
+    if CONCEAL_CUE.search(re.sub(r"\b(do\s+not|don'?t|never)\s+(tell|inform|mention|notify|alert|reveal|show)\b", "", whole, flags=re.I)):
+        return False
+    if re.search(SENS_PATH, whole, re.I) or any(rx.search(whole) for rx in _PHRASE_RULES[1:]):
+        return False
+    return bool(HONESTY_GUARD.search(clause))
+
+
+# Exec calls that matter for a Rust / Go string literal (v1.1.1). Prose words such as "system" or a
+# markdown backtick in a doc comment are not exec context.
+LEX_EXEC_CONTEXT = re.compile(r"(Command::new|process::Command|exec\.Command(Context)?|syscall\.Exec|"
+                              r"\.spawn\(|\.output\(|\.status\(|\bsystem\(|\bpopen\(|\bexecv?p?e?\()")
+
+
+def _stmt_prefix(text, start):
+    """Code of the current statement before `start` (Rust/Go): back to the previous ; { or },
+    at most 300 chars -- so `Command::new("sh").arg(\n "curl ... | sh")` keeps its exec context.
+    Comments and string literal contents are blanked so doc-comment prose cannot count as code."""
+    lo = max(start - 300, 0)
+    cut = max(text.rfind(";", lo, start), text.rfind("{", lo, start), text.rfind("}", lo, start))
+    seg = text[(cut + 1 if cut >= 0 else lo):start]
+    seg = re.sub(r"/\*.*?\*/", " ", seg, flags=re.S)
+    seg = re.sub(r"//[^\n]*", " ", seg)
+    seg = re.sub(r'"(?:\\.|[^"\\\n])*"', '""', seg)
+    return seg
+
+
 def decide(f, text, ext, ctx, span, fenced):
     """Apply the context layer to one text-rule candidate. Mutates f."""
     rid = f["rule"]
@@ -308,7 +468,10 @@ def decide(f, text, ext, ctx, span, fenced):
     ls, line = _line_of(text, a, b)
     col_a, col_b = a - ls, b - ls
     loc = "code"
-    if span:
+    if span and span[3] in ("lex", "lexplain", "lexdesc"):
+        # Rust / Go tokenizer (v1.1): a heuristic, so locations keep the "~" marker
+        loc = {"lex": "comment~", "lexplain": "string~", "lexdesc": "string:desc"}[span[3]]
+    elif span:
         kind, role = span[2], span[3]
         loc = kind if kind != "string" else ("string:" + role)
     elif ext in DOC_EXT or ctx == "skill":
@@ -346,8 +509,30 @@ def decide(f, text, ext, ctx, span, fenced):
         return sup("assertion literal (AST)")
     if rid == "ATL-RF-001" and re.search(r"(curl|wget|irm|iwr)\s+(-\S+\s+)*(\.\.\.|\u2026|<[^>]+>|\$URL\b)", m_text):
         return sup("placeholder, not a concrete command")
-    if rid in NEGATABLE and negated(text, a, strict=(loc == "string:desc")):
+    if rid in NEGATABLE and negated(text, a, strict=(loc in ("string:desc", "string:catalog"))):
         return sup("negated or cited as an example")
+    if loc == "string:catalog" and rid.startswith(("ATL-TP-", "ATL-SK-")) and SEV_RANK[f["sev"]] > SEV_RANK["medium"]:
+        # v1.1: the description of a threat/rule record ({"severity": ..., "description": ...})
+        # quotes attack text by design. Downgraded for review, never suppressed; the
+        # tag+concealment escalation below still applies to these strings.
+        f["sev"] = "medium"
+        f["review"] = True
+        f["why"] = "quoted in a threat/rule catalog entry (description next to severity/taxonomy keys); review"
+        return
+    if rid == "ATL-TP-001" and span and span[2] == "string" and loc not in ("string:desc",) \
+            and format_tag_only(text[span[0]:span[1]]):
+        # v1.1: <INSTRUCTION>Output the list exactly as provided</INSTRUCTION> in a non-description
+        # string, with nothing about hiding, credentials, overriding or sending in that string
+        f["sev"] = "medium"
+        f["review"] = True
+        f["why"] = "pseudo-XML tag used as an output-format delimiter (no concealment/credential content in the string); review"
+        return
+    if rid == "ATL-TP-002" and honesty_guard(text, a, b):
+        # v1.1: "do not tell the user <claim> unless <verified>" asks for honesty, not concealment
+        f["sev"] = "medium"
+        f["review"] = True
+        f["why"] = "do-not-tell phrase guards an unverified claim (honesty), not concealment; review"
+        return
     if rid.startswith(("ATL-TP-", "ATL-SK-")) and quoted_on_line(line, col_a, col_b):
         if loc == "prose" and ctx != "skill":
             return sup("quoted in documentation")
@@ -359,7 +544,8 @@ def decide(f, text, ext, ctx, span, fenced):
             f["why"] = "known installer domain"
         elif ctx in ("docs", "ci", "example"):
             low("installer one-liner in docs/CI")
-        elif loc in ("string:plain", "string:desc", "string~") and not EXEC_CONTEXT.search(line[:col_a]):
+        elif loc in ("string:plain", "string:desc", "string~") and not EXEC_CONTEXT.search(line[:col_a]) \
+                and not (span and span[3] in ("lexplain", "lexdesc") and LEX_EXEC_CONTEXT.search(_stmt_prefix(text, span[0]))):
             low("install hint text in a string (not executed here)")
     if rid == "ATL-OB-001":
         if not re.search(r"[\u202a-\u202e\u2066-\u2069]", m_text):
@@ -453,6 +639,12 @@ def scan_repo_ex(root, use_ast=True, skip_dirs=None):
         li = LineIndex(text)
         lines = text.split("\n")
         spans = ast_res["spans"] if parsed else []
+        if use_ast and not parsed and ext in LEX_EXT and cands:
+            try:
+                spans = lex_spans(text, ext)
+                stats["lexed"] += 1
+            except (IndexError, ValueError, RecursionError):
+                spans = []
         fenced = md_regions(text) if (ext in DOC_EXT or is_skill) and use_ast else []
         ast_lines = defaultdict(set)
         if parsed:
@@ -499,7 +691,7 @@ def scan_repo_ex(root, use_ast=True, skip_dirs=None):
                         f["suppressed"] = True
                         f["why"] = "inside a detection pattern / assertion (AST)"
                 continue
-            span = innermost(spans, a, b) if parsed else None
+            span = innermost(spans, a, b) if (parsed or ext in LEX_EXT) else None
             decide(f, text, ext, ctx, span, fenced)
             if ext in PATTERN_FILE_EXT and not f.get("suppressed"):
                 f["suppressed"] = True
@@ -509,7 +701,7 @@ def scan_repo_ex(root, use_ast=True, skip_dirs=None):
         live_tp = [f for f in file_cands if f["rule"].startswith("ATL-TP-") and not f.get("suppressed")]
         if parsed and any(f["rule"] == "ATL-TP-001" for f in live_tp):
             for s, e, kind, role in spans:
-                if kind != "string" or role != "desc":
+                if kind != "string" or role not in ("desc", "catalog"):
                     continue
                 inside = [f for f in live_tp if s <= f["_a"] < e]
                 rules_in = {f["rule"] for f in inside}
@@ -517,6 +709,7 @@ def scan_repo_ex(root, use_ast=True, skip_dirs=None):
                     for f in inside:
                         if f["rule"] in ("ATL-TP-001", "ATL-TP-002", "ATL-TP-004"):
                             f["sev"] = "critical"
+                            f.pop("review", None)
                             f["why"] = "tag + concealment/credential instruction in one tool description"
 
         if base == "package.json":

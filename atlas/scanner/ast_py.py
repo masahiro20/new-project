@@ -5,7 +5,9 @@ imported or executed.
 
 analyse(text) -> {"ok": bool, "spans": [(start, end, kind, role)], "hits": [finding...]}
   spans: char offsets into `text`; kind in {"string", "comment"};
-         role in {"desc", "pattern", "patternlist", "test", "plain"}
+         role in {"desc", "catalog", "pattern", "patternlist", "test", "plain"}
+         catalog (v1.1): a description value inside a threat/rule record, i.e. a dict that
+         also has a severity/taxonomy-style key ({"severity": ..., "description": ...}).
   hits:  semantic detections for code rules (CE-001, CE-002, OB-003, CR-001, NW-001)
 """
 import ast
@@ -22,6 +24,11 @@ DECODERS = {"b64decode", "standard_b64decode", "urlsafe_b64decode", "b32decode",
             "decompress", "fromhex", "unhexlify", "loads"}
 SHELL_FUNCS = {("os", "system"), ("os", "popen"), ("asyncio", "create_subprocess_shell"),
                ("commands", "getoutput"), ("subprocess", "getoutput"), ("subprocess", "getstatusoutput")}
+# v1.1: keys that mark a dict as a threat / detection-rule catalog entry rather than a tool
+# definition. Generic keys (name, category, type) are deliberately not in this set.
+CATALOG_KEYS = {"severity", "risk", "risk_level", "threat", "threat_type", "threat_name", "taxonomy", "cwe", "cve",
+                "mitre", "mitre_attack", "attack_id", "technique", "remediation", "mitigation", "owasp",
+                "aitech", "aisubtech", "scanner_category"}
 SEND_SINKS = {"post", "put", "send", "sendall", "write", "print", "info", "debug", "warning", "error",
               "log", "request", "urlopen", "dumps", "dump"}
 
@@ -110,7 +117,9 @@ def analyse(text):
             for k, v in zip(p.keys, p.values):
                 if v is node and isinstance(k, ast.Constant) and isinstance(k.value, str):
                     if k.value in DESC_KW:
-                        return "desc"
+                        sib = {kk.value.lower() for kk in p.keys
+                               if isinstance(kk, ast.Constant) and isinstance(kk.value, str)}
+                        return "catalog" if sib & CATALOG_KEYS else "desc"
                     if PATTERN_NAME.search(k.value):
                         return "pattern"
             return "plain"
