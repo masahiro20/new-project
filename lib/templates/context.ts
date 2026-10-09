@@ -5,6 +5,10 @@
 import type { SERVICE_TYPES } from "../form";
 import type { Part } from "../parts";
 
+/** Word にも入る冒頭の注意文。全セット共通。 */
+export const TEMPLATE_NOTICE =
+  "> 無料テンプレート（定型文）です。法的助言ではありません。2026年10月時点の告示・通知に基づいて作成しています。【要記入】を事業所の実情に合わせて埋め、内容を確認・修正してから使ってください。減算を避けるには、書類をそろえるだけでなく、委員会の開催・研修の実施・担当者の配置などの取組を実際に行い、その記録を残すことが必要です。制度の取扱いは指定権者（都道府県・市町村）の通知を確認してください。";
+
 export type ServiceType = (typeof SERVICE_TYPES)[number];
 
 export type TemplateInput = {
@@ -49,13 +53,44 @@ const KIND: Record<ServiceType, ServiceKind> = {
   "居宅介護・重度訪問介護": "daytime",
   短期入所: "daytime",
   相談支援: "consultation",
+  // 身体拘束廃止未実施減算の対象外（相談支援と同じ扱い）。BCP は1%。
+  自立生活援助: "consultation",
+  就労定着支援: "consultation",
   その他の障害福祉サービス: "unknown",
 };
 
 /** 障害者支援施設が昼間に行えるサービス（施行規則第1条の2）。A型は含まれない */
 const SUPPORT_FACILITY_DAYTIME = new Set<ServiceType>(["生活介護", "就労移行支援", "就労継続支援B型"]);
 
-export function templateContext(input: TemplateInput): TemplateContext {
+/**
+ * Free text goes into Markdown (lib/markdown.ts): a "|" would split table cells, a leading "#", "-", "1.", ">"
+ * or "---" would turn the line into a heading/list/quote/page break, and "**" toggles bold. Use full-width forms.
+ */
+function plain(value: unknown, max: number): string {
+  return String(value ?? "")
+    .slice(0, max)
+    .replace(/[\r\n]+/g, " ")
+    .replace(/\|/g, "｜")
+    .replace(/\*/g, "＊")
+    .replace(/^(\s*)([#>]|-(?=\s|--)|\d+(?=[.)．]\s))/, (_, sp: string, m: string) => sp + m.replace(/[#>\-0-9]/g, (c) => String.fromCharCode(c.charCodeAt(0) + 0xfee0)));
+}
+
+function intIn(value: unknown, min: number, max: number): number | null {
+  const n = Number(value);
+  return value !== null && value !== "" && Number.isInteger(n) && n >= min && n <= max ? n : null;
+}
+
+export function templateContext(raw: TemplateInput): TemplateContext {
+  const serviceType: ServiceType = Object.prototype.hasOwnProperty.call(KIND, raw.serviceType) ? raw.serviceType : "その他の障害福祉サービス";
+  const input: TemplateInput = {
+    serviceType,
+    facilityName: plain(raw.facilityName, 60),
+    meetingDate: plain(raw.meetingDate, 40),
+    committeeMembers: plain(raw.committeeMembers, 200),
+    officerRole: plain(raw.officerRole, 60),
+    staffCount: intIn(raw.staffCount, 1, 500),
+    reiwaYear: intIn(raw.reiwaYear, 1, 99) ?? 8,
+  };
   const kind = KIND[input.serviceType];
   const child = input.serviceType === "放課後等デイサービス" || input.serviceType === "児童発達支援";
   const fill = (value: string | number | null | undefined, label: string) => {

@@ -39,7 +39,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <nav aria-label="メインメニュー">
               <Link href="/check">診断</Link>
               <Link href="/guide">解説</Link>
-              <Link href="/templates">テンプレート</Link>
+              {ai && <Link href="/templates">テンプレート</Link>}
               {ai ? (
                 <Link href="/generate" className="nav-cta">書類を作る</Link>
               ) : (

@@ -10,22 +10,24 @@ export type CheckService = {
   child?: boolean;
   /** Slug of the matching /guide page, if any. */
   guide?: string;
+  /** Service type to preselect on /templates (a SERVICE_TYPES value in lib/form.ts). */
+  template: string;
 };
 
 export const CHECK_SERVICES: CheckService[] = [
-  { label: "放課後等デイサービス", kind: "daytime", child: true, guide: "houkago-day-gensan" },
-  { label: "児童発達支援", kind: "daytime", child: true, guide: "jidou-hattatsu-gensan" },
-  { label: "就労継続支援B型", kind: "daytime", guide: "shuro-b-gensan" },
-  { label: "就労継続支援A型", kind: "daytime", guide: "shuro-a-gensan" },
-  { label: "就労移行支援", kind: "daytime", guide: "shuro-ikou-gensan" },
-  { label: "生活介護（障害者支援施設が行うものを除く）", kind: "daytime", guide: "seikatsu-kaigo-gensan" },
-  { label: "共同生活援助（グループホーム）", kind: "residential", guide: "group-home-gensan" },
-  { label: "施設入所支援・障害者支援施設が行うサービス", kind: "residential", guide: "shisetsu-nyusho-gensan" },
-  { label: "居宅介護・重度訪問介護・同行援護・行動援護", kind: "daytime", guide: "kyotaku-kaigo-gensan" },
-  { label: "短期入所", kind: "daytime", guide: "tanki-nyusho-gensan" },
-  { label: "計画相談支援・障害児相談支援・地域相談支援", kind: "consultation", guide: "soudan-shien-gensan" },
-  { label: "自立生活援助・就労定着支援", kind: "consultation" },
-  { label: "その他の障害福祉サービス", kind: "unknown" },
+  { label: "放課後等デイサービス", kind: "daytime", child: true, guide: "houkago-day-gensan", template: "放課後等デイサービス" },
+  { label: "児童発達支援", kind: "daytime", child: true, guide: "jidou-hattatsu-gensan", template: "児童発達支援" },
+  { label: "就労継続支援B型", kind: "daytime", guide: "shuro-b-gensan", template: "就労継続支援B型" },
+  { label: "就労継続支援A型", kind: "daytime", guide: "shuro-a-gensan", template: "就労継続支援A型" },
+  { label: "就労移行支援", kind: "daytime", guide: "shuro-ikou-gensan", template: "就労移行支援" },
+  { label: "生活介護（障害者支援施設が行うものを除く）", kind: "daytime", guide: "seikatsu-kaigo-gensan", template: "生活介護" },
+  { label: "共同生活援助（グループホーム）", kind: "residential", guide: "group-home-gensan", template: "共同生活援助（グループホーム）" },
+  { label: "施設入所支援・障害者支援施設が行うサービス", kind: "residential", guide: "shisetsu-nyusho-gensan", template: "その他の障害福祉サービス" },
+  { label: "居宅介護・重度訪問介護・同行援護・行動援護", kind: "daytime", guide: "kyotaku-kaigo-gensan", template: "居宅介護・重度訪問介護" },
+  { label: "短期入所", kind: "daytime", guide: "tanki-nyusho-gensan", template: "短期入所" },
+  { label: "計画相談支援・障害児相談支援・地域相談支援", kind: "consultation", guide: "soudan-shien-gensan", template: "相談支援" },
+  { label: "自立生活援助・就労定着支援", kind: "consultation", template: "自立生活援助" },
+  { label: "その他の障害福祉サービス", kind: "unknown", template: "その他の障害福祉サービス" },
 ];
 
 export type NextStep = { label: string; href: string };

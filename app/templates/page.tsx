@@ -38,11 +38,11 @@ export default function TemplatesPage() {
         <TemplateClient />
 
         <h2 style={{ marginTop: 48 }}>無料テンプレートと有料版（AI）の違い</h2>
-        <div className="table-wrap">
+        <div className="table-wrap" tabIndex={0} role="region" aria-label="無料テンプレートと有料版の違い（横にスクロールできます）">
           <table className="compare">
             <thead>
               <tr>
-                <th></th>
+                <th><span className="visually-hidden">項目</span></th>
                 <th>無料テンプレート（このページ）</th>
                 <th>有料版（AI・近日公開）</th>
               </tr>

@@ -30,7 +30,8 @@ a { color: var(--accent); }
 .header-inner { display: flex; align-items: center; justify-content: space-between; height: 60px; gap: 12px; }
 .logo { font-weight: 800; font-size: 1.2rem; color: var(--text); text-decoration: none; letter-spacing: .04em; }
 .site-header nav { display: flex; gap: 16px; align-items: center; font-size: .95rem; }
-.site-header nav a { color: var(--text); text-decoration: none; }
+.site-header nav a { color: var(--text); text-decoration: none; white-space: nowrap; }
+.logo { white-space: nowrap; }
 .nav-cta { background: var(--accent); color: var(--accent-ink) !important; padding: 6px 14px; border-radius: 999px; }
 
 .site-footer { border-top: 1px solid var(--line); margin-top: 80px; padding: 32px 0; color: var(--muted); font-size: .85rem; }

@@ -129,7 +129,8 @@ export default function SamplesPage() {
             {aiEnabled() ? "年間実施計画は無料で作成できます。" : "AIによる作成機能は準備中です。"}
           </p>
           <div className="actions">
-            <Link href="/check" className="btn">減算リスクを無料診断</Link>
+            <Link href="/templates" className="btn">無料テンプレートで作る</Link>
+            <Link href="/check" className="btn secondary">減算リスクを無料診断</Link>
             {aiEnabled() && <Link href="/generate" className="btn secondary">無料で年間計画を作る</Link>}
             <Link href="/guide" className="btn secondary">サービス種別ごとの解説</Link>
           </div>

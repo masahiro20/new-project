@@ -137,7 +137,7 @@ export default function CheckClient({ ai }: { ai: boolean }) {
               </p>
               <div className="actions">
                 {ai && <Link href="/generate" className="btn">書類を作る</Link>}
-                <Link href="/templates" className={ai ? "btn secondary" : "btn"}>無料テンプレートで作る</Link>
+                <Link href={`/templates#s=${encodeURIComponent(service.template)}`} className={ai ? "btn secondary" : "btn"}>無料テンプレートで作る</Link>
                 <Link href="/samples" className="btn secondary">書類サンプルを見る</Link>
                 <Link href={service.guide ? `/guide/${service.guide}` : "/guide"} className="btn secondary">
                   {service.guide ? `${service.label.replace(/（.*$/, "")}の解説` : "サービス種別ごとの解説"}

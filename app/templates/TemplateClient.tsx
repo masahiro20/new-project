@@ -30,6 +30,8 @@ export default function TemplateClient() {
   const [input, setInput] = useState<TemplateInput>(EMPTY);
   const [part, setPart] = useState<Part>("committee");
   const [saving, setSaving] = useState(false);
+  // While typing, the year field may be empty or partial; only a valid year reaches the template.
+  const [yearText, setYearText] = useState<string | null>(null);
 
   useEffect(() => {
     try {
@@ -40,7 +42,22 @@ export default function TemplateClient() {
     } catch {
       // Storage blocked: start empty.
     }
+    // Coming from the diagnosis (/check): #s=<サービス種別> preselects the service.
+    const fromCheck = decodeURIComponent(/^#s=(.+)$/.exec(window.location.hash)?.[1] ?? "");
+    if ((SERVICE_TYPES as readonly string[]).includes(fromCheck)) {
+      setInput((prev) => ({ ...prev, serviceType: fromCheck as TemplateInput["serviceType"] }));
+    }
   }, []);
+
+  /** For shared PCs: forget everything typed here. */
+  function clearInput() {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      // Storage blocked: nothing was saved.
+    }
+    setInput(EMPTY);
+  }
 
   const set = <K extends keyof TemplateInput>(key: K, value: TemplateInput[K]) =>
     setInput((prev) => {
@@ -64,7 +81,7 @@ export default function TemplateClient() {
     setSaving(true);
     try {
       const { downloadDocx } = await import("@/lib/docx-export");
-      await downloadDocx(markdown, `${input.facilityName.trim() || "事業所"}_${label.replace(/（.*$/, "")}_テンプレート.docx`);
+      await downloadDocx(markdown, `${ctx.facilityName.trim() || "事業所"}_令和${ctx.reiwaYear}年度_${label.replace(/（.*$/, "")}_テンプレート.docx`);
       trackEvent(`template-download-${shownPart}`);
     } finally {
       setSaving(false);
@@ -84,6 +101,9 @@ export default function TemplateClient() {
           {ctx.restraintRate === null && (
             <p className="hint" style={{ marginTop: 6 }}>相談支援は身体拘束廃止未実施減算の対象外のため、身体拘束等適正化セットはありません。</p>
           )}
+          {ctx.kind === "unknown" && (
+            <p className="hint" style={{ marginTop: 6 }}>自立生活援助・就労定着支援・地域相談支援は身体拘束廃止未実施減算の対象外です。これらのサービスでは身体拘束等適正化セットは不要です。</p>
+          )}
         </div>
         <div className="field">
           <label htmlFor="t-name">事業所名</label>
@@ -92,7 +112,21 @@ export default function TemplateClient() {
         <div className="grid template-grid">
           <div className="field">
             <label htmlFor="t-year">年度（令和）</label>
-            <input id="t-year" type="number" min={6} max={20} value={input.reiwaYear} onChange={(e) => set("reiwaYear", Number(e.target.value) || EMPTY.reiwaYear)} />
+            <input
+              id="t-year"
+              type="number"
+              min={6}
+              max={20}
+              step={1}
+              value={yearText ?? input.reiwaYear}
+              onChange={(e) => {
+                const v = e.target.value;
+                setYearText(v);
+                const n = Number(v);
+                if (Number.isInteger(n) && n >= 6 && n <= 20) set("reiwaYear", n);
+              }}
+              onBlur={() => setYearText(null)}
+            />
           </div>
           <div className="field">
             <label htmlFor="t-staff">職員数</label>
@@ -122,7 +156,13 @@ export default function TemplateClient() {
           <label htmlFor="t-officer">虐待防止の担当者（役職）</label>
           <input id="t-officer" type="text" maxLength={60} placeholder="例：児童発達支援管理責任者" value={input.officerRole} onChange={(e) => set("officerRole", e.target.value)} />
         </div>
-        <p className="hint">入力内容はこのブラウザの中だけで使います。サーバーには送信されず、AI も使いません。空欄の項目は【要記入】として残ります。</p>
+        <p className="hint">
+          入力内容はこのブラウザの中だけで使い、次に開いたときのためにこのブラウザに保存します。サーバーには送信されず、AI も使いません。空欄の項目は【要記入】として残ります。
+          共用のパソコンでは、使い終わったら「入力を消す」を押してください。
+        </p>
+        <div className="actions" style={{ marginTop: 8 }}>
+          <button type="button" className="btn secondary" onClick={clearInput}>入力を消す</button>
+        </div>
       </form>
 
       <div className="tabs-row no-print" role="tablist" aria-label="書類セット">
