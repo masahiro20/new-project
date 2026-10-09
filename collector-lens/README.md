@@ -37,9 +37,12 @@ src/analyzer.js        解析（純粋関数：用語検出・否定表現・ラ
 src/sites.js           サイト判定と出品情報の抽出（ラベル文字列ベース）
 src/overlay.js         Shadow DOM のパネル
 src/content.js         エントリポイント（SPA の再描画にも追従）
+src/landed-cost.js     総額計算エンジン（v1.1・純粋関数。拡張にはまだ組み込んでいない）
+data/rates/            総額計算の料金表（雛形のみ。数値はすべて null＝要確認）
 test/                  node:test + jsdom のテスト
 test/fixtures/         自作の模擬 HTML（実サイトのコピーではない）
-scripts/               辞書生成・辞書チェック・dist 出力・アイコン生成
+test/fixtures/rates/   架空の料金表（テストとデモ専用。実在の業者・料金・税率ではない）
+scripts/               辞書生成・辞書チェック・料金表チェック・dist 出力・アイコン生成
 ```
 
 ## 使い方（開発者のみ）
@@ -47,7 +50,7 @@ scripts/               辞書生成・辞書チェック・dist 出力・アイ�
 ```bash
 cd collector-lens
 npm install          # jsdom（テスト用）のみ
-npm test             # 辞書の鮮度チェック → 辞書品質ゲート → テスト
+npm test             # 辞書の鮮度チェック → 辞書品質ゲート → 料金表スキーマ検査 → テスト
 npm run package      # dist/ を作る
 ```
 
@@ -70,6 +73,16 @@ npm run package:firefox   # store/tanuki-scout-firefox-<version>.zip
 - 原本は `data/glossary.json`。1語ごとに `ja`（表記ゆれ）、`en`、`explain`、`genre`、`category`、`risk`、`reviewed`。
 - `reviewed: true` は人の目で意味と危険度を確認済みという印。`npm test` はカメラ・時計の確認済み語が100語未満だと失敗します。
 - 編集後は `npm run build:data` で `src/glossary-data.js` を再生成。
+
+## 総額計算（v1.1・試作中）
+
+設計は `docs/v1.1-total-cost-design.md`。実装状況は同書 §11。
+
+- `src/landed-cost.js` の `CollectorLens.landedCost(input, tables, today)` が、商品価格・国内送料・代行手数料・国際送料・輸入税を**幅（low〜high）**で返します。各行に状態（ok / stale / unknown / user）、確認日、出典が付きます。
+- 料金表は `data/rates/`（meta・proxies・shipping・destinations）。**今は構造だけで、数値はすべて null（要確認）です。** 公式の公開情報で人が確認してから埋めます。`npm run check:rates`（`npm test` にも含む）が、型、ISO 日付、通貨コード、部品の種類、端数処理、「値があれば確認日と出典が必須」を検査します。`meta.status` が `placeholder` の間は、値を1つでも入れると失敗します。
+- テストとデモは `test/fixtures/rates/` の**架空の**料金表（Proxy A / Proxy B）だけを使います。
+- デモ（`npm run build:demo`）の下部に「Estimated total (preview)」欄があります。架空の料金表であることを画面に明記しています。
+- **拡張本体（manifest の content_scripts）にはまだ入れていません。** パネルに出すには、選択内容を保存する `storage` 権限の追加と、Pro（課金）の扱いについてオーナー承認が必要なためです（設計書 §8・§9）。manifest・権限・通信は変えていません。
 
 ## 既知の制約
 

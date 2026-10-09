@@ -1,0 +1,115 @@
+{
+  "schema_version": 1,
+  "weight_defaults": {
+    "note": "料金ではなく典型的な重量（設計書 §4.3）。利用者はいつでも上書きできる",
+    "source": "docs/v1.1-total-cost-design.md §4.3",
+    "checked_at": "2026-10-08",
+    "values_kg": {
+      "lens": 0.5,
+      "film_camera": 1,
+      "digital_camera": 1,
+      "camera": 1,
+      "watch": 0.5
+    }
+  },
+  "methods": [
+    {
+      "id": "method_example",
+      "label": "Example method (placeholder)",
+      "volumetric_divisor": {
+        "rows": [
+          {
+            "effective_from": null,
+            "value": null,
+            "checked_at": null,
+            "source": null,
+            "checked_by": null,
+            "note": "要確認：容積重量の係数（縦×横×高さ cm ÷ 係数）"
+          }
+        ]
+      },
+      "destinations": {
+        "US": {
+          "base": "chargeable_weight_kg",
+          "rows": [
+            {
+              "effective_from": null,
+              "kind": "tiered",
+              "currency": "JPY",
+              "tiers": null,
+              "rounding": "round",
+              "checked_at": null,
+              "source": null,
+              "checked_by": null,
+              "note": "要確認：重量帯ごとの料金"
+            }
+          ]
+        },
+        "GB": {
+          "base": "chargeable_weight_kg",
+          "rows": [
+            {
+              "effective_from": null,
+              "kind": "tiered",
+              "currency": "JPY",
+              "tiers": null,
+              "rounding": "round",
+              "checked_at": null,
+              "source": null,
+              "checked_by": null,
+              "note": "要確認：重量帯ごとの料金"
+            }
+          ]
+        },
+        "DE": {
+          "base": "chargeable_weight_kg",
+          "rows": [
+            {
+              "effective_from": null,
+              "kind": "tiered",
+              "currency": "JPY",
+              "tiers": null,
+              "rounding": "round",
+              "checked_at": null,
+              "source": null,
+              "checked_by": null,
+              "note": "要確認：重量帯ごとの料金"
+            }
+          ]
+        },
+        "AU": {
+          "base": "chargeable_weight_kg",
+          "rows": [
+            {
+              "effective_from": null,
+              "kind": "tiered",
+              "currency": "JPY",
+              "tiers": null,
+              "rounding": "round",
+              "checked_at": null,
+              "source": null,
+              "checked_by": null,
+              "note": "要確認：重量帯ごとの料金"
+            }
+          ]
+        },
+        "CA": {
+          "base": "chargeable_weight_kg",
+          "rows": [
+            {
+              "effective_from": null,
+              "kind": "tiered",
+              "currency": "JPY",
+              "tiers": null,
+              "rounding": "round",
+              "checked_at": null,
+              "source": null,
+              "checked_by": null,
+              "note": "要確認：重量帯ごとの料金"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

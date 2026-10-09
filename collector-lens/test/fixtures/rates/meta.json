@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "status": "fixture",
+  "data_version": "fixture-1",
+  "note": "架空の料金表（テストとデモ専用）。実在の業者・料金・税率ではない",
+  "last_reviewed": "2026-10-01",
+  "stale_after_days": 45,
+  "expire_after_days": 90,
+  "fx_reference": {
+    "USD": {
+      "label": "Reference rate (JPY per 1 USD)",
+      "rows": [
+        {
+          "effective_from": "2026-01-01",
+          "value": 150,
+          "checked_at": "2026-10-01",
+          "source": "Fictional test table (not a real fee)",
+          "checked_by": "test"
+        }
+      ]
+    },
+    "GBP": {
+      "label": "Reference rate (JPY per 1 GBP)",
+      "rows": [
+        {
+          "effective_from": "2026-01-01",
+          "value": 200,
+          "checked_at": "2026-10-01",
+          "source": "Fictional test table (not a real fee)",
+          "checked_by": "test"
+        }
+      ]
+    },
+    "EUR": {
+      "label": "Reference rate (JPY per 1 EUR)",
+      "rows": [
+        {
+          "effective_from": "2026-01-01",
+          "value": 160,
+          "checked_at": "2026-10-01",
+          "source": "Fictional test table (not a real fee)",
+          "checked_by": "test"
+        }
+      ]
+    },
+    "AUD": {
+      "label": "Reference rate (JPY per 1 AUD)",
+      "rows": [
+        {
+          "effective_from": "2026-01-01",
+          "value": 100,
+          "checked_at": "2026-10-01",
+          "source": "Fictional test table (not a real fee)",
+          "checked_by": "test"
+        }
+      ]
+    },
+    "CAD": {
+      "label": "Reference rate (JPY per 1 CAD)",
+      "rows": [
+        {
+          "effective_from": "2026-01-01",
+          "value": 110,
+          "checked_at": "2026-10-01",
+          "source": "Fictional test table (not a real fee)",
+          "checked_by": "test"
+        }
+      ]
+    }
+  }
+}

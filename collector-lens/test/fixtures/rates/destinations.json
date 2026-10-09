@@ -1,0 +1,515 @@
+{
+  "schema_version": 1,
+  "destinations": [
+    {
+      "country": "US",
+      "currency": "USD",
+      "label": "United States (sample rates)",
+      "duty_basis": {
+        "rows": [
+          {
+            "effective_from": "2026-01-01",
+            "value": "FOB",
+            "checked_at": "2026-10-01",
+            "source": "Fictional test table (not a real fee)",
+            "checked_by": "test"
+          }
+        ]
+      },
+      "de_minimis": {
+        "rows": [
+          {
+            "effective_from": "2026-01-01",
+            "value": 0,
+            "currency": "USD",
+            "applies_to": [
+              "duty",
+              "import_tax"
+            ],
+            "checked_at": "2026-10-01",
+            "source": "Fictional test table (not a real fee)",
+            "checked_by": "test"
+          }
+        ]
+      },
+      "duty": {
+        "camera": {
+          "rows": [
+            {
+              "effective_from": "2026-01-01",
+              "kind": "rate",
+              "rate": 0.02,
+              "rounding": "round",
+              "checked_at": "2026-10-01",
+              "source": "Fictional test table (not a real fee)",
+              "checked_by": "test"
+            }
+          ]
+        },
+        "lens": {
+          "rows": [
+            {
+              "effective_from": "2026-01-01",
+              "kind": "rate",
+              "rate": 0.03,
+              "rounding": "round",
+              "checked_at": "2026-10-01",
+              "source": "Fictional test table (not a real fee)",
+              "checked_by": "test"
+            }
+          ]
+        },
+        "watch": {
+          "rows": [
+            {
+              "effective_from": "2026-01-01",
+              "kind": "rate",
+              "rate": 0.05,
+              "rounding": "round",
+              "checked_at": "2026-10-01",
+              "source": "Fictional test table (not a real fee)",
+              "checked_by": "test"
+            }
+          ]
+        }
+      },
+      "extra_tariff": {
+        "label": "Additional tariff",
+        "base": "customs_value",
+        "rows": [
+          {
+            "effective_from": "2026-01-01",
+            "kind": "rate",
+            "rate": 0.1,
+            "rounding": "round",
+            "checked_at": "2026-10-01",
+            "source": "Fictional test table (not a real fee)",
+            "checked_by": "test"
+          }
+        ]
+      },
+      "broker_fee": {
+        "label": "Customs clearance fee",
+        "rows": [
+          {
+            "effective_from": "2026-01-01",
+            "kind": "fixed",
+            "currency": "USD",
+            "amount": 10,
+            "checked_at": "2026-10-01",
+            "source": "Fictional test table (not a real fee)",
+            "checked_by": "test"
+          }
+        ]
+      }
+    },
+    {
+      "country": "GB",
+      "currency": "GBP",
+      "label": "United Kingdom (sample rates)",
+      "duty_basis": {
+        "rows": [
+          {
+            "effective_from": "2026-01-01",
+            "value": "CIF",
+            "checked_at": "2026-10-01",
+            "source": "Fictional test table (not a real fee)",
+            "checked_by": "test"
+          }
+        ]
+      },
+      "de_minimis": {
+        "rows": [
+          {
+            "effective_from": "2026-01-01",
+            "value": 135,
+            "currency": "GBP",
+            "applies_to": [
+              "duty"
+            ],
+            "checked_at": "2026-10-01",
+            "source": "Fictional test table (not a real fee)",
+            "checked_by": "test"
+          }
+        ]
+      },
+      "duty": {
+        "camera": {
+          "rows": [
+            {
+              "effective_from": "2026-01-01",
+              "kind": "rate",
+              "rate": 0.02,
+              "rounding": "round",
+              "checked_at": "2026-10-01",
+              "source": "Fictional test table (not a real fee)",
+              "checked_by": "test"
+            }
+          ]
+        },
+        "lens": {
+          "rows": [
+            {
+              "effective_from": "2026-01-01",
+              "kind": "rate",
+              "rate": 0.02,
+              "rounding": "round",
+              "checked_at": "2026-10-01",
+              "source": "Fictional test table (not a real fee)",
+              "checked_by": "test"
+            }
+          ]
+        },
+        "watch": {
+          "rows": [
+            {
+              "effective_from": "2026-01-01",
+              "kind": "rate",
+              "rate": 0.04,
+              "rounding": "round",
+              "checked_at": "2026-10-01",
+              "source": "Fictional test table (not a real fee)",
+              "checked_by": "test"
+            }
+          ]
+        }
+      },
+      "import_tax": {
+        "label": "Import VAT",
+        "base": "customs_value_plus_duty",
+        "rows": [
+          {
+            "effective_from": "2026-01-01",
+            "kind": "rate",
+            "rate": 0.2,
+            "rounding": "round",
+            "checked_at": "2026-10-01",
+            "source": "Fictional test table (not a real fee)",
+            "checked_by": "test"
+          }
+        ]
+      },
+      "broker_fee": {
+        "label": "Customs clearance fee",
+        "rows": [
+          {
+            "effective_from": "2026-01-01",
+            "kind": "fixed",
+            "currency": "GBP",
+            "amount": 8,
+            "checked_at": "2026-10-01",
+            "source": "Fictional test table (not a real fee)",
+            "checked_by": "test"
+          }
+        ]
+      }
+    },
+    {
+      "country": "DE",
+      "currency": "EUR",
+      "label": "Germany (sample rates)",
+      "duty_basis": {
+        "rows": [
+          {
+            "effective_from": "2026-01-01",
+            "value": "CIF",
+            "checked_at": "2026-10-01",
+            "source": "Fictional test table (not a real fee)",
+            "checked_by": "test"
+          }
+        ]
+      },
+      "de_minimis": {
+        "rows": [
+          {
+            "effective_from": "2026-01-01",
+            "value": 150,
+            "currency": "EUR",
+            "applies_to": [
+              "duty"
+            ],
+            "checked_at": "2026-10-01",
+            "source": "Fictional test table (not a real fee)",
+            "checked_by": "test"
+          }
+        ]
+      },
+      "duty": {
+        "camera": {
+          "rows": [
+            {
+              "effective_from": "2026-01-01",
+              "kind": "rate",
+              "rate": 0.03,
+              "rounding": "round",
+              "checked_at": "2026-10-01",
+              "source": "Fictional test table (not a real fee)",
+              "checked_by": "test"
+            }
+          ]
+        },
+        "lens": {
+          "rows": [
+            {
+              "effective_from": "2026-01-01",
+              "kind": "rate",
+              "rate": 0.03,
+              "rounding": "round",
+              "checked_at": "2026-10-01",
+              "source": "Fictional test table (not a real fee)",
+              "checked_by": "test"
+            }
+          ]
+        },
+        "watch": {
+          "rows": [
+            {
+              "effective_from": "2026-01-01",
+              "kind": "rate",
+              "rate": 0.045,
+              "rounding": "round",
+              "checked_at": "2026-10-01",
+              "source": "Fictional test table (not a real fee)",
+              "checked_by": "test"
+            }
+          ]
+        }
+      },
+      "import_tax": {
+        "label": "Import VAT",
+        "base": "customs_value_plus_duty",
+        "rows": [
+          {
+            "effective_from": "2026-01-01",
+            "kind": "rate",
+            "rate": 0.19,
+            "rounding": "round",
+            "checked_at": "2026-10-01",
+            "source": "Fictional test table (not a real fee)",
+            "checked_by": "test"
+          }
+        ]
+      },
+      "broker_fee": {
+        "label": "Customs clearance fee",
+        "rows": [
+          {
+            "effective_from": null,
+            "kind": "fixed",
+            "currency": "EUR",
+            "amount": null,
+            "checked_at": null,
+            "source": null,
+            "checked_by": null,
+            "note": "要確認（架空の未確定行）"
+          }
+        ]
+      }
+    },
+    {
+      "country": "AU",
+      "currency": "AUD",
+      "label": "Australia (sample rates)",
+      "duty_basis": {
+        "rows": [
+          {
+            "effective_from": "2026-01-01",
+            "value": "FOB",
+            "checked_at": "2026-10-01",
+            "source": "Fictional test table (not a real fee)",
+            "checked_by": "test"
+          }
+        ]
+      },
+      "de_minimis": {
+        "rows": [
+          {
+            "effective_from": "2026-01-01",
+            "value": 1000,
+            "currency": "AUD",
+            "applies_to": [
+              "duty",
+              "import_tax"
+            ],
+            "checked_at": "2026-10-01",
+            "source": "Fictional test table (not a real fee)",
+            "checked_by": "test"
+          }
+        ]
+      },
+      "duty": {
+        "camera": {
+          "rows": [
+            {
+              "effective_from": "2026-01-01",
+              "kind": "rate",
+              "rate": 0.05,
+              "rounding": "round",
+              "checked_at": "2026-10-01",
+              "source": "Fictional test table (not a real fee)",
+              "checked_by": "test"
+            }
+          ]
+        },
+        "lens": {
+          "rows": [
+            {
+              "effective_from": "2026-01-01",
+              "kind": "rate",
+              "rate": 0.05,
+              "rounding": "round",
+              "checked_at": "2026-10-01",
+              "source": "Fictional test table (not a real fee)",
+              "checked_by": "test"
+            }
+          ]
+        },
+        "watch": {
+          "rows": [
+            {
+              "effective_from": "2026-01-01",
+              "kind": "rate",
+              "rate": 0.05,
+              "rounding": "round",
+              "checked_at": "2026-10-01",
+              "source": "Fictional test table (not a real fee)",
+              "checked_by": "test"
+            }
+          ]
+        }
+      },
+      "import_tax": {
+        "label": "Import GST",
+        "base": "customs_value_plus_duty",
+        "rows": [
+          {
+            "effective_from": "2026-01-01",
+            "kind": "rate",
+            "rate": 0.1,
+            "rounding": "round",
+            "checked_at": "2026-10-01",
+            "source": "Fictional test table (not a real fee)",
+            "checked_by": "test"
+          }
+        ]
+      },
+      "broker_fee": {
+        "label": "Customs clearance fee",
+        "rows": [
+          {
+            "effective_from": "2026-01-01",
+            "kind": "fixed",
+            "currency": "AUD",
+            "amount": 15,
+            "checked_at": "2026-10-01",
+            "source": "Fictional test table (not a real fee)",
+            "checked_by": "test"
+          }
+        ]
+      }
+    },
+    {
+      "country": "CA",
+      "currency": "CAD",
+      "label": "Canada (sample rates)",
+      "duty_basis": {
+        "rows": [
+          {
+            "effective_from": null,
+            "value": null,
+            "checked_at": null,
+            "source": null,
+            "checked_by": null,
+            "note": "要確認（架空の未確定行）"
+          }
+        ]
+      },
+      "de_minimis": {
+        "rows": [
+          {
+            "effective_from": "2026-01-01",
+            "value": 40,
+            "currency": "CAD",
+            "applies_to": [
+              "duty",
+              "import_tax"
+            ],
+            "checked_at": "2026-10-01",
+            "source": "Fictional test table (not a real fee)",
+            "checked_by": "test"
+          }
+        ]
+      },
+      "duty": {
+        "camera": {
+          "rows": [
+            {
+              "effective_from": "2026-01-01",
+              "kind": "rate",
+              "rate": 0.04,
+              "rounding": "round",
+              "checked_at": "2026-10-01",
+              "source": "Fictional test table (not a real fee)",
+              "checked_by": "test"
+            }
+          ]
+        },
+        "lens": {
+          "rows": [
+            {
+              "effective_from": "2026-01-01",
+              "kind": "rate",
+              "rate": 0.04,
+              "rounding": "round",
+              "checked_at": "2026-10-01",
+              "source": "Fictional test table (not a real fee)",
+              "checked_by": "test"
+            }
+          ]
+        },
+        "watch": {
+          "rows": [
+            {
+              "effective_from": "2026-01-01",
+              "kind": "rate",
+              "rate": 0.06,
+              "rounding": "round",
+              "checked_at": "2026-10-01",
+              "source": "Fictional test table (not a real fee)",
+              "checked_by": "test"
+            }
+          ]
+        }
+      },
+      "import_tax": {
+        "label": "Import GST",
+        "base": "customs_value_plus_duty",
+        "rows": [
+          {
+            "effective_from": "2026-01-01",
+            "kind": "rate",
+            "rate": 0.05,
+            "rounding": "round",
+            "checked_at": "2026-10-01",
+            "source": "Fictional test table (not a real fee)",
+            "checked_by": "test"
+          }
+        ]
+      },
+      "broker_fee": {
+        "label": "Customs clearance fee",
+        "rows": [
+          {
+            "effective_from": "2026-01-01",
+            "kind": "fixed",
+            "currency": "CAD",
+            "amount": 12,
+            "checked_at": "2026-10-01",
+            "source": "Fictional test table (not a real fee)",
+            "checked_by": "test"
+          }
+        ]
+      }
+    }
+  ]
+}

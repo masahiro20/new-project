@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "proxies": [
+    {
+      "id": "proxy_example",
+      "display_name": "Example proxy (placeholder)",
+      "note": "要確認：表示する代行業者の範囲と、業者名を出すことの法的確認はオーナー判断（設計書 §10）",
+      "plans": [
+        {
+          "id": "standard",
+          "label": "Standard plan",
+          "components": [
+            {
+              "id": "service_fee",
+              "label": "Proxy service fee",
+              "stage": "service",
+              "base": "item_price",
+              "rows": [
+                {
+                  "effective_from": null,
+                  "kind": "fixed",
+                  "currency": "JPY",
+                  "amount": null,
+                  "rounding": "round",
+                  "checked_at": null,
+                  "source": null,
+                  "checked_by": null,
+                  "note": "要確認：1件あたりの手数料"
+                }
+              ]
+            },
+            {
+              "id": "payment_fee",
+              "label": "Payment fee",
+              "stage": "payment",
+              "base": "proxy_charges",
+              "rows": [
+                {
+                  "effective_from": null,
+                  "kind": "rate_with_min",
+                  "currency": "JPY",
+                  "rate": null,
+                  "min": null,
+                  "rounding": "ceil",
+                  "checked_at": null,
+                  "source": null,
+                  "checked_by": null,
+                  "note": "要確認：決済手数料（率＋最低額）"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "id": "insurance",
+          "label": "Shipping insurance",
+          "stage": "service",
+          "base": "goods_total",
+          "counts_as": "insurance",
+          "rows": [
+            {
+              "effective_from": null,
+              "kind": "rate_with_min",
+              "currency": "JPY",
+              "rate": null,
+              "min": null,
+              "rounding": "ceil",
+              "checked_at": null,
+              "source": null,
+              "checked_by": null,
+              "note": "要確認：保険料"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

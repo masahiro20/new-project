@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "status": "placeholder",
+  "data_version": "0.0.0-placeholder",
+  "note": "リリース前の雛形。数値はすべて null（要確認）。公式の公開情報で人が確認してから埋める。設計書 docs/v1.1-total-cost-design.md §4・§7",
+  "last_reviewed": null,
+  "stale_after_days": 45,
+  "expire_after_days": 90,
+  "fx_reference": {
+    "USD": {
+      "label": "Reference rate (JPY per 1 USD)",
+      "rows": [
+        {
+          "effective_from": null,
+          "value": null,
+          "checked_at": null,
+          "source": null,
+          "checked_by": null,
+          "note": "要確認：同梱する参考レート（円／1USD）。出典と日付を必ず記録する"
+        }
+      ]
+    },
+    "GBP": {
+      "label": "Reference rate (JPY per 1 GBP)",
+      "rows": [
+        {
+          "effective_from": null,
+          "value": null,
+          "checked_at": null,
+          "source": null,
+          "checked_by": null,
+          "note": "要確認：同梱する参考レート（円／1GBP）。出典と日付を必ず記録する"
+        }
+      ]
+    },
+    "EUR": {
+      "label": "Reference rate (JPY per 1 EUR)",
+      "rows": [
+        {
+          "effective_from": null,
+          "value": null,
+          "checked_at": null,
+          "source": null,
+          "checked_by": null,
+          "note": "要確認：同梱する参考レート（円／1EUR）。出典と日付を必ず記録する"
+        }
+      ]
+    },
+    "AUD": {
+      "label": "Reference rate (JPY per 1 AUD)",
+      "rows": [
+        {
+          "effective_from": null,
+          "value": null,
+          "checked_at": null,
+          "source": null,
+          "checked_by": null,
+          "note": "要確認：同梱する参考レート（円／1AUD）。出典と日付を必ず記録する"
+        }
+      ]
+    },
+    "CAD": {
+      "label": "Reference rate (JPY per 1 CAD)",
+      "rows": [
+        {
+          "effective_from": null,
+          "value": null,
+          "checked_at": null,
+          "source": null,
+          "checked_by": null,
+          "note": "要確認：同梱する参考レート（円／1CAD）。出典と日付を必ず記録する"
+        }
+      ]
+    }
+  }
+}

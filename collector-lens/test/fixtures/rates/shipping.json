@@ -1,0 +1,421 @@
+{
+  "schema_version": 1,
+  "weight_defaults": {
+    "note": "料金ではなく典型的な重量（設計書 §4.3）",
+    "source": "docs/v1.1-total-cost-design.md §4.3",
+    "checked_at": "2026-10-08",
+    "values_kg": {
+      "lens": 0.5,
+      "film_camera": 1,
+      "digital_camera": 1,
+      "camera": 1,
+      "watch": 0.5
+    }
+  },
+  "methods": [
+    {
+      "id": "air_sample",
+      "label": "Sample airmail",
+      "volumetric_divisor": {
+        "rows": [
+          {
+            "effective_from": "2026-01-01",
+            "value": 5000,
+            "checked_at": "2026-10-01",
+            "source": "Fictional test table (not a real fee)",
+            "checked_by": "test"
+          }
+        ]
+      },
+      "destinations": {
+        "US": {
+          "base": "chargeable_weight_kg",
+          "rows": [
+            {
+              "effective_from": "2026-01-01",
+              "kind": "tiered",
+              "currency": "JPY",
+              "tiers": [
+                {
+                  "up_to": 0.5,
+                  "amount": 2400
+                },
+                {
+                  "up_to": 1,
+                  "amount": 3600
+                },
+                {
+                  "up_to": 2,
+                  "amount": 5400
+                },
+                {
+                  "up_to": 5,
+                  "amount": 9600
+                },
+                {
+                  "up_to": 10,
+                  "amount": 16800
+                }
+              ],
+              "rounding": "round",
+              "rounding_unit": 10,
+              "checked_at": "2026-10-01",
+              "source": "Fictional test table (not a real fee)",
+              "checked_by": "test"
+            }
+          ]
+        },
+        "GB": {
+          "base": "chargeable_weight_kg",
+          "rows": [
+            {
+              "effective_from": "2026-01-01",
+              "kind": "tiered",
+              "currency": "JPY",
+              "tiers": [
+                {
+                  "up_to": 0.5,
+                  "amount": 2200
+                },
+                {
+                  "up_to": 1,
+                  "amount": 3300.0000000000005
+                },
+                {
+                  "up_to": 2,
+                  "amount": 4950
+                },
+                {
+                  "up_to": 5,
+                  "amount": 8800
+                },
+                {
+                  "up_to": 10,
+                  "amount": 15400.000000000002
+                }
+              ],
+              "rounding": "round",
+              "rounding_unit": 10,
+              "checked_at": "2026-10-01",
+              "source": "Fictional test table (not a real fee)",
+              "checked_by": "test"
+            }
+          ]
+        },
+        "DE": {
+          "base": "chargeable_weight_kg",
+          "rows": [
+            {
+              "effective_from": "2026-01-01",
+              "kind": "tiered",
+              "currency": "JPY",
+              "tiers": [
+                {
+                  "up_to": 0.5,
+                  "amount": 2200
+                },
+                {
+                  "up_to": 1,
+                  "amount": 3300.0000000000005
+                },
+                {
+                  "up_to": 2,
+                  "amount": 4950
+                },
+                {
+                  "up_to": 5,
+                  "amount": 8800
+                },
+                {
+                  "up_to": 10,
+                  "amount": 15400.000000000002
+                }
+              ],
+              "rounding": "round",
+              "rounding_unit": 10,
+              "checked_at": "2026-10-01",
+              "source": "Fictional test table (not a real fee)",
+              "checked_by": "test"
+            }
+          ]
+        },
+        "AU": {
+          "base": "chargeable_weight_kg",
+          "rows": [
+            {
+              "effective_from": "2026-01-01",
+              "kind": "tiered",
+              "currency": "JPY",
+              "tiers": [
+                {
+                  "up_to": 0.5,
+                  "amount": 2000
+                },
+                {
+                  "up_to": 1,
+                  "amount": 3000
+                },
+                {
+                  "up_to": 2,
+                  "amount": 4500
+                },
+                {
+                  "up_to": 5,
+                  "amount": 8000
+                },
+                {
+                  "up_to": 10,
+                  "amount": 14000
+                }
+              ],
+              "rounding": "round",
+              "rounding_unit": 10,
+              "checked_at": "2026-10-01",
+              "source": "Fictional test table (not a real fee)",
+              "checked_by": "test"
+            }
+          ]
+        },
+        "CA": {
+          "base": "chargeable_weight_kg",
+          "rows": [
+            {
+              "effective_from": "2026-01-01",
+              "kind": "tiered",
+              "currency": "JPY",
+              "tiers": [
+                {
+                  "up_to": 0.5,
+                  "amount": 2400
+                },
+                {
+                  "up_to": 1,
+                  "amount": 3600
+                },
+                {
+                  "up_to": 2,
+                  "amount": 5400
+                },
+                {
+                  "up_to": 5,
+                  "amount": 9600
+                },
+                {
+                  "up_to": 10,
+                  "amount": 16800
+                }
+              ],
+              "rounding": "round",
+              "rounding_unit": 10,
+              "checked_at": "2026-10-01",
+              "source": "Fictional test table (not a real fee)",
+              "checked_by": "test"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "express_sample",
+      "label": "Sample express",
+      "volumetric_divisor": {
+        "rows": [
+          {
+            "effective_from": "2026-01-01",
+            "value": 6000,
+            "checked_at": "2026-10-01",
+            "source": "Fictional test table (not a real fee)",
+            "checked_by": "test"
+          }
+        ]
+      },
+      "destinations": {
+        "US": {
+          "base": "chargeable_weight_kg",
+          "rows": [
+            {
+              "effective_from": "2026-01-01",
+              "kind": "tiered",
+              "currency": "JPY",
+              "tiers": [
+                {
+                  "up_to": 0.5,
+                  "amount": 3599.9999999999995
+                },
+                {
+                  "up_to": 1,
+                  "amount": 5399.999999999999
+                },
+                {
+                  "up_to": 2,
+                  "amount": 8099.999999999999
+                },
+                {
+                  "up_to": 5,
+                  "amount": 14399.999999999998
+                },
+                {
+                  "up_to": 10,
+                  "amount": 25199.999999999996
+                }
+              ],
+              "rounding": "ceil",
+              "rounding_unit": 100,
+              "checked_at": "2026-10-01",
+              "source": "Fictional test table (not a real fee)",
+              "checked_by": "test"
+            }
+          ]
+        },
+        "GB": {
+          "base": "chargeable_weight_kg",
+          "rows": [
+            {
+              "effective_from": "2026-01-01",
+              "kind": "tiered",
+              "currency": "JPY",
+              "tiers": [
+                {
+                  "up_to": 0.5,
+                  "amount": 3300.0000000000005
+                },
+                {
+                  "up_to": 1,
+                  "amount": 4950
+                },
+                {
+                  "up_to": 2,
+                  "amount": 7425.000000000001
+                },
+                {
+                  "up_to": 5,
+                  "amount": 13200.000000000002
+                },
+                {
+                  "up_to": 10,
+                  "amount": 23100.000000000004
+                }
+              ],
+              "rounding": "ceil",
+              "rounding_unit": 100,
+              "checked_at": "2026-10-01",
+              "source": "Fictional test table (not a real fee)",
+              "checked_by": "test"
+            }
+          ]
+        },
+        "DE": {
+          "base": "chargeable_weight_kg",
+          "rows": [
+            {
+              "effective_from": "2026-01-01",
+              "kind": "tiered",
+              "currency": "JPY",
+              "tiers": [
+                {
+                  "up_to": 0.5,
+                  "amount": 3300.0000000000005
+                },
+                {
+                  "up_to": 1,
+                  "amount": 4950
+                },
+                {
+                  "up_to": 2,
+                  "amount": 7425.000000000001
+                },
+                {
+                  "up_to": 5,
+                  "amount": 13200.000000000002
+                },
+                {
+                  "up_to": 10,
+                  "amount": 23100.000000000004
+                }
+              ],
+              "rounding": "ceil",
+              "rounding_unit": 100,
+              "checked_at": "2026-10-01",
+              "source": "Fictional test table (not a real fee)",
+              "checked_by": "test"
+            }
+          ]
+        },
+        "AU": {
+          "base": "chargeable_weight_kg",
+          "rows": [
+            {
+              "effective_from": "2026-01-01",
+              "kind": "tiered",
+              "currency": "JPY",
+              "tiers": [
+                {
+                  "up_to": 0.5,
+                  "amount": 3000
+                },
+                {
+                  "up_to": 1,
+                  "amount": 4500
+                },
+                {
+                  "up_to": 2,
+                  "amount": 6750
+                },
+                {
+                  "up_to": 5,
+                  "amount": 12000
+                },
+                {
+                  "up_to": 10,
+                  "amount": 21000
+                }
+              ],
+              "rounding": "ceil",
+              "rounding_unit": 100,
+              "checked_at": "2026-10-01",
+              "source": "Fictional test table (not a real fee)",
+              "checked_by": "test"
+            }
+          ]
+        },
+        "CA": {
+          "base": "chargeable_weight_kg",
+          "rows": [
+            {
+              "effective_from": "2026-01-01",
+              "kind": "tiered",
+              "currency": "JPY",
+              "tiers": [
+                {
+                  "up_to": 0.5,
+                  "amount": 3599.9999999999995
+                },
+                {
+                  "up_to": 1,
+                  "amount": 5399.999999999999
+                },
+                {
+                  "up_to": 2,
+                  "amount": 8099.999999999999
+                },
+                {
+                  "up_to": 5,
+                  "amount": 14399.999999999998
+                },
+                {
+                  "up_to": 10,
+                  "amount": 25199.999999999996
+                }
+              ],
+              "rounding": "ceil",
+              "rounding_unit": 100,
+              "checked_at": "2026-10-01",
+              "source": "Fictional test table (not a real fee)",
+              "checked_by": "test"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

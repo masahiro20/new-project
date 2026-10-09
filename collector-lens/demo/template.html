@@ -127,6 +127,36 @@
 
   .panel-foot { padding: 10px 16px; border-top: 1px solid var(--rule); color: var(--ink-faint); font-size: .8rem; }
 
+  /* Estimated total (preview): fictional sample tables only */
+  .estimate { gap: 16px; }
+  .estimate-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 12px; }
+  .estimate-head h2 { margin: 0; font-size: 1.05rem; }
+  .sample-flag { margin: 0; padding: 8px 12px; border-radius: 6px; border-left: 4px solid var(--medium); background: var(--medium-bg); color: var(--ink); font-size: .88rem; font-weight: 600; }
+  .est-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr)); gap: 12px; }
+  .est-field { display: grid; gap: 4px; min-width: 0; align-content: start; }
+  .est-field label { font-size: .85rem; font-weight: 600; }
+  .est-field .hint { font-size: .78rem; color: var(--ink-faint); }
+  .est-field input, .est-field select { width: 100%; font: inherit; font-size: .92rem; color: var(--ink); background: var(--paper); border: 1px solid var(--rule); border-radius: 6px; padding: 7px 9px; min-width: 0; }
+  .est-result { display: grid; gap: 4px; padding: 14px 16px; border-radius: 8px; background: var(--accent-soft); }
+  .est-result .label { font: 600 11px/1.2 var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); }
+  .est-total { font-size: 1.6rem; font-weight: 700; letter-spacing: -.01em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+  .est-sub { font-size: .85rem; color: var(--ink-soft); }
+  .est-lines { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+  .est-line { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; padding: 8px 10px; border-radius: 6px; background: var(--sunken); border-left: 4px solid var(--positive); }
+  .est-line.s-stale { border-left-color: var(--medium); }
+  .est-line.s-unknown { border-left-color: var(--info); }
+  .est-line.s-user { border-left-color: var(--accent); }
+  .est-line .name { font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+  .est-line .amt { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+  .est-line .amt.none { color: var(--ink-faint); font-style: italic; }
+  .est-line .meta { grid-column: 1 / -1; font-size: .8rem; color: var(--ink-faint); overflow-wrap: anywhere; }
+  .chip { display: inline-block; font: 500 10px/1 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; padding: 3px 6px; border-radius: 4px; margin-left: 6px; vertical-align: 1px; border: 1px solid currentColor; }
+  .chip.s-ok { color: var(--positive); }
+  .chip.s-stale { color: var(--medium); }
+  .chip.s-unknown { color: var(--ink-faint); }
+  .chip.s-user { color: var(--accent); }
+  .est-warnings { margin: 0; padding-left: 1.2em; display: grid; gap: 4px; font-size: .85rem; color: var(--ink-soft); }
+
   footer { color: var(--ink-faint); font-size: .82rem; max-width: 80ch; display: grid; gap: 4px; }
   footer p { margin: 0; }
 
@@ -176,15 +206,71 @@
     </section>
   </main>
 
+  <section class="card estimate" aria-labelledby="est-title" id="estimate">
+    <div class="estimate-head">
+      <h2 id="est-title">Estimated total (preview)</h2>
+      <span class="genre" id="est-asof"></span>
+    </div>
+    <p class="sample-flag" id="est-flag">Sample numbers from a fictional proxy — not real fees. Rates, taxes and thresholds here are made up to show how the estimate works.</p>
+    <div class="est-form" id="est-form">
+      <div class="est-field">
+        <label for="est-bid">Max bid (JPY)</label>
+        <input id="est-bid" type="number" inputmode="numeric" min="0" step="100" value="30000">
+        <span class="hint">Leave empty to use the sample current price (¥30,000)</span>
+      </div>
+      <div class="est-field">
+        <label for="est-domestic">Shipping within Japan</label>
+        <select id="est-domestic">
+          <option value="free">Free (¥0)</option>
+          <option value="up_to_1000" selected>Up to ¥1,000</option>
+          <option value="up_to_2000">¥1,000–¥2,000</option>
+          <option value="manual">Enter amount…</option>
+        </select>
+        <input id="est-domestic-jpy" type="number" inputmode="numeric" min="0" step="10" placeholder="Amount in yen" aria-label="Shipping within Japan, amount in yen" hidden>
+      </div>
+      <div class="est-field">
+        <label for="est-method">Shipping method</label>
+        <select id="est-method"></select>
+      </div>
+      <div class="est-field">
+        <label for="est-dest">Destination</label>
+        <select id="est-dest"></select>
+      </div>
+      <div class="est-field">
+        <label for="est-weight">Weight (kg)</label>
+        <input id="est-weight" type="number" inputmode="decimal" min="0" step="0.1">
+        <span class="hint" id="est-weight-hint"></span>
+      </div>
+      <div class="est-field">
+        <label for="est-fx" id="est-fx-label">Exchange rate</label>
+        <input id="est-fx" type="number" inputmode="decimal" min="0" step="0.01">
+        <span class="hint" id="est-fx-hint"></span>
+      </div>
+    </div>
+    <div class="est-result" aria-live="polite">
+      <span class="label">Estimated total to your door</span>
+      <span class="est-total" id="est-total">—</span>
+      <span class="est-sub" id="est-sub"></span>
+    </div>
+    <details class="extra" id="est-breakdown">
+      <summary>Breakdown</summary>
+      <ul class="est-lines" id="est-lines"></ul>
+    </details>
+    <ul class="est-warnings" id="est-warnings"></ul>
+  </section>
+
   <footer>
     <p>Tanuki Scout (working title) is a private prototype. The notes come from a fixed dictionary and simple rules. They are not an appraisal, a price opinion or an authenticity check, and they can miss things or misread a seller's wording.</p>
     <p>All sample listings are fictional and were written for this demo. No real listing, seller or site is shown.</p>
+    <p>The estimated total uses made-up sample tables for a fictional proxy. It is not a quote, and no real fee, shipping rate, tax rate or exchange rate is shown.</p>
   </footer>
 </div>
 
 <script>/*__GLOSSARY__*/</script>
 <script>/*__ANALYZER__*/</script>
 <script>/*__SAMPLES__*/</script>
+<script>/*__LANDED_COST__*/</script>
+<script>/*__RATES__*/</script>
 <script>
 (function () {
   "use strict";
@@ -368,6 +454,7 @@
     renderPanel(result);
     status.textContent = input.value.trim() ? "Decoded " + listing.description.length + " characters locally." : "Paste a description to decode it.";
     globalThis.__lastResult = result;
+    if (typeof globalThis.renderEstimate === "function") globalThis.renderEstimate();
     return result;
   }
   globalThis.decodeListing = decode;
@@ -397,5 +484,143 @@
 
   if (samples.length) { input.value = samples[0].text; markSample(samples[0].id); }
   decode();
+})();
+</script>
+<script>
+// ---------- Estimated total (preview) ----------
+// Uses the FICTIONAL tables from test/fixtures/rates (inlined as DEMO_RATES).
+// The extension itself does not include this yet.
+(function () {
+  "use strict";
+  var CL = globalThis.CollectorLens;
+  var RATES = globalThis.DEMO_RATES;
+  var AS_OF = "2026-10-09"; // fixed so the sample tables do not age in the demo
+  var SYMBOL = { USD: "US$", GBP: "£", EUR: "€", AUD: "A$", CAD: "C$", JPY: "¥" };
+  var STATUS = { ok: "Checked", stale: "May be out of date", unknown: "Not confirmed", user: "Your input" };
+  var TYPE_LABEL = { lens: "lens", film_camera: "film camera", digital_camera: "digital camera", camera: "camera", watch: "watch" };
+  var $ = function (id) { return document.getElementById(id); };
+
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function money(x, cur, whole) {
+    if (typeof x !== "number" || !isFinite(x)) return "—";
+    var d = cur === "JPY" || whole ? 0 : 2;
+    return (SYMBOL[cur] || cur + " ") + x.toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d });
+  }
+  function range(lo, hi, cur, whole) {
+    if (whole && cur !== "JPY") { lo = Math.floor(lo); hi = Math.ceil(hi); }
+    return lo === hi ? money(lo, cur, whole) : money(lo, cur, whole) + " – " + money(hi, cur, whole);
+  }
+
+  if (!CL || typeof CL.landedCost !== "function" || !RATES) {
+    $("est-total").textContent = "Estimate unavailable";
+    return;
+  }
+
+  // Fill the selects from the sample tables (textContent only).
+  RATES.shipping.methods.forEach(function (m) {
+    var o = el("option", null, m.label); o.value = m.id; $("est-method").appendChild(o);
+  });
+  RATES.destinations.destinations.forEach(function (d) {
+    var o = el("option", null, d.label); o.value = d.country; $("est-dest").appendChild(o);
+  });
+  $("est-asof").textContent = "Sample tables · as of " + AS_OF;
+
+  function itemType() {
+    var r = globalThis.__lastResult;
+    if (!r) return { genre: null, subgenre: null };
+    return { genre: r.genre, subgenre: r.subgenre || null };
+  }
+
+  function readInput() {
+    var t = itemType();
+    var band = $("est-domestic").value;
+    $("est-domestic-jpy").hidden = band !== "manual";
+    return {
+      price_jpy: 30000, // the demo listing has no price; stands in for the current price
+      max_bid_jpy: $("est-bid").value,
+      is_auction: true,
+      domestic_shipping: band,
+      domestic_shipping_jpy: $("est-domestic-jpy").value,
+      proxy: "proxy_a",
+      plan: "standard",
+      shipping_method: $("est-method").value,
+      destination: $("est-dest").value,
+      genre: t.genre,
+      subgenre: t.subgenre,
+      weight_kg: $("est-weight").value,
+      fx_rate: $("est-fx").value
+    };
+  }
+
+  function render() {
+    var input = readInput();
+    var r = CL.landedCost(input, RATES, AS_OF);
+    globalThis.__lastEstimate = r;
+    var dest = RATES.destinations.destinations.filter(function (d) { return d.country === input.destination; })[0];
+    var cur = dest ? dest.currency : "JPY";
+
+    // Hints next to the inputs.
+    var key = input.subgenre || input.genre;
+    var wd = RATES.shipping.weight_defaults.values_kg[key];
+    $("est-weight").placeholder = wd ? String(wd) : "";
+    $("est-weight-hint").textContent = wd
+      ? "Typical for a " + (TYPE_LABEL[key] || key) + ": " + wd + " kg"
+      : "Enter a weight (item type not detected)";
+    var ref = RATES.meta.fx_reference[cur];
+    var refRow = ref && ref.rows && ref.rows[0];
+    $("est-fx-label").textContent = "Exchange rate (yen per 1 " + cur + ")";
+    $("est-fx").placeholder = refRow && refRow.value ? String(refRow.value) : "";
+    $("est-fx-hint").textContent = refRow && refRow.value ? "Sample reference rate dated " + refRow.checked_at + ". Type your own." : "";
+
+    // Total.
+    if (r.low === null) {
+      $("est-total").textContent = "—";
+      $("est-sub").textContent = "Enter a price to see an estimate.";
+    } else {
+      $("est-total").textContent = range(r.low, r.high, r.currency, true);
+      var unknown = r.lines.filter(function (l) { return l.status === "unknown"; }).length;
+      $("est-sub").textContent = (r.low === r.high ? "Single figure" : "A range, because some inputs are bands") +
+        (unknown ? " · " + unknown + " cost" + (unknown > 1 ? "s" : "") + " not confirmed and not included" : "") + ".";
+    }
+
+    // Breakdown.
+    var ul = $("est-lines");
+    ul.textContent = "";
+    r.lines.forEach(function (l) {
+      var li = el("li", "est-line s-" + l.status);
+      var name = el("span", "name", l.label);
+      name.appendChild(el("span", "chip s-" + l.status, STATUS[l.status] || l.status));
+      li.appendChild(name);
+      var known = typeof l.low === "number";
+      var amt = el("span", known ? "amt" : "amt none", known ? range(l.low, l.high, l.currency) : "Not included");
+      li.appendChild(amt);
+      var bits = [];
+      if (l.native && l.native.currency !== l.currency && typeof l.native.low === "number") bits.push(range(l.native.low, l.native.high, l.native.currency));
+      if (l.checked_at) bits.push("Checked " + l.checked_at);
+      if (l.source) bits.push(l.source);
+      if (l.note) bits.push(l.note);
+      if (bits.length) li.appendChild(el("span", "meta", bits.join(" · ")));
+      ul.appendChild(li);
+    });
+    var sum = el("summary", null, "Breakdown (" + r.lines.length + ")");
+    var det = $("est-breakdown");
+    det.replaceChild(sum, det.querySelector("summary"));
+
+    // Warnings.
+    var wl = $("est-warnings");
+    wl.textContent = "";
+    r.warnings.forEach(function (w) { wl.appendChild(el("li", null, w.message)); });
+    return r;
+  }
+  globalThis.renderEstimate = render;
+
+  ["est-bid", "est-domestic-jpy", "est-weight", "est-fx"].forEach(function (id) { $(id).addEventListener("input", render); });
+  ["est-domestic", "est-method", "est-dest"].forEach(function (id) { $(id).addEventListener("change", render); });
+  render();
 })();
 </script>

@@ -178,10 +178,24 @@ test("demo HTML is a self-contained fragment with no network access", (t) => {
 const ROOT = path.join(__dirname, "..");
 const readSrc = (p) => fs.readFileSync(path.join(ROOT, p), "utf8");
 
+// The landed-cost preview inlines the FICTIONAL fixture tables (never data/rates).
+function ratesScript() {
+  const tables = Object.fromEntries(["meta", "proxies", "shipping", "destinations"].map((k) => [k, JSON.parse(readSrc(`test/fixtures/rates/${k}.json`))]));
+  return "/* Fictional sample tables from test/fixtures/rates — not real fees. */\n" +
+    "globalThis.DEMO_RATES = " + JSON.stringify(tables) + ";";
+}
+
 function expectedBuild() {
   let html = readSrc("demo/template.html");
-  for (const [mark, file] of [["/*__GLOSSARY__*/", "src/glossary-data.js"], ["/*__ANALYZER__*/", "src/analyzer.js"], ["/*__SAMPLES__*/", "demo/samples.js"]]) {
-    html = html.replace(mark, () => "\n" + readSrc(file).replace(/<\/script/gi, "<\\/script") + "\n");
+  const parts = [
+    ["/*__GLOSSARY__*/", readSrc("src/glossary-data.js")],
+    ["/*__ANALYZER__*/", readSrc("src/analyzer.js")],
+    ["/*__SAMPLES__*/", readSrc("demo/samples.js")],
+    ["/*__LANDED_COST__*/", readSrc("src/landed-cost.js")],
+    ["/*__RATES__*/", ratesScript()]
+  ];
+  for (const [mark, src] of parts) {
+    html = html.replace(mark, () => "\n" + src.replace(/<\/script/gi, "<\\/script") + "\n");
   }
   return html;
 }
@@ -193,11 +207,11 @@ function loadPage(t) {
   return dom.window;
 }
 
-test("built page is up to date and inlines glossary, analyzer and samples verbatim", (t) => {
+test("built page is up to date and inlines glossary, analyzer, samples and landed-cost engine verbatim", (t) => {
   if (!fs.existsSync(DEMO_HTML)) { t.skip("not built"); return; }
   const html = fs.readFileSync(DEMO_HTML, "utf8");
   assert.ok(html === expectedBuild(), "demo/collector-lens-demo.html is stale: run npm run build:demo");
-  for (const f of ["src/glossary-data.js", "src/analyzer.js", "demo/samples.js"]) assert.ok(html.includes(readSrc(f)), f);
+  for (const f of ["src/glossary-data.js", "src/analyzer.js", "demo/samples.js", "src/landed-cost.js"]) assert.ok(html.includes(readSrc(f)), f);
   assert.ok(html.startsWith("<title>"), "<title> comes first");
   assert.ok(/仮称/.test(html) && /fictional/i.test(html), "working title + fictional samples stated");
 });
@@ -265,4 +279,40 @@ test("page renders pasted markup as text", (t) => {
   assert.equal(w.pwned, undefined);
   assert.equal(d.querySelectorAll("#panel-body img, #panel-body b, #read-fields img, #read-fields b").length, 0);
   assert.ok(d.getElementById("read-fields").textContent.includes("<img src=x"));
+});
+
+test("page estimate preview: fictional label + finite total range for the defaults", (t) => {
+  const w = loadPage(t);
+  if (!w) return;
+  const d = w.document;
+  const sec = d.getElementById("estimate");
+  assert.ok(sec, "estimate section exists");
+  // Placed below the panel (after <main>).
+  assert.equal(sec.previousElementSibling.tagName, "MAIN");
+  assert.match(d.getElementById("est-flag").textContent, /Sample numbers from a fictional proxy — not real fees/);
+  const r = w.__lastEstimate;
+  assert.ok(r, "estimate rendered");
+  assert.ok(Number.isFinite(r.low) && Number.isFinite(r.high), `range ${r.low}..${r.high}`);
+  assert.ok(r.low > 0 && r.low < r.high, "default band (up to ¥1,000) gives a real range");
+  assert.equal(r.currency, "USD");
+  const total = d.getElementById("est-total").textContent;
+  assert.match(total, /^US\$[\d,]+ – US\$[\d,]+$/);
+  assert.ok(!/NaN|undefined|null/.test(sec.textContent), "no NaN/undefined/null rendered");
+  const lines = d.querySelectorAll("#est-lines .est-line");
+  assert.equal(lines.length, r.lines.length);
+  for (const li of lines) assert.ok(li.querySelector(".chip"), "every line shows its status");
+  assert.ok(/Checked 2026-10-01/.test(d.getElementById("est-lines").textContent), "checked date shown");
+  assert.ok(/Fictional test table/.test(d.getElementById("est-lines").textContent), "source shown");
+  // Changing inputs re-renders; a destination with an unconfirmed fee lists it as not included.
+  const dest = d.getElementById("est-dest");
+  dest.value = "DE";
+  dest.dispatchEvent(new w.Event("change"));
+  assert.equal(w.__lastEstimate.currency, "EUR");
+  assert.ok(Number.isFinite(w.__lastEstimate.low));
+  assert.ok(/Not included/.test(d.getElementById("est-lines").textContent));
+  // A typed exchange rate replaces the sample reference rate.
+  const fx = d.getElementById("est-fx");
+  fx.value = "120";
+  fx.dispatchEvent(new w.Event("input"));
+  assert.equal(w.__lastEstimate.used.fx_source, "user");
 });

@@ -1,0 +1,215 @@
+{
+  "schema_version": 1,
+  "proxies": [
+    {
+      "id": "proxy_a",
+      "display_name": "Proxy A (fictional)",
+      "plans": [
+        {
+          "id": "standard",
+          "label": "Standard plan",
+          "components": [
+            {
+              "id": "service_fee",
+              "label": "Proxy service fee",
+              "stage": "service",
+              "base": "item_price",
+              "rows": [
+                {
+                  "effective_from": "2026-01-01",
+                  "kind": "fixed",
+                  "currency": "JPY",
+                  "amount": 300,
+                  "checked_at": "2026-10-01",
+                  "source": "Fictional test table (not a real fee)",
+                  "checked_by": "test"
+                },
+                {
+                  "effective_from": "2026-11-01",
+                  "kind": "fixed",
+                  "currency": "JPY",
+                  "amount": 500,
+                  "checked_at": "2026-10-01",
+                  "source": "Fictional test table (not a real fee)",
+                  "checked_by": "test"
+                }
+              ]
+            },
+            {
+              "id": "payment_fee",
+              "label": "Payment fee",
+              "stage": "payment",
+              "base": "proxy_charges",
+              "rows": [
+                {
+                  "effective_from": "2026-01-01",
+                  "kind": "rate_with_min",
+                  "currency": "JPY",
+                  "rate": 0.03,
+                  "min": 100,
+                  "rounding": "ceil",
+                  "checked_at": "2026-10-01",
+                  "source": "Fictional test table (not a real fee)",
+                  "checked_by": "test"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "id": "insurance",
+          "label": "Shipping insurance",
+          "stage": "service",
+          "base": "goods_total",
+          "counts_as": "insurance",
+          "rows": [
+            {
+              "effective_from": "2026-01-01",
+              "kind": "rate_with_min",
+              "currency": "JPY",
+              "rate": 0.02,
+              "min": 200,
+              "rounding": "ceil",
+              "checked_at": "2026-10-01",
+              "source": "Fictional test table (not a real fee)",
+              "checked_by": "test"
+            }
+          ]
+        },
+        {
+          "id": "packing",
+          "label": "Extra packing",
+          "stage": "service",
+          "base": "item_price",
+          "rows": [
+            {
+              "effective_from": "2026-01-01",
+              "kind": "tiered",
+              "currency": "JPY",
+              "tiers": [
+                {
+                  "up_to": 10000,
+                  "amount": 200
+                },
+                {
+                  "up_to": 50000,
+                  "amount": 400
+                },
+                {
+                  "up_to": null,
+                  "amount": 800
+                }
+              ],
+              "checked_at": "2026-10-01",
+              "source": "Fictional test table (not a real fee)",
+              "checked_by": "test"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "proxy_b",
+      "display_name": "Proxy B (fictional)",
+      "plans": [
+        {
+          "id": "lite",
+          "label": "Lite plan",
+          "components": [
+            {
+              "id": "service_fee",
+              "label": "Proxy service fee",
+              "stage": "service",
+              "base": "item_price",
+              "rows": [
+                {
+                  "effective_from": "2026-01-01",
+                  "kind": "rate",
+                  "currency": "JPY",
+                  "rate": 0.055,
+                  "rounding": "floor",
+                  "checked_at": "2026-10-01",
+                  "source": "Fictional test table (not a real fee)",
+                  "checked_by": "test"
+                }
+              ]
+            },
+            {
+              "id": "handling",
+              "label": "Handling fee",
+              "stage": "service",
+              "base": "item_price",
+              "rows": [
+                {
+                  "effective_from": "2026-01-01",
+                  "kind": "fixed",
+                  "currency": "JPY",
+                  "amount": 150,
+                  "checked_at": "2026-08-20",
+                  "source": "Fictional test table (not a real fee)",
+                  "checked_by": "test"
+                }
+              ]
+            },
+            {
+              "id": "storage",
+              "label": "Storage fee",
+              "stage": "service",
+              "base": "item_price",
+              "rows": [
+                {
+                  "effective_from": "2026-01-01",
+                  "kind": "fixed",
+                  "currency": "JPY",
+                  "amount": 100,
+                  "checked_at": "2026-06-30",
+                  "source": "Fictional test table (not a real fee)",
+                  "checked_by": "test"
+                }
+              ]
+            },
+            {
+              "id": "photo",
+              "label": "Photo service",
+              "stage": "service",
+              "base": "item_price",
+              "rows": [
+                {
+                  "effective_from": null,
+                  "kind": "fixed",
+                  "currency": "JPY",
+                  "amount": null,
+                  "checked_at": null,
+                  "source": null,
+                  "checked_by": null,
+                  "note": "要確認（架空の未確定行）"
+                }
+              ]
+            },
+            {
+              "id": "payment_fee",
+              "label": "Payment fee",
+              "stage": "payment",
+              "base": "proxy_charges_plus_shipping",
+              "rows": [
+                {
+                  "effective_from": "2026-01-01",
+                  "kind": "rate",
+                  "currency": "JPY",
+                  "rate": 0.035,
+                  "rounding": "round",
+                  "checked_at": "2026-10-01",
+                  "source": "Fictional test table (not a real fee)",
+                  "checked_by": "test"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "options": []
+    }
+  ]
+}
