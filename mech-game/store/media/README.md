@@ -17,6 +17,19 @@
 
 撮影スクリプトは作業用 scratchpad（`media/vtime.js`, `capture*.js`）にあり、リポジトリには入れていない。
 
+### MISSION 02 版で追加した 3 枚
+
+コミット b52d2fd の itch 版（MISSION 02 入り）から、上と同じ条件（仮想時間 1/30 秒、1280×720、画質 HIGH、FPS 表示 OFF）で撮った。
+ボスは QA 用の `__GAME.debugSpawnBoss()` / `debugBossPhase2()` で出し、被弾で画面が埋まらないように装甲強化 Lv5（`debugSetUpgrades`）を付けた。HUD や画面の見た目は通常プレイと変わらない。
+
+| ファイル | サイズ | 内容 | itch での用途 |
+|---|---|---|---|
+| `screenshot-shell-lord.png` | 1280×720, 304 KB | MISSION 01 の殻王戦。殻王が約 50m の距離で画面中央に大きく映り、頭部弱点の発光、ロックオン枠（WEAK 29m）、「弱点命中 WEAK POINT ×3」、上部の殻王 HP バー（約 77%）、無線「灰殻、至近距離！」が見える | Screenshots |
+| `screenshot-twinshell.png` | 1280×720, 362 KB | MISSION 02 の双殻王が形態変化している瞬間（二枚の殻が開いて爆発。HP バーの表示は TRANSFORM、無線「殻が…剥がれていく！？」）。背景に港湾のガントリークレーンと積まれたコンテナが見える | Screenshots |
+| `screenshot-harbor.png` | 1280×720, 386 KB | MISSION 02 の港湾ステージ。突進型（衝角殻）が溜めに入って赤く光り、こちらへ向かう地面の赤い警告ラインが出ている。無線「溜めの光を見たら横へ！ Space＋A/D！」、クレーンとコンテナヤード（自機は被弾済みでガラスにひびがある） | Screenshots |
+
+撮影スクリプトは scratchpad の `media/shoot_m02.js`。
+
 ## 宣伝素材（Otto 作）
 
 `../promo/` に itch のバナー（960×300）、X のヘッダー（1500×500）、縦型ショート用タイトルカード（1080×1920）があります。PNG を投稿に使ってください。
