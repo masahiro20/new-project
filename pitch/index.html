@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pitch — hear where your Japanese pitch drops</title>
+<meta name="description" content="Pitch checks your Japanese pitch accent mora by mora from a voice memo and shows whether your pitch drops in the right place. 2,000 everyday words, Tokyo accent from UniDic, analysed in your browser. Free beta.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f4f5f2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0e1113" media="(prefers-color-scheme: dark)">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Pitch — hear where your Japanese pitch drops">
+<meta property="og:description" content="Mora-by-mora pitch-accent feedback on your own voice. 箸, 橋 or 端? Free beta, runs in your browser.">
+<meta property="og:site_name" content="Pitch">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="./app/icons/icon-192.png">
+<meta name="twitter:card" content="summary">
+<link rel="icon" href="./app/icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="./app/icons/icon-192.png">
+<link rel="stylesheet" href="./assets/site.css">
+<!--
+  P3 Pitch landing page (static, relative paths only). NOT live.
+  Going live needs owner approval + a domain. Source copy: pitch/docs/lp.md.
+  Do not publish an accuracy claim until docs/eval-plan.md is done.
+-->
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="./" aria-label="Pitch, home">
+      <svg width="30" height="20" viewBox="0 0 30 20" aria-hidden="true"><polyline class="lg-h" points="4,15 13,5 22,5"/><path class="lg-d" d="M22 5 L26 15"/></svg>
+      Pitch <span class="tag">Beta</span>
+    </a>
+    <a class="top-link" href="./app/">Open the app</a>
+  </div>
+</header>
+
+<main id="main">
+
+<div class="hero">
+  <div class="wrap">
+    <div>
+      <p class="eyebrow">Japanese pitch accent · free beta</p>
+      <h1>Hear where your pitch <span class="drop-word">drops</span>.</h1>
+      <p class="lede">Pitch checks your Japanese pitch accent from your own voice, mora by mora, and tells you whether the drop is in the right place.</p>
+      <div class="cta-row">
+        <a class="btn" href="./app/">Try the free beta
+          <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M3 9h11M10 4l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+        <p class="cta-note">No sign-up. Runs in your browser, works offline once loaded, and can be added to your home screen.</p>
+      </div>
+      <ul class="facts" aria-label="At a glance">
+        <li><b>2,000</b><span>everyday words</span></li>
+        <li><b>4</b><span>accent types</span></li>
+        <li><b>Tokyo</b><span>accent, from UniDic</span></li>
+        <li><b>0</b><span>recordings uploaded</span></li>
+      </ul>
+    </div>
+
+    <figure class="card" aria-labelledby="trio-cap">
+      <div class="card-head">
+        <p id="trio-cap">Same sounds, three words</p>
+        <span class="legend" aria-hidden="true">H = high · L = low</span>
+      </div>
+      <p class="say">Say <span class="jp" lang="ja">はしが</span>. Which one did you say?</p>
+      <ul class="trio">
+        <li>
+          <div class="word"><span class="kanji jp" lang="ja">箸</span><span class="gloss">chopsticks</span><span class="code">HL|L</span></div>
+          <svg class="pd" width="193" height="129" viewBox="0 0 168 112" role="img" aria-label="箸 chopsticks: は high, し low, が low. Pitch drops after は."><line class="gl" x1="8" x2="160" y1="26" y2="26"/><line class="gl" x1="8" x2="160" y1="62" y2="62"/><polyline class="ln" points="28,26 84,62"/><line class="ln-p" x1="84" y1="62" x2="140" y2="62"/><path class="mk" d="M49 6 H56 V16"/><path class="dk" d="M51.5 14 L60.5 14 L56 20 Z"/><circle class="dot" cx="28" cy="26" r="6"/><circle class="dot" cx="84" cy="62" r="6"/><circle class="dot-p" cx="140" cy="62" r="5.5"/><text x="28" y="94">は</text><text x="84" y="94">し</text><text x="140" y="94" class="p">が</text><text class="hl" x="28" y="110">H</text><text class="hl" x="84" y="110">L</text><text class="hl" x="140" y="110">L</text></svg>
+        </li>
+        <li>
+          <div class="word"><span class="kanji jp" lang="ja">橋</span><span class="gloss">bridge</span><span class="code">LH|L</span></div>
+          <svg class="pd" width="193" height="129" viewBox="0 0 168 112" role="img" aria-label="橋 bridge: は low, し high, が low. Pitch drops after し, onto が."><line class="gl" x1="8" x2="160" y1="26" y2="26"/><line class="gl" x1="8" x2="160" y1="62" y2="62"/><polyline class="ln" points="28,62 84,26"/><line class="ln-p" x1="84" y1="26" x2="140" y2="62"/><path class="mk" d="M105 6 H112 V16"/><path class="dk" d="M107.5 14 L116.5 14 L112 20 Z"/><circle class="dot" cx="28" cy="62" r="6"/><circle class="dot" cx="84" cy="26" r="6"/><circle class="dot-p" cx="140" cy="62" r="5.5"/><text x="28" y="94">は</text><text x="84" y="94">し</text><text x="140" y="94" class="p">が</text><text class="hl" x="28" y="110">L</text><text class="hl" x="84" y="110">H</text><text class="hl" x="140" y="110">L</text></svg>
+        </li>
+        <li>
+          <div class="word"><span class="kanji jp" lang="ja">端</span><span class="gloss">edge</span><span class="code">LH|H</span></div>
+          <svg class="pd" width="193" height="129" viewBox="0 0 168 112" role="img" aria-label="端 edge: は low, し high, が high. No drop."><line class="gl" x1="8" x2="160" y1="26" y2="26"/><line class="gl" x1="8" x2="160" y1="62" y2="62"/><polyline class="ln" points="28,62 84,26"/><line class="ln-p" x1="84" y1="26" x2="140" y2="26"/><circle class="dot" cx="28" cy="62" r="6"/><circle class="dot" cx="84" cy="26" r="6"/><circle class="dot-p" cx="140" cy="26" r="5.5"/><text x="28" y="94">は</text><text x="84" y="94">し</text><text x="140" y="94" class="p">が</text><text class="hl" x="28" y="110">L</text><text class="hl" x="84" y="110">H</text><text class="hl" x="140" y="110">H</text></svg>
+        </li>
+      </ul>
+    </figure>
+  </div>
+</div>
+
+<section class="why" aria-labelledby="why-h">
+  <div class="wrap sec">
+    <p class="sec-label"><b>01</b>Why</p>
+    <div>
+      <h2 id="why-h">You know the word. Does it sound like the word?</h2>
+      <p>You've learned the vocabulary and watched the videos. But nobody tells you whether <strong>your</strong> <span class="jp" lang="ja">橋</span> sounds like <span class="jp" lang="ja">箸</span>. Most pitch-accent tools show you the dictionary pattern and leave the hard part, hearing yourself, to you.</p>
+      <p class="pull">Pitch listens to you and answers one question: where does your pitch drop?</p>
+    </div>
+  </div>
+</section>
+
+<section aria-labelledby="how-h">
+  <div class="wrap sec">
+    <p class="sec-label"><b>02</b>How it works</p>
+    <div>
+      <h2 id="how-h">Three steps, one recording.</h2>
+      <ol class="steps">
+        <li>
+          <h3>Pick a word</h3>
+          <p>Search 2,000 everyday words by kanji, kana or English. Each one comes with its standard Tokyo accent.</p>
+        </li>
+        <li>
+          <h3>Say it with <span class="jp" lang="ja">が</span></h3>
+          <p>Record <span class="jp" lang="ja">さくらが</span> or <span class="jp" lang="ja">おとこが</span> in your phone's voice-memo app, then open the file (m4a, wav or webm). The particle reveals the difference between flat and tail-high words.</p>
+        </li>
+        <li>
+          <h3>See your pitch on the morae</h3>
+          <p>Your pitch is laid over the dictionary pattern, one column per mora, with a clear pass or fail and what went wrong.</p>
+          <p class="verdicts" aria-label="Possible feedback"><span>dropped too early</span><span>too late</span><span>never dropped</span><span>shouldn't drop</span></p>
+        </li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<section aria-labelledby="types-h">
+  <div class="wrap sec">
+    <p class="sec-label"><b>03</b>Accent types</p>
+    <div>
+      <h2 id="types-h">All four accent types, shown with <span class="jp" lang="ja">が</span>.</h2>
+      <p class="intro">Tokyo Japanese has one possible drop per word. Where it falls (or whether it falls at all) gives four types. The hollow dot is the particle <span class="jp" lang="ja">が</span>, and the orange tick marks the drop.</p>
+      <div class="types">
+        <article class="type">
+          <div class="name"><h3>Flat</h3><span class="jp" lang="ja">平板 heiban</span></div>
+          <p>Rises after the first mora and never drops, not even onto <span class="jp" lang="ja">が</span>.</p>
+          <svg class="pd" width="258" height="129" viewBox="0 0 224 112" role="img" aria-label="桜が: さ low, く high, ら high, が high. No drop."><line class="gl" x1="8" x2="216" y1="26" y2="26"/><line class="gl" x1="8" x2="216" y1="62" y2="62"/><polyline class="ln" points="28,62 84,26 140,26"/><line class="ln-p" x1="140" y1="26" x2="196" y2="26"/><circle class="dot" cx="28" cy="62" r="6"/><circle class="dot" cx="84" cy="26" r="6"/><circle class="dot" cx="140" cy="26" r="6"/><circle class="dot-p" cx="196" cy="26" r="5.5"/><text x="28" y="94">さ</text><text x="84" y="94">く</text><text x="140" y="94">ら</text><text x="196" y="94" class="p">が</text><text class="hl" x="28" y="110">L</text><text class="hl" x="84" y="110">H</text><text class="hl" x="140" y="110">H</text><text class="hl" x="196" y="110">H</text></svg>
+          <p class="ex"><span class="jp" lang="ja">桜</span> sakura · cherry blossom</p>
+        </article>
+        <article class="type">
+          <div class="name"><h3>Head-high</h3><span class="jp" lang="ja">頭高 atamadaka</span></div>
+          <p>Starts high and drops right after the first mora.</p>
+          <svg class="pd" width="193" height="129" viewBox="0 0 168 112" role="img" aria-label="猫が: ね high, こ low, が low. Drop after ね."><line class="gl" x1="8" x2="160" y1="26" y2="26"/><line class="gl" x1="8" x2="160" y1="62" y2="62"/><polyline class="ln" points="28,26 84,62"/><line class="ln-p" x1="84" y1="62" x2="140" y2="62"/><path class="mk" d="M49 6 H56 V16"/><path class="dk" d="M51.5 14 L60.5 14 L56 20 Z"/><circle class="dot" cx="28" cy="26" r="6"/><circle class="dot" cx="84" cy="62" r="6"/><circle class="dot-p" cx="140" cy="62" r="5.5"/><text x="28" y="94">ね</text><text x="84" y="94">こ</text><text x="140" y="94" class="p">が</text><text class="hl" x="28" y="110">H</text><text class="hl" x="84" y="110">L</text><text class="hl" x="140" y="110">L</text></svg>
+          <p class="ex"><span class="jp" lang="ja">猫</span> neko · cat</p>
+        </article>
+        <article class="type">
+          <div class="name"><h3>Mid-high</h3><span class="jp" lang="ja">中高 nakadaka</span></div>
+          <p>Rises, then drops inside the word.</p>
+          <svg class="pd" width="322" height="129" viewBox="0 0 280 112" role="img" aria-label="湖が: み low, ず high, う high, み low, が low. Drop after う."><line class="gl" x1="8" x2="272" y1="26" y2="26"/><line class="gl" x1="8" x2="272" y1="62" y2="62"/><polyline class="ln" points="28,62 84,26 140,26 196,62"/><line class="ln-p" x1="196" y1="62" x2="252" y2="62"/><path class="mk" d="M161 6 H168 V16"/><path class="dk" d="M163.5 14 L172.5 14 L168 20 Z"/><circle class="dot" cx="28" cy="62" r="6"/><circle class="dot" cx="84" cy="26" r="6"/><circle class="dot" cx="140" cy="26" r="6"/><circle class="dot" cx="196" cy="62" r="6"/><circle class="dot-p" cx="252" cy="62" r="5.5"/><text x="28" y="94">み</text><text x="84" y="94">ず</text><text x="140" y="94">う</text><text x="196" y="94">み</text><text x="252" y="94" class="p">が</text><text class="hl" x="28" y="110">L</text><text class="hl" x="84" y="110">H</text><text class="hl" x="140" y="110">H</text><text class="hl" x="196" y="110">L</text><text class="hl" x="252" y="110">L</text></svg>
+          <p class="ex"><span class="jp" lang="ja">湖</span> mizuumi · lake</p>
+        </article>
+        <article class="type">
+          <div class="name"><h3>Tail-high</h3><span class="jp" lang="ja">尾高 odaka</span></div>
+          <p>Sounds flat on its own. The drop only shows on the particle.</p>
+          <svg class="pd" width="258" height="129" viewBox="0 0 224 112" role="img" aria-label="男が: お low, と high, こ high, が low. Drop after こ, onto が."><line class="gl" x1="8" x2="216" y1="26" y2="26"/><line class="gl" x1="8" x2="216" y1="62" y2="62"/><polyline class="ln" points="28,62 84,26 140,26"/><line class="ln-p" x1="140" y1="26" x2="196" y2="62"/><path class="mk" d="M161 6 H168 V16"/><path class="dk" d="M163.5 14 L172.5 14 L168 20 Z"/><circle class="dot" cx="28" cy="62" r="6"/><circle class="dot" cx="84" cy="26" r="6"/><circle class="dot" cx="140" cy="26" r="6"/><circle class="dot-p" cx="196" cy="62" r="5.5"/><text x="28" y="94">お</text><text x="84" y="94">と</text><text x="140" y="94">こ</text><text x="196" y="94" class="p">が</text><text class="hl" x="28" y="110">L</text><text class="hl" x="84" y="110">H</text><text class="hl" x="140" y="110">H</text><text class="hl" x="196" y="110">L</text></svg>
+          <p class="ex"><span class="jp" lang="ja">男</span> otoko · man</p>
+        </article>
+      </div>
+      <p class="pairs">Minimal pairs to try:
+        <span class="chip" lang="ja">箸・橋・端</span>
+        <span class="chip" lang="ja">雨・飴</span>
+        <span class="chip" lang="ja">花・鼻</span>
+      </p>
+    </div>
+  </div>
+</section>
+
+<section aria-labelledby="feat-h">
+  <div class="wrap sec">
+    <p class="sec-label"><b>04</b>What you get</p>
+    <div>
+      <h2 id="feat-h">Feedback you can act on, not a waveform to squint at.</h2>
+      <dl class="feats">
+        <div class="feat"><dt>Mora-level feedback</dt><dd>Every word is split into its morae, with high and low marked and the drop pointed out.</dd></div>
+        <div class="feat"><dt>Private by design</dt><dd>Your voice is analysed in your browser. Recordings never leave your device.</dd></div>
+        <div class="feat"><dt>Honest sources</dt><dd>Accent data from UniDic (NINJAL). Words with two accepted accents accept both.</dd></div>
+        <div class="feat"><dt>Desktop and mobile</dt><dd>Works in desktop and mobile browsers. Nothing to install from a store.</dd></div>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<section aria-labelledby="who-h">
+  <div class="wrap sec">
+    <p class="sec-label"><b>05</b>Who it's for</p>
+    <div>
+      <h2 id="who-h">Built for learners who already care.</h2>
+      <ul class="who">
+        <li>You're around <strong>JLPT N3 to N1</strong> and want to sound natural, not just be understood.</li>
+        <li>You shadow, you use flashcards, you've studied the patterns, and now you want <strong>feedback on your own voice</strong>.</li>
+        <li>You teach Japanese and want a <strong>quick, consistent check</strong> to use with your students.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section aria-labelledby="off-h">
+  <div class="wrap sec">
+    <p class="sec-label"><b>06</b>Offline</p>
+    <div class="offline">
+      <div>
+        <h3 id="off-h">Works offline, lives on your home screen</h3>
+        <p>Pitch is a web app. After the first visit it keeps working without a connection, so you can practise on a train or a plane. All analysis runs on your device either way.</p>
+      </div>
+      <div>
+        <p><strong>To add it to your home screen:</strong></p>
+        <ol>
+          <li>Open <a href="./app/">the app</a> in your phone's browser.</li>
+          <li>iPhone (Safari): Share, then <em>Add to Home Screen</em>.</li>
+          <li>Android (Chrome): menu, then <em>Install app</em> or <em>Add to Home screen</em>.</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section aria-labelledby="faq-h">
+  <div class="wrap sec">
+    <p class="sec-label"><b>07</b>FAQ</p>
+    <div>
+      <h2 id="faq-h">Questions</h2>
+      <div class="faq">
+        <details>
+          <summary>Does pitch accent really matter?</summary>
+          <div><p>You'll be understood without it. But it's the difference between sounding fluent and sounding foreign, and between <span class="jp" lang="ja">箸</span> and <span class="jp" lang="ja">橋</span>. If you've decided you care, Pitch makes your practice measurable.</p></div>
+        </details>
+        <details>
+          <summary>How accurate is it?</summary>
+          <div><p>We don't know yet, so we won't quote a number. So far the checker has only been tested on synthetic speech. We're planning a test with native speakers and will publish the results when it's done. Until then, treat a verdict as a strong hint, not a final ruling.</p></div>
+        </details>
+        <details>
+          <summary>Which accent does it use?</summary>
+          <div><p>Standard Tokyo Japanese, from the UniDic dictionary (NINJAL). Words with two accepted accents accept both.</p></div>
+        </details>
+        <details>
+          <summary>How do I record myself?</summary>
+          <div><p>Use any recorder, such as your phone's voice-memo app. Say the word followed by <span class="jp" lang="ja">が</span>, save it, and open the file in Pitch. m4a, wav and webm files work.</p></div>
+        </details>
+        <details>
+          <summary>Does it work on my phone?</summary>
+          <div><p>Yes. It runs in desktop and mobile browsers, works offline once loaded, and can be added to your home screen.</p></div>
+        </details>
+        <details>
+          <summary>What does it cost?</summary>
+          <div><p>It's free during the beta.</p></div>
+        </details>
+        <details>
+          <summary>Do you store my recordings?</summary>
+          <div><p>No. Analysis happens on your device and recordings never leave it.</p></div>
+        </details>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="closing" aria-labelledby="go-h">
+  <div class="wrap">
+    <div>
+      <h2 id="go-h">Find out which <span class="jp" lang="ja">はし</span> you're saying.</h2>
+      <p>Free beta. No account, no upload.</p>
+    </div>
+    <a class="btn" href="./app/">Try the free beta
+      <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M3 9h11M10 4l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <p><strong>Pitch</strong> is an independent project. Beta.</p>
+    <p class="fine">Accent data: UniDic (NINJAL), BSD licence. Full licence texts for the data and open-source components are included in <a href="./app/">the app</a>.</p>
+  </div>
+</footer>
+
+</body>
+</html>
