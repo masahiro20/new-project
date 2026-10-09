@@ -150,7 +150,7 @@ code, .mono { font-family: var(--font-mono); font-size: .9em; }
 .cta-note { margin-top: 14px; font-size: 13px; color: var(--ink-3); }
 
 /* Proof sheet (hero visual): real output from samples/ja-en */
-.sheet { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+.sheet { margin: 0; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
 .sheet-head { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; padding: 10px 14px; border-bottom: 1px solid var(--rule); font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); }
 .sheet-rows { margin: 0; padding: 6px 0; list-style: none; font-size: 14px; }
 .sheet-rows li { display: grid; grid-template-columns: 3.2em minmax(0, 1fr); gap: 0 12px; padding: 7px 14px 7px 0; border-left: 3px solid transparent; }
@@ -168,6 +168,9 @@ code, .mono { font-family: var(--font-mono); font-size: .9em; }
 .tally .b { flex: 2; background: var(--mark); }
 .tally-key { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 8px; font-family: var(--font-mono); font-size: 12px; color: var(--ink-2); }
 .tally-key i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; vertical-align: -1px; margin-right: 6px; }
+.tally-key i.k-ok { background: var(--ok); }
+.tally-key i.k-mark { background: var(--mark); }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 .finding { margin-top: 12px; font-family: var(--font-mono); font-size: 12px; color: var(--ink-2); line-height: 1.6; }
 .finding strong { color: var(--mark); font-weight: 500; }
 
@@ -354,7 +357,7 @@ section { scroll-margin-top: 72px; }
       <p class="cta-note t" lang="en">The demo runs entirely in your browser. Your script files are not uploaded anywhere. Sample script included.</p>
     </div>
 
-    <figure class="sheet" style="margin:0" aria-labelledby="sheet-cap">
+    <figure class="sheet" aria-labelledby="sheet-cap">
       <div class="sheet-head"><span>samples/ja-en/script.csv</span><span>魔導石 → “Mana Stone”</span></div>
       <ol class="sheet-rows">
         <li class="hit"><span class="ln">:6</span><div><div class="src" lang="ja">俺は魔導石なんて信じねえぞ。</div><div class="tgt" lang="en">I don't believe in <mark>Magic Stones</mark>.</div></div></li>
@@ -363,10 +366,10 @@ section { scroll-margin-top: 72px; }
       <div class="sheet-foot">
         <div class="tally-label"><span class="t" lang="ja">この台本での訳し方の内訳</span><span class="t" lang="en">How this script renders it</span><span class="mono">8</span></div>
         <div class="tally" aria-hidden="true"><span class="a"></span><span class="b"></span></div>
-        <div class="tally-key"><span><i style="background:var(--ok)"></i>Mana Stone ×6</span><span><i style="background:var(--mark)"></i>Magic Stone ×2</span></div>
+        <div class="tally-key"><span><i class="k-ok"></i>Mana Stone ×6</span><span><i class="k-mark"></i>Magic Stone ×2</span></div>
         <p class="finding"><strong>error</strong> script.csv:6, :17 — <span class="t" lang="ja">用語集の禁止訳 “Magic Stone” が使われています。</span><span class="t" lang="en">forbidden variant “Magic Stone”; glossary says “Mana Stone”.</span></p>
       </div>
-      <figcaption id="sheet-cap" class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">
+      <figcaption id="sheet-cap" class="sr-only">
         <span class="t" lang="ja">サンプル台本 script.csv の6行目と17行目で、魔導石が “Magic Stone” と訳されている例。全8箇所のうち6箇所は “Mana Stone”。</span>
         <span class="t" lang="en">Example from the sample script: lines 6 and 17 render 魔導石 as “Magic Stone”; the other 6 of 8 occurrences use “Mana Stone”.</span>
       </figcaption>

@@ -2,8 +2,11 @@
 //   site/index.html       ← lp/index.html
 //   site/demo/index.html  ← web/dist/kotomark-demo.html (run `npm run build:demo` first)
 // 相対パスのみで、外部への通信はしない（Google Fonts は外す。両ページともシステムフォントの代替あり）。
+// 両ページとも、インラインの <script>・<style> の sha256 だけを許す meta CSP を入れる（外部への通信は connect-src 'none' で止める）。
+// 成果物版（web/dist/kotomark-demo.html）は配信先が自前の CSP を付けるので、ここでは触らない。
 // 連絡先は環境変数 CONTACT（例: CONTACT=pilot@example.org npm run build:site）。
 // 空のときは問い合わせ欄の代わりに「試用のご相談は近日受付開始」を表示する。
+import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -95,6 +98,44 @@ ${demoParts.body}
 </body>
 </html>
 `;
+
+// Meta CSP computed from the final HTML: every inline <script>/<style> is allowed by its sha256, nothing else.
+// Inline style="" attributes and on*="" handlers would need 'unsafe-inline', so the build refuses them instead
+// (setting element.style from JS is CSSOM and stays allowed).
+const sha256 = (s) => `'sha256-${createHash("sha256").update(s, "utf8").digest("base64")}'`;
+function inlineHashes(html, tag) {
+  const hashes = [];
+  for (const m of html.matchAll(new RegExp(`<${tag}\\b([^>]*)>([\\s\\S]*?)</${tag}>`, "gi"))) {
+    if (/\bsrc\s*=/i.test(m[1])) throw new Error(`build-site: external <${tag} src> is not allowed by the CSP`);
+    hashes.push(sha256(m[2]));
+  }
+  return [...new Set(hashes)];
+}
+function addCsp(html, name) {
+  if (/<[a-z][^>]*\sstyle\s*=/i.test(html)) throw new Error(`build-site: inline style attribute in ${name} (blocked by the CSP; use a class)`);
+  if (/<[a-z][^>]*\son[a-z]+\s*=/i.test(html)) throw new Error(`build-site: inline event handler in ${name} (blocked by the CSP)`);
+  if (/http-equiv\s*=\s*"?content-security-policy/i.test(html)) throw new Error(`build-site: ${name} already has a CSP`);
+  const scripts = inlineHashes(html, "script");
+  const styles = inlineHashes(html, "style");
+  const csp = [
+    "default-src 'none'",
+    `script-src ${scripts.length ? scripts.join(" ") : "'none'"}`,
+    `style-src ${styles.length ? styles.join(" ") : "'none'"}`,
+    "img-src data: blob:",
+    "connect-src 'none'",
+    "font-src 'none'",
+    "base-uri 'none'",
+    "form-action 'none'",
+    "object-src 'none'",
+  ].join("; ");
+  const meta = `<meta http-equiv="Content-Security-Policy" content="${csp}">`;
+  // Right after <meta charset>, before any <style>/<script>, so it covers everything in the page.
+  const charset = /<meta charset="utf-8">\n?/i;
+  if (!charset.test(html)) throw new Error(`build-site: <meta charset> not found in ${name}`);
+  return html.replace(charset, (m) => `${m.endsWith("\n") ? m : m + "\n"}${meta}\n`);
+}
+lp = addCsp(lp, "index.html");
+demo = addCsp(demo, "demo/index.html");
 
 for (const [name, html] of [["index.html", lp], ["demo/index.html", demo]]) {
   if (/https?:\/\/fonts\.g/.test(html)) throw new Error(`build-site: external font reference left in ${name}`);
