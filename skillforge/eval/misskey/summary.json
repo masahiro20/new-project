@@ -1,0 +1,115 @@
+{
+ "project": "Misskey (misskey-dev/misskey @ 53ac6808ae4921305e761c545863ee6593edd1f4, AGPL-3.0)",
+ "direction": "JA→EN (ja-JP.yml is the Crowdin source; en-US.yml is the translation)",
+ "contentType": "UI strings (not dialogue). No JA-original openly licensed game script was found within the time box; see source.md",
+ "evaluator": "Evaluator (JA→EN subagent)",
+ "date": "2026-10-09",
+ "input": "misskey.csv converted from YAML by yml2csv.py (Kotomark has no YAML parser); 3216 rows, 15 with empty EN",
+ "configs": {
+  "A": "--no-glossary",
+  "B": "auto-drafted glossary (kotomark draft, 100 terms, used unedited)",
+  "C": "hand-glossary.json (12 product terms + mascot 藍/Ai)"
+ },
+ "sampling": "A: all 21 findings. B (760) and C (93): random.Random(20261009).sample(range(len(findings)), 60), sorted",
+ "precisionDefinition": "tp/(tp+fp); unsure excluded",
+ "files": [
+  {
+   "path": "locales/ja-JP.yml + locales/en-US.yml → misskey.csv",
+   "entries": 3216,
+   "configs": {
+    "A": {
+     "findings": 21,
+     "sampled": 21,
+     "tp": 21,
+     "fp": 0,
+     "unsure": 0,
+     "byRule": {
+      "notation.katakana": {
+       "n": 6,
+       "tp": 6,
+       "fp": 0,
+       "unsure": 0
+      },
+      "untranslated.empty": {
+       "n": 15,
+       "tp": 15,
+       "fp": 0,
+       "unsure": 0
+      }
+     },
+     "precision": 1.0
+    },
+    "B": {
+     "findings": 760,
+     "sampled": 60,
+     "tp": 7,
+     "fp": 51,
+     "unsure": 2,
+     "byRule": {
+      "term.missing": {
+       "n": 60,
+       "tp": 7,
+       "fp": 51,
+       "unsure": 2
+      }
+     },
+     "precision": 0.121
+    },
+    "C": {
+     "findings": 93,
+     "sampled": 60,
+     "tp": 44,
+     "fp": 16,
+     "unsure": 0,
+     "byRule": {
+      "term.missing": {
+       "n": 43,
+       "tp": 27,
+       "fp": 16,
+       "unsure": 0
+      },
+      "notation.katakana": {
+       "n": 3,
+       "tp": 3,
+       "fp": 0,
+       "unsure": 0
+      },
+      "untranslated.empty": {
+       "n": 14,
+       "tp": 14,
+       "fp": 0,
+       "unsure": 0
+      }
+     },
+     "precision": 0.733
+    }
+   }
+  }
+ ],
+ "ciGatePrecision": {
+  "note": "warning+error findings only",
+  "A": "21/21 = 1.00",
+  "B": "21/21 = 1.00 (all 739 draft-term findings are info)",
+  "C": "sample 44/60 TP; term.missing warnings 27/43 = 0.63"
+ },
+ "misses": {
+  "method": "seeded random sample of 60 rows (random.Random(20261009).sample over CSV rows), manual review; plus targeted scans (placeholder/tag/whitespace diff, term drift)",
+  "seed": 20261009,
+  "sampled": 60,
+  "missesInSample": 1,
+  "byCategory": {
+   "rules (trailing whitespace)": 1
+  },
+  "targetedExtra": {
+   "count": 5,
+   "note": "3 more trailing-whitespace rows; サーバー server/instance drift invisible at warning level in A/B; 1 stale EN row (accuracy, out of scope)"
+  },
+  "placeholderTagScan": "0 {var} or tag mismatches exist in the data, matching Kotomark's 0 findings"
+ },
+ "coverageGaps": [
+  "YAML locale files (Misskey/Rails i18n style) not parsed: converted by hand",
+  "EN target term matching folds only added plural suffixes: target 'notes' never matches 'note'; verb forms (Renoted, reacted, Federating) never match 'Renote'/'reaction'/'federation'",
+  "no trailing/leading whitespace rule",
+  "source-side katakana findings are useful (JA source QA) but are not labelled as source-side issues in the message"
+ ]
+}

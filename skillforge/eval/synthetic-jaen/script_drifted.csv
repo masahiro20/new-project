@@ -1,0 +1,213 @@
+id,speaker,ja,en,max_length,context
+c1_001,,王都リーヴェンの中央に、聖樹はそびえていた。,In the heart of the royal city of Lieven stood the Sacred Tree.,,narration
+c1_002,,だがその葉は、ひと月前から色を失い始めていた。,"But for a month now, its leaves had been losing their color.",,narration
+c1_003,セレス,聖樹の声が、日に日に弱くなっています。,The voice of the Great Tree grows weaker by the day.,,
+c1_004,ガルド,巫女のあんたがそう言うなら、間違いねえな。,"If the Oracle says so, then it's true.",,
+c1_005,ミオ,セレス様、あたしにも何かできることはありませんか？,"Lady Ceres, isn't there anything I can do to help?",,
+c1_006,セレス,ありがとうございます、ミオ。そのお気持ちだけで十分です。,"Thank you, Mio. Your kindness alone is more than enough.",,
+c1_007,ガルド,気持ちだけじゃ聖樹は治らねえ。原因を探るぞ。,Kindness won't heal the Holy Tree. We need to find the cause.,,
+c1_008,リン,原因なら、見当がついています。竜脈の流れが乱れているんです。,I have a theory about the cause. The flow of the Dragon Vein has been disrupted.,,
+c1_009,ミオ,リン先輩！いつの間に来てたの？,Rin! When did you get here?,,
+c1_010,リン,今朝、転移石で戻りました。報告が遅れてすみません。,I came back this morning by Warpstone. Sorry I didn't report sooner.,,
+c1_011,セレス,竜脈が乱れれば、聖樹は力を失います。すぐに調べましょう。,"If the Dragon Vein is disturbed, the Sacred Tree loses its strength. Let us investigate at once.",,
+c1_012,ガルド,待て。調べるのは僕たち蒼の騎士団の仕事だ。,"Hold on. Investigating is a job for us, the Azure Knights.",,
+c1_013,セレス,いいえ、ガルド。聖樹と話せるのは、巫女であるわたしだけです。,"No, Gald. Only I, as the Oracle, can speak with the Sacred Tree.",,
+c1_014,ガルド,……ったく。なら俺が護衛につく。文句はねえな？,...Fine. Then I'm coming as your guard. Any objections?,,
+c1_015,セレス,ええ、お願いします。[PLAYER]さんも、一緒に来てくださいますか？,"Yes, please. [PLAYER], will you come with us as well?",,
+c1_016,,▶ もちろん行く,▶ Of course I'll go,32,choice
+c1_017,,▶ 少し考えさせて,▶ Let me think about it,32,choice
+c1_018,ミオ,やった！[PLAYER]さんが一緒なら心強いよ！,"Yes! With [PLAYER] along, I feel way braver!",,
+c1_019,リン,出発の前に、星晶石を{0}個用意しておきましょう。,"Before we leave, let's prepare some Starcrystals.",,
+c1_020,ミオ,星晶石って、あの光る石？私、まだ一度も触ったことないんだ。,Starcrystals? Those glowing stones? I've never even touched one.,,
+c1_021,リン,ミオ、星晶石は竜脈の力を蓄える大切な石です。乱暴に扱ってはいけません。,"Mio, a Starcrystal stores the power of the Dragon Vein. You mustn't handle it roughly.",,
+c1_022,ミオ,はーい、リン先輩。,"Okaaay, Rin.",,
+c1_023,,一行は、聖樹の根元にある祭壇へ向かった。,The party made their way to the altar at the roots of the Sacred Tree.,,narration
+c1_024,セレス,{聖樹|せいじゅ}よ、わたくしの声が聞こえますか。,"O {Sacred Tree|せいじゅ}, can you hear my voice?",,ruby
+c1_025,,……かすかな光が、セレスの手のひらに集まる。,...A faint light gathers in the palm of Ceres's hand.,,narration
+c1_026,セレス,聖樹が教えてくれました。竜脈の乱れは、霧の森から来ています。,The Sacred Tree has told me. The disturbance in the Dragon Vein comes from the Mistwood.,,
+c1_027,ガルド,霧の森か。あそこには魔獣がうようよしてるぞ。,"The Mistwood, huh. That place is crawling with fiends.",,
+c1_028,ミオ,魔獣なんて、あたしの魔法でまとめて吹き飛ばしてやるんだから！,beasts? I'll blast them all away with my magic!,,
+c1_029,ガルド,威勢がいいのは結構だ。だが油断するなよ、ミオ。,"Nice spirit. But don't get careless, Mio.",,
+c1_030,リン,霧の森へは、アークゲートを使えば半日で着きます。,"If we use the Arcgate, we can reach the Mistwood in half a day.",,
+c1_031,セレス,アークゲートの起動には、星晶石が必要でしたね。,"Activating the Arcgate requires a Starcrystal, does it not?",,
+c1_032,リン,はい。セレス様の祈りで、星晶石に光を灯していただけますか。,"Yes. Lady Ceres, could you light the Starcrystal with your prayer?",,
+c1_033,セレス,わかりました。皆さん、少し下がっていてください。,"Okay. Everyone, please stand back a little.",,
+c1_034,,<color=#e0b040>星晶石</color>が輝き、アークゲートが静かに開いた。,"The <color=#e0b040>Starcrystal shone, and the Arcgate quietly opened.",,narration
+c1_035,ガルド,よし、行くぞ。余が先頭だ。セレス様は真ん中にいてくれ。,"All right, let's move. I'll take point. Lady Ceres, stay in the middle.",,
+c1_036,ミオ,ガルドさん、あたしは？,"Gald, what about me?",,
+c1_037,ガルド,お前は後ろだ。[PLAYER]と一緒に背中を守れ。,You're in the back. Watch our backs with [PLAYER].,,
+c1_038,,【入手】星晶石 ×{0},[Obtained] Starcrystal ×{0},28,system
+c1_039,,【入手】エーテルランプ,[Obtained] Aether Lamp,28,system
+c1_040,リン,エーテルランプは霧の中でも道を照らしてくれます。[PLAYER]さん、持っていてください。,"An aether lamp lights the way even in fog. [PLAYER], please hold on to it.",,
+c2_001,,霧の森。白い霧が、木々の間を音もなく流れている。,The Mistwood. White fog drifts silently between the trees.,,narration
+c2_002,ミオ,うう、何にも見えないよ……。エーテルランプ、もっと明るくならない？,"Ugh, I can't see a thing... Can't the aether lamp get any brighter?",,
+c2_003,リン,エーテルランプの光は、星晶石の残りの力で決まります。今はこれが限界です。,An aether lamp's light depends on how much power is left in its Starcrystal. This is as bright as it gets for now.,,
+c2_004,ガルド,静かにしろ。……何かいるぞ。,Quiet. ...Something's out there.,,
+c2_005,,霧の向こうから、巨大なグリフォンが舞い降りた。,A giant griffin swooped down out of the fog.,,narration
+c2_006,ミオ,グリフォン！？こんな所に出るなんて聞いてないよ！,A gryphon?! Nobody said anything about those showing up here!,,
+c2_007,ガルド,魔獣化してやがる。竜脈の乱れのせいか！,It's turned into a fiend. Must be the Dragon Pulse going haywire!,,
+c2_008,セレス,皆さん、気をつけてください！あのグリフォンは正気を失っています！,"Everyone, be careful! That griffin has lost its mind!",,
+c2_009,,▶ セレスを守る,▶ Protect Seres,32,choice
+c2_010,,▶ グリフォンに斬りかかる,▶ Charge the griffin,32,choice
+c2_011,???,拙者が助太刀いたす！,Allow me to lend my blade!,,
+c2_012,,一陣の風とともに、黒髪の剣士がグリフォンの翼を斬り払った。,"With a gust of wind, a black-haired swordsman slashed through the griffin's wing.",,narration
+c2_013,ハヤト,拙者はハヤテ。東の国より参った、ただの旅の剣士でござる。,"I am Hayate, a mere wandering swordsman from the eastern lands.",,
+c2_014,ガルド,礼を言う。いい腕だな、ハヤテ。,"Thanks. That's a fine arm you've got, Hayate.",,
+c2_015,ハヤテ,ガルド殿こそ、見事な盾さばきでござった。,"Your work with the shield was far finer, Sir Gaid.",,
+c2_016,ミオ,ハヤテさん、すっごく強いんだね！,"Hayate, you're super strong!",,
+c2_017,ハヤテ,ミオ殿の炎の術も、なかなかのものでござる。,"Your fire spells are quite something as well, Miss Mio.",,
+c2_018,セレス,ハヤテさん、助けていただき、ありがとうございました。,"Hayate, thank you for coming to our aid.",,
+c2_019,ハヤテ,セレス様。拙者、聖樹の巫女様にお会いするため、この森を越えてまいった。,Lady Ceres. I crossed this forest in order to meet the Oracle of the Sacred Tree.,,
+c2_020,Ceres,わたくしに、ですか？,To meet me?,,
+c2_021,ハヤテ,東の国でも、竜脈が乱れ始めているのでござる。原因を探る手がかりを求めて参った。,The Dragon Line has begun to falter in the eastern lands as well. I came seeking a clue to its cause.,,
+c2_022,リン,やはり……竜脈の乱れは、この国だけの問題ではないんですね。,I knew it... the disturbance in the Dragon Vein isn't just this kingdom's problem.,,
+c2_023,ガルド,なら目的は同じだ。ハヤテ、しばらく俺たちと来い。,"Then we're after the same thing. Hayate, travel with us for a while.",,
+c2_024,ハヤテ,かたじけない。ガルド殿、よろしく頼み申す。,"I am in your debt. I look forward to fighting beside you, Gald-dono.",,
+c2_025,,【仲間】ハヤテが加わった！,[Party] Hayato has joined!,28,system
+c2_026,ミオ,ねえリン先輩、霧ってどうしてこんなに濃いの？,"Hey, Rin, why is the fog so thick?",,
+c2_027,リン,竜脈から漏れた力が、霧になって森を覆っているんです。,Power leaking from the Dragon Line has turned into fog and blanketed the forest.,,
+c2_028,ハヤテ,リン殿は物知りでござるな。,"You are very knowledgeable, Miss Rin.",,
+c2_029,リン,学者ですから。ハヤテさんこそ、東の国の話を聞かせてください。,"I'm a scholar, after all. Hayate, please tell me about the eastern lands.",,
+c2_030,ハヤテ,拙者の国は、山と海に囲まれた小さな国でござる。,My homeland is a small country surrounded by mountains and sea.,,
+c2_031,,森の奥へ進むにつれ、霧はさらに濃くなっていった。,"The deeper they went into the forest, the thicker the fog became.",,narration
+c2_032,セレス,聖樹の声が……ここで途切れている。,The voice of the Sacred Tree... it fades out here.,,
+c2_033,ガルド,見ろ。地面に、割れた星晶石が散らばってる。,Look. There are broken Starcrystals scattered all over the ground.,,
+c2_034,リン,これは……誰かが竜脈から力を抜き取った跡です。,This is... a sign that someone has drained power from the ley line.,,
+c2_035,ミオ,ひどい！誰がそんなことを！？,That's awful! Who would do something like that?!,,
+c2_036,ハヤテ,足跡がござる。重い鎧を着た者が、十人ほど。,"There are footprints. About ten people, wearing heavy armor.",,
+c2_037,ガルド,この紋章……ヴァルハイト帝国の兵だ。,This crest... These are soldiers of the Valheit Empire.,,
+c2_038,セレス,ヴァルハイトが、なぜ聖樹を狙うのでしょう……？,Why would Valheit be after the Sacred Tree...?,,
+c2_039,リン,竜脈の力を集めれば、強力な兵器が作れます。それが狙いかもしれません。,Gather enough Dragon Vein power and you can build a powerful weapon. That may be what they're after.,,
+c2_040,ガルド,急ぐぞ。奴らの狙いが聖樹なら、リーヴェンが危ねえ。,"Let's hurry. If they're after the Sacred Tree, Lieven is in danger.",,
+c2_041,ハヤテ,拙者も同感でござる。ガルド殿、後ろは拙者が守ろう。,"I agree. Sir Gald, I shall guard the rear.",,
+c2_042,ミオ,あたしも頑張る！ガルドさん、置いていかないでね！,"I'll do my best too! Gald, don't leave me behind!",,
+c2_043,,【入手】転移石 ×{0},[Obtained] Warpstone ×{0},28,system
+c2_044,リン,転移石を使えば、一度行った場所へすぐ戻れます。ただし、一つにつき一回だけです。,A Warpstone takes you straight back to anywhere you've been before. But each one only works once.,,
+c2_045,セレス,ミオ、怪我はありませんか？,"Mio, are you hurt?",,
+c2_046,ミオ,平気だよ、セレス様！あたし、こう見えて丈夫なんだから！,"I'm fine, Lady Ceres! I'm tougher than I look!",,
+c2_047,ガルド,森を出るぞ。アークゲートまで戻る。,We're leaving the forest. Back to the Arcgate.,,
+c2_048,,一行は霧の森を後にし、アークゲートへと急いだ。,The party left the Mistwood behind and hurried toward the Arcgate.,,narration
+c3_001,,リーヴェンに戻った一行は、リンの工房に集まった。,"Back in Lieven, the party gathered in Rin's workshop.",,narration
+c3_002,リン,散らかっていてすみません。こちらへどうぞ。,Sorry about the mess. Come right in.,,
+c3_003,ミオ,うわあ、本がいっぱい！リン先輩、これ全部読んだの？,"Whoa, so many books! Rin-senpai, did you read all of these?",,
+c3_004,リン,ええ、ほとんどは。ミオも、少しは本を読んでくださいね。,"Most of them, yes. Mio, you should try reading a few too.",,
+c3_005,ガルド,本の話は後だ。帝国の狙いを教えてくれ。,Books can wait. Tell us what the Empire is after.,,
+c3_006,リン,はい。古い文献によると、竜脈の力を一点に集める装置があるそうです。,"Right. According to old texts, there is a device that can gather the Dragon Pulse's power into a single point.",,
+c3_007,セレス,その装置が、聖樹を枯らしているのだね。,So that device is what is withering the Sacred Tree.,,
+c3_008,リン,おそらく。装置を止めるには、封魔の剣が必要だと書かれています。,Most likely. The texts say that stopping the device requires the Sealbrand.,,
+c3_009,ハヤテ,封魔の剣……！拙者の国にも、その名は伝わっておる。,The Sealbrand...! That name is known in my homeland as well.,,
+c3_010,ガルド,どこにあるんだ、その剣は。,So where is this sword?,,
+c3_011,リン,聖樹の地下、竜脈の源にある神殿に眠っているそうだ。,"It is said to sleep in a temple at the source of the Dragon Vein, beneath the Sacred Tree.",,
+c3_012,セレス,神殿の扉は、巫女の祈りでしか開きません。わたくしが参ります。,The temple doors open only to the Oracle's prayer. I will go.,,
+c3_013,ガルド,なら決まりだ。俺と蒼の騎士団で、神殿までの道を確保する。,Then it's settled. I'll secure the road to the temple with the Azure Knights.,,
+c3_014,兵士,騎士長！報告します！,Knight-Captain! I have a report!,,
+c3_015,ガルド,どうした、落ち着いて話せ。,What is it? Calm down and talk.,,
+c3_016,兵士,城の東門に、ヴァルハイトの軍旗が！敵はおよそ五百です！,Valheit banners at the castle's east gate! About five hundred of them!,,
+c3_017,ミオ,五百！？そんなの、蒼の騎士団だけじゃ無理だよ！,Five hundred?! The Azure Knights can't handle that many on their own!,,
+c3_018,ガルド（騎士長）,無理でもやるのが騎士長の仕事だ。,Doing the impossible is a Knight-Captain's job.,,
+c3_019,セレス,ガルド……どうか、無茶はしないでください。,"Gald... please, don't do anything reckless.",,
+c3_020,ガルド,心配すんな、セレス様。俺は死なねえよ。,"Don't worry, Lady Ceris. I'm not gonna die.",,
+c3_021,,▶ ガルドと共に東門へ,▶ Go to the east gate with Gald,32,choice
+c3_022,,▶ セレースと共に神殿へ,▶ Go to the temple with Ceres,32,choice
+c3_023,ガルド,[PLAYER]、お前はセレス様と神殿へ行け。ここは俺たちが引き受ける。,"[PLAYER], you go to the temple with Lady Ceres. We'll handle things here.",,
+c3_024,ハヤテ,拙者もセレス様にお供いたそう。,I too shall accompany Lady Ceres.,,
+c3_025,リン,私は工房に残って、装置の弱点を調べます。何かわかったら、転移石で知らせますね。,"I'll stay in the workshop and look for the device's weak point. If I find anything, I'll let you know by Warpstone.",,
+c3_026,ミオ,あたしは……ガルドさんと東門に行く！,I'm... going to the east gate with Gald!,,
+c3_027,ガルド,好きにしろ。ただし、俺から離れるなよ。,Suit yourself. Just don't stray from my side.,,
+c3_028,,聖樹の地下へと続く階段は、青白い光に満ちていた。,The stairs leading beneath the Sacred Tree were filled with a pale blue light.,,narration
+c3_029,ハヤテ,これが竜脈の光でござるか。,So this is the light of the Dragon Vein.,,
+c3_030,セレス,はい。本来はもっと温かい光なのです。今は、まるで泣いているようです。,"Yes. It is meant to be a much warmer light. Now, it seems almost to be weeping.",,
+c3_031,,神殿の扉には、古い文字が刻まれていた。,Ancient letters were carved into the temple doors.,,narration
+c3_032,セレス,「<i>巫女の祈りに、剣は応える</i>」……そう書かれています。,"""<i>The blade answers the Oracle's prayer<i>""... That is what it says.",,
+c3_033,セレス,聖樹よ、竜脈よ。わたくしに、封魔の剣を授けてください。,"Sacred Tree, Dragon Vein. Please grant me the Sealbrand.",,
+c3_034,,扉が開き、光の中から一振りの剣が現れた。,"The doors opened, and a single sword emerged from the light.",,narration
+c3_035,,【入手】封魔の剣,[Obtained] Sealbrand,28,system
+c3_036,ハヤテ,見事でござる、セレス様。,"Splendidly done, Ceres-sama.",,
+c3_037,セレス,ハヤテさん、この剣は、あなたに託します。わたくしには振るえませんから。,"Hayate, I entrust this sword to you. I could never wield it myself.",,
+c3_038,ハヤテ,拙者でよろしいのでござるか？,Are you certain I am worthy?,,
+c3_039,セレス,はい。聖樹がそう望んでいます。,Yes. It is what the Sacred Tree wishes.,,
+c3_040,ハヤテ,……承知した。封魔の剣、このハヤテが預かり申す。,"...Okay. I, Hayate, shall bear the Sealbrand.",,
+c3_041,リン,（転移石の声）セレス様、聞こえますか！装置の場所がわかりました！,"(Voice through the Warpstone) Lady Ceres, can you hear me? I found where the device is!",,
+c3_042,リン,装置は東門の外、帝国軍の陣の中心にあります！,"It's outside the east gate, at the center of the imperial camp!",,
+c3_043,セレス,東門……ガルドとミオがいる場所です。急ぎましょう！,The east gate... that is where Gald and Mio are. Let us hurry!,,
+c3_044,,【目的】東門へ向かえ,[Objective] Head to the east gate,36,system
+c3_045,ハヤテ,[PLAYER]殿、参るぞ！,"[PLAYER], let's go!",,
+c4_001,,東門。蒼の騎士団と帝国軍の戦いは、すでに始まっていた。,The east gate. The battle between the Azure Knights and the imperial army had already begun.,,narration
+c4_002,ミオ,ガルドさん、右から来るよ！,"Gald, more coming from the right!",,
+c4_003,ガルド,おう！ミオ、炎で足止めしろ！,"Got it! Mio, pin them down with fire!",,
+c4_004,MIO,任せて！燃えちゃえーっ！,"Leave it to me! Burn, burn, burn!",,
+c4_005,,炎の壁が、帝国兵の前に立ちはだかった。,A wall of fire rose up before the imperial soldiers.,,narration
+c4_006,???,騒がしいな。蒼の騎士団とは、この程度か。,How noisy. Is this all the Azure Knights amount to?,,
+c4_007,,黒い鎧の男が、陣の奥から姿を現した。,A man in black armor emerged from the depths of the camp.,,narration
+c4_008,ゼノ,余はゼノ。ヴァルハイト帝国の将軍である。,"I am Zeno, general of the Valheit Empire.",,
+c4_009,ガルド,てめえが聖樹を枯らしてる張本人か！,So you're the one who's been killing the Sacred Tree!,,
+c4_010,ゼノ,枯らす？違うな。余は聖樹の力を、正しく使ってやるだけだ。,Killing it? Hardly. I merely intend to put the Sacred Tree's power to proper use.,,
+c4_011,ミオ,何が正しくよ！森の動物たちまで魔獣にしておいて！,What's proper about that?! You turned the forest animals into fiends!,,
+c4_012,ゼノ,小娘が。黙っていろ。,"Silence, girl.",,
+c4_013,,ゼノが剣を振るうと、竜脈の力が黒い稲妻となって走った。,"When Zeeno swung his sword, the Dragon Vein's power raced out as black lightning.",,narration
+c4_014,ガルド,ぐっ……！,Ngh...!,,
+c4_015,ミオ,ガルドさん！,Gald!,,
+c4_016,セレス,ガルド！ミオ！遅くなってすみません！,Gald! Mia! Forgive me for being late!,,
+c4_017,ゼノ,ほう、巫女セレス自ら来たか。手間が省けた。,Oh? The Oracle Ceres has come herself. That saves me some trouble.,,
+c4_018,ハヤテ,ゼノとやら。僕が相手いたす！,So you are Zeno. I shall be your opponent!,,
+c4_019,ゼノ,東の剣士か。その剣……まさか、封魔の剣か！,A swordsman from the east. That sword... Can it be the Sealbrand?!,,
+c4_020,リン,（転移石の声）ハヤテさん！装置はゼノの背後にあります！,(Voice through the Warpstone) Hayate! The device is right behind Zeno!,,
+c4_021,ハヤテ,承知！ガルド殿、ミオ殿、援護を頼み申す！,"Understood! Gald, Miss Mio, cover me!",,
+c4_022,ガルド,任せろ！,Leave it to us!,,
+c4_023,,▶ ハヤテを援護する,▶ Cover Hayate,32,choice
+c4_024,,▶ セレスのそばにいる,▶ Stay by the side of Ceres,32,choice
+c4_025,セレス,[PLAYER]さん、ハヤテさんを助けてください！,"Player, please help Hayate!",,
+c4_026,,封魔の剣が、装置の核を貫いた。,The Sealbrand pierced the core of the device.,,narration
+c4_027,,装置は砕け、竜脈の光が空へと還っていった。,"The device shattered, and the light of the Dragon Vein returned to the sky.",,narration
+c4_028,ゼノ,おのれ……！この借りは必ず返すぞ。,"Curse you...! I will repay this debt, mark my words.",,
+c4_029,,ゼノは転移石を砕き、光の中に消えた。,Zeno crushed a Warpstone and vanished into the light.,,narration
+c4_030,ミオ,逃げられちゃった……。,He got away...,,
+c4_031,ガルド,構わねえ。装置は壊した。それで十分です。,Doesn't matter. We wrecked the device. That's enough.,,
+c4_032,りん,皆さん、聖樹を見てください！,"Everyone, look at the Sacred Tree!",,
+c4_033,,聖樹の葉に、再び緑が戻り始めていた。,Green was beginning to return to the leaves of the Sacred Tree.,,narration
+c4_034,セレス,聖樹が……笑っています。皆さん、本当にありがとうございました。,"The Sacred Tree... it is smiling. Thank you all, truly.",,
+c4_035,ミオ,やったね、セレスさん！,"We did it, Lady Ceres!",,
+c4_036,ハヤテ,セレス様、拙者はこれより東の国へ戻り、竜脈の乱れを調べるつもりでござる。,"Lady Ceres, I intend to return to the eastern lands and look into the disturbance in the Dragon Vein there.",,
+c4_037,セレス,ハヤテさん……。わたくしも、ご一緒させていただけませんか。,Hayate... Would you allow me to accompany you?,,
+c4_038,ガルド,おいおい、巫女が国を空けてどうする。……まあ、俺もついて行くがな。,"Hey now, what's the Oracle doing leaving the kingdom? ...Well, I'm coming along anyway.",,
+c4_039,リン,東の国の竜脈……私も、ぜひ調べてみたいです。,The Dragon Vein of the eastern lands... I'd very much like to study it too.,,
+c4_040,ミオ,じゃあ、みんなで行こうよ！ね、[PLAYER]さん！,"Then let's all go together! Right, [PLAYER_NAME]?",,
+c4_041,,▶ 一緒に行こう,▶ Let's go together,32,choice
+c4_042,,▶ 少し休みたい,▶ I could really use some rest first,32,choice
+c4_043,セレス,ふふ。では、出発は明日にしましょう。,Very well. Then let us set out tomorrow.,,
+c4_044,,【第一章 完】,[End of Chapter One],32,system
+c5_001,,その夜、一行は聖樹の下で焚き火を囲んだ。,"That night, the party gathered around a campfire beneath the Sacred Tree.",,narration
+c5_002,ミオ,セレス様、明日の旅のおやつ、何がいいかな？,"Ceres, what kind of snacks should we bring tomorrow?",,
+c5_003,セレス,まあ、ミオったら。では、リーベン名物の蜂蜜パンはいかがでしょう。,"Oh, Mio. Well then, how about some of the famous honey bread of Lieven?",,
+c5_004,ミオ,蜂蜜パン！セレス様、天才！,"Honey bread! Lady Ceres, you're a genius!",,
+c5_005,ガルド,遠足じゃねえんだぞ。,"This isn't a field trip, you know.",,
+c5_006,リン,ガルドさんも、本当は甘いものが好きなんですよね。,"But you have a sweet tooth too, don't you, Gald?",,
+c5_007,ガルド,……うるせえ。,...Shut it.,,
+c5_008,ハヤテ,拙者の国には、団子という甘味がござる。いつか皆に振る舞おう。,"In my homeland, we have a sweet called dango. Someday I shall serve it to you all.",,
+c5_009,ミオ,ハヤテさんの国の料理、食べてみたい！,I want to try food from Hayate's homeland!,,
+c5_010,リン,セレス様、エーテルランプの星晶石を交換しておきました。,"Lady Ceres, I've replaced the Starcrystal in the aether lamp.",,
+c5_011,セレス,ありがとうございます、リン。いつも助かります。,"Thank you, Rin. You are always such a help.",,
+c5_012,リン,いえ。それと、蒼の騎士団の皆さんに、転移石を{0}個配っておきました。,"Not at all. Also, I handed out {0} Warpstones to the Azure Knights.",,
+c5_013,ガルド,助かる。あいつらも、これで少しは安心だろう。,Appreciate it. That'll put the guys' minds at ease a little.,,
+c5_014,ミオ,ねえねえ、セレス様は東の国に行ったことあるの？,"Hey, hey, Your Highness, have you ever been to the eastern lands?",,
+c5_015,セレス,いいえ、一度もありません。だから、今から楽しみなのです。,"No, never once. That is why I'm so looking forward to it.",,
+c5_016,ハヤテ,セレス様をお連れできるとは、拙者も光栄でござる。,"It's an honor for me to escort you, Lady Ceres.",,
+c5_017,ガルド,浮かれるのはいいが、バルハイトの連中はまだ諦めちゃいねえ。気を抜くなよ。,"Have your fun, but Valheit hasn't given up yet. Stay sharp.",,
+c5_018,セレス,ええ、わかっています。ガルド、明日からもよろしくお願いします。,"Yeah, I understand. Gald, I am counting on you from tomorrow on as well.",,
+c5_019,ミオ,セレス様、おやすみなさい！,"Good night, Lady Ceres!",,
+c5_020,,焚き火の明かりの中、聖樹の葉が静かに揺れていた。,"In the glow of the campfire, the leaves of the Sacred Tree swayed gently.",,narration
+ui_001,,星晶石,Starcrystal (Unrefined),16,item name
+ui_002,,竜脈の力を蓄えた結晶。アーク・ゲートの起動に使う。,A crystal holding Dragon Vein power. Powers the Arcgate.,64,item description
+ui_003,,転移石,Warpstone,16,item name
+ui_004,,一度訪れた場所へ瞬時に戻る。使うと砕ける。,Instantly return to a place you have visited. Breaks on use.,64,item description
+ui_005,,エーテル・ランプ,Aether Lamp,16,item name
+ui_006,,霧の中でも周囲を照らす。,"Lights your surroundings, even in fog.",64,item description
+ui_007,,封魔の剣,Sealbrand,16,item name
+ui_008,,聖樹に選ばれた者だけが振るえる剣。<color=#e0b040>魔獣</color>に大ダメージ。,A sword only the Sacred Tree's chosen may wield. Deals heavy damage to fiends.,90,item description
+ui_009,,{0}は{1}のダメージを受けた！,{0} took {1} damage!,40,battle
+ui_010,,{0}の{1}が上がった！,'s {1} increased!,40,battle
+ui_011,,【場所】霧の森,[Location] Misty Woods,28,system
+ui_012,,【場所】王都リーヴェン,[Location] The Royal Capital City of Lieven,32,system
+ui_013,,グリフォーンの羽根,Griffin Feather,20,item name
+ui_014,,グリフォンから落ちた羽根。軽くて丈夫。,A feather dropped by a griffin. Light and sturdy.,64,item description
+ui_015,,{聖樹|せいじゅ}の{巫女|巫こ},Oracle of the Sacred Tree,32,"title, ruby"

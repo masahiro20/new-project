@@ -1,0 +1,1972 @@
+{
+ "benchmark": "synthetic JA→EN dialogue script (eval/synthetic-jaen)",
+ "seed": 20261009,
+ "definitions": {
+  "found": "a finding on the injected line whose rule is listed in truth.csv `expect` (any severity)",
+  "foundCi": "same, severity warning or error (what `--fail-on warning` gates on)",
+  "lineOnly": "something was reported on the line, but under another rule",
+  "precision": "TP / (TP + FP); findings on injected lines count as TP, others judged by hand (JUDGEMENTS in score.mjs)"
+ },
+ "configs": {
+  "G": {
+   "description": "glossary.json (15 terms, 6 characters with voice profiles, honorificPolicy localize)",
+   "cleanFindings": 0,
+   "recall": {
+    "injected": 62,
+    "found": 56,
+    "recall": 0.903,
+    "foundCi": 54,
+    "recallCi": 0.871,
+    "byCategory": {
+     "term": {
+      "injected": 10,
+      "found": 10,
+      "foundCi": 10,
+      "lineOnly": 0,
+      "missed": [],
+      "recall": 1,
+      "recallCi": 1
+     },
+     "pronoun": {
+      "injected": 5,
+      "found": 3,
+      "foundCi": 3,
+      "lineOnly": 0,
+      "missed": [
+       "14 first-person-swap",
+       "36 first-person-swap"
+      ],
+      "recall": 0.6,
+      "recallCi": 0.6
+     },
+     "placeholder": {
+      "injected": 4,
+      "found": 4,
+      "foundCi": 4,
+      "lineOnly": 0,
+      "missed": [],
+      "recall": 1,
+      "recallCi": 1
+     },
+     "ruby": {
+      "injected": 2,
+      "found": 2,
+      "foundCi": 2,
+      "lineOnly": 0,
+      "missed": [],
+      "recall": 1,
+      "recallCi": 1
+     },
+     "avoid": {
+      "injected": 3,
+      "found": 3,
+      "foundCi": 3,
+      "lineOnly": 0,
+      "missed": [],
+      "recall": 1,
+      "recallCi": 1
+     },
+     "tag": {
+      "injected": 3,
+      "found": 3,
+      "foundCi": 3,
+      "lineOnly": 0,
+      "missed": [],
+      "recall": 1,
+      "recallCi": 1
+     },
+     "name": {
+      "injected": 7,
+      "found": 7,
+      "foundCi": 6,
+      "lineOnly": 0,
+      "missed": [],
+      "recall": 1,
+      "recallCi": 0.857
+     },
+     "speaker": {
+      "injected": 5,
+      "found": 3,
+      "foundCi": 3,
+      "lineOnly": 0,
+      "missed": [
+       "107 label-variant",
+       "166 label-variant"
+      ],
+      "recall": 0.6,
+      "recallCi": 0.6
+     },
+     "honorific": {
+      "injected": 7,
+      "found": 6,
+      "foundCi": 5,
+      "lineOnly": 1,
+      "missed": [
+       "192 drift-title-only (line hit by name.missing:info)"
+      ],
+      "recall": 0.857,
+      "recallCi": 0.714
+     },
+     "politeness": {
+      "injected": 4,
+      "found": 3,
+      "foundCi": 3,
+      "lineOnly": 0,
+      "missed": [
+       "73 polite→plain"
+      ],
+      "recall": 0.75,
+      "recallCi": 0.75
+     },
+     "contraction": {
+      "injected": 4,
+      "found": 4,
+      "foundCi": 4,
+      "lineOnly": 0,
+      "missed": [],
+      "recall": 1,
+      "recallCi": 1
+     },
+     "length": {
+      "injected": 3,
+      "found": 3,
+      "foundCi": 3,
+      "lineOnly": 0,
+      "missed": [],
+      "recall": 1,
+      "recallCi": 1
+     },
+     "notation": {
+      "injected": 5,
+      "found": 5,
+      "foundCi": 5,
+      "lineOnly": 0,
+      "missed": [],
+      "recall": 1,
+      "recallCi": 1
+     }
+    }
+   },
+   "precision": {
+    "all": {
+     "findings": 65,
+     "tp": 64,
+     "fp": 1,
+     "unjudged": 0,
+     "precision": 0.985
+    },
+    "ci": {
+     "findings": 59,
+     "tp": 58,
+     "fp": 1,
+     "unjudged": 0,
+     "precision": 0.983
+    },
+    "byRule": {
+     "term.forbidden": {
+      "n": 5,
+      "tp": 5,
+      "fp": 0,
+      "unjudged": 0
+     },
+     "term.missing": {
+      "n": 5,
+      "tp": 5,
+      "fp": 0,
+      "unjudged": 0
+     },
+     "notation.katakana": {
+      "n": 6,
+      "tp": 6,
+      "fp": 0,
+      "unjudged": 0
+     },
+     "name.speaker-label": {
+      "n": 2,
+      "tp": 2,
+      "fp": 0,
+      "unjudged": 0
+     },
+     "name.speaker-unknown": {
+      "n": 1,
+      "tp": 1,
+      "fp": 0,
+      "unjudged": 0
+     },
+     "name.near-miss": {
+      "n": 3,
+      "tp": 3,
+      "fp": 0,
+      "unjudged": 0
+     },
+     "name.missing": {
+      "n": 5,
+      "tp": 5,
+      "fp": 0,
+      "unjudged": 0
+     },
+     "name.forbidden": {
+      "n": 2,
+      "tp": 2,
+      "fp": 0,
+      "unjudged": 0
+     },
+     "honorific.policy": {
+      "n": 3,
+      "tp": 3,
+      "fp": 0,
+      "unjudged": 0
+     },
+     "honorific.drift": {
+      "n": 5,
+      "tp": 4,
+      "fp": 1,
+      "unjudged": 0
+     },
+     "honorific.source-shift": {
+      "n": 1,
+      "tp": 1,
+      "fp": 0,
+      "unjudged": 0
+     },
+     "voice.first-person": {
+      "n": 3,
+      "tp": 3,
+      "fp": 0,
+      "unjudged": 0
+     },
+     "voice.politeness": {
+      "n": 3,
+      "tp": 3,
+      "fp": 0,
+      "unjudged": 0
+     },
+     "voice.avoid": {
+      "n": 3,
+      "tp": 3,
+      "fp": 0,
+      "unjudged": 0
+     },
+     "voice.contraction": {
+      "n": 4,
+      "tp": 4,
+      "fp": 0,
+      "unjudged": 0
+     },
+     "placeholder.mismatch": {
+      "n": 4,
+      "tp": 4,
+      "fp": 0,
+      "unjudged": 0
+     },
+     "tag.mismatch": {
+      "n": 3,
+      "tp": 3,
+      "fp": 0,
+      "unjudged": 0
+     },
+     "tag.unbalanced": {
+      "n": 2,
+      "tp": 2,
+      "fp": 0,
+      "unjudged": 0
+     },
+     "ruby.leak": {
+      "n": 1,
+      "tp": 1,
+      "fp": 0,
+      "unjudged": 0
+     },
+     "ruby.reading": {
+      "n": 1,
+      "tp": 1,
+      "fp": 0,
+      "unjudged": 0
+     },
+     "length.limit": {
+      "n": 3,
+      "tp": 3,
+      "fp": 0,
+      "unjudged": 0
+     }
+    }
+   },
+   "unmatched": [
+    {
+     "line": 82,
+     "rule": "honorific.drift",
+     "severity": "warning",
+     "verdict": "FP",
+     "note": "clean line (Hayate: Sir Gald). The 殿 group is a 1-1-1 tie (Sir Gald / Gald-dono / Gald) and the engine picks the policy-violating Gald-dono as the 'majority'"
+    }
+   ],
+   "perTruth": [
+    {
+     "line": 4,
+     "id": "c1_003",
+     "category": "term",
+     "subtype": "unlisted-variant",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "term.missing:warning"
+     ]
+    },
+    {
+     "line": 8,
+     "id": "c1_007",
+     "category": "term",
+     "subtype": "forbidden-variant",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "term.forbidden:error"
+     ]
+    },
+    {
+     "line": 13,
+     "id": "c1_012",
+     "category": "pronoun",
+     "subtype": "first-person-swap",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "voice.first-person:warning"
+     ]
+    },
+    {
+     "line": 14,
+     "id": "c1_013",
+     "category": "pronoun",
+     "subtype": "first-person-swap",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 20,
+     "id": "c1_019",
+     "category": "placeholder",
+     "subtype": "dropped",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "placeholder.mismatch:error"
+     ]
+    },
+    {
+     "line": 21,
+     "id": "c1_020",
+     "category": "pronoun",
+     "subtype": "first-person-swap",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "voice.first-person:warning"
+     ]
+    },
+    {
+     "line": 25,
+     "id": "c1_024",
+     "category": "ruby",
+     "subtype": "leak-into-en",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "ruby.leak:error"
+     ]
+    },
+    {
+     "line": 29,
+     "id": "c1_028",
+     "category": "term",
+     "subtype": "unlisted-variant",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "term.missing:warning"
+     ]
+    },
+    {
+     "line": 34,
+     "id": "c1_033",
+     "category": "avoid",
+     "subtype": "avoided-word",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "voice.avoid:warning"
+     ]
+    },
+    {
+     "line": 35,
+     "id": "c1_034",
+     "category": "tag",
+     "subtype": "closing </color> dropped",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "tag.mismatch:error",
+      "tag.unbalanced:error"
+     ]
+    },
+    {
+     "line": 36,
+     "id": "c1_035",
+     "category": "pronoun",
+     "subtype": "first-person-swap",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": [],
+     "predictedGap": "余 is not in the first-person pronoun list"
+    },
+    {
+     "line": 47,
+     "id": "c2_006",
+     "category": "term",
+     "subtype": "forbidden-variant",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "term.forbidden:error"
+     ]
+    },
+    {
+     "line": 48,
+     "id": "c2_007",
+     "category": "term",
+     "subtype": "unlisted-variant",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "term.missing:warning"
+     ]
+    },
+    {
+     "line": 50,
+     "id": "c2_009",
+     "category": "name",
+     "subtype": "forbidden",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "name.forbidden:error"
+     ]
+    },
+    {
+     "line": 54,
+     "id": "c2_013",
+     "category": "speaker",
+     "subtype": "label-variant",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "name.speaker-unknown:warning"
+     ]
+    },
+    {
+     "line": 56,
+     "id": "c2_015",
+     "category": "name",
+     "subtype": "near-miss",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "name.near-miss:warning",
+      "name.missing:info"
+     ]
+    },
+    {
+     "line": 61,
+     "id": "c2_020",
+     "category": "speaker",
+     "subtype": "label-variant",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "name.speaker-label:warning"
+     ]
+    },
+    {
+     "line": 62,
+     "id": "c2_021",
+     "category": "term",
+     "subtype": "forbidden-variant",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "term.forbidden:error"
+     ]
+    },
+    {
+     "line": 65,
+     "id": "c2_024",
+     "category": "honorific",
+     "subtype": "policy-romanized",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "honorific.policy:error"
+     ]
+    },
+    {
+     "line": 66,
+     "id": "c2_025",
+     "category": "name",
+     "subtype": "forbidden",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "name.forbidden:error"
+     ]
+    },
+    {
+     "line": 68,
+     "id": "c2_027",
+     "category": "term",
+     "subtype": "forbidden-variant",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "term.forbidden:error"
+     ]
+    },
+    {
+     "line": 73,
+     "id": "c2_032",
+     "category": "politeness",
+     "subtype": "polite→plain",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": [],
+     "predictedGap": "plain dictionary-form ending (〜ている。) is not in PLAIN_END, so the line reads as neither polite nor plain"
+    },
+    {
+     "line": 75,
+     "id": "c2_034",
+     "category": "term",
+     "subtype": "forbidden-variant",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "term.forbidden:error"
+     ]
+    },
+    {
+     "line": 92,
+     "id": "c3_003",
+     "category": "honorific",
+     "subtype": "policy-romanized",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "honorific.policy:error",
+      "honorific.drift:warning"
+     ]
+    },
+    {
+     "line": 95,
+     "id": "c3_006",
+     "category": "term",
+     "subtype": "unlisted-variant",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "term.missing:warning"
+     ]
+    },
+    {
+     "line": 96,
+     "id": "c3_007",
+     "category": "politeness",
+     "subtype": "polite→plain",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "voice.politeness:warning"
+     ]
+    },
+    {
+     "line": 100,
+     "id": "c3_011",
+     "category": "politeness",
+     "subtype": "polite→plain",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "voice.politeness:warning"
+     ]
+    },
+    {
+     "line": 107,
+     "id": "c3_018",
+     "category": "speaker",
+     "subtype": "label-variant",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": [],
+     "predictedGap": "label with a title in brackets does not resolve to the character"
+    },
+    {
+     "line": 108,
+     "id": "c3_019",
+     "category": "contraction",
+     "subtype": "no-contraction-character",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "voice.contraction:warning"
+     ]
+    },
+    {
+     "line": 109,
+     "id": "c3_020",
+     "category": "name",
+     "subtype": "near-miss",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "name.near-miss:warning",
+      "name.missing:info"
+     ]
+    },
+    {
+     "line": 111,
+     "id": "c3_022",
+     "category": "name",
+     "subtype": "ja-katakana-variant",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "notation.katakana:warning"
+     ]
+    },
+    {
+     "line": 121,
+     "id": "c3_032",
+     "category": "tag",
+     "subtype": "closing </i> typed as <i>",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "tag.mismatch:error",
+      "tag.unbalanced:error"
+     ]
+    },
+    {
+     "line": 125,
+     "id": "c3_036",
+     "category": "honorific",
+     "subtype": "policy-romanized",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "honorific.policy:error",
+      "honorific.drift:warning"
+     ]
+    },
+    {
+     "line": 129,
+     "id": "c3_040",
+     "category": "avoid",
+     "subtype": "avoided-word",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "voice.avoid:warning"
+     ]
+    },
+    {
+     "line": 134,
+     "id": "c3_045",
+     "category": "contraction",
+     "subtype": "no-contraction-character",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "voice.contraction:warning"
+     ]
+    },
+    {
+     "line": 138,
+     "id": "c4_004",
+     "category": "speaker",
+     "subtype": "label-variant",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "name.speaker-label:warning"
+     ]
+    },
+    {
+     "line": 147,
+     "id": "c4_013",
+     "category": "name",
+     "subtype": "near-miss",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "name.near-miss:warning",
+      "name.missing:info"
+     ]
+    },
+    {
+     "line": 150,
+     "id": "c4_016",
+     "category": "name",
+     "subtype": "near-miss-short",
+     "found": true,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": [
+      "name.missing:info"
+     ],
+     "predictedGap": "3-letter name: near-miss scan needs length ≥ 4; name.missing is info only"
+    },
+    {
+     "line": 152,
+     "id": "c4_018",
+     "category": "pronoun",
+     "subtype": "first-person-swap",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "voice.first-person:warning"
+     ]
+    },
+    {
+     "line": 155,
+     "id": "c4_021",
+     "category": "honorific",
+     "subtype": "drift",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "honorific.drift:warning"
+     ]
+    },
+    {
+     "line": 159,
+     "id": "c4_025",
+     "category": "placeholder",
+     "subtype": "translated",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "placeholder.mismatch:error"
+     ]
+    },
+    {
+     "line": 165,
+     "id": "c4_031",
+     "category": "politeness",
+     "subtype": "plain→polite",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "voice.politeness:warning"
+     ]
+    },
+    {
+     "line": 166,
+     "id": "c4_032",
+     "category": "speaker",
+     "subtype": "label-variant",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": [],
+     "predictedGap": "hiragana label is not folded to katakana"
+    },
+    {
+     "line": 169,
+     "id": "c4_035",
+     "category": "honorific",
+     "subtype": "source-shift",
+     "found": true,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": [
+      "honorific.source-shift:info"
+     ]
+    },
+    {
+     "line": 174,
+     "id": "c4_040",
+     "category": "placeholder",
+     "subtype": "renamed",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "placeholder.mismatch:error"
+     ]
+    },
+    {
+     "line": 176,
+     "id": "c4_042",
+     "category": "length",
+     "subtype": "over-limit",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "length.limit:error"
+     ]
+    },
+    {
+     "line": 180,
+     "id": "c5_002",
+     "category": "honorific",
+     "subtype": "drift",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "honorific.drift:warning"
+     ]
+    },
+    {
+     "line": 181,
+     "id": "c5_003",
+     "category": "notation",
+     "subtype": "katakana-variant",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "notation.katakana:warning"
+     ]
+    },
+    {
+     "line": 192,
+     "id": "c5_014",
+     "category": "honorific",
+     "subtype": "drift-title-only",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": true,
+     "rules": [
+      "name.missing:info"
+     ],
+     "predictedGap": "name dropped, so there is no EN rendering to compare (name.missing info at most)"
+    },
+    {
+     "line": 193,
+     "id": "c5_015",
+     "category": "contraction",
+     "subtype": "no-contraction-character",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "voice.contraction:warning"
+     ]
+    },
+    {
+     "line": 194,
+     "id": "c5_016",
+     "category": "contraction",
+     "subtype": "no-contraction-character",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "voice.contraction:warning"
+     ]
+    },
+    {
+     "line": 195,
+     "id": "c5_017",
+     "category": "notation",
+     "subtype": "katakana-variant",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "notation.katakana:warning"
+     ]
+    },
+    {
+     "line": 196,
+     "id": "c5_018",
+     "category": "avoid",
+     "subtype": "avoided-word",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "voice.avoid:warning"
+     ]
+    },
+    {
+     "line": 199,
+     "id": "ui_001",
+     "category": "length",
+     "subtype": "over-limit",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "length.limit:error"
+     ]
+    },
+    {
+     "line": 200,
+     "id": "ui_002",
+     "category": "notation",
+     "subtype": "katakana-variant",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "notation.katakana:warning"
+     ]
+    },
+    {
+     "line": 203,
+     "id": "ui_005",
+     "category": "notation",
+     "subtype": "katakana-variant",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "notation.katakana:warning"
+     ]
+    },
+    {
+     "line": 206,
+     "id": "ui_008",
+     "category": "tag",
+     "subtype": "color markup dropped",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "tag.mismatch:error"
+     ]
+    },
+    {
+     "line": 208,
+     "id": "ui_010",
+     "category": "placeholder",
+     "subtype": "dropped",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "placeholder.mismatch:error"
+     ]
+    },
+    {
+     "line": 209,
+     "id": "ui_011",
+     "category": "term",
+     "subtype": "unlisted-variant",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "term.missing:warning"
+     ]
+    },
+    {
+     "line": 210,
+     "id": "ui_012",
+     "category": "length",
+     "subtype": "over-limit",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "length.limit:error"
+     ]
+    },
+    {
+     "line": 211,
+     "id": "ui_013",
+     "category": "notation",
+     "subtype": "katakana-variant",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "notation.katakana:warning"
+     ]
+    },
+    {
+     "line": 213,
+     "id": "ui_015",
+     "category": "ruby",
+     "subtype": "kanji-in-reading",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "ruby.reading:warning"
+     ]
+    }
+   ]
+  },
+  "A": {
+   "description": "--no-glossary",
+   "cleanFindings": 0,
+   "recall": {
+    "injected": 62,
+    "found": 21,
+    "recall": 0.339,
+    "foundCi": 18,
+    "recallCi": 0.29,
+    "byCategory": {
+     "term": {
+      "injected": 10,
+      "found": 0,
+      "foundCi": 0,
+      "lineOnly": 0,
+      "missed": [
+       "4 unlisted-variant",
+       "8 forbidden-variant",
+       "29 unlisted-variant",
+       "47 forbidden-variant",
+       "48 unlisted-variant",
+       "62 forbidden-variant",
+       "68 forbidden-variant",
+       "75 forbidden-variant",
+       "95 unlisted-variant",
+       "209 unlisted-variant"
+      ],
+      "recall": 0,
+      "recallCi": 0
+     },
+     "pronoun": {
+      "injected": 5,
+      "found": 3,
+      "foundCi": 0,
+      "lineOnly": 0,
+      "missed": [
+       "14 first-person-swap",
+       "36 first-person-swap"
+      ],
+      "recall": 0.6,
+      "recallCi": 0
+     },
+     "placeholder": {
+      "injected": 4,
+      "found": 4,
+      "foundCi": 4,
+      "lineOnly": 0,
+      "missed": [],
+      "recall": 1,
+      "recallCi": 1
+     },
+     "ruby": {
+      "injected": 2,
+      "found": 2,
+      "foundCi": 2,
+      "lineOnly": 0,
+      "missed": [],
+      "recall": 1,
+      "recallCi": 1
+     },
+     "avoid": {
+      "injected": 3,
+      "found": 0,
+      "foundCi": 0,
+      "lineOnly": 0,
+      "missed": [
+       "34 avoided-word",
+       "129 avoided-word",
+       "196 avoided-word"
+      ],
+      "recall": 0,
+      "recallCi": 0
+     },
+     "tag": {
+      "injected": 3,
+      "found": 3,
+      "foundCi": 3,
+      "lineOnly": 0,
+      "missed": [],
+      "recall": 1,
+      "recallCi": 1
+     },
+     "name": {
+      "injected": 7,
+      "found": 1,
+      "foundCi": 1,
+      "lineOnly": 0,
+      "missed": [
+       "50 forbidden",
+       "56 near-miss",
+       "66 forbidden",
+       "109 near-miss",
+       "147 near-miss",
+       "150 near-miss-short"
+      ],
+      "recall": 0.143,
+      "recallCi": 0.143
+     },
+     "speaker": {
+      "injected": 5,
+      "found": 0,
+      "foundCi": 0,
+      "lineOnly": 0,
+      "missed": [
+       "54 label-variant",
+       "61 label-variant",
+       "107 label-variant",
+       "138 label-variant",
+       "166 label-variant"
+      ],
+      "recall": 0,
+      "recallCi": 0
+     },
+     "honorific": {
+      "injected": 7,
+      "found": 0,
+      "foundCi": 0,
+      "lineOnly": 0,
+      "missed": [
+       "65 policy-romanized",
+       "92 policy-romanized",
+       "125 policy-romanized",
+       "155 drift",
+       "169 source-shift",
+       "180 drift",
+       "192 drift-title-only"
+      ],
+      "recall": 0,
+      "recallCi": 0
+     },
+     "politeness": {
+      "injected": 4,
+      "found": 0,
+      "foundCi": 0,
+      "lineOnly": 0,
+      "missed": [
+       "73 polite→plain",
+       "96 polite→plain",
+       "100 polite→plain",
+       "165 plain→polite"
+      ],
+      "recall": 0,
+      "recallCi": 0
+     },
+     "contraction": {
+      "injected": 4,
+      "found": 0,
+      "foundCi": 0,
+      "lineOnly": 0,
+      "missed": [
+       "108 no-contraction-character",
+       "134 no-contraction-character",
+       "193 no-contraction-character",
+       "194 no-contraction-character"
+      ],
+      "recall": 0,
+      "recallCi": 0
+     },
+     "length": {
+      "injected": 3,
+      "found": 3,
+      "foundCi": 3,
+      "lineOnly": 0,
+      "missed": [],
+      "recall": 1,
+      "recallCi": 1
+     },
+     "notation": {
+      "injected": 5,
+      "found": 5,
+      "foundCi": 5,
+      "lineOnly": 0,
+      "missed": [],
+      "recall": 1,
+      "recallCi": 1
+     }
+    }
+   },
+   "precision": {
+    "all": {
+     "findings": 23,
+     "tp": 23,
+     "fp": 0,
+     "unjudged": 0,
+     "precision": 1
+    },
+    "ci": {
+     "findings": 20,
+     "tp": 20,
+     "fp": 0,
+     "unjudged": 0,
+     "precision": 1
+    },
+    "byRule": {
+     "notation.katakana": {
+      "n": 6,
+      "tp": 6,
+      "fp": 0,
+      "unjudged": 0
+     },
+     "voice.first-person": {
+      "n": 3,
+      "tp": 3,
+      "fp": 0,
+      "unjudged": 0
+     },
+     "placeholder.mismatch": {
+      "n": 4,
+      "tp": 4,
+      "fp": 0,
+      "unjudged": 0
+     },
+     "tag.mismatch": {
+      "n": 3,
+      "tp": 3,
+      "fp": 0,
+      "unjudged": 0
+     },
+     "tag.unbalanced": {
+      "n": 2,
+      "tp": 2,
+      "fp": 0,
+      "unjudged": 0
+     },
+     "ruby.leak": {
+      "n": 1,
+      "tp": 1,
+      "fp": 0,
+      "unjudged": 0
+     },
+     "ruby.reading": {
+      "n": 1,
+      "tp": 1,
+      "fp": 0,
+      "unjudged": 0
+     },
+     "length.limit": {
+      "n": 3,
+      "tp": 3,
+      "fp": 0,
+      "unjudged": 0
+     }
+    }
+   },
+   "unmatched": [],
+   "perTruth": [
+    {
+     "line": 4,
+     "id": "c1_003",
+     "category": "term",
+     "subtype": "unlisted-variant",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 8,
+     "id": "c1_007",
+     "category": "term",
+     "subtype": "forbidden-variant",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 13,
+     "id": "c1_012",
+     "category": "pronoun",
+     "subtype": "first-person-swap",
+     "found": true,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": [
+      "voice.first-person:info"
+     ]
+    },
+    {
+     "line": 14,
+     "id": "c1_013",
+     "category": "pronoun",
+     "subtype": "first-person-swap",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 20,
+     "id": "c1_019",
+     "category": "placeholder",
+     "subtype": "dropped",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "placeholder.mismatch:error"
+     ]
+    },
+    {
+     "line": 21,
+     "id": "c1_020",
+     "category": "pronoun",
+     "subtype": "first-person-swap",
+     "found": true,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": [
+      "voice.first-person:info"
+     ]
+    },
+    {
+     "line": 25,
+     "id": "c1_024",
+     "category": "ruby",
+     "subtype": "leak-into-en",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "ruby.leak:error"
+     ]
+    },
+    {
+     "line": 29,
+     "id": "c1_028",
+     "category": "term",
+     "subtype": "unlisted-variant",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 34,
+     "id": "c1_033",
+     "category": "avoid",
+     "subtype": "avoided-word",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 35,
+     "id": "c1_034",
+     "category": "tag",
+     "subtype": "closing </color> dropped",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "tag.mismatch:error",
+      "tag.unbalanced:error"
+     ]
+    },
+    {
+     "line": 36,
+     "id": "c1_035",
+     "category": "pronoun",
+     "subtype": "first-person-swap",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": [],
+     "predictedGap": "余 is not in the first-person pronoun list"
+    },
+    {
+     "line": 47,
+     "id": "c2_006",
+     "category": "term",
+     "subtype": "forbidden-variant",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 48,
+     "id": "c2_007",
+     "category": "term",
+     "subtype": "unlisted-variant",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 50,
+     "id": "c2_009",
+     "category": "name",
+     "subtype": "forbidden",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 54,
+     "id": "c2_013",
+     "category": "speaker",
+     "subtype": "label-variant",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 56,
+     "id": "c2_015",
+     "category": "name",
+     "subtype": "near-miss",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 61,
+     "id": "c2_020",
+     "category": "speaker",
+     "subtype": "label-variant",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 62,
+     "id": "c2_021",
+     "category": "term",
+     "subtype": "forbidden-variant",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 65,
+     "id": "c2_024",
+     "category": "honorific",
+     "subtype": "policy-romanized",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 66,
+     "id": "c2_025",
+     "category": "name",
+     "subtype": "forbidden",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 68,
+     "id": "c2_027",
+     "category": "term",
+     "subtype": "forbidden-variant",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 73,
+     "id": "c2_032",
+     "category": "politeness",
+     "subtype": "polite→plain",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": [],
+     "predictedGap": "plain dictionary-form ending (〜ている。) is not in PLAIN_END, so the line reads as neither polite nor plain"
+    },
+    {
+     "line": 75,
+     "id": "c2_034",
+     "category": "term",
+     "subtype": "forbidden-variant",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 92,
+     "id": "c3_003",
+     "category": "honorific",
+     "subtype": "policy-romanized",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 95,
+     "id": "c3_006",
+     "category": "term",
+     "subtype": "unlisted-variant",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 96,
+     "id": "c3_007",
+     "category": "politeness",
+     "subtype": "polite→plain",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 100,
+     "id": "c3_011",
+     "category": "politeness",
+     "subtype": "polite→plain",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 107,
+     "id": "c3_018",
+     "category": "speaker",
+     "subtype": "label-variant",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": [],
+     "predictedGap": "label with a title in brackets does not resolve to the character"
+    },
+    {
+     "line": 108,
+     "id": "c3_019",
+     "category": "contraction",
+     "subtype": "no-contraction-character",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 109,
+     "id": "c3_020",
+     "category": "name",
+     "subtype": "near-miss",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 111,
+     "id": "c3_022",
+     "category": "name",
+     "subtype": "ja-katakana-variant",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "notation.katakana:warning"
+     ]
+    },
+    {
+     "line": 121,
+     "id": "c3_032",
+     "category": "tag",
+     "subtype": "closing </i> typed as <i>",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "tag.mismatch:error",
+      "tag.unbalanced:error"
+     ]
+    },
+    {
+     "line": 125,
+     "id": "c3_036",
+     "category": "honorific",
+     "subtype": "policy-romanized",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 129,
+     "id": "c3_040",
+     "category": "avoid",
+     "subtype": "avoided-word",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 134,
+     "id": "c3_045",
+     "category": "contraction",
+     "subtype": "no-contraction-character",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 138,
+     "id": "c4_004",
+     "category": "speaker",
+     "subtype": "label-variant",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 147,
+     "id": "c4_013",
+     "category": "name",
+     "subtype": "near-miss",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 150,
+     "id": "c4_016",
+     "category": "name",
+     "subtype": "near-miss-short",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": [],
+     "predictedGap": "3-letter name: near-miss scan needs length ≥ 4; name.missing is info only"
+    },
+    {
+     "line": 152,
+     "id": "c4_018",
+     "category": "pronoun",
+     "subtype": "first-person-swap",
+     "found": true,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": [
+      "voice.first-person:info"
+     ]
+    },
+    {
+     "line": 155,
+     "id": "c4_021",
+     "category": "honorific",
+     "subtype": "drift",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 159,
+     "id": "c4_025",
+     "category": "placeholder",
+     "subtype": "translated",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "placeholder.mismatch:error"
+     ]
+    },
+    {
+     "line": 165,
+     "id": "c4_031",
+     "category": "politeness",
+     "subtype": "plain→polite",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 166,
+     "id": "c4_032",
+     "category": "speaker",
+     "subtype": "label-variant",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": [],
+     "predictedGap": "hiragana label is not folded to katakana"
+    },
+    {
+     "line": 169,
+     "id": "c4_035",
+     "category": "honorific",
+     "subtype": "source-shift",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 174,
+     "id": "c4_040",
+     "category": "placeholder",
+     "subtype": "renamed",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "placeholder.mismatch:error"
+     ]
+    },
+    {
+     "line": 176,
+     "id": "c4_042",
+     "category": "length",
+     "subtype": "over-limit",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "length.limit:error"
+     ]
+    },
+    {
+     "line": 180,
+     "id": "c5_002",
+     "category": "honorific",
+     "subtype": "drift",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 181,
+     "id": "c5_003",
+     "category": "notation",
+     "subtype": "katakana-variant",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "notation.katakana:warning"
+     ]
+    },
+    {
+     "line": 192,
+     "id": "c5_014",
+     "category": "honorific",
+     "subtype": "drift-title-only",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": [],
+     "predictedGap": "name dropped, so there is no EN rendering to compare (name.missing info at most)"
+    },
+    {
+     "line": 193,
+     "id": "c5_015",
+     "category": "contraction",
+     "subtype": "no-contraction-character",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 194,
+     "id": "c5_016",
+     "category": "contraction",
+     "subtype": "no-contraction-character",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 195,
+     "id": "c5_017",
+     "category": "notation",
+     "subtype": "katakana-variant",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "notation.katakana:warning"
+     ]
+    },
+    {
+     "line": 196,
+     "id": "c5_018",
+     "category": "avoid",
+     "subtype": "avoided-word",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 199,
+     "id": "ui_001",
+     "category": "length",
+     "subtype": "over-limit",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "length.limit:error"
+     ]
+    },
+    {
+     "line": 200,
+     "id": "ui_002",
+     "category": "notation",
+     "subtype": "katakana-variant",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "notation.katakana:warning"
+     ]
+    },
+    {
+     "line": 203,
+     "id": "ui_005",
+     "category": "notation",
+     "subtype": "katakana-variant",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "notation.katakana:warning"
+     ]
+    },
+    {
+     "line": 206,
+     "id": "ui_008",
+     "category": "tag",
+     "subtype": "color markup dropped",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "tag.mismatch:error"
+     ]
+    },
+    {
+     "line": 208,
+     "id": "ui_010",
+     "category": "placeholder",
+     "subtype": "dropped",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "placeholder.mismatch:error"
+     ]
+    },
+    {
+     "line": 209,
+     "id": "ui_011",
+     "category": "term",
+     "subtype": "unlisted-variant",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 210,
+     "id": "ui_012",
+     "category": "length",
+     "subtype": "over-limit",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "length.limit:error"
+     ]
+    },
+    {
+     "line": 211,
+     "id": "ui_013",
+     "category": "notation",
+     "subtype": "katakana-variant",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "notation.katakana:warning"
+     ]
+    },
+    {
+     "line": 213,
+     "id": "ui_015",
+     "category": "ruby",
+     "subtype": "kanji-in-reading",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "ruby.reading:warning"
+     ]
+    }
+   ]
+  }
+ }
+}

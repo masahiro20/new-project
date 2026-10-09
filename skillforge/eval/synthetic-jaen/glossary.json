@@ -1,0 +1,68 @@
+{
+  "honorificPolicy": "localize",
+  "terms": [
+    { "source": "星晶石", "target": "Starcrystal", "forbidden": ["Star Crystal", "Starstone"] },
+    { "source": "聖樹", "target": "Sacred Tree", "forbidden": ["Holy Tree", "World Tree"] },
+    { "source": "蒼の騎士団", "target": "Azure Knights", "allowed": ["Azure Knight"], "forbidden": ["Blue Knights"] },
+    { "source": "封魔の剣", "target": "Sealbrand", "forbidden": ["Demon-Sealing Sword"] },
+    { "source": "霧の森", "target": "Mistwood", "forbidden": ["Misty Forest", "Fog Forest"] },
+    { "source": "巫女", "target": "Oracle", "forbidden": ["Shrine Maiden", "Priestess"] },
+    { "source": "竜脈", "target": "Dragon Vein", "forbidden": ["Dragon Line", "ley line"] },
+    { "source": "転移石", "target": "Warpstone", "forbidden": ["Teleport Stone"] },
+    { "source": "魔獣", "target": "fiend", "forbidden": ["monster"] },
+    { "source": "騎士長", "target": "Knight-Captain", "forbidden": ["Knight Commander"] },
+    { "source": "リーヴェン", "target": "Lieven", "forbidden": ["Leaven", "Liven"] },
+    { "source": "エーテルランプ", "target": "aether lamp", "forbidden": ["ether lamp"] },
+    { "source": "アークゲート", "target": "Arcgate", "forbidden": ["Ark Gate"] },
+    { "source": "グリフォン", "target": "griffin", "forbidden": ["gryphon"] },
+    { "source": "ヴァルハイト", "target": "Valheit", "forbidden": ["Walheit"] }
+  ],
+  "characters": [
+    {
+      "id": "ceres", "ja": "セレス", "en": "Ceres",
+      "forbidden": { "en": ["Seres", "Ceress"] },
+      "voice": {
+        "ja": { "firstPerson": ["わたくし"], "politeness": "polite" },
+        "en": { "contractions": "never", "avoid": ["gonna", "yeah", "okay", "guys"], "description": "Oracle of the Sacred Tree, of royal blood. Gentle, formal, never slangy; addresses everyone politely." }
+      }
+    },
+    {
+      "id": "gald", "ja": "ガルド", "en": "Gald",
+      "forbidden": { "en": ["Galdo"] },
+      "voice": {
+        "ja": { "firstPerson": ["俺"], "politeness": "plain" },
+        "en": { "contractions": "any", "description": "Knight-Captain of the Azure Knights. Gruff, blunt, short sentences; protective of Ceres." }
+      }
+    },
+    {
+      "id": "mio", "ja": "ミオ", "en": "Mio",
+      "voice": {
+        "ja": { "firstPerson": ["あたし"] },
+        "en": { "description": "Apprentice fire mage. Energetic, casual, exclamations. Calls Ceres 'Lady Ceres', Rin and Gald by name (先輩/さん localized away)." }
+      }
+    },
+    {
+      "id": "hayate", "ja": "ハヤテ", "en": "Hayate",
+      "forbidden": { "en": ["Hayato"] },
+      "voice": {
+        "ja": { "firstPerson": ["拙者"] },
+        "en": { "contractions": "never", "avoid": ["okay", "yeah", "gonna"], "description": "Wandering swordsman from the east (ござる speech). Archaic and courteous in English: no contractions; 殿 → 'Sir'/'Miss'." }
+      }
+    },
+    {
+      "id": "rin", "ja": "リン", "en": "Rin",
+      "voice": {
+        "ja": { "firstPerson": ["私"], "politeness": "polite" },
+        "en": { "contractions": "any", "description": "Scholar and alchemist. Polite, precise, explains things." }
+      }
+    },
+    {
+      "id": "zeno", "ja": "ゼノ", "en": "Zeno",
+      "forbidden": { "en": ["Xeno"] },
+      "voice": {
+        "ja": { "firstPerson": ["余"], "politeness": "plain" },
+        "en": { "description": "General of the Valheit Empire. Imperious and cold." }
+      }
+    }
+  ]
+}
