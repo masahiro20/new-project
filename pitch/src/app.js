@@ -16,6 +16,7 @@ const VERDICT_TEXT = {
 const ERROR_TEXT = {
   'no-voice': 'Could not hear a voice. Try again a little louder, closer to the mic.',
   'too-short': 'That was very short. Say the whole word plus が.',
+  'no-ga': 'Could not hear the pitch of が (it may have trailed off or gone creaky). Flat and tail-high words differ only on が, so say が clearly and try again.',
 };
 
 let words = [];

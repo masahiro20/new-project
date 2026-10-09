@@ -23,7 +23,7 @@ export const DEFAULTS = {
   gaSmearS: 0.03, // skip this much of the start of the が slot (previous mora's pitch in the tracker window)
   gaMinFrames: 3, // fewer voiced frames than this in が = its pitch is not heard
   maxPauseS: 0.5, // voiced stretches further apart than this are separate sounds (keep the loudest)
-  onsetRiseDb: 6, // energy rise (within 50 ms) that marks the onset of the last syllable
+  onsetRiseDb: 6, // energy rise over the 50 ms before that marks an onset (utterance start, last syllable)
   segmentation: 'auto', // 'auto' = use energy/voicing cues when available, 'equal' = equal slots
   evidenceWeight: 1.0, // reward for putting a boundary on a cue (vs. the duration prior)
   particle: true, // false = isolated word without が (then flat and tail-high look the same)
@@ -130,22 +130,22 @@ function mainVoicedRegion(track, st, o) {
  * Start/end of the utterance, as frame indices [i, j].
  *
  * 1. Start from the voiced span (first to last voiced frame).
- * 2. End: cut the final decay (finalDecayEnd). In a room the pitch tracker keeps
- *    hearing the last pitch in the reverberant tail for 0.1–0.5 s after the
- *    voice has stopped; the energy shows where it stopped.
- * 3. Start: voicing alone misses a devoiced first mora (し in した) and the
- *    voiceless onset of the first consonant, so extend backwards over sound, by
- *    at most ~one mora. "Sound" = above both the loud frames − 30 dB and the
+ * 2. Start: voicing alone misses a devoiced first mora (し in した) and the
+ *    voiceless start of the first consonant, so extend backwards over sound, by
+ *    at most ~one mora plus a consonant. "Sound" = above both the loud frames − 30 dB and the
  *    recording's own noise floor (10th percentile of the frame energies) +
  *    noiseMarginDb. A devoiced mora is nearly always followed by a voiceless
- *    consonant, so one silent gap of up to bridgeGapS (a stop closure, し|た) may
- *    be crossed. The extension must begin with an onset — a rise of at least
- *    onsetRiseDb over the median of the 50 ms before it — because a mora has a beginning and
- *    background noise does not: without this, in a noisy recording (or one whose
- *    automatic gain lifts the noise before the voice) the start always ran the
- *    full mora early.
- * 4. Isolated words only (no が): extend the end over a devoiced final mora the
- *    same way, ending at an offset (a fall of onsetRiseDb).
+ *    consonant, so one silent gap of up to bridgeGapS (a stop closure, し|た)
+ *    may be crossed. The extension must begin with an onset — energy at least
+ *    onsetRiseDb above the median of the 50 ms before it — because a mora has a
+ *    beginning and background noise does not: without this, in a noisy
+ *    recording (or one whose automatic gain lifts the noise before the voice)
+ *    the start always ran the full mora early.
+ * 3. End: the same forwards over sound without pitch (a devoiced or creaky
+ *    final mora), without crossing gaps; then cut the final decay
+ *    (finalDecayEnd). In a room the pitch tracker keeps hearing the last pitch
+ *    in the reverberant tail for 0.1–0.5 s after the voice has stopped; the
+ *    energy shows where it stopped.
  */
 function utteranceSpan(track, voicedIdx, slots, o) {
   const a = voicedIdx[0], z = voicedIdx[voicedIdx.length - 1];
@@ -156,14 +156,10 @@ function utteranceSpan(track, voicedIdx, slots, o) {
   const floor = fin[Math.floor(fin.length * 0.1)];
   const thr = Math.max(ref + o.energyFloorDb, floor + o.noiseMarginDb);
   const on = db.map((d) => d >= thr);
-  // Room for one devoiced mora plus the voiceless start (closure, burst) of the next
-  // (measured on the voiced span without a reverberant tail).
-  const maxExt = (1.5 * (T[Math.max(a, finalDecayEnd(db, a, z, ref, o))] - T[a])) / Math.max(1, slots - 1);
-  const rise = (x, dir) => { // energy at x vs. the median of the 50 ms before (dir −1) / after (dir +1) it
-    const w = [];
-    for (let y = x + dir; y !== x + 6 * dir && y >= 0 && y <= last; y += dir) w.push(db[y]);
-    return w.length ? db[x] - median(w) : -Infinity;
-  };
+  // Room for one devoiced mora plus the voiceless start (closure, burst) of the
+  // next: twice the average voiced part of a mora (the voiced span, without a
+  // reverberant tail, leaves out every consonant, so it underestimates a mora).
+  const maxExt = (2 * (T[Math.max(a, finalDecayEnd(db, a, z, ref, o))] - T[a])) / Math.max(1, slots - 1);
 
   // Start: extend backwards over sound, crossing at most one short silent gap…
   let i = a, gap = 0, bridged = 0;
@@ -177,15 +173,14 @@ function utteranceSpan(track, voicedIdx, slots, o) {
     }
   }
   // …and keep it only from the earliest onset inside it.
+  const isOnset = (x) => x > 0 && db[x] - median(db.slice(Math.max(0, x - 5), x)) >= o.onsetRiseDb;
   let s = a;
-  for (let x = i; x < a; x++) if (on[x] && rise(x, -1) >= o.onsetRiseDb) { s = x; break; }
+  for (let x = i; x < a; x++) if (on[x] && isOnset(x)) { s = x; break; }
 
-  // End: the same forwards (a devoiced or creaky final mora: sound without pitch),
-  // without gap crossing; then cut the final decay.
+  // End: extend forwards over sound (no gap crossing), then cut the final decay.
   let e = z;
   while (e < last && on[e + 1] && T[e + 1] - T[z] <= maxExt) e++;
-  const j = Math.max(s, finalDecayEnd(db, a, e, ref, o));
-  return [s, j];
+  return [s, Math.max(s, finalDecayEnd(db, a, e, ref, o))];
 }
 
 /**
