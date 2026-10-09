@@ -173,11 +173,10 @@ function finalDecayEnd(db, i0, j, ref, o) {
     if (db[x] - lo >= o.onsetRiseDb) { q = x; break; }
   }
   let peak = -Infinity;
-  for (let x = q; x <= p; x++) {
-    peak = Math.max(peak, db[x]);
-    if (db[x] < peak - o.tailDropDb) return x - 1;
-  }
-  return p;
+  for (let x = q; x <= p; x++) peak = Math.max(peak, db[x]);
+  let e = p;
+  while (e > q && db[e] < peak - o.tailDropDb) e--;
+  return e;
 }
 
 /**
