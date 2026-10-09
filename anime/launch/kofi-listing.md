@@ -1,41 +1,56 @@
-# Ko-fi Shop listing: "LEDGERBREAKER — Book of the Ledger Vol.0" (English edition)
+# Ko-fi ショップ出品原稿：「LEDGERBREAKER — Book of the Ledger Vol.0」（英語版）
 
-Prepared by: P7 Anime marketing, 2026-10-08 · retitled 2026-10-09 (formerly RED LEDGER) · final copy pass 2026-10-09
-How to use: the owner pastes the **COPY-PASTE** blocks into Ko-fi (Shop → Add item, or wherever the item form lives now). Fill in anything in `{ }`. Everything outside a code block is a note for the owner. Don't paste it.
-**The team does not create accounts, list, post or pay.** The owner creates the item, sets the price and publishes.
+> **このファイルの使い方**
+> - これは Ko-fi（英語ストア）に出品するための原稿です。説明・メモ部分は日本語、お客さまに見える文章（**コピペ用**のブロック）は英語のまま載せています。
+> - **コピペ用**と書かれたコードブロック（灰色の枠）の中身だけを、そのまま Ko-fi に貼り付けてください（Shop → Add item、または現在の商品登録フォーム）。英語の中身は書き換えないでください。
+> - 各ブロックのすぐ上にある「要約」は、英語の中身を日本語で短くまとめたものです。確認用なので貼り付けないでください。
+> - `{ }` で囲まれた部分は、貼り付ける前にご自身で埋めてください。
+> - コードブロックの外はすべてオーナー向けのメモです。貼り付けないでください。
+> - 「**（Ko-fiで要確認）**」の印がある項目は、Ko-fi の画面や規約しだいで変わるものです。公開前に Ko-fi のダッシュボードかヘルプセンターで確かめてください。
 
-> Platform rules and screens change. Anything marked **(verify in Ko-fi)** depends on Ko-fi's current UI or policy and couldn't be confirmed from an official Ko-fi page. Check it in the Ko-fi dashboard or help center before publishing.
+作成：P7 Anime マーケティング、2026-10-08 ・ 2026-10-09 にタイトル変更（旧タイトル RED LEDGER） ・ 2026-10-09 最終校正
+**チームはアカウント作成・出品・投稿・支払いを行いません。** 商品の作成、価格設定、公開はオーナーが行います。
 
-Source of truth for every claim below: `book/vol0-en.html` (= `book/vol0-en.pdf`, 30 pages). If the book changes, re-check §3 "WHAT'S INSIDE" and the specs.
+> プラットフォームのルールや画面は変わります。「**（Ko-fiで要確認）**」の項目は Ko-fi の現在の画面や方針に左右され、Ko-fi の公式ページでは確認できなかったものです。公開前に Ko-fi のダッシュボードかヘルプセンターで確認してください。
+
+以下の内容はすべて `book/vol0-en.html`（= `book/vol0-en.pdf`、30ページ）を根拠にしています。本の中身が変わったら、§3 の「WHAT'S INSIDE」と仕様を見直してください。
 
 ---
 
-## 1. Item name — COPY-PASTE
+## 1. 商品名 — コピペ用
+
+要約：作品名＋「Book of the Ledger Vol.0」＋「世界観・キャラクターガイド（PDF）」という商品名です。
 
 ```
 LEDGERBREAKER — Book of the Ledger Vol.0 | World & Character Guide (PDF)
 ```
 
-- "World & Character Guide" is the book's own subtitle (cover and colophon), so the listing and the file match.
-- Shorter fallback, if the name field truncates **(verify in Ko-fi:** character limit and how much shows on the shop card**)**:
+- 「World & Character Guide」は本の副題（表紙と奥付）そのものなので、商品名とファイルの中身が一致します。
+- 商品名の欄で途中が切れてしまう場合の短い代案 **（Ko-fiで要確認：文字数の上限と、ショップのカードに何文字表示されるか）**：
   `LEDGERBREAKER — Book of the Ledger Vol.0 (Setting Book PDF)`
-- Don't put "formerly Red Ledger" in the item name. It goes once, in the description (§3). Use the transition name below only if existing buyers can't find the book:
+- 商品名に「formerly Red Ledger」（旧題 Red Ledger）は入れないでください。これは説明文（§3）に一度だけ書きます。以前の購入者が本を見つけられない場合に限り、次の移行用の名前を使ってください：
   `LEDGERBREAKER (formerly Red Ledger) — Book of the Ledger Vol.0`
 
-## 2. Subtitle / tagline — COPY-PASTE
+## 2. サブタイトル／キャッチコピー — コピペ用
+
+要約：「力はすべて神々からの借り物。だが彼は返さない。」というキャッチコピーです。
 
 ```
 Every power is borrowed from the gods. He's not paying.
 ```
 
-- If the item form has a short-summary or subtitle field, paste this there **(verify in Ko-fi:** recent item forms may only have name + description**)**. If it doesn't, the description's first two lines (§3) carry the hook on their own.
-- Alternatives:
+- 商品フォームに短い要約欄やサブタイトル欄があれば、ここに貼ってください **（Ko-fiで要確認：最近のフォームには商品名と説明文の欄しかない場合があります）**。欄がなければ、説明文（§3）の最初の2行だけでつかみの役割を果たせます。
+- 別案（どちらも英語のまま使います）：
   - `Balance: −∞. Rating: ZERO. Three seconds is all he needs.`
+    （要約：残高マイナス無限大、格付けゼロ。彼に必要なのは3秒だけ。）
   - `A city that runs on loans from the gods, and the one kid who won't pay.`
+    （要約：神々からの借金で回る街と、返済を拒むたった一人の少年。）
 
-## 3. Description — COPY-PASTE
+## 3. 説明文 — コピペ用
 
-The first two lines are written to work as the preview snippet. **(verify in Ko-fi:** how many lines or characters show before "Read more"; if only one line shows, line 1 still works alone**)**.
+最初の2行は、プレビューの抜粋として読まれることを想定して書いています。**（Ko-fiで要確認：「Read more」の前に何行・何文字表示されるか。1行しか表示されなくても、1行目だけで意味が通ります）**
+
+要約：世界観の紹介（力は神からの借金、主人公 Jin は無限の負債を背負い返済を拒む）→ 30ページの本の中身一覧 → ネタバレ範囲（第1話まで）→ 仕様（PDF・A5・30ページ・約1.5MB・壁紙3枚）→ AIツールで制作しオーナーが編集・監修した旨 → 注意事項（非公式の独立企画、内容の注意、返金不可、個人利用のみ）→ 著作権表示。
 
 ```
 Every power in Kanegura is a loan from the gods. Miss a payment, and they collect: your voice, your sight, your memories.
@@ -76,51 +91,55 @@ GOOD TO KNOW
 © 2026 masahiro20 / P7 Anime
 ```
 
-Notes on the description:
-- Every bullet maps to a page: Prologue p4 · cross-section p5 · tiers and Bone Lifts p6 · Lenders p7 · Credit p8 · Rating p9 · Settlement p10 · Collection Day p11 · Grand Settlement p12 · in-world documents pp8, 10–12 · Default p13–14 · relationship chart p15 · characters p16–23 · Episode 1 p24–27 · glossary p28 · afterword and Vol.1 preview p29 · colophon p30.
-- **Don't add:** "full Episode 1 script" (only the cold open is printed, p27 says so), "hand-drawn", "official", "in production", "limited", comparisons to other series, or post-Episode-1 spoilers (Kujō's role, Nil's identity, Kei's past, the season hook).
-- Tier names are **the Peak / the Middle Tier / the Underledger**, as in the book. The old draft said "Summit / Mid-Tier"; don't bring that back.
-- "Rating", not "rank". The book capitalises Rating, Credit, Settlement, Collection Day and Default. Keep that.
-- The refund line is a seller policy. Consumer law can still give EU/UK buyers rights; Ko-fi's checkout may show its own terms **(verify in Ko-fi:** whether checkout asks buyers to waive the withdrawal right for instant downloads**)**.
+説明文についてのメモ：
+- 箇条書きの各項目は、本の次のページに対応しています：プロローグ p4 ・ 断面図 p5 ・ 三層と Bone Lifts p6 ・ 七柱の貸し手（Lenders） p7 ・ Credit p8 ・ Rating p9 ・ Settlement p10 ・ Collection Day p11 ・ Grand Settlement p12 ・ 作中文書 pp8, 10–12 ・ Default p13–14 ・ 相関図 p15 ・ キャラクター p16–23 ・ 第1話 p24–27 ・ 用語集 p28 ・ あとがきと Vol.1 予告 p29 ・ 奥付 p30。
+- **書き足してはいけないもの：**「full Episode 1 script」（第1話の脚本全文。実際に載っているのはアバン（冒頭）だけで、p27 にもそう書いてあります）、「hand-drawn」（手描き）、「official」（公式）、「in production」（制作中）、「limited」（限定）、他作品との比較、第1話より先のネタバレ（Kujō の役割、Nil の正体、Kei の過去、シーズン全体の引き）。
+- 三層の名前は本と同じく **the Peak / the Middle Tier / the Underledger** です。古い下書きにあった「Summit / Mid-Tier」は使わないでください。
+- 「rank」ではなく「Rating」と書きます。本では Rating、Credit、Settlement、Collection Day、Default を大文字始まりにしているので、それに合わせてください。
+- 返金についての一文は、販売者としての方針です。EU・英国の購入者には消費者法上の権利が別にある場合があり、Ko-fi の決済画面に Ko-fi 独自の規約が表示されることもあります **（Ko-fiで要確認：即時ダウンロード商品について、決済時に購入者に撤回権の放棄を求める仕組みがあるか）**。
 
-## 4. Price
+## 4. 価格
 
-| Setting | Value |
+| 設定項目 | 値 |
 |---|---|
-| Price | **$4** |
-| Pay more / pay what you want | Turn on if the item form offers it **(verify in Ko-fi:** exact option name and whether a minimum can be set**)**. Suggested buyer note: `Pay $8 or more to help fund Vol.1. Same file.` |
-| Stock | Unlimited (digital) |
-| Delivery | Upload the PDF as the item's download file **(verify in Ko-fi:** file-size limit and accepted types; the PDF is ~1.5 MB, so it should be well inside any limit**)** |
+| 価格 | **$4** |
+| 上乗せ支払い／好きな額を支払う | 商品フォームにこの設定があればオンにしてください **（Ko-fiで要確認：正確な項目名と、最低額を設定できるか）**。購入者向けの一言（英語のまま貼り付け。要約：「Vol.1 の制作を応援したい方は $8 以上でどうぞ。ファイルは同じです。」）：`Pay $8 or more to help fund Vol.1. Same file.` |
+| 在庫 | 無制限（デジタル商品） |
+| 受け渡し | PDF を商品のダウンロード用ファイルとしてアップロード **（Ko-fiで要確認：ファイルサイズの上限と対応形式。PDF は約1.5MB なので、どんな上限でも十分収まるはずです）** |
 
-### Price rationale (owner note, not for the listing)
-- **Parity with Japan.** The BOOTH edition is ¥500. $4 sits next to that at current rates, so neither audience is paying a premium for the same 30 pages.
-- **Impulse range.** It's under $5, the usual "try an unknown creator" ceiling for a short indie PDF, and inside the planned $3–5 band. A first volume from a new project has to win on curiosity, not reputation.
-- **Room above, not below.** Pay-more lets fans self-select into $8+ without a second SKU. If sales are slow, run a timed $3 sale rather than cutting the list price. Start Vol.1 at $4–5 once there's an audience.
-- **What you keep (rough).** On the free plan Ko-fi has charged 5% on shop sales, plus PayPal/Stripe processing, typically around 3% + $0.30 per payment. On $4 that's roughly $3.30–3.40 net per sale. Ko-fi Gold has removed the platform fee on shop sales **(verify in Ko-fi:** current fees and plan terms; source: [Ko-fi fees](https://help.ko-fi.com/hc/en-us/articles/360002506494), `docs/monetization.md`**)**.
-- **EU/UK VAT** on digital goods: whether Ko-fi collects and remits it for you **(verify in Ko-fi)**. See `docs/monetization.md` §"販売前にオーナーが確認すること".
+### 価格の根拠（オーナー向けメモ。出品ページには載せません）
+- **日本版と揃える。** BOOTH 版は ¥500 です。$4 は現在のレートでほぼ同じ水準なので、どちらの読者も同じ30ページに割高な値段を払うことにはなりません。
+- **気軽に買える価格帯。** $5 未満は、短いインディーの PDF で「知らない作り手を試してみる」ときの一般的な上限で、予定していた $3–5 の範囲にも入っています。新しい企画の第1巻は、評判ではなく興味で手に取ってもらう必要があります。
+- **値下げではなく上に余地を残す。** 上乗せ支払いがあれば、2つ目の商品を作らなくてもファンが自分から $8 以上を払えます。売れ行きが鈍いときは、定価を下げるのではなく期間限定の $3 セールを行ってください。読者がついてきたら、Vol.1 は $4–5 で始めます。
+- **手元に残る金額（おおよそ）。** 無料プランでは、これまで Ko-fi はショップ売上に 5% の手数料をかけており、さらに PayPal／Stripe の決済手数料が1回あたりおおむね 3% + $0.30 かかります。$4 の場合、1件あたりの手取りはおよそ $3.30–3.40 です。Ko-fi Gold ではショップ売上のプラットフォーム手数料がかからなくなっています **（Ko-fiで要確認：現在の手数料とプランの条件。出典：[Ko-fi fees](https://help.ko-fi.com/hc/en-us/articles/360002506494)、`docs/monetization.md`）**。
+- **EU・英国の VAT（付加価値税）**：デジタル商品の VAT を Ko-fi が代わりに徴収・納付してくれるかどうか **（Ko-fiで要確認）**。`docs/monetization.md` の「販売前にオーナーが確認すること」も参照してください。
 
-## 5. Product images
+## 5. 商品画像
 
-1. `thumb-kofi.png` (1200 × 1200). **Crop note:** no official Ko-fi image spec was found. A creator-made Ko-fi template reports a stated recommendation of 1200 × 600 and an actual product-page crop of about 512 × 400 (≈5:4) ([source](https://ko-fi.com/s/90c6a39486)) **(verify in Ko-fi:** upload a draft and check the card and product-page crops**)**. The square thumbnail keeps all text inside the **central 1200 × 600 band**, so it survives a 2:1 or 5:4 crop.
-2. Sample page: p13, the Default diagram
-3. Sample page: p16, Jin's character page
-4. Sample page: p1, the cover
+1. `thumb-kofi.png`（1200 × 1200）。**切り抜きについての注意：** Ko-fi 公式の画像仕様は見つかりませんでした。あるクリエイターが作った Ko-fi 用テンプレートでは、推奨サイズは 1200 × 600 とされ、実際の商品ページでの切り抜きは約 512 × 400（≒5:4）だったと報告されています（[出典](https://ko-fi.com/s/90c6a39486)） **（Ko-fiで要確認：下書きでアップロードし、カードと商品ページでの切り抜きを確認）**。正方形のサムネイルは、文字をすべて**中央の 1200 × 600 の帯**の中に収めているので、2:1 でも 5:4 でも切れません。
+2. サンプルページ：p13、Default の図解
+3. サンプルページ：p16、Jin のキャラクターページ
+4. サンプルページ：p1、表紙
 
-- Put a small `SAMPLE / © 2026 masahiro20 / P7 Anime` in the corner of each sample page.
-- Don't show pp25–27 (screenplay), pp17–23 (other characters) or p28 (glossary). Leave buyers a reason to open the file.
+- 各サンプルページの隅に、小さく `SAMPLE / © 2026 masahiro20 / P7 Anime` と入れてください。
+- pp25–27（脚本）、pp17–23（ほかのキャラクター）、p28（用語集）は見せないでください。購入者がファイルを開く理由を残しておきます。
 
-## 6. Tags / keywords — COPY-PASTE
+## 6. タグ／キーワード — コピペ用
 
-Use these if the item form offers tags or a category **(verify in Ko-fi)**. If it doesn't, the words already appear in the description.
+商品フォームにタグやカテゴリーの欄があれば使ってください **（Ko-fiで要確認）**。欄がなくても、これらの言葉はすでに説明文に入っています。
+
+要約：作品名、オリジナルストーリー、世界観、設定資料集、キャラクターガイド、バトルファンタジー、アニメ調イラスト、デジタルダウンロード、PDF、AI支援、のタグです。
 
 ```
 LEDGERBREAKER, original story, worldbuilding, setting book, character guide, battle fantasy, anime-style art, digital download, PDF, AI-assisted
 ```
 
-- Optional, during the transition only (about three months from 2026-10-09): `Red Ledger`.
-- **Don't use:** other series' titles or character names, "official", "anime adaptation", "hand-drawn", "for fans of …".
+- 移行期間中だけ（2026-10-09 からおよそ3か月）任意で追加：`Red Ledger`
+- **使ってはいけないもの：** 他作品のタイトルやキャラクター名、「official」（公式）、「anime adaptation」（アニメ化）、「hand-drawn」（手描き）、「for fans of …」（〜のファンにおすすめ）。
 
-## 7. About the project (Ko-fi page About / shop header) — COPY-PASTE
+## 7. 企画紹介（Ko-fi ページの About／ショップのヘッダー） — コピペ用
+
+要約：LEDGERBREAKER は、力がすべて神々からの借金で、格付けが ZERO〜AAA で公開される街を舞台に、無限の借金を相続して返済を拒む少年を描くオリジナルアニメ企画です。設定資料集・キャラクターページ・脚本の抜粋で1巻ずつ世界を作っており、文章とイラストは AI ツールで作り、オーナーが編集・監修しています。支援はそのまま Vol.1 に使われます。
 
 ```
 LEDGERBREAKER is an original anime series concept: a city where every power is a loan from the gods, a public Rating from ZERO to AAA, and a broke kid who inherited an infinite debt and refuses to pay.
@@ -128,17 +147,23 @@ LEDGERBREAKER is an original anime series concept: a city where every power is a
 I'm building the world one volume at a time: setting books, character pages and screenplay excerpts. The text and illustrations are made with AI tools and edited and supervised by me. Your support goes straight into Vol.1.
 ```
 
-- The Japanese title (帳簿破り) is left out of the English About so the brand reads as one word. Add it back only if the owner wants it for JP visitors.
-- The old draft promised "a comic pilot". It's cut: nothing in the plan commits to one, and the listing shouldn't promise unplanned products.
+- 英語の About では、ブランド名がひとつの単語として読まれるよう、日本語タイトル（帳簿破り）は入れていません。日本からの訪問者向けにオーナーが入れたい場合だけ戻してください。
+- 古い下書きでは「a comic pilot」（漫画のパイロット版）を約束していましたが、削除しました。計画のどこにもその予定はなく、予定していない商品を出品ページで約束するべきではないためです。
 
-## 8. Pinned Ko-fi post — COPY-PASTE
+## 8. Ko-fi の固定投稿 — コピペ用
 
-Title:
+タイトル：
+
+要約：「発売中：LEDGERBREAKER — Book of the Ledger Vol.0（PDF、$4）」というタイトルです。
+
 ```
 Out now: LEDGERBREAKER — Book of the Ledger Vol.0 (PDF, $4)
 ```
 
-Body:
+本文：
+
+要約：世界観（力は神からの借り物、手首に残高が光り、格付けは公開、取り立ての日に担保を奪われる）と、主人公 Jin の能力（触れた借り物の力を3秒奪い、そのたびに記憶で支払う）を紹介し、本の中身4点・購入リンク・仕様・AI 制作の旨を載せ、最後に「最初に手放すならどの担保？」と読者に問いかけます。
+
 ```
 In Kanegura, every power is borrowed from the gods.
 Your balance glows on your wrist. Your Rating is public. And on Collection Day, the Collectors take what you pledged: your voice, your sight, your memories.
@@ -161,45 +186,45 @@ Made with AI tools, edited and supervised by me.
 Which collateral would you give up first? Tell me below.
 ```
 
-- Pin it **(verify in Ko-fi:** where the pin option lives for posts**)**. Name ordering is Western (Jin Akaba), as in the book. The old draft's "Akaba Jin" is fixed.
-- No emoji by default. Add one before the link if the owner wants it.
+- この投稿を固定してください **（Ko-fiで要確認：投稿を固定する設定がどこにあるか）**。名前の順番は本と同じく欧米式（Jin Akaba）です。古い下書きの「Akaba Jin」は修正済みです。
+- 絵文字は基本的に使いません。オーナーが入れたい場合は、リンクの前に1つ入れてください。
 
 ---
 
-## 9. Owner notes
+## 9. オーナー向けメモ
 
-### AI disclosure on Ko-fi
-- Ko-fi's help page "Ko-fi's stance on AI" (summarised via search on 2026-10-08; the page returned 403 to our fetcher) says AI content is **permitted** on Ko-fi, but **AI-generated work isn't considered for Ko-fi giveaways, challenges or contests** ([Ko-fi's stance on AI](https://help.ko-fi.com/hc/en-us/articles/19789627403293-Ko-fi-s-stance-on-AI), [Content Guidelines](https://help.ko-fi.com/hc/en-us/articles/360007937553)) **(verify in Ko-fi)**.
-- We found **no explicit rule requiring an AI label on shop items (verify in Ko-fi)**. We disclose anyway, in the same words everywhere: description "HOW THIS WAS MADE", About blurb, pinned post, and the PDF colophon (p30: "The text and illustrations in this book were created using AI tools, and were edited and supervised by the owner."). Global anime audiences react badly to hidden AI use; saying it up front costs fewer sales than a callout later.
-- If the colophon wording changes, change §3, §7 and §8 to match. Don't let the listing claim more or less than the book.
-- The "nothing was generated to imitate…" sentence is a statement of intent, matching BOOTH. Don't harden it to "no prompts referenced any artist or work" unless the owner's generation records back that up (`docs/review-originality-vol0.md` L-13).
-- Don't enter this product in Ko-fi contests or giveaways.
+### Ko-fi での AI 使用の開示
+- Ko-fi のヘルプページ「Ko-fi's stance on AI」（2026-10-08 に検索結果から要約。ページ本体は取得ツールに 403 を返しました）によると、Ko-fi では AI コンテンツは**認められています**が、**AI 生成の作品は Ko-fi のプレゼント企画・チャレンジ・コンテストの対象外**です（[Ko-fi's stance on AI](https://help.ko-fi.com/hc/en-us/articles/19789627403293-Ko-fi-s-stance-on-AI)、[Content Guidelines](https://help.ko-fi.com/hc/en-us/articles/360007937553)） **（Ko-fiで要確認）**。
+- **ショップの商品に AI 表示を義務づける明確なルールは見つかりませんでした（Ko-fiで要確認）**。それでも開示はします。どこでも同じ言い方で、説明文の「HOW THIS WAS MADE」、About の紹介文、固定投稿、PDF の奥付（p30：「The text and illustrations in this book were created using AI tools, and were edited and supervised by the owner.」）に書いています。海外のアニメファンは AI 使用を隠されることに強く反発します。最初に明かしておく方が、後で指摘されるより売上への影響が小さく済みます。
+- 奥付の文言を変えたら、§3・§7・§8 も合わせて変えてください。出品ページが本より多くも少なくも主張しないようにします。
+- 「nothing was generated to imitate…」（特定の作家の画風や他作品のキャラクターをまねて生成したものはない）の一文は、BOOTH と同じく意図を述べたものです。オーナーの生成記録で裏づけられない限り、「no prompts referenced any artist or work」（どの作家や作品もプロンプトで参照していない）のような強い表現に変えないでください（`docs/review-originality-vol0.md` L-13）。
+- この商品を Ko-fi のコンテストやプレゼント企画に応募しないでください。
 
-### Don't claim
-- Anime or manga adaptation, streaming or publishing deals, "official", "in production", "hand-drawn", "limited", comparisons to existing series ("for fans of …", "X meets Y"), "full Episode 1 script" (it's a 3-minute excerpt), or post-Episode-1 spoilers (Kujō's role, Nil's identity, Kei's past, the season hook).
-- "Original anime series concept" is fine. The book itself says "original anime series project … planned as twelve episodes". Don't upgrade it to "upcoming anime" or "anime in development".
+### 書いてはいけないこと
+- アニメ化・漫画化、配信や出版の契約、「official」（公式）、「in production」（制作中）、「hand-drawn」（手描き）、「limited」（限定）、既存作品との比較（「for fans of …」「X meets Y」）、「full Episode 1 script」（実際は3分の抜粋）、第1話より先のネタバレ（Kujō の役割、Nil の正体、Kei の過去、シーズン全体の引き）。
+- 「Original anime series concept」（オリジナルアニメ企画）という表現は問題ありません。本自体に「original anime series project … planned as twelve episodes」（全12話を予定したオリジナルアニメ企画）と書いてあります。「upcoming anime」（近日公開のアニメ）や「anime in development」（開発中のアニメ）に格上げしないでください。
 
-### Title / naming rule (retitled 2026-10-09)
-- Use the **full name "LEDGERBREAKER — Book of the Ledger Vol.0"** in the item name, description and posts. Don't shorten it to "Book of the Ledger" or "Ledger" alone.
-- Write the title as one word, all caps: LEDGERBREAKER (not "Ledger Breaker"). The Japanese title is 帳簿破り; never transliterate it as レジャーブレイカー in Japanese text.
-- Never write "The Red Ledger" (an unrelated novel series uses that title; `docs/review-originality-vol0.md` T-1).
-- "Red Ledger" is no longer the series title. It survives only as the Episode 12 title and Hazama's in-story ledger.
-- Transition: write "(formerly Red Ledger)" **once** per listing or post, matching the book's spelling. Drop it about three months after 2026-10-09.
+### タイトル・名前のルール（2026-10-09 にタイトル変更）
+- 商品名・説明文・投稿では、**正式名「LEDGERBREAKER — Book of the Ledger Vol.0」**を使ってください。「Book of the Ledger」や「Ledger」だけに縮めないでください。
+- タイトルは1語・すべて大文字で LEDGERBREAKER と書きます（「Ledger Breaker」ではありません）。日本語タイトルは 帳簿破り です。日本語の文中で レジャーブレイカー とカタカナ表記にしないでください。
+- 「The Red Ledger」とは決して書かないでください（無関係の小説シリーズがこのタイトルを使っています。`docs/review-originality-vol0.md` T-1）。
+- 「Red Ledger」はもうシリーズ名ではありません。残っているのは第12話のタイトルと、作中の Hazama の帳簿の名前だけです。
+- 移行期間：「(formerly Red Ledger)」は、本と同じ表記で、出品ページや投稿ごとに**1回だけ**書きます。2026-10-09 からおよそ3か月後に外してください。
 
-### Pre-publish checklist
-- [ ] EN PDF built with no overflow (`node build.mjs vol0-en.html`), still 30 pages
-- [ ] File size re-checked after any rebuild (`ls -l book/vol0-en.pdf`; 1,466,974 bytes on 2026-10-09 → "about 1.5 MB")
-- [ ] Upload file renamed from `vol0-en.pdf` to `LEDGERBREAKER_Vol0_EN.pdf`
-- [ ] Colophon includes the AI-use statement and © line, and matches §3 "HOW THIS WAS MADE"
-- [ ] `{owner name}` and `{KOFI_SHOP_URL}` filled in
-- [ ] Item name, preview snippet and image crops checked on a draft **(verify in Ko-fi)**
-- [ ] PayPal/Stripe connected (owner only)
-- [ ] Test the download from a second browser or account
-- [ ] Pin the post above; link the shop from the X profile
-- [ ] Publish at the same time as the Day 0 posts in `x-posts.md`
+### 公開前チェックリスト
+- [ ] 英語版 PDF をはみ出しなしでビルドし（`node build.mjs vol0-en.html`）、30ページのままであること
+- [ ] ビルドし直したらファイルサイズを再確認（`ls -l book/vol0-en.pdf`。2026-10-09 時点で 1,466,974 バイト →「about 1.5 MB」）
+- [ ] アップロードするファイル名を `vol0-en.pdf` から `LEDGERBREAKER_Vol0_EN.pdf` に変更
+- [ ] 奥付に AI 使用の記述と © 表記があり、§3 の「HOW THIS WAS MADE」と一致していること
+- [ ] `{owner name}` と `{KOFI_SHOP_URL}` を埋めたこと
+- [ ] 下書きで商品名・プレビューの抜粋・画像の切り抜きを確認 **（Ko-fiで要確認）**
+- [ ] PayPal／Stripe を連携（オーナーのみ）
+- [ ] 別のブラウザまたは別アカウントからダウンロードを試す
+- [ ] 上の投稿を固定し、X のプロフィールからショップにリンクする
+- [ ] `x-posts.md` の Day 0 の投稿と同時に公開する
 
-### Sources (checked 2026-10-08)
+### 出典（2026-10-08 確認）
 - Ko-fi's stance on AI: https://help.ko-fi.com/hc/en-us/articles/19789627403293-Ko-fi-s-stance-on-AI
 - Ko-fi Content Guidelines: https://help.ko-fi.com/hc/en-us/articles/360007937553
 - Ko-fi fees: https://help.ko-fi.com/hc/en-us/articles/360002506494
-- Unofficial image-size template: https://ko-fi.com/s/90c6a39486
+- 非公式の画像サイズ用テンプレート: https://ko-fi.com/s/90c6a39486

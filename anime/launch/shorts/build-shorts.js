@@ -113,7 +113,7 @@ html,body{margin:0;background:var(--ink)}
 #cap{position:absolute;left:${SAFE.left}px;bottom:${H - SAFE.bottom}px;max-width:${SAFE.right - SAFE.left}px;opacity:0;background:rgba(14,11,16,.86);border-left:10px solid var(--red);padding:22px 30px 24px;box-sizing:border-box}
 #cap .en{font-family:'Dela Gothic One';font-size:56px;line-height:1.16;color:var(--ivory)}
 #cap .jp{margin-top:12px;font-family:'Zen Kaku Gothic New';font-weight:700;font-size:34px;line-height:1.35;color:rgba(245,238,221,.88)}
-#cap.big .en{font-size:84px;color:var(--ivory)}
+#cap.big .en{font-size:74px;color:var(--ivory)}
 #cap.big .jp{font-size:40px}
 #cap.mono .en{font-family:'IBM Plex Mono';font-weight:700;letter-spacing:.02em}
 #price,#card{position:absolute;inset:0;opacity:0;background:radial-gradient(ellipse 80% 45% at 50% 42%,#3A0E16 0%,#1A0D12 55%,var(--ink) 100%)}
@@ -141,8 +141,8 @@ html,body{margin:0;background:var(--ink)}
 </style></head><body><div id="stage">
 <img id="bg">
 <div id="cam"><img id="pic"></div>
-<div id="dim"></div>
 <div id="book"><div id="under" class="pg"><img><div class="shade"></div></div><div id="flip" class="pg"><img><div class="shade"></div></div></div>
+<div id="dim"></div>
 <div id="grad"></div>
 <div id="flash"></div>
 <div id="hook"><div class="en"></div><div class="jp"></div></div>
@@ -319,15 +319,15 @@ function short1() {
 
 function short2() {
   const shots = [
-    panelShot(36, 0, 1.5, { z: 1.35, fx: 0.5, fy: 0.42 }, { z: 1.2, fx: 0.5, fy: 0.45 }, { dim: 0.62 }),
+    panelShot(33, 0, 1.5, { z: 1.4, fx: 0.5, fy: 0.3 }, { z: 1.25, fx: 0.5, fy: 0.32 }, { dim: 0.72 }),
     panelShot(29, 1.5, 4.0, { z: 1.9, fx: 0.5, fy: 0.52 }, { z: 2.35, fx: 0.5, fy: 0.55 }),
     panelShot(30, 4.0, 7.0, { z: 1.2, fx: 0.55, fy: 0.25 }, { z: 1.25, fx: 0.55, fy: 0.55 }),
     panelShot(31, 7.0, 9.8, { z: 1.25, fx: 0.5, fy: 0.22 }, { z: 1.25, fx: 0.5, fy: 0.62 }),
     panelShot(32, 9.8, 12.3, { z: 2.3, fx: 0.25, fy: 0.5 }, { z: 2.3, fx: 0.72, fy: 0.5 }),
     panelShot(33, 12.3, 15.0, { z: 1.2, fx: 0.5, fy: 0.22 }, { z: 1.2, fx: 0.5, fy: 0.5 }, { punch: [{ t: 13.3, amp: 0.2, hold: 0.6, flash: 0.6, flashColor: C.red, shake: 14 }] }),
-    panelShot(34, 15.0, 17.6, { z: 1.05, fx: 0.5, fy: 0.42 }, { z: 1.12, fx: 0.5, fy: 0.42 }, { punch: [{ t: 15.05, amp: 0.3, hold: 0.5, flash: 0.9, shake: 24 }] }),
+    panelShot(34, 15.0, 17.6, { z: 0.94, fx: 0.5, fy: 0.55 }, { z: 0.98, fx: 0.5, fy: 0.55 }, { punch: [{ t: 15.05, amp: 0.22, hold: 0.25, flash: 0.9, shake: 24 }] }),
     panelShot(35, 17.6, 20.4, { z: 1.2, fx: 0.5, fy: 0.18 }, { z: 1.2, fx: 0.5, fy: 0.66 }),
-    panelShot(36, 20.4, 23.0, { z: 1.12, fx: 0.5, fy: 0.42 }, { z: 1.18, fx: 0.5, fy: 0.45 }, { punch: [{ t: 20.55, amp: 0.26, hold: 0.65, flash: 0.7, flashColor: C.red, shake: 20 }] }),
+    panelShot(36, 20.4, 23.0, { z: 1.0, fx: 0.5, fy: 0.6 }, { z: 1.04, fx: 0.5, fy: 0.6 }, { punch: [{ t: 20.55, amp: 0.2, hold: 0.5, flash: 0.7, flashColor: C.red, shake: 20 }] }),
     panelShot(37, 23.0, 25.0, { z: 1.15, fx: 0.5, fy: 0.45 }, { z: 1.2, fx: 0.5, fy: 0.45 }, { punch: [{ t: 23.1, amp: 0.38, hold: 0.7, flash: 1, shake: 34, shakeDur: 0.55 }] }),
     panelShot(38, 25.0, 26.6, { z: 1.9, fx: 0.82, fy: 0.12 }, { z: 1.75, fx: 0.78, fy: 0.13 }),
   ];
@@ -424,7 +424,7 @@ function stateAt(sp, t) {
       s.book = { under: b.under, flip: b.flip };
       s.bg = path.join(ASSETS, 'bg-book-01.png'.replace('.png', '.jpg'));
       if (b.slam) { s.flash = 0.7 * b.slam; }
-      if (t < T_HOOK) s.dim = 0.5;
+      if (t < T_HOOK) s.dim = 0.78;
     }
     if (sp.price && t >= sp.price.t0 && t < sp.card.t0 + 0.4) {
       const k = easeOut(prog(t, sp.price.t0, sp.price.t0 + 0.35));
