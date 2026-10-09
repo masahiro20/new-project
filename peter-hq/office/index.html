@@ -141,7 +141,19 @@ td a{color:var(--accent)}
 .box{border:1px solid var(--line);background:var(--panel);padding:12px 14px;display:grid;gap:6px;font-size:.88rem;border-radius:6px;min-width:0}
 .box .k{color:var(--muted);font-size:.75rem}.box .v{font-family:var(--mono);font-variant-numeric:tabular-nums}
 .err{color:var(--wait);font-size:.82rem}
+.waitbig{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.waitbig b{font-family:var(--display);font-weight:400;font-size:clamp(1.8rem,7vw,2.4rem);line-height:1.1;color:var(--wait)}
+.waitbig b.zero{color:var(--live)}
+.waitbig span{color:var(--muted);font-size:.85rem}
+.ap .stopn{font-size:.78rem;color:var(--wait);font-weight:700}
+.ap .btns.big{display:grid;grid-template-columns:2fr 1fr;gap:10px}
+.ap .btns.big button{font-size:1.05rem;font-weight:700;padding:14px 10px;border-radius:10px;min-height:52px}
+.ap .btns.big button.yes{background:#1f6b48;border-color:#3ee08f;color:#fff}
+.ap .minor{justify-self:start;background:none!important;border:0!important;color:var(--muted)!important;font-size:.8rem!important;padding:2px 0!important;text-decoration:underline;text-underline-offset:3px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:2000;background:rgba(9,14,26,.94);border:1px solid var(--live);color:var(--ink);padding:10px 16px;border-radius:999px;font-weight:700;font-size:.9rem;box-shadow:0 8px 30px rgba(0,0,0,.5);max-width:calc(100% - 32px);text-align:center}
 @media (max-width:640px){
+  .wrap>*{order:2}.wrap>header{order:0}.wrap>.inbox{order:1}
+  .ap .tt{font-size:1.05rem}
   .stage{aspect-ratio:4/5;min-height:0;max-height:76vh}
   .hud{max-width:calc(100% - 24px);top:50px}
   .hint{display:none}
@@ -188,6 +200,7 @@ td a{color:var(--accent)}
 
   <section class="inbox" id="inbox">
     <div class="ihead"><h2>オーナーの承認ボックス</h2><span class="src" id="inboxCount">読み込み中…</span></div>
+    <div class="waitbig" aria-live="polite"><b id="waitN">あなた待ち：—</b><span id="waitSub">止まっているチームの多い順に並んでいます</span></div>
     <p class="note">お金・アカウント・法務・公開が絡むものだけです。押した結果は次の巡回（1時間ごと）でピーターが実行します。</p>
     <div id="approvals" class="cards"></div>
     <details><summary>ピーターが決めたこと・処理済み</summary><div id="approvalsDone" class="cards"></div></details>
@@ -320,8 +333,8 @@ function rel(iso){const m=mins(iso);if(m==null)return"—";if(m<1)return"たっ�
 function hhmm(iso){const t=Date.parse(iso);if(isNaN(t))return"—";return new Date(t).toLocaleString("ja-JP",{timeZone:"Asia/Tokyo",month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"});}
 function jst(){const d=new Date();try{const p={};new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Tokyo",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false}).formatToParts(d).forEach(x=>p[x.type]=x.value);return{h:Number(p.hour)%24,m:Number(p.minute),day:p.year+"-"+p.month+"-"+p.day};}catch(e){return{h:d.getHours(),m:d.getMinutes(),day:d.toDateString()};}}
 function el(tag,cls,text){const e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e;}
-function projCode(p){const m=String(p||"").match(/(HQ|P\d+)/i);return m?m[1].toUpperCase():null;}
-function pendingFor(code){return APPROVALS.filter(a=>a.status==="pending"&&projCode(a.project)===code).sort((a,b)=>(a.order||99)-(b.order||99));}
+function projCodes(p){return [...new Set((String(p||"").match(/\b(HQ|P\d+)\b/gi)||[]).map(x=>x.toUpperCase()))];}
+function pendingFor(code){return APPROVALS.filter(a=>a.status==="pending"&&projCodes(a.project).includes(code)).sort((a,b)=>(a.order||99)-(b.order||99));}
 const WHY_COL={owner:"#ffb547",peter:"#7aa2ff",work:"#3ee08f",unknown:"#8d97b2"};
 // Wait reason: owner = a pending approval for this team; working = session running; otherwise the team is waiting on Peter (done, blocked or failed).
 function reasonOf(tm){const s=S[tm.code],pend=pendingFor(tm.code);
@@ -748,10 +761,11 @@ function initWorld(){
     for(const q of people){const st=S[q.team.code].state,u=q.u,Tg=u.target;
       const own=q.member.sid?MS[q.member.sid]:null;const pst=own&&own.state!=="none"?own.state:st;
       const working=pst==="working",blockedLead=q.lead&&(st==="blocked"||reasonOf(q.team).k==="owner");
-      if(blockedLead&&q.mode!=="raise"&&!q.path){q.mode="raise";}
+      if(blockedLead&&q.mode!=="raise"&&q.mode!=="cheer"&&!q.path){q.mode="raise";}
       if(!blockedLead&&q.mode==="raise"){q.mode="sit";q.next=t+3;}
       if(q.mode==="sit"&&t>q.next)chooseAction(q,pst,t);
       if(q.mode==="stretch"&&t>q.until){q.mode="sit";}
+      if(q.cheerUntil&&!q.path){if(t<q.cheerUntil)q.mode="cheer";else{q.cheerUntil=0;if(q.mode==="cheer"){q.mode="sit";q.next=t+4;}}}
       if(q.mode==="rise"&&t>q.until){q.mode="walk";}
       // walking
       if(q.mode==="walk"&&q.path){const tgt=q.path[q.pi];tmpV.subVectors(tgt,q.p.position);tmpV.y=0;const d=tmpV.length();const spd=1.05*sp;
@@ -767,7 +781,7 @@ function initWorld(){
         q.path=pts;q.pi=0;q.mode="walk";q.back=true;}
       // facing
       let yawT=q.yaw;
-      if(q.mode==="sit"||q.mode==="stretch"||q.mode==="rise"||q.mode==="raise")yawT=q.seatYaw;
+      if(q.mode==="sit"||q.mode==="stretch"||q.mode==="rise"||q.mode==="raise"||q.mode==="cheer")yawT=q.seatYaw+(q.mode==="cheer"?Math.PI:0);
       if(q.mode==="consult"&&q.target){tmpV.subVectors(q.target.p.position,q.p.position);yawT=Math.atan2(tmpV.x,tmpV.z);}
       if(q.mode==="walk")yawT=q.yaw;
       let dy=yawT-q.p.rotation.y;while(dy>Math.PI)dy-=Math.PI*2;while(dy<-Math.PI)dy+=Math.PI*2;q.p.rotation.y+=dy*Math.min(1,dt*6);
@@ -777,6 +791,8 @@ function initWorld(){
         Tg.ax[0]=-Math.sin(w)*.35;Tg.ax[1]=Math.sin(w)*.35;Tg.az[0]=Tg.az[1]=.06;Tg.ex[0]=Tg.ex[1]=-.3;Tg.sp=.06;Tg.nx=0;Tg.ny=0;Tg.nz=0;}
       else if(q.mode==="rise"){setT(Tg,STAND);Tg.sp=.25;Tg.ax[0]=Tg.ax[1]=-.1;Tg.ex[0]=Tg.ex[1]=-.3;Tg.az[0]=Tg.az[1]=.05;Tg.nx=.1;}
       else if(q.mode==="consult"){setT(Tg,STAND);Tg.sp=.05;Tg.ax[0]=-.15;Tg.ex[0]=-.4;Tg.az[0]=.08;Tg.ax[1]=-.9+Math.sin(t*2.6+ph)*.28;Tg.ex[1]=-1.1+Math.sin(t*3.1)*.2;Tg.az[1]=.15;Tg.nx=Math.sin(t*2+ph)*.08;Tg.ny=0;Tg.nz=0;Tg.th[0]=0;Tg.th[1]=0;}
+      else if(q.mode==="cheer"){const j=Math.abs(Math.sin(t*7));setT(Tg,STAND);Tg.hipY=.9+j*.22;Tg.th[0]=Tg.th[1]=-j*.5;Tg.kn[0]=Tg.kn[1]=j*.9;Tg.sp=-.12;Tg.ax[0]=Tg.ax[1]=-2.8+Math.sin(t*9)*.2;Tg.az[0]=Tg.az[1]=.45+Math.sin(t*9)*.15;Tg.ex[0]=Tg.ex[1]=-.2;Tg.nx=-.3;Tg.ny=0;Tg.nz=0;
+        if(Math.random()<.35)emitGlyph(q.p.localToWorld(tmpV.set((Math.random()-.5)*.6,2.1,(Math.random()-.5)*.6)).clone(),Math.random()<.5?"#f5b942":q.team.color);}
       else if(q.mode==="raise"){setT(Tg,STAND);Tg.sp=0;Tg.ax[1]=-2.9+Math.sin(t*5*sp)*.15;Tg.az[1]=.15+Math.sin(t*5*sp)*.2;Tg.ex[1]=-.25;Tg.ax[0]=-.1;Tg.ex[0]=-.2;Tg.az[0]=.08;Tg.nx=-.2;Tg.ny=0;}
       else if(q.mode==="stretch"){setT(Tg,SIT);const k=Math.min(1,(q.until-t)/2.6);Tg.ax[0]=Tg.ax[1]=-2.95;Tg.az[0]=Tg.az[1]=.28;Tg.ex[0]=Tg.ex[1]=-.15;Tg.sp=-.22;Tg.nx=-.35;Tg.ny=0;Tg.nz=Math.sin(t*1.5)*.08*k;}
       else{setT(Tg,SIT);
@@ -852,7 +868,8 @@ function initWorld(){
   function setPresent(p){present=p;if(!p){cam.mode="auto";cam.queue=[];cam.shot=null;}}
   function presentShot(kind,code,u){const pd=code?pods.find(p=>p.tm.code===code):null;const s={k:kind,pd,base:kind==="wide"?0:kind==="core"?-.6:0.3,dur:1};goal(...shotGoal(s,u));}
   function setLite(v){LITE=v;applyQuality();}
-  return{focusTeam,updateSigns,setPresent,presentShot,setLite,resize,cam};
+  function cheer(code){const L=leaderOf[code];if(!L)return;L.cheerUntil=clock.elapsedTime+6;if(!present)focusTeam(code,true);}
+  return{focusTeam,updateSigns,setPresent,presentShot,setLite,resize,cam,cheer};
 }
 
 // ---------- profile drawer ----------
@@ -934,22 +951,31 @@ TEAMS.forEach(tm=>{const b=el("button");b.type="button";b.dataset.code=tm.code;c
 const STATUS_LABEL={approved:"承認済み",declined:"却下",done:"対応済み",later:"あとで",decided:"ピーターが決定"};
 function renderInbox(){
   const open=document.getElementById("approvals"),done=document.getElementById("approvalsDone");open.textContent="";done.textContent="";
-  const pend=APPROVALS.filter(a=>a.status==="pending"||a.status==="later").sort((a,b)=>(a.order||99)-(b.order||99));
+  const stopN=a=>projCodes(a.project).filter(c=>S[c]&&S[c].state!=="working").length;
+  const pend=APPROVALS.filter(a=>a.status==="pending"||a.status==="later").sort((a,b)=>(a.status==="later")-(b.status==="later")||stopN(b)-stopN(a)||(a.order||99)-(b.order||99));
+  {const n=APPROVALS.filter(a=>a.status==="pending").length;const w=document.getElementById("waitN");w.textContent=dbRef?"あなた待ち："+n+"件":"あなた待ち：—";w.className=n?"":"zero";}
   const rest=APPROVALS.filter(a=>!(a.status==="pending"||a.status==="later")).sort((a,b)=>String(b.decidedAt||"").localeCompare(String(a.decidedAt||"")));
   document.getElementById("inboxCount").textContent=dbRef?"確認待ち "+pend.length+"件":"読み込み中…";
   if(!pend.length)open.append(el("p","note",dbRef?"今は確認待ちはありません。":"読み込み中…"));
   for(const a of pend){const c=el("article","ap");const top=el("div","top");top.append(el("span","tt",a.title),el("span","pj",(a.project||"")+(a.status==="later"?" · あとで":"")));c.append(top);
     if(a.detail)c.append(el("div","dt",a.detail));if(a.recommend)c.append(el("div","rec","ピーターの推奨："+a.recommend));
     const ta=document.createElement("textarea");ta.id="note-"+a._id;ta.placeholder="ひとこと（任意）";ta.value=a.note||"";ta.setAttribute("aria-label",a.title+" へのメモ");c.append(ta);
-    const btns=el("div","btns");const opts=a.kind==="task"?[["done","やった","yes"],["later","あとで",""]]:[["approved","承認","yes"],["declined","却下","no"],["later","あとで",""]];
-    for(const [val,label,cls] of opts){const b=el("button",cls,label);b.type="button";b.disabled=!canWrite;b.addEventListener("click",()=>decide(a,val,ta.value,b));btns.append(b);}
-    c.append(btns);const res=el("div","res");res.id="res-"+a._id;c.append(res);open.append(c);}
+    const sn=stopN(a);if(sn)c.insertBefore(el("div","stopn","このチームが止まっています："+projCodes(a.project).filter(x=>S[x]&&S[x].state!=="working").join("・")),c.children[1]||null);
+    const btns=el("div","btns big");const okVal=a.kind==="task"?"done":"approved";
+    for(const [val,label,cls] of [[okVal,"OK","yes"],["later","あとで",""]]){const b=el("button",cls,label);b.type="button";b.disabled=!canWrite;b.addEventListener("click",()=>decide(a,val,ta.value,b));btns.append(b);}
+    c.append(btns);
+    if(a.kind!=="task"){const no=el("button","minor","却下する");no.type="button";no.disabled=!canWrite;no.addEventListener("click",()=>decide(a,"declined",ta.value,no));c.append(no);}const res=el("div","res");res.id="res-"+a._id;c.append(res);open.append(c);}
   for(const a of rest){const c=el("article","ap "+(a.status==="declined"?"no":"done"));const top=el("div","top");top.append(el("span","tt",a.title),el("span","pj",(a.project||"")+" · "+(STATUS_LABEL[a.status]||a.status)));c.append(top);
     if(a.detail)c.append(el("div","dt",a.detail));if(a.note)c.append(el("div","rec","メモ："+a.note));if(a.result)c.append(el("div","res","結果："+a.result));done.append(c);}
 }
 async function decide(a,val,note,btn){if(!dbRef)return;const res=document.getElementById("res-"+a._id);btn.disabled=true;
-  try{await dbRef.doc("approvals/"+a._id).update({status:val,note:note||"",decidedAt:new Date().toISOString(),seenByPeter:false});if(res)res.textContent="送信しました。次の巡回でピーターが対応します。";}
+  try{await dbRef.doc("approvals/"+a._id).update({status:val,note:note||"",decidedAt:new Date().toISOString(),seenByPeter:false});if(res)res.textContent="送信しました。次の巡回でピーターが対応します。";
+    if(val==="approved"||val==="done")celebrate(a);}
   catch(e){btn.disabled=false;if(res){res.style.color="var(--wait)";res.textContent=e&&e.code==="invalid_argument"?"この画面からは書き込めない権限です。":"送信できませんでした。もう一度押してください。";}}}
+
+function celebrate(a){const codes=projCodes(a.project);const names=codes.map(c=>{const t=TEAMS.find(x=>x.code===c);return t?t.members.find(m=>m.lead).name:null;}).filter(Boolean);
+  if(W3)codes.forEach(c=>W3.cheer(c));
+  const t=el("div","toast",names.length?names.join("・")+" が受け取りました。ありがとうございます！":"承認しました。");document.body.append(t);setTimeout(()=>t.remove(),3200);}
 
 // ---------- quality toggle ----------
 const qBtn=document.getElementById("qualityBtn");
