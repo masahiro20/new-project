@@ -12,6 +12,10 @@
     "title": "運営指導で指摘されやすい書類チェックリスト｜障害福祉・放デイ・児発に対応"
   },
   {
+    "slug": "anzen-keikaku-jidou",
+    "title": "安全計画のひな形｜放課後等デイサービス・児童発達支援の記載項目と送迎の所在確認"
+  },
+  {
     "slug": "bcp-gensan-jidou",
     "title": "業務継続計画未策定減算｜放課後等デイサービスの経過措置・BCPひな形・研修訓練の記録"
   },
@@ -45,6 +49,10 @@
     "title": "虐待防止担当者は児発管が兼務できる？虐待防止責任者との違いと決め方"
   },
   {
+    "slug": "hiyari-hatto-houkokusho",
+    "title": "ヒヤリハット報告書の書き方と例文｜障害福祉の事故報告との違い・委員会での分析"
+  },
+  {
     "slug": "houkago-day-shintai-kousoku-rei",
     "title": "放課後等デイサービスの身体拘束はどこから？パニック時の抱きとめ・施錠・送迎の判断"
   },
@@ -67,8 +75,16 @@
     "title": "自己評価・保護者評価の公表と減算｜放課後等デイサービスの支援プログラム・情報公表"
   },
   {
+    "slug": "kansen-taisaku-iinkai",
+    "title": "感染対策委員会の開催頻度と議事録｜障害福祉・放デイは3月に1回？研修・訓練も"
+  },
+  {
     "slug": "kenshu-rikaido-test",
     "title": "虐待防止研修のテスト問題10問と解答｜放課後等デイサービス・児童発達支援向け"
+  },
+  {
+    "slug": "kobetsu-shien-keikaku-kakikata",
+    "title": "個別支援計画の書き方と例文｜放課後等デイサービスの5領域・作成手順・未作成減算"
   },
   {
     "slug": "kyotaku-kaigo-gensan",
@@ -83,6 +99,10 @@
     "slug": "seikatsu-kaigo-gensan",
     "title": "生活介護の減算対策｜身体拘束・虐待防止・BCPの要件と必要な書類",
     "serviceType": "生活介護"
+  },
+  {
+    "slug": "gyakutai-boushi-self-check",
+    "title": "虐待防止の職員セルフチェックリスト｜障害福祉の項目例と集計・委員会での使い方"
   },
   {
     "slug": "unei-shidou-shiteki-jidou",

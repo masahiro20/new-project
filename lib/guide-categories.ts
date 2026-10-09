@@ -25,7 +25,7 @@ export const GUIDE_CATEGORIES: { id: string; name: string; slugs: string[] }[] =
   {
     id: "unei",
     name: "支援と安全の運営（計画・記録・委員会）",
-    slugs: ["kansen-taisaku-iinkai"],
+    slugs: ["kobetsu-shien-keikaku-kakikata", "anzen-keikaku-jidou", "hiyari-hatto-houkokusho", "kansen-taisaku-iinkai"],
   },
   {
     id: "shidou",
