@@ -1,0 +1,109 @@
+<title>RED LEDGER Webtoon 第1話</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=IBM+Plex+Mono:wght@400;600&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<style>
+/* Layout: a phone-width reading column, the way the episode will be read. Panels stack with their designed gaps;
+   a side margin column carries the panel number and the director's note, like the margin of a name sheet. */
+:root {
+  --bg: #E9E8E1;
+  --column: #FFFFFF;
+  --ink: #1F2128;
+  --muted: #5B5E62;
+  --rule: #CFCDC2;
+  --red: #D3122C;
+  --display: "Dela Gothic One", "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+  --body: "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #111217; --column: #FFFFFF; --ink: #E9E6DD; --muted: #A3A19A; --rule: #31343D; --red: #F0344A; color-scheme: dark; }
+}
+:root[data-theme="dark"] { --bg: #111217; --column: #FFFFFF; --ink: #E9E6DD; --muted: #A3A19A; --rule: #31343D; --red: #F0344A; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.65; padding-inline: 16px; padding-block: 24px 80px; }
+.wrap { max-width: 940px; margin-inline: auto; display: grid; gap: 22px; }
+header { display: grid; gap: 8px; max-width: 640px; }
+.eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--display); font-weight: 400; font-size: clamp(26px, 4.4vw, 40px); line-height: 1.2; margin: 0; text-wrap: balance; }
+h1 .red { color: var(--red); }
+p { margin: 0; max-width: 64ch; }
+.opts { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--muted); align-items: center; }
+.opts input { accent-color: var(--red); }
+.reader { display: grid; grid-template-columns: minmax(0, 480px); justify-content: center; gap: 0; }
+.reader.notes { grid-template-columns: minmax(0, 480px) minmax(0, 260px); column-gap: 22px; }
+@media (max-width: 760px) { .reader.notes { grid-template-columns: minmax(0, 480px); } .reader.notes .note, .reader.notes .spacer { display: none; } }
+.panel { background: var(--column); line-height: 0; }
+.panel svg, .panel img { display: block; width: 100%; height: auto; }
+.gap { background: var(--column); }
+.note { font-size: 12.5px; line-height: 1.6; color: var(--muted); padding-top: 4px; min-width: 0; }
+.note b { font-family: var(--mono); color: var(--red); font-weight: 600; margin-right: 6px; }
+.reader:not(.notes) .note, .reader:not(.notes) .spacer { display: none; }
+.end { text-align: center; font-family: var(--display); font-size: 22px; padding: 28px 0; background: var(--column); color: #1F2128; }
+.end small { display: block; font-family: var(--body); font-size: 13px; color: #5B5E62; margin-top: 6px; }
+.empty { padding: 24px; border: 1px dashed var(--rule); color: var(--muted); }
+.foot { font-size: 13px; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 12px; max-width: 640px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">P7 Anime · 社外秘 · Webtoon ネーム 初稿</span>
+    <h1>RED LEDGER Webtoon 第1話<span class="red">「払わねえよ。」</span></h1>
+    <p>縦スクロール版の第1話ネームです。アニメ第1話を圧縮し、取立日の夜から〈デフォルト〉の覚醒までを1話に収めています。スマホの幅で、上から順に読んでください。</p>
+    <div class="opts">
+      <span id="count"></span>
+      <label for="show-notes"><input type="checkbox" id="show-notes"> 演出メモを表示</label>
+    </div>
+  </header>
+
+  <div class="reader" id="reader" aria-label="Webtoon 第1話"></div>
+
+  <p class="foot">ネーム（ラフ）段階です。線・トーン・フキダシの位置は作画で変わります。色は帳簿の赤だけを使っています。</p>
+</div>
+
+<script src="data.js"></script>
+<script>
+(async function () {
+  const reader = document.getElementById('reader');
+  const D = window.WT01;
+  if (!D || !D.panels || !D.panels.length) { reader.innerHTML = '<div class="empty">ネームのデータを読み込めませんでした。</div>'; return; }
+  document.getElementById('count').textContent = `全${D.panels.length}コマ`;
+  const notes = document.getElementById('show-notes');
+  try { notes.checked = localStorage.getItem('wt01-notes') === '1'; } catch (e) {}
+  const applyNotes = () => reader.classList.toggle('notes', notes.checked);
+  notes.addEventListener('change', () => { applyNotes(); try { localStorage.setItem('wt01-notes', notes.checked ? '1' : '0'); } catch (e) {} });
+  applyNotes();
+
+  // Inline each SVG so its lettering uses the page's web fonts; prefix ids so panels never collide.
+  function inline(text, n) {
+    const p = `p${n}-`;
+    text = text.replace(/<\?xml[^>]*\?>/, '').replace(/<!DOCTYPE[^>]*>/i, '')
+      .replace(/\bid="([^"]+)"/g, (_, id) => `id="${p}${id}"`)
+      .replace(/url\(#([^)]+)\)/g, (_, id) => `url(#${p}${id})`)
+      .replace(/(xlink:href|href)="#([^"]+)"/g, (_, a, id) => `${a}="#${p}${id}"`);
+    return text;
+  }
+  const texts = await Promise.all(D.panels.map(p => fetch('panels/' + p.file).then(r => r.ok ? r.text() : null).catch(() => null)));
+  D.panels.forEach((p, i) => {
+    const panel = document.createElement('div');
+    panel.className = 'panel';
+    panel.setAttribute('role', 'img');
+    panel.setAttribute('aria-label', `コマ${p.no}`);
+    if (texts[i]) panel.innerHTML = inline(texts[i], p.no);
+    else { const img = document.createElement('img'); img.src = 'panels/' + p.file; img.alt = `コマ${p.no}`; panel.append(img); }
+    const note = document.createElement('div');
+    note.className = 'note';
+    note.innerHTML = `<b>#${String(p.no).padStart(2, '0')}</b>`;
+    note.append(document.createTextNode(p.note || ''));
+    reader.append(panel, note);
+    if (p.gap > 0) {
+      const g = document.createElement('div'); g.className = 'gap';
+      g.style.height = `calc(${p.gap} / 800 * min(480px, 100vw - 32px))`;
+      const sp = document.createElement('div'); sp.className = 'spacer'; reader.append(g, sp);
+    }
+  });
+  const end = document.createElement('div'); end.className = 'end';
+  end.innerHTML = '第1話 おわり<small>第2話「投資契約」へつづく</small>';
+  const endSp = document.createElement('div'); endSp.className = 'spacer'; reader.append(end, endSp);
+})();
+</script>
