@@ -11,7 +11,11 @@ npm run typecheck && npm test && npm run build
 ```
 - 決済は `PAYMENTS_MODE` で切り替える。Stripe キーがなければ **demo**（お金は動かない。全ページに「デモ：実際の請求はありません」を表示）。`STRIPE_SECRET_KEY` を入れると、コードを変えずに **stripe** になる。詳しくは [docs/demo-payments.md](docs/demo-payments.md)。
 - 本番ビルドでデモを見せる：`npm run build && PAYMENTS_MODE=demo ACCESS_SECRET=<32文字以上> npm start`（Upstash なしならメモリ上の KV。再起動で消える）
-- Cloudflare Workers（無料プラン、OpenNext）でも動く：`cp .dev.vars.example .dev.vars && npm run preview`（workerd、http://localhost:8787）。デプロイは `npm run deploy`（オーナーが実行）。サイズ・cron・制限（CPU 10ms など）は [docs/deploy-cloudflare.md](docs/deploy-cloudflare.md)。
+- Cloudflare Workers（無料プラン、OpenNext）でも動く：`cp .dev.vars.example .dev.vars && PAYMENTS_MODE=demo npm run preview`（workerd、http://localhost:8787）。デプロイは `PAYMENTS_MODE=demo npm run deploy`（オーナーが実行）。
+  - ページはすべて静的（○）で、ダッシュボードは API からブラウザで描画する。CPU 10 ms に収めるため。
+  - バナーはビルド時の `PAYMENTS_MODE` で決まる。
+  - ルートごとの CPU 時間は `npm run cf:cpu` で測れる。
+  - サイズ・cron・制限・CPU の表は [docs/deploy-cloudflare.md](docs/deploy-cloudflare.md)。
 - OG 画像・favicon は静的 PNG。`product.config.ts` の og / brand を変えたら `npm run og`。
 
 連携追加でトークンに `demo` と入れると、外部APIを呼ばずに固定データで動く（開発時のみ。本番では拒否）。
@@ -25,7 +29,8 @@ npm run typecheck && npm test && npm run build
 | `lib/guard/check.ts` | 1接続ぶんの毎時処理（取得 → 判定 → 通知 → 停止） |
 | `lib/guard/crypto.ts` | トークンの AES-256-GCM 暗号化（接続IDを AAD に束縛） |
 | `lib/guard/store.ts` / `service.ts` | KV への保存、メール、cron 全体の処理 |
-| `app/(product)/app/` | ダッシュボード、停止設定ページ（`c/[id]`）、Server Actions |
+| `app/(product)/app/` + `components/client/` | ダッシュボード、停止設定ページ（`/app/c?id=…`）。静的な殻をブラウザで描画する |
+| `app/api/app/*` + `lib/api.ts` | ダッシュボードの JSON API（Cookie 認証、Origin チェック、レート制限） |
 | `app/api/cron/check` + `vercel.json` | 毎時 cron（`CRON_SECRET` で認証）。Cloudflare では `wrangler.jsonc` の `triggers.crons` と `cf-worker.ts` の `scheduled()` |
 | `lib/guard/notify-channels.ts` | Vercel webhook の署名検証、Slack incoming webhook への送信 |
 | `app/api/webhooks/vercel/[id]` | Vercel Spend Management webhook の受信口（接続ごとに1つ） |

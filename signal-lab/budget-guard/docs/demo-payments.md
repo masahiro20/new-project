@@ -17,7 +17,7 @@ Stripe のキーを環境変数に入れるだけで、コードを変えずに�
 - 判定は `lib/payments/mode.ts` の `getPaymentsMode(env)` だけで行う。env を引数で受け取る純粋関数なので、単体テストできる。
 - 旧 `dev` プロバイダと `PAYMENT_DISABLED` は廃止した。キーがあっても demo にしたいときは `PAYMENTS_MODE=demo` を使う。
 - demo の間は、全ページの先頭に「**デモ：実際の請求はありません** / Demo mode: no real charges」を表示する。カード入力ページと購入完了ページにも表示する。
-  - バナーはリクエストごとに判定する（`connection()`）。ビルド時の値が残ることはない。
+  - 静的ページのバナーは**ビルド時の `PAYMENTS_MODE`** で決まる。実行時のモードがビルド時と違えば、決済（`/api/checkout`、デモの支払い・ポータル）を止める。そのため、古いバナーが本物の課金の上に残ることはない。モードを変えたら再ビルドする（docs/deploy-cloudflare.md §2.2）。
 
 ## 2. PaymentProvider
 
@@ -50,7 +50,7 @@ interface PaymentProvider {
 1. `/pricing` で「Buy now（購入）」を押す。`/api/checkout` が `demo_` + 24文字の ID を作り、KV に保存する（未払いのまま1時間で失効）。
 2. `/checkout/demo?id=demo_…` でカード番号・有効期限・CVC・名義を入力する。メールアドレスは任意。
    - テストカードは `4242 4242 4242 4242` で、プレースホルダーにも表示している。
-3. 「デモで支払う」を押すと、Server Action（`app/checkout/demo/actions.ts`）がもう一度検証してから支払い済みにする。保存するのは末尾4桁だけ。
+3. 「デモで支払う」を押すと、`POST /api/checkout/demo` がもう一度検証してから支払い済みにする（Origin チェック・レート制限あり）。保存するのは末尾4桁だけ。`/success` は `POST /api/checkout/complete` で権利を発行する。
 4. `/success?session_id=demo_…` で `fulfillCheckout` が権利（`source: "demo"`）とライセンスキーを発行する。
 5. 「Open the app」を押すと `/app` に移り、上部に「Plan: Monthly · active（デモ / demo）」と表示される。
 6. 「Manage billing」を押すと `/checkout/demo/portal` に移る。ここでデモプランを解約・再開できる（Stripe の請求ポータルの代わり）。
@@ -66,7 +66,7 @@ interface PaymentProvider {
 - **stripe モードでは demo の ID をすべて拒否する。** 次の箇所が対象：
   - `providerForCheckout`
   - `/checkout/demo`
-  - 支払いとポータルの Server Action
+  - 支払いとポータルの API（`/api/checkout/demo`、`/api/checkout/demo/portal`）
   - `/api/access/verify`
   - KV に残っている `source: "demo"` の権利も、stripe モードでは無効として扱う（`entitlementUsable`）。
   - 課金を始めたあとに、無料の権利が残ることはない。

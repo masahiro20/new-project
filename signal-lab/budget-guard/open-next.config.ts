@@ -3,9 +3,12 @@
 import { defineCloudflareConfig } from "@opennextjs/cloudflare";
 import staticAssetsIncrementalCache from "@opennextjs/cloudflare/overrides/incremental-cache/static-assets-incremental-cache";
 
-// No ISR in this app (every page is per-request because the layout calls connection()),
-// so a read-only cache served from Workers Static Assets is enough. No R2/KV bucket needed
-// on the free plan. See docs/deploy-cloudflare.md.
+// Every page is prerendered (○) and nothing uses ISR/revalidation, so the read-only
+// cache served from Workers Static Assets is enough: no R2 / KV / D1 needed on the
+// free plan. Cache interception answers prerendered pages (HTML, RSC and segment
+// prefetches) in OpenNext's routing layer straight from that cache, without booting
+// the Next.js server — ~1 ms CPU instead of a render. See docs/deploy-cloudflare.md.
 export default defineCloudflareConfig({
   incrementalCache: staticAssetsIncrementalCache,
+  enableCacheInterception: true,
 });

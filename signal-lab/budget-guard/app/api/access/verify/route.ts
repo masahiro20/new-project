@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { forbiddenOrigin, sameOrigin } from "@/lib/api";
 import { ACCESS_COOKIE, accessCookieOptions, consumeMagicLink, signAccessToken } from "@/lib/access";
 import { isActive, type Entitlement } from "@/lib/entitlements";
 import { providerForCheckout, resolveEntitlement } from "@/lib/payments";
@@ -11,6 +12,7 @@ const SESSION_SIGNIN_WINDOW_MS = 24 * 60 * 60 * 1000;
 
 /** POST (form): token=<magic link token> | session_id=<checkout id>. Sets the access cookie and 303s to /app. */
 export async function POST(request: NextRequest) {
+  if (!sameOrigin(request)) return forbiddenOrigin(); // login CSRF
   const kv = getKV();
   const back = (error: string) => NextResponse.redirect(new URL(`/access?error=${error}`, request.url), 303);
   if (!(await rateLimit(kv, `verify:${clientIp(request.headers)}`, 20, 600))) return back("limited");

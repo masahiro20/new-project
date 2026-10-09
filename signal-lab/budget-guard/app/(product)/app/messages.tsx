@@ -1,4 +1,4 @@
-// Feedback shown after a redirect (?msg=…). Unknown values are ignored.
+// Feedback for dashboard actions: /api/app/* answer with { msg: <key> }. Unknown values are ignored.
 export const MESSAGES: Record<string, { text: string; error?: boolean }> = {
   checked: { text: "Check finished." },
   removed: { text: "Connection removed. Its token was deleted." },

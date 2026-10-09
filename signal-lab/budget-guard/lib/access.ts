@@ -8,7 +8,7 @@ import { key, type KV } from "./redis";
 import { isBuildPhase, isProduction, siteUrl, warnOnce } from "./site";
 
 // Pure access primitives (no next/* imports) so they run under vitest.
-// The request-bound helpers (requireAccess, cookies) live in lib/session.ts.
+// The request-bound helpers (cookie → account, Origin check) live in lib/api.ts.
 
 const DEV_SECRET = "signal-lab-dev-secret-do-not-use-in-production-0000";
 

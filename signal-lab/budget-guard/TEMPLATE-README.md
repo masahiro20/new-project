@@ -86,12 +86,17 @@ npm run build
 
 ローカルで Stripe を試す場合：`stripe listen --forward-to localhost:3000/api/stripe/webhook` で表示される `whsec_…` を `STRIPE_WEBHOOK_SECRET` に設定します。
 
-### アクセス制御（`lib/access.ts`, `lib/session.ts`, `proxy.ts`）
+### アクセス制御（`lib/access.ts`, `lib/api.ts`）
 - **ライセンスキー**：`SLAB-XXXX-XXXX-XXXX`（Crockford Base32、60ビット）。入力は大文字小文字・ハイフン・`O/I/L` の取り違えを吸収します。KV に逆引きを保存し、Stripe の Customer metadata（`{slug}_license`）にも保存するので、KV が消えても Stripe から復元できます
 - **アクセス Cookie**：`{slug}_access`。jose の HS256 JWT（`aud` = slug）。httpOnly、本番は secure、sameSite=lax
 - **マジックリンク**：15分有効・1回限り（KV にはトークンのハッシュだけを保存し `GETDEL` で消費）。未登録のメールにも同じ応答を返し、検索とメール送信は `after()` で行うので応答時間からも推測できません。リンクは `/access?token=…` に着地し、ボタンを押して初めて消費されます（メールのリンクスキャナ対策）
-- **楽観的チェック**：Budget Guard では `proxy.ts` を削除した（Cloudflare Workers で Node.js の proxy が実験的扱いで、バンドルが約5MB増えるため。docs/deploy-cloudflare.md）。`/app` の layout の `requireAccess()` が同じリダイレクトを行う
-- **本検証**：`requireAccess()` が署名と entitlement の状態（active / trialing / past_due）を毎回確認します。KV になければ Stripe を確認して再キャッシュします
+- **Budget Guard での変更**（Cloudflare Workers の無料プランで CPU 10 ms に収めるため。docs/deploy-cloudflare.md §2.1）：
+  - `proxy.ts` と `lib/session.ts`（`requireAccess`）は削除した。
+  - ページはすべて静的な殻にした。`/app` などはブラウザで描画し、`/api/*` の JSON を取る。
+- **本検証**：`lib/api.ts` の `guard()` / `accountFrom()` が、API のたびに次を確認します。
+  - Cookie の署名
+  - entitlement の状態（active / trialing / past_due）。KV になければ Stripe を確認して再キャッシュします
+  - 状態を変える API では、さらに `Origin` がこのサイトと一致すること（CSRF 対策）
 
 ### 待機リスト・集計
 - 待機リストは `useActionState` ＋ Server Action（zod → レート制限 → `SADD {slug}:waitlist` → `after()` で確認メール）。ボット対策は honeypot（`company` 欄）のみ。既登録でも同じ応答
@@ -107,23 +112,17 @@ Budget Guard では OG 画像・favicon を `npm run og`（`scripts/gen-og.tsx` 
 
 ## 本体（プロダクト）の書き方
 
-```tsx
-// app/(product)/app/page.tsx — layout で requireAccess() 済み
-import { requireAccess } from "@/lib/session";
-export default async function Page() {
-  const access = await requireAccess(); // リクエスト内でキャッシュされるので何度呼んでもよい
-  return <p>{access.gated ? access.plan : "open"}</p>;
-}
-```
-
-**Server Action と Route Handler は proxy や layout を通らないことがある**ので、必ず各関数の先頭で確認します。
+Budget Guard では、ページは静的な殻（クライアントコンポーネント）にし、データと操作は Route Handler に置きます。どの Route Handler も、先頭で必ず `guard()` を呼びます。
 
 ```ts
-"use server";
-import { requireAccess } from "@/lib/session";
-export async function save(formData: FormData) {
-  const access = await requireAccess(); // 未購入なら /access へリダイレクト
-  // ...
+// app/api/app/state/route.ts
+import { guard, json } from "@/lib/api";
+import { getKV } from "@/lib/redis";
+export async function GET(request: Request) {
+  const kv = getKV();
+  const account = await guard(request, kv, { mutation: false }); // 状態を変える API は mutation: true（Origin チェック）
+  if (account instanceof Response) return account; // 401 / 403
+  return json({ email: account.email });
 }
 ```
 
@@ -153,7 +152,7 @@ app/
   page.tsx               LP（静的生成、JSON-LD 付き）
   pricing/ success/ access/
   legal/{tokushoho,privacy,terms}/
-  (product)/app/         ★ 本体（layout で requireAccess）
+  (product)/app/         ★ 本体（静的な殻。データは app/api/app/*）
   actions/{waitlist,access}.ts
   api/{checkout,portal,stripe/webhook,access/verify,track,admin/stats}/
   opengraph-image.png twitter-image.png icon.png robots.ts sitemap.ts llms.txt/
@@ -163,7 +162,7 @@ lib/
   config.ts              config の zod 検証
   redis.ts               KV インターフェース（Upstash / メモリ）
   access.ts              JWT・マジックリンク（Next 非依存、テスト可能）
-  session.ts             requireAccess / getAccess / grantAccess（next/headers を使う）
+  api.ts                 API 用：Cookie → アカウント、Origin チェック、JSON 応答
   entitlements.ts license.ts mail.ts ratelimit.ts analytics.ts i18n.ts site.ts og.tsx
   payments/              PaymentProvider 境界（mode / demo / stripe）、デモ決済、Webhook 処理
 tests/                   vitest

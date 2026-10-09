@@ -1,35 +1,34 @@
 "use client";
 
-import { useActionState, useState } from "react";
-import { payDemoAction, type PayState } from "@/app/checkout/demo/actions";
+import { useState } from "react";
 import { DEMO_TEST_CARD, validateCard, type CardField } from "@/lib/payments/card";
+import { api } from "./client/http";
 
-const initial: PayState = { status: "idle", message: "" };
+type PayResponse = { ok?: boolean; redirect?: string; error?: string; errors?: Partial<Record<CardField, string>> };
 
 /**
- * Demo card entry. Validates in the browser first (same rules as the server).
- * Inputs are uncontrolled and autocomplete is off so the browser doesn't save
- * anything; the server keeps last4 only.
+ * Demo card entry. Validates in the browser first (same rules as the server), then
+ * POSTs to /api/checkout/demo. Inputs are uncontrolled and autocomplete is off so the
+ * browser doesn't save anything; the server keeps last4 only.
  */
 export function DemoCardForm({ checkoutId, amountLabel }: { checkoutId: string; amountLabel: string }) {
-  const [state, action, pending] = useActionState(payDemoAction.bind(null, checkoutId), initial);
-  const [clientErrors, setClientErrors] = useState<Partial<Record<CardField, string>>>({});
-  const errors = { ...state.errors, ...clientErrors };
+  const [errors, setErrors] = useState<Partial<Record<CardField, string>>>({});
+  const [message, setMessage] = useState("");
+  const [pending, setPending] = useState(false);
 
-  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
     const f = new FormData(e.currentTarget);
-    const result = validateCard({
-      number: String(f.get("number") ?? ""),
-      expiry: String(f.get("expiry") ?? ""),
-      cvc: String(f.get("cvc") ?? ""),
-      name: String(f.get("name") ?? ""),
-    });
-    if (!result.ok) {
-      e.preventDefault();
-      setClientErrors(result.errors);
-    } else {
-      setClientErrors({});
-    }
+    const card = { number: String(f.get("number") ?? ""), expiry: String(f.get("expiry") ?? ""), cvc: String(f.get("cvc") ?? ""), name: String(f.get("name") ?? "") };
+    const result = validateCard(card);
+    if (!result.ok) return setErrors(result.errors);
+    setErrors({});
+    setPending(true);
+    const r = await api<PayResponse>("/api/checkout/demo", { body: { id: checkoutId, ...card, email: String(f.get("email") ?? "") } });
+    if (r.status === 200 && r.data.redirect) return window.location.assign(r.data.redirect);
+    setPending(false);
+    setErrors(r.data.errors ?? {});
+    setMessage(r.data.error ?? "エラーが発生しました / Something went wrong.");
   }
 
   const field = (name: CardField, label: string, props: React.InputHTMLAttributes<HTMLInputElement>) => (
@@ -41,7 +40,7 @@ export function DemoCardForm({ checkoutId, amountLabel }: { checkoutId: string; 
   );
 
   return (
-    <form action={action} onSubmit={onSubmit} className="stack card-form" noValidate>
+    <form onSubmit={onSubmit} className="stack card-form" noValidate>
       {field("number", "カード番号 / Card number", { inputMode: "numeric", placeholder: DEMO_TEST_CARD, maxLength: 23, required: true })}
       <div className="row">
         {field("expiry", "有効期限 / Expiry (MM/YY)", { inputMode: "numeric", placeholder: "12/34", maxLength: 7, required: true })}
@@ -54,7 +53,7 @@ export function DemoCardForm({ checkoutId, amountLabel }: { checkoutId: string; 
       </label>
       <p className="hint">テストカード {DEMO_TEST_CARD}・未来の有効期限・任意の3桁で通ります。実在のカード番号は入力しないでください。</p>
       <button className="btn" disabled={pending}>{pending ? "処理中… / Processing…" : `デモで支払う（${amountLabel}）`}</button>
-      {state.message && <p className="msg err" role="alert">{state.message}</p>}
+      {message && <p className="msg err" role="alert">{message}</p>}
     </form>
   );
 }

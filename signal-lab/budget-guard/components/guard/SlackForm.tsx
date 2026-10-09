@@ -1,14 +1,29 @@
 "use client";
 
-import { useActionState } from "react";
-import { saveSlackAction, type FormState } from "@/app/(product)/app/actions";
+import { useState } from "react";
+import { api, toSignIn } from "@/components/client/http";
 
-const initial: FormState = { status: "idle", message: "" };
+type State = { status: "idle" | "ok" | "error"; message: string };
 
-export function SlackForm({ allowDemo }: { allowDemo: boolean }) {
-  const [state, action, pending] = useActionState(saveSlackAction, initial);
+export function SlackForm({ allowDemo, onSaved }: { allowDemo: boolean; onSaved?: () => void }) {
+  const [state, setState] = useState<State>({ status: "idle", message: "" });
+  const [pending, setPending] = useState(false);
+
+  async function submit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setPending(true);
+    const url = String(new FormData(e.currentTarget).get("slackUrl") ?? "");
+    const r = await api<{ message?: string; error?: string }>("/api/app/slack", { body: { op: "save", url } });
+    setPending(false);
+    if (r.status === 401) return toSignIn();
+    if (r.status < 400) {
+      setState({ status: "ok", message: r.data.message ?? "Saved." });
+      onSaved?.();
+    } else setState({ status: "error", message: r.data.error ?? "Invalid input" });
+  }
+
   return (
-    <form action={action} className="stack">
+    <form onSubmit={submit} className="stack">
       <label>
         Slack incoming webhook URL
         <input type="password" name="slackUrl" required autoComplete="off" placeholder={allowDemo ? 'https://hooks.slack.com/services/… (or "demo")' : "https://hooks.slack.com/services/…"} />

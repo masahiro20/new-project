@@ -8,6 +8,9 @@
 
 // @ts-ignore `.open-next/worker.js` is generated at build time
 import { default as handler } from "./.open-next/worker.js";
+// @ts-ignore generated at build time. Evaluate the Next.js server at isolate startup
+// (1 s startup budget) instead of inside the first dynamic request (10 ms CPU budget).
+import "./.open-next/server-functions/default/handler.mjs";
 
 type Env = { CRON_SECRET?: string } & Record<string, unknown>;
 type Ctx = { waitUntil(p: Promise<unknown>): void; passThroughOnException(): void };
@@ -37,8 +40,22 @@ async function runCron(controller: ScheduledController, env: Env, ctx: Ctx): Pro
   else throw new Error(line); // surfaces as a failed invocation in the Cron Events log
 }
 
+/**
+ * Rate limits key on the client IP (lib/ratelimit.ts reads x-forwarded-for). On
+ * Cloudflare the client can prepend its own x-forwarded-for entries, but
+ * cf-connecting-ip is always set by Cloudflare, so pin x-forwarded-for to it.
+ */
+function withClientIp(request: Request): Request {
+  const ip = request.headers.get("cf-connecting-ip");
+  if (!ip) return request;
+  const headers = new Headers(request.headers);
+  headers.set("x-forwarded-for", ip);
+  headers.set("x-real-ip", ip);
+  return new Request(request, { headers });
+}
+
 export default {
-  fetch: (handler as OpenNextHandler).fetch,
+  fetch: (request: Request, env: Env, ctx: Ctx) => (handler as OpenNextHandler).fetch(withClientIp(request), env, ctx),
   async scheduled(controller: ScheduledController, env: Env, ctx: Ctx) {
     await runCron(controller, env, ctx);
   },

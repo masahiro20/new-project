@@ -1,12 +1,22 @@
+import { isExplicitDemo } from "../payments/mode";
 import type { FetchLike } from "./stop";
 
 // Offline stand-in for the three provider APIs, used when a connection's token is
-// "demo" (dev only) and in tests. Spend is fixed per provider so the dashboard shows
+// "demo" (development, or a deployment with PAYMENTS_MODE=demo) and in tests. Spend is fixed per provider so the dashboard shows
 // one connection in each state.
 export const DEMO_TOKEN = "demo";
 
 export function isDemoToken(token: string): boolean {
   return token === DEMO_TOKEN;
+}
+
+/**
+ * The offline "demo" token / Slack URL work in development and in an explicit demo
+ * deployment (PAYMENTS_MODE=demo: nobody pays, so visitors can try the dashboard
+ * without real provider keys). Refused in a real (stripe / auto) production deploy.
+ */
+export function demoTokensAllowed(env: Record<string, string | undefined> = process.env): boolean {
+  return env.NODE_ENV !== "production" || isExplicitDemo(env);
 }
 
 export function demoFetch(spend: { vercel?: number; openai?: number; anthropicCents?: number } = {}): FetchLike & { calls: { url: string; init: RequestInit }[] } {

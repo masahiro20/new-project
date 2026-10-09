@@ -3,12 +3,12 @@ import { accessSecret } from "../access";
 import { getEntitlement, isActive, type Entitlement } from "../entitlements";
 import { sendMail } from "../mail";
 import type { KV } from "../redis";
-import { isProduction, siteUrl } from "../site";
+import { siteUrl } from "../site";
 import { checkConnection, type Notice } from "./check";
 import { decryptSecret, encryptSecret } from "./crypto";
 import { periodKey } from "./evaluate";
 import { DEMO_SLACK_URL, postSlack, spendPayloadSchema, verifyVercelSignature } from "./notify-channels";
-import { demoFetch, isDemoToken } from "./demo";
+import { demoFetch, demoTokensAllowed, isDemoToken } from "./demo";
 import { adapterFor } from "./providers";
 import { isDemoMode } from "../payments/mode";
 
@@ -33,10 +33,10 @@ import {
 
 // Glue between the pure guard logic and the template's KV, mail and entitlements.
 
-/** Real fetch, or the offline demo for the "demo" token (refused in production). */
+/** Real fetch, or the offline demo for the "demo" token (see demoTokensAllowed). */
 export function fetchFor(token: string): FetchLike {
   if (!isDemoToken(token)) return fetch;
-  if (isProduction()) throw new Error("The demo token is disabled in production");
+  if (!demoTokensAllowed()) throw new Error("The demo token is disabled in production");
   return demoFetch();
 }
 
@@ -73,7 +73,7 @@ export async function setSlackUrl(kv: KV, acct: string, url: string | null): Pro
     delete settings.sealedSlackUrl;
     delete settings.slackHint;
   } else {
-    if (url === DEMO_SLACK_URL && isProduction()) throw new Error("The demo Slack URL only works in development");
+    if (url === DEMO_SLACK_URL && !demoTokensAllowed()) throw new Error("The demo Slack URL only works in development");
     settings.sealedSlackUrl = encryptSecret(url, `${acct}:slack`);
     settings.slackHint = url === DEMO_SLACK_URL ? "demo" : `hooks.slack.com/…${url.slice(-4)}`;
   }

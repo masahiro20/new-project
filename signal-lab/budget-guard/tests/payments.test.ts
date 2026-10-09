@@ -195,3 +195,29 @@ describe("demo ids in stripe mode", () => {
     expect((await findByEmail(kv, "buyer@example.com"))?.id).toBe("cs_test_real");
   });
 });
+
+describe("build-time payments mode (static pages)", () => {
+  it("resolveBuildPaymentsMode: explicit mode wins; no key needed at build", async () => {
+    const { resolveBuildPaymentsMode } = await import("@/lib/payments/mode");
+    expect(resolveBuildPaymentsMode({})).toBe("demo");
+    expect(resolveBuildPaymentsMode({ PAYMENTS_MODE: "stripe" })).toBe("stripe"); // Cloudflare: key is a runtime secret
+    expect(resolveBuildPaymentsMode({ STRIPE_SECRET_KEY: KEY })).toBe("stripe");
+    expect(resolveBuildPaymentsMode({ PAYMENTS_MODE: "demo", STRIPE_SECRET_KEY: KEY })).toBe("demo");
+    expect(() => resolveBuildPaymentsMode({ PAYMENTS_MODE: "free" })).toThrow(PaymentsConfigError);
+  });
+
+  it("banner follows the build; checkout fails closed when runtime ≠ build", async () => {
+    const { assertBuildModeMatches, demoCheckoutEnabled, showDemoBannerAtBuild } = await import("@/lib/payments/mode");
+    expect(showDemoBannerAtBuild({ STRIPE_SECRET_KEY: KEY }, "demo")).toBe(true);
+    expect(showDemoBannerAtBuild({}, "stripe")).toBe(false);
+    expect(showDemoBannerAtBuild({}, undefined)).toBe(true); // tests: falls back to env
+    expect(() => assertBuildModeMatches("stripe", "demo")).toThrow(/Rebuild/);
+    expect(() => assertBuildModeMatches("demo", "stripe")).toThrow(PaymentsConfigError);
+    expect(() => assertBuildModeMatches("stripe", "stripe")).not.toThrow();
+    expect(() => getPaymentProvider({ STRIPE_SECRET_KEY: KEY }, undefined, "demo")).toThrow(PaymentsConfigError);
+    expect(getPaymentProvider({ STRIPE_SECRET_KEY: KEY }, undefined, "stripe").name).toBe("stripe");
+    expect(demoCheckoutEnabled({}, "stripe")).toBe(false);
+    expect(demoCheckoutEnabled({}, "demo")).toBe(true);
+    expect(demoCheckoutEnabled({ STRIPE_SECRET_KEY: KEY }, "demo")).toBe(false);
+  });
+});

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { forbiddenOrigin, sameOrigin } from "@/lib/api";
 import { track } from "@/lib/analytics";
 import { config, getPlan } from "@/lib/config";
 import { getPaymentProvider, PaymentsConfigError } from "@/lib/payments";
@@ -8,6 +9,7 @@ import { getKV } from "@/lib/redis";
 const schema = z.object({ plan: z.string().max(32), email: z.email().max(254).optional() });
 
 export async function POST(request: Request) {
+  if (!sameOrigin(request)) return forbiddenOrigin();
   if (config.launch.mode === "waitlist") return Response.json({ error: "not on sale yet" }, { status: 403 });
   const parsed = schema.safeParse(await request.json().catch(() => null));
   const plan = parsed.success ? getPlan(parsed.data.plan) : undefined;

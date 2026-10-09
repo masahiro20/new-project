@@ -53,3 +53,49 @@ export function isDemoMode(env: Env = process.env): boolean {
 export const showDemoBanner = isDemoMode;
 
 export const DEMO_BANNER = { ja: "デモ：実際の請求はありません", en: "Demo mode: no real charges" } as const;
+
+// ---------- build-time mode (static pages) ----------
+//
+// Public pages are prerendered, so the banner is decided when `next build` runs, not
+// per request. next.config.ts bakes the mode into BUDGET_GUARD_BUILD_PAYMENTS_MODE.
+// The build only needs to know the MODE (Cloudflare secrets such as STRIPE_SECRET_KEY
+// are not present at build time), so an explicit PAYMENTS_MODE wins; otherwise the
+// presence of STRIPE_SECRET_KEY decides, exactly like getPaymentsMode().
+//
+// Safety net: if the runtime mode differs from the build (e.g. Stripe keys added to a
+// demo build without rebuilding, which would leave a stale "no real charges" banner on
+// a site that charges), assertBuildModeMatches() makes checkout fail closed until the
+// site is rebuilt. See getPaymentProvider().
+
+/** Mode to bake into a build. Throws on an invalid PAYMENTS_MODE (fails `next build`). */
+export function resolveBuildPaymentsMode(env: Env = process.env): PaymentsMode {
+  const raw = explicitMode(env);
+  if (raw === "demo" || raw === "stripe") return raw;
+  if (raw === undefined) return env.STRIPE_SECRET_KEY?.trim() ? "stripe" : "demo";
+  throw new PaymentsConfigError(`PAYMENTS_MODE must be "demo" or "stripe" (or unset), got "${env.PAYMENTS_MODE}".`);
+}
+
+/** The mode this build was made for; undefined outside a Next build (vitest). */
+export function builtPaymentsMode(): PaymentsMode | undefined {
+  const v = process.env.BUDGET_GUARD_BUILD_PAYMENTS_MODE;
+  return v === "demo" || v === "stripe" ? v : undefined;
+}
+
+/** Banner decision for prerendered pages: the build's mode (falls back to the env in tests). */
+export function showDemoBannerAtBuild(env: Env = process.env, built: PaymentsMode | undefined = builtPaymentsMode()): boolean {
+  return built ? built === "demo" : isDemoMode(env);
+}
+
+/** Throws PaymentsConfigError when the running mode differs from the one the pages were built for. */
+export function assertBuildModeMatches(runtime: PaymentsMode, built: PaymentsMode | undefined = builtPaymentsMode()): void {
+  if (built && built !== runtime) {
+    throw new PaymentsConfigError(
+      `This build was made for PAYMENTS_MODE=${built} but the server runs in ${runtime} mode. Rebuild and redeploy (the static pages' demo banner is decided at build time).`,
+    );
+  }
+}
+
+/** Demo checkout/portal may run: demo at runtime AND the pages were built for demo (banner present). */
+export function demoCheckoutEnabled(env: Env = process.env, built: PaymentsMode | undefined = builtPaymentsMode()): boolean {
+  return isDemoMode(env) && (built === undefined || built === "demo");
+}

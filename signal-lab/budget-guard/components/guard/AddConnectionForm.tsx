@@ -1,18 +1,36 @@
 "use client";
 
-import { useActionState, useState } from "react";
-import { addConnectionAction, type FormState } from "@/app/(product)/app/actions";
+import { useState } from "react";
+import { api, toSignIn } from "@/components/client/http";
 import { PROVIDER_INFO } from "@/lib/guard/info";
 import type { ProviderId } from "@/lib/guard/providers";
 
-const initial: FormState = { status: "idle", message: "" };
+type State = { status: "idle" | "ok" | "error"; message: string };
 
-export function AddConnectionForm({ allowDemo }: { allowDemo: boolean }) {
-  const [state, action, pending] = useActionState(addConnectionAction, initial);
+export function AddConnectionForm({ allowDemo, onAdded }: { allowDemo: boolean; onAdded?: () => void }) {
+  const [state, setState] = useState<State>({ status: "idle", message: "" });
+  const [pending, setPending] = useState(false);
   const [provider, setProvider] = useState<ProviderId>("vercel");
   const info = PROVIDER_INFO[provider];
+
+  async function submit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const form = e.currentTarget;
+    setPending(true);
+    const r = await api<{ message?: string; error?: string }>("/api/app/connections", { body: Object.fromEntries(new FormData(form)) });
+    setPending(false);
+    if (r.status === 401) return toSignIn();
+    if (r.status < 400) {
+      form.reset();
+      setState({ status: "ok", message: r.data.message ?? "Added." });
+      onAdded?.();
+    } else {
+      setState({ status: "error", message: r.data.error ?? "Invalid input" });
+    }
+  }
+
   return (
-    <form action={action} className="card stack">
+    <form onSubmit={submit} className="card stack">
       <label>
         Provider
         <select name="provider" value={provider} onChange={(e) => setProvider(e.target.value as ProviderId)}>
@@ -45,7 +63,7 @@ export function AddConnectionForm({ allowDemo }: { allowDemo: boolean }) {
       </label>
       <p className="hint">{info.leastPrivilege}</p>
       <button className="btn" disabled={pending}>{pending ? "Checking token…" : "Add connection"}</button>
-      {state.message && <p className={state.status === "error" ? "msg err" : "msg"}>{state.message}</p>}
+      {state.message && <p className={state.status === "error" ? "msg err" : "msg"} role={state.status === "error" ? "alert" : undefined}>{state.message}</p>}
     </form>
   );
 }

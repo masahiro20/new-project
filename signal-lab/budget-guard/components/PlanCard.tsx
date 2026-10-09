@@ -1,6 +1,6 @@
 import { config, formatAmount, type Plan } from "@/lib/config";
 import { t } from "@/lib/i18n";
-import { isDemoMode } from "@/lib/payments/mode";
+import { showDemoBannerAtBuild } from "@/lib/payments/mode";
 import { BuyButton } from "./BuyButton";
 import { PurchaseConfirm } from "./PurchaseConfirm";
 import { WaitlistForm } from "./WaitlistForm";
@@ -27,7 +27,7 @@ export function PlanCard({ plan }: { plan: Plan }) {
             label={config.launch.mode === "presale" ? t.cta.preorder : t.cta.buy}
             pendingLabel={t.buy.pending}
             errorLabel={t.buy.error}
-            note={isDemoMode() ? t.buy.demo : undefined}
+            note={showDemoBannerAtBuild() ? t.buy.demo : undefined}
           />
         </>
       )}

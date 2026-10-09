@@ -6,7 +6,7 @@ import { sendMail } from "../mail";
 import type { KV } from "../redis";
 import { isProduction, siteUrl, warnOnce } from "../site";
 import { demoProvider } from "./demo";
-import { getPaymentsMode, isDemoMode } from "./mode";
+import { assertBuildModeMatches, getPaymentsMode, isDemoMode } from "./mode";
 import { stripeProvider } from "./stripe";
 import type { CompletedCheckout, PaymentProvider, PaymentsMode } from "./types";
 
@@ -21,8 +21,15 @@ const PROVIDERS: Record<PaymentsMode, PaymentProvider> = { demo: demoProvider, s
  * The provider for new checkouts. The only place that picks one.
  * Throws PaymentsConfigError when PAYMENTS_MODE is invalid (e.g. stripe without a key).
  */
-export function getPaymentProvider(env: Env = process.env, providers: Record<PaymentsMode, PaymentProvider> = PROVIDERS): PaymentProvider {
+export function getPaymentProvider(
+  env: Env = process.env,
+  providers: Record<PaymentsMode, PaymentProvider> = PROVIDERS,
+  built?: PaymentsMode,
+): PaymentProvider {
   const mode = getPaymentsMode(env);
+  // Static pages carry the build's banner; never start a checkout under the other mode.
+  if (built !== undefined) assertBuildModeMatches(mode, built);
+  else assertBuildModeMatches(mode);
   if (mode === "demo" && isProduction() && !env.PAYMENTS_MODE) {
     warnOnce("payments-auto-demo", "[payments] STRIPE_SECRET_KEY is not set — running in DEMO mode (no real charges). Set the Stripe keys to go live.");
   }

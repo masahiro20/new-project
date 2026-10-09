@@ -3,6 +3,8 @@
 
 # Demo payments: no money moves, every page shows 「デモ：実際の請求はありません」.
 PAYMENTS_MODE=demo
+# NB: static pages bake the banner at build time — build with the same value:
+#   PAYMENTS_MODE=demo npm run preview
 
 # 32+ chars. Dummy for local use only (production: openssl rand -base64 32).
 ACCESS_SECRET=local-dummy-access-secret-change-me-0123456789
