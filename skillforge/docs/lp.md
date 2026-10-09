@@ -167,4 +167,4 @@ Ask for: file format, language direction, rough line count.
 - [ ] **オーナーの承認** — 最終の文面、ドメインとホスティング、そして公開すること自体（承認なしに投稿、アカウント作成、営業連絡をしない）。
 - [ ] **評価の公開リンク** — 非公開の GitHub の「評価の詳細 / Full evaluation」の URL を差し替える。
 - [ ] 上の主張の一覧を見直し、各項目を確認済みにするか、言い方を変える。
-- [ ] `<meta name="robots" content="noindex">` は、公開の承認が出てから外す。
+- [x] `<meta name="robots" content="noindex">` を外した（2026-10-09、公開承認 b13 を受けて）。
