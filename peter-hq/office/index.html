@@ -1,6 +1,6 @@
 <title>ピーター本部</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" media="print" onload="this.media='all'">
 <style>
 /* Layout: a live WebGL floor (bloom, reflections, holograms, cinematic camera, presentation mode) on top, then the owner's approvals inbox, the team roster, deliverables, and the evidence table read from Claude Code. Single dark world by design. */
 :root{
@@ -144,6 +144,22 @@ td a{color:var(--accent)}
 .box{border:1px solid var(--line);background:var(--panel);padding:12px 14px;display:grid;gap:6px;font-size:.88rem;border-radius:6px;min-width:0}
 .box .k{color:var(--muted);font-size:.75rem}.box .v{font-family:var(--mono);font-variant-numeric:tabular-nums}
 .err{color:var(--wait);font-size:.82rem}
+.today{display:grid;gap:12px;border:1px solid var(--line);border-radius:12px;padding:14px 16px;background:linear-gradient(180deg,rgba(245,185,66,.08),transparent 60%),var(--panel)}
+.today .th{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;justify-content:space-between}
+.today .tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.today .tile{border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--panel2);display:grid;gap:2px;min-width:0}
+.today .tile b{font-family:var(--display);font-weight:400;font-size:1.7rem;line-height:1.1;font-variant-numeric:tabular-nums}
+.today .tile span{font-size:.75rem;color:var(--muted)}
+.today .tile.pub b{color:var(--live)}.today .tile.dec b{color:var(--gold)}.today .tile.own b{color:var(--wait)}.today .tile.done b{color:var(--accent)}
+.today .cols{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr))}
+.today h3{margin:0 0 4px;font-size:.8rem;color:var(--muted);font-weight:500;letter-spacing:.06em}
+.today ul{margin:0;padding-left:1.1em;display:grid;gap:3px;font-size:.86rem}
+.today li{overflow-wrap:anywhere}
+.today a{color:var(--accent)}
+.today .tchips{display:flex;flex-wrap:wrap;gap:6px}
+.today .rep{font-size:.86rem;color:#c9d1e6;overflow-wrap:anywhere}
+.today .rep button{font:inherit;font-size:.8rem;background:none;border:0;color:var(--accent);cursor:pointer;padding:0;text-decoration:underline;text-underline-offset:3px}
+@media (max-width:640px){.today .tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.wrap>.today{order:2}}
 .road{display:grid;gap:8px}
 .rd{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 14px;padding:12px 14px;border:1px solid var(--line);background:var(--panel);border-radius:8px;border-left:4px solid var(--tc)}
 .rd .nm{font-weight:700;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
@@ -184,7 +200,7 @@ td a{color:var(--accent)}
 .ap .minor{justify-self:start;background:none!important;border:0!important;color:var(--muted)!important;font-size:.8rem!important;padding:2px 0!important;text-decoration:underline;text-underline-offset:3px}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:2000;background:rgba(9,14,26,.94);border:1px solid var(--live);color:var(--ink);padding:10px 16px;border-radius:999px;font-weight:700;font-size:.9rem;box-shadow:0 8px 30px rgba(0,0,0,.5);max-width:calc(100% - 32px);text-align:center}
 @media (max-width:640px){
-  .wrap>*{order:2}.wrap>header{order:0}.wrap>.inbox{order:1}
+  .wrap>*{order:3}.wrap>header{order:0}.wrap>.inbox{order:1}
   .ap .tt{font-size:1.05rem}
   .stage{aspect-ratio:4/5;min-height:0;max-height:76vh}
   .hud{max-width:calc(100% - 24px);top:50px}
@@ -207,6 +223,22 @@ td a{color:var(--accent)}
       <button class="btn primary" type="button" id="presentBtn"><i class="tri"></i>プレゼンモード</button>
     </div>
   </header>
+
+  <section class="today" id="today" aria-label="今日の成果">
+    <div class="th"><h2 id="todayTitle">今日の成果</h2><span class="note" id="todayNote">読み込み中…</span></div>
+    <div class="tiles">
+      <div class="tile pub"><b id="tPub">—</b><span>今日公開したもの</span></div>
+      <div class="tile dec"><b id="tDec">—</b><span>今日の決定</span></div>
+      <div class="tile own"><b id="tOwn">—</b><span>オーナー待ち</span></div>
+      <div class="tile done"><b id="tDone">—</b><span>今日の完了（全チーム）</span></div>
+    </div>
+    <div class="cols">
+      <div><h3>今日公開したもの</h3><ul id="lPub"></ul></div>
+      <div><h3>今日の決定</h3><ul id="lDec"></ul></div>
+      <div><h3>チーム別の今日の完了</h3><div class="tchips" id="lDone"></div></div>
+      <div><h3>今夜の報告</h3><div class="rep" id="lRep">まだ届いていません（22時ごろに届きます）</div></div>
+    </div>
+  </section>
 
   <section class="verdict" aria-live="polite">
     <div class="big" id="verdict">稼働状況を確認しています</div>
@@ -285,16 +317,6 @@ td a{color:var(--accent)}
   </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/GammaCorrectionShader.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/objects/Reflector.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/environments/RoomEnvironment.js"></script>
 <script>
 (function(){
 "use strict";
@@ -314,7 +336,7 @@ const TEAMS=[
    {name:"Haru",role:"ライター",does:"解説ページを書く（居住・児童系）"},
    {name:"Ken",role:"制度チェック",does:"令和6年度改定の告示・通知と照らして誤りを直す"},
    {name:"Aoi",role:"レビュアー",does:"読みやすさと正確さを点検する"}]},
- {code:"P1",name:"Yuragi",color:"#ff7a45",one:"日英ゲーム台本の訳揺れ・キャラ名・敬称のぶれを見つける",sid:"session_01UxC1ZasACaQ4epeoSQvkGr",members:[
+ {code:"P1",name:"Kotomark",color:"#ff7a45",one:"日英ゲーム台本の訳揺れ・キャラ名・敬称のぶれを見つける",sid:"session_01UxC1ZasACaQ4epeoSQvkGr",members:[
    {name:"Forge",role:"リーダー",does:"判定エンジンとデモの全体設計",lead:true},
    {name:"Leo",role:"ビルダー",does:"判定エンジンをブラウザで動かす"},
    {name:"Mio",role:"ビルダー",does:"デモ画面を作る"},
@@ -877,7 +899,10 @@ function initWorld(){
 
   // ---- animation ----
   const clock=new THREE.Clock();let frames=0,slowAcc=0,fpsT=0,present=null;
+  // stop drawing while the 3D floor is off-screen or the tab is hidden (saves battery on phones)
+  let onscreen=true;if(window.IntersectionObserver)new IntersectionObserver(es=>{onscreen=es[es.length-1].isIntersecting;},{rootMargin:"100px"}).observe(stage);
   function tick(){
+    if((!onscreen&&!present)||document.hidden){clock.getDelta();requestAnimationFrame(tick);return;}
     const raw=clock.getDelta(),dt=Math.min(.05,raw),t=clock.elapsedTime,sp=reduce?.3:1;
     // auto quality: drop to lite if the GPU struggles
     if(qualityAuto&&!LITE){fpsT+=dt;frames++;if(fpsT>4){if(frames/fpsT<28){slowAcc++;if(slowAcc>=2){LITE=true;applyQuality();updateQualityBtn();}}else slowAcc=0;fpsT=0;frames=0;}}
@@ -1010,7 +1035,7 @@ function render(){
   if(mode==="live"){b.textContent="実測";src.append("データ：",b," Claude Code の作業記録から1分ごとに取得");}
   else if(mode==="report"){b.className="rep";b.textContent="報告値";src.append("データ：",b," ピーターの巡回記録（実測に接続できないため）");}
   else src.textContent="データ：接続中…";
-  renderRoad();renderInbox();
+  renderRoad();renderInbox();renderToday();
   if(W3)W3.updateSigns();
 }
 // team nav
@@ -1050,6 +1075,36 @@ async function decide(a,val,note,btn){if(!dbRef)return;const res=document.getEle
 function celebrate(a){const codes=projCodes(a.project);const names=codes.map(c=>{const t=TEAMS.find(x=>x.code===c);return t?t.members.find(m=>m.lead).name:null;}).filter(Boolean);
   if(W3)codes.forEach(c=>W3.cheer(c));
   const t=el("div","toast",names.length?names.join("・")+" が受け取りました。ありがとうございます！":"承認しました。");document.body.append(t);setTimeout(()=>t.remove(),3200);}
+
+// ---------- today's results (JST day) ----------
+let HQLOG=[];
+function dayJST(t){const d=t instanceof Date?t:new Date(t);if(isNaN(d))return"";try{return new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Tokyo",year:"numeric",month:"2-digit",day:"2-digit"}).format(d);}catch(e){return d.toISOString().slice(0,10);}}
+function teamOfLog(e){const c=projCodes(e.text)[0];if(c&&S[c])return c;const who=String(e.who||"");for(const tm of TEAMS)if(tm.members.some(m=>m.name===who))return tm.code;return null;}
+function renderToday(){if(!document.getElementById("today"))return;
+  const today=dayJST(new Date());const d=new Date();
+  document.getElementById("todayTitle").textContent=new Intl.DateTimeFormat("ja-JP",{timeZone:"Asia/Tokyo",month:"long",day:"numeric",weekday:"short"}).format(d)+"の成果";
+  const isToday=t=>t&&dayJST(t)===today;
+  // released today: approvals whose result says it went public, and log lines that say so
+  const pub=[];
+  for(const a of APPROVALS){if(!isToday(a.decidedAt)||!/公開(しました|されました)/.test(String(a.result||"")))continue;const u=(String(a.result).match(/https?:\/\/[^\s）)」]+/)||[])[0];pub.push({t:a.title.replace(/^【[^】]*】/,"").replace(/(して|で)?よいか.*$/,"").replace(/[、,]\s*$/,""),u});}
+  for(const e of HQLOG){if(isToday(e.at)&&/公開(した|しました|開始)|を公開$|を公開。/.test(String(e.text||"")))pub.push({t:e.text,u:null});}
+  const dec=APPROVALS.filter(a=>a.status==="decided"&&isToday(a.decidedAt)).sort((a,b)=>String(b.decidedAt).localeCompare(String(a.decidedAt)));
+  const own=APPROVALS.filter(a=>a.status==="pending").length;
+  const per={};let done=0;for(const e of HQLOG){if(!isToday(e.at))continue;const c=teamOfLog(e)||"HQ";per[c]=(per[c]||0)+1;done++;}
+  const ready=!!dbRef;const set=(id,v)=>{document.getElementById(id).textContent=ready?String(v):"—";};
+  set("tPub",pub.length);set("tDec",dec.length);set("tOwn",own);set("tDone",done);
+  const ul=(id,items,empty)=>{const u=document.getElementById(id);u.textContent="";if(!items.length){u.append(el("li","note",ready?empty:"読み込み中…"));return;}for(const x of items)u.append(x);};
+  ul("lPub",pub.map(p=>{const li=el("li");if(p.u){const a=el("a",null,p.t+" ↗");a.href=p.u;a.target="_blank";a.rel="noopener";li.append(a);}else li.textContent=p.t;return li;}),"今日はまだありません");
+  ul("lDec",dec.map(a=>el("li",null,(a.project?a.project+"："
+:"")+a.title)),"今日はまだありません");
+  const dc=document.getElementById("lDone");dc.textContent="";const ks=Object.keys(per);
+  if(!ks.length)dc.append(el("span","note",ready?"今日の完了の記録はまだありません":"読み込み中…"));
+  for(const tm of TEAMS){if(!per[tm.code])continue;const c=el("span","chip");const i=el("i");i.style.background=tm.color;c.append(i,document.createTextNode(tm.code+" "+tm.name+" ×"+per[tm.code]));dc.append(c);}
+  const rep=document.getElementById("lRep");rep.textContent="";const body=REPORTS.db[today];
+  if(body){const first=String(body).split(/\r?\n/).map(x=>x.replace(/^#+\s*/,"").trim()).filter(Boolean).slice(0,2).join(" ／ ");rep.append(document.createTextNode(first.slice(0,140)+(first.length>140?"…":"")+" "));
+    const b=el("button",null,"全文を読む");b.type="button";b.addEventListener("click",()=>{showReport(today);document.getElementById("reports").scrollIntoView({behavior:"smooth"});});rep.append(b);}
+  else rep.textContent=REPORTS.files[today]?"届いています。下の「夜の報告」で読めます。":"まだ届いていません（22時ごろに届きます）";
+  document.getElementById("todayNote").textContent=ready?"本部の記録・承認ボックス・夜の報告から自動で集計":"読み込み中…";}
 
 // ---------- road to launch ----------
 function renderRoad(){const box=document.getElementById("roadList");if(!box)return;box.textContent="";
@@ -1135,7 +1190,7 @@ function presentStep(dt){if(!P.on)return;P.t+=dt;const s=P.steps[P.i];const u=Ma
   subB.style.width=(u*100).toFixed(1)+"%";
   if(P.t>=s.dur){P.i++;P.t=0;if(P.i>=P.steps.length){P.steps=buildSteps();P.i=0;}showStep();}
   const j=jst();pclock.textContent="実測 · 東京 "+String(j.h).padStart(2,"0")+":"+String(j.m).padStart(2,"0");}
-function startPresent(){if(P.on)return;P.on=true;P.steps=buildSteps();P.i=0;P.t=0;showStep();hideProfile();
+async function startPresent(){if(P.on)return;await startWorld();if(P.on)return;P.on=true;P.steps=buildSteps();P.i=0;P.t=0;showStep();hideProfile();
   stage.classList.add("present");document.body.classList.add("presenting");
   try{const r=stage.requestFullscreen?stage.requestFullscreen():stage.webkitRequestFullscreen?stage.webkitRequestFullscreen():null;if(r&&r.catch)r.catch(()=>{});}catch(e){}
   if(W3){W3.setPresent({step:presentStep});setTimeout(W3.resize,50);}else P.timer=setInterval(()=>presentStep(.1),100);}
@@ -1150,7 +1205,15 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape")stopPresent();});
 document.addEventListener("fullscreenchange",()=>{if(!document.fullscreenElement&&P.on)stopPresent();});
 
 // ---------- boot ----------
-try{W3=initWorld();}catch(e){W3=null;stage.append(el("div","fallback","3D 表示の初期化に失敗しました。下の一覧で状況を確認できます。"));}
+// The 3D libraries load only when the floor is needed, so the approvals box and today's results appear at once.
+const LIBS=["https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js", "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js", "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js", "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/GammaCorrectionShader.js", "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js", "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js", "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js", "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js", "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/objects/Reflector.js", "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/environments/RoomEnvironment.js"];
+function loadScript(u){return new Promise((ok,ng)=>{const t=document.createElement("script");t.src=u;t.async=false;t.onload=ok;t.onerror=ng;document.head.append(t);});}
+// start the 3D floor only when it comes near the screen (on phones it sits below the approvals box)
+let worldStarted=null;
+function startWorld(){if(worldStarted)return worldStarted;const msg=el("div","fallback","3D 表示を読み込んでいます…");stage.append(msg);
+  worldStarted=(async()=>{try{await Promise.all(LIBS.map(loadScript));}catch(e){}msg.remove();
+    try{W3=initWorld();}catch(e){W3=null;stage.append(el("div","fallback","3D 表示の初期化に失敗しました。下の一覧で状況を確認できます。"));}if(W3)W3.updateSigns();})();return worldStarted;}
+if(window.IntersectionObserver&&isPhone){setTimeout(()=>{const io=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){io.disconnect();startWorld();}},{rootMargin:"150px"});io.observe(stage);},2500);}else setTimeout(startWorld,900);
 render();renderInbox();setInterval(render,30000);
 
 (async()=>{
@@ -1172,7 +1235,8 @@ render();renderInbox();setInterval(render,30000);
   if(dbRef){
     try{const u=await window.claude.use("user");if(u&&u.can){const c=await u.can("data.write");if(c===false)canWrite=false;}}catch(e){}
     dbRef.collection("approvals").onSnapshot(snap=>{APPROVALS=snap.docs.map(d=>Object.assign({_id:d.id},d.data()));renderInbox();render();},()=>{});
-    dbRef.collection("reports").onSnapshot(snap=>{REPORTS.db={};snap.docs.forEach(d=>{const v=d.data()||{};const date=v.date||d.id;if(v.body)REPORTS.db[date]=String(v.body);});renderReports();},()=>{});
+    dbRef.collection("reports").onSnapshot(snap=>{REPORTS.db={};snap.docs.forEach(d=>{const v=d.data()||{};const date=v.date||d.id;if(v.body)REPORTS.db[date]=String(v.body);});renderReports();renderToday();},()=>{});
+    dbRef.doc("hq/log").onSnapshot(sn=>{const v=sn&&sn.exists?sn.data():null;HQLOG=v&&Array.isArray(v.entries)?v.entries:[];renderToday();},()=>{});
     dbRef.doc("hq/revenue").onSnapshot(sn=>{REVENUE=sn&&sn.exists?{state:"ok",v:sn.data()||{}}:{state:"none"};renderRevenue();},()=>{REVENUE={state:"error"};renderRevenue();});
     dbRef.collection("projects").onSnapshot(snap=>{PROJECTS={};snap.docs.forEach(d=>{PROJECTS[d.id]=d.data();});render();},()=>{});
     setTimeout(()=>{if(live)return;const map={working:"working",research:"working",meeting:"working",waiting:"blocked",blocked:"blocked",done:"idle",offline:"sleep"};
