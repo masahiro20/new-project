@@ -15,6 +15,8 @@ import { guide as gensanHayamihyo } from "./gensan-hayamihyo";
 import { guide as gijirokuKakikata } from "./gijiroku-kakikata";
 import { guide as shishinTsukurikata } from "./shishin-tsukurikata";
 import { guide as bcpGensan } from "./bcp-gensan";
+import { guide as houkagoDayShintaiKousokuRei } from "./houkago-day-shintai-kousoku-rei";
+import { guide as reiwa9KaiteiJidou } from "./reiwa9-kaitei-jidou";
 
 /** One guide per service type, in the same order as SERVICE_TYPES in lib/form.ts. */
 export const SERVICE_GUIDES: Guide[] = [
@@ -32,4 +34,12 @@ export const SERVICE_GUIDES: Guide[] = [
 ];
 
 /** Long-tail topic guides (運営指導・早見表・書類の書き方), listed after the core explainers in lib/guides.ts. */
-export const EXTRA_TOPIC_GUIDES: Guide[] = [gensanHayamihyo, shidouShitekiJirei, gijirokuKakikata, shishinTsukurikata, bcpGensan];
+export const EXTRA_TOPIC_GUIDES: Guide[] = [
+  gijirokuKakikata,
+  houkagoDayShintaiKousokuRei,
+  bcpGensan,
+  shishinTsukurikata,
+  shidouShitekiJirei,
+  reiwa9KaiteiJidou,
+  gensanHayamihyo,
+];
