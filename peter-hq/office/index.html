@@ -160,6 +160,17 @@ td a{color:var(--accent)}
 .today .rep{font-size:.86rem;color:#c9d1e6;overflow-wrap:anywhere}
 .today .rep button{font:inherit;font-size:.8rem;background:none;border:0;color:var(--accent);cursor:pointer;padding:0;text-decoration:underline;text-underline-offset:3px}
 @media (max-width:640px){.today .tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.wrap>.today{order:2}}
+.decs{display:grid;gap:10px}
+.dfilt{display:flex;gap:6px;flex-wrap:wrap}
+.dfilt button{font:inherit;font-family:var(--mono);font-size:.75rem;padding:3px 10px;border-radius:999px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);cursor:pointer}
+.dfilt button[aria-pressed="true"]{border-color:var(--gold);color:var(--gold)}
+.dfilt button:focus-visible{outline:2px solid var(--accent)}
+.dlist{display:grid;gap:6px;max-height:70vh;overflow:auto;padding-right:2px}
+.dec{display:grid;grid-template-columns:auto minmax(0,1fr);gap:2px 12px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+.dec .id{font-family:var(--mono);font-size:.8rem;color:var(--gold);grid-row:span 3}
+.dec .meta{font-size:.74rem;color:var(--muted);font-family:var(--mono)}
+.dec .tt{font-size:.9rem;font-weight:700;overflow-wrap:anywhere}
+.dec .dd{font-size:.82rem;color:#c9d1e6;overflow-wrap:anywhere}
 .road{display:grid;gap:8px}
 .rd{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 14px;padding:12px 14px;border:1px solid var(--line);background:var(--panel);border-radius:8px;border-left:4px solid var(--tc)}
 .rd .nm{font-weight:700;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
@@ -279,6 +290,13 @@ td a{color:var(--accent)}
   <section class="road" id="road">
     <div class="ihead"><h2>公開まであと何が必要か</h2><span class="note">各チームの記録（projects）と承認ボックスから作っています</span></div>
     <div id="roadList" class="road"><p class="note">読み込み中…</p></div>
+  </section>
+
+  <section class="decs" id="decs">
+    <div class="ihead"><h2>決定記録</h2><span class="note" id="decNote">読み込み中…</span></div>
+    <div class="dfilt" id="decFilt" role="group" aria-label="チームで絞り込む"></div>
+    <div class="dlist" id="decList"></div>
+    <p class="note">元の記録：承認ボックスの「決定」と <a href="https://github.com/masahiro20/new-project/tree/claude/focused-newton-0tzsda/peter-hq/decisions" target="_blank" rel="noopener" style="color:var(--accent)">peter-hq/decisions/</a></p>
   </section>
 
   <section class="reports" id="reports">
@@ -1035,7 +1053,7 @@ function render(){
   if(mode==="live"){b.textContent="実測";src.append("データ：",b," Claude Code の作業記録から1分ごとに取得");}
   else if(mode==="report"){b.className="rep";b.textContent="報告値";src.append("データ：",b," ピーターの巡回記録（実測に接続できないため）");}
   else src.textContent="データ：接続中…";
-  renderRoad();renderInbox();renderToday();
+  renderRoad();renderInbox();renderToday();renderDecisions();
   if(W3)W3.updateSigns();
 }
 // team nav
@@ -1088,7 +1106,7 @@ function renderToday(){if(!document.getElementById("today"))return;
   const pub=[];
   for(const a of APPROVALS){if(!isToday(a.decidedAt)||!/公開(しました|されました)/.test(String(a.result||"")))continue;const u=(String(a.result).match(/https?:\/\/[^\s）)」]+/)||[])[0];pub.push({t:a.title.replace(/^【[^】]*】/,"").replace(/(して|で)?よいか.*$/,"").replace(/[、,]\s*$/,""),u});}
   for(const e of HQLOG){if(isToday(e.at)&&/公開(した|しました|開始)|を公開$|を公開。/.test(String(e.text||"")))pub.push({t:e.text,u:null});}
-  const dec=APPROVALS.filter(a=>a.status==="decided"&&isToday(a.decidedAt)).sort((a,b)=>String(b.decidedAt).localeCompare(String(a.decidedAt)));
+  const dec=APPROVALS.filter(a=>(a.kind==="decided"||a.status==="decided")&&isToday(a.decidedAt||a.updatedAt)).sort((a,b)=>String(b.decidedAt).localeCompare(String(a.decidedAt)));
   const own=APPROVALS.filter(a=>a.status==="pending").length;
   const per={};let done=0;for(const e of HQLOG){if(!isToday(e.at))continue;const c=teamOfLog(e)||"HQ";per[c]=(per[c]||0)+1;done++;}
   const ready=!!dbRef;const set=(id,v)=>{document.getElementById(id).textContent=ready?String(v):"—";};
@@ -1105,6 +1123,19 @@ function renderToday(){if(!document.getElementById("today"))return;
     const b=el("button",null,"全文を読む");b.type="button";b.addEventListener("click",()=>{showReport(today);document.getElementById("reports").scrollIntoView({behavior:"smooth"});});rep.append(b);}
   else rep.textContent=REPORTS.files[today]?"届いています。下の「夜の報告」で読めます。":"まだ届いていません（22時ごろに届きます）";
   document.getElementById("todayNote").textContent=ready?"本部の記録・承認ボックス・夜の報告から自動で集計":"読み込み中…";}
+
+// ---------- decision log ----------
+let DEC_F="all";
+const decNum=a=>{const m=String(a._id||"").match(/^d(\d+)/i);return m?Number(m[1]):(a.order||0);};
+function renderDecisions(){const list=document.getElementById("decList"),filt=document.getElementById("decFilt"),note=document.getElementById("decNote");if(!list)return;
+  const all=APPROVALS.filter(a=>a.kind==="decided"||a.status==="decided").sort((a,b)=>decNum(b)-decNum(a));
+  const nums=all.map(decNum).filter(Boolean);
+  note.textContent=all.length?all.length+"件（d"+String(Math.min(...nums)).padStart(2,"0")+"〜d"+String(Math.max(...nums)).padStart(2,"0")+"）":(dbRef?"まだ決定はありません":"読み込み中…");
+  const codes=["all",...TEAMS.map(t=>t.code).filter(c=>all.some(a=>projCodes(a.project).includes(c))),...(all.some(a=>!projCodes(a.project).length)?["全体"]:[])];
+  filt.textContent="";for(const c of codes){const b=el("button",null,c==="all"?"すべて":c);b.type="button";b.setAttribute("aria-pressed",String(DEC_F===c));b.addEventListener("click",()=>{DEC_F=c;renderDecisions();});filt.append(b);}
+  const shown=all.filter(a=>DEC_F==="all"||(DEC_F==="全体"?!projCodes(a.project).length:projCodes(a.project).includes(DEC_F)));
+  list.textContent="";for(const a of shown){const d=el("div","dec");d.append(el("div","id","d"+String(decNum(a)).padStart(2,"0")),el("div","meta",(a.project||"全体")+(a.decidedAt?" ・ "+hhmm(a.decidedAt):"")),el("div","tt",a.title||""));if(a.detail)d.append(el("div","dd",a.detail));list.append(d);}
+  if(!shown.length&&all.length)list.append(el("p","note","このチームの決定はありません"));}
 
 // ---------- road to launch ----------
 function renderRoad(){const box=document.getElementById("roadList");if(!box)return;box.textContent="";
