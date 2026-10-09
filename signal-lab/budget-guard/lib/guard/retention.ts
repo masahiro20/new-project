@@ -1,5 +1,6 @@
 import { DAY_MS, entitlementKeys, trialEndsAt, type Entitlement, type EntitlementStatus } from "../entitlements";
 import { isDemoMode } from "../payments/mode";
+import { purchaseDeleteAfter } from "../payments/purchases";
 import { key, type KV } from "../redis";
 import { connRef, storeKeys, type StoredConnection } from "./store";
 
@@ -19,6 +20,8 @@ import { connRef, storeKeys, type StoredConnection } from "./store";
 export const RETENTION_DAYS = 30;
 export const SWEEP_EVERY_HOURS = 6;
 export const MAX_DELETES_PER_SWEEP = 2;
+/** Purchase records per sweep: one DEL for all of them, so this bounds payload, not commands. */
+export const MAX_PURCHASES_PER_SWEEP = 200;
 const ENDED: EntitlementStatus[] = ["canceled", "refunded", "unpaid"];
 
 /** When the account ended (ISO), or null if it is still running. */
@@ -82,6 +85,13 @@ export async function deleteAccount(kv: KV, e: Entitlement, now = new Date()): P
   if (conns.length) await kv.srem(key("bg", "allconns"), ...conns.map((c) => connRef(e.id, c.id)));
   await kv.srem(key("bg", "accounts"), e.id);
   await kv.srem(ek.retention(), e.id);
+  // Tombstone: what is left of the entitlement. Kept: the id + status (so the same Stripe
+  // checkout can't be fulfilled into a fresh account), plan and dates (when it existed / ended
+  // / was deleted), and the consent record (proof of consent; no personal data). Dropped: email,
+  // license key and Stripe's customer / subscription / payment ids — the tax record is the
+  // separate purchase record (lib/payments/purchases.ts). It expires on its own: Stripe → with
+  // that purchase's records (7 years, safe side); demo → 90 days (by then the demo checkout
+  // record it could be re-fulfilled from has expired too).
   const tombstone: Entitlement = {
     id: e.id,
     plan: e.plan,
@@ -94,11 +104,17 @@ export async function deleteAccount(kv: KV, e: Entitlement, now = new Date()): P
     endedAt: e.endedAt ?? endedAt(e, now) ?? now.toISOString(),
     deletedAt: now.toISOString(),
     ...(e.consent && { consent: e.consent }),
-    ...(e.source === "stripe" && { customerId: e.customerId, subscriptionId: e.subscriptionId, paymentIntentId: e.paymentIntentId }),
   };
-  await kv.set(ek.ent(e.id), JSON.stringify(tombstone));
+  await kv.set(ek.ent(e.id), JSON.stringify(tombstone), { ex: tombstoneTtlSeconds(e, now) });
   return { deletedKeys };
 }
+
+/** Seconds the tombstone lives: Stripe → until its purchase year's records are deleted; demo → 90 days. */
+export function tombstoneTtlSeconds(e: Pick<Entitlement, "source" | "createdAt">, now = new Date()): number {
+  const until = e.source === "stripe" ? purchaseDeleteAfter(new Date(e.createdAt)).getTime() : now.getTime() + DEMO_TOMBSTONE_DAYS * DAY_MS;
+  return Math.max(DAY_MS / 1000, Math.ceil((until - now.getTime()) / 1000));
+}
+export const DEMO_TOMBSTONE_DAYS = 90;
 
 export type SweepResult = { candidates: number; deleted: string[]; pending: number };
 

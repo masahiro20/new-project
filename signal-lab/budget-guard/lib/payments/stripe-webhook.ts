@@ -4,6 +4,7 @@ import { findByCustomer, findByPaymentIntent, findBySubscription, setStatus } fr
 import { key, type KV } from "../redis";
 import { consentFromMetadata, mapSubscriptionStatus, stripeProvider } from "./stripe";
 import { fulfillCheckout, onNewEntitlement } from "./index";
+import { recordPurchase } from "./purchases";
 
 // Stripe webhook logic, kept free of Next.js so it can be unit-tested.
 // The route verifies the signature and passes `after` in.
@@ -24,6 +25,8 @@ export type WebhookDeps = {
 export type WebhookResult = "duplicate" | "handled" | "ignored";
 
 const idOf = (v: string | { id: string } | null | undefined) => (typeof v === "string" ? v : v?.id);
+/** Stripe timestamps are Unix seconds; fall back to now if one is missing. */
+const isoFromUnix = (s: number | null | undefined) => new Date(typeof s === "number" && s > 0 ? s * 1000 : Date.now()).toISOString();
 
 export async function processStripeEvent(event: Stripe.Event, deps: WebhookDeps): Promise<WebhookResult> {
   const { kv } = deps;
@@ -57,8 +60,38 @@ async function handle(event: Stripe.Event, { kv, after, onNew = onNewEntitlement
         },
         "stripe",
       );
+      // Purchase record (tax bookkeeping, 7 years). Subscriptions are recorded per paid
+      // invoice (invoice.paid, incl. the first one); a one-time payment has no invoice, so it
+      // is recorded here with Stripe's payment ID standing in for the invoice number.
+      if (s.mode === "payment" && s.amount_total) {
+        const number = idOf(s.payment_intent) ?? s.id;
+        await recordPurchase(kv, number, {
+          kind: "payment",
+          at: isoFromUnix(s.created),
+          amount: s.amount_total,
+          currency: s.currency ?? "",
+          plan: s.metadata.plan ?? "",
+          invoiceNumber: number,
+        });
+      }
       // Email + purchase counter are the slow part; the entitlement itself is already saved.
       if (created) after(() => onNew(kv, entitlement, stripeProvider));
+      return "handled";
+    }
+    case "invoice.paid": {
+      // Every paid subscription invoice — the first one and each renewal — is one purchase record.
+      const invoice = event.data.object;
+      const meta = invoice.parent?.subscription_details?.metadata;
+      if (meta?.product !== config.slug || !invoice.amount_paid) return "ignored";
+      const number = invoice.number ?? invoice.id!;
+      await recordPurchase(kv, number, {
+        kind: "payment",
+        at: isoFromUnix(invoice.status_transitions?.paid_at ?? invoice.created),
+        amount: invoice.amount_paid,
+        currency: invoice.currency,
+        plan: meta.plan ?? "",
+        invoiceNumber: number,
+      });
       return "handled";
     }
     case "customer.subscription.updated":
@@ -76,11 +109,22 @@ async function handle(event: Stripe.Event, { kv, after, onNew = onNewEntitlement
     }
     case "charge.refunded": {
       const charge = event.data.object;
-      if (!charge.refunded) return "ignored"; // partial refund: keep access
       const pi = idOf(charge.payment_intent);
       const customer = idOf(charge.customer);
       const entitlement = (pi && (await findByPaymentIntent(kv, pi))) || (customer && (await findByCustomer(kv, customer))) || null;
-      if (!entitlement) return "ignored";
+      if (!entitlement) return "ignored"; // not one of ours
+      // Refund record (negative amount; the payment's own record stays). One per refund step:
+      // the amount is the cumulative refunded total of the charge at that point.
+      const number = pi ?? charge.id;
+      await recordPurchase(kv, `refund:${charge.id}:${charge.amount_refunded}`, {
+        kind: "refund",
+        at: isoFromUnix(event.created),
+        amount: -charge.amount_refunded,
+        currency: charge.currency,
+        plan: entitlement.plan,
+        invoiceNumber: number,
+      });
+      if (!charge.refunded) return "handled"; // partial refund: keep access
       await setStatus(kv, entitlement, "refunded");
       return "handled";
     }

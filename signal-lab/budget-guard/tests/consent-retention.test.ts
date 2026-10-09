@@ -184,7 +184,13 @@ describe("admin manual deletion (requests: within 7 days)", () => {
     expect((await adminDelete(req("/api/admin/accounts/delete", { body: { email: e.email }, auth: "wrong-token-for-tests-0123456789" }))).status).toBe(404);
     expect((await adminDelete(req("/api/admin/accounts/delete", { body: { email: e.email }, auth: "\u00e9dmin-token-for-tests-0123456789" }))).status).toBe(404); // non-ASCII: no throw
     expect((await adminDelete(req("/api/admin/accounts/delete", { body: {}, auth: "admin-token-for-tests-0123456789" }))).status).toBe(400);
-    const res = await adminDelete(req("/api/admin/accounts/delete", { body: { email: e.email }, auth: "admin-token-for-tests-0123456789" }));
+    // Still billing in Stripe → refused unless force: true.
+    const refused = await adminDelete(req("/api/admin/accounts/delete", { body: { email: e.email }, auth: "admin-token-for-tests-0123456789" }));
+    expect(refused.status).toBe(409);
+    expect((await refused.json()).stillBilling).toBe(true);
+    expect((await getEntitlement(kv, e.id))?.deletedAt).toBeUndefined();
+    expect((await adminDelete(req("/api/admin/accounts/delete", { body: { email: e.email, force: "yes" }, auth: "admin-token-for-tests-0123456789" }))).status).toBe(400);
+    const res = await adminDelete(req("/api/admin/accounts/delete", { body: { email: e.email, force: true }, auth: "admin-token-for-tests-0123456789" }));
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body).toMatchObject({ deleted: true, id: e.id });

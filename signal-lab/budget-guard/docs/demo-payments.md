@@ -83,7 +83,7 @@ interface PaymentProvider {
    - `STRIPE_SECRET_KEY=sk_test_…`
    - `STRIPE_WEBHOOK_SECRET=whsec_…`
      - Webhook の送信先は `https://<host>/api/stripe/webhook`。
-     - 受け取るイベントは `checkout.session.completed`、`checkout.session.async_payment_succeeded`、`customer.subscription.updated`、`customer.subscription.deleted`、`invoice.payment_failed`、`charge.refunded`。
+     - 受け取るイベントは `checkout.session.completed`、`checkout.session.async_payment_succeeded`、`customer.subscription.updated`、`customer.subscription.deleted`、`invoice.payment_failed`、`invoice.paid`（購入記録の7年保存に必要。docs/legal-changes.md §2.4）、`charge.refunded`。
    - `PAYMENTS_MODE` は**未設定のまま**にするか、`stripe` にする。`demo` が残っていると、キーがあっても demo のまま。
 3. **価格IDは使わない。** `lib/payments/stripe.ts` が `product.config.ts` の `pricing.plans`（`amount` / `mode` / `interval`）から `price_data` をその場で作る。Stripe 側で商品を作る必要はない。
 4. 本番では、次も必須（従来どおり）。

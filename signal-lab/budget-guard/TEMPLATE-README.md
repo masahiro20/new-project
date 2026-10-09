@@ -75,11 +75,12 @@ npm run build
 
   | イベント | 処理 |
   |---|---|
-  | `checkout.session.completed`（`async_payment_succeeded` も） | entitlement 作成、キーをメール送信、purchase +1 |
+  | `checkout.session.completed`（`async_payment_succeeded` も） | entitlement 作成、キーをメール送信、purchase +1。一回払いは購入記録（7年）も書く |
+  | `invoice.paid` | サブスクの請求ごとの購入記録（7年。初回と毎回の更新）。**Stripe の webhook 設定でこのイベントも受け取るようにする**（Budget Guard） |
   | `customer.subscription.updated` | status を反映 |
   | `customer.subscription.deleted` | canceled |
   | `invoice.payment_failed` | ログのみ |
-  | `charge.refunded` | 全額返金なら refunded（一部返金はアクセス維持） |
+  | `charge.refunded` | 全額返金なら refunded（一部返金はアクセス維持）。返金の記録（負の金額）を書く |
 
 - `POST /api/portal`：Stripe カスタマーポータル（サブスクの解約・カード変更）。`/app` の「お支払い管理」から
 - `lib/payments/types.ts` の `PaymentProvider` が決済事業者との境界です。MoR（Lemon Squeezy / Polar）に切り替えるときはこれを実装し、Webhook ルートを追加します

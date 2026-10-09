@@ -1,6 +1,7 @@
 import { key, type KV } from "../redis";
 import { checkConnectionLocked } from "./service";
-import { MAX_DELETES_PER_SWEEP, SWEEP_EVERY_HOURS, sweepRetention } from "./retention";
+import { sweepPurchases } from "../payments/purchases";
+import { MAX_DELETES_PER_SWEEP, MAX_PURCHASES_PER_SWEEP, SWEEP_EVERY_HOURS, sweepRetention } from "./retention";
 import { hourIndex, intervalFor, isDue, nextCheckHour } from "./schedule";
 import { listConnRefs, parseConnRef, rebuildConnIndex } from "./store";
 
@@ -74,6 +75,8 @@ export type CronSliceResult = {
   intervalHours: number;
   /** Accounts deleted by the retention sweep in this run. */
   deletedAccounts?: number;
+  /** Purchase records deleted (past 7 years) in this run. */
+  deletedPurchases?: number;
 };
 
 function shuffle<T>(xs: T[]): T[] {
@@ -125,6 +128,9 @@ export async function runCronSlice(
       try {
         const sweep = await sweepRetention(kv, now, MAX_DELETES_PER_SWEEP);
         result.deletedAccounts = sweep.deleted.length;
+        // Purchase records past their 7-year (safe side) deletion date, bit by bit.
+        const purchases = await sweepPurchases(kv, now, MAX_PURCHASES_PER_SWEEP);
+        if (purchases.deleted) result.deletedPurchases = purchases.deleted;
       } catch (err) {
         console.error("[cron] retention sweep failed", err); // retried at the next sweep
       }

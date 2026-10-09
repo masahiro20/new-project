@@ -80,7 +80,7 @@ describe("stripe webhook", () => {
   it("marks full refunds as refunded and keeps access on partial refunds", async () => {
     const { kv, deps } = setup();
     await processStripeEvent(completed("evt_1", { id: "cs_test_pay", subscription: null, payment_intent: "pi_1", metadata: { product: config.slug, plan: config.pricing.plans[0].id } }), deps);
-    expect(await processStripeEvent(ev("evt_p", "charge.refunded", { refunded: false, payment_intent: "pi_1" }), deps)).toBe("ignored");
+    expect(await processStripeEvent(ev("evt_p", "charge.refunded", { refunded: false, payment_intent: "pi_1" }), deps)).toBe("handled"); // refund recorded, access kept
     expect((await getEntitlement(kv, "cs_test_pay"))?.status).toBe("active");
     expect(await processStripeEvent(ev("evt_r", "charge.refunded", { refunded: true, payment_intent: "pi_1", customer: "cus_1" }), deps)).toBe("handled");
     expect((await getEntitlement(kv, "cs_test_pay"))?.status).toBe("refunded");

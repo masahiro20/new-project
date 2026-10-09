@@ -5,17 +5,18 @@ import { normalizeLicenseKey } from "@/lib/license";
 import { getKV } from "@/lib/redis";
 import { deleteAccount } from "@/lib/guard/retention";
 
+const force = { force: z.boolean().optional() };
 const schema = z.union([
-  z.object({ id: z.string().min(1).max(200) }),
-  z.object({ email: z.email().max(254) }),
-  z.object({ licenseKey: z.string().min(1).max(40) }),
+  z.object({ id: z.string().min(1).max(200), ...force }),
+  z.object({ email: z.email().max(254), ...force }),
+  z.object({ licenseKey: z.string().min(1).max(40), ...force }),
 ]);
 
 /**
  * POST (JSON {id} | {email} | {licenseKey}) with `Authorization: Bearer $ADMIN_TOKEN`:
  * delete an account now (deletion requests: within 7 days). Same deletion as the 30-day
- * retention sweep (lib/guard/retention.ts). Does NOT cancel a Stripe subscription — do
- * that in Stripe first (the response warns when it is still active).
+ * retention sweep (lib/guard/retention.ts). Does NOT cancel a Stripe subscription: while
+ * one is still billing, the call is refused (409) unless the body has `force: true`.
  */
 export async function POST(request: Request) {
   if (!adminAuthorized(request)) return new Response(null, { status: 404 });
@@ -28,6 +29,13 @@ export async function POST(request: Request) {
   if (!e) return Response.json({ error: "not found" }, { status: 404 });
   if (e.deletedAt) return Response.json({ deleted: true, id: e.id, alreadyDeletedAt: e.deletedAt });
   const stillBilling = e.source === "stripe" && ["active", "trialing", "past_due"].includes(e.status);
+  // Deleting the account does not cancel the subscription: refuse unless the operator says so explicitly.
+  if (stillBilling && d.force !== true) {
+    return Response.json(
+      { error: "The Stripe subscription is still active. Cancel it in Stripe first, or send force: true to delete anyway.", stillBilling: true },
+      { status: 409 },
+    );
+  }
   const r = await deleteAccount(kv, e);
   if (r.busy) return Response.json({ error: "a check of this account is running: retry in a minute" }, { status: 409 });
   const { deletedKeys } = r;
