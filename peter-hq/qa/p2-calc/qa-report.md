@@ -1,5 +1,7 @@
 # P2 Model Switch Calculator（/calc/）QA 報告 — 2026-10-09
 
+> **追記（2026-10-09、誤検知・解決済み）：** 下の「高」の指摘（Sonnet 5.5 の cache read を $0.20 とした件）は**誤検知**でした。公式の価格ページ（platform.claude.com/docs/en/about-claude/pricing）では、Claude Sonnet 5.5 のキャッシュヒットは基本入力の 0.05 倍で **$0.10/MTok**（$0.20 は Opus 5.5 の値）。ページの値は正しく、Vega の確認とも一致します。QA 側が参照した資料の記載が古かったのが原因です。価格の変更は取り下げ、パッチは価格以外の修正だけの `fixes-v2.patch` に差し替えました（calc/index.html と calc/tests/logic.test.js、`2122c0e` に適用して 28/28 pass）。og.png の再生成も不要です。以下の本文は記録として残します。
+
 **担当：** Ren（P4、本部の依頼で応援）
 **対象：** gh-pages `850187c` の calc/（公開中の https://masahiro20.github.io/new-project/calc/ と同じファイル）。`peter/p2-signal-lab` の `2122c0e` とバイト単位で同一（差分なし）。公開サイトにはアクセスせず、ローカル配信で確認した。
 
@@ -41,6 +43,5 @@
 | 情報 | :425-541 | 参照資料にない価格（Haiku 5.5 の cache 価格、旧モデルの cache 価格など）は未確認 | 公式ページで再確認 |
 
 ## パッチ（P2 側で適用）
-- `fixes.patch`：calc/index.html
-- `fixes-tests.patch`：calc/tests/logic.test.js（期待値の更新と回帰テスト5件）と signal-lab/model-switch-calculator/index.html（同じ価格の修正。テストが両者の一致を検証している）
-- `peter/p2-signal-lab` の `2122c0e` に両方を `git apply` して 29/29 pass を確認済み。gh-pages への反映と og.png の再生成は P2 側でお願いします。
+- `fixes-v2.patch`：calc/index.html（入力検証・Bedrock ID・日付・無限大・Not priced・差額0の色・表のキーボード操作）と calc/tests/logic.test.js（回帰テスト4件）。価格は変更しない。
+- `peter/p2-signal-lab` の `2122c0e` に `git apply` して 28/28 pass を確認済み。適用するかは P2 側の判断です。
