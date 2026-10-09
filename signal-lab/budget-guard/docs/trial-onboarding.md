@@ -52,7 +52,7 @@
 | `ADMIN_TOKEN` | `/api/admin/stats` を読むのに要る（§4）。 | 無料 | — | deploy-cloudflare.md §3 |
 | 決済 | 当面 `PAYMENTS_MODE=demo`。お金は動かない。試用者はテストカード `4242 4242 4242 4242` でアカウントを作る。Stripe は不要。 | 無料 | — | demo-payments.md §1、§3 |
 | サポート用メール | `product.config.ts` の `links.supportEmail` は `support@example.com` のまま。メールの返信先とプライバシーポリシーに使われる。 | 未確認 | — | `product.config.ts`、`lib/mail.ts`、`content/legal/privacy.ts` |
-| プライバシーポリシーの記載 | 今の文面は待機リスト・購入・ライセンスキーだけを書いている。プロバイダのトークン、利用額、Cloudflare を書いていない。ホスティングは「Vercel」と書いてある。 | 無料 | — | `content/legal/privacy.ts` |
+| プライバシーポリシーと利用規約 | 修正案を入れた（トークン・利用額・保存期間・外国への移転・停止の性質・責任の制限・デモと試用の条件）。各箇所に【要専門家確認】の印がある。専門家の確認と印の除去は公開前に行う。詳細は `docs/legal-changes.md`。 | 専門家の費用は未確認 | — | `content/legal/privacy.ts`、`content/legal/terms.ts` |
 | 特商法などの要記入 | `product.config.ts` の `legal` に「【要記入】」が残っている。デモ公開で必要かは未確認。 | — | — | `product.config.ts` |
 
 ### 2.2 決めておくこと（本部・オーナー）
