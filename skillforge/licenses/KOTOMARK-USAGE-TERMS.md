@@ -49,7 +49,7 @@ We intend Kotomark to stay free for:
 ## 4. Preview period
 
 **Until paid plans launch, everyone may use Kotomark free of charge as a "preview".** No payment is owed
-for use during the preview. When paid plans launch we will announce pricing in advance; use before that date
+for use during the preview. We will announce the launch date of paid plans in advance; use before that date
 stays free.
 
 ## 5. Relationship to ELv2

@@ -82,11 +82,12 @@ Kotomark is **source-available**, not open source. / Kotomark は**ソース公�
 | \`dist/kotomark.mjs\` (the check engine) | Elastic License 2.0 — [\`dist/LICENSE\`](dist/LICENSE) |
 | Third-party code bundled in \`dist/kotomark.mjs\` | Own licenses — [\`THIRD_PARTY_NOTICES.md\`](THIRD_PARTY_NOTICES.md) |
 
-- Free for individuals, open-source projects and organizations with up to 3 employees. Paid plans for other
-  organizations are planned; pricing is not public yet, and **all use is free during the preview**.
+- Free for individuals, open-source projects and organizations with up to 3 employees. A paid Studio plan for other
+  organizations is planned (US$49/month for up to 5 seats, planned price) but not on sale yet: until it launches,
+  **everyone can use Kotomark free as a preview**.
   See [\`USAGE-TERMS.md\`](USAGE-TERMS.md) (draft).
-- 個人・OSS プロジェクト・従業員3名以下の団体は無料です。それ以外の団体向けの有料プランを予定していますが、価格は未定で、
-  **プレビュー期間中はどなたでも無料**です。詳しくは [\`USAGE-TERMS.md\`](USAGE-TERMS.md)（下書き）を見てください。
+- 個人・OSS プロジェクト・従業員3名以下の団体は無料です。それ以外の団体向けに有料の Studio プラン（月額 US$49・5席まで、予定価格）を
+  予定していますが、まだ販売していません。開始までは**プレビューとしてどなたでも無料**でお使いいただけます。詳しくは [\`USAGE-TERMS.md\`](USAGE-TERMS.md)（下書き）を見てください。
 - The Elastic License 2.0 does not allow offering the engine to third parties as a hosted/managed service, or
   circumventing license-key functionality. / Elastic License 2.0 では、エンジンを第三者向けのホスティング・マネージドサービスとして提供することと、ライセンスキーの機能を回避することは認められていません。
 `;

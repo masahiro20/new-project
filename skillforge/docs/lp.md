@@ -7,7 +7,7 @@
 > `npx tsx src/cli/index.ts check samples/ja-en/script.csv samples/ja-en/ch2.json --glossary samples/ja-en/glossary.json`
 
 対象読者：ゲームローカライズ会社（LSP / LQA チーム）と、日英版を出すインディー開発者・パブリッシャー。
-トーン：事実だけを書く。利用者の声、顧客ロゴ、作った数字、価格は載せない。ページに載せる数字は `docs/real-world-eval.md` のものだけ。
+トーン：事実だけを書く。利用者の声、顧客ロゴ、作った数字は載せない。価格は本部決定 d29 の予定価格だけを「予定 / planned」と明記して FAQ に載せる。ページに載せる数字は、予定価格を除き `docs/real-world-eval.md` のものだけ。
 
 ---
 
@@ -100,7 +100,13 @@ Ask for: file format, language direction, rough line count.
 - **Does it replace LQA testers?** No. It speeds up finding drift; deciding whether a line is right is a person's job.
 - **Which AI assistant?** Currently tested with a Claude Code plugin. The browser demo and the CLI need no AI assistant. Independent product, not affiliated with any AI provider.
 - **False positives?** Yes, e.g. a real English word one letter away from a character name (can be added to an ignore list). Measuring this is what the pilot is for.
-- **Price?** 未定 / TBD. （オーナーが承認するまで価格は表示しない）
+- **Price? / 価格は？** （本部決定 d29 の予定価格。必ず「予定 / planned」と明記する）
+  - JA: 予定価格です（まだ販売していません）。個人・OSS・従業員3名以下の団体は無料の予定です。それ以外の団体向けの Studio プランは、月額 US$49（5席まで、6席目からは1席あたり月額 US$9）の予定です。年払いは2か月分無料（10か月分のお支払い）、円での目安は月額 約7,800円です。Studio にはホスト型の MCP サーバーと共有用語集が含まれます。／有料プランが始まるまでは、プレビューとしてどなたでも無料でお使いいただけます。
+  - EN: Planned prices (not on sale yet): free for individuals, OSS and teams of up to 3 people (planned). The Studio plan for other organizations is planned at US$49/month for up to 5 seats, plus US$9/month per extra seat; annual billing gets 2 months free (you pay for 10). Studio includes the hosted MCP server and shared glossaries. / Until paid plans launch, everyone can use Kotomark free as a preview.
+- **License? / ライセンスは？**
+  - JA: ソース公開（Action は MIT、エンジンは Elastic License 2.0）。オープンソースではありません。
+  - EN: Source-available (the GitHub Action is MIT, the engine is under the Elastic License 2.0). Kotomark is not open source.
+  - 注意：Kotomark 自体について「オープンソース / open source」と書かない。「ソース公開 / source-available」と書く（d29）。
 
 ## 8. Footer
 
@@ -123,7 +129,7 @@ Ask for: file format, language direction, rough line count.
 8. **サンプルの例の件数。** `Mana Stone ×6 / Magic Stone ×2` は 2026-10-09 に CLI で確認済み。その時点で README の表はまだ ×5 だった。サンプルを変えたら README を直す（または再確認する）。
 9. **架空の名前**（Lisette、Mina、Tobias、魔導石、ルーンゲート）：公開前に、実在のゲームと重なっていないか確認する。
 10. **利用規約：** 「推論はあなた自身のサブスクリプションで動く」という仕組みが、AI 提供元の規約に合っている必要がある。サーバー側の判断には、必ず当社の API キーだけを使う。
-11. 再承認されるまで、以前の下書きから外したもの：価格（$49 / $29 / $99）、AMTA 2026 の F1 ≈ 0.77 の引用、競合との比較、法人向けの約束（専用インスタンス、データを保持しないモード）、「どの MCP クライアントでも動く」、Claude Desktop。
+11. 再承認されるまで、以前の下書きから外したもの：旧価格案（$49 / $29 / $99。価格は d29 の予定価格に置き換え済み）、AMTA 2026 の F1 ≈ 0.77 の引用、競合との比較、法人向けの約束（専用インスタンス、データを保持しないモード）、「どの MCP クライアントでも動く」、Claude Desktop。
 12. **（廃止）「190 / 190」の精度の数字 → 今は「287 / 297」（未使用データ2回目）**（`docs/real-world-eval.md`）。評価者は1名。抜き取りによる（設定ごと・ファイルごとに最大50件の指摘にラベルを付けたもので、全件ではない）。対象は英→日の .po の UI・ゲーム文字列だけ。注意：評価者は人間の LQA 担当者ではなく、AI のサブエージェントだった。ページでは意図的に「評価者1名」「自社調べ」とだけ書き、「人が確認した」とは書いていない。公開前に、人間の LQA 担当者にラベルを再確認してもらうか、AI がラベルを付けたことを明記するかを決める。2回目の QA そのものは TP 190 / FP 2（0.99）だった。その2件の FP（日本語で斜体が落ちたもの）は info に下げたので、CI の判定には数えなくなった。「100%」と書くときは、必ず「抜き取り」と「警告＋エラー」を添える。ルールや重大度を変えたら再確認する。「改善前は約70%」は設定 A（用語集なし）の数字で、設定 B は 0.34 だった。
 13. **プロジェクト名の使い方**（SuperTuxKart、Pixelorama、Luanti、Godot Engine、Battle for Wesnoth）。名前を指し示すためだけに使う：文字の名前とリポジトリへのリンクだけ、ロゴやスクリーンショットは使わない、推奨していない旨の一文を隣に置く、提携や顧客だと受け取れる言い方をしない。公開前に各プロジェクトの商標ポリシーを確認する（Godot などは公開している）。翻訳の本文はページに載せていない。例（ユーザ／ユーザー、プレイヤー／プレーヤー）は一般的な語。
 
