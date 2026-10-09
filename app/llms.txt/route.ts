@@ -1,4 +1,5 @@
-import { SERVICE_GUIDES, TOPIC_GUIDES } from "@/lib/guides";
+import { GUIDE_CATEGORIES } from "@/lib/guide-categories";
+import { SERVICE_GUIDES, getGuide } from "@/lib/guides";
 import { PARTS, PART_LABELS } from "@/lib/parts";
 import { pageUrl, SITE_NAME } from "@/lib/site";
 import { aiEnabled, liveBilling } from "@/lib/launch";
@@ -21,8 +22,15 @@ export function GET() {
 ${generate}- [減算リスク無料診断](${pageUrl("/check")}): 虐待防止・身体拘束・BCPの減算リスクを1分でチェック
 - [書類サンプル（無料）](${pageUrl("/samples")}): 架空の放課後等デイサービスで作成した出力見本。${PARTS.map((p) => PART_LABELS[p]).join("、")}
 
-## 解説（制度の基本）
-${TOPIC_GUIDES.map((g) => `- [${g.title}](${pageUrl(`/guide/${g.slug}`)}): ${g.summary}`).join("\n")}
+${GUIDE_CATEGORIES.map(
+  (c) =>
+    `## 解説（${c.name}）\n` +
+    c.slugs
+      .map(getGuide)
+      .filter((g) => g !== undefined)
+      .map((g) => `- [${g.title}](${pageUrl(`/guide/${g.slug}`)}): ${g.summary}`)
+      .join("\n"),
+).join("\n\n")}
 
 ## 解説（サービス種別ごと）
 ${SERVICE_GUIDES.map((g) => `- [${g.title}](${pageUrl(`/guide/${g.slug}`)}): ${g.summary}`).join("\n")}

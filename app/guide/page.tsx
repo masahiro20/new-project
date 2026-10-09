@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { GUIDES, SERVICE_GUIDES, TOPIC_GUIDES } from "@/lib/guides";
+import { GUIDE_CATEGORIES } from "@/lib/guide-categories";
+import { GUIDES, SERVICE_GUIDES, getGuide } from "@/lib/guides";
 import { breadcrumbList, jsonLdHtml } from "@/lib/jsonld";
 import { ogImage } from "@/lib/og";
 import { pageUrl, SITE_NAME } from "@/lib/site";
@@ -47,11 +48,15 @@ export default function GuideIndex() {
           <Link href="/samples">書類サンプル</Link>で確認できます。
         </p>
 
-        <h2 style={{ marginTop: 32 }}>制度の基本</h2>
-        {TOPIC_GUIDES.map((g) => (
-          <div key={g.slug} className="card" style={{ marginBottom: 12 }}>
-            <h3><Link href={`/guide/${g.slug}`}>{g.title}</Link></h3>
-            <p>{g.description}</p>
+        {GUIDE_CATEGORIES.map((c) => (
+          <div key={c.id}>
+            <h2 style={{ marginTop: 32 }}>{c.name}</h2>
+            {c.slugs.map((slug) => getGuide(slug)).filter((g) => g !== undefined).map((g) => (
+              <div key={g.slug} className="card" style={{ marginBottom: 12 }}>
+                <h3><Link href={`/guide/${g.slug}`}>{g.title}</Link></h3>
+                <p>{g.description}</p>
+              </div>
+            ))}
           </div>
         ))}
 

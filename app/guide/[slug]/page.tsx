@@ -5,6 +5,7 @@ import ChecklistDownload from "@/app/ChecklistDownload";
 import { CHECKLIST, CHECKLIST_GUIDES } from "@/lib/checklist";
 import MarkdownView from "@/app/MarkdownView";
 import { GUIDES, SERVICE_GUIDES, TOPIC_GUIDES, getGuide } from "@/lib/guides";
+import { categoryOf } from "@/lib/guide-categories";
 import { breadcrumbList, jsonLdHtml } from "@/lib/jsonld";
 import { aiEnabled } from "@/lib/launch";
 import { guideOgImage } from "@/lib/og";
@@ -75,10 +76,15 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
 
   // Neighbouring service guides (cyclic) so every page links to a different set instead of always the first three.
   const idx = SERVICE_GUIDES.findIndex((g) => g.slug === guide.slug);
+  // Same-category guides first, then the child day-service pages (the main audience).
+  const category = categoryOf(guide.slug);
   const fallback =
     idx >= 0
       ? [...TOPIC_GUIDES.slice(0, 2), ...[1, 2, 3].map((d) => SERVICE_GUIDES[(idx + d) % SERVICE_GUIDES.length])]
-      : SERVICE_GUIDES.slice(0, 5);
+      : [
+          ...(category?.slugs ?? []).map(getGuide).filter((g): g is NonNullable<typeof g> => !!g),
+          ...SERVICE_GUIDES.slice(0, 2),
+        ];
   const explicit = (guide.related ?? []).map(getGuide).filter((g): g is NonNullable<typeof g> => !!g);
   const related = [...explicit, ...fallback].filter((g, i, all) => g.slug !== guide.slug && all.findIndex((x) => x.slug === g.slug) === i).slice(0, 6);
   // 相談支援 has no 身体拘束 obligations, so don't advertise the restraint documents there.
