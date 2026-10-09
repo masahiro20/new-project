@@ -186,6 +186,9 @@ function setIdle() {
 
 function showError(msg, w) {
   setState('error');
+  // 判定できなかったとき、前のファイルの音声を「再生」で流さない
+  lastAudio = null;
+  $('play-last').disabled = true;
   $('verdict').textContent = '✗ 判定できません';
   $('verdict').dataset.pass = 'false';
   $('reason').textContent = msg;

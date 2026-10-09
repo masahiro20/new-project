@@ -97,7 +97,7 @@ const licences = [
 let licenceHtml = '';
 for (const [title, file] of licences) {
   const text = await readFile(`${root}/${file}`, 'utf8');
-  licenceHtml += `<h3>${escapeHtml(title)}</h3>\n<pre>${escapeHtml(text.trimEnd())}</pre>\n`;
+  licenceHtml += `<h3>${escapeHtml(title)}</h3>\n<pre tabindex="0">${escapeHtml(text.trimEnd())}</pre>\n`;
 }
 
 // 4. Build stamp.

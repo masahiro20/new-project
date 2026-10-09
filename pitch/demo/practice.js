@@ -189,6 +189,7 @@ export function initPractice(deps) {
       d.append(tone, kk);
       box.append(d);
     });
+    box.setAttribute('role', 'img');
     box.setAttribute('aria-label', `高低パターン: ${[...group.morae, 'が'].map((m, i) => `${m}${pat[i] ? '高' : '低'}`).join(' ')}`);
     return box;
   }

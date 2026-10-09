@@ -198,7 +198,7 @@ footer { font-size: .8rem; color: var(--muted); display: flex; flex-direction: c
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; scroll-behavior: auto !important; } }
 </style>
 
-<div class="wrap">
+<main class="wrap">
   <header class="head">
     <h1>Pitch アクセント判定 <small>Japanese pitch-accent check</small></h1>
     <p>単語に「が」を付けて言った録音から声の高さを測り、下がり目（アクセント核）の位置が辞書と同じかを判定します。</p>
@@ -235,7 +235,7 @@ footer { font-size: .8rem; color: var(--muted); display: flex; flex-direction: c
     </div>
     <div class="dict">
       <p><span class="muted small">辞書のアクセント</span>　<span class="dict-type" id="word-type"></span></p>
-      <div class="morae" id="word-pattern" aria-label="高低パターン"></div>
+      <div class="morae" id="word-pattern" role="img" aria-label="高低パターン"></div>
       <p class="muted small" id="word-homophones" hidden></p>
     </div>
   </section>
@@ -400,6 +400,7 @@ footer { font-size: .8rem; color: var(--muted); display: flex; flex-direction: c
         <li><b>保存しないもの：</b>元の録音ファイル、ファイル名、氏名やメールなど。合成音声のサンプルも保存しません</li>
         <li><b>保存場所：</b>このブラウザの中（IndexedDB）だけ。外部には送信しません</li>
         <li><b>消し方：</b>下の一覧で1件ずつ、または「すべて削除」。ブラウザのサイトデータを消しても消えます</li>
+        <li><b>開発者に渡した場合：</b>精度の検証と改善だけに使い、受領から90日で削除します。それより前でも、依頼があれば7日以内に削除します（zip の README.txt の同意文と同じ）</li>
       </ul>
       <label class="eval-check" for="eval-agree"><input type="checkbox" id="eval-agree">上の内容を理解し、録音と結果をこの端末に保存することに同意します</label>
       <div class="row">
@@ -474,9 +475,9 @@ footer { font-size: .8rem; color: var(--muted); display: flex; flex-direction: c
   </details>
 
   <footer>
-    <p>内部用プロトタイプ・精度は未検証（合成音声での評価のみ）</p>
+    <p>無料ベータ・精度は未検証（合成音声での評価のみ）・スマホは実機で未確認（Chromium のエミュレーションで確認）</p>
     <p id="build"><!--BUILD--></p>
   </footer>
-</div>
+</main>
 <!--LEXICON-->
 <!--SCRIPT-->
