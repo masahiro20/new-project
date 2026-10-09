@@ -15,7 +15,7 @@
 ## 2. 候補
 | 案 | 月の費用 | 商用利用 | 制限（この用途に関係するもの） | 移行の手間 | 確認 |
 |---|---|---|---|---|---|
-| **A. Cloudflare（無料プラン）**：静的なページは Workers の静的アセット、API は小さな Worker に分ける | **0円** | 規約上の明示は確認できず［要確認］ | 静的アセットへのリクエストは無料・無制限。Worker は1日10万リクエスト、**1リクエストあたり CPU 10ms**（ネットワーク待ちは含まない）、実時間の上限なし、Worker のサイズ 3MB | 中：API 3本を Worker として書き直す（Next.js の API ルートからの移植）。Mina が1〜2日 | ［確認］https://developers.cloudflare.com/workers/platform/limits/ 、https://developers.cloudflare.com/workers/static-assets/billing-and-limitations/ |
+| **A. Cloudflare（無料プラン）**：静的なページは Workers の静的アセット、API は小さな Worker に分ける | **0円** | 禁止の文言なし。ただし無料のサービスではカード情報の処理・収集は不可（Stripe Checkout なら当たらないと読める）［確認］ | 静的アセットへのリクエストは無料・無制限。Worker は1日10万リクエスト、**1リクエストあたり CPU 10ms**（ネットワーク待ちは含まない）、実時間の上限なし、Worker のサイズ 3MB | 中：API 3本を Worker として書き直す（Next.js の API ルートからの移植）。Mina が1〜2日 | ［確認］https://developers.cloudflare.com/workers/platform/limits/ 、https://developers.cloudflare.com/workers/static-assets/billing-and-limitations/ |
 | **B. Cloudflare（Workers Paid）**：A と同じ構成か、OpenNext でアプリ全体を載せる | **$5（約750円）** | 有料プラン | CPU は1リクエスト既定30秒（最大5分）。リクエスト数の上限なし | A と同じか、それより小さい（OpenNext の Cloudflare 版は Next.js 16.2 の公式アダプター API を使っている） | ［確認］同上。OpenNext の Next 16 対応は［二次］https://nextjs.org/blog/nextjs-across-platforms |
 | **C. Vercel Pro** | **$20（約3,000円）** | 有料プランは可。無料の Hobby は「訪問者から支払いを受ける」時点で商用扱いになり不可 | 今のコードは Vercel 前提で作られていて、そのまま動く | **最小**：環境変数を入れてデプロイするだけ | ［確認］https://vercel.com/docs/limits/fair-use-guidelines |
 | D. Netlify（無料） | 0円 | 公式の規約で確認できず［未確認］ | 2026年から月300クレジット制。関数のタイムアウトは第三者情報で10秒。**300秒の生成には足りない可能性が高い**［二次］ | 中 | ［二次］https://netli.fyi/blog/netlify-pricing-and-limits |
@@ -30,14 +30,19 @@
 - B は月約750円。2,980円の販売が月1件あれば賄える。C の月約3,000円は、月1件の売上を超える。
 - C は手間が最小だが、「最初はお金をかけない」方針に合わない。売上が月10件を超えてから検討しても遅くない。
 
-**A の注意**
-- Cloudflare の無料プランで商用利用ができるかは、規約の本文で確かめていない［要確認］。販売を始める前に、本部が Cloudflare の利用規約を読む。
-- 不可なら B から始める。
+**A の注意：Cloudflare の利用規約（2026-10-09 に確認）**
+- 無料プランでの商用利用を禁じる文言はなかった。
+- ただし、無料のサービスを使うサイトでは「個人や法人のクレジットカード情報を処理・収集してはならない」とある（2.2.1(h)）。
+- 減算ゼロの決済は **Stripe Checkout（Stripe のサイト上でカードを入力する方式）** なので、私たちのサイトがカード情報を扱うことはない。この条項には当たらないと読める。
+  - 判断の最終確認は、法務として本部経由でオーナーに上げる。
+  - 心配なら、最初から B（有料プラン）にすれば、この条項の対象外になる。
+- 無料のサービスは、Cloudflare がいつでも終了できる（2.6）。B へ移れるように作っておく。
+- 出典：https://www.cloudflare.com/terms/
 
 ## 4. 作業（A の場合）
 | # | 内容 | 担当 | 目安 |
 |---|---|---|---|
-| 1 | Cloudflare の利用規約で、無料プランの商用利用を確認する | Midas | 30分 |
+| 1 | Cloudflare の利用規約で、無料プランの商用利用を確認する | Midas | **済**（§3。カード情報の条項は Stripe Checkout なら当たらないと読める） |
 | 2 | API 3本（checkout・generate・preview）を Worker に移す。静的なページは Workers の静的アセットとして配信する。レート制限は今の Upstash（REST）をそのまま使う | Mina（P0） | 1〜2日 |
 | 3 | 本部の鍵で、4種別×3セットを生成し、1件あたりの CPU 時間・実時間・費用を測る（品質確認と同時に行う） | Mina | 半日 |
 | 4 | GitHub Pages のサイトは情報サイトとして残すか、新しい置き場所へ転送するかを決める（検索の評価を引き継ぐため、転送の方法を確認） | Mina・Midas | 30分 |
