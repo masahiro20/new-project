@@ -1,0 +1,13 @@
+diff --git a/skillforge/scripts/release-action.mjs b/skillforge/scripts/release-action.mjs
+index 7db7f04..049bc66 100644
+--- a/skillforge/scripts/release-action.mjs
++++ b/skillforge/scripts/release-action.mjs
+@@ -166,6 +166,8 @@ const FORBIDDEN = [
+   [/masahiro20\/new-project|peter-hq|docs\/(?:outreach|pilot-targets|decisions|real-world-eval)|\beval\//, "reference to the private monorepo"],
+   [/(?:sk-ant-|gh[pousr]_|github_pat_|xox[abprs]-|[rs]k_live_|whsec_)[A-Za-z0-9_-]{8,}|AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----|[a-z0-9-]+\.upstash\.io/, "secret-like value"],
+   [/\bKM1\.[A-Za-z0-9_-]{40,}\.[A-Za-z0-9_-]{40,}/, "an issued license key"],
++  // an ed25519 private key without PEM armour: PKCS#8 DER as base64 / hex, or a JWK with its private "d"
++  [/MC4CAQAwBQYDK2VwBCIEI|302e020100300506032b657004220420|"d"\s*:\s*"[A-Za-z0-9_-]{43}"/i, "an unarmoured ed25519 private key"],
+ ];
+ const localPaths = [root, homedir() + sep].filter((p) => p.length > 2); // build machine paths
+ for (const f of actual) {
