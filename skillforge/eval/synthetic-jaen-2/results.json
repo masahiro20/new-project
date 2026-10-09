@@ -1,0 +1,2745 @@
+{
+ "benchmark": "synthetic JA→EN school-mystery VN script #2 (eval/synthetic-jaen-2), written blind to the engine source",
+ "seed": 20261010,
+ "definitions": {
+  "found": "a finding on the injected line (±0) whose rule fits CATEGORY_RULES[category] (any severity)",
+  "foundCi": "same, severity warning or error",
+  "lineOnly": "something was reported on the injected line, but under a rule outside the category mapping",
+  "precision": "TP / (TP + FP). Findings on injected lines = TP; on tricky-correct lines = FP; elsewhere = manual JUDGEMENTS",
+  "trickyFlagged": "tricky-correct lines (expected=none) with at least one finding"
+ },
+ "categoryRules": {
+  "term": [
+   "term."
+  ],
+  "katakana": [
+   "notation.katakana",
+   "term."
+  ],
+  "name": [
+   "name."
+  ],
+  "speaker": [
+   "name.speaker"
+  ],
+  "honorific": [
+   "honorific."
+  ],
+  "pronoun": [
+   "voice.first-person"
+  ],
+  "politeness": [
+   "voice.politeness"
+  ],
+  "contraction": [
+   "voice.contraction"
+  ],
+  "avoid-word": [
+   "voice.avoid"
+  ],
+  "placeholder": [
+   "placeholder."
+  ],
+  "ruby": [
+   "ruby",
+   "markup.",
+   "notation.ruby",
+   "tag."
+  ],
+  "length": [
+   "length."
+  ],
+  "untranslated": [
+   "untranslated.",
+   "identical.",
+   "copy."
+  ],
+  "copy": [
+   "copy.",
+   "duplicate.",
+   "identical.",
+   "untranslated."
+  ]
+ },
+ "configs": {
+  "G": {
+   "description": "glossary.json (19 terms, 8 characters with voice profiles, honorificPolicy keep)",
+   "cleanFindings": {
+    "total": 8,
+    "ci": 7,
+    "list": [
+     "146 s5_005b term.missing:warning",
+     "203 s6_029 honorific.source-shift:info",
+     "124 s4_016 voice.first-person:warning",
+     "122 s4_014 voice.first-person:warning",
+     "213 s7_005b voice.first-person:warning",
+     "27 s1_025 voice.first-person:warning",
+     "60 s2_027 voice.politeness:warning",
+     "121 s4_013 voice.first-person:warning"
+    ]
+   },
+   "recall": {
+    "injected": 78,
+    "found": 67,
+    "recall": 0.859,
+    "foundCi": 66,
+    "recallCi": 0.846,
+    "lineOnly": 0,
+    "byCategory": {
+     "ruby": {
+      "injected": 3,
+      "found": 0,
+      "foundCi": 0,
+      "lineOnly": 0,
+      "missed": [
+       "11 s1_009 ja: JA: ruby not closed",
+       "63 s2_030 ja: JA: empty ruby reading",
+       "186 s6_012 ja: JA: full-width bar in ruby"
+      ],
+      "recall": 0,
+      "recallCi": 0
+     },
+     "term": {
+      "injected": 10,
+      "found": 9,
+      "foundCi": 9,
+      "lineOnly": 0,
+      "missed": [
+       "191 s6_017 en: 理事会: unlisted 'board of trustees' (contains allowed 'board' — expected gap)"
+      ],
+      "recall": 0.9,
+      "recallCi": 0.9
+     },
+     "politeness": {
+      "injected": 5,
+      "found": 5,
+      "foundCi": 5,
+      "lineOnly": 0,
+      "missed": [],
+      "recall": 1,
+      "recallCi": 1
+     },
+     "honorific": {
+      "injected": 9,
+      "found": 9,
+      "foundCi": 8,
+      "lineOnly": 0,
+      "missed": [],
+      "recall": 1,
+      "recallCi": 0.889
+     },
+     "pronoun": {
+      "injected": 7,
+      "found": 7,
+      "foundCi": 7,
+      "lineOnly": 0,
+      "missed": [],
+      "recall": 1,
+      "recallCi": 1
+     },
+     "placeholder": {
+      "injected": 5,
+      "found": 5,
+      "foundCi": 5,
+      "lineOnly": 0,
+      "missed": [],
+      "recall": 1,
+      "recallCi": 1
+     },
+     "name": {
+      "injected": 9,
+      "found": 9,
+      "foundCi": 9,
+      "lineOnly": 0,
+      "missed": [],
+      "recall": 1,
+      "recallCi": 1
+     },
+     "contraction": {
+      "injected": 4,
+      "found": 4,
+      "foundCi": 4,
+      "lineOnly": 0,
+      "missed": [],
+      "recall": 1,
+      "recallCi": 1
+     },
+     "speaker": {
+      "injected": 6,
+      "found": 5,
+      "foundCi": 5,
+      "lineOnly": 0,
+      "missed": [
+       "119 s4_011 speaker: speaker 詩織 → しおり (hiragana)"
+      ],
+      "recall": 0.833,
+      "recallCi": 0.833
+     },
+     "length": {
+      "injected": 3,
+      "found": 3,
+      "foundCi": 3,
+      "lineOnly": 0,
+      "missed": [],
+      "recall": 1,
+      "recallCi": 1
+     },
+     "katakana": {
+      "injected": 9,
+      "found": 7,
+      "foundCi": 7,
+      "lineOnly": 0,
+      "missed": [
+       "80 s3_013 ja: JA: ルーペ → ルーぺ (hiragana ぺ mixed into katakana)",
+       "84 s3_017 ja: JA: フィルムカメラ → フイルムカメラ (small-kana variant)"
+      ],
+      "recall": 0.778,
+      "recallCi": 0.778
+     },
+     "copy": {
+      "injected": 2,
+      "found": 0,
+      "foundCi": 0,
+      "lineOnly": 0,
+      "missed": [
+       "86 s3_019 en: EN copied from s3_018",
+       "171 s5_030 en: EN copied from s5_029 ('Bong...')"
+      ],
+      "recall": 0,
+      "recallCi": 0
+     },
+     "untranslated": {
+      "injected": 3,
+      "found": 1,
+      "foundCi": 1,
+      "lineOnly": 0,
+      "missed": [
+       "98 s3_031 en: EN = JA source (untranslated)",
+       "236 s9_011 en: EN = JA source (untranslated UI)"
+      ],
+      "recall": 0.333,
+      "recallCi": 0.333
+     },
+     "avoid-word": {
+      "injected": 3,
+      "found": 3,
+      "foundCi": 3,
+      "lineOnly": 0,
+      "missed": [],
+      "recall": 1,
+      "recallCi": 1
+     }
+    }
+   },
+   "precision": {
+    "all": {
+     "findings": 87,
+     "tp": 78,
+     "fp": 9,
+     "unjudged": 0,
+     "precision": 0.897
+    },
+    "ci": {
+     "findings": 77,
+     "tp": 70,
+     "fp": 7,
+     "unjudged": 0,
+     "precision": 0.909
+    },
+    "byRule": {
+     "term.missing": {
+      "n": 5,
+      "TP": 4,
+      "FP": 1,
+      "unjudged": 0
+     },
+     "term.forbidden": {
+      "n": 8,
+      "TP": 8,
+      "FP": 0,
+      "unjudged": 0
+     },
+     "notation.katakana": {
+      "n": 5,
+      "TP": 5,
+      "FP": 0,
+      "unjudged": 0
+     },
+     "name.speaker-label": {
+      "n": 4,
+      "TP": 4,
+      "FP": 0,
+      "unjudged": 0
+     },
+     "name.speaker-unknown": {
+      "n": 1,
+      "TP": 1,
+      "FP": 0,
+      "unjudged": 0
+     },
+     "name.near-miss": {
+      "n": 4,
+      "TP": 4,
+      "FP": 0,
+      "unjudged": 0
+     },
+     "name.missing": {
+      "n": 5,
+      "TP": 5,
+      "FP": 0,
+      "unjudged": 0
+     },
+     "name.forbidden": {
+      "n": 5,
+      "TP": 5,
+      "FP": 0,
+      "unjudged": 0
+     },
+     "honorific.source-shift": {
+      "n": 2,
+      "TP": 1,
+      "FP": 1,
+      "unjudged": 0
+     },
+     "honorific.policy": {
+      "n": 8,
+      "TP": 8,
+      "FP": 0,
+      "unjudged": 0
+     },
+     "honorific.drift": {
+      "n": 6,
+      "TP": 5,
+      "FP": 1,
+      "unjudged": 0
+     },
+     "voice.first-person": {
+      "n": 12,
+      "TP": 7,
+      "FP": 5,
+      "unjudged": 0
+     },
+     "voice.politeness": {
+      "n": 6,
+      "TP": 5,
+      "FP": 1,
+      "unjudged": 0
+     },
+     "voice.contraction": {
+      "n": 4,
+      "TP": 4,
+      "FP": 0,
+      "unjudged": 0
+     },
+     "voice.avoid": {
+      "n": 3,
+      "TP": 3,
+      "FP": 0,
+      "unjudged": 0
+     },
+     "placeholder.mismatch": {
+      "n": 5,
+      "TP": 5,
+      "FP": 0,
+      "unjudged": 0
+     },
+     "length.limit": {
+      "n": 3,
+      "TP": 3,
+      "FP": 0,
+      "unjudged": 0
+     },
+     "untranslated.empty": {
+      "n": 1,
+      "TP": 1,
+      "FP": 0,
+      "unjudged": 0
+     }
+    }
+   },
+   "tricky": {
+    "lines": 18,
+    "flagged": 8,
+    "flaggedCi": 7,
+    "detail": [
+     {
+      "line": 19,
+      "id": "s1_017",
+      "category": "tricky:nickname",
+      "flagged": false,
+      "flaggedCi": false,
+      "rules": [],
+      "description": "奏 calls 小春 'こはるん' → 'Koharun' (nickname listed as alias)"
+     },
+     {
+      "line": 23,
+      "id": "s1_021",
+      "category": "tricky:nickname",
+      "flagged": false,
+      "flaggedCi": false,
+      "rules": [],
+      "description": "奏 calls 源之助 'ゲンちゃん' → 'Gen-chan' (nickname)"
+     },
+     {
+      "line": 27,
+      "id": "s1_025",
+      "category": "tricky:uchi-our",
+      "flagged": true,
+      "flaggedCi": true,
+      "rules": [
+       "voice.first-person:warning"
+      ],
+      "description": "湊 says 'うちの部' = 'our club' (not a first-person pronoun)"
+     },
+     {
+      "line": 58,
+      "id": "s2_025",
+      "category": "tricky:title",
+      "flagged": false,
+      "flaggedCi": false,
+      "rules": [],
+      "description": "校長先生 → 'the principal' (a title, not name+honorific; keep policy does not apply)"
+     },
+     {
+      "line": 60,
+      "id": "s2_027",
+      "category": "tricky:register",
+      "flagged": true,
+      "flaggedCi": true,
+      "rules": [
+       "voice.politeness:warning"
+      ],
+      "description": "湊 (plain) speaks polite to a teacher: 'わかってますよ、先生' — natural register shift"
+     },
+     {
+      "line": 72,
+      "id": "s3_005",
+      "category": "tricky:dialect",
+      "flagged": false,
+      "flaggedCi": false,
+      "rules": [],
+      "description": "奏 (Kansai) EN uses 'gonna' / 'y'know' — allowed for her (avoid-list belongs to other characters)"
+     },
+     {
+      "line": 107,
+      "id": "s3_040",
+      "category": "tricky:generic-term",
+      "flagged": false,
+      "flaggedCi": false,
+      "rules": [],
+      "description": "'chronograph' used generically for a wristwatch, lower-case, next to the proper 'the Chronograph'"
+     },
+     {
+      "line": 121,
+      "id": "s4_013",
+      "category": "tricky:quote",
+      "flagged": true,
+      "flaggedCi": true,
+      "rules": [
+       "voice.first-person:warning"
+      ],
+      "description": "黒羽 quotes Crow's card 『僕は約束を守る』 — 僕 is inside a quotation"
+     },
+     {
+      "line": 122,
+      "id": "s4_014",
+      "category": "tricky:quote",
+      "flagged": true,
+      "flaggedCi": true,
+      "rules": [
+       "voice.first-person:warning"
+      ],
+      "description": "小春 quotes 『僕』 — meta-mention of the pronoun"
+     },
+     {
+      "line": 124,
+      "id": "s4_016",
+      "category": "tricky:quote",
+      "flagged": true,
+      "flaggedCi": true,
+      "rules": [
+       "voice.first-person:warning"
+      ],
+      "description": "奏 mentions 『俺』 — meta-mention of the pronoun"
+     },
+     {
+      "line": 146,
+      "id": "s5_005b",
+      "category": "tricky:compound-term",
+      "flagged": true,
+      "flaggedCi": true,
+      "rules": [
+       "term.missing:warning"
+      ],
+      "description": "部室棟 (club building) contains 部室 but is a different word; 'clubroom' is correctly absent"
+     },
+     {
+      "line": 195,
+      "id": "s6_021",
+      "category": "tricky:marked-register-break",
+      "flagged": false,
+      "flaggedCi": false,
+      "rules": [],
+      "description": "詩織's polite speech intentionally breaks (scene marks it in s6_022); EN keeps no contractions"
+     },
+     {
+      "line": 203,
+      "id": "s6_029",
+      "category": "tricky:marked-honorific-drop",
+      "flagged": true,
+      "flaggedCi": false,
+      "rules": [
+       "honorific.source-shift:info"
+      ],
+      "description": "小春 calls 湊 without 先輩, marked by narration s6_030; EN 'Minato!' matches"
+     },
+     {
+      "line": 207,
+      "id": "s6_033",
+      "category": "tricky:identical",
+      "flagged": false,
+      "flaggedCi": false,
+      "rules": [],
+      "description": "'Q.E.D.' identical in JA and EN — intentional"
+     },
+     {
+      "line": 213,
+      "id": "s7_005b",
+      "category": "tricky:quote",
+      "flagged": true,
+      "flaggedCi": true,
+      "rules": [
+       "voice.first-person:warning"
+      ],
+      "description": "小春 quotes 源之助's line 『拙者が…』 — 拙者 inside a quotation"
+     },
+     {
+      "line": 216,
+      "id": "s7_008",
+      "category": "tricky:marked-honorific-shift",
+      "flagged": false,
+      "flaggedCi": false,
+      "rules": [],
+      "description": "詩織 slips to 湊さん then corrects to 朝霧さん; marked by narration s7_009; EN mirrors it"
+     },
+     {
+      "line": 231,
+      "id": "s9_006",
+      "category": "tricky:placeholder-order",
+      "flagged": false,
+      "flaggedCi": false,
+      "rules": [],
+      "description": "{1}個の{0} → 'Obtained {0} ×{1}' — reordered, same placeholder set"
+     },
+     {
+      "line": 237,
+      "id": "s9_012",
+      "category": "tricky:length-boundary",
+      "flagged": false,
+      "flaggedCi": false,
+      "rules": [],
+      "description": "'Return to Title' is exactly max_length 15"
+     }
+    ]
+   },
+   "unmatched": [
+    {
+     "line": 56,
+     "id": "s2_023",
+     "rule": "honorific.drift",
+     "severity": "info",
+     "message": "This speaker's \"先生\" is rendered inconsistently with no majority (Narumi-sensei ×1 / Mr. Narumi ×1). Pick one form.",
+     "verdict": "FP",
+     "note": "clean line (Koharu: 'Narumi-sensei!'). Tie partner of the injected 'Mr. Narumi' (s6_025, already caught by honorific.policy). With honorificPolicy keep, the tie could be broken toward the policy-conforming form instead of pointing at the correct line"
+    }
+   ],
+   "perTruth": [
+    {
+     "line": 11,
+     "id": "s1_009",
+     "category": "ruby",
+     "description": "ja: JA: ruby not closed",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 12,
+     "id": "s1_010",
+     "category": "term",
+     "description": "en: ミステリー研究会: forbidden 'Mystery Club'",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "term.forbidden:error"
+     ]
+    },
+    {
+     "line": 13,
+     "id": "s1_011",
+     "category": "politeness",
+     "description": "ja: 湊 (plain) → polite to a junior",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "voice.politeness:warning"
+     ]
+    },
+    {
+     "line": 14,
+     "id": "s1_012",
+     "category": "honorific",
+     "description": "en: EN: 湊先輩 → 'Minato' (honorific dropped under keep policy)",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "honorific.policy:warning",
+      "honorific.drift:warning"
+     ]
+    },
+    {
+     "line": 15,
+     "id": "s1_013",
+     "category": "pronoun",
+     "description": "ja: 湊: 俺 → 僕",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "voice.first-person:warning"
+     ]
+    },
+    {
+     "line": 16,
+     "id": "s1_014",
+     "category": "placeholder",
+     "description": "en: EN: [PLAYER] dropped",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "placeholder.mismatch:error"
+     ]
+    },
+    {
+     "line": 17,
+     "id": "s1_015",
+     "category": "pronoun",
+     "description": "ja: 奏: うち → あたし",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "voice.first-person:warning"
+     ]
+    },
+    {
+     "line": 18,
+     "id": "s1_016",
+     "category": "name",
+     "description": "en: EN: Miyaji → Miyagi (surname alias misspelled)",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "name.near-miss:warning"
+     ]
+    },
+    {
+     "line": 22,
+     "id": "s1_020",
+     "category": "contraction",
+     "description": "en: 源之助: I'm",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "voice.contraction:warning"
+     ]
+    },
+    {
+     "line": 31,
+     "id": "s1_029",
+     "category": "pronoun",
+     "description": "ja: 詩織: わたくし → わたし",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "voice.first-person:warning"
+     ]
+    },
+    {
+     "line": 37,
+     "id": "s2_004",
+     "category": "term",
+     "description": "en: 予告状: forbidden 'notice letter'",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "term.forbidden:error"
+     ]
+    },
+    {
+     "line": 38,
+     "id": "s2_005",
+     "category": "term",
+     "description": "en: 文化祭: forbidden 'culture festival'",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "term.forbidden:error"
+     ]
+    },
+    {
+     "line": 40,
+     "id": "s2_007",
+     "category": "politeness",
+     "description": "ja: 詩織 (polite) → plain",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "voice.politeness:warning"
+     ]
+    },
+    {
+     "line": 41,
+     "id": "s2_008",
+     "category": "contraction",
+     "description": "en: 詩織: it's / can't",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "voice.contraction:warning"
+     ]
+    },
+    {
+     "line": 42,
+     "id": "s2_009",
+     "category": "honorific",
+     "description": "en: EN: 詩織殿 → 'Lady Shiori' (localized under keep policy)",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "honorific.policy:warning"
+     ]
+    },
+    {
+     "line": 44,
+     "id": "s2_011",
+     "category": "honorific",
+     "description": "en: EN: -senpai → -sempai (romanization drift)",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "honorific.policy:warning",
+      "honorific.drift:warning"
+     ]
+    },
+    {
+     "line": 46,
+     "id": "s2_013",
+     "category": "honorific",
+     "description": "en: EN: 朝霧さん → 'Mr. Asagiri' (localized under keep policy)",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "honorific.policy:warning",
+      "honorific.drift:warning"
+     ]
+    },
+    {
+     "line": 48,
+     "id": "s2_015",
+     "category": "speaker",
+     "description": "speaker: speaker 湊 → 朝霧 (surname alias instead of the label used elsewhere)",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "name.speaker-label:warning"
+     ]
+    },
+    {
+     "line": 50,
+     "id": "s2_017",
+     "category": "length",
+     "description": "en: EN over max_length 40",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "length.limit:error"
+     ]
+    },
+    {
+     "line": 57,
+     "id": "s2_024",
+     "category": "pronoun",
+     "description": "ja: 鳴海: 僕 → 俺",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "voice.first-person:warning"
+     ]
+    },
+    {
+     "line": 59,
+     "id": "s2_026",
+     "category": "honorific",
+     "description": "en: EN: 朝霧くん → 'Asagiri' (honorific dropped)",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "honorific.policy:warning"
+     ]
+    },
+    {
+     "line": 63,
+     "id": "s2_030",
+     "category": "ruby",
+     "description": "ja: JA: empty ruby reading",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 69,
+     "id": "s3_002",
+     "category": "term",
+     "description": "en: 旧校舎: forbidden 'old school building'",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "term.forbidden:error"
+     ]
+    },
+    {
+     "line": 73,
+     "id": "s3_006",
+     "category": "pronoun",
+     "description": "ja: 源之助: 拙者 → 俺",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "voice.first-person:warning"
+     ]
+    },
+    {
+     "line": 74,
+     "id": "s3_007",
+     "category": "name",
+     "description": "en: EN: Koharu → Koharo",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "name.near-miss:warning",
+      "name.missing:info"
+     ]
+    },
+    {
+     "line": 76,
+     "id": "s3_009",
+     "category": "katakana",
+     "description": "en: EN: Chronograph → misspelled transliteration [chose 'Cronograph']",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "term.missing:warning"
+     ]
+    },
+    {
+     "line": 77,
+     "id": "s3_010",
+     "category": "katakana",
+     "description": "ja: JA: クロノグラフ → クロノ・グラフ (middle dot)",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "notation.katakana:warning"
+     ]
+    },
+    {
+     "line": 80,
+     "id": "s3_013",
+     "category": "katakana",
+     "description": "ja: JA: ルーペ → ルーぺ (hiragana ぺ mixed into katakana)",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 84,
+     "id": "s3_017",
+     "category": "katakana",
+     "description": "ja: JA: フィルムカメラ → フイルムカメラ (small-kana variant)",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 86,
+     "id": "s3_019",
+     "category": "copy",
+     "description": "en: EN copied from s3_018",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 87,
+     "id": "s3_020",
+     "category": "placeholder",
+     "description": "en: EN: {0} dropped",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "placeholder.mismatch:error"
+     ]
+    },
+    {
+     "line": 89,
+     "id": "s3_022",
+     "category": "katakana",
+     "description": "ja: JA: サーバールーム → サーバルーム (long vowel dropped)",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "notation.katakana:warning"
+     ]
+    },
+    {
+     "line": 91,
+     "id": "s3_024",
+     "category": "politeness",
+     "description": "ja: 黒羽 (polite) → plain",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "voice.politeness:warning"
+     ]
+    },
+    {
+     "line": 92,
+     "id": "s3_025",
+     "category": "katakana",
+     "description": "ja: JA: カードキー → カード・キー (middle dot)",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "notation.katakana:warning"
+     ]
+    },
+    {
+     "line": 93,
+     "id": "s3_026",
+     "category": "katakana",
+     "description": "en: EN: keycard → 'key card' (unlisted spacing variant)",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "term.missing:warning"
+     ]
+    },
+    {
+     "line": 95,
+     "id": "s3_028",
+     "category": "politeness",
+     "description": "ja: 奏 (plain, Kansai) → standard polite",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "voice.politeness:warning"
+     ]
+    },
+    {
+     "line": 98,
+     "id": "s3_031",
+     "category": "untranslated",
+     "description": "en: EN = JA source (untranslated)",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 102,
+     "id": "s3_035",
+     "category": "speaker",
+     "description": "speaker: speaker 奏 → 宮地奏 (full name)",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "name.speaker-label:warning"
+     ]
+    },
+    {
+     "line": 104,
+     "id": "s3_037",
+     "category": "term",
+     "description": "en: 時計塔: forbidden 'bell tower'",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "term.forbidden:error"
+     ]
+    },
+    {
+     "line": 108,
+     "id": "s3_041",
+     "category": "placeholder",
+     "description": "en: EN: [PLAYER] → [Player] (case)",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "placeholder.mismatch:error"
+     ]
+    },
+    {
+     "line": 109,
+     "id": "s4_001",
+     "category": "term",
+     "description": "en: 部室: forbidden spelling 'club room'",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "term.forbidden:error"
+     ]
+    },
+    {
+     "line": 115,
+     "id": "s4_007",
+     "category": "avoid-word",
+     "description": "en: 詩織: 'guys'",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "voice.avoid:warning"
+     ]
+    },
+    {
+     "line": 116,
+     "id": "s4_008",
+     "category": "name",
+     "description": "en: EN: Shirasagi → Shirasaki (surname alias misspelled)",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "name.near-miss:warning",
+      "name.missing:info"
+     ]
+    },
+    {
+     "line": 118,
+     "id": "s4_010",
+     "category": "contraction",
+     "description": "en: 詩織: there's / I've",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "voice.contraction:warning"
+     ]
+    },
+    {
+     "line": 119,
+     "id": "s4_011",
+     "category": "speaker",
+     "description": "speaker: speaker 詩織 → しおり (hiragana)",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 126,
+     "id": "s4_018",
+     "category": "politeness",
+     "description": "ja: 詩織 (polite) → plain",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "voice.politeness:warning"
+     ]
+    },
+    {
+     "line": 127,
+     "id": "s4_019",
+     "category": "pronoun",
+     "description": "ja: 黒羽: 私 → あたし",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "voice.first-person:warning"
+     ]
+    },
+    {
+     "line": 130,
+     "id": "s4_022",
+     "category": "placeholder",
+     "description": "en: EN: {0} → {1}",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "placeholder.mismatch:error"
+     ]
+    },
+    {
+     "line": 135,
+     "id": "s4_027",
+     "category": "name",
+     "description": "ja: JA: 湊 → 港 (same reading, forbidden kanji)",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "name.forbidden:error"
+     ]
+    },
+    {
+     "line": 136,
+     "id": "s4_028",
+     "category": "pronoun",
+     "description": "ja: 小春: あたし → 私",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "voice.first-person:warning"
+     ]
+    },
+    {
+     "line": 137,
+     "id": "s4_029",
+     "category": "honorific",
+     "description": "en: EN: 'Minato-senpai' → 'Senpai' (name dropped)",
+     "found": true,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": [
+      "name.missing:info",
+      "honorific.drift:info"
+     ]
+    },
+    {
+     "line": 149,
+     "id": "s5_008",
+     "category": "name",
+     "description": "en: EN: Gennosuke → Gennousuke (forbidden)",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "name.forbidden:error"
+     ]
+    },
+    {
+     "line": 150,
+     "id": "s5_009",
+     "category": "speaker",
+     "description": "speaker: speaker 奏 → 奏(二年) (annotation in label)",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "name.speaker-label:warning"
+     ]
+    },
+    {
+     "line": 158,
+     "id": "s5_017",
+     "category": "katakana",
+     "description": "ja: JA: ステンドグラス → ステインドグラス",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "notation.katakana:warning"
+     ]
+    },
+    {
+     "line": 159,
+     "id": "s5_018",
+     "category": "term",
+     "description": "en: 怪盗クロウ: forbidden 'Phantom Crow'",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "term.forbidden:error",
+      "name.missing:info"
+     ]
+    },
+    {
+     "line": 162,
+     "id": "s5_021",
+     "category": "honorific",
+     "description": "ja: JA: 湊先輩 → 湊さん (source honorific changed; EN still -senpai)",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "honorific.source-shift:info",
+      "honorific.policy:warning"
+     ]
+    },
+    {
+     "line": 167,
+     "id": "s5_026",
+     "category": "contraction",
+     "description": "en: 源之助: won't / I'm",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "voice.contraction:warning"
+     ]
+    },
+    {
+     "line": 171,
+     "id": "s5_030",
+     "category": "copy",
+     "description": "en: EN copied from s5_029 ('Bong...')",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 173,
+     "id": "s5_032",
+     "category": "untranslated",
+     "description": "en: EN empty",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "untranslated.empty:warning"
+     ]
+    },
+    {
+     "line": 183,
+     "id": "s6_009",
+     "category": "name",
+     "description": "en: EN: Kuroha → Kuroba",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "name.near-miss:warning",
+      "name.missing:info"
+     ]
+    },
+    {
+     "line": 184,
+     "id": "s6_010",
+     "category": "name",
+     "description": "ja: JA: 黒羽 → 黒葉 (same reading, forbidden kanji)",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "name.forbidden:error"
+     ]
+    },
+    {
+     "line": 185,
+     "id": "s6_011",
+     "category": "honorific",
+     "description": "en: EN: 朝霧先輩 → 'Asagiri-san' (wrong honorific)",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "honorific.policy:warning"
+     ]
+    },
+    {
+     "line": 186,
+     "id": "s6_012",
+     "category": "ruby",
+     "description": "ja: JA: full-width bar in ruby",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 187,
+     "id": "s6_013",
+     "category": "avoid-word",
+     "description": "en: 源之助: 'dude'",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "voice.avoid:warning"
+     ]
+    },
+    {
+     "line": 188,
+     "id": "s6_014",
+     "category": "speaker",
+     "description": "speaker: speaker 黒羽 → 黒羽雫 (full name)",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "name.speaker-label:warning"
+     ]
+    },
+    {
+     "line": 189,
+     "id": "s6_015",
+     "category": "term",
+     "description": "en: 書記: unlisted 'clerk'",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "term.missing:warning"
+     ]
+    },
+    {
+     "line": 191,
+     "id": "s6_017",
+     "category": "term",
+     "description": "en: 理事会: unlisted 'board of trustees' (contains allowed 'board' — expected gap)",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 196,
+     "id": "s6_022",
+     "category": "name",
+     "description": "ja: JA: 詩織 → 詩緒 (forbidden kanji)",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "name.forbidden:error"
+     ]
+    },
+    {
+     "line": 199,
+     "id": "s6_025",
+     "category": "honorific",
+     "description": "en: EN: 鳴海先生 → 'Mr. Narumi' (localized under keep policy)",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "honorific.policy:warning",
+      "honorific.drift:info"
+     ]
+    },
+    {
+     "line": 208,
+     "id": "s7_001",
+     "category": "term",
+     "description": "en: クロノグラフ: unlisted 'Chronometer'",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "term.missing:warning"
+     ]
+    },
+    {
+     "line": 212,
+     "id": "s7_005",
+     "category": "speaker",
+     "description": "speaker: speaker 源之助 → 源之介 (wrong kanji)",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "name.speaker-unknown:warning"
+     ]
+    },
+    {
+     "line": 217,
+     "id": "s7_009",
+     "category": "name",
+     "description": "en: EN: Shiori → Shiory (forbidden)",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "name.forbidden:error"
+     ]
+    },
+    {
+     "line": 219,
+     "id": "s7_011",
+     "category": "avoid-word",
+     "description": "en: 詩織: 'yeah' / 'okay'",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "voice.avoid:warning"
+     ]
+    },
+    {
+     "line": 233,
+     "id": "s9_008",
+     "category": "placeholder",
+     "description": "en: EN: %s → %d",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "placeholder.mismatch:error"
+     ]
+    },
+    {
+     "line": 234,
+     "id": "s9_009",
+     "category": "length",
+     "description": "en: EN over max_length 16",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "length.limit:error"
+     ]
+    },
+    {
+     "line": 236,
+     "id": "s9_011",
+     "category": "untranslated",
+     "description": "en: EN = JA source (untranslated UI)",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 238,
+     "id": "s9_013",
+     "category": "length",
+     "description": "en: EN over max_length 20",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "notation.katakana:warning",
+      "length.limit:error"
+     ]
+    },
+    {
+     "line": 242,
+     "id": "s9_017",
+     "category": "katakana",
+     "description": "en: EN: Loupe → Lupe (forbidden)",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "term.forbidden:error"
+     ]
+    }
+   ]
+  },
+  "A": {
+   "description": "--no-glossary",
+   "cleanFindings": {
+    "total": 5,
+    "ci": 0,
+    "list": [
+     "124 s4_016 voice.first-person:info",
+     "122 s4_014 voice.first-person:info",
+     "213 s7_005b voice.first-person:info",
+     "27 s1_025 voice.first-person:info",
+     "121 s4_013 voice.first-person:info"
+    ]
+   },
+   "recall": {
+    "injected": 78,
+    "found": 17,
+    "recall": 0.218,
+    "foundCi": 13,
+    "recallCi": 0.167,
+    "lineOnly": 0,
+    "byCategory": {
+     "ruby": {
+      "injected": 3,
+      "found": 0,
+      "foundCi": 0,
+      "lineOnly": 0,
+      "missed": [
+       "11 s1_009 ja: JA: ruby not closed",
+       "63 s2_030 ja: JA: empty ruby reading",
+       "186 s6_012 ja: JA: full-width bar in ruby"
+      ],
+      "recall": 0,
+      "recallCi": 0
+     },
+     "term": {
+      "injected": 10,
+      "found": 0,
+      "foundCi": 0,
+      "lineOnly": 0,
+      "missed": [
+       "12 s1_010 en: ミステリー研究会: forbidden 'Mystery Club'",
+       "37 s2_004 en: 予告状: forbidden 'notice letter'",
+       "38 s2_005 en: 文化祭: forbidden 'culture festival'",
+       "69 s3_002 en: 旧校舎: forbidden 'old school building'",
+       "104 s3_037 en: 時計塔: forbidden 'bell tower'",
+       "109 s4_001 en: 部室: forbidden spelling 'club room'",
+       "159 s5_018 en: 怪盗クロウ: forbidden 'Phantom Crow'",
+       "189 s6_015 en: 書記: unlisted 'clerk'",
+       "191 s6_017 en: 理事会: unlisted 'board of trustees' (contains allowed 'board' — expected gap)",
+       "208 s7_001 en: クロノグラフ: unlisted 'Chronometer'"
+      ],
+      "recall": 0,
+      "recallCi": 0
+     },
+     "politeness": {
+      "injected": 5,
+      "found": 0,
+      "foundCi": 0,
+      "lineOnly": 0,
+      "missed": [
+       "13 s1_011 ja: 湊 (plain) → polite to a junior",
+       "40 s2_007 ja: 詩織 (polite) → plain",
+       "91 s3_024 ja: 黒羽 (polite) → plain",
+       "95 s3_028 ja: 奏 (plain, Kansai) → standard polite",
+       "126 s4_018 ja: 詩織 (polite) → plain"
+      ],
+      "recall": 0,
+      "recallCi": 0
+     },
+     "honorific": {
+      "injected": 9,
+      "found": 0,
+      "foundCi": 0,
+      "lineOnly": 0,
+      "missed": [
+       "14 s1_012 en: EN: 湊先輩 → 'Minato' (honorific dropped under keep policy)",
+       "42 s2_009 en: EN: 詩織殿 → 'Lady Shiori' (localized under keep policy)",
+       "44 s2_011 en: EN: -senpai → -sempai (romanization drift)",
+       "46 s2_013 en: EN: 朝霧さん → 'Mr. Asagiri' (localized under keep policy)",
+       "59 s2_026 en: EN: 朝霧くん → 'Asagiri' (honorific dropped)",
+       "137 s4_029 en: EN: 'Minato-senpai' → 'Senpai' (name dropped)",
+       "162 s5_021 ja: JA: 湊先輩 → 湊さん (source honorific changed; EN still -senpai)",
+       "185 s6_011 en: EN: 朝霧先輩 → 'Asagiri-san' (wrong honorific)",
+       "199 s6_025 en: EN: 鳴海先生 → 'Mr. Narumi' (localized under keep policy)"
+      ],
+      "recall": 0,
+      "recallCi": 0
+     },
+     "pronoun": {
+      "injected": 7,
+      "found": 4,
+      "foundCi": 0,
+      "lineOnly": 0,
+      "missed": [
+       "17 s1_015 ja: 奏: うち → あたし",
+       "127 s4_019 ja: 黒羽: 私 → あたし",
+       "136 s4_028 ja: 小春: あたし → 私"
+      ],
+      "recall": 0.571,
+      "recallCi": 0
+     },
+     "placeholder": {
+      "injected": 5,
+      "found": 5,
+      "foundCi": 5,
+      "lineOnly": 0,
+      "missed": [],
+      "recall": 1,
+      "recallCi": 1
+     },
+     "name": {
+      "injected": 9,
+      "found": 0,
+      "foundCi": 0,
+      "lineOnly": 0,
+      "missed": [
+       "18 s1_016 en: EN: Miyaji → Miyagi (surname alias misspelled)",
+       "74 s3_007 en: EN: Koharu → Koharo",
+       "116 s4_008 en: EN: Shirasagi → Shirasaki (surname alias misspelled)",
+       "135 s4_027 ja: JA: 湊 → 港 (same reading, forbidden kanji)",
+       "149 s5_008 en: EN: Gennosuke → Gennousuke (forbidden)",
+       "183 s6_009 en: EN: Kuroha → Kuroba",
+       "184 s6_010 ja: JA: 黒羽 → 黒葉 (same reading, forbidden kanji)",
+       "196 s6_022 ja: JA: 詩織 → 詩緒 (forbidden kanji)",
+       "217 s7_009 en: EN: Shiori → Shiory (forbidden)"
+      ],
+      "recall": 0,
+      "recallCi": 0
+     },
+     "contraction": {
+      "injected": 4,
+      "found": 0,
+      "foundCi": 0,
+      "lineOnly": 0,
+      "missed": [
+       "22 s1_020 en: 源之助: I'm",
+       "41 s2_008 en: 詩織: it's / can't",
+       "118 s4_010 en: 詩織: there's / I've",
+       "167 s5_026 en: 源之助: won't / I'm"
+      ],
+      "recall": 0,
+      "recallCi": 0
+     },
+     "speaker": {
+      "injected": 6,
+      "found": 0,
+      "foundCi": 0,
+      "lineOnly": 0,
+      "missed": [
+       "48 s2_015 speaker: speaker 湊 → 朝霧 (surname alias instead of the label used elsewhere)",
+       "102 s3_035 speaker: speaker 奏 → 宮地奏 (full name)",
+       "119 s4_011 speaker: speaker 詩織 → しおり (hiragana)",
+       "150 s5_009 speaker: speaker 奏 → 奏(二年) (annotation in label)",
+       "188 s6_014 speaker: speaker 黒羽 → 黒羽雫 (full name)",
+       "212 s7_005 speaker: speaker 源之助 → 源之介 (wrong kanji)"
+      ],
+      "recall": 0,
+      "recallCi": 0
+     },
+     "length": {
+      "injected": 3,
+      "found": 3,
+      "foundCi": 3,
+      "lineOnly": 0,
+      "missed": [],
+      "recall": 1,
+      "recallCi": 1
+     },
+     "katakana": {
+      "injected": 9,
+      "found": 4,
+      "foundCi": 4,
+      "lineOnly": 0,
+      "missed": [
+       "76 s3_009 en: EN: Chronograph → misspelled transliteration [chose 'Cronograph']",
+       "80 s3_013 ja: JA: ルーペ → ルーぺ (hiragana ぺ mixed into katakana)",
+       "84 s3_017 ja: JA: フィルムカメラ → フイルムカメラ (small-kana variant)",
+       "93 s3_026 en: EN: keycard → 'key card' (unlisted spacing variant)",
+       "242 s9_017 en: EN: Loupe → Lupe (forbidden)"
+      ],
+      "recall": 0.444,
+      "recallCi": 0.444
+     },
+     "copy": {
+      "injected": 2,
+      "found": 0,
+      "foundCi": 0,
+      "lineOnly": 0,
+      "missed": [
+       "86 s3_019 en: EN copied from s3_018",
+       "171 s5_030 en: EN copied from s5_029 ('Bong...')"
+      ],
+      "recall": 0,
+      "recallCi": 0
+     },
+     "untranslated": {
+      "injected": 3,
+      "found": 1,
+      "foundCi": 1,
+      "lineOnly": 0,
+      "missed": [
+       "98 s3_031 en: EN = JA source (untranslated)",
+       "236 s9_011 en: EN = JA source (untranslated UI)"
+      ],
+      "recall": 0.333,
+      "recallCi": 0.333
+     },
+     "avoid-word": {
+      "injected": 3,
+      "found": 0,
+      "foundCi": 0,
+      "lineOnly": 0,
+      "missed": [
+       "115 s4_007 en: 詩織: 'guys'",
+       "187 s6_013 en: 源之助: 'dude'",
+       "219 s7_011 en: 詩織: 'yeah' / 'okay'"
+      ],
+      "recall": 0,
+      "recallCi": 0
+     }
+    }
+   },
+   "precision": {
+    "all": {
+     "findings": 19,
+     "tp": 18,
+     "fp": 1,
+     "unjudged": 0,
+     "precision": 0.947
+    },
+    "ci": {
+     "findings": 14,
+     "tp": 14,
+     "fp": 0,
+     "unjudged": 0,
+     "precision": 1
+    },
+    "byRule": {
+     "notation.katakana": {
+      "n": 5,
+      "TP": 5,
+      "FP": 0,
+      "unjudged": 0
+     },
+     "voice.first-person": {
+      "n": 5,
+      "TP": 4,
+      "FP": 1,
+      "unjudged": 0
+     },
+     "placeholder.mismatch": {
+      "n": 5,
+      "TP": 5,
+      "FP": 0,
+      "unjudged": 0
+     },
+     "length.limit": {
+      "n": 3,
+      "TP": 3,
+      "FP": 0,
+      "unjudged": 0
+     },
+     "untranslated.empty": {
+      "n": 1,
+      "TP": 1,
+      "FP": 0,
+      "unjudged": 0
+     }
+    }
+   },
+   "tricky": {
+    "lines": 18,
+    "flagged": 1,
+    "flaggedCi": 0,
+    "detail": [
+     {
+      "line": 19,
+      "id": "s1_017",
+      "category": "tricky:nickname",
+      "flagged": false,
+      "flaggedCi": false,
+      "rules": [],
+      "description": "奏 calls 小春 'こはるん' → 'Koharun' (nickname listed as alias)"
+     },
+     {
+      "line": 23,
+      "id": "s1_021",
+      "category": "tricky:nickname",
+      "flagged": false,
+      "flaggedCi": false,
+      "rules": [],
+      "description": "奏 calls 源之助 'ゲンちゃん' → 'Gen-chan' (nickname)"
+     },
+     {
+      "line": 27,
+      "id": "s1_025",
+      "category": "tricky:uchi-our",
+      "flagged": true,
+      "flaggedCi": false,
+      "rules": [
+       "voice.first-person:info"
+      ],
+      "description": "湊 says 'うちの部' = 'our club' (not a first-person pronoun)"
+     },
+     {
+      "line": 58,
+      "id": "s2_025",
+      "category": "tricky:title",
+      "flagged": false,
+      "flaggedCi": false,
+      "rules": [],
+      "description": "校長先生 → 'the principal' (a title, not name+honorific; keep policy does not apply)"
+     },
+     {
+      "line": 60,
+      "id": "s2_027",
+      "category": "tricky:register",
+      "flagged": false,
+      "flaggedCi": false,
+      "rules": [],
+      "description": "湊 (plain) speaks polite to a teacher: 'わかってますよ、先生' — natural register shift"
+     },
+     {
+      "line": 72,
+      "id": "s3_005",
+      "category": "tricky:dialect",
+      "flagged": false,
+      "flaggedCi": false,
+      "rules": [],
+      "description": "奏 (Kansai) EN uses 'gonna' / 'y'know' — allowed for her (avoid-list belongs to other characters)"
+     },
+     {
+      "line": 107,
+      "id": "s3_040",
+      "category": "tricky:generic-term",
+      "flagged": false,
+      "flaggedCi": false,
+      "rules": [],
+      "description": "'chronograph' used generically for a wristwatch, lower-case, next to the proper 'the Chronograph'"
+     },
+     {
+      "line": 121,
+      "id": "s4_013",
+      "category": "tricky:quote",
+      "flagged": false,
+      "flaggedCi": false,
+      "rules": [],
+      "description": "黒羽 quotes Crow's card 『僕は約束を守る』 — 僕 is inside a quotation"
+     },
+     {
+      "line": 122,
+      "id": "s4_014",
+      "category": "tricky:quote",
+      "flagged": false,
+      "flaggedCi": false,
+      "rules": [],
+      "description": "小春 quotes 『僕』 — meta-mention of the pronoun"
+     },
+     {
+      "line": 124,
+      "id": "s4_016",
+      "category": "tricky:quote",
+      "flagged": false,
+      "flaggedCi": false,
+      "rules": [],
+      "description": "奏 mentions 『俺』 — meta-mention of the pronoun"
+     },
+     {
+      "line": 146,
+      "id": "s5_005b",
+      "category": "tricky:compound-term",
+      "flagged": false,
+      "flaggedCi": false,
+      "rules": [],
+      "description": "部室棟 (club building) contains 部室 but is a different word; 'clubroom' is correctly absent"
+     },
+     {
+      "line": 195,
+      "id": "s6_021",
+      "category": "tricky:marked-register-break",
+      "flagged": false,
+      "flaggedCi": false,
+      "rules": [],
+      "description": "詩織's polite speech intentionally breaks (scene marks it in s6_022); EN keeps no contractions"
+     },
+     {
+      "line": 203,
+      "id": "s6_029",
+      "category": "tricky:marked-honorific-drop",
+      "flagged": false,
+      "flaggedCi": false,
+      "rules": [],
+      "description": "小春 calls 湊 without 先輩, marked by narration s6_030; EN 'Minato!' matches"
+     },
+     {
+      "line": 207,
+      "id": "s6_033",
+      "category": "tricky:identical",
+      "flagged": false,
+      "flaggedCi": false,
+      "rules": [],
+      "description": "'Q.E.D.' identical in JA and EN — intentional"
+     },
+     {
+      "line": 213,
+      "id": "s7_005b",
+      "category": "tricky:quote",
+      "flagged": false,
+      "flaggedCi": false,
+      "rules": [],
+      "description": "小春 quotes 源之助's line 『拙者が…』 — 拙者 inside a quotation"
+     },
+     {
+      "line": 216,
+      "id": "s7_008",
+      "category": "tricky:marked-honorific-shift",
+      "flagged": false,
+      "flaggedCi": false,
+      "rules": [],
+      "description": "詩織 slips to 湊さん then corrects to 朝霧さん; marked by narration s7_009; EN mirrors it"
+     },
+     {
+      "line": 231,
+      "id": "s9_006",
+      "category": "tricky:placeholder-order",
+      "flagged": false,
+      "flaggedCi": false,
+      "rules": [],
+      "description": "{1}個の{0} → 'Obtained {0} ×{1}' — reordered, same placeholder set"
+     },
+     {
+      "line": 237,
+      "id": "s9_012",
+      "category": "tricky:length-boundary",
+      "flagged": false,
+      "flaggedCi": false,
+      "rules": [],
+      "description": "'Return to Title' is exactly max_length 15"
+     }
+    ]
+   },
+   "unmatched": [],
+   "perTruth": [
+    {
+     "line": 11,
+     "id": "s1_009",
+     "category": "ruby",
+     "description": "ja: JA: ruby not closed",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 12,
+     "id": "s1_010",
+     "category": "term",
+     "description": "en: ミステリー研究会: forbidden 'Mystery Club'",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 13,
+     "id": "s1_011",
+     "category": "politeness",
+     "description": "ja: 湊 (plain) → polite to a junior",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 14,
+     "id": "s1_012",
+     "category": "honorific",
+     "description": "en: EN: 湊先輩 → 'Minato' (honorific dropped under keep policy)",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 15,
+     "id": "s1_013",
+     "category": "pronoun",
+     "description": "ja: 湊: 俺 → 僕",
+     "found": true,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": [
+      "voice.first-person:info"
+     ]
+    },
+    {
+     "line": 16,
+     "id": "s1_014",
+     "category": "placeholder",
+     "description": "en: EN: [PLAYER] dropped",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "placeholder.mismatch:error"
+     ]
+    },
+    {
+     "line": 17,
+     "id": "s1_015",
+     "category": "pronoun",
+     "description": "ja: 奏: うち → あたし",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 18,
+     "id": "s1_016",
+     "category": "name",
+     "description": "en: EN: Miyaji → Miyagi (surname alias misspelled)",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 22,
+     "id": "s1_020",
+     "category": "contraction",
+     "description": "en: 源之助: I'm",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 31,
+     "id": "s1_029",
+     "category": "pronoun",
+     "description": "ja: 詩織: わたくし → わたし",
+     "found": true,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": [
+      "voice.first-person:info"
+     ]
+    },
+    {
+     "line": 37,
+     "id": "s2_004",
+     "category": "term",
+     "description": "en: 予告状: forbidden 'notice letter'",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 38,
+     "id": "s2_005",
+     "category": "term",
+     "description": "en: 文化祭: forbidden 'culture festival'",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 40,
+     "id": "s2_007",
+     "category": "politeness",
+     "description": "ja: 詩織 (polite) → plain",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 41,
+     "id": "s2_008",
+     "category": "contraction",
+     "description": "en: 詩織: it's / can't",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 42,
+     "id": "s2_009",
+     "category": "honorific",
+     "description": "en: EN: 詩織殿 → 'Lady Shiori' (localized under keep policy)",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 44,
+     "id": "s2_011",
+     "category": "honorific",
+     "description": "en: EN: -senpai → -sempai (romanization drift)",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 46,
+     "id": "s2_013",
+     "category": "honorific",
+     "description": "en: EN: 朝霧さん → 'Mr. Asagiri' (localized under keep policy)",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 48,
+     "id": "s2_015",
+     "category": "speaker",
+     "description": "speaker: speaker 湊 → 朝霧 (surname alias instead of the label used elsewhere)",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 50,
+     "id": "s2_017",
+     "category": "length",
+     "description": "en: EN over max_length 40",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "length.limit:error"
+     ]
+    },
+    {
+     "line": 57,
+     "id": "s2_024",
+     "category": "pronoun",
+     "description": "ja: 鳴海: 僕 → 俺",
+     "found": true,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": [
+      "voice.first-person:info"
+     ]
+    },
+    {
+     "line": 59,
+     "id": "s2_026",
+     "category": "honorific",
+     "description": "en: EN: 朝霧くん → 'Asagiri' (honorific dropped)",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 63,
+     "id": "s2_030",
+     "category": "ruby",
+     "description": "ja: JA: empty ruby reading",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 69,
+     "id": "s3_002",
+     "category": "term",
+     "description": "en: 旧校舎: forbidden 'old school building'",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 73,
+     "id": "s3_006",
+     "category": "pronoun",
+     "description": "ja: 源之助: 拙者 → 俺",
+     "found": true,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": [
+      "voice.first-person:info"
+     ]
+    },
+    {
+     "line": 74,
+     "id": "s3_007",
+     "category": "name",
+     "description": "en: EN: Koharu → Koharo",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 76,
+     "id": "s3_009",
+     "category": "katakana",
+     "description": "en: EN: Chronograph → misspelled transliteration [chose 'Cronograph']",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 77,
+     "id": "s3_010",
+     "category": "katakana",
+     "description": "ja: JA: クロノグラフ → クロノ・グラフ (middle dot)",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "notation.katakana:warning"
+     ]
+    },
+    {
+     "line": 80,
+     "id": "s3_013",
+     "category": "katakana",
+     "description": "ja: JA: ルーペ → ルーぺ (hiragana ぺ mixed into katakana)",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 84,
+     "id": "s3_017",
+     "category": "katakana",
+     "description": "ja: JA: フィルムカメラ → フイルムカメラ (small-kana variant)",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 86,
+     "id": "s3_019",
+     "category": "copy",
+     "description": "en: EN copied from s3_018",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 87,
+     "id": "s3_020",
+     "category": "placeholder",
+     "description": "en: EN: {0} dropped",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "placeholder.mismatch:error"
+     ]
+    },
+    {
+     "line": 89,
+     "id": "s3_022",
+     "category": "katakana",
+     "description": "ja: JA: サーバールーム → サーバルーム (long vowel dropped)",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "notation.katakana:warning"
+     ]
+    },
+    {
+     "line": 91,
+     "id": "s3_024",
+     "category": "politeness",
+     "description": "ja: 黒羽 (polite) → plain",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 92,
+     "id": "s3_025",
+     "category": "katakana",
+     "description": "ja: JA: カードキー → カード・キー (middle dot)",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "notation.katakana:warning"
+     ]
+    },
+    {
+     "line": 93,
+     "id": "s3_026",
+     "category": "katakana",
+     "description": "en: EN: keycard → 'key card' (unlisted spacing variant)",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 95,
+     "id": "s3_028",
+     "category": "politeness",
+     "description": "ja: 奏 (plain, Kansai) → standard polite",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 98,
+     "id": "s3_031",
+     "category": "untranslated",
+     "description": "en: EN = JA source (untranslated)",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 102,
+     "id": "s3_035",
+     "category": "speaker",
+     "description": "speaker: speaker 奏 → 宮地奏 (full name)",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 104,
+     "id": "s3_037",
+     "category": "term",
+     "description": "en: 時計塔: forbidden 'bell tower'",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 108,
+     "id": "s3_041",
+     "category": "placeholder",
+     "description": "en: EN: [PLAYER] → [Player] (case)",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "placeholder.mismatch:error"
+     ]
+    },
+    {
+     "line": 109,
+     "id": "s4_001",
+     "category": "term",
+     "description": "en: 部室: forbidden spelling 'club room'",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 115,
+     "id": "s4_007",
+     "category": "avoid-word",
+     "description": "en: 詩織: 'guys'",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 116,
+     "id": "s4_008",
+     "category": "name",
+     "description": "en: EN: Shirasagi → Shirasaki (surname alias misspelled)",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 118,
+     "id": "s4_010",
+     "category": "contraction",
+     "description": "en: 詩織: there's / I've",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 119,
+     "id": "s4_011",
+     "category": "speaker",
+     "description": "speaker: speaker 詩織 → しおり (hiragana)",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 126,
+     "id": "s4_018",
+     "category": "politeness",
+     "description": "ja: 詩織 (polite) → plain",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 127,
+     "id": "s4_019",
+     "category": "pronoun",
+     "description": "ja: 黒羽: 私 → あたし",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 130,
+     "id": "s4_022",
+     "category": "placeholder",
+     "description": "en: EN: {0} → {1}",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "placeholder.mismatch:error"
+     ]
+    },
+    {
+     "line": 135,
+     "id": "s4_027",
+     "category": "name",
+     "description": "ja: JA: 湊 → 港 (same reading, forbidden kanji)",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 136,
+     "id": "s4_028",
+     "category": "pronoun",
+     "description": "ja: 小春: あたし → 私",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 137,
+     "id": "s4_029",
+     "category": "honorific",
+     "description": "en: EN: 'Minato-senpai' → 'Senpai' (name dropped)",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 149,
+     "id": "s5_008",
+     "category": "name",
+     "description": "en: EN: Gennosuke → Gennousuke (forbidden)",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 150,
+     "id": "s5_009",
+     "category": "speaker",
+     "description": "speaker: speaker 奏 → 奏(二年) (annotation in label)",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 158,
+     "id": "s5_017",
+     "category": "katakana",
+     "description": "ja: JA: ステンドグラス → ステインドグラス",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "notation.katakana:warning"
+     ]
+    },
+    {
+     "line": 159,
+     "id": "s5_018",
+     "category": "term",
+     "description": "en: 怪盗クロウ: forbidden 'Phantom Crow'",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 162,
+     "id": "s5_021",
+     "category": "honorific",
+     "description": "ja: JA: 湊先輩 → 湊さん (source honorific changed; EN still -senpai)",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 167,
+     "id": "s5_026",
+     "category": "contraction",
+     "description": "en: 源之助: won't / I'm",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 171,
+     "id": "s5_030",
+     "category": "copy",
+     "description": "en: EN copied from s5_029 ('Bong...')",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 173,
+     "id": "s5_032",
+     "category": "untranslated",
+     "description": "en: EN empty",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "untranslated.empty:warning"
+     ]
+    },
+    {
+     "line": 183,
+     "id": "s6_009",
+     "category": "name",
+     "description": "en: EN: Kuroha → Kuroba",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 184,
+     "id": "s6_010",
+     "category": "name",
+     "description": "ja: JA: 黒羽 → 黒葉 (same reading, forbidden kanji)",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 185,
+     "id": "s6_011",
+     "category": "honorific",
+     "description": "en: EN: 朝霧先輩 → 'Asagiri-san' (wrong honorific)",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 186,
+     "id": "s6_012",
+     "category": "ruby",
+     "description": "ja: JA: full-width bar in ruby",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 187,
+     "id": "s6_013",
+     "category": "avoid-word",
+     "description": "en: 源之助: 'dude'",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 188,
+     "id": "s6_014",
+     "category": "speaker",
+     "description": "speaker: speaker 黒羽 → 黒羽雫 (full name)",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 189,
+     "id": "s6_015",
+     "category": "term",
+     "description": "en: 書記: unlisted 'clerk'",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 191,
+     "id": "s6_017",
+     "category": "term",
+     "description": "en: 理事会: unlisted 'board of trustees' (contains allowed 'board' — expected gap)",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 196,
+     "id": "s6_022",
+     "category": "name",
+     "description": "ja: JA: 詩織 → 詩緒 (forbidden kanji)",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 199,
+     "id": "s6_025",
+     "category": "honorific",
+     "description": "en: EN: 鳴海先生 → 'Mr. Narumi' (localized under keep policy)",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 208,
+     "id": "s7_001",
+     "category": "term",
+     "description": "en: クロノグラフ: unlisted 'Chronometer'",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 212,
+     "id": "s7_005",
+     "category": "speaker",
+     "description": "speaker: speaker 源之助 → 源之介 (wrong kanji)",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 217,
+     "id": "s7_009",
+     "category": "name",
+     "description": "en: EN: Shiori → Shiory (forbidden)",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 219,
+     "id": "s7_011",
+     "category": "avoid-word",
+     "description": "en: 詩織: 'yeah' / 'okay'",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 233,
+     "id": "s9_008",
+     "category": "placeholder",
+     "description": "en: EN: %s → %d",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "placeholder.mismatch:error"
+     ]
+    },
+    {
+     "line": 234,
+     "id": "s9_009",
+     "category": "length",
+     "description": "en: EN over max_length 16",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "length.limit:error"
+     ]
+    },
+    {
+     "line": 236,
+     "id": "s9_011",
+     "category": "untranslated",
+     "description": "en: EN = JA source (untranslated UI)",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    },
+    {
+     "line": 238,
+     "id": "s9_013",
+     "category": "length",
+     "description": "en: EN over max_length 20",
+     "found": true,
+     "foundCi": true,
+     "lineOnly": false,
+     "rules": [
+      "notation.katakana:warning",
+      "length.limit:error"
+     ]
+    },
+    {
+     "line": 242,
+     "id": "s9_017",
+     "category": "katakana",
+     "description": "en: EN: Loupe → Lupe (forbidden)",
+     "found": false,
+     "foundCi": false,
+     "lineOnly": false,
+     "rules": []
+    }
+   ]
+  }
+ }
+}

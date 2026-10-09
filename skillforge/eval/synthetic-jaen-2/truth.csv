@@ -1,0 +1,97 @@
+line,id,category,expected,description
+11,s1_009,ruby,flag,ja: JA: ruby not closed
+12,s1_010,term,flag,en: ミステリー研究会: forbidden 'Mystery Club'
+13,s1_011,politeness,flag,ja: 湊 (plain) → polite to a junior
+14,s1_012,honorific,flag,en: EN: 湊先輩 → 'Minato' (honorific dropped under keep policy)
+15,s1_013,pronoun,flag,ja: 湊: 俺 → 僕
+16,s1_014,placeholder,flag,en: EN: [PLAYER] dropped
+17,s1_015,pronoun,flag,ja: 奏: うち → あたし
+18,s1_016,name,flag,en: EN: Miyaji → Miyagi (surname alias misspelled)
+19,s1_017,tricky:nickname,none,奏 calls 小春 'こはるん' → 'Koharun' (nickname listed as alias)
+22,s1_020,contraction,flag,en: 源之助: I'm
+23,s1_021,tricky:nickname,none,奏 calls 源之助 'ゲンちゃん' → 'Gen-chan' (nickname)
+27,s1_025,tricky:uchi-our,none,湊 says 'うちの部' = 'our club' (not a first-person pronoun)
+31,s1_029,pronoun,flag,ja: 詩織: わたくし → わたし
+37,s2_004,term,flag,en: 予告状: forbidden 'notice letter'
+38,s2_005,term,flag,en: 文化祭: forbidden 'culture festival'
+40,s2_007,politeness,flag,ja: 詩織 (polite) → plain
+41,s2_008,contraction,flag,en: 詩織: it's / can't
+42,s2_009,honorific,flag,en: EN: 詩織殿 → 'Lady Shiori' (localized under keep policy)
+44,s2_011,honorific,flag,en: EN: -senpai → -sempai (romanization drift)
+46,s2_013,honorific,flag,en: EN: 朝霧さん → 'Mr. Asagiri' (localized under keep policy)
+48,s2_015,speaker,flag,speaker: speaker 湊 → 朝霧 (surname alias instead of the label used elsewhere)
+50,s2_017,length,flag,en: EN over max_length 40
+57,s2_024,pronoun,flag,ja: 鳴海: 僕 → 俺
+58,s2_025,tricky:title,none,"校長先生 → 'the principal' (a title, not name+honorific; keep policy does not apply)"
+59,s2_026,honorific,flag,en: EN: 朝霧くん → 'Asagiri' (honorific dropped)
+60,s2_027,tricky:register,none,湊 (plain) speaks polite to a teacher: 'わかってますよ、先生' — natural register shift
+63,s2_030,ruby,flag,ja: JA: empty ruby reading
+69,s3_002,term,flag,en: 旧校舎: forbidden 'old school building'
+72,s3_005,tricky:dialect,none,奏 (Kansai) EN uses 'gonna' / 'y'know' — allowed for her (avoid-list belongs to other characters)
+73,s3_006,pronoun,flag,ja: 源之助: 拙者 → 俺
+74,s3_007,name,flag,en: EN: Koharu → Koharo
+76,s3_009,katakana,flag,en: EN: Chronograph → misspelled transliteration [chose 'Cronograph']
+77,s3_010,katakana,flag,ja: JA: クロノグラフ → クロノ・グラフ (middle dot)
+80,s3_013,katakana,flag,ja: JA: ルーペ → ルーぺ (hiragana ぺ mixed into katakana)
+84,s3_017,katakana,flag,ja: JA: フィルムカメラ → フイルムカメラ (small-kana variant)
+86,s3_019,copy,flag,en: EN copied from s3_018
+87,s3_020,placeholder,flag,en: EN: {0} dropped
+89,s3_022,katakana,flag,ja: JA: サーバールーム → サーバルーム (long vowel dropped)
+91,s3_024,politeness,flag,ja: 黒羽 (polite) → plain
+92,s3_025,katakana,flag,ja: JA: カードキー → カード・キー (middle dot)
+93,s3_026,katakana,flag,en: EN: keycard → 'key card' (unlisted spacing variant)
+95,s3_028,politeness,flag,"ja: 奏 (plain, Kansai) → standard polite"
+98,s3_031,untranslated,flag,en: EN = JA source (untranslated)
+102,s3_035,speaker,flag,speaker: speaker 奏 → 宮地奏 (full name)
+104,s3_037,term,flag,en: 時計塔: forbidden 'bell tower'
+107,s3_040,tricky:generic-term,none,"'chronograph' used generically for a wristwatch, lower-case, next to the proper 'the Chronograph'"
+108,s3_041,placeholder,flag,en: EN: [PLAYER] → [Player] (case)
+109,s4_001,term,flag,en: 部室: forbidden spelling 'club room'
+115,s4_007,avoid-word,flag,en: 詩織: 'guys'
+116,s4_008,name,flag,en: EN: Shirasagi → Shirasaki (surname alias misspelled)
+118,s4_010,contraction,flag,en: 詩織: there's / I've
+119,s4_011,speaker,flag,speaker: speaker 詩織 → しおり (hiragana)
+121,s4_013,tricky:quote,none,黒羽 quotes Crow's card 『僕は約束を守る』 — 僕 is inside a quotation
+122,s4_014,tricky:quote,none,小春 quotes 『僕』 — meta-mention of the pronoun
+124,s4_016,tricky:quote,none,奏 mentions 『俺』 — meta-mention of the pronoun
+126,s4_018,politeness,flag,ja: 詩織 (polite) → plain
+127,s4_019,pronoun,flag,ja: 黒羽: 私 → あたし
+130,s4_022,placeholder,flag,en: EN: {0} → {1}
+135,s4_027,name,flag,"ja: JA: 湊 → 港 (same reading, forbidden kanji)"
+136,s4_028,pronoun,flag,ja: 小春: あたし → 私
+137,s4_029,honorific,flag,en: EN: 'Minato-senpai' → 'Senpai' (name dropped)
+146,s5_005b,tricky:compound-term,none,部室棟 (club building) contains 部室 but is a different word; 'clubroom' is correctly absent
+149,s5_008,name,flag,en: EN: Gennosuke → Gennousuke (forbidden)
+150,s5_009,speaker,flag,speaker: speaker 奏 → 奏(二年) (annotation in label)
+158,s5_017,katakana,flag,ja: JA: ステンドグラス → ステインドグラス
+159,s5_018,term,flag,en: 怪盗クロウ: forbidden 'Phantom Crow'
+162,s5_021,honorific,flag,ja: JA: 湊先輩 → 湊さん (source honorific changed; EN still -senpai)
+167,s5_026,contraction,flag,en: 源之助: won't / I'm
+171,s5_030,copy,flag,en: EN copied from s5_029 ('Bong...')
+173,s5_032,untranslated,flag,en: EN empty
+183,s6_009,name,flag,en: EN: Kuroha → Kuroba
+184,s6_010,name,flag,"ja: JA: 黒羽 → 黒葉 (same reading, forbidden kanji)"
+185,s6_011,honorific,flag,en: EN: 朝霧先輩 → 'Asagiri-san' (wrong honorific)
+186,s6_012,ruby,flag,ja: JA: full-width bar in ruby
+187,s6_013,avoid-word,flag,en: 源之助: 'dude'
+188,s6_014,speaker,flag,speaker: speaker 黒羽 → 黒羽雫 (full name)
+189,s6_015,term,flag,en: 書記: unlisted 'clerk'
+191,s6_017,term,flag,en: 理事会: unlisted 'board of trustees' (contains allowed 'board' — expected gap)
+195,s6_021,tricky:marked-register-break,none,詩織's polite speech intentionally breaks (scene marks it in s6_022); EN keeps no contractions
+196,s6_022,name,flag,ja: JA: 詩織 → 詩緒 (forbidden kanji)
+199,s6_025,honorific,flag,en: EN: 鳴海先生 → 'Mr. Narumi' (localized under keep policy)
+203,s6_029,tricky:marked-honorific-drop,none,"小春 calls 湊 without 先輩, marked by narration s6_030; EN 'Minato!' matches"
+207,s6_033,tricky:identical,none,'Q.E.D.' identical in JA and EN — intentional
+208,s7_001,term,flag,en: クロノグラフ: unlisted 'Chronometer'
+212,s7_005,speaker,flag,speaker: speaker 源之助 → 源之介 (wrong kanji)
+213,s7_005b,tricky:quote,none,小春 quotes 源之助's line 『拙者が…』 — 拙者 inside a quotation
+216,s7_008,tricky:marked-honorific-shift,none,詩織 slips to 湊さん then corrects to 朝霧さん; marked by narration s7_009; EN mirrors it
+217,s7_009,name,flag,en: EN: Shiori → Shiory (forbidden)
+219,s7_011,avoid-word,flag,en: 詩織: 'yeah' / 'okay'
+231,s9_006,tricky:placeholder-order,none,"{1}個の{0} → 'Obtained {0} ×{1}' — reordered, same placeholder set"
+233,s9_008,placeholder,flag,en: EN: %s → %d
+234,s9_009,length,flag,en: EN over max_length 16
+236,s9_011,untranslated,flag,en: EN = JA source (untranslated UI)
+237,s9_012,tricky:length-boundary,none,'Return to Title' is exactly max_length 15
+238,s9_013,length,flag,en: EN over max_length 20
+242,s9_017,katakana,flag,en: EN: Loupe → Lupe (forbidden)

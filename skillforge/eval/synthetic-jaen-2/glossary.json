@@ -1,0 +1,92 @@
+{
+  "honorificPolicy": "keep",
+  "terms": [
+    { "source": "星見ヶ丘学園", "target": "Hoshimigaoka Academy", "forbidden": ["Hoshimigaoka High", "Starview Hill Academy"] },
+    { "source": "ミステリー研究会", "target": "Mystery Research Club", "forbidden": ["Mystery Club", "Mystery Society"] },
+    { "source": "生徒会", "target": "student council", "forbidden": ["student government"] },
+    { "source": "時計塔", "target": "clock tower", "forbidden": ["bell tower"] },
+    { "source": "怪盗クロウ", "target": "Phantom Thief Crow", "forbidden": ["Kaito Crow", "Phantom Crow"] },
+    { "source": "予告状", "target": "calling card", "forbidden": ["notice letter", "warning letter"] },
+    { "source": "旧校舎", "target": "Old Wing", "forbidden": ["old school building"] },
+    { "source": "文化祭", "target": "school festival", "forbidden": ["culture festival", "cultural festival"] },
+    { "source": "星見祭", "target": "Hoshimi Festival", "forbidden": ["Stargazing Festival"] },
+    { "source": "部室", "target": "clubroom", "forbidden": ["club room"] },
+    { "source": "クロノグラフ", "target": "Chronograph", "forbidden": ["Chronogram"] },
+    { "source": "カードキー", "target": "keycard", "forbidden": ["card key"] },
+    { "source": "サーバールーム", "target": "server room" },
+    { "source": "フィルムカメラ", "target": "film camera" },
+    { "source": "ルーペ", "target": "loupe", "forbidden": ["lupe"] },
+    { "source": "ステンドグラス", "target": "stained glass" },
+    { "source": "理事会", "target": "board of directors", "allowed": ["board"] },
+    { "source": "書記", "target": "secretary" },
+    { "source": "顧問", "target": "faculty advisor", "allowed": ["advisor"] }
+  ],
+  "characters": [
+    {
+      "id": "minato", "ja": "湊", "en": "Minato",
+      "aliases": { "ja": ["朝霧", "朝霧湊"], "en": ["Asagiri", "Minato Asagiri"] },
+      "forbidden": { "ja": ["港"] },
+      "voice": {
+        "ja": { "firstPerson": ["俺"], "politeness": "plain" },
+        "en": { "contractions": "any", "description": "Third-year, president of the Mystery Research Club. Laid-back, dry, blunt; sharp when deducing. Calls juniors by name without honorifics." }
+      }
+    },
+    {
+      "id": "shiori", "ja": "詩織", "en": "Shiori",
+      "aliases": { "ja": ["白鷺", "白鷺詩織"], "en": ["Shirasagi", "Shiori Shirasagi"] },
+      "forbidden": { "ja": ["詩緒"], "en": ["Shiory"] },
+      "voice": {
+        "ja": { "firstPerson": ["わたくし"], "politeness": "polite" },
+        "en": { "contractions": "never", "avoid": ["gonna", "wanna", "yeah", "okay", "guys", "kinda"], "description": "Second-year student council president from an old family. Formal and refined (ですわ); never slangy. Calls everyone with -san." }
+      }
+    },
+    {
+      "id": "koharu", "ja": "小春", "en": "Koharu",
+      "aliases": { "ja": ["犬飼", "犬飼小春", "こはるん"], "en": ["Inukai", "Koharu Inukai", "Koharun"] },
+      "voice": {
+        "ja": { "firstPerson": ["あたし"] },
+        "en": { "contractions": "any", "description": "First-year, energetic and earnest. Casual with a polite layer toward seniors (-senpai). Carries her grandmother's film camera." }
+      }
+    },
+    {
+      "id": "kanade", "ja": "奏", "en": "Kanade",
+      "aliases": { "ja": ["宮地", "宮地奏"], "en": ["Miyaji", "Kanade Miyaji"] },
+      "voice": {
+        "ja": { "firstPerson": ["うち"], "politeness": "plain" },
+        "en": { "contractions": "any", "description": "Second-year transfer from Osaka; speaks Kansai dialect. Rendered in English as breezy, colloquial speech (gonna, y'know are fine). Nicknames: Koharu → Koharun, Gennosuke → Gen-chan, Minato → the Prez." }
+      }
+    },
+    {
+      "id": "gennosuke", "ja": "源之助", "en": "Gennosuke",
+      "aliases": { "ja": ["古河", "古河源之助", "ゲン"], "en": ["Furukawa", "Gennosuke Furukawa", "Gen"] },
+      "forbidden": { "en": ["Gennousuke"] },
+      "voice": {
+        "ja": { "firstPerson": ["拙者"] },
+        "en": { "contractions": "never", "avoid": ["okay", "yeah", "dude", "gonna", "guys"], "description": "Second-year, kendo team; speaks in archaic samurai style (ござる). Stiff, courteous English with no contractions; 殿 kept as -dono." }
+      }
+    },
+    {
+      "id": "narumi", "ja": "鳴海", "en": "Narumi",
+      "voice": {
+        "ja": { "firstPerson": ["僕"] },
+        "en": { "contractions": "any", "description": "Faculty advisor of the club. Mild, easygoing teacher; addresses students with -kun/-san." }
+      }
+    },
+    {
+      "id": "kuroha", "ja": "黒羽", "en": "Kuroha",
+      "aliases": { "ja": ["黒羽雫"], "en": ["Shizuku Kuroha"] },
+      "forbidden": { "ja": ["黒葉"] },
+      "voice": {
+        "ja": { "firstPerson": ["私"], "politeness": "polite" },
+        "en": { "contractions": "any", "description": "First-year student council secretary; calm and polite. Calls Shiori 'President' (会長). Secretly Phantom Thief Crow." }
+      }
+    },
+    {
+      "id": "crow", "ja": "怪盗クロウ", "en": "Phantom Thief Crow",
+      "voice": {
+        "ja": { "firstPerson": ["僕"], "politeness": "plain" },
+        "en": { "contractions": "any", "description": "Kuroha's thief persona: theatrical, teasing, uses 僕 to disguise herself." }
+      }
+    }
+  ]
+}
