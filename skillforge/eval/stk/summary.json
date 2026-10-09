@@ -1,0 +1,64 @@
+{
+  "project": "stk",
+  "entries": 1255,
+  "configs": {
+    "A": {
+      "findings": 4,
+      "sampled": 4,
+      "sampling": "all findings (<=80)",
+      "tp": 3,
+      "fp": 1,
+      "unsure": 0,
+      "byRule": {
+        "notation.katakana": {
+          "tp": 3,
+          "fp": 0,
+          "unsure": 0
+        },
+        "placeholder.mismatch": {
+          "tp": 0,
+          "fp": 1,
+          "unsure": 0
+        }
+      },
+      "precision": 0.75
+    },
+    "B": {
+      "findings": 18,
+      "sampled": 18,
+      "sampling": "all findings (<=80)",
+      "tp": 11,
+      "fp": 6,
+      "unsure": 1,
+      "byRule": {
+        "term.missing": {
+          "tp": 8,
+          "fp": 5,
+          "unsure": 1
+        },
+        "notation.katakana": {
+          "tp": 3,
+          "fp": 0,
+          "unsure": 0
+        },
+        "placeholder.mismatch": {
+          "tp": 0,
+          "fp": 1,
+          "unsure": 0
+        }
+      },
+      "precision": 0.647
+    }
+  },
+  "misses": {
+    "sampled": 60,
+    "method": "random.Random(20261009).sample(all parsed entries, 60); judged against config B findings",
+    "count": 10,
+    "countExcludingEmptyMsgstr": 6,
+    "byCategory": {
+      "untranslated": 4,
+      "notation": 2,
+      "term": 4
+    }
+  }
+}

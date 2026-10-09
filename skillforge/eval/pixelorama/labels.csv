@@ -1,0 +1,39 @@
+config,file_line,id,rule,severity,verdict,cause,note
+A,ja_JP.po:69,Window,notation.katakana,warning,TP,,ウインドウ vs ウィンドウ (5x)
+A,ja_JP.po:2098,Specifies the tablet driver being used o…,notation.katakana,warning,TP,,description ドライバ vs label ドライバー (2094)
+A,ja_JP.po:756,Create Folder,notation.katakana,warning,TP,,フォルダー vs フォルダ (6x)
+A,ja_JP.po:2134,Open Folder,notation.katakana,warning,TP,,フォルダー vs フォルダ (6x)
+B,ja_JP.po:3323,Color Picker,term.missing,warning,TP,,"tool name カラーピッカー vs 色選択 (1667,3616)"
+B,ja_JP.po:1676,"Crop
+
+%s for left mouse button
+%s for ri…",term.missing,warning,TP,,Crop tool: クロップ vs トリミング/切り取り elsewhere
+B,ja_JP.po:3447,Crop mode:,term.missing,warning,TP,,Crop: クロップ vs トリミング/切り取り
+B,ja_JP.po:3642,Crop,term.missing,warning,TP,,Crop: 切り取り (reads as Cut) vs トリミング
+B,ja_JP.po:2467,Chained: Makes a chain of multiple bezie…,term.missing,warning,FP,reference to third-party product feature,"Krita/Aseprite curve tool, not app UI term"
+B,ja_JP.po:663,Open a Directory,term.missing,warning,FP,draft picked longer compound than the term,ディレクトリ correct; draft chose ディレクトリパス
+B,ja_JP.po:753,Directories & Files:,term.missing,warning,FP,draft picked longer compound than the term,ディレクトリ correct; draft chose ディレクトリパス
+B,ja_JP.po:446,Display Layer Effects,term.missing,warning,FP,draft glossary garbage alignment,Display paired with カーソル
+B,ja_JP.po:963,Display scale:,term.missing,warning,FP,draft glossary garbage alignment,Display paired with カーソル
+B,ja_JP.po:2102,Display name:,term.missing,warning,FP,draft glossary garbage alignment,Display paired with カーソル
+B,ja_JP.po:3165,Error,term.missing,warning,FP,draft picked longer compound than the term,エラー correct; draft chose エラーコード
+B,ja_JP.po:3168,Error: Palette must have a valid name.,term.missing,warning,FP,draft picked longer compound than the term,エラー correct; draft chose エラーコード
+B,ja_JP.po:2963,Expand/collapse group,term.missing,warning,FP,context-dependent translation legit,expand group = 展開; 拡張 is another sense
+B,ja_JP.po:4125,For all half-offset shapes (Isometric & …,term.missing,warning,TP,,Hexagonal → ヘキサナール (wrong word) vs 六角形 elsewhere
+B,ja_JP.po:4000,Hold Shift while pressing to instantly r…,term.missing,warning,FP,near-miss on common word,Hold Shift → 押したまま is correct
+B,ja_JP.po:1215,Linear,term.missing,warning,FP,context-dependent translation legit,interpolation Linear → 線形 fine; リニア only in set phrases
+B,ja_JP.po:552,Merge distance:,term.missing,warning,unsure,context-dependent translation legit,merge distance (export) マージ vs layer merge 結合
+B,ja_JP.po:261,Modify,term.missing,warning,FP,draft glossary garbage alignment,Modify paired with チャンネル
+B,ja_JP.po:3058,Undo: Modify Frame Tag,term.missing,warning,FP,draft glossary garbage alignment,Modify paired with チャンネル
+B,ja_JP.po:3061,Redo: Modify Frame Tag,term.missing,warning,FP,draft glossary garbage alignment,Modify paired with チャンネル
+B,ja_JP.po:4173,Modify tiles on the canvas.,term.missing,warning,FP,draft glossary garbage alignment,Modify paired with チャンネル
+B,ja_JP.po:466,Snap to Perspective Guides,term.missing,warning,TP,,"Perspective guides 視点 vs 透視投影 (3631,3750)"
+B,ja_JP.po:1977,Sets the minimal zoom at which pixel gri…,term.missing,warning,TP,,pixel grid → ピクセル only; グリッド dropped
+B,ja_JP.po:403,Rename,term.missing,warning,FP,draft picked fragment of compound,名前を変更 is fine; draft target 名の変更 is a fragment
+B,ja_JP.po:3568,Sort by lightness,term.missing,warning,TP,,並び替え vs ソート in all sibling items; 軽さ wrong too
+B,ja_JP.po:2244,Start,term.missing,warning,FP,context-dependent translation legit,noun start/end pair スタート/エンド legit
+B,ja_JP.po:3504,User data:,term.missing,warning,FP,draft picked longer compound than the term,ユーザーデータ fine; draft chose レイヤーユーザーデータ
+B,ja_JP.po:69,Window,notation.katakana,warning,TP,,ウインドウ vs ウィンドウ (5x)
+B,ja_JP.po:2098,Specifies the tablet driver being used o…,notation.katakana,warning,TP,,description ドライバ vs label ドライバー (2094)
+B,ja_JP.po:756,Create Folder,notation.katakana,warning,TP,,フォルダー vs フォルダ (6x)
+B,ja_JP.po:2134,Open Folder,notation.katakana,warning,TP,,フォルダー vs フォルダ (6x)

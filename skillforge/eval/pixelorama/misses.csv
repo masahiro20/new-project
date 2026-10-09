@@ -1,0 +1,8 @@
+file_line,id,category,note
+ja_JP.po:1426,Donate,untranslated,Donate left in English (target == source)
+ja_JP.po:1363,View Splash Screen,term,スプラッシュ スクリーン vs スプラッシュ画面 (3189)
+ja_JP.po:3326,Pencil,term,Pencil → ペン/鉛筆 vs 鉛筆 in tool tooltip (1685)
+ja_JP.po:3393,Open last project...,term,"last project 前回の vs 最後の (3381,3390,3396)"
+ja_JP.po:3675,"Locked size
+
+When enabled using the tool…",term,cropping → 切り抜き; crop also トリミング/クロップ/切り取り

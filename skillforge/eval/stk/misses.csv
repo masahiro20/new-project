@@ -1,0 +1,11 @@
+file_line,id,category,note
+ja.po:4151,Player %s has been unmuted.,untranslated,"empty msgstr; only aggregate stderr note, no per-line finding"
+ja.po:6126,The email address is invalid!,untranslated,empty msgstr; only aggregate stderr note
+ja.po:6618,Animated characters: Enabled,untranslated,empty msgstr; only aggregate stderr note
+ja.po:6884,Performance Test Results,untranslated,empty msgstr; only aggregate stderr note
+ja.po:2643,The swatter can be used to remove bombs …,notation,ハエ叩き vs ハエたたき (1660); kanji/kana variant not checked
+ja.po:2655,Basketballs can be destroyed using preci…,term,item names カップケーキ vs ケーキ (1626); ボーリングボール vs ボウリングの玉
+ja.po:4240,Goals limit,term,soccer Goals → 目標 vs ゴール everywhere else
+ja.po:5642,You can adapt your previous rating by cl…,term,"rating → ランキング vs 評価 (1087, 5638)"
+ja.po:5652,Vote successful! You can now close the w…,notation,ウィンドー vs ウィンドウ (2338); ウ/ー long vowel not folded
+ja.po:6392,"In multiplayer mode, players can select …",term,multiplayer → 二人プレイ vs マルチプレイヤー (1489)

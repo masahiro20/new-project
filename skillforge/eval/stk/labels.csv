@@ -1,0 +1,23 @@
+config,file_line,id,rule,severity,verdict,cause,note
+A,ja.po:4262,You are now the owner of server.,notation.katakana,warning,TP,,サーバ vs majority サーバー (35x)
+A,ja.po:5208,SuperTuxKart will download full assets (…,notation.katakana,warning,TP,,テクスチャ vs テクスチャー at 529/5216
+A,ja.po:1705,"When you complete a challenge, you get a…",notation.katakana,warning,TP,,character name Nolok: ノローク vs ノロク elsewhere
+A,ja.po:3164,[none],placeholder.mismatch,error,FP,"bracketed lowercase word is literal UI text, not placeholder",[none] correctly translated as [なし]
+B,ja.po:110,Win against at least 3 AIs in normal rac…,term.missing,warning,FP,draft glossary garbage alignment,draft paired AIs with 連勝
+B,ja.po:3696,DPad down,term.missing,warning,TP,,DPad left as Latin; siblings use Dパッド
+B,ja.po:4780,Egg Hunts started,term.missing,warning,TP,,"卵狩り vs mode name エッグハント (1281,4788)"
+B,ja.po:6237,Locked: solve active challenges to gain …,term.missing,warning,TP,,ロックされている vs 未解禁 at 4588/5842/7007
+B,ja.po:3640,Mouse button %d,term.missing,warning,TP,,マウス ボタン (space) vs マウスボタン at 3169-3199; minor
+B,ja.po:4718,Normal races started,term.missing,warning,TP,,普通レース vs mode name ノーマルレース
+B,ja.po:4724,Normal races finished,term.missing,warning,TP,,普通レース vs mode name ノーマルレース
+B,ja.po:3950,"Oops, %s made an own goal!",term.missing,warning,FP,draft glossary garbage alignment,draft paired Oops with 鳥
+B,ja.po:1040,Performance,term.missing,warning,FP,draft picked longer compound than the term,パフォーマンス is right; draft chose パフォーマンステスト
+B,ja.po:4481,Random,term.missing,warning,FP,context-dependent translation legit,GP reverse option None/All/Random; 乱数に任せる fine
+B,ja.po:6220,Random item location,term.missing,warning,unsure,context-dependent translation legit,適当にする odd but meaning random; style call
+B,ja.po:4974,New gamepads and joysticks will automati…,term.missing,warning,FP,near-miss on common word,"Remember is an ordinary verb, not a term"
+B,ja.po:1805,"When input devices are configured, selec…",term.missing,warning,TP,,help text names menu スプリット…; menu label is オフライン対戦
+B,ja.po:6880,Reached Requirements of SuperTux,term.missing,warning,TP,,SuperTux difficulty left Latin; elsewhere スーパータックス級
+B,ja.po:4262,You are now the owner of server.,notation.katakana,warning,TP,,サーバ vs majority サーバー (35x)
+B,ja.po:5208,SuperTuxKart will download full assets (…,notation.katakana,warning,TP,,テクスチャ vs テクスチャー at 529/5216
+B,ja.po:1705,"When you complete a challenge, you get a…",notation.katakana,warning,TP,,character name Nolok: ノローク vs ノロク elsewhere
+B,ja.po:3164,[none],placeholder.mismatch,error,FP,"bracketed lowercase word is literal UI text, not placeholder",[none] correctly translated as [なし]

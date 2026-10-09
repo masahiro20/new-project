@@ -1,0 +1,53 @@
+{
+  "project": "pixelorama",
+  "entries": 1163,
+  "configs": {
+    "A": {
+      "findings": 4,
+      "sampled": 4,
+      "sampling": "all findings (<=80)",
+      "tp": 4,
+      "fp": 0,
+      "unsure": 0,
+      "byRule": {
+        "notation.katakana": {
+          "tp": 4,
+          "fp": 0,
+          "unsure": 0
+        }
+      },
+      "precision": 1.0
+    },
+    "B": {
+      "findings": 31,
+      "sampled": 31,
+      "sampling": "all findings (<=80)",
+      "tp": 12,
+      "fp": 18,
+      "unsure": 1,
+      "byRule": {
+        "term.missing": {
+          "tp": 8,
+          "fp": 18,
+          "unsure": 1
+        },
+        "notation.katakana": {
+          "tp": 4,
+          "fp": 0,
+          "unsure": 0
+        }
+      },
+      "precision": 0.4
+    }
+  },
+  "misses": {
+    "sampled": 60,
+    "method": "random.Random(20261009).sample(all parsed entries, 60); judged against config B findings",
+    "count": 5,
+    "countExcludingEmptyMsgstr": 5,
+    "byCategory": {
+      "untranslated": 1,
+      "term": 4
+    }
+  }
+}
