@@ -60,8 +60,8 @@ h1, h2, h3, h4 { margin: 0; line-height: 1.3; }
 .mast h1 { font-size: 26px; font-weight: 700; letter-spacing: 0.02em; }
 .mast h1 small { font-size: 13px; font-weight: 400; color: var(--ink-3); margin-left: 6px; }
 .mast .lede { color: var(--ink-2); font-size: 14px; margin-top: 4px; }
-.samples { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: flex-end; }
-.mast-side { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; min-width: 0; }
+.samples { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.mast-side { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; min-width: 0; }
 .seg-ui legend { font-size: 13px; color: var(--ink-2); }
 
 /* Buttons */
@@ -247,8 +247,6 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
 @media (max-width: 520px) {
   .mast h1 { font-size: 22px; }
   .lines > div { grid-template-columns: 1fr; gap: 0; }
-  .mast-side { align-items: flex-start; }
-  .samples { justify-content: flex-start; }
 }
 </style>
 
@@ -566,7 +564,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
     if (v === undefined) return key;
     return typeof v === "function" ? v(...args) : v;
   }
-  // Static chrome: data-i18n → innerHTML (trusted dictionary), data-i18n-attr="attr:key;attr:key".
+  // 静的な画面文言：data-i18n → innerHTML（辞書は信頼済みの文字列のみ）、data-i18n-attr="属性:キー;属性:キー"。
   function applyStaticI18n() {
     const root = $("app");
     root.setAttribute("lang", ui);
@@ -609,7 +607,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
   const KNOWN_EXT = /\.(csv|tsv|json|xlf|xliff|xlsx|xlsm|po|pot|yml|yaml|rpy|ks)$/i;
   const BINARY_EXT = /\.(xlsx|xlsm)$/i;
   const LOCALE_KEY = "kotomark.demo.locale";
-  // Returns the explicitly chosen message language, or null when the user never picked one (then it follows the UI).
+  // 明示的に選んだ指摘の言語。未選択なら null（その場合は画面の言語に合わせる）。
   function loadLocale() {
     try { const v = localStorage.getItem(LOCALE_KEY); return v === "en" || v === "ja" ? v : null; } catch (_) { return null; }
   }
@@ -694,7 +692,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
   // Engine errors start with the file name; the error list already shows it.
   function stripName(name, msg) { return msg.startsWith(name + ": ") ? msg.slice(name.length + 2) : msg; }
 
-  // Items: { where, msg } raw text, or { w: key, wArg?, m: key } dictionary keys (re-rendered on a UI switch).
+  // 項目は { where, msg }（そのままの文字列）か { w: キー, wArg?, m: キー }（辞書キー。画面の言語を切り替えると描き直す）。
   function showErrors(list, soft) {
     state.errors = { list, soft: !!soft };
     if (!soft) { state.status = null; $("run-status").textContent = ""; }
@@ -1346,7 +1344,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
     const nb = $(focusId); if (nb) nb.focus();
   });
 
-  // UI language: re-render the chrome; the message language follows unless the user picked one explicitly.
+  // 画面の言語を切り替える。指摘の言語は、利用者が明示的に選んでいなければ画面の言語に合わせて再チェックする。
   function setUi(v) {
     if (v !== "ja" && v !== "en") return;
     ui = v;
@@ -1370,7 +1368,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
     setUi(e.target.value);
   });
 
-  // Restore the remembered UI and message language before the first run.
+  // 初回実行の前に、保存済みの画面の言語・指摘の言語を復元する。
   const savedLocale = loadLocale();
   let localeExplicit = savedLocale !== null;
   $((savedLocale || ui) === "en" ? "opt-locale-en" : "opt-locale-ja").checked = true;
