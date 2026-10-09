@@ -278,5 +278,24 @@ T("share: totals-only payload and default compare", () => {
   near(r.scenarios.find((s) => s.model.id === "gemini-3.8-flash").cost, 0.75 + 3.75);
 });
 
+/* ---------------- QA regression (2026-10-09) ---------------- */
+T("negative and decimal-comma values are skipped, not mis-read", () => {
+  assert.equal(Logic.parseUsage("date,model,input_tokens,output_tokens\n2026-09-01,gpt-6-luna,-5,1\n2026-09-01,gpt-6-luna,1,1").bad, 1);
+  assert.equal(Logic.parseUsage('date,model,input_tokens,output_tokens\n2026-09-01,gpt-6-luna,"1,5",1\n2026-09-01,gpt-6-luna,1,1').bad, 1);
+  assert.equal(Logic.parseUsage("date;model;input_tokens;output_tokens\n2026-09-01;gpt-6-luna;1.000;1\n2026-09-01;gpt-6-luna;1;1").bad, 1);
+});
+T("JSON with non-numeric or negative counts: row skipped, no NaN", () => {
+  const p = Logic.parseUsage(JSON.stringify({ data: [{ starting_at: "2026-09-01T00:00:00Z", results: [
+    { model: "claude-opus-5-5", uncached_input_tokens: "abc", cache_read_input_tokens: 0, output_tokens: 1 },
+    { model: "claude-opus-5-5", uncached_input_tokens: -5, cache_read_input_tokens: 0, output_tokens: 1 },
+    { model: "claude-opus-5-5", uncached_input_tokens: 10, cache_read_input_tokens: 0, output_tokens: 1 }] }] }));
+  assert.equal(p.bad, 2); assert.equal(p.rows.length, 1);
+});
+T("Bedrock id with date and version suffix matches", () => {
+  assert.equal(Logic.matchModel("us.anthropic.claude-opus-5-5-20260901-v1:0", PRICES.models).id, "claude-opus-5-5");
+  assert.equal(Logic.matchModel("anthropic.claude-haiku-4-5-20251001-v1:0", PRICES.models).id, "claude-haiku-4-5-20251001");
+});
+T("zone-less text date keeps its calendar day", () => assert.equal(Logic.toDay("09/01/2026"), "2026-09-01"));
+
 console.log(`\npass ${pass} fail ${fail}`);
 process.exit(fail ? 1 : 0);
