@@ -1,0 +1,353 @@
+<title>RED LEDGER 第1話 絵コンテ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=IBM+Plex+Mono:wght@400;600&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<style>
+/* Layout: an editing desk. A dark 16:9 monitor plays the animatic over a timeline of the 22-minute episode;
+   below it, the same cuts laid out on storyboard paper (CUT / PICTURE / ACTION / DIALOGUE / TIME). */
+:root {
+  --bg: #ECEBE4;
+  --paper: #F8F7F1;
+  --ink: #1F2128;
+  --muted: #5B5E62;
+  --rule: #CFCDC2;
+  --red: #D3122C;
+  --blue: #2E6BD6;
+  --stage: #0D0E12;
+  --stage-ink: #ECE8DE;
+  --on-accent: #FFFFFF;
+  --display: "Dela Gothic One", "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+  --body: "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121318; --paper: #1B1D24; --ink: #E9E6DD; --muted: #A3A19A; --rule: #31343D;
+    --red: #F0344A; --blue: #6E9CF0; --stage: #08090C; --stage-ink: #ECE8DE; --on-accent: #FFFFFF;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #121318; --paper: #1B1D24; --ink: #E9E6DD; --muted: #A3A19A; --rule: #31343D;
+  --red: #F0344A; --blue: #6E9CF0; --stage: #08090C; --stage-ink: #ECE8DE; --on-accent: #FFFFFF;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.65; padding-inline: 16px; padding-block: 24px 64px; }
+.wrap { max-width: 1180px; margin-inline: auto; display: grid; gap: 22px; }
+header { display: grid; gap: 8px; }
+.eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--display); font-weight: 400; font-size: clamp(26px, 4.4vw, 42px); line-height: 1.2; margin: 0; text-wrap: balance; }
+h1 .red { color: var(--red); }
+h2 { font-family: var(--display); font-weight: 400; font-size: 20px; margin: 0; }
+p { margin: 0; max-width: 68ch; }
+.stats { display: flex; flex-wrap: wrap; gap: 4px 18px; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.stats b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+button { font: inherit; color: inherit; }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+
+.tabs { display: flex; border: 1px solid var(--ink); width: max-content; max-width: 100%; }
+.tabs button { padding: 7px 16px; background: var(--paper); border: 0; border-right: 1px solid var(--ink); cursor: pointer; font-size: 14px; }
+.tabs button:last-child { border-right: 0; }
+.tabs button[aria-selected="true"] { background: var(--ink); color: var(--paper); }
+
+/* animatic */
+.desk { display: grid; gap: 16px; }
+@media (min-width: 980px) { .desk { grid-template-columns: minmax(0, 1fr) 300px; align-items: start; } }
+.monitor { display: grid; gap: 10px; min-width: 0; }
+.stage { position: relative; aspect-ratio: 16 / 9; max-width: 100%; background: var(--stage); overflow: hidden; border: 1px solid var(--rule); }
+.stage img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: #FFFFFF; }
+.card { position: absolute; inset: 0; display: grid; align-content: center; gap: 10px; padding: 6% 9%; color: var(--stage-ink); background: var(--stage); }
+.card .k { font-family: var(--mono); font-size: 12px; letter-spacing: .14em; color: #9C988E; text-transform: uppercase; }
+.card .pic { font-size: clamp(14px, 2.1vw, 21px); line-height: 1.6; }
+.card .act { font-size: clamp(12px, 1.6vw, 15px); color: #B9B5AB; }
+.sub { position: absolute; left: 0; right: 0; bottom: 4%; display: grid; justify-items: center; gap: 2px; padding-inline: 6%; text-align: center; pointer-events: none; }
+.sub span { background: rgba(8, 9, 12, .78); color: #FFFFFF; padding: 2px 10px; font-size: clamp(13px, 1.9vw, 19px); line-height: 1.45; }
+.sub .en { font-size: clamp(11px, 1.4vw, 14px); color: #D8D4CA; }
+.hud { position: absolute; top: 10px; left: 12px; right: 12px; display: flex; justify-content: space-between; gap: 8px; font-family: var(--mono); font-size: 12px; color: #FFFFFF; pointer-events: none; }
+.hud span { background: rgba(8, 9, 12, .7); padding: 1px 7px; }
+.hud .live { color: #FF5A6E; }
+
+.controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+.controls button.ctl { border: 1px solid var(--ink); background: var(--paper); padding: 5px 12px; cursor: pointer; font-size: 14px; }
+.controls button.play { background: var(--red); border-color: var(--red); color: var(--on-accent); min-width: 7.5em; }
+.controls label { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
+.controls select { font: inherit; font-size: 13px; padding: 3px 6px; background: var(--paper); color: var(--ink); border: 1px solid var(--rule); }
+.clock { font-family: var(--mono); font-size: 13px; font-variant-numeric: tabular-nums; margin-left: auto; }
+
+.timeline { position: relative; height: 34px; display: flex; border: 1px solid var(--ink); background: var(--paper); cursor: pointer; overflow: hidden; }
+.timeline .seg { height: 100%; border-right: 1px solid var(--ink); position: relative; font-size: 10px; line-height: 1.2; padding: 3px 4px; overflow: hidden; white-space: nowrap; color: var(--muted); min-width: 0; }
+.timeline .seg:last-child { border-right: 0; }
+.timeline .seg.drawn { background: color-mix(in srgb, var(--red) 16%, var(--paper)); color: var(--ink); }
+.timeline .head { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--red); pointer-events: none; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12px; color: var(--muted); }
+.legend i { display: inline-block; width: 12px; height: 12px; vertical-align: -1px; margin-right: 5px; border: 1px solid var(--ink); }
+.legend .d { background: color-mix(in srgb, var(--red) 16%, var(--paper)); }
+.legend .t { background: var(--paper); }
+
+.info { background: var(--paper); border: 1px solid var(--rule); padding: 14px 16px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.info .cutno { font-family: var(--display); font-size: 30px; line-height: 1; }
+.info .cutno small { font-family: var(--mono); font-size: 12px; color: var(--muted); margin-left: 6px; }
+.info dl { display: grid; grid-template-columns: 4.5em 1fr; gap: 4px 10px; margin: 0; font-size: 13.5px; }
+.info dt { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: .06em; padding-top: 3px; }
+.info dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.info .cam { color: var(--blue); font-family: var(--mono); font-size: 12.5px; }
+
+/* storyboard paper */
+.sheet { display: grid; gap: 26px; }
+.seq-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; border-bottom: 2px solid var(--ink); padding-bottom: 6px; }
+.seq-head .tc { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.seq-head .tag { font-size: 12px; padding: 0 8px; border: 1px solid var(--ink); }
+.seq-head .tag.drawn { background: var(--red); color: var(--on-accent); border-color: var(--red); }
+.rows { display: grid; background: var(--paper); border: 1px solid var(--ink); }
+.row { display: grid; grid-template-columns: 52px minmax(0, 1fr); border-bottom: 1px solid var(--rule); }
+.row:last-child { border-bottom: 0; }
+.row .c { border-right: 1px solid var(--rule); padding: 8px 6px; font-family: var(--mono); font-size: 13px; text-align: center; display: grid; align-content: start; gap: 2px; }
+.row .c b { font-size: 15px; }
+.row .c span { font-size: 10.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.row .body { display: grid; gap: 10px; padding: 10px 12px; min-width: 0; }
+@media (min-width: 860px) { .row .body { grid-template-columns: 300px minmax(0, 1fr) minmax(0, .8fr) 52px; } }
+.pics { display: grid; gap: 6px; min-width: 0; }
+.pics img { width: 100%; height: auto; aspect-ratio: 16 / 9; display: block; border: 1px solid var(--ink); background: #FFFFFF; max-width: 100%; }
+.pics .txt { aspect-ratio: 16 / 9; border: 1px dashed var(--rule); display: grid; place-items: center; text-align: center; padding: 8px; font-size: 12px; color: var(--muted); }
+.row .what { font-size: 13.5px; display: grid; gap: 4px; min-width: 0; }
+.row .what .cam { font-family: var(--mono); font-size: 12px; color: var(--blue); }
+.row .what .snd { font-size: 12px; color: var(--muted); }
+.row .line { font-size: 13.5px; min-width: 0; }
+.row .line .en { display: block; font-size: 12px; color: var(--muted); }
+.row .sec { font-family: var(--mono); font-size: 13px; text-align: right; font-variant-numeric: tabular-nums; }
+.row.text .body { opacity: .92; }
+.row button.jump { justify-self: start; border: 0; background: none; color: var(--red); padding: 0; cursor: pointer; font-size: 12px; text-decoration: underline; }
+.filter { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; font-size: 13px; color: var(--muted); }
+.note { font-size: 13px; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 12px; display: grid; gap: 4px; }
+.empty { padding: 24px; border: 1px dashed var(--rule); color: var(--muted); }
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">P7 Anime · 社外秘 · 絵コンテ 初稿プレビュー</span>
+    <h1>RED LEDGER 第1話<span class="red">「払わねえよ。」</span>絵コンテ</h1>
+    <p>アバン・覚醒シーン・タグは作画コンテ、それ以外は文字コンテです。モニターで尺どおりに再生できます（音声なし、台詞は字幕で表示）。</p>
+    <div class="stats" id="stats"></div>
+  </header>
+
+  <div class="tabs" role="tablist" aria-label="表示">
+    <button role="tab" id="tab-play" aria-selected="true" aria-controls="view-play">アニマティック</button>
+    <button role="tab" id="tab-sheet" aria-selected="false" aria-controls="view-sheet">コンテ用紙</button>
+  </div>
+
+  <section id="view-play" role="tabpanel" aria-labelledby="tab-play" class="desk">
+    <div class="monitor">
+      <div class="stage" id="stage" aria-live="off">
+        <img id="frame" alt="" hidden>
+        <div class="card" id="card" hidden>
+          <span class="k" id="card-k"></span>
+          <div class="pic" id="card-pic"></div>
+          <div class="act" id="card-act"></div>
+        </div>
+        <div class="hud"><span id="hud-cut"></span><span id="hud-tc" class="live"></span></div>
+        <div class="sub" id="sub"></div>
+      </div>
+      <div class="controls">
+        <button class="ctl play" id="btn-play" type="button">▶ 再生</button>
+        <button class="ctl" id="btn-prev" type="button" aria-label="前のカット">◀ 前</button>
+        <button class="ctl" id="btn-next" type="button" aria-label="次のカット">次 ▶</button>
+        <label for="speed">速度
+          <select id="speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option></select>
+        </label>
+        <label for="drawn-only"><input type="checkbox" id="drawn-only" checked> 作画カットだけ再生</label>
+        <span class="clock" id="clock">00:00 / 00:00</span>
+      </div>
+      <div class="timeline" id="timeline" role="slider" tabindex="0" aria-label="エピソード内の位置" aria-valuemin="0"></div>
+      <div class="legend"><span><i class="d"></i>作画コンテ</span><span><i class="t"></i>文字コンテ</span><span>タイムラインをクリックすると、その位置から再生できます。</span></div>
+    </div>
+    <aside class="info" id="info" aria-live="polite"></aside>
+  </section>
+
+  <section id="view-sheet" role="tabpanel" aria-labelledby="tab-sheet" hidden>
+    <div class="sheet">
+      <div class="filter"><label for="sheet-drawn"><input type="checkbox" id="sheet-drawn"> 作画カットだけ表示</label></div>
+      <div id="sheet"></div>
+    </div>
+  </section>
+
+  <div class="note">
+    <p>表記：サイズ（LS＝ロング、FS＝フル、MS＝ミドル、BS＝バスト、CU＝アップ、ECU＝クローズアップ）、カメラ（FIX＝固定、PAN、T.U.＝寄り、T.B.＝引き）。青字がカメラ指示です。</p>
+    <p>線画の絵コンテは演出設計用の初稿です。作画・色・芝居の最終形ではありません。</p>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script>
+(function () {
+  const D = window.EP01;
+  const $ = id => document.getElementById(id);
+  if (!D || !D.cuts || !D.cuts.length) {
+    $('view-play').innerHTML = '<div class="empty">コンテのデータを読み込めませんでした。</div>';
+    return;
+  }
+  const tc = s => { s = Math.max(0, Math.floor(s)); return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); };
+  const frames = D.cuts.reduce((n, c) => n + c.frames.length, 0);
+  const drawnCuts = D.cuts.filter(c => c.frames.length).length;
+  $('stats').innerHTML = `<span>総尺 <b>${tc(D.total)}</b></span><span>カット <b>${D.cuts.length}</b></span><span>作画カット <b>${drawnCuts}</b></span><span>作画フレーム <b>${frames}</b></span>`;
+
+  // ---------- animatic ----------
+  let playlist = [], idx = 0, inCut = 0, playing = false, last = 0;
+  const speedSel = $('speed'), drawnOnly = $('drawn-only');
+  function buildPlaylist() {
+    const cur = playlist[idx];
+    playlist = drawnOnly.checked ? D.cuts.filter(c => c.frames.length) : D.cuts.slice();
+    if (!playlist.length) playlist = D.cuts.slice();
+    idx = cur ? Math.max(0, playlist.findIndex(c => c.no >= cur.no)) : 0;
+    inCut = 0;
+  }
+  const listTotal = () => playlist.reduce((a, c) => a + c.sec, 0);
+  const listPos = () => playlist.slice(0, idx).reduce((a, c) => a + c.sec, 0) + inCut;
+
+  // timeline is always the full episode, so it shows where the drawn sections sit
+  const tl = $('timeline');
+  for (const s of D.seqs) {
+    const d = document.createElement('div');
+    d.className = 'seg' + (s.drawn ? ' drawn' : '');
+    d.style.flex = String(Math.max(1, s.end - s.start));
+    d.title = `${s.label}（${tc(s.start)}–${tc(s.end)}）`;
+    d.textContent = s.label;
+    tl.append(d);
+  }
+  const head = document.createElement('div'); head.className = 'head'; tl.append(head);
+  tl.setAttribute('aria-valuemax', String(Math.round(D.total)));
+
+  function seekEpisode(t) {
+    const target = D.cuts.find(c => t >= c.start && t < c.start + c.sec) || D.cuts[D.cuts.length - 1];
+    let j = playlist.findIndex(c => c.no === target.no);
+    if (j < 0) { j = playlist.findIndex(c => c.no > target.no); if (j < 0) j = playlist.length - 1; inCut = 0; }
+    else inCut = Math.min(t - target.start, target.sec - 0.01);
+    idx = j; render();
+  }
+  tl.addEventListener('click', e => { const r = tl.getBoundingClientRect(); seekEpisode((e.clientX - r.left) / r.width * D.total); });
+  tl.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight') { step(1); e.preventDefault(); }
+    if (e.key === 'ArrowLeft') { step(-1); e.preventDefault(); }
+  });
+
+  function render() {
+    const c = playlist[idx];
+    if (!c) return;
+    const img = $('frame'), card = $('card');
+    if (c.frames.length) {
+      const k = Math.min(c.frames.length - 1, Math.floor(inCut / (c.sec / c.frames.length)));
+      const src = 'frames/' + c.frames[k];
+      if (img.getAttribute('src') !== src) img.src = src;
+      img.alt = `カット${c.no}：${c.picture}`;
+      img.hidden = false; card.hidden = true;
+    } else {
+      img.hidden = true; card.hidden = false;
+      $('card-k').textContent = `文字コンテ · ${[c.shot, c.camera].filter(Boolean).join(' / ')}`;
+      $('card-pic').textContent = c.picture;
+      $('card-act').textContent = c.action;
+    }
+    const sub = $('sub'); sub.innerHTML = '';
+    if (c.dialogue) { const a = document.createElement('span'); a.textContent = c.dialogue; sub.append(a); }
+    if (c.dialogue_en) { const b = document.createElement('span'); b.className = 'en'; b.textContent = c.dialogue_en; sub.append(b); }
+    const epT = c.start + inCut;
+    $('hud-cut').textContent = `C${c.no}`;
+    $('hud-tc').textContent = tc(epT);
+    $('clock').textContent = `${tc(epT)} / ${tc(D.total)}`;
+    head.style.left = (epT / D.total * 100) + '%';
+    tl.setAttribute('aria-valuenow', String(Math.round(epT)));
+    tl.setAttribute('aria-valuetext', `${tc(epT)}、カット${c.no}`);
+    const info = $('info');
+    if (info.dataset.no !== String(c.no)) {
+      info.dataset.no = String(c.no);
+      info.innerHTML = '';
+      const h = document.createElement('div'); h.className = 'cutno';
+      h.innerHTML = `C${c.no}<small>${tc(c.start)} · ${c.sec}秒</small>`;
+      const dl = document.createElement('dl');
+      const add = (k, v, cls) => { if (!v) return; const dt = document.createElement('dt'); dt.textContent = k; const dd = document.createElement('dd'); dd.textContent = v; if (cls) dd.className = cls; dl.append(dt, dd); };
+      add('場面', c.scene); add('カメラ', [c.shot, c.camera].filter(Boolean).join(' / '), 'cam');
+      add('画面', c.picture); add('芝居', c.action); add('台詞', c.dialogue); add('EN', c.dialogue_en); add('音', c.sound);
+      info.append(h, dl);
+    }
+  }
+
+  function tick(now) {
+    if (!playing) return;
+    const dt = (now - last) / 1000 * parseFloat(speedSel.value);
+    last = now;
+    inCut += dt;
+    while (playlist[idx] && inCut >= playlist[idx].sec) {
+      inCut -= playlist[idx].sec; idx++;
+      if (idx >= playlist.length) { idx = playlist.length - 1; inCut = playlist[idx].sec - 0.01; setPlaying(false); break; }
+    }
+    render();
+    if (playing) requestAnimationFrame(tick);
+  }
+  function setPlaying(on) {
+    playing = on;
+    $('btn-play').textContent = on ? '❚❚ 一時停止' : '▶ 再生';
+    if (on) {
+      if (idx === playlist.length - 1 && inCut >= playlist[idx].sec - 0.05) { idx = 0; inCut = 0; }
+      last = performance.now(); requestAnimationFrame(tick);
+    }
+  }
+  function step(d) { idx = Math.min(playlist.length - 1, Math.max(0, idx + d)); inCut = 0; render(); }
+  $('btn-play').addEventListener('click', () => setPlaying(!playing));
+  $('btn-prev').addEventListener('click', () => step(-1));
+  $('btn-next').addEventListener('click', () => step(1));
+  drawnOnly.addEventListener('change', () => { buildPlaylist(); render(); try { localStorage.setItem('ep01-drawn', drawnOnly.checked ? '1' : '0'); } catch (e) {} });
+  try { const v = localStorage.getItem('ep01-drawn'); if (v === '0') drawnOnly.checked = false; } catch (e) {}
+  buildPlaylist(); render();
+
+  // ---------- storyboard paper ----------
+  const sheetDrawn = $('sheet-drawn');
+  function renderSheet() {
+    const root = $('sheet'); root.innerHTML = '';
+    for (const s of D.seqs) {
+      const cuts = D.cuts.slice(s.first - 1, s.last).filter(c => !sheetDrawn.checked || c.frames.length);
+      if (!cuts.length) continue;
+      const sec = document.createElement('section'); sec.className = 'sheet';
+      const hd = document.createElement('div'); hd.className = 'seq-head';
+      hd.innerHTML = `<h2></h2><span class="tc">${tc(s.start)}–${tc(s.end)} · C${s.first}–C${s.last}</span><span class="tag ${s.drawn ? 'drawn' : ''}">${s.drawn ? '作画コンテ' : '文字コンテ'}</span>`;
+      hd.querySelector('h2').textContent = s.label;
+      const rows = document.createElement('div'); rows.className = 'rows';
+      for (const c of cuts) {
+        const r = document.createElement('div'); r.className = 'row' + (c.frames.length ? '' : ' text');
+        r.innerHTML = `<div class="c"><b>${c.no}</b><span>${tc(c.start)}</span></div><div class="body"><div class="pics"></div><div class="what"></div><div class="line"></div><div class="sec">${c.sec}″</div></div>`;
+        const pics = r.querySelector('.pics');
+        if (c.frames.length) {
+          for (const f of c.frames) { const im = document.createElement('img'); im.src = 'frames/' + f; im.alt = `カット${c.no}`; im.loading = 'lazy'; im.width = 320; im.height = 180; pics.append(im); }
+        } else {
+          const t = document.createElement('div'); t.className = 'txt'; t.textContent = [c.shot, c.camera].filter(Boolean).join(' / ') || '文字コンテ'; pics.append(t);
+        }
+        const w = r.querySelector('.what');
+        const cam = document.createElement('div'); cam.className = 'cam'; cam.textContent = [c.shot, c.camera].filter(Boolean).join(' / ');
+        const pic = document.createElement('div'); pic.textContent = c.picture;
+        w.append(cam, pic);
+        if (c.action) { const a = document.createElement('div'); a.textContent = c.action; w.append(a); }
+        if (c.sound) { const so = document.createElement('div'); so.className = 'snd'; so.textContent = '音：' + c.sound; w.append(so); }
+        const j = document.createElement('button'); j.type = 'button'; j.className = 'jump'; j.textContent = 'このカットから再生';
+        j.addEventListener('click', () => { if (!c.frames.length && drawnOnly.checked) { drawnOnly.checked = false; buildPlaylist(); } selectTab('play'); seekEpisode(c.start + 0.001); setPlaying(true); });
+        w.append(j);
+        const l = r.querySelector('.line');
+        if (c.dialogue) { l.textContent = c.dialogue; }
+        if (c.dialogue_en) { const e = document.createElement('span'); e.className = 'en'; e.textContent = c.dialogue_en; l.append(e); }
+        rows.append(r);
+      }
+      sec.append(hd, rows); root.append(sec);
+    }
+  }
+  sheetDrawn.addEventListener('change', renderSheet);
+  renderSheet();
+
+  function selectTab(which) {
+    for (const k of ['play', 'sheet']) {
+      $('tab-' + k).setAttribute('aria-selected', String(k === which));
+      $('view-' + k).hidden = k !== which;
+    }
+    if (which !== 'play') setPlaying(false);
+  }
+  $('tab-play').addEventListener('click', () => selectTab('play'));
+  $('tab-sheet').addEventListener('click', () => selectTab('sheet'));
+  if (location.hash === '#sheet') selectTab('sheet');
+})();
+</script>
