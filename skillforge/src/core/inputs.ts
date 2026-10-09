@@ -1,6 +1,8 @@
 // Multi-file loading: detect + decode + parse each input, then pair single-language tables (ja.json + en.json,
 // ui_ja.csv + ui_en.csv, Unreal string tables) by key into bilingual tables. Browser-safe.
-import { parseTableWithNotes, type Format, type ParseOptions } from "./parsers/index.js";
+import { detectFormat, parseTableWithNotes, type Format, type ParseOptions } from "./parsers/index.js";
+import { decodeText, stripBom } from "./parsers/decode.js";
+import { hasRenpyTranslations, renpyCharacters } from "./parsers/renpy.js";
 import { langFromName, otherLang, pairKey } from "./parsers/lang.js";
 import type { ColumnMap } from "./parsers/columns.js";
 import type { Lang, Row, Table } from "./types.js";
@@ -101,8 +103,31 @@ export function pairTables(src: Table, tgt: Table): { table: Table; missingInTar
 export function loadInputs(files: InputFile[], opts: LoadOptions = {}): LoadResult {
   const notes: string[] = [];
   const parsed: { input: InputFile; table: Table }[] = [];
-  const parseOpts: ParseOptions = { columns: opts.columns, langs: opts.langs, sheet: opts.sheet };
+  // Ren'Py: game scripts (no `translate` blocks) are not tables; their `define e = Character("…")` lines name the
+  // speakers of the translation files (game/tl/<lang>/*.rpy) loaded alongside.
+  const characters: Record<string, string> = {};
+  const renpyScripts = new Set<InputFile>();
+  const plainScripts: string[] = [];
   for (const input of files) {
+    if ((input.format ?? opts.format ?? detectFormat(input.name, input.data)) !== "renpy") continue;
+    let text: string;
+    try {
+      text = typeof input.data === "string" ? stripBom(input.data) : decodeText(input.data, input.name).text;
+    } catch {
+      continue; // reported by the main loop
+    }
+    if (hasRenpyTranslations(text)) continue;
+    renpyScripts.add(input);
+    const found = renpyCharacters(text);
+    const n = Object.keys(found).length;
+    for (const [k, v] of Object.entries(found)) characters[k] ??= v;
+    if (n) notes.push(`${input.name}: Ren'Py game script (no translate blocks); read ${n} character name(s) for speakers: ${list(Object.entries(found).map(([k, v]) => `${k}=${v}`))}`);
+    else plainScripts.push(input.name);
+  }
+  if (plainScripts.length) notes.push(`Skipped ${plainScripts.length} Ren'Py file(s) without translate blocks or character defines: ${list(plainScripts)}`);
+  const parseOpts: ParseOptions = { columns: opts.columns, langs: opts.langs, sheet: opts.sheet, renpyCharacters: characters };
+  for (const input of files) {
+    if (renpyScripts.has(input)) continue;
     try {
       const r = parseTableWithNotes(input.data, input.name, { ...parseOpts, format: input.format ?? opts.format });
       notes.push(...r.notes);

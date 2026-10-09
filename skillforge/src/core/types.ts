@@ -31,7 +31,7 @@ export interface Row {
 }
 
 /** Concrete format a table was parsed as. */
-export type TableFormat = "csv" | "tsv" | "json" | "xliff" | "xlsx" | "po" | "i18n-json" | "unity-csv" | "unreal-csv";
+export type TableFormat = "csv" | "tsv" | "json" | "xliff" | "xlsx" | "po" | "i18n-json" | "unity-csv" | "unreal-csv" | "yaml" | "renpy";
 
 export interface Table {
   file: string;

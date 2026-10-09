@@ -19,8 +19,13 @@ export const devContext = (): ServerContext => ({ principal: { user: "dev", plan
 
 const TableInput = z.object({
   filename: z.string().describe("Original file name, e.g. ch1.csv — used for line references and format detection."),
-  content: z.string().describe("Full file text (CSV/TSV, JSON, or XLIFF 1.2/2.0)."),
-  format: z.enum(["csv", "tsv", "json", "xliff"]).optional(),
+  content: z
+    .string()
+    .describe("Full file text: CSV/TSV, JSON, XLIFF 1.2/2.0, gettext PO, a locale JSON/YAML, a Unity/Unreal string table CSV, or a Ren'Py tl/*.rpy file."),
+  format: z
+    .enum(["csv", "tsv", "json", "xliff", "po", "i18n-json", "unity-csv", "unreal-csv", "yaml", "renpy"])
+    .optional()
+    .describe("Force the parser; default: detected from the file name and content. (.xlsx is binary and not accepted as text.)"),
 });
 
 const GlossarySource = {

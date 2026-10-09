@@ -536,13 +536,38 @@ function escapeRegExp(s) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 var phraseCache = /* @__PURE__ */ new Map();
-function enPhraseRegex(phrase, caseSensitive = false) {
-  const key = `${caseSensitive ? 1 : 0}\0${phrase}`;
+function singularOf(phrase) {
+  return phrase.replace(/([A-Za-z]+)$/, (w) => /^[A-Z]{2,}s$/.test(w) ? w.slice(0, -1) : w.length > 4 && /ies$/i.test(w) ? `${w.slice(0, -3)}y` : w.length > 4 && /(x|ch|sh|ss)es$/i.test(w) ? w.slice(0, -2) : w.length > 3 && /[^s]s$/i.test(w) && !/(us|is)$/i.test(w) ? w.slice(0, -1) : w);
+}
+function inflectedWord(word) {
+  const w = singularOf(word);
+  if (!/^[A-Za-z]{3,}$/.test(w) || /^[A-Z]+$/.test(w)) return `${escapeRegExp(w)}(?:e?s)?`;
+  let stem = w;
+  let tail = "";
+  if (/[ca]tion$/i.test(w) && w.length >= 8) {
+    stem = w.slice(0, -3);
+    tail = /ct$/i.test(stem) ? "(?:s|ed|ing|ions?)?" : "(?:e|es|ed|ing|ions?)?";
+    return `${escapeRegExp(stem)}${tail}`;
+  }
+  if (/[^aeiou]y$/i.test(w)) return `${escapeRegExp(w.slice(0, -1))}(?:y|ies|ied|ying)`;
+  if (/e$/i.test(w)) {
+    stem = w.slice(0, -1);
+    const ion2 = /te$/i.test(w) ? "|ions?" : "";
+    return `${escapeRegExp(stem)}(?:e|es|ed|ing${ion2})`;
+  }
+  const ion = /ct$/i.test(w) ? "|ions?" : "";
+  const dbl = /^[^aeiou]*[aeiou][bdgklmnprt]$/i.test(w) ? `${escapeRegExp(w.slice(-1))}?` : "";
+  return `${escapeRegExp(w)}(?:e?s|${dbl}ed|${dbl}ing${ion})?`;
+}
+function enPhraseRegex(phrase, caseSensitive = false, inflect = false) {
+  const key = `${caseSensitive ? 1 : 0}${inflect ? 1 : 0}\0${phrase}`;
   let re = phraseCache.get(key);
   if (!re) {
-    const words = normalizeApostrophes(phrase).trim().split(/\s+/).map((w) => escapeRegExp(w).replace(/'/g, "['‘’ʼ]"));
+    const raw = normalizeApostrophes(phrase).trim().split(/\s+/);
+    const words = raw.map((w) => escapeRegExp(w).replace(/'/g, "['‘’ʼ]"));
     const last = words.pop();
-    const tail = /y$/i.test(last) && !/[aeiou]y$/i.test(last) ? `${last.slice(0, -1)}(?:y|ies)` : /fe?$/i.test(last) ? `${last.replace(/fe?$/i, "")}(?:fe?s?|ves)` : `${last}(?:e?s)?`;
+    const lastRaw = raw[raw.length - 1];
+    const tail = inflect && /^[A-Za-z]+$/.test(lastRaw) ? inflectedWord(lastRaw) : /y$/i.test(last) && !/[aeiou]y$/i.test(last) ? `${last.slice(0, -1)}(?:y|ies)` : /fe?$/i.test(last) ? `${last.replace(/fe?$/i, "")}(?:fe?s?|ves)` : `${last}(?:e?s)?`;
     re = new RegExp(`(?<![A-Za-z])${[...words, tail].join("[\\s\\u00a0]+")}(?:['‘’ʼ]s)?(?![A-Za-z])`, caseSensitive ? "" : "i");
     phraseCache.set(key, re);
   }
@@ -550,7 +575,7 @@ function enPhraseRegex(phrase, caseSensitive = false) {
 }
 function containsPhrase(text, phrase, lang, caseSensitive = false, loose = false) {
   if (!phrase) return false;
-  if (lang !== "ja") return enPhraseRegex(phrase, caseSensitive).test(text);
+  if (lang !== "ja") return enPhraseRegex(phrase, caseSensitive, loose).test(text);
   const t = normalizeApostrophes(text);
   const p = normalizeApostrophes(phrase);
   return t.includes(p) || loose && jaLooseRegex(p).test(t);
@@ -1175,6 +1200,842 @@ function parsePo(text, file2, opts = {}) {
   return { file: file2, format: "po", sourceLang, targetLang, rows };
 }
 
+// src/core/parsers/renpy.ts
+var HEADER = /^translate\s+(\S+)\s+(.+?)\s*:\s*(?:#.*)?$/;
+var LOCATION = /^#\s*(\S+\.rpym?:\d+)\s*$/;
+var NOT_SAY = /* @__PURE__ */ new Set([
+  "nvl",
+  "window",
+  "pause",
+  "play",
+  "queue",
+  "stop",
+  "show",
+  "hide",
+  "scene",
+  "with",
+  "call",
+  "jump",
+  "return",
+  "pass",
+  "menu",
+  "label",
+  "define",
+  "default",
+  "image",
+  "init",
+  "python",
+  "if",
+  "elif",
+  "else",
+  "while",
+  "for",
+  "camera",
+  "at",
+  "transform",
+  "screen",
+  "style",
+  "translate"
+]);
+function hasRenpyTranslations(text) {
+  return /^translate\s+\S+\s+\S.*:\s*(?:#.*)?$/m.test(text);
+}
+function renpyCharacters(text) {
+  const out = {};
+  const re = /^\s*define\s+([A-Za-z_][\w.]*)\s*=\s*(?:Character|NVLCharacter|ADVCharacter)\s*\(\s*(?:_\(\s*)?(?:[rRuU]?)("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')/gm;
+  for (const m of text.matchAll(re)) {
+    const name = unescape(m[2].slice(1, -1));
+    if (name.trim()) out[m[1]] = name;
+  }
+  return out;
+}
+function unescape(s) {
+  return s.replace(/\s*\n\s*/g, " ").replace(/\\(["'\\n])/g, (_, c) => c === "n" ? "\n" : c);
+}
+function readString(s, p) {
+  const q2 = s[p];
+  if (q2 !== '"' && q2 !== "'" && q2 !== "`") return void 0;
+  const triple = s.startsWith(q2.repeat(3), p);
+  const delim = triple ? q2.repeat(3) : q2;
+  let e = p + delim.length;
+  while (e < s.length) {
+    if (s[e] === "\\") e += 2;
+    else if (s.startsWith(delim, e)) return { value: unescape(s.slice(p + delim.length, e)), end: e + delim.length };
+    else e++;
+  }
+  return void 0;
+}
+function unterminated(s) {
+  let p = 0;
+  while (p < s.length) {
+    const c = s[p];
+    if (c === "#") return false;
+    if (c === '"' || c === "'" || c === "`") {
+      const r = readString(s, p);
+      if (!r) return c === '"';
+      p = r.end;
+    } else p++;
+  }
+  return false;
+}
+function parseStatement(stmt) {
+  const s = stmt.trim();
+  if (!s || s.startsWith("$")) return { kind: "other" };
+  const first = readString(s, 0);
+  if (first) {
+    const rest = s.slice(first.end).trimStart();
+    const second = readString(rest, 0);
+    return second ? { kind: "say", who: first.value, whoIsName: true, what: second.value } : { kind: "say", what: first.value };
+  }
+  const w = /^([A-Za-z_][\w.]*)/.exec(s);
+  if (!w) return { kind: "other" };
+  const word = w[1];
+  if (word === "voice") {
+    const v = readString(s.slice(word.length).trimStart(), 0);
+    return v ? { kind: "voice", file: v.value } : { kind: "other" };
+  }
+  if (NOT_SAY.has(word)) return { kind: "other" };
+  const q2 = /["'`]/.exec(s);
+  if (!q2) return { kind: "other" };
+  const prefix = s.slice(0, q2.index);
+  if (!/^[A-Za-z_][\w.]*(?:\s+(?:@\s*)?-?[\w.]+|\s+@)*\s+$/.test(prefix)) return { kind: "other" };
+  const what = readString(s, q2.index);
+  return what ? { kind: "say", who: word, what: what.value } : { kind: "other" };
+}
+function hash8(s) {
+  let h = 2166136261;
+  for (let i2 = 0; i2 < s.length; i2++) {
+    h ^= s.charCodeAt(i2);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0).toString(16).padStart(8, "0");
+}
+function statements(body) {
+  const out = [];
+  for (let k = 0; k < body.length; k++) {
+    const t = body[k].text.trim();
+    if (!t) continue;
+    const comment = t.startsWith("#");
+    let text = comment ? t.slice(1).trim() : t;
+    const line = body[k].n;
+    while (unterminated(text) && k + 1 < body.length) {
+      const next = body[k + 1].text.trim();
+      if (comment !== next.startsWith("#")) break;
+      k++;
+      text += "\n" + (comment ? next.slice(1).trim() : next);
+    }
+    out.push({ line, comment, text });
+  }
+  return out;
+}
+function parseRenpy(text, file2, opts = {}) {
+  if (!hasRenpyTranslations(text)) {
+    throw new Error(
+      `${file2}: no "translate <language> <id>:" blocks found. Kotomark reads Ren'Py translation files (game/tl/<language>/*.rpy); a game script with define x = Character("…") can be loaded alongside them to name the speakers.`
+    );
+  }
+  const chars = opts.characters ?? {};
+  const lines = text.replace(/^\ufeff/, "").split(/\r?\n/);
+  const rows = [];
+  const notes = [];
+  const tlLangs = /* @__PURE__ */ new Set();
+  const seenStrings = /* @__PURE__ */ new Map();
+  let skipped = 0;
+  let mismatched = 0;
+  let pendingLoc = [];
+  let lastSpeaker;
+  const speakerOf = (st) => {
+    if (!st.who) return void 0;
+    if (st.whoIsName) return st.who;
+    if (st.who === "extend") return lastSpeaker;
+    return chars[st.who] ?? st.who;
+  };
+  let i2 = 0;
+  while (i2 < lines.length) {
+    const raw = lines[i2];
+    const t = raw.trim();
+    if (!t || /^\s/.test(raw)) {
+      i2++;
+      continue;
+    }
+    if (t.startsWith("#")) {
+      const loc3 = LOCATION.exec(t);
+      if (loc3) pendingLoc.push(loc3[1]);
+      i2++;
+      continue;
+    }
+    const header = HEADER.exec(t);
+    const body = [];
+    i2++;
+    while (i2 < lines.length && (!lines[i2].trim() || /^\s/.test(lines[i2]))) {
+      body.push({ n: i2 + 1, text: lines[i2] });
+      i2++;
+    }
+    const loc2 = pendingLoc;
+    pendingLoc = [];
+    if (!header) continue;
+    const [, lang, id] = header;
+    tlLangs.add(lang);
+    if (id === "python" || id.startsWith("style ")) {
+      skipped++;
+      continue;
+    }
+    if (id === "strings") {
+      let locs = [];
+      let old;
+      for (const st of statements(body)) {
+        if (st.comment) {
+          const l = LOCATION.exec("# " + st.text);
+          if (l) locs.push(l[1]);
+          continue;
+        }
+        const kw = /^(old|new)\s+/.exec(st.text);
+        const str = kw ? readString(st.text, kw[0].length) : void 0;
+        if (!kw || !str) {
+          notes.push(`${file2}:${st.line}: unrecognised statement in a strings block, skipped`);
+          continue;
+        }
+        if (kw[1] === "old") {
+          if (old) rows.push({ file: file2, line: old.line, id: `strings:${hash8(old.value)}`, source: old.value, target: "", context: old.locs.join(", ") || void 0 });
+          old = { value: str.value, line: st.line, locs };
+          locs = [];
+        } else {
+          if (!old) throw new Error(`${file2}:${st.line}: "new" without a preceding "old"`);
+          let rid = `strings:${hash8(old.value)}`;
+          const dup = seenStrings.get(rid) ?? 0;
+          seenStrings.set(rid, dup + 1);
+          if (dup) rid += `#${dup + 1}`;
+          rows.push({ file: file2, line: st.line, id: rid, source: old.value, target: str.value, context: old.locs.join(", ") || void 0 });
+          old = void 0;
+        }
+      }
+      if (old) rows.push({ file: file2, line: old.line, id: `strings:${hash8(old.value)}`, source: old.value, target: "", context: old.locs.join(", ") || void 0 });
+      continue;
+    }
+    const originals = [];
+    const translations = [];
+    let voice;
+    for (const st of statements(body)) {
+      if (st.comment) {
+        const l = LOCATION.exec("# " + st.text);
+        if (l) {
+          loc2.push(l[1]);
+          continue;
+        }
+      }
+      const s = parseStatement(st.text);
+      if (s.kind === "voice") voice ??= s.file;
+      else if (s.kind === "say") (st.comment ? originals : translations).push({ line: st.line, who: s.who, whoIsName: s.whoIsName, what: s.what });
+    }
+    if (!originals.length && !translations.length) continue;
+    if (originals.length !== translations.length) mismatched++;
+    const n = Math.max(originals.length, 1);
+    for (let k = 0; k < n; k++) {
+      const o = originals[k];
+      const tr = k === n - 1 ? translations.slice(k) : translations[k] ? [translations[k]] : [];
+      const extend2 = (o ?? tr[0])?.who === "extend";
+      const speaker = speakerOf(o ?? tr[0] ?? {});
+      const ctx = [loc2.join(", ") || void 0, voice ? `voice: ${voice}` : void 0, extend2 ? "extend" : void 0].filter(Boolean).join(" | ");
+      rows.push({
+        file: file2,
+        line: tr[0]?.line ?? o.line,
+        id: k === 0 ? id : `${id}#${k + 1}`,
+        source: o?.what ?? "",
+        target: tr.map((x2) => x2.what).join("\n"),
+        speaker,
+        context: ctx || void 0
+      });
+      if (!extend2) lastSpeaker = speaker;
+    }
+  }
+  if (skipped) notes.push(`${file2}: ${skipped} translate python/style block(s) skipped (not dialogue)`);
+  if (mismatched) notes.push(`${file2}: ${mismatched} dialogue block(s) have a different number of original and translated lines; extra translated lines are joined into the block's last row`);
+  const sourceLang = opts.langs?.source ?? detectLang(rows.map((r) => r.source));
+  const targetLang = opts.langs?.target ?? otherLang(sourceLang);
+  const named = [...tlLangs].map((l) => ({ l, lang: /^(english|en)$/i.test(l) ? "en" : /^(japanese|ja|jp)$/i.test(l) ? "ja" : void 0 }));
+  for (const x2 of named) if (x2.lang && x2.lang !== targetLang) notes.push(`${file2}: translate ${x2.l} blocks, but the original lines read as ${sourceLang}; checked as ${sourceLang}→${targetLang}`);
+  return { table: { file: file2, format: "renpy", sourceLang, targetLang, rows }, notes };
+}
+
+// src/core/parsers/yaml.ts
+var ESCAPES2 = {
+  "0": "\0",
+  a: "\x07",
+  b: "\b",
+  t: "	",
+  "	": "	",
+  n: "\n",
+  v: "\v",
+  f: "\f",
+  r: "\r",
+  e: "\x1B",
+  " ": " ",
+  '"': '"',
+  "/": "/",
+  "\\": "\\",
+  N: "",
+  _: " ",
+  L: "\u2028",
+  P: "\u2029"
+};
+var indentOf = (s) => s.length - s.trimStart().length;
+var isBlank = (s) => !s.trim();
+var isCommentLine = (s) => s.trimStart().startsWith("#");
+var isSeqItem = (s) => s === "-" || s.startsWith("- ") || s.startsWith("-	");
+function stripComment(s) {
+  const m = /(^|\s)#/.exec(s);
+  return (m ? s.slice(0, m.index) : s).trim();
+}
+function isNonText(s) {
+  return /^(?:~|null|Null|NULL|true|True|TRUE|false|False|FALSE|[-+]?(?:\d[\d_]*)?\.?\d[\d_]*(?:[eE][-+]?\d+)?|0x[0-9a-fA-F]+|0o[0-7]+|[-+]?\.(?:inf|Inf|INF)|\.(?:nan|NaN|NAN))$/.test(s) || s === "";
+}
+function foldQuoted(raw, escapes) {
+  const parts = raw.split("\n");
+  if (parts.length === 1) return raw;
+  let out = parts[0].replace(/[ \t]+$/, "");
+  let breaks = 0;
+  for (let k = 1; k < parts.length; k++) {
+    const last = k === parts.length - 1;
+    const p = last ? parts[k].replace(/^[ \t]+/, "") : parts[k].trim();
+    if (!p && !last) {
+      breaks++;
+      continue;
+    }
+    if (escapes && /(^|[^\\])(\\\\)*\\$/.test(out) && !breaks) out = out.slice(0, -1);
+    else out += breaks ? "\n".repeat(breaks) : " ";
+    out += p;
+    breaks = 0;
+  }
+  return out;
+}
+var YamlError = class extends Error {
+};
+var YamlParser = class {
+  constructor(lines) {
+    this.lines = lines;
+  }
+  lines;
+  i = 0;
+  anchors = /* @__PURE__ */ new Map();
+  notes = [];
+  noted = /* @__PURE__ */ new Set();
+  fail(line, msg) {
+    throw new YamlError(`YAML parse error at line ${line}: ${msg}`);
+  }
+  noteOnce(key, msg) {
+    if (this.noted.has(key)) return;
+    this.noted.add(key);
+    this.notes.push(msg);
+  }
+  /** Index of the next line that is neither blank nor a comment, at or after `from`. */
+  nextSig(from = this.i) {
+    let j = from;
+    while (j < this.lines.length && (isBlank(this.lines[j]) || isCommentLine(this.lines[j]))) j++;
+    return j;
+  }
+  /** Blanks `---` / `...` / `%` directive lines around the single document; rejects a second document. */
+  prepare() {
+    let content = false;
+    let ended = false;
+    this.lines.forEach((l, k) => {
+      if (l.startsWith("	") && !isBlank(l)) this.fail(k + 1, "tab used for indentation; YAML indents with spaces");
+      if (/^---(?:\s|$)/.test(l)) {
+        if (content) this.fail(k + 1, "a second YAML document ('---') is not supported; use one document per file");
+        const rest = l.slice(3).trim();
+        if (rest && !rest.startsWith("#")) this.fail(k + 1, "content on the '---' line is not supported; start it on the next line");
+        this.lines[k] = "";
+      } else if (/^\.\.\.(?:\s|$)/.test(l)) {
+        ended = true;
+        this.lines[k] = "";
+      } else if (!content && l.startsWith("%")) {
+        this.lines[k] = "";
+      } else if (!isBlank(l) && !isCommentLine(l)) {
+        if (ended) this.fail(k + 1, "content after the document end marker '...'; use one document per file");
+        content = true;
+      }
+    });
+  }
+  parseDocument() {
+    const j = this.nextSig(0);
+    if (j >= this.lines.length) return void 0;
+    const ind = indentOf(this.lines[j]);
+    const node2 = this.parseBlockAt(j, ind);
+    const rest = this.nextSig();
+    if (rest < this.lines.length) this.fail(rest + 1, `unexpected indentation or content (expected a key at column ${ind + 1})`);
+    return node2;
+  }
+  /** Column of the `:` that ends a mapping key on this line, or -1. */
+  keyColon(content) {
+    let p = 0;
+    const q2 = content[0];
+    if (q2 === '"' || q2 === "'") {
+      p = 1;
+      while (p < content.length) {
+        if (q2 === '"' && content[p] === "\\") p += 2;
+        else if (content[p] === q2) {
+          if (q2 === "'" && content[p + 1] === "'") p += 2;
+          else break;
+        } else p++;
+      }
+      if (p >= content.length) return -1;
+      p++;
+      while (content[p] === " ") p++;
+      return content[p] === ":" && (p + 1 >= content.length || /\s/.test(content[p + 1])) ? p : -1;
+    }
+    if (q2 === "[" || q2 === "{" || q2 === "#" || q2 === "|" || q2 === ">") return -1;
+    for (; p < content.length; p++) {
+      const c = content[p];
+      if (c === "#" && p > 0 && /\s/.test(content[p - 1])) return -1;
+      if (c === ":" && (p + 1 >= content.length || /\s/.test(content[p + 1]))) return p;
+    }
+    return -1;
+  }
+  parseBlockAt(j, ind) {
+    const content = this.lines[j].slice(ind);
+    if (isSeqItem(content)) return this.parseSeq(ind);
+    if (content.startsWith("? ") || content === "?") this.fail(j + 1, "complex mapping keys ('? ') are not supported");
+    if (this.keyColon(content) >= 0) return this.parseMap(ind);
+    this.i = j + 1;
+    return this.parseValue(content, j, ind - 1, false);
+  }
+  parseMap(indent) {
+    const entries = [];
+    const pos = /* @__PURE__ */ new Map();
+    const merges = [];
+    const start = this.nextSig();
+    for (; ; ) {
+      const j = this.nextSig();
+      if (j >= this.lines.length) break;
+      const raw = this.lines[j];
+      const ind = indentOf(raw);
+      if (ind < indent) break;
+      if (ind > indent) this.fail(j + 1, `unexpected indentation (expected column ${indent + 1})`);
+      const content = raw.slice(indent);
+      if (isSeqItem(content)) this.fail(j + 1, "a list item ('- ') where a mapping key was expected");
+      if (content.startsWith("? ") || content === "?") this.fail(j + 1, "complex mapping keys ('? ') are not supported");
+      const colon = this.keyColon(content);
+      if (colon < 0) this.fail(j + 1, `expected 'key: value', got "${content.trim().slice(0, 40)}"`);
+      const keyRaw = content.slice(0, colon).trim();
+      const key = keyRaw.startsWith('"') ? this.unquote(keyRaw.slice(1, -1), true, j + 1) : keyRaw.startsWith("'") ? keyRaw.slice(1, -1).replace(/''/g, "'") : keyRaw;
+      this.i = j + 1;
+      const value = this.parseValue(content.slice(colon + 1), j, indent, true);
+      if (key === "<<" && !keyRaw.startsWith('"') && !keyRaw.startsWith("'")) {
+        if (value.kind === "map") merges.push(value);
+        else if (value.kind === "seq" && value.items.every((x2) => x2.value.kind === "map")) merges.push(...value.items.map((x2) => x2.value));
+        else this.fail(j + 1, "merge key '<<' needs a mapping or a list of mappings (e.g. <<: *defaults)");
+        continue;
+      }
+      const prev = pos.get(key);
+      if (prev !== void 0) {
+        this.notes.push(`duplicate key "${key}" at lines ${entries[prev].line} and ${j + 1}; the later one wins`);
+        entries[prev] = { key, line: j + 1, value };
+      } else {
+        pos.set(key, entries.length);
+        entries.push({ key, line: j + 1, value });
+      }
+    }
+    for (const m of merges) {
+      if (m.kind !== "map") continue;
+      for (const e of m.entries) {
+        if (pos.has(e.key)) continue;
+        pos.set(e.key, entries.length);
+        entries.push(e);
+      }
+    }
+    return { kind: "map", line: start + 1, entries };
+  }
+  parseSeq(indent) {
+    const items = [];
+    const start = this.nextSig();
+    for (; ; ) {
+      const j = this.nextSig();
+      if (j >= this.lines.length) break;
+      const raw = this.lines[j];
+      const ind = indentOf(raw);
+      if (ind < indent) break;
+      if (ind > indent) this.fail(j + 1, `unexpected indentation (expected column ${indent + 1})`);
+      const content = raw.slice(indent);
+      if (!isSeqItem(content)) break;
+      const after = content.slice(1);
+      const inner2 = after.trimStart();
+      let value;
+      if (!inner2 || inner2.startsWith("#")) {
+        this.i = j + 1;
+        value = this.parseValue("", j, indent, false);
+      } else {
+        const col = indent + 1 + (after.length - inner2.length);
+        if (isSeqItem(inner2) || this.keyColon(inner2) >= 0) {
+          this.lines[j] = " ".repeat(col) + inner2;
+          value = this.parseBlockAt(j, col);
+        } else {
+          this.i = j + 1;
+          value = this.parseValue(inner2, j, indent, false);
+        }
+      }
+      items.push({ line: j + 1, value });
+    }
+    return { kind: "seq", line: start + 1, items };
+  }
+  /**
+   * Value after `key:` or `- ` on line `j` (0-based). `parentIndent` is the indentation of the key / dash:
+   * continuation and nested lines must be indented further. `compactSeq`: a `- ` list at the key's own indentation
+   * is the key's value (YAML allows that under a mapping key).
+   */
+  parseValue(rest, j, parentIndent, compactSeq) {
+    const line = j + 1;
+    let s = rest.trim();
+    let anchor2;
+    let tag;
+    for (; ; ) {
+      const a = /^&([^\s,[\]{}]+)\s*/.exec(s);
+      if (a) {
+        anchor2 = a[1];
+        s = s.slice(a[0].length);
+        continue;
+      }
+      const t = /^!(?:[^\s,[\]{}]*)\s*/.exec(s);
+      if (t) {
+        tag = t[0].trim();
+        s = s.slice(t[0].length);
+        continue;
+      }
+      break;
+    }
+    let node2;
+    if (!s || s.startsWith("#")) {
+      const k = this.nextSig();
+      const ind = k < this.lines.length ? indentOf(this.lines[k]) : -1;
+      if (k < this.lines.length && ind > parentIndent) node2 = this.parseBlockAt(k, ind);
+      else if (k < this.lines.length && compactSeq && ind === parentIndent && isSeqItem(this.lines[k].slice(ind))) node2 = this.parseSeq(ind);
+      else node2 = { kind: "scalar", line, value: "", text: false };
+    } else if (s.startsWith("*")) {
+      const m = /^\*([^\s,[\]{}]+)\s*(#.*)?$/.exec(s);
+      if (!m) this.fail(line, "unexpected text after an alias");
+      const target = this.anchors.get(m[1]);
+      if (!target) this.fail(line, `unknown alias *${m[1]} (anchors must be defined before use)`);
+      node2 = target;
+    } else if (s[0] === "|" || s[0] === ">") {
+      node2 = this.blockScalar(s, j, parentIndent);
+    } else if (s[0] === '"' || s[0] === "'") {
+      node2 = this.quoted(s, j);
+    } else if (s[0] === "[" || s[0] === "{") {
+      node2 = this.flow(s, j);
+    } else {
+      if (s[0] === "@" || s[0] === "`") this.fail(line, `a plain value cannot start with '${s[0]}'; quote it`);
+      node2 = this.plain(s, j, parentIndent);
+    }
+    if (tag === "!!str" && node2.kind === "scalar") node2 = { ...node2, text: true };
+    if (anchor2) this.anchors.set(anchor2, node2);
+    return node2;
+  }
+  plain(first, j, parentIndent) {
+    let value = stripComment(first);
+    let k = this.i;
+    let breaks = 0;
+    while (k < this.lines.length) {
+      const l = this.lines[k];
+      if (isBlank(l)) {
+        breaks++;
+        k++;
+        continue;
+      }
+      if (indentOf(l) <= parentIndent || isCommentLine(l)) break;
+      const t = l.trim();
+      if (this.keyColon(t) >= 0) this.fail(k + 1, "a 'key:' inside a multi-line value; check the indentation (or quote the value)");
+      value += breaks ? "\n".repeat(breaks) : " ";
+      value += stripComment(t);
+      breaks = 0;
+      k++;
+      this.i = k;
+    }
+    return { kind: "scalar", line: j + 1, value, text: !isNonText(value) };
+  }
+  /** Double-quoted escapes. */
+  unquote(s, escapes, line) {
+    if (!escapes) return s.replace(/''/g, "'");
+    return s.replace(/\\(x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4}|U[0-9a-fA-F]{8}|[\s\S])/g, (_, e) => {
+      if (e.length > 1) return String.fromCodePoint(Number.parseInt(e.slice(1), 16));
+      const r = ESCAPES2[e];
+      if (r === void 0) this.fail(line, `invalid escape '\\${e}' in a double-quoted string`);
+      return r;
+    });
+  }
+  /** Quoted scalar starting at `s` (rest of line j), possibly continuing onto the next lines. */
+  quoted(s, j) {
+    const q2 = s[0];
+    let text = s.slice(1);
+    let k = j;
+    let raw = "";
+    for (; ; ) {
+      let p = 0;
+      let end = -1;
+      while (p < text.length) {
+        if (q2 === '"' && text[p] === "\\") p += 2;
+        else if (text[p] === q2) {
+          if (q2 === "'" && text[p + 1] === "'") p += 2;
+          else {
+            end = p;
+            break;
+          }
+        } else p++;
+      }
+      if (end >= 0) {
+        raw += text.slice(0, end);
+        const after = text.slice(end + 1).trim();
+        if (after && !after.startsWith("#")) this.fail(k + 1, `unexpected text after a quoted value: "${after.slice(0, 30)}"`);
+        break;
+      }
+      raw += text + "\n";
+      k++;
+      if (k >= this.lines.length) this.fail(j + 1, `unterminated ${q2 === '"' ? "double" : "single"}-quoted string`);
+      text = this.lines[k];
+    }
+    this.i = Math.max(this.i, k + 1);
+    const folded = foldQuoted(raw, q2 === '"');
+    return { kind: "scalar", line: j + 1, value: this.unquote(folded, q2 === '"', j + 1), text: true };
+  }
+  blockScalar(header, j, parentIndent) {
+    const m = /^([|>])([1-9]?)([-+]?)([1-9]?)\s*(#.*)?$/.exec(header);
+    if (!m) this.fail(j + 1, `bad block scalar header "${header}"`);
+    const folded = m[1] === ">";
+    const digit = m[2] || m[4];
+    const chomp = m[3];
+    let contentIndent = digit ? Math.max(parentIndent, 0) + Number(digit) : -1;
+    const body = [];
+    let k = this.i;
+    let lastContent = this.i;
+    for (; k < this.lines.length; k++) {
+      const l = this.lines[k];
+      if (isBlank(l)) {
+        body.push(l.length > contentIndent && contentIndent >= 0 ? l.slice(contentIndent) : "");
+        continue;
+      }
+      const ind = indentOf(l);
+      if (contentIndent < 0) {
+        if (ind <= parentIndent) break;
+        contentIndent = ind;
+      }
+      if (ind < contentIndent) break;
+      body.push(l.slice(contentIndent));
+      lastContent = k + 1;
+    }
+    this.i = Math.max(this.i, lastContent);
+    let trailing = 0;
+    while (body.length && !body[body.length - 1].trim()) {
+      body.pop();
+      trailing++;
+    }
+    let text;
+    if (!folded) text = body.join("\n");
+    else {
+      text = "";
+      let breaks = 0;
+      let prev;
+      for (const l of body) {
+        if (!l) {
+          breaks++;
+          continue;
+        }
+        const more = /^\s/.test(l);
+        if (prev === void 0) text += "\n".repeat(breaks);
+        else if (more || /^\s/.test(prev)) text += "\n".repeat(breaks + 1);
+        else text += breaks ? "\n".repeat(breaks) : " ";
+        text += l;
+        prev = l;
+        breaks = 0;
+      }
+    }
+    if (chomp === "-") {
+    } else if (chomp === "+") text += body.length ? "\n" + "\n".repeat(trailing) : "\n".repeat(trailing);
+    else if (body.length) text += "\n";
+    return { kind: "scalar", line: j + 1, value: text, text: true };
+  }
+  /** Flow collection starting at `s` (rest of line j), possibly spanning lines. */
+  flow(s, j) {
+    let src = s;
+    let k = j;
+    const balanced = (t) => {
+      let depth = 0;
+      let q2;
+      for (let p2 = 0; p2 < t.length; p2++) {
+        const c = t[p2];
+        if (q2) {
+          if (q2 === '"' && c === "\\") p2++;
+          else if (c === q2) {
+            if (q2 === "'" && t[p2 + 1] === "'") p2++;
+            else q2 = void 0;
+          }
+        } else if (c === '"' || c === "'") q2 = c;
+        else if (c === "#" && (p2 === 0 || /\s/.test(t[p2 - 1]))) {
+          const nl = t.indexOf("\n", p2);
+          if (nl < 0) return depth === 0 ? p2 : -1;
+          p2 = nl;
+        } else if (c === "[" || c === "{") depth++;
+        else if (c === "]" || c === "}") {
+          depth--;
+          if (depth === 0) return p2 + 1;
+        }
+      }
+      return -1;
+    };
+    let end = balanced(src);
+    while (end < 0) {
+      k++;
+      if (k >= this.lines.length) this.fail(j + 1, "unterminated flow collection ('[' or '{' without its closing bracket)");
+      src += "\n" + this.lines[k];
+      end = balanced(src);
+    }
+    const after = src.slice(end).trim();
+    if (after && !after.startsWith("#")) this.fail(k + 1, `unexpected text after a flow collection: "${after.slice(0, 30)}"`);
+    this.i = Math.max(this.i, k + 1);
+    src = src.slice(0, end);
+    let p = 0;
+    const lineAt = () => j + 1 + (src.slice(0, p).match(/\n/g)?.length ?? 0);
+    const ws = () => {
+      for (; ; ) {
+        while (p < src.length && /\s/.test(src[p])) p++;
+        if (src[p] === "#") {
+          while (p < src.length && src[p] !== "\n") p++;
+        } else return;
+      }
+    };
+    const scalar = () => {
+      ws();
+      const line = lineAt();
+      const c = src[p];
+      if (c === '"' || c === "'") {
+        let e2 = p + 1;
+        while (e2 < src.length) {
+          if (c === '"' && src[e2] === "\\") e2 += 2;
+          else if (src[e2] === c) {
+            if (c === "'" && src[e2 + 1] === "'") e2 += 2;
+            else break;
+          } else e2++;
+        }
+        const raw = src.slice(p + 1, e2);
+        p = e2 + 1;
+        return { kind: "scalar", line, value: this.unquote(foldQuoted(raw, c === '"'), c === '"', line), text: true };
+      }
+      let e = p;
+      while (e < src.length && !/[,[\]{}]/.test(src[e]) && !(src[e] === ":" && /[\s,[\]{}]/.test(src[e + 1] ?? " ")) && !(src[e] === "#" && /\s/.test(src[e - 1] ?? ""))) e++;
+      const v = src.slice(p, e).replace(/\s*\n\s*/g, " ").trim();
+      p = e;
+      return { kind: "scalar", line, value: v, text: !isNonText(v) };
+    };
+    const value = () => {
+      ws();
+      const line = lineAt();
+      if (src[p] === "[") {
+        p++;
+        const items = [];
+        for (; ; ) {
+          ws();
+          if (src[p] === "]") {
+            p++;
+            break;
+          }
+          const il = lineAt();
+          let v = value();
+          ws();
+          if (src[p] === ":") {
+            p++;
+            const k2 = v.kind === "scalar" ? v.value : "";
+            v = { kind: "map", line: il, entries: [{ key: k2, line: il, value: value() }] };
+            ws();
+          }
+          items.push({ line: il, value: v });
+          if (src[p] === ",") p++;
+          else if (src[p] !== "]") this.fail(lineAt(), "expected ',' or ']' in a flow list");
+        }
+        return { kind: "seq", line, items };
+      }
+      if (src[p] === "{") {
+        p++;
+        const entries = [];
+        for (; ; ) {
+          ws();
+          if (src[p] === "}") {
+            p++;
+            break;
+          }
+          const kl = lineAt();
+          const k2 = scalar();
+          ws();
+          let v = { kind: "scalar", line: kl, value: "", text: false };
+          if (src[p] === ":") {
+            p++;
+            ws();
+            if (src[p] !== "," && src[p] !== "}") v = value();
+          }
+          entries.push({ key: k2.kind === "scalar" ? k2.value : "", line: kl, value: v });
+          ws();
+          if (src[p] === ",") p++;
+          else if (src[p] !== "}") this.fail(lineAt(), "expected ',' or '}' in a flow mapping");
+        }
+        return { kind: "map", line, entries };
+      }
+      if (src[p] === "*") {
+        const m = /^\*([^\s,[\]{}]+)/.exec(src.slice(p));
+        const target = m && this.anchors.get(m[1]);
+        if (!target) this.fail(line, `unknown alias ${m ? "*" + m[1] : "*"}`);
+        p += m[0].length;
+        return target;
+      }
+      return scalar();
+    };
+    return value();
+  }
+};
+function parseYamlDocument(text) {
+  const p = new YamlParser(text.replace(/^﻿/, "").split(/\r?\n/));
+  p.prepare();
+  const root = p.parseDocument();
+  return { root, notes: p.notes };
+}
+function flatten2(n, prefix, line, out, seen) {
+  if (n.kind === "scalar") {
+    if (n.text) out.push({ key: prefix, line, value: n.value });
+    return;
+  }
+  if (seen.has(n)) return;
+  seen.add(n);
+  if (n.kind === "map") for (const e of n.entries) flatten2(e.value, prefix ? `${prefix}.${e.key}` : e.key, e.line, out, seen);
+  else n.items.forEach((x2, i2) => flatten2(x2.value, prefix ? `${prefix}.${i2}` : String(i2), x2.line, out, seen));
+  seen.delete(n);
+}
+function parseYaml(text, file2) {
+  let doc;
+  try {
+    doc = parseYamlDocument(text);
+  } catch (e) {
+    throw new Error(`${file2}: ${e.message}`);
+  }
+  const notes = doc.notes.map((n) => `${file2}: ${n}`);
+  let root = doc.root;
+  if (!root || root.kind !== "map") throw new Error(`${file2}: expected a YAML mapping of translation keys (a locale file such as ja.yml)${root?.kind === "seq" ? ", got a list" : ""}`);
+  let lang;
+  const langKeys = root.entries.filter((e) => langOfCode(e.key) && e.value.kind === "map");
+  if (langKeys.length > 1) throw new Error(`${file2}: has several locale roots (${langKeys.map((e) => e.key).join(", ")}); split it into one file per locale`);
+  if (root.entries.length === 1 && langKeys.length === 1) {
+    lang = langOfCode(langKeys[0].key);
+    root = langKeys[0].value;
+  }
+  const leaves = [];
+  if (root.kind === "map") {
+    for (const e of root.entries) {
+      if (e.key === "_lang_" && e.value.kind === "scalar") {
+        lang ??= langOfCode(e.value.value);
+        continue;
+      }
+      flatten2(e.value, e.key, e.line, leaves, /* @__PURE__ */ new Set());
+    }
+  }
+  if (!leaves.length) throw new Error(`${file2}: no string values found`);
+  const rows = leaves.map((l) => ({ file: file2, line: l.line, id: l.key, source: l.value, target: "" }));
+  lang ??= langFromName(file2) ?? detectLang(rows.map((r) => r.source));
+  return { table: singleTable(file2, "yaml", rows, lang), notes };
+}
+
 // src/core/parsers/xlsx.ts
 var isZip = (b) => b.length >= 4 && b[0] === 80 && b[1] === 75 && b[2] === 3 && b[3] === 4;
 var isOle = (b) => b.length >= 4 && b[0] === 208 && b[1] === 207 && b[2] === 17 && b[3] === 224;
@@ -1383,12 +2244,23 @@ function looksLikePo(text) {
   }
   return false;
 }
+function looksLikeYaml(text) {
+  for (const raw of text.split(/\r?\n/, 200)) {
+    const l = raw.trim();
+    if (!l || l.startsWith("#") || l.startsWith("%")) continue;
+    if (/^---(\s|$)/.test(l)) return true;
+    return !raw.includes(",") && /^(?:"[^"]*"|'[^']*'|[A-Za-z0-9_$][\w.$-]*):(?:\s|$)/.test(raw);
+  }
+  return false;
+}
 function detectFormat(file2, text) {
   const f = file2.toLowerCase().split("#")[0];
   if (f.endsWith(".xlsx") || f.endsWith(".xlsm")) return "xlsx";
   if (f.endsWith(".po") || f.endsWith(".pot")) return "po";
   if (f.endsWith(".xlf") || f.endsWith(".xliff")) return "xliff";
   if (f.endsWith(".json")) return "json";
+  if (f.endsWith(".yml") || f.endsWith(".yaml")) return "yaml";
+  if (f.endsWith(".rpy")) return "renpy";
   if (f.endsWith(".tsv")) return "tsv";
   if (f.endsWith(".csv")) return "csv";
   if (typeof text !== "string") {
@@ -1401,6 +2273,8 @@ function detectFormat(file2, text) {
   if (head.startsWith("<")) return "xliff";
   if (head.startsWith("{") || head.startsWith("[")) return "json";
   if (looksLikePo(head)) return "po";
+  if (hasRenpyTranslations(head.slice(0, 65536))) return "renpy";
+  if (looksLikeYaml(head)) return "yaml";
   return "csv";
 }
 function parseTableWithNotes(data, file2, opts = {}) {
@@ -1417,6 +2291,10 @@ function parseTableWithNotes(data, file2, opts = {}) {
     const d = decodeText(data, file2);
     text = d.text;
     if (d.note) notes.push(d.note);
+  }
+  if (format === "yaml" || format === "renpy") {
+    const r = format === "yaml" ? parseYaml(text, file2) : parseRenpy(text, file2, { langs: opts.langs, characters: opts.renpyCharacters });
+    return { table: r.table, notes: [...notes, ...r.notes] };
   }
   return { table: parseText(text, file2, format, opts), notes };
 }
@@ -1492,8 +2370,29 @@ function pairTables(src, tgt) {
 function loadInputs(files, opts = {}) {
   const notes = [];
   const parsed = [];
-  const parseOpts = { columns: opts.columns, langs: opts.langs, sheet: opts.sheet };
+  const characters = {};
+  const renpyScripts = /* @__PURE__ */ new Set();
+  const plainScripts = [];
   for (const input2 of files) {
+    if ((input2.format ?? opts.format ?? detectFormat(input2.name, input2.data)) !== "renpy") continue;
+    let text;
+    try {
+      text = typeof input2.data === "string" ? stripBom(input2.data) : decodeText(input2.data, input2.name).text;
+    } catch {
+      continue;
+    }
+    if (hasRenpyTranslations(text)) continue;
+    renpyScripts.add(input2);
+    const found = renpyCharacters(text);
+    const n = Object.keys(found).length;
+    for (const [k, v] of Object.entries(found)) characters[k] ??= v;
+    if (n) notes.push(`${input2.name}: Ren'Py game script (no translate blocks); read ${n} character name(s) for speakers: ${list(Object.entries(found).map(([k, v]) => `${k}=${v}`))}`);
+    else plainScripts.push(input2.name);
+  }
+  if (plainScripts.length) notes.push(`Skipped ${plainScripts.length} Ren'Py file(s) without translate blocks or character defines: ${list(plainScripts)}`);
+  const parseOpts = { columns: opts.columns, langs: opts.langs, sheet: opts.sheet, renpyCharacters: characters };
+  for (const input2 of files) {
+    if (renpyScripts.has(input2)) continue;
     try {
       const r = parseTableWithNotes(input2.data, input2.name, { ...parseOpts, format: input2.format ?? opts.format });
       notes.push(...r.notes);
@@ -21769,6 +22668,8 @@ var en = {
   honorificPolicyRomanized: (f, p) => `Romanized honorific "${f}" but the project policy is "${p}".`,
   honorificPolicyKeep: (ja2, f, e) => `Policy is "keep" but "${ja2}" is rendered "${f}" (expected "${e}").`,
   honorificDrift: (form, jaHon, m, n) => `"${form}" here, but this speaker's "${jaHon}" is rendered "${m}" in ${n} other lines.`,
+  honorificSplit: (jaHon, split) => `This speaker's "${jaHon}" is rendered inconsistently with no majority (${split}). Pick one form.`,
+  honorificNameDropped: (ja2, m, n) => `"${ja2}" is rendered without the name here, but as "${m}" in ${n} other lines by this speaker. Confirm the title-only address is intended.`,
   honorificSourceShift: (h, m, n) => `In Japanese this speaker uses "${h}" here but "${m}" in ${n} other lines. Confirm it is an intentional shift (and that the English reflects it).`,
   honorificTargetDrift: (h, e, m, n) => `"${e}" is rendered with "${h}" here, but with "${m}" in ${n} other lines by this speaker.`,
   voiceFirstPersonProfile: (name, odd, exp) => `${name} uses "${odd.join(", ")}" but their profile says "${exp.join(", ")}".`,
@@ -21805,6 +22706,8 @@ var ja = {
   honorificPolicyRomanized: (f, p) => `ローマ字の敬称「${f}」が使われていますが、プロジェクトの敬称方針は${POLICY_JA[p] ?? `「${p}」`}です。`,
   honorificPolicyKeep: (jaName, f, e) => `敬称方針は「keep」（ローマ字で残す）ですが、「${jaName}」が「${f}」と訳されています（期待される訳は「${e}」）。`,
   honorificDrift: (form, jaHon, m, n) => `ここでは「${form}」ですが、この話者の「${jaHon}」は他の${n}行で「${m}」と訳されています。`,
+  honorificSplit: (jaHon, split) => `この話者の「${jaHon}」の訳し方が揃っておらず、多数派がありません（${split}）。どれかに統一してください。`,
+  honorificNameDropped: (ja2, m, n) => `「${ja2}」がここでは名前なしで訳されていますが、この話者の他の${n}行では「${m}」です。名前を省いた呼び方が意図どおりか確認してください。`,
   honorificSourceShift: (h, m, n) => `日本語でこの話者はここで「${h}」を使っていますが、他の${n}行では「${m}」です。意図的な変化か（英語にも反映されているか）確認してください。`,
   honorificTargetDrift: (h, e, m, n) => `「${e}」がここでは「${h}」付きで訳されていますが、この話者の他の${n}行では「${m}」です。`,
   voiceFirstPersonProfile: (name, odd, exp) => `${name} が一人称${q(odd)}を使っていますが、プロフィールでは${q(exp)}です。`,
@@ -22015,7 +22918,7 @@ function checkNames(tables, g, locale = "en") {
     }
   }
   const speakerRows = tables.flatMap((t) => t.rows.filter((r) => r.speaker));
-  const normSpeaker = (s) => katakanaKey(s.toLowerCase().replace(/[\s._\-・()（）]/g, ""));
+  const normSpeaker = (s) => katakanaKey(hiraganaToKatakana(s.toLowerCase()).replace(/[\s._\-・()（）]/g, ""));
   for (const [, rows] of countBy(speakerRows, (r) => findCharacter(g, r.speaker)?.id ?? normSpeaker(r.speaker))) {
     const forms = countBy(rows, (r) => r.speaker);
     if (forms.size < 2) continue;
@@ -22042,7 +22945,8 @@ function checkNames(tables, g, locale = "en") {
   if (g.characters.length) {
     const labels = new Set(g.characters.flatMap((c) => [c.id, ...jaNames(c), ...enNames(c)].map(normSpeaker)));
     for (const [label, rows] of countBy(speakerRows, (r) => r.speaker)) {
-      const key = normSpeaker(label);
+      if (findCharacter(g, label)) continue;
+      const key = normSpeaker(stripSpeakerTitle(label));
       if (labels.has(key)) continue;
       const near = [...labels].find((l) => l.length >= 3 && damerauLevenshtein(key, l) === 1);
       if (!near) continue;
@@ -22064,10 +22968,19 @@ function checkNames(tables, g, locale = "en") {
   }
   return { findings, usage };
 }
+function hiraganaToKatakana(s) {
+  return s.replace(/[\u3041-\u3096]/g, (c) => String.fromCharCode(c.charCodeAt(0) + 96));
+}
+function stripSpeakerTitle(label) {
+  const stripped = label.trim().replace(/\s*(?:（[^（）]*）|\([^()]*\)|【[^【】]*】)$/, "").trim();
+  return stripped || label.trim();
+}
 function findCharacter(g, label) {
   if (!label) return void 0;
-  const k = label.trim().toLowerCase();
-  return g.characters.find((c) => [c.id, ...jaNames(c), ...enNames(c)].some((n) => n.toLowerCase() === k));
+  const exact = label.trim().toLowerCase();
+  const loose = hiraganaToKatakana(stripSpeakerTitle(label).toLowerCase());
+  const names = (c) => [c.id, ...jaNames(c), ...enNames(c)].map((n) => n.toLowerCase());
+  return g.characters.find((c) => names(c).some((n) => n === exact)) ?? g.characters.find((c) => names(c).some((n) => hiraganaToKatakana(n) === loose));
 }
 
 // src/core/checks/voice.ts
@@ -22182,15 +23095,42 @@ function checkHonorifics(tables, g, locale = "en") {
       }
     }
   }
-  for (const [, group2] of countBy(hits.filter((h) => !h.enToJa && h.rendering), (h) => `${h.speaker}\0${h.char}\0${h.jaHon}`)) {
+  const violates = (form) => (policy === "drop" || policy === "localize") && /-\w+$/.test(form);
+  const jaToEn = hits.filter((h) => !h.enToJa);
+  const majorityOf = /* @__PURE__ */ new Map();
+  for (const [key, group2] of countBy(jaToEn.filter((h) => h.rendering), (h) => `${h.speaker}\0${h.char}\0${h.jaHon}`)) {
     const first = group2[0];
     const label = `${first.row.speaker ?? "?"} → ${first.char} (${first.jaHon})`;
+    const name = (form) => form.replace("{name}", first.char);
     const forms = countBy(group2, (h) => h.rendering);
     const ranked = [...forms.entries()].sort((a, b) => b[1].length - a[1].length);
-    usage.push({ category: "honorific", group: label, counts: Object.fromEntries(ranked.map(([k, v]) => [k.replace("{name}", first.char), v.length])) });
-    if (forms.size < 2) continue;
-    const majority = ranked[0][0].replace("{name}", first.char);
-    for (const [form, list3] of ranked.slice(1)) {
+    usage.push({ category: "honorific", group: label, counts: Object.fromEntries(ranked.map(([k, v]) => [name(k), v.length])) });
+    const ok = ranked.filter(([f]) => !violates(f));
+    const tie = ok.length >= 2 && ok[0][1].length === ok[1][1].length;
+    if (ok.length && !tie) majorityOf.set(key, { form: name(ok[0][0]), n: ok[0][1].length });
+    if (!ok.length || ok.length < 2 && ranked.length < 2) continue;
+    if (tie) {
+      const split = ok.map(([f, l]) => `${name(f)} ×${l.length}`).join(" / ");
+      for (const [form, list3] of ok) {
+        for (const h of list3) {
+          findings.push({
+            category: "honorific",
+            severity: "info",
+            rule: "honorific.drift",
+            group: label,
+            file: h.row.file,
+            line: h.row.line,
+            id: h.row.id,
+            side: h.enSide,
+            message: msg.honorificSplit(first.jaHon, split),
+            found: name(form)
+          });
+        }
+      }
+      continue;
+    }
+    const majority = name(ok[0][0]);
+    for (const [form, list3] of ranked.filter(([f]) => f !== ok[0][0])) {
       for (const h of list3) {
         findings.push({
           category: "honorific",
@@ -22201,12 +23141,34 @@ function checkHonorifics(tables, g, locale = "en") {
           line: h.row.line,
           id: h.row.id,
           side: h.enSide,
-          message: msg.honorificDrift(form.replace("{name}", first.char), first.jaHon, majority, forms.get(ranked[0][0]).length),
-          found: form.replace("{name}", first.char),
+          message: msg.honorificDrift(name(form), first.jaHon, majority, ok[0][1].length),
+          found: name(form),
           expected: majority
         });
       }
     }
+  }
+  for (const h of jaToEn) {
+    if (h.rendering || h.jaHon === "(呼び捨て)") continue;
+    const c = g.characters.find((x2) => x2.en === h.char);
+    const en2 = visibleText(h.row[h.enSide]);
+    if (c?.forbidden?.en?.some((f) => en2.includes(f))) continue;
+    const names = [c?.en ?? h.char, ...c?.aliases?.en ?? []].map((n) => n.toLowerCase());
+    if ([...en2.matchAll(/[A-Z][a-z]+/g)].some((m) => names.some((n) => damerauLevenshtein(m[0].toLowerCase(), n) <= (n.length >= 7 ? 2 : 1)))) continue;
+    const maj = majorityOf.get(`${h.speaker}\0${h.char}\0${h.jaHon}`);
+    if (!maj || maj.n < 2) continue;
+    findings.push({
+      category: "honorific",
+      severity: "info",
+      rule: "honorific.drift",
+      group: `${h.row.speaker ?? "?"} → ${h.char} (${h.jaHon})`,
+      file: h.row.file,
+      line: h.row.line,
+      id: h.row.id,
+      side: h.enSide,
+      message: msg.honorificNameDropped(`${c?.ja ?? h.char}${h.jaHon}`, maj.form, maj.n),
+      expected: maj.form
+    });
   }
   for (const [, group2] of countBy(hits.filter((h) => !h.enToJa), (h) => `${h.speaker}\0${h.char}`)) {
     const forms = countBy(group2, (h) => h.jaHon);
@@ -22234,20 +23196,40 @@ function checkHonorifics(tables, g, locale = "en") {
   return { findings, usage };
 }
 var AFTER = "(?=[はがのをにもとだっ、。！？…!?\\s」』]|たち|達|ら|$)";
-var KANJI_PRONOUN = new RegExp(`(?<![\\u4e00-\\u9fff])(私|僕|俺|儂|拙者|我輩|吾輩|妾|某)${AFTER}`, "g");
+var KANJI_PRONOUN = new RegExp(
+  `(?<![\\u4e00-\\u9fff])(私|僕|俺|儂|拙者|我輩|吾輩|妾|某)${AFTER}|(?<![\\u4e00-\\u9fff0-9０-９])(余|我(?![がら])|吾(?![がら]))${AFTER}`,
+  "g"
+);
 var KANA_PRONOUN = new RegExp(
-  `(?:(?<![ぁ-ゖ])|(?<=[をはがにもとらてでどねよさ]))(わたくし|わたし|あたし|あたい|ぼく|おれ|わらわ|それがし|オレ|ボク|ワタシ|ウチ)${AFTER}|(?<![ぁ-ゖ])(わし|うち)(?=[はがもの、]|ら)`,
+  `(?:(?<![ぁ-ゖ])|(?<=[をはがにもとらてでどねよさ]))(わたくし|わたし|あたし|あたい|ぼく|おれ|わらわ|それがし|オレ|ボク|ワタシ|ウチ)${AFTER}|(?<=[るたいなだのう])(わたくし|わたし|あたし)${AFTER}|(?<![ぁ-ゖ])(わし|うち)(?=[はがもの、]|ら)`,
   "g"
 );
 var POLITE = /(です|(?<!ます)ます(?!ます)|でした|ました|ません|ましょう|ください|でしょう|ございま)/;
 var PLAIN_END = /(だ|だろ|だろう|じゃねえ|じゃない|ぞ|ぜ|んだ|かよ|ねえか|よな|よ|ね|わ|な|か|かい|だい|さ|ろ|しろ|てやる|てろ)[。、！？!?…」』\s]*$/;
-function firstPersonPronouns(ja2) {
-  return [...new Set([...ja2.matchAll(KANJI_PRONOUN), ...ja2.matchAll(KANA_PRONOUN)].map((m) => m[1] ?? m[2]))];
+var PLAIN_VERB_END = /(?:る|ない|[っしいきちりみびにぎじえけげせぜてでねべめれん]た|[いあわ]う|ろう|(?<!おは)よう|こう)[。、！？!?…」』\s]*$/;
+var extraPronounCache = /* @__PURE__ */ new Map();
+function extraPronounRegex(words) {
+  const key = words.join("\0");
+  if (extraPronounCache.has(key)) return extraPronounCache.get(key);
+  const extra = words.filter((w) => w && ![...w.matchAll(KANJI_PRONOUN), ...w.matchAll(KANA_PRONOUN)].some((m) => m[0] === w));
+  const kanji = extra.filter((w) => !/^[ぁ-ゖ]/.test(w)).map(escapeRegExp);
+  const kana = extra.filter((w) => /^[ぁ-ゖ]/.test(w)).map(escapeRegExp);
+  const alts = [
+    kanji.length && `(?<![\\u4e00-\\u9fff])(${kanji.join("|")})${AFTER}`,
+    kana.length && `(?:(?<![ぁ-ゖ])|(?<=[をはがにもとらてでどねよさ]))(${kana.join("|")})${AFTER}`
+  ].filter(Boolean);
+  const re = alts.length ? new RegExp(alts.join("|"), "g") : void 0;
+  extraPronounCache.set(key, re);
+  return re;
 }
-function politeness(ja2) {
+function firstPersonPronouns(ja2, extra = []) {
+  const xre = extra.length ? extraPronounRegex(extra) : void 0;
+  return [...new Set([...ja2.matchAll(KANJI_PRONOUN), ...ja2.matchAll(KANA_PRONOUN), ...xre ? ja2.matchAll(xre) : []].map((m) => m.slice(1).find((x2) => x2 !== void 0)))];
+}
+function politeness(ja2, profiled = false) {
   if (POLITE.test(ja2)) return "polite";
   const sentences = ja2.split(/(?<=[。、！？!?])/);
-  return sentences.some((s) => PLAIN_END.test(s.trim())) ? "plain" : void 0;
+  return sentences.some((s) => PLAIN_END.test(s.trim()) || profiled && PLAIN_VERB_END.test(s.trim())) ? "plain" : void 0;
 }
 var CONTRACTION = /\b(?:[A-Za-z]+n['’]t|(?:I|you|we|they|he|she|it|that|there|who|what|where|here|let)['’](?:s|re|ve|ll|d|m)|I['’]m|[A-Za-z]+['’](?:ll|ve|re))\b/gi;
 function checkVoice(tables, g, minLines = 3, locale = "en") {
@@ -22262,6 +23244,7 @@ function checkVoice(tables, g, minLines = 3, locale = "en") {
       enSide: t.targetLang === "en" ? "target" : t.sourceLang === "en" ? "source" : void 0
     }))
   );
+  const profilePronouns = [...new Set(g.characters.flatMap((c) => c.voice?.ja?.firstPerson ?? []))];
   for (const [key, group2] of countBy(lines, (l) => speakerKey(g, l.row))) {
     const ch = findCharacter(g, group2[0].row.speaker);
     const profile = ch?.voice ?? {};
@@ -22271,7 +23254,7 @@ function checkVoice(tables, g, minLines = 3, locale = "en") {
       findings.push(f);
       flagged.set(row, [...flagged.get(row) ?? [], f.message]);
     };
-    const pron = group2.filter((l) => l.jaSide).map((l) => ({ l, p: firstPersonPronouns(visibleText(l.row[l.jaSide])) })).filter((x2) => x2.p.length);
+    const pron = group2.filter((l) => l.jaSide).map((l) => ({ l, p: firstPersonPronouns(visibleText(l.row[l.jaSide]), profilePronouns) })).filter((x2) => x2.p.length);
     if (pron.length) {
       const tally3 = {};
       pron.forEach((x2) => x2.p.forEach((p) => tally3[p] = (tally3[p] ?? 0) + 1));
@@ -22302,7 +23285,7 @@ function checkVoice(tables, g, minLines = 3, locale = "en") {
         );
       }
     }
-    const pol = group2.filter((l) => l.jaSide).map((l) => ({ l, p: politeness(visibleText(l.row[l.jaSide])) })).filter((x2) => x2.p);
+    const pol = group2.filter((l) => l.jaSide).map((l) => ({ l, p: politeness(visibleText(l.row[l.jaSide]), !!profile.ja?.politeness) })).filter((x2) => x2.p);
     if (pol.length) {
       const polite = pol.filter((x2) => x2.p === "polite").length;
       usage.push({ category: "voice", group: `${name}: politeness`, counts: { polite, plain: pol.length - polite } });
@@ -22629,9 +23612,6 @@ ${row.target}`;
 }
 
 // src/core/checks/terms.ts
-function singularOf(phrase) {
-  return phrase.replace(/([A-Za-z]+)$/, (w) => /^[A-Z]{2,}s$/.test(w) ? w.slice(0, -1) : w.length > 4 && /ies$/i.test(w) ? `${w.slice(0, -3)}y` : w.length > 4 && /(x|ch|sh|ss)es$/i.test(w) ? w.slice(0, -2) : w.length > 3 && /[^s]s$/i.test(w) && !/(us|is)$/i.test(w) ? w.slice(0, -1) : w);
-}
 var isAllCaps = (s) => /[A-Z].*[A-Z]/.test(s) && !/[a-z]/.test(s);
 function enSourceHas(text, phrase) {
   for (const form of /* @__PURE__ */ new Set([phrase, singularOf(phrase)])) {
@@ -22667,7 +23647,8 @@ function checkTerms(tables, g, locale = "en") {
         const tgt = visibleText(row.target);
         const forbiddenHit = (term.forbidden ?? []).find((f) => containsPhrase(tgt, f, t.targetLang));
         if (rowHits[ri][ti]) {
-          const hit = approved.find((a) => containsPhrase(tgt, a, t.targetLang, false, true));
+          const strict = t.targetLang === "ja";
+          const hit = approved.find((a) => containsPhrase(tgt, a, t.targetLang, false, strict)) ?? (forbiddenHit ? void 0 : approved.find((a) => containsPhrase(tgt, a, t.targetLang, false, true)));
           if (hit) {
             counts[hit] = (counts[hit] ?? 0) + 1;
           } else if (forbiddenHit) {
@@ -23532,8 +24513,8 @@ function tokenStoreFromEnv(env = process.env) {
 // src/cli/inputs.ts
 import { existsSync as existsSync2, readdirSync, readFileSync as readFileSync2, statSync as statSync2 } from "node:fs";
 import { join as join2, relative, resolve, sep } from "node:path";
-var SUPPORTED_EXTENSIONS = [".csv", ".tsv", ".json", ".xlf", ".xliff", ".xlsx", ".po", ".pot"];
-var SKIP_DIRS = /* @__PURE__ */ new Set(["node_modules", ".git"]);
+var SUPPORTED_EXTENSIONS = [".csv", ".tsv", ".json", ".xlf", ".xliff", ".xlsx", ".po", ".pot", ".yml", ".yaml", ".rpy"];
+var SKIP_DIRS = /* @__PURE__ */ new Set(["node_modules", ".git", ".github"]);
 var GLOSSARY_CANDIDATES = ["kotomark.glossary.json", "glossary.json", "kotomark.glossary.csv"];
 var UsageError = class extends Error {
 };
@@ -23543,7 +24524,7 @@ function displayPath(p, cwd = process.cwd()) {
   return sep === "\\" ? out.replace(/\\/g, "/") : out;
 }
 var supported = (name) => SUPPORTED_EXTENSIONS.some((e) => name.toLowerCase().endsWith(e));
-var SKIP_FILES = /glossary|^(package|package-lock|tsconfig|jsconfig|composer)\.json$/i;
+var SKIP_FILES = /glossary|^(package|package-lock|tsconfig|jsconfig|composer)\.json$|^(pnpm-lock|pnpm-workspace|docker-compose|compose|\.gitlab-ci|\.travis|\.pre-commit-config|mkdocs|action|codecov|\.?crowdin|\.yarnrc|renovate|dependabot)\.ya?ml$/i;
 function walk(dir, out, skip) {
   for (const ent of readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0)) {
     const p = join2(dir, ent.name);
@@ -23635,7 +24616,8 @@ check options:
                                direction (--source-lang ja|en to force it).
   --format md|json|junit|github  report format (default md). --json = --format json.
   --input-format <fmt>         force the input format (csv|tsv|json|xliff|xlsx|po|i18n-json|
-                               unity-csv|unreal-csv); default: detected from extension + content.
+                               unity-csv|unreal-csv|yaml|renpy); default: detected from extension
+                               + content.
                                (Legacy: --format <input format other than json> still sets the input format.)
   --columns k=v,...            CSV/TSV/XLSX column override, e.g. source=原文,target=訳文,speaker=話者
   --sheet <name|number>        XLSX sheet name or 1-based number (default: first sheet with text)
@@ -23649,12 +24631,12 @@ check options:
   --wide                       count East Asian wide characters as 2 for length limits
   -o, --out <file>             write the report to a file instead of stdout
 
-Directories are searched recursively for .csv .tsv .json .xlf .xliff .xlsx .po .pot
-(skipping node_modules, .git, files with "glossary" in the name, package.json/tsconfig.json).
+Directories are searched recursively for .csv .tsv .json .xlf .xliff .xlsx .po .pot .yml .yaml .rpy
+(skipping node_modules, .git, .github, files with "glossary" in the name, package.json/tsconfig.json).
 
 check exit code: 0 = passed, 1 = findings at/above --fail-on, 2 = bad input or usage.`;
 var OUTPUT_FORMATS = ["md", "markdown", "json", "junit", "github"];
-var INPUT_FORMATS = ["csv", "tsv", "json", "xliff", "xlsx", "po", "i18n-json", "unity-csv", "unreal-csv"];
+var INPUT_FORMATS = ["csv", "tsv", "json", "xliff", "xlsx", "po", "i18n-json", "unity-csv", "unreal-csv", "yaml", "renpy"];
 var SEVERITIES = ["info", "warning", "error"];
 function emit(text, out) {
   if (out) writeFileSync2(out, text.endsWith("\n") ? text : text + "\n");

@@ -1,0 +1,25 @@
+# Sample: per-locale YAML (Misskey / Rails i18n style, invented content). Paired with ja-JP.yml by key.
+_lang_: "English"
+title: "Stargazer's Archive"
+menu:
+  start: Start Adventure
+  continue: Continue
+item:
+  mana_stone: Mana Stone
+  mana_stone_desc: |
+    A Magic Stone that holds the power of a Stargazer.
+    Found in the Ashen Archive.
+  rune_gate: Rune Gate
+faction:
+  order: Order of Dawn
+  order_desc: >-
+    The Dawn Knights
+    guard the Rune Gate.
+dialog:
+  save_done: "Saved."
+  welcome: 'Welcome, {name}!'
+tips:
+  - Mana Stones cannot be sold.
+  - "The Rune Gate opens at night."
+debug:
+  fps: FPS counter

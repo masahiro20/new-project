@@ -3,6 +3,8 @@ import { parseCsv } from "./csv.js";
 import { decodeText, stripBom } from "./decode.js";
 import { parseJson } from "./json.js";
 import { parsePo } from "./po.js";
+import { hasRenpyTranslations, parseRenpy } from "./renpy.js";
+import { parseYaml } from "./yaml.js";
 import { isZip, parseXlsx } from "./xlsx.js";
 import { parseXliff } from "./xliff.js";
 import type { ColumnMap } from "./columns.js";
@@ -21,6 +23,8 @@ export interface ParseOptions {
   langs?: { source?: Lang; target?: Lang };
   /** XLSX only: sheet name or 1-based sheet number. Default: first sheet with any text. */
   sheet?: string | number;
+  /** Ren'Py only: character variable → display name (`define e = Character("…")`); `loadInputs` fills it from game scripts. */
+  renpyCharacters?: Record<string, string>;
 }
 
 const PO_START = /^(?:msgctxt|msgid)\s+"/;
@@ -34,12 +38,25 @@ function looksLikePo(text: string): boolean {
   return false;
 }
 
+/** First meaningful line looks like a YAML mapping key (`ja:`, `menu.start: 開始`) or a `---` document start. */
+function looksLikeYaml(text: string): boolean {
+  for (const raw of text.split(/\r?\n/, 200)) {
+    const l = raw.trim();
+    if (!l || l.startsWith("#") || l.startsWith("%")) continue;
+    if (/^---(\s|$)/.test(l)) return true;
+    return !raw.includes(",") && /^(?:"[^"]*"|'[^']*'|[A-Za-z0-9_$][\w.$-]*):(?:\s|$)/.test(raw);
+  }
+  return false;
+}
+
 export function detectFormat(file: string, text: string | Uint8Array): Format {
   const f = file.toLowerCase().split("#")[0]!;
   if (f.endsWith(".xlsx") || f.endsWith(".xlsm")) return "xlsx";
   if (f.endsWith(".po") || f.endsWith(".pot")) return "po";
   if (f.endsWith(".xlf") || f.endsWith(".xliff")) return "xliff";
   if (f.endsWith(".json")) return "json";
+  if (f.endsWith(".yml") || f.endsWith(".yaml")) return "yaml";
+  if (f.endsWith(".rpy")) return "renpy";
   if (f.endsWith(".tsv")) return "tsv";
   if (f.endsWith(".csv")) return "csv";
   if (typeof text !== "string") {
@@ -53,6 +70,8 @@ export function detectFormat(file: string, text: string | Uint8Array): Format {
   if (head.startsWith("<")) return "xliff";
   if (head.startsWith("{") || head.startsWith("[")) return "json";
   if (looksLikePo(head)) return "po";
+  if (hasRenpyTranslations(head.slice(0, 65536))) return "renpy";
+  if (looksLikeYaml(head)) return "yaml";
   return "csv";
 }
 
@@ -75,6 +94,10 @@ export function parseTableWithNotes(data: string | Uint8Array, file: string, opt
     const d = decodeText(data, file);
     text = d.text;
     if (d.note) notes.push(d.note);
+  }
+  if (format === "yaml" || format === "renpy") {
+    const r = format === "yaml" ? parseYaml(text, file) : parseRenpy(text, file, { langs: opts.langs, characters: opts.renpyCharacters });
+    return { table: r.table, notes: [...notes, ...r.notes] };
   }
   return { table: parseText(text, file, format, opts), notes };
 }

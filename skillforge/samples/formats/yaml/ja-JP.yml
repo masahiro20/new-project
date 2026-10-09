@@ -1,0 +1,25 @@
+# サンプル：言語別の YAML ロケールファイル（Misskey / Rails i18n 風、架空の内容）。
+# en-US.yml とキーで組み合わせて検査します。わざと揺れを入れてあります。
+_lang_: "日本語"
+title: "星詠みの書庫"
+menu:
+  start: 冒険を始める
+  continue: 続きから
+  options: 設定 # en-US.yml には無いキー
+item:
+  mana_stone: 魔導石
+  mana_stone_desc: |
+    星詠みの力を宿した魔導石。
+    灰の書庫で見つかる。
+  rune_gate: "ルーンゲート"
+faction:
+  order: 暁の騎士団
+  order_desc: >-
+    暁の騎士団は
+    ルーンゲートを守っている。
+dialog:
+  save_done: "{slot}にセーブしました。"
+  welcome: 'ようこそ、{name}さん'
+tips:
+  - 魔導石は売れません。
+  - "ルーン・ゲートは夜に開く。"

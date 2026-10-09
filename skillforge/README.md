@@ -104,7 +104,7 @@ kotomark check <file|dir>... [options]
                                  (noted on stderr); --no-glossary disables it. Import notes go to stderr
   --source-lang ja|en            force the direction a TBX / ja,en CSV glossary is read in (default: the script's)
   --format md|json|junit|github  report format (default md); --json = --format json
-  --input-format <fmt>           force the input parser (csv|tsv|json|xliff|xlsx|po|i18n-json|unity-csv|unreal-csv); default: detected
+  --input-format <fmt>           force the input parser (csv|tsv|json|xliff|xlsx|po|i18n-json|unity-csv|unreal-csv|yaml|renpy); default: detected
   --columns source=原文,target=訳文  column override for tables;  --sheet <name|1-based number> for .xlsx
   --fail-on error|warning|never  exit 1 at/above this severity (default error)
   --min-severity info|warning|error  hide lower findings in the report (gating still sees them); --no-info = warning
@@ -125,8 +125,8 @@ kotomark check <file|dir>... [options]
 
 補足：
 
-- 引数にはファイルもディレクトリも渡せます。ディレクトリは中まで探します（対象：`.csv .tsv .json .xlf .xliff .xlsx .po .pot`）。
-  `node_modules`、`.git`、名前に `*glossary*` を含むファイル、`package.json`/`tsconfig.json` は飛ばします。レポートのファイル名は
+- 引数にはファイルもディレクトリも渡せます。ディレクトリは中まで探します（対象：`.csv .tsv .json .xlf .xliff .xlsx .po .pot .yml .yaml .rpy`）。
+  `node_modules`、`.git`、`.github`、名前に `*glossary*` を含むファイル、`package.json`/`tsconfig.json`、設定用の YAML（`docker-compose.yml`、`pnpm-lock.yaml`、`crowdin.yml` など）は飛ばします。レポートのファイル名は
   作業ディレクトリからの相対パスなので、CI の注釈が実際のファイルを指します。
 - **終了コード：** `0` 合格 · `1` `--fail-on` 以上の指摘あり · `2` 入力または使い方の誤り。
 - **出力形式：** `json` = 全結果に `summary {errors, warnings, infos, byCategory}` を加えたもの。`junit` = カテゴリごとに
@@ -164,17 +164,24 @@ kotomark token list | token revoke <user|prefix>
 
 ## 入力形式
 
-どの行にも、ユーザーが開いて確認できる `file:line` が付きます。行番号は、ファイル上の行（CSV、JSON、PO）か、表計算の行（XLSX）です。
+どの行にも、ユーザーが開いて確認できる `file:line` が付きます。行番号は、ファイル上の行（CSV、JSON、PO、YAML、Ren'Py）か、表計算の行（XLSX）です。
 
 - **CSV/TSV**：1行目に列名が必要です。自動で見分ける列：`id|key`、`ja|source|原文`、`en|target|訳文`、`speaker|character|話者`、`max_length|limit|文字数`、`context|notes|comment`。`Japanese(ja)`、`English (en)`、`ja-JP`、`Japanese` のような言語名の列名も使えます。行番号はその行が始まるファイル上の行なので、セルの中の改行も正しく扱えます。
 - **Excel `.xlsx`**：文字が入っている最初のシート（または `sheet` で名前か1始まりの番号を指定）。列名の行は CSV と同じです。行番号は表計算の行番号で、ファイル名にはシート名が付きます（例：`book.xlsx#Script`）。共有文字列、書式付き文字列、インライン文字列を読みます。ふりがな（`<rPh>`）は読み飛ばします。数式はキャッシュされた値を使います。日付はシリアル値のままです。SheetJS は使いません。`fflate` で展開し、小さな XML リーダーで読みます（ブラウザでも動きます）。
 - **gettext `.po` / `.pot`**：`msgctxt` → ID（無ければ `msgid`）、`msgid` → 原文、`msgstr`（または `msgstr[0]`）→ 訳文。ほかの複数形は別の行になります（`id[1]` = `msgid_plural` ↔ `msgstr[1]`）。`#.` コメント、`#:` 参照、`fuzzy` フラグは文脈（context）に入ります。ヘッダーと廃止済みの `#~` 項目は飛ばします。ヘッダーの `Language:` で訳文の言語を決めます。行番号は `msgctxt`（無ければ `msgid`）の行です。Unreal Engine の `.po` 書き出し（`msgctxt "Namespace,Key"`、`#. Key:` / `#. SourceLocation:`）もそのまま読めます。
 - **JSON**：`[{...}]`、`{"strings": [{...}]}`、`{"key": {"ja": "...", "en": "..."}}`。行番号はその項目の開き波かっこの行です。
 - **i18n ロケール JSON**（`ja.json` = `{"menu": {"start": "開始"}}`）：文字列の値がすべて1つの言語のオブジェクトです。キーはドットでつなぎます（`menu.start`、配列は `items.0`）。行番号はキーが現れる行です。`{"ja": {...}}` という包み方も理解します。
+- **YAML のロケールファイル**（`.yml` / `.yaml`。Rails i18n の `ja:` で始まるファイル、Misskey の `ja-JP.yml`、Crowdin の YAML）：i18n ロケール JSON と同じ扱いです。キーはドットでつなぎ（`menu.start`、リストは `tips.0`）、行番号はキーの行（リストの項目は `- ` の行）です。最上位のキーが言語コード1つだけ（`ja:`、`ja-JP:`、`en-US:` など）なら、それを外して言語の手がかりにします。Misskey の `_lang_: "日本語"` も言語の手がかりにします（行にはしません）。どちらも無ければファイル名、最後に中身で言語を決めます。数値・真偽値・null の値は飛ばします。依存ライブラリなしの小さな YAML パーサーで読みます。対応：ブロックのマッピングとリスト（インデントの入れ子、`- key: v` の形）、引用なし／`'…'`／`"…"`（エスケープ、複数行の折り返し）、`|` と `>` のブロック（`-`/`+`、インデント指定の数字）、コメント、文書の前後の `---` / `...`、フローの `[a, b]` / `{a: b}`、アンカー `&a`・エイリアス `*a`・マージキー `<<: *a`（エイリアスで入った値の行番号はアンカー側の行）、タグ（`!!str` などは無視）。非対応の書き方（`? ` の複合キー、1ファイルに複数の文書、タブでのインデント、複数の言語ルートを持つファイル）は、行番号付きのエラーになります。
+- **Ren'Py の翻訳ファイル**（`game/tl/<言語>/*.rpy`）：2言語の表として読みます。
+  - 台詞のブロック（`translate english start_a1b2c3d4:`）：コメントにある元の台詞（`# e "…"`）が原文、その下の訳の台詞が訳文です。ID はラベル（`start_a1b2c3d4`。1つのブロックに台詞が2つ以上あれば `#2` 以降を付けます）、話者は台詞の前のキャラクター変数（`e`）、文脈はブロックの前の `# game/script.rpy:123` です。行番号は**訳の台詞の行**です（直すのは訳文なので）。地の文（`# "…"` / `"…"`）、`"名前" "…"` の形、属性付き（`e happy "…"`）、`with …` などの後置きも読みます。`extend` は直前の話者を引き継ぎ、文脈に `extend` と書きます。`voice "…"` は文脈（`voice: …`）に入れ、`nvl clear` などの台詞でない文は飛ばします。原文と訳で台詞の数が違うブロックは、余った訳をブロックの最後の行にまとめます（注意が出ます）。
+  - 文字列のブロック（`translate english strings:`）：`old "…"` が原文、`new "…"` が訳文です。ID は `strings:` と `old` の文字列のハッシュ（8桁）、行番号は `new` の行、文脈は直前の `# game/screens.rpy:45` です。
+  - 文字列の中の `\"`、`\'`、`\\`、`\n` は元に戻します。`[player]` のような変数の埋め込みと `{b}…{/b}` のようなテキストタグは、書かれたまま残します。`translate english python:` と `style` のブロックは飛ばします。
+  - 向きは原文（コメント側の台詞）の中身から判別します。日本語の作品なら日→英です。
+  - 話者の表示名：`define e = Character("アイリーン")`（`_("…")` で囲んだものも可）を含むゲーム本体のスクリプト（`translate` のブロックが無い `.rpy`）を一緒に渡すと、変数を表示名に置き換えます。こうしたスクリプトは表としては検査しません（注意に読み込んだ名前が出ます）。渡さなければ変数名のままです。
 - **Unity Localization の文字列テーブル CSV**（`Key,Id,Shared Comments,Japanese(ja),English(en)`）：`Key` が ID、`Shared Comments` が文脈です。普通の `ja,en` 列と同じく、左側の言語の列を原文とします。
 - **Unreal の文字列テーブル CSV**（`Key,SourceString,Comment`）：1言語のファイルです。`\n` のようなエスケープを元に戻します。コメントに `Speaker: X` があれば話者として使います。
 - **XLIFF 1.2**（`<trans-unit>`、`maxwidth`）と **2.0**（`<unit><segment>`）。話者は `<note from="speaker">`、`<note category="speaker">`、または `speaker: X` という注記から取ります。インラインタグ（`<g>`、`<x/>`、`<ph>`、`<pc>`）はタグ検査のために残します。
-- **1言語のファイルはキーで組み合わせます。** `loadInputs` は、日本語の表と英語の表（ロケール JSON、Unreal の文字列テーブル、`key,ja` のように文字の列が1つだけの CSV/XLSX）を1つの表にまとめ、`ja.json+en.json` という名前を付けます（行番号は元のファイルの行）。候補が複数あるときは、言語の部分を伏せた名前で組み合わせます：`ui_ja.csv` ↔ `ui_en.csv`、`locales/ja/ui.json` ↔ `locales/en/ui.json`。片方にしか無いキーは、もう片方を空にした行になります（注意に一覧が出ます）。訳文側のファイルにしか無いキーは、訳文側のファイルの行番号を使い、その旨を文脈に書きます。組み合わせ相手の無いファイルも単独で検査します。`langs.source` が `"en"` でなければ、日本語のファイルを原文とします。
+- **1言語のファイルはキーで組み合わせます。** `loadInputs` は、日本語の表と英語の表（ロケール JSON、ロケール YAML、Unreal の文字列テーブル、`key,ja` のように文字の列が1つだけの CSV/XLSX）を1つの表にまとめ、`ja.json+en.json` という名前を付けます（行番号は元のファイルの行）。候補が複数あるときは、言語の部分を伏せた名前で組み合わせます：`ui_ja.csv` ↔ `ui_en.csv`、`locales/ja/ui.json` ↔ `locales/en/ui.json`、`ja-JP.yml` ↔ `en-US.yml`。片方にしか無いキーは、もう片方を空にした行になります（注意に一覧が出ます）。訳文側のファイルにしか無いキーは、訳文側のファイルの行番号を使い、その旨を文脈に書きます。組み合わせ相手の無いファイルも単独で検査します。`langs.source` が `"en"` でなければ、日本語のファイルを原文とします。
 - 文字コードは UTF-8（BOM は除去）か、BOM 付きの UTF-16 として読みます。UTF-8 として不正な場合、実行環境が対応していれば Shift_JIS で読み直します。
 - 向き（日→英か英→日か）は表ごとに判別します。日本語向けの検査は、日本語の側に対して行います。
 - **用語集**：JSON（用語、キャラクター、別名、禁止表記、口調プロフィール、`honorificPolicy`）。簡単な CSV も使えます：`type,source,target,allowed,forbidden,note`。`samples/ja-en/glossary.json` と `plugin/skills/script-consistency/SKILL.md` を参照してください。
@@ -185,7 +192,7 @@ kotomark token list | token revoke <user|prefix>
   - **向き**：TBX と、言語名の付いた CSV 列は、台本の向きで読みます（CLI、デモ、MCP は表の原文の言語を使います。`--source-lang ja|en` で固定できます）。台本が無いときは、TBX のルートの `xml:lang` か最初の言語列で決め、それも無ければ日→英です。`source,target` 列と Kotomark 形式の CSV（`type`/`allowed`/リスト形式の `forbidden` がある）は、向きが固定です。
   - **キャラクター**（名前、別名、口調プロフィール）は TBX では表せません。Kotomark の JSON 用語集に書いてください。`kotomark glossary convert terms.tbx --out glossary.json` で、どの取り込み形式も Kotomark の JSON に変換でき、確認や追記ができます。
   - サンプル：`samples/glossaries/glossary.tbx`（TBX v2）と `samples/glossaries/crowdin-glossary.csv` には `samples/ja-en/glossary.json` と同じ用語が入っていて、`samples/ja-en` に対して同じ用語の指摘が出ます。
-- すべての形式のサンプル（わざと揺れを入れたもの）は `samples/formats/` にあります（`samples/ja-en/glossary.json` と一緒に検査してください）。`samples/formats/book.xlsx` は `scripts/make-sample-xlsx.ts` で生成しています。
+- すべての形式のサンプル（わざと揺れを入れたもの）は `samples/formats/` にあります（`samples/ja-en/glossary.json` と一緒に検査してください）。`samples/formats/book.xlsx` は `scripts/make-sample-xlsx.ts` で生成しています。YAML は `samples/formats/yaml/`（`ja-JP.yml` + `en-US.yml`）、Ren'Py は `samples/formats/renpy/game/`（`tl/english/script.rpy` と、話者名の `define` がある `script.rpy`）です。
 
 エンジンの API（ブラウザでも動き、デモのバンドルからも書き出しています）：
 
