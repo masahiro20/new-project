@@ -34,7 +34,9 @@ for (const e of g.entries) {
   }
   if (!CATS.has(e.category)) errors.push(`${where}: bad category ${e.category}`);
   if (!RISKS.has(e.risk)) errors.push(`${where}: bad risk ${e.risk}`);
-  if (e.exclude_next !== undefined && !(Array.isArray(e.exclude_next) && e.exclude_next.every((x) => typeof x === "string" && x))) errors.push(`${where}: exclude_next must be an array of strings`);
+  for (const k of ["exclude_next", "exclude_prev"]) {
+    if (e[k] !== undefined && !(Array.isArray(e[k]) && e[k].every((x) => typeof x === "string" && x && x === x.normalize("NFKC") && x === x.toLowerCase()))) errors.push(`${where}: ${k} must be an array of NFKC lower-case strings`);
+  }
   if (typeof e.reviewed !== "boolean") errors.push(`${where}: reviewed must be boolean`);
 }
 

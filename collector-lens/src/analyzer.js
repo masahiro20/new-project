@@ -92,6 +92,8 @@
         if (/[a-z0-9]$/.test(f.lower) && /[a-z0-9]/.test(lower.charAt(end) || "")) continue;
         // Entry-specific guard, e.g. 日差 (daily rate) vs 日差し (sunlight).
         if (f.entry.exclude_next && f.entry.exclude_next.some(function (x) { return lower.startsWith(x, end); })) continue;
+        // ...and the mirror guard on the text just before, e.g. 不良品 (defective) vs 良品 (good).
+        if (f.entry.exclude_prev && f.entry.exclude_prev.some(function (x) { return lower.endsWith(x, p); })) continue;
         var clash = false;
         for (var k = p; k < end; k++) if (taken[k]) { clash = true; break; }
         if (clash) continue;

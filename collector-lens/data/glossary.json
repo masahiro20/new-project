@@ -176,7 +176,8 @@
     {
       "id": "gokubihin",
       "ja": [
-        "極美品"
+        "極美品",
+        "極上美品"
       ],
       "en": "Excellent+ (near mint)",
       "explain": "Rank above 美品 (bihin, \"fine\"): near mint with minimal wear. Shops use it fairly consistently; private sellers may be generous.",
@@ -213,7 +214,12 @@
       ],
       "category": "rank",
       "risk": "low",
-      "reviewed": true
+      "reviewed": true,
+      "exclude_prev": [
+        "不",
+        "優",
+        "無印"
+      ]
     },
     {
       "id": "namihin",
@@ -321,7 +327,17 @@
       ],
       "category": "defect",
       "risk": "high",
-      "reviewed": true
+      "reviewed": true,
+      "exclude_next": [
+        "に強",
+        "しにく",
+        "防止",
+        "対策"
+      ],
+      "exclude_prev": [
+        "耐",
+        "防"
+      ]
     },
     {
       "id": "ekimore",
@@ -435,7 +451,13 @@
     {
       "id": "dousa_mikakunin",
       "ja": [
-        "動作未確認"
+        "動作未確認",
+        "動作は未確認",
+        "通電未確認",
+        "作動未確認",
+        "動作確認はしていません",
+        "動作確認していません",
+        "動作確認はしておりません"
       ],
       "en": "Function not tested",
       "explain": "The seller has not checked if it works. In practice often means it does not work or they suspect so; treat as junk.",
@@ -546,7 +568,12 @@
         "返品不可",
         "返品はお受けできません",
         "返品・返金不可",
-        "ノーリターン"
+        "ノーリターン",
+        "返品・交換不可",
+        "返品交換不可",
+        "返品お断り",
+        "返品はできません",
+        "返品は受け付けておりません"
       ],
       "en": "No returns",
       "explain": "Returns are not accepted. Ask questions before bidding or buying.",
@@ -611,7 +638,11 @@
         "詳しくないので",
         "詳しくないため",
         "知識がないため",
-        "素人のため"
+        "素人のため",
+        "詳しくわかりません",
+        "詳しく分かりません",
+        "知識がありません",
+        "素人なので"
       ],
       "en": "Seller is not knowledgeable",
       "explain": "Seller says they don't know the item well. It shifts responsibility to you; descriptions may be incomplete or wrong.",
@@ -867,7 +898,11 @@
       ],
       "category": "authenticity",
       "risk": "high",
-      "reviewed": true
+      "reviewed": true,
+      "exclude_next": [
+        "番",
+        "質"
+      ]
     },
     {
       "id": "no_brand",
@@ -921,7 +956,7 @@
         "並行品"
       ],
       "en": "Grey import",
-      "explain": "Genuine item imported outside the official distributor. Japanese official service or warranty may not apply.",
+      "explain": "Claimed genuine, but imported outside the maker's official channel (grey market). The maker's Japanese warranty or service may not apply; check for an international warranty card.",
       "genre": [
         "general"
       ],
@@ -1242,7 +1277,8 @@
         "分解跡",
         "分解歴あり",
         "分解歴有り",
-        "カニ目傷"
+        "カニ目傷",
+        "カニ目キズ"
       ],
       "en": "Signs of disassembly",
       "explain": "Marks showing it has been opened (scratched screws, tool marks on lens spanner slots). Could be pro service or an amateur attempt.",
@@ -1259,7 +1295,8 @@
       "ja": [
         "黄変",
         "ヤケ",
-        "黄ばみ"
+        "黄ばみ",
+        "日焼け"
       ],
       "en": "Yellowing / discolouration",
       "explain": "Lenses: yellow tint (often thorium glass; UV light can reduce it). Bodies/leather: sun fading. Watches: dial or lume ageing, which some collectors like.",
@@ -1269,7 +1306,11 @@
       ],
       "category": "defect",
       "risk": "medium",
-      "reviewed": true
+      "reviewed": true,
+      "exclude_next": [
+        "ド",
+        "止"
+      ]
     },
     {
       "id": "ura_buta",
@@ -1293,7 +1334,10 @@
         "OH済み",
         "OH済",
         "オーバーホール済み",
-        "オーバーホール済"
+        "オーバーホール済",
+        "O/H済み",
+        "O/H済",
+        "O.H済み"
       ],
       "en": "Serviced (overhauled)",
       "explain": "Was overhauled. Ask when and by whom; a recent shop service with a receipt is worth much more than a vague claim.",
@@ -1344,30 +1388,51 @@
         "かび",
         "黴"
       ],
-      "en": "Fungus (lens mould)",
-      "explain": "Fungus growth inside the lens. It can etch coatings and spread; removal needs disassembly and may leave marks.",
+      "en": "Fungus / mould",
+      "explain": "Fungus growth, usually inside a lens. It can etch coatings and spread; removal needs disassembly and may leave marks. On leather or fabric it means mould stains or smell.",
       "genre": [
         "camera"
       ],
       "category": "defect",
       "risk": "high",
-      "reviewed": true
+      "reviewed": true,
+      "exclude_next": [
+        "防止",
+        "取り剤",
+        "取りスプレー",
+        "対策",
+        "予防",
+        "止め"
+      ],
+      "exclude_prev": [
+        "防",
+        "抗",
+        "浮"
+      ]
     },
     {
       "id": "kumori",
       "ja": [
         "くもり",
         "クモリ",
-        "曇り"
+        "曇り",
+        "白濁"
       ],
-      "en": "Haze",
-      "explain": "Haze inside the lens, which lowers contrast. Light haze may clean off; haze in cemented groups or glass often cannot.",
+      "en": "Haze / cloudiness",
+      "explain": "Cloudiness, usually inside a lens; it lowers contrast. Light haze may clean off; haze in cemented groups or glass often cannot. On a watch crystal it can mean moisture got in.",
       "genre": [
         "camera"
       ],
       "category": "defect",
       "risk": "medium",
-      "reviewed": true
+      "reviewed": true,
+      "exclude_next": [
+        "ガラス",
+        "硝子",
+        "止め",
+        "のち",
+        "空"
+      ]
     },
     {
       "id": "balsam",
@@ -1409,14 +1474,29 @@
         "チリ混入",
         "ホコリ混入"
       ],
-      "en": "Dust inside the lens",
-      "explain": "Dust specks inside the lens. Small amounts are normal in old lenses and rarely affect images.",
+      "en": "Dust",
+      "explain": "Dust specks. Inside a lens, small amounts are normal in old lenses and rarely affect images; a lot suggests poor storage. On other items it is usually just surface dust.",
       "genre": [
         "camera"
       ],
       "category": "defect",
       "risk": "low",
-      "reviewed": true
+      "reviewed": true,
+      "exclude_next": [
+        "産",
+        "ワイン",
+        "ソース",
+        "ペッパー",
+        "パウダー",
+        "紙",
+        "チリ",
+        "防止",
+        "よけ",
+        "除け"
+      ],
+      "exclude_prev": [
+        "チリ"
+      ]
     },
     {
       "id": "maedama",
@@ -1761,10 +1841,12 @@
     {
       "id": "shutter_naki",
       "ja": [
-        "シャッター鳴き"
+        "シャッター鳴き",
+        "シャッター泣き",
+        "シャッターの鳴き"
       ],
       "en": "Shutter squeal",
-      "explain": "Squeaking noise when firing, a known issue on some models (e.g. Canon A-series). Needs lubrication.",
+      "explain": "Squeaking noise when firing, a known issue on some models (e.g. Canon A-series such as the AE-1). Needs lubrication.",
       "genre": [
         "camera"
       ],
@@ -2373,7 +2455,15 @@
       ],
       "category": "accessory",
       "risk": "info",
-      "reviewed": true
+      "reviewed": true,
+      "exclude_next": [
+        "プロセッサ",
+        "パーカー"
+      ],
+      "exclude_prev": [
+        "ドッグ",
+        "キャット"
+      ]
     },
     {
       "id": "mount",
@@ -2523,7 +2613,9 @@
         "針",
         "時針",
         "分針",
-        "秒針"
+        "秒針",
+        "長針",
+        "短針"
       ],
       "en": "Hands",
       "explain": "Watch hands. Check they are original and that the lume matches the dial.",
@@ -2532,7 +2624,18 @@
       ],
       "category": "part",
       "risk": "info",
-      "reviewed": true
+      "reviewed": true,
+      "exclude_next": [
+        "金"
+      ],
+      "exclude_prev": [
+        "方",
+        "指",
+        "縫い",
+        "待ち",
+        "注射",
+        "釣り"
+      ]
     },
     {
       "id": "fuubou",
@@ -2781,7 +2884,7 @@
         "日差"
       ],
       "en": "Daily rate (sec/day)",
-      "explain": "Seconds gained or lost per day. For vintage mechanical watches, roughly ±30 s/day is a common rough tolerance (varies by model); much more suggests a service is due.",
+      "explain": "Seconds gained or lost per day. Many vintage mechanical watches are considered fine within roughly ±30 s/day (varies by model and age); modern ones are usually much tighter. Much more suggests a service is due.",
       "genre": [
         "watch"
       ],
@@ -2809,14 +2912,19 @@
     {
       "id": "tomaru",
       "ja": [
-        "止まる",
-        "止まります",
         "時々止まる",
         "止まることがあります",
-        "止まる事があります"
+        "止まる事があります",
+        "たまに止まる",
+        "すぐ止まる",
+        "途中で止まる",
+        "止まってしまう",
+        "止まってしまいます",
+        "止まる時があります",
+        "止まる場合があります"
       ],
       "en": "Stops (intermittently)",
-      "explain": "The watch stops sometimes. Usually needs a service; can be a sign of worn or dirty parts.",
+      "explain": "It stops sometimes. On a watch this usually means a service is due (worn or dirty parts, weak mainspring); on a camera, read what stops.",
       "genre": [
         "watch"
       ],
@@ -2847,7 +2955,8 @@
       "ja": [
         "オーバーホール",
         "OH",
-        "O/H"
+        "O/H",
+        "O.H"
       ],
       "en": "Overhaul (service)",
       "explain": "Full service of a movement or mechanism. Read whether it was done, needed, or recommended.",
@@ -2880,17 +2989,30 @@
       "ja": [
         "研磨",
         "研磨済み",
-        "ポリッシュ",
-        "新品仕上げ"
+        "新品仕上げ",
+        "研磨済",
+        "研磨歴あり",
+        "ポリッシュ済み",
+        "ポリッシュ済"
       ],
       "en": "Polished / refinished",
-      "explain": "Case was polished. Removes scratches but also metal, softening edges and lowering collector value.",
+      "explain": "Case or bracelet was polished. Removes scratches but also metal, softening edges and lowering collector value.",
       "genre": [
         "watch"
       ],
       "category": "condition",
       "risk": "medium",
-      "reviewed": true
+      "reviewed": true,
+      "exclude_next": [
+        "剤",
+        "機",
+        "材",
+        "ディスク",
+        "パッド",
+        "シート",
+        "クロス",
+        "用"
+      ]
     },
     {
       "id": "mikenma",
@@ -3188,8 +3310,8 @@
         "オマージュ",
         "オマージュウォッチ"
       ],
-      "en": "Homage watch",
-      "explain": "Design that copies a famous model under a different brand. Legal but not the original; not collector value.",
+      "en": "Homage (not the original model)",
+      "explain": "Design that copies a famous model under a different brand. Legal but not the original and no collector value as that model. Outside watches it can just mean 'inspired by'.",
       "genre": [
         "watch"
       ],
@@ -3343,7 +3465,12 @@
       ],
       "category": "part",
       "risk": "info",
-      "reviewed": true
+      "reviewed": true,
+      "exclude_next": [
+        "サイズ",
+        "ランク",
+        "級"
+      ]
     },
     {
       "id": "titanium",
@@ -3425,7 +3552,10 @@
       "ja": [
         "K18",
         "18K",
-        "18金"
+        "18金",
+        "K18YG",
+        "K18WG",
+        "K18PG"
       ],
       "en": "18-karat gold",
       "explain": "Solid 18k gold (75%). Look for hallmarks; weight affects value.",
@@ -3441,7 +3571,9 @@
       "ja": [
         "K14",
         "14K",
-        "14金"
+        "14金",
+        "K14YG",
+        "K14WG"
       ],
       "en": "14-karat gold",
       "explain": "Solid 14k gold (58.5%).",
@@ -4012,7 +4144,9 @@
       "id": "ten_kizu",
       "ja": [
         "点キズ",
-        "点傷"
+        "点傷",
+        "点状の傷",
+        "点状のキズ"
       ],
       "en": "Pinpoint marks",
       "explain": "Tiny dot-like marks, usually on lens glass. A few rarely show in photos; many on the rear element matter more than on the front.",
@@ -4086,7 +4220,9 @@
         "セルフタイマー不動",
         "セルフタイマー不良",
         "セルフタイマー動かず",
-        "セルフ不動"
+        "セルフ不動",
+        "セルフタイマーNG",
+        "セルフタイマー作動せず"
       ],
       "en": "Self-timer doesn't work",
       "explain": "The self-timer is broken. Usually doesn't affect normal shooting, but on some bodies a jammed timer can block the shutter.",
@@ -4257,7 +4393,11 @@
         "巻き戻し不良",
         "巻き戻しできない",
         "巻き戻し不可",
-        "巻戻し不良"
+        "巻戻し不良",
+        "巻き戻しができない",
+        "巻き戻し出来ない",
+        "巻き戻せない",
+        "巻戻し不可"
       ],
       "en": "Rewind fault",
       "explain": "Film (or tape) can't be rewound. On a camera you'd have to open the back in a dark bag to save the roll. Needs repair.",
@@ -4273,7 +4413,9 @@
       "id": "kousen_more",
       "ja": [
         "光線漏れ",
-        "光漏れ"
+        "光漏れ",
+        "光線もれ",
+        "光もれ"
       ],
       "en": "Light leak",
       "explain": "Stray light reaches the film, leaving streaks or fogging — usually from rotten seals or a damaged back. On a digital screen, 光漏れ (\"light leak\") means backlight bleed.",
@@ -4283,7 +4425,15 @@
       ],
       "category": "defect",
       "risk": "high",
-      "reviewed": true
+      "reviewed": true,
+      "exclude_next": [
+        "防止",
+        "を防",
+        "対策",
+        "しにく",
+        "を抑",
+        "カット"
+      ]
     },
     {
       "id": "mirror_fault",
@@ -4420,7 +4570,14 @@
         "実写未確認",
         "試写未確認",
         "試写はしていません",
-        "試写していません"
+        "試写していません",
+        "実写確認はしていません",
+        "実写確認していません",
+        "実写確認はしておりません",
+        "実写はしていません",
+        "試写はしておりません",
+        "テスト撮影はしていません",
+        "テスト撮影していません"
       ],
       "en": "Not tested with film",
       "explain": "The seller didn't shoot a test roll. Shutter and meter may work, but light leaks, shutter capping or focus errors would only show on film.",
@@ -4435,7 +4592,8 @@
     {
       "id": "kandouhin",
       "ja": [
-        "完動品"
+        "完動品",
+        "完動"
       ],
       "en": "Fully working (claimed)",
       "explain": "Seller claims every function works. Ask what was tested — on cameras, whether all shutter speeds and the meter were checked and film was shot.",

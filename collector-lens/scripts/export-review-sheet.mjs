@@ -10,51 +10,12 @@ const g = JSON.parse(readFileSync(join(root, "data/glossary.json"), "utf8"));
 
 // Why an entry needs an expert look first (meaning, risk level or false matches).
 const NEEDS_CHECK = {
-  nissa: "±30秒/日の目安が妥当か（機種差）",
-  n_hin: "スラングとしての意味・使われ方",
-  shutter_naki: "キヤノンA系の例示が適切か",
-  gokubihin: "ランクの序列（極美品>超美品>美品>良品>並品）がショップ間で通用するか",
-  choubihin: "ランクの序列",
-  ryouhin: "ランクの序列",
-  namihin: "ランクの序列",
-  yellowing: "ヤケ（外装の日焼け）と黄変（レンズ）を同じ語にしてよいか",
-  bunkai_ato: "カニ目傷を分解跡に含めてよいか",
-  kenma: "新品仕上げを研磨に含めてよいか",
-  henpin_fuka: "ノーリターン単体の扱い",
-  hood: "「フード」の誤検出（衣類など）。ジャンル絞り込みで足りるか",
-  dust: "「チリ」の誤検出（国名）",
-  hari: "「針」の誤検出（カメラの露出計の針など）",
-  mikakunin: "単体「未確認」を高リスクにしてよいか",
-  seido: "「精度」の誤検出",
-  manual: "「説明書」の扱い",
-  fushoku: "「腐食」を一律で高リスクにしてよいか",
-  ss: "「SS」の誤検出（SSランク等）",
-  af: "短い英字の誤検出",
-  mf: "短い英字の誤検出",
-  oh: "「OH」「O/H」の誤検出",
-  gp: "短い英字の誤検出",
-  gf: "短い英字の誤検出",
-  yg: "短い英字の誤検出",
-  wg: "短い英字の誤検出",
-  pg: "短い英字の誤検出",
-  rg: "短い英字の誤検出",
-  dekaatsu: "語の採否（必要か）",
-  heikou_yunyu: "並行輸入の説明（保証の扱い）",
-  shiroto_hokan: "危険度（中）が妥当か",
-  kuwashikunai: "危険度（中）が妥当か",
-  kabi: "カビ＝高、くもり＝中 の区別が妥当か",
-  kumori: "カビ＝高、くもり＝中 の区別が妥当か",
-  tomaru: "「止まる」の誤検出",
-  homage: "危険度（中）が妥当か",
-  // Lens / film camera additions (2026-10-09)
-  jissha_mikakunin: "「実写未確認」を中リスクにしてよいか（「未確認」=高 より優先される）",
-  lens_contact: "「接点不良」の誤検出（家電など）。説明文は汎用にしてある",
-  kousen_more: "「光漏れ」が液晶のバックライト漏れの意味でも出る",
-  makimodoshi_fuuryou: "「巻き戻し不良」の誤検出（カセットデッキ等）",
-  ten_kizu: "「点傷」の誤検出（家具など）と危険度（低）",
-  self_timer_fudou: "「不動」=高 より優先して低にしてよいか",
-  atom_lens: "放射性レンズの説明（発送規制の書き方）",
-  kandouhin: "「完動品」を安心材料（positive）にしてよいか"
+  // 2026-10-09 レビュアー確認で残したもの（理由つき）。解決したものは外した（docs/decisions.md）。
+  n_hin: "「N品」単体は偽物スラングのほか、店によっては New（新品）ランクの略として使う可能性。「N級品」は偽物で確実。「N品番」「N品質」は除外済み",
+  gokubihin: "極美品と超美品の上下はショップで逆のことがある。「極上美品」を同じ段として追加したのが妥当か",
+  choubihin: "極美品との上下関係（店ごとの差）",
+  mikakunin: "単体「未確認」を高のままにした。動作系の言い回し（動作は未確認・通電未確認など）は動作未確認へ移したので、残りは「サイズ未確認」のような軽いものも含む。中に下げるか",
+  atom_lens: "放射性レンズの発送規制の書き方（国ごとの規則。法務・物流の確認が必要）"
 };
 
 function basis(e) {

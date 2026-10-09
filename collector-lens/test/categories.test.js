@@ -127,3 +127,60 @@ test("a hoodie's フード付き is not explained as a lens hood", () => {
   const lens = CL.analyze({ title: "単焦点レンズ 50mm F1.8", description: "純正のレンズフード付きです。前後キャップあり。" }, null, index);
   assert.ok(lens.terms.some((t) => t.id === "hood"));
 });
+
+// ---------- Glossary review 2026-10-09: false positives in non-camera/watch listings ----------
+// すべて自作の例文（実在の出品のコピーではない）。
+
+test("exclude_prev: 良品 inside 不良品 / 無印良品 is not the 'Good' shop rank", () => {
+  assert.deepEqual(found("不良品ではありません"), []);
+  assert.deepEqual(found("無印良品の収納ケース"), []);
+  assert.deepEqual(found("並品と良品の中間です"), ["namihin", "ryouhin"]);
+});
+
+test("false positive: 止まる meaning 'fastens' is not a stopping watch", () => {
+  assert.deepEqual(found("マグネットでしっかり止まります"), []);
+  assert.deepEqual(found("ボタンで止まる仕様です"), []);
+  assert.deepEqual(found("時々止まることがあります"), ["tomaru"]);
+  assert.deepEqual(found("たまに止まる"), ["tomaru"]);
+});
+
+test("false positive: anti-mould / 浮かび / frosted glass / anti-fog are not fungus or haze", () => {
+  assert.deepEqual(found("防カビ加工 カビ防止スプレー カビ取り剤"), []);
+  assert.deepEqual(found("ロゴが浮かび上がるデザイン"), []);
+  assert.deepEqual(found("曇りガラスの引き戸 曇り止め加工"), []);
+  assert.deepEqual(found("カビあり、くもりなし"), ["kabi", "kumori:neg"]);
+  assert.deepEqual(found("白濁あり"), ["kumori"]);
+});
+
+test("false positive: Chile, chili, frizzy (チリチリ) are not lens dust", () => {
+  assert.deepEqual(found("チリ産ワイン チリパウダー 毛先がチリチリ"), []);
+  assert.deepEqual(found("チリ少々あり"), ["dust"]);
+  assert.deepEqual(found("内部にチリ・ホコリ混入"), ["dust", "dust"]);
+});
+
+test("false positive: sewing needles, 方針, polishing compound, nail polish, anti-corrosion", () => {
+  assert.deepEqual(found("縫い針と待ち針のセット。当店の方針です"), []);
+  assert.deepEqual(found("研磨剤 ネイルポリッシュ"), []);
+  assert.deepEqual(found("腐食に強い 耐腐食加工"), []);
+  assert.deepEqual(found("電池端子に腐食あり"), ["fushoku"]);
+  assert.deepEqual(found("ケース研磨歴あり ポリッシュ済み"), ["kenma", "kenma"]);
+});
+
+test("false positive: light-leak prevention, burn guard, sunscreen, food, clothing sizes", () => {
+  assert.deepEqual(found("遮光カーテン 光漏れ防止"), []);
+  assert.deepEqual(found("ヤケド防止 日焼け止め"), []);
+  assert.deepEqual(found("ドッグフード フードプロセッサー フードパーカー"), []);
+  assert.deepEqual(found("SSサイズ"), []);
+  assert.deepEqual(found("N品番のパーツ"), []);
+});
+
+test("missed variants: '実写確認はしていません' is NOT the 'film-tested' reassurance", () => {
+  assert.deepEqual(found("実写確認はしていません"), ["jissha_mikakunin"]);
+  assert.deepEqual(found("試写はしておりません"), ["jissha_mikakunin"]);
+  assert.deepEqual(found("動作は未確認です"), ["dousa_mikakunin"]);
+  assert.deepEqual(found("O/H済み"), ["oh_done"]);
+  assert.deepEqual(found("K18YG"), ["k18"]);
+  assert.deepEqual(found("シャッター泣きあり"), ["shutter_naki"]);
+  assert.deepEqual(found("巻き戻しができない"), ["makimodoshi_fuuryou"]);
+  assert.deepEqual(found("返品・交換不可"), ["henpin_fuka"]);
+});
