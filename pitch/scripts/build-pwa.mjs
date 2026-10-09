@@ -278,12 +278,14 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  if (!PRECACHE.includes(path)) return;
-  event.respondWith(
-    caches.open(CACHE)
-      .then((cache) => cache.match(path))
-      .then((hit) => hit || fetch(req)),
-  );
+  // Cache Storage is shared by every page on the origin (other products under the same
+  // github.io host), so a cached copy is used only if it matches this build's hash.
+  const i = PRECACHE.indexOf(path);
+  if (i < 0) return;
+  event.respondWith((async () => {
+    const hit = await (await caches.open(CACHE)).match(path);
+    return (await matches(hit, i)) ? hit : fetch(req);
+  })());
 });
 `;
 const hasher = createHash('sha256');
