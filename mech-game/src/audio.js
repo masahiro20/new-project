@@ -361,7 +361,7 @@
     }
     tone({ type: 'sine', f0: 2349, t: t + 2.25, dur: 0.35, gain: 0.06 });
     // 2.0s〜: 炉の起動（低いうなりが上昇）
-    var rs = t + 2.0, re = t + 5.5;
+    var rs = t + 2.0, re = t + 4.4;
     var ro = ctx.createOscillator(); ro.type = 'sawtooth';
     ro.frequency.setValueAtTime(22, rs);
     ro.frequency.exponentialRampToValueAtTime(58, re);
@@ -381,20 +381,20 @@
     tone({ type: 'sine', f0: 400, f1: 1600, t: rs + 0.5, dur: 3.0, attack: 2.5, gain: 0.025, slide: 3.0 });
     // 2.8s〜: 心拍（加速）
     var hb = t + 2.8, gap = 0.72;
-    while (hb < t + 5.3) {
+    while (hb < t + 4.2) {
       thud(hb, 85, 38, 0.2, 0.55);
       thud(hb + 0.17, 75, 35, 0.16, 0.35);
       hb += gap; gap *= 0.86;
     }
-    // 5.6s: ゲート開放の重低音インパクト
-    var gi = t + 5.6;
+    // 4.4s: ゲート開放の重低音インパクト（映像側の演出は5.5秒で完了）
+    var gi = t + 4.4;
     thud(gi, 95, 24, 1.6, 1.0);
     tone({ type: 'sine', f0: 48, f1: 30, t: gi, dur: 2.2, gain: 0.6, attack: 0.01 });
     noise({ t: gi, dur: 1.6, gain: 0.55, type: 'lowpass', f0: 3000, f1: 140, Q: 0.5 });
     noise({ t: gi + 0.02, dur: 0.9, gain: 0.2, type: 'bandpass', f0: 250, Q: 0.9 });
     metalRing(gi + 0.01, 140, 1.4, 0.12);
     creak(gi + 0.25, 70, 1.2, 0.1, 0.25);
-    setTimeout(function () { haptic(120); }, 5600);
+    setTimeout(function () { haptic(120); }, 4400);
   }
 
   var LEG_PITCH = [1.0, 0.96, 0.91, 0.88];
@@ -633,6 +633,88 @@
     }
   }
 
+  // ---------------------------------------------------------------- 追加（MISSION 02 / 整備）
+  // 2回目以降の短縮出撃（約1秒）：ロック解除→ゲート開放
+  function launchShort() {
+    var t = now() + 0.02;
+    noise({ t: t, dur: 0.07, gain: 0.3, type: 'bandpass', f0: 1600, Q: 1.5 });
+    thud(t, 120, 55, 0.18, 0.4);
+    for (var i = 0; i < 4; i++) {
+      tone({ type: 'square', f0: 1175 + i * 200, t: t + 0.1 + i * 0.08, dur: 0.05, gain: 0.04, filter: { type: 'lowpass', f: 3500 } });
+    }
+    var gi = t + 0.7;
+    thud(gi, 95, 24, 1.2, 0.9);
+    noise({ t: gi, dur: 1.1, gain: 0.45, type: 'lowpass', f0: 3000, f1: 140, Q: 0.5 });
+    metalRing(gi + 0.01, 140, 1.0, 0.1);
+    haptic(80);
+  }
+
+  // 突進型の溜め：上昇する警告音（約1秒）
+  function ramCharge(dur) {
+    var d = Math.max(0.3, Math.min(2, +dur || 1));
+    var t = now();
+    tone({ type: 'sawtooth', f0: 180, f1: 900, t: t, dur: d, attack: 0.05, gain: 0.08, slide: d,
+      filter: { type: 'bandpass', f: 700, f1: 2400, Q: 3 } });
+    tone({ type: 'square', f0: 60, f1: 120, t: t, dur: d, attack: 0.1, gain: 0.08, slide: d,
+      filter: { type: 'lowpass', f: 300 } });
+    var n = Math.round(d / 0.16);
+    for (var i = 0; i < n; i++) {
+      tone({ type: 'square', f0: 1500, t: t + i * 0.16, dur: 0.05, gain: 0.035, filter: { type: 'lowpass', f: 3000 } });
+    }
+  }
+
+  // 突進型の激突（壁・コンテナ・機体）
+  function ramImpact(size) {
+    var k = clamp01(size == null ? 0.7 : size);
+    var t = now();
+    thud(t, 100, 26, 0.9 + k * 0.5, 0.8 + k * 0.2);
+    noise({ t: t, dur: 0.5 + k * 0.4, gain: 0.5, type: 'lowpass', f0: 3500, f1: 150, Q: 0.6 });
+    metalRing(t + 0.005, 190, 0.9, 0.12);
+    metalRing(t + 0.02, 263, 0.6, 0.07);
+    creak(t + 0.1, 70, 0.7, 0.1, 0);
+    haptic(60 + 80 * k);
+  }
+
+  // 殻王の形態変化：殻が剥がれる轟音
+  function bossShift() {
+    var t = now();
+    tone({ type: 'sawtooth', f0: 55, f1: 28, t: t, dur: 2.6, attack: 0.3, gain: 0.3,
+      filter: { type: 'lowpass', f: 500, f1: 120, Q: 4 } });
+    tone({ type: 'sawtooth', f0: 220, f1: 660, t: t + 0.4, dur: 2.0, attack: 0.6, gain: 0.05, slide: 2.0,
+      filter: { type: 'bandpass', f: 900, Q: 5 } });
+    for (var i = 0; i < 5; i++) {
+      var o = 0.5 + i * 0.42;
+      noise({ t: t + o, dur: 0.4, gain: 0.35, type: 'lowpass', f0: 2600, f1: 200 });
+      metalRing(t + o, 150 + i * 23, 0.8, 0.08);
+    }
+    thud(t + 2.6, 90, 22, 1.6, 1.0);
+    haptic(200);
+  }
+
+  // 地面を這う衝撃波
+  function shockwave() {
+    var t = now();
+    thud(t, 70, 20, 1.4, 1.0);
+    noise({ t: t, dur: 1.4, gain: 0.45, type: 'lowpass', f0: 900, f1: 80, Q: 0.7 });
+    noise({ t: t + 0.05, dur: 1.2, attack: 0.1, gain: 0.15, type: 'bandpass', f0: 300, f1: 120, Q: 1, rate: 0.5 });
+    haptic(120);
+  }
+
+  // 整備（強化）：重い機械音
+  function upgrade(level) {
+    var k = clamp01((+level || 1) / 5);
+    var t = now();
+    [0, 0.16, 0.42].forEach(function (o, n) {
+      thud(t + o, 110 - n * 15, 40, 0.3, 0.5);
+      noise({ t: t + o, dur: 0.06, gain: 0.3, type: 'bandpass', f0: 1600 - n * 300, Q: 1.5 });
+      metalRing(t + o + 0.01, 280 + n * 60 + k * 80, 0.5, 0.07);
+    });
+    noise({ t: t + 0.5, dur: 0.6, attack: 0.05, gain: 0.18, type: 'bandpass', f0: 500, f1: 2000, Q: 1.2 });
+    tone({ type: 'triangle', f0: 880 + k * 300, t: t + 0.95, dur: 0.25, gain: 0.05 });
+    tone({ type: 'triangle', f0: 1320 + k * 450, t: t + 1.05, dur: 0.35, gain: 0.05 });
+    haptic(60);
+  }
+
   // ---------------------------------------------------------------- 公開
   function guard(fn, allowWhenStopped) {
     return function () {
@@ -665,6 +747,12 @@
     victory: guard(victory),
     defeat: guard(defeat),
     setMaster: function (v) { try { setMaster(v); } catch (e) { /* noop */ } },
-    haptic: guard(haptic, true)
+    haptic: guard(haptic, true),
+    launchShort: guard(launchShort),
+    ramCharge: guard(ramCharge),
+    ramImpact: guard(ramImpact),
+    bossShift: guard(bossShift),
+    shockwave: guard(shockwave),
+    upgrade: guard(upgrade)
   };
 })();

@@ -12,7 +12,7 @@
   --f:'Chakra Petch','Hiragino Kaku Gothic ProN','Hiragino Sans','Noto Sans JP','Yu Gothic',Meiryo,system-ui,sans-serif;
   --m:'Share Tech Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
 }
-html,body{height:100%;margin:0;padding:0;overflow:hidden;background:var(--bg);color:var(--ink);font-family:var(--f);}
+html,body{height:100%;margin:0;padding:0;overflow:hidden;background:var(--bg);color:var(--ink);font-family:var(--f);user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 *{box-sizing:border-box}
 button{font-family:inherit;color:inherit}
 #app{position:fixed;inset:0;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;background:var(--bg)}
@@ -143,7 +143,8 @@ html.touch #radarWrap{top:calc(var(--st) + 56px)}
 
 /* title */
 #title,#pause,#result,#launch{position:absolute;inset:0;z-index:8}
-#title{display:flex;flex-direction:column;justify-content:center;padding:calc(var(--st) + 24px) calc(var(--sr) + 28px) calc(var(--sb) + 24px) calc(var(--sl) + 6vw);
+#title{overflow:hidden auto}
+#title{display:flex;flex-direction:column;justify-content:safe center;padding:calc(var(--st) + 24px) calc(var(--sr) + 28px) calc(var(--sb) + 24px) calc(var(--sl) + 6vw);
   background:linear-gradient(90deg,rgba(3,6,10,.85) 0%,rgba(3,6,10,.45) 45%,rgba(3,6,10,0) 75%),linear-gradient(0deg,rgba(3,6,10,.8),transparent 35%)}
 #logo .sub1{font-size:clamp(18px,3.4vmin,30px);letter-spacing:.6em;color:var(--am);font-weight:700}
 #logo .main{font-size:clamp(40px,10vmin,104px);font-weight:700;letter-spacing:.06em;line-height:.95;color:#f2fbfd;
@@ -170,7 +171,7 @@ html:not(.touch) #howto .tc{display:none}
 #rotHint{display:none;position:absolute;left:50%;bottom:calc(var(--sb) + 8px);transform:translateX(-50%);font-size:11px;color:var(--dim);z-index:9;pointer-events:none;white-space:nowrap}
 @media (orientation:portrait){
   html.touch #rotHint{display:block}
-  #title{padding-left:calc(var(--sl) + 22px);justify-content:flex-end;background:linear-gradient(0deg,rgba(3,6,10,.92) 0%,rgba(3,6,10,.5) 60%,rgba(3,6,10,.1) 100%)}
+  #title{padding-left:calc(var(--sl) + 22px);justify-content:safe flex-end;background:linear-gradient(0deg,rgba(3,6,10,.92) 0%,rgba(3,6,10,.5) 60%,rgba(3,6,10,.1) 100%)}
   #missionName{display:none}
   #compass{width:44vw}
   html.touch #dash{bottom:auto;top:calc(var(--st) + 96px);transform-origin:50% 0}
@@ -248,6 +249,97 @@ html:not(.touch) #howto .tc{display:none}
   color:var(--cy);text-shadow:0 0 4px rgba(95,242,232,.5);padding:3px 6px;background:rgba(5,13,19,.55);border:1px solid rgba(95,242,232,.25);border-radius:2px;white-space:nowrap}
 #fpsMeter.slow{color:var(--am);text-shadow:0 0 4px rgba(255,181,71,.5)}
 @media (max-width:420px){ #titleOpts{top:calc(var(--st) + 8px);right:calc(var(--sr) + 8px);padding:6px 8px} .seg button{padding:0 8px} }
+
+/* boss bar */
+#bossBar{position:absolute;top:calc(var(--st) + 44px);left:50%;transform:translateX(-50%);width:min(300px,34vw);text-align:center;display:none;pointer-events:none}
+#hud.boss #bossBar{display:block}
+#hud.boss #warnBox{top:calc(var(--st) + 84px)}
+#bossName{font-size:10px;line-height:1.1;letter-spacing:.1em;color:var(--am);text-shadow:0 0 6px rgba(255,170,60,.6);white-space:nowrap}
+#bossName b{color:#fff;font-weight:700;margin-left:6px}
+#bossTrack{height:7px;margin-top:2px;border:1px solid rgba(255,181,71,.6);background:rgba(40,10,0,.5);position:relative;overflow:hidden}
+#bossFill{position:absolute;left:0;top:0;bottom:0;width:100%;background:linear-gradient(90deg,#ff6a2a,#ffb547)}
+#bossBar.p2 #bossFill{background:linear-gradient(90deg,#ff2a7a,#c86bff)}
+#bossTrack::after{content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(255,255,255,.6)}
+
+/* title: mission select / hangar button / daily */
+#missionSel{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
+.mcard{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:1px;min-width:0;width:min(232px,44vw);padding:7px 12px 8px;text-align:left;cursor:pointer;
+  border:1px solid var(--line);background:rgba(5,13,19,.72);clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);transition:background .15s,border-color .15s}
+.mcard:hover,.mcard:focus-visible{background:rgba(95,242,232,.12);outline:none}
+.mcard.sel{border-color:var(--am);background:rgba(255,181,71,.14);box-shadow:inset 3px 0 0 var(--am)}
+.mcard .mtag{font-size:10px;letter-spacing:.14em;color:var(--am);font-weight:700}
+.mcard .mname{font-size:13px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.mcard .mbest{font-size:10px;color:var(--dim);letter-spacing:.06em;white-space:nowrap}
+.mcard .mbest b{font-family:var(--m);font-size:13px;color:var(--ink);font-weight:400;margin-left:4px}
+.mcard.locked .mname,.mcard.locked .mbest{opacity:.4}
+.mcard .mlock{display:none;font-size:10px;color:var(--rd);letter-spacing:.04em;white-space:nowrap}
+.mcard.locked .mlock{display:block}
+.mcard.locked .mbest{display:none}
+#titleBtns{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:14px}
+#btnLaunch{margin-top:0}
+#btnHangar{font-size:15px;padding:10px 16px;letter-spacing:.12em}
+#btnHangar .pc{font-family:var(--m);font-size:13px;color:var(--am);letter-spacing:.04em}
+#daily{margin-top:12px;padding:6px 10px 7px;width:min(360px,88vw);font-size:11px;line-height:1.45}
+#daily .dh{display:flex;justify-content:space-between;gap:8px;font-size:10px;letter-spacing:.1em;color:var(--cy);margin-bottom:2px}
+#daily .dh span{color:var(--am)}
+#daily .dg{display:flex;justify-content:space-between;gap:8px;color:#c8dde3}
+#daily .dg b{font-family:var(--m);font-weight:400;color:var(--dim);white-space:nowrap}
+#daily .dg.done{color:var(--gr)}
+#daily .dg.done b{color:var(--gr)}
+#daily .dg.m2 span::after{content:' [M02]';font-size:9px;color:var(--dim)}
+@media (orientation:landscape) and (min-width:700px){
+  #daily{position:absolute;right:calc(var(--sr) + 12px);bottom:calc(var(--sb) + 12px);margin:0;width:min(330px,36vw)}
+  #howto{max-width:min(640px,54vw)}
+}
+@media (max-height:460px){
+  #missionSel{margin-top:10px}
+  #titleBtns{margin-top:10px}
+  .mcard{padding:5px 10px 6px}
+  #logo .sub2{display:none}
+  #logo .bar{margin-top:8px}
+  #howto .brief{display:none}
+}
+@media (orientation:portrait){
+  #title{overflow-y:auto}
+  html.touch #title{padding-bottom:calc(var(--sb) + 34px)}
+  #howto{margin-top:12px}
+}
+
+/* hangar */
+#hangar{position:absolute;inset:0;z-index:8;display:flex;align-items:center;justify-content:center;background:rgba(2,5,9,.8);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
+  padding:calc(var(--st) + 10px) calc(var(--sr) + 10px) calc(var(--sb) + 10px) calc(var(--sl) + 10px);overflow:auto}
+#hangar .card{padding:14px 18px 16px;width:min(900px,96vw);max-width:96vw;margin:auto}
+#hangar h2{font-size:clamp(20px,4.4vmin,30px)}
+#hParts{font-family:var(--m);font-size:20px;color:var(--am)}
+#hParts small{font-family:var(--f);font-size:10px;letter-spacing:.12em;color:var(--dim);margin-right:6px}
+.hsys{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px;text-align:left}
+.hcol{border:1px solid var(--line);background:rgba(95,242,232,.04);padding:8px 10px 10px;display:flex;flex-direction:column;gap:4px}
+.hcol h3{margin:0;font-size:14px;letter-spacing:.1em;display:flex;justify-content:space-between;align-items:baseline}
+.hcol h3 small{font-family:var(--m);font-size:11px;color:var(--cy);font-weight:400}
+.pips{display:flex;gap:3px}.pips i{flex:1;height:5px;background:rgba(95,242,232,.15)}.pips i.on{background:var(--cy);box-shadow:0 0 5px var(--cy)}
+.hrow{display:flex;justify-content:space-between;gap:6px;font-size:11px;color:var(--dim)}
+.hrow b{font-family:var(--m);font-weight:400;font-size:12px;color:var(--ink);white-space:nowrap}
+.hrow b em{font-style:normal;color:var(--gr)}
+.hbuy{margin-top:4px;justify-content:center;font-size:14px;padding:8px 10px;letter-spacing:.08em}
+.hbuy[disabled]{opacity:.4;cursor:default}
+.hbuy .cost{font-family:var(--m);color:var(--am);font-size:13px}
+#hMsg{min-height:1.3em;font-size:11px;color:var(--am);margin-top:8px}
+#hReset{font-size:11px;padding:6px 12px;letter-spacing:.1em;border-color:rgba(255,59,59,.5)}
+#hConfirm{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;font-size:12px;color:var(--rd)}
+#hConfirm .btn{font-size:12px;padding:6px 12px}
+@media (max-width:640px){ .hsys{grid-template-columns:1fr} }
+@media (max-height:460px){ #hangar .card{padding:8px 12px 10px} #hangar h2{font-size:20px} #hangar .sub{margin-bottom:4px} .hsys{margin-top:6px} .hcol{padding:6px 8px 8px;gap:2px} .hcol h3{font-size:12px} }
+
+/* result extras */
+#rewards{margin-top:8px;font-size:12px;line-height:1.55;color:#c8dde3}
+#rewards .pp{font-family:var(--m);font-size:20px;color:var(--am)}
+#rewards .pp small{font-family:var(--f);font-size:10px;color:var(--dim);letter-spacing:.1em;margin-right:6px}
+#rewards .why{font-size:10px;color:var(--dim)}
+#rewards .unl{color:var(--gr);letter-spacing:.06em}
+#rewards .dly{color:var(--gr)}
+#rewards .nxt{color:var(--cy)}
+#btnRetry.primary{font-size:22px;padding:12px 34px}
+@media (max-height:460px){ #result .card{padding:12px 16px} #rank{font-size:60px} #result .card .sub{margin-bottom:6px} #result .card .btns{margin-top:8px} #rewards{margin-top:4px;line-height:1.4} #btnRetry.primary{font-size:18px;padding:9px 24px} }
 </style>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Share+Tech+Mono&display=swap">
 
@@ -282,7 +374,7 @@ html:not(.touch) #howto .tc{display:none}
 
   <div id="hud" class="hidden">
     <div id="hudTop">
-      <div id="missionName" class="panel"><span class="tag">MISSION 01</span>汀都 第七区画 防衛</div>
+      <div id="missionName" class="panel"><span class="tag" id="mnTag">MISSION 01</span><span id="mnName">汀都 第七区画 防衛</span></div>
       <div id="compass"><div id="compassStrip"></div><div id="compassCaret"></div><div id="compassVal">000</div></div>
       <div id="topStats">
         <div class="stat"><span class="lbl">残敵 TARGETS</span><b id="enemyCount">13</b></div>
@@ -303,6 +395,7 @@ html:not(.touch) #howto .tc{display:none}
     <div id="dmgDir"></div>
     <div id="popup"></div>
     <div id="warn"><div class="beacon bl"></div><div class="beacon br"></div><div id="warnBox"><b>WARNING</b><span id="warnDetail"></span></div></div>
+    <div id="bossBar"><div id="bossName">殻王 SHELL LORD<b id="bossPhase"></b></div><div id="bossTrack"><i id="bossFill"></i></div></div>
     <div id="obLabel">OVERBEAT ／ 鼓動モード</div>
     <div id="dash">
       <div id="gripPanel" class="inst panel">
@@ -363,22 +456,45 @@ html:not(.touch) #howto .tc{display:none}
       <span class="bar"></span>
       <div class="sub2">四脚機ヘカトン HEKATON TYPE-04 ／ 汀都 SHORE CITY 2091</div>
     </div>
-    <button id="btnLaunch" class="btn primary" type="button">出撃<small>LAUNCH</small></button>
-    <div id="hiscore">最高スコア HI-SCORE<b id="hiVal">0</b> <span id="hiRank"></span></div>
+    <div id="missionSel" role="group" aria-label="作戦選択 MISSION SELECT">
+      <button type="button" class="mcard" data-m="1"><span class="mtag">MISSION 01</span><span class="mname">汀都 第七区画 防衛</span><span class="mbest">BEST<b id="hiVal">000000</b> <span id="hiRank"></span></span></button>
+      <button type="button" class="mcard" data-m="2"><span class="mtag">MISSION 02</span><span class="mname">汀都 港湾区画 夜間掃討</span><span class="mbest">BEST<b id="hiVal2">000000</b> <span id="hiRank2"></span></span><span class="mlock">LOCKED ／ MISSION 01 クリアで解放</span></button>
+    </div>
+    <div id="titleBtns">
+      <button id="btnLaunch" class="btn primary" type="button">出撃<small>LAUNCH</small></button>
+      <button id="btnHangar" class="btn" type="button">整備<small>HANGAR</small><span class="pc" id="tParts">◆0</span></button>
+    </div>
     <div id="howto">
       <div class="pc"><h4>操作 CONTROLS — PC</h4>
         <kbd>W</kbd><kbd>S</kbd> 前進・後退　<kbd>A</kbd><kbd>D</kbd> 旋回<br>
         マウス 視点・照準　左クリック 射撃<br>
-        <kbd>Shift</kbd> 疾走 DASH　<kbd>Space</kbd> 跳躍 BOOST　<kbd>Esc</kbd> 一時停止</div>
+        <kbd>Shift</kbd> 疾走 DASH　<kbd>Space</kbd> 跳躍 BOOST　<kbd>Esc</kbd> 一時停止<br>
+        <kbd>Space</kbd>＋<kbd>A</kbd>/<kbd>D</kbd> 横跳び SIDESTEP　<kbd>←</kbd><kbd>→</kbd> 作戦選択　<kbd>H</kbd> 整備</div>
       <div class="tc"><h4>操作 CONTROLS — TOUCH</h4>
-        左下スティック 前進・旋回<br>右側ドラッグ 視点　射撃／跳躍／疾走ボタン</div>
-      <div><h4>作戦 BRIEFING</h4>
-        3分以内に灰殻12体と殻王を撃破。<br>一定のリズムで歩くと共鳴率が上がる。<br>共鳴率100%で鼓動モード OVERBEAT。</div>
+        左下スティック 前進・旋回<br>右側ドラッグ 視点　射撃／跳躍／疾走ボタン<br>跳躍＋スティック左右 横跳び SIDESTEP</div>
+      <div class="brief"><h4>作戦 BRIEFING</h4><span id="briefText">
+        3分以内に灰殻12体と殻王を撃破。<br>一定のリズムで歩くと共鳴率が上がる。<br>共鳴率100%で鼓動モード OVERBEAT。</span></div>
     </div>
     <div id="titleNote"></div>
+    <div id="daily" class="panel" aria-live="polite"></div>
     <div id="titleOpts" class="opts panel">
       <div class="opt"><span class="lbl">画質 QUALITY</span><div class="seg qseg" role="group" aria-label="画質 QUALITY"><button type="button" data-q="low">低<small>LOW</small></button><button type="button" data-q="mid">中<small>MID</small></button><button type="button" data-q="high">高<small>HIGH</small></button></div></div>
       <div class="opt"><span class="lbl">FPS表示 FPS</span><button type="button" class="tgl fpstgl" aria-pressed="false">OFF</button></div>
+    </div>
+  </div>
+
+  <div id="hangar" class="hidden">
+    <div class="card">
+      <h2>整備</h2><div class="sub">HANGAR ／ 四脚機ヘカトン TYPE-04</div>
+      <div id="hParts"><small>資材 PARTS</small>◆<span id="hPartsN">0</span></div>
+      <div class="hsys" id="hSys"></div>
+      <div id="hMsg"></div>
+      <div class="btns">
+        <button id="hClose" class="btn" type="button">戻る<small>BACK</small></button>
+        <button id="hReset" class="btn" type="button">整備データ初期化<small>RESET</small></button>
+      </div>
+      <div id="hConfirm" class="hidden">強化・資材・MISSION 02 の解放を初期化します（最高スコアは残ります）。よろしいですか？
+        <button id="hYes" class="btn" type="button">初期化する</button><button id="hNo" class="btn" type="button">やめる</button></div>
     </div>
   </div>
 
@@ -413,8 +529,10 @@ html:not(.touch) #howto .tc{display:none}
         </div>
       </div>
       <div id="newHi"></div>
+      <div id="rewards"></div>
       <div class="btns">
-        <button id="btnRetry" class="btn" type="button">再出撃<small>RELAUNCH</small></button>
+        <button id="btnRetry" class="btn primary" type="button">再出撃<small>RELAUNCH</small></button>
+        <button id="btnResHangar" class="btn" type="button">整備<small>HANGAR</small></button>
         <button id="btnToTitle" class="btn" type="button">タイトルへ<small>TITLE</small></button>
       </div>
     </div>
@@ -495,7 +613,7 @@ scene.fog = new THREE.FogExp2(FOG_COL, Q.fog);
 const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.3, Q.far);
 camera.rotation.order = 'YXZ';
 
-scene.add(new THREE.HemisphereLight(0x4a6a9a, 0x1a120a, 0.75));
+const hemi = new THREE.HemisphereLight(0x4a6a9a, 0x1a120a, 0.75); scene.add(hemi);
 const moon = new THREE.DirectionalLight(0xa8c0ff, 0.55); moon.position.set(-250, 320, -300); scene.add(moon);
 const boomLight = new THREE.PointLight(0xff8a3a, 0, 160, 2); scene.add(boomLight);
 const muzzleLight = new THREE.PointLight(0xffc070, 0, 60, 2); scene.add(muzzleLight);
@@ -543,15 +661,18 @@ groundTex.wrapS = groundTex.wrapT = THREE.RepeatWrapping;
 const CELL = 40;
 const ARENA_R = 300;
 const START = new THREE.Vector3(0, 0, 94);
-const colliders = [];         // {minX,maxX,minZ,maxZ,h}
-const colGrid = new Map();    // "gx,gz" -> list
+// Collider boxes {minX,maxX,minZ,maxZ,h} live in a per-stage spatial grid ("gx,gz" -> list).
+// colGrid always points at the grid of the active stage (city for MISSION 01, port for MISSION 02).
+const cityGrid = new Map();
+let colGrid = cityGrid;
 function gkey(gx,gz){ return gx + ',' + gz; }
-function addCollider(b){
-  colliders.push(b);
+function addCollider(b, grid){
+  grid = grid || colGrid;
+  const colGridT = grid;
   const gx0 = Math.floor((b.minX + CELL/2) / CELL), gx1 = Math.floor((b.maxX + CELL/2) / CELL);
   const gz0 = Math.floor((b.minZ + CELL/2) / CELL), gz1 = Math.floor((b.maxZ + CELL/2) / CELL);
   for (let x = gx0; x <= gx1; x++) for (let z = gz0; z <= gz1; z++){
-    const k = gkey(x,z); if (!colGrid.has(k)) colGrid.set(k, []); colGrid.get(k).push(b);
+    const k = gkey(x,z); if (!colGridT.has(k)) colGridT.set(k, []); colGridT.get(k).push(b);
   }
 }
 function cellOf(v){ return Math.floor((v + CELL/2) / CELL); }
@@ -606,7 +727,7 @@ const world = new THREE.Group(); scene.add(world);
   ground.rotation.x = -Math.PI/2; world.add(ground);
   // sea
   const sea = new THREE.Mesh(new THREE.PlaneGeometry(6000,6000), new THREE.MeshPhongMaterial({color:0x040912, specular:0x3a5577, shininess:60, fog:false}));
-  sea.rotation.x = -Math.PI/2; sea.position.y = -1.5; world.add(sea);
+  sea.rotation.x = -Math.PI/2; sea.position.y = -1.5; scene.add(sea); // shared (the port quay drops to it)
   // sky dome
   const skyMat = new THREE.ShaderMaterial({
     side:THREE.BackSide, depthWrite:false, fog:false,
@@ -615,14 +736,14 @@ const world = new THREE.Group(); scene.add(world);
     fragmentShader:'varying vec3 vP; void main(){ float h = vP.y; vec3 top = vec3(0.012,0.02,0.05); vec3 hor = vec3(0.09,0.10,0.16); vec3 glow = vec3(0.55,0.24,0.12);'+
       'float g = exp(-abs(h)*14.0); float n = 0.5+0.5*vP.z; vec3 c = mix(hor, top, smoothstep(0.0,0.5,h)); c += glow*g*(0.35+0.4*n); if (h < 0.0) c = mix(hor*0.6, vec3(0.02,0.03,0.06), clamp(-h*4.0,0.0,1.0)); gl_FragColor = vec4(c,1.0); }'
   });
-  const sky = new THREE.Mesh(new THREE.SphereGeometry(2500, 24, 12), skyMat); world.add(sky); world.userData.sky = sky;
+  const sky = new THREE.Mesh(new THREE.SphereGeometry(2500, 24, 12), skyMat); scene.add(sky); world.userData.sky = sky; // shared by every stage
   // stars
   {
     const n = 700, p = new Float32Array(n*3);
     for (let i = 0; i < n; i++){ const a = rand()*Math.PI*2, e = 0.08 + rand()*1.4; const r = 2200; p[i*3] = Math.cos(a)*Math.cos(e)*r; p[i*3+1] = Math.sin(e)*r; p[i*3+2] = Math.sin(a)*Math.cos(e)*r; }
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(p,3));
     const stars = new THREE.Points(g, new THREE.PointsMaterial({color:0xbcd0ff, size:1.6, sizeAttenuation:false, fog:false, transparent:true, opacity:.8}));
-    world.add(stars); world.userData.stars = stars;
+    scene.add(stars); world.userData.stars = stars;
   }
   // distant shore lights
   {
@@ -633,7 +754,7 @@ const world = new THREE.Group(); scene.add(world);
       const w = rand(); if (w < .6){ c[i*3]=1; c[i*3+1]=.62; c[i*3+2]=.3; } else if (w < .85){ c[i*3]=.5; c[i*3+1]=.8; c[i*3+2]=1; } else { c[i*3]=1; c[i*3+1]=.25; c[i*3+2]=.2; }
     }
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(p,3)); g.setAttribute('color', new THREE.BufferAttribute(c,3));
-    world.add(new THREE.Points(g, new THREE.PointsMaterial({size:2.2, sizeAttenuation:false, vertexColors:true, fog:false, transparent:true, opacity:.85})));
+    scene.add(new THREE.Points(g, new THREE.PointsMaterial({size:2.2, sizeAttenuation:false, vertexColors:true, fog:false, transparent:true, opacity:.85}))); // shared
   }
   // street lamps
   {
@@ -685,6 +806,7 @@ const ash = (function(){
 })();
 
 /* ================= launch bay ================= */
+const BAY_COLS = [{minX:-19, maxX:-17, minZ:68, maxZ:112, h:38}, {minX:17, maxX:19, minZ:68, maxZ:112, h:38}, {minX:-19, maxX:19, minZ:111, maxZ:113, h:38}];
 const bay = new THREE.Group(); bay.position.set(0,0,90); scene.add(bay);
 const bayDoors = [];
 const bayStrips = [];
@@ -715,14 +837,227 @@ const bayStrips = [];
       s.position.set(side*16.7, 30, -16 + i*7); bay.add(s); bayStrips.push(s);
     }
   }
-  addCollider({minX:-19, maxX:-17, minZ:68, maxZ:112, h:38});
-  addCollider({minX:17, maxX:19, minZ:68, maxZ:112, h:38});
-  addCollider({minX:-19, maxX:19, minZ:111, maxZ:113, h:38});
+  for (const b of BAY_COLS) addCollider(Object.assign({}, b), cityGrid);
 })();
 function setBayOpen(k){
   for (const d of bayDoors) d.position.x = d.userData.side * (8.75 + k * 17);
   const col = k > 0.05 ? 0x30ff90 : 0xff2a1a;
   for (const s of bayStrips) s.material.color.setHex(col);
+}
+
+/* ================= stages =================
+   Each mission plays on a stage: {group, grid (colliders), fog/background, bounds}.
+   city = MISSION 01 (built at load), port = MISSION 02 (built lazily the first time it is needed, then only
+   hidden/shown, so switching back and forth never allocates again). */
+const STAGES = {};
+STAGES.city = {
+  name:'city', group:world, grid:cityGrid, fogCol:FOG_COL, fogMul:1, bg:0x060a14, bldg:world.userData.bldg,
+  setDeco(on){ world.userData.pool.visible = on; for (const s of searchlights) s.m.visible = on; },
+  clampPlayer(pos){ const r = Math.hypot(pos.x, pos.z); if (r > ARENA_R){ pos.x *= ARENA_R / r; pos.z *= ARENA_R / r; return 'bound'; } return null; },
+  clampEnemy(p){ const r = Math.hypot(p.x, p.z); if (r > ARENA_R + 30){ p.x *= (ARENA_R + 30) / r; p.z *= (ARENA_R + 30) / r; } },
+  inBounds(x, z, m){ return Math.hypot(x, z) < ARENA_R + 30 - (m || 0); },
+  update(){},
+};
+// MISSION 02 harbour block. Play area is a rectangle: the quay (sea beyond) to the north, warehouse rows on the other sides.
+const PORT = {minX:-250, maxX:250, minZ:-205, maxZ:175, quayZ:-215};
+function buildPort(){
+  const grp = new THREE.Group(); grp.visible = false; scene.add(grp);
+  const grid = new Map();
+  for (const b of BAY_COLS) addCollider(Object.assign({}, b), grid);
+  const rand = mulberry32(2092);
+  const dummy = new THREE.Object3D(), col = new THREE.Color();
+  const box = new THREE.BoxGeometry(1,1,1); box.translate(0,0.5,0);
+  const rects = []; // occupied footprints (to keep containers out of warehouses / towers)
+  const free = (x0, x1, z0, z1, m) => { for (const r of rects) if (x1 + m > r[0] && x0 - m < r[1] && z1 + m > r[2] && z0 - m < r[3]) return false; return true; };
+  // ground + quay
+  const gTex = canvasTex(128,128,(g)=>{
+    g.fillStyle = '#1d2024'; g.fillRect(0,0,128,128);
+    g.fillStyle = 'rgba(255,255,255,.035)'; for (let i=0;i<260;i++) g.fillRect(crand()*128, crand()*128, 2, 2);
+    g.fillStyle = 'rgba(0,0,0,.35)'; g.fillRect(0,0,128,1.5); g.fillRect(0,0,1.5,128);
+    g.fillStyle = 'rgba(220,190,90,.28)'; for (let i=6;i<128;i+=18) g.fillRect(i,62,9,2);
+  });
+  gTex.wrapS = gTex.wrapT = THREE.RepeatWrapping;
+  const gw = 1400, gz0 = PORT.quayZ, gz1 = 760;
+  gTex.repeat.set(gw/40, (gz1 - gz0)/40);
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(gw, gz1 - gz0), new THREE.MeshLambertMaterial({color:0x8a9096, map:gTex}));
+  ground.rotation.x = -Math.PI/2; ground.position.set(0, 0, (gz0 + gz1)/2); grp.add(ground);
+  const concrete = new THREE.MeshLambertMaterial({color:0x2a2e33});
+  const wall = new THREE.Mesh(new THREE.BoxGeometry(gw, 12, 3), concrete); wall.position.set(0, -6, gz0 - 1.5); grp.add(wall);
+  const stripe = new THREE.Mesh(new THREE.BoxGeometry(gw, 0.25, 1.2), new THREE.MeshBasicMaterial({color:0x7a6420})); stripe.position.set(0, 0.12, gz0 + 1); grp.add(stripe);
+  {
+    const n = Math.floor(gw / 20), im = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.8, 1.1, 1.8, 8), concrete, n);
+    for (let i = 0; i < n; i++){ dummy.position.set(-gw/2 + 10 + i*20, 0.9, gz0 + 3); dummy.rotation.set(0,0,0); dummy.scale.set(1,1,1); dummy.updateMatrix(); im.setMatrixAt(i, dummy.matrix); }
+    grp.add(im);
+  }
+  // warehouses (perimeter rows + a few inside the yard)
+  const whList = [];
+  const wh = (x, z, w, d, h, collide) => { whList.push({x, z, w, d, h, tint:0.6 + rand()*0.4}); rects.push([x - w/2, x + w/2, z - d/2, z + d/2]); if (collide) addCollider({minX:x - w/2, maxX:x + w/2, minZ:z - d/2, maxZ:z + d/2, h}, grid); };
+  for (let x = -264; x <= 264; x += 66) wh(x, 207, 60, 30, 16 + rand()*12, true);
+  for (let z = -160; z <= 170; z += 62) { wh(-282, z, 30, 56, 14 + rand()*12, true); wh(282, z, 30, 56, 14 + rand()*12, true); }
+  wh(-170, 112, 52, 34, 20, true); wh(165, -104, 46, 30, 18, true); wh(-176, -98, 40, 28, 16, true);
+  for (let i = 0; i < 26; i++){ const a = rand()*Math.PI*2, r = 420 + rand()*260; const x = Math.cos(a)*r, z = Math.abs(Math.sin(a))*r + 120; wh(x, z, 40 + rand()*40, 30 + rand()*30, 14 + rand()*30, false); }
+  {
+    const mat = new THREE.MeshLambertMaterial({color:0x2a3038, emissive:0xffffff, emissiveMap:windowTex(true)});
+    mat.emissiveIntensity = 0.55;
+    for (const b of whList) b.dc = Math.hypot(b.x, b.z);
+    whList.sort((a, b) => a.dc - b.dc);
+    const im = new THREE.InstancedMesh(box, mat, whList.length);
+    whList.forEach((b, i) => { dummy.position.set(b.x, 0, b.z); dummy.rotation.set(0,0,0); dummy.scale.set(b.w, b.h, b.d); dummy.updateMatrix(); im.setMatrixAt(i, dummy.matrix); col.setRGB(b.tint, b.tint, b.tint*1.05); im.setColorAt(i, col); });
+    im.instanceMatrix.needsUpdate = true; if (im.instanceColor) im.instanceColor.needsUpdate = true;
+    grp.add(im); var whEntry = {im, full:whList.length, within:(r) => { let n = 0; while (n < whList.length && whList[n].dc <= r) n++; return n; }};
+  }
+  // light towers (sodium flood lights) + their light pools on the ground
+  const towers = [[-120,-150],[120,-150],[-205,40],[205,40],[0,-62],[-95,150],[95,150],[60,60]];
+  const decoMeshes = [];
+  {
+    const pole = new THREE.BoxGeometry(1.4, 38, 1.4); pole.translate(0, 19, 0);
+    const im = new THREE.InstancedMesh(pole, new THREE.MeshLambertMaterial({color:0x30363e}), towers.length);
+    const p = new Float32Array(towers.length * 3);
+    towers.forEach((t, i) => {
+      dummy.position.set(t[0], 0, t[1]); dummy.rotation.set(0,0,0); dummy.scale.set(1,1,1); dummy.updateMatrix(); im.setMatrixAt(i, dummy.matrix);
+      p[i*3] = t[0]; p[i*3+1] = 38.5; p[i*3+2] = t[1];
+      rects.push([t[0] - 3, t[0] + 3, t[1] - 3, t[1] + 3]);
+      addCollider({minX:t[0] - 1.2, maxX:t[0] + 1.2, minZ:t[1] - 1.2, maxZ:t[1] + 1.2, h:38}, grid);
+    });
+    grp.add(im);
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(p, 3));
+    grp.add(new THREE.Points(g, new THREE.PointsMaterial({color:0xffc070, size:18, map:glowTex, transparent:true, depthWrite:false, blending:THREE.AdditiveBlending})));
+    const pool = new THREE.InstancedMesh(new THREE.CircleGeometry(30, 20), new THREE.MeshBasicMaterial({color:0x40300f, transparent:true, opacity:.6, depthWrite:false, blending:THREE.AdditiveBlending}), towers.length);
+    towers.forEach((t, i) => { dummy.position.set(t[0], 0.07, t[1]); dummy.rotation.set(-Math.PI/2, 0, 0); dummy.updateMatrix(); pool.setMatrixAt(i, dummy.matrix); });
+    grp.add(pool); decoMeshes.push(pool);
+  }
+  // gantry cranes on the quay (one instanced mesh for every beam) + blinking red aviation lights
+  const craneX = [-170, -55, 60, 175], cz1 = -190, cz2 = -212;
+  const beams = [];
+  const beam = (x, y, z, sx, sy, sz, white) => beams.push({x, y, z, sx, sy, sz, white});
+  const redP = [];
+  for (const cx of craneX){
+    for (const sx of [-11, 11]){ for (const z of [cz1, cz2]){ beam(cx + sx, 0, z, 2.6, 48, 2.6); addCollider({minX:cx + sx - 1.6, maxX:cx + sx + 1.6, minZ:z - 1.6, maxZ:z + 1.6, h:48}, grid); } beam(cx + sx, 44.5, (cz1 + cz2)/2, 2.4, 2.4, 25); }
+    for (const z of [cz1, cz2]){ beam(cx, 44.5, z, 24.6, 2.6, 2.6); beam(cx, 18, z, 24, 1.8, 1.8); }
+    beam(cx, 48.5, -215, 3.6, 3, 132); // boom over the water
+    beam(cx, 47, -250, 6, 2.6, 7, true); // trolley
+    beam(cx, 51.5, -195, 11, 6, 13, true); // machinery house
+    beam(cx, 47, -190, 2, 18, 2); // A-frame mast
+    redP.push(cx, 52.5, -281, cx, 66, -190, cx, 52.5, -150);
+    rects.push([cx - 16, cx + 16, cz2 - 4, cz1 + 6]);
+  }
+  for (const z of [cz1, cz2]) beam(0, 0, z, 1300, 0.12, 1.4); // rails
+  {
+    const im = new THREE.InstancedMesh(box, new THREE.MeshLambertMaterial({color:0xffffff}), beams.length);
+    beams.forEach((b, i) => { dummy.position.set(b.x, b.y, b.z); dummy.rotation.set(0,0,0); dummy.scale.set(b.sx, b.sy, b.sz); dummy.updateMatrix(); im.setMatrixAt(i, dummy.matrix); col.setHex(b.sy < 0.2 ? 0x15181c : b.white ? 0xb8b8b0 : 0xa83a22); im.setColorAt(i, col); });
+    im.instanceMatrix.needsUpdate = true; if (im.instanceColor) im.instanceColor.needsUpdate = true;
+    grp.add(im);
+  }
+  // moored cargo ships (silhouettes beyond the quay)
+  const shipMat = new THREE.MeshLambertMaterial({color:0x14181d}), shipMat2 = new THREE.MeshLambertMaterial({color:0x1d232a});
+  const winMat = new THREE.MeshBasicMaterial({color:0x6f93a8});
+  const shipLights = [];
+  const deckCont = [];
+  const ship = (x, z, len, wid, ry) => {
+    const sg = new THREE.Group(); sg.position.set(x, 0, z); sg.rotation.y = ry; grp.add(sg);
+    const add = (geo, mat, px, py, pz) => { const m = new THREE.Mesh(geo, mat); m.position.set(px, py, pz); sg.add(m); return m; };
+    add(new THREE.BoxGeometry(len, 16, wid), shipMat, 0, 2, 0);
+    const bow = add(new THREE.CylinderGeometry(wid/2, wid/2, 16, 3, 1), shipMat, -len/2, 2, 0); bow.rotation.y = Math.PI/2; bow.scale.set(0.9, 1, 0.6);
+    add(new THREE.BoxGeometry(28, 22, wid - 6), shipMat2, len/2 - 22, 21, 0);
+    add(new THREE.BoxGeometry(26, 1.2, 0.4), winMat, len/2 - 22, 28, -(wid - 6)/2 - 0.3);
+    add(new THREE.BoxGeometry(26, 1.2, 0.4), winMat, len/2 - 22, 24, -(wid - 6)/2 - 0.3);
+    add(new THREE.BoxGeometry(7, 12, 7), shipMat2, len/2 - 14, 38, 0);
+    add(new THREE.BoxGeometry(1, 26, 1), shipMat2, -len/2 + 20, 23, 0);
+    sg.updateMatrixWorld();
+    const lp = (px, py, pz) => { const v = new THREE.Vector3(px, py, pz).applyMatrix4(sg.matrixWorld); shipLights.push(v.x, v.y, v.z); };
+    lp(-len/2 + 20, 37, 0); lp(len/2 - 14, 45, 0);
+    for (let cx = -len/2 + 30; cx < len/2 - 46; cx += 20) for (let r = -1; r <= 1; r++){ const t = 1 + Math.floor(rand()*3); for (let k = 0; k < t; k++){ const v = new THREE.Vector3(cx, 10 + k*4.2, r*4.1).applyMatrix4(sg.matrixWorld); deckCont.push({x:v.x, y:v.y, z:v.z, ry:ry}); } }
+  };
+  ship(-40, -290, 240, 36, 0); ship(250, -350, 190, 32, 0.22); ship(-330, -380, 170, 30, -0.12);
+  // container yard
+  const PAL = [0x8a3a2a, 0x2d4f80, 0x2a6a66, 0x9a7a2a, 0x5a5e62, 0xa0522d, 0x3a5a3a, 0x7a2a4a, 0xb0b0a8];
+  const CL = 19.5, CH = 4.2, CW = 4.1;
+  const cont = [];
+  const pick = () => PAL[Math.floor(rand() * PAL.length)];
+  function stack(cx, cz, rows, tiers, rot, collide){
+    const hx = rot ? rows*CW/2 : CL, hz = rot ? CL : rows*CW/2;
+    if (!free(cx - hx, cx + hx, cz - hz, cz + hz, 10)) return false;
+    let maxT = 0; let run = pick();
+    for (let r = 0; r < rows; r++){
+      const t = Math.max(1, tiers - (rand() < .35 ? 1 : 0)); maxT = Math.max(maxT, t);
+      for (let c = 0; c < 2; c++) for (let k = 0; k < t; k++){
+        if (rand() < .4) run = pick();
+        const o = (c - 0.5) * CL, w = (r - (rows - 1)/2) * CW;
+        cont.push({x:cx + (rot ? w : o), y:k*CH, z:cz + (rot ? o : w), ry:rot ? Math.PI/2 : 0, c:run});
+      }
+    }
+    rects.push([cx - hx, cx + hx, cz - hz, cz + hz]);
+    if (collide) addCollider({minX:cx - hx, maxX:cx + hx, minZ:cz - hz, maxZ:cz + hz, h:maxT * CH}, grid);
+    return true;
+  }
+  for (let gx = -3; gx <= 3; gx++) for (let gz = -3; gz <= 3; gz++){
+    const x = gx * 64 + rnd(-4, 4), z = gz * 50 - 8;
+    if (Math.hypot(x, z) < 78) continue;
+    if (Math.abs(x) < 52 && z > 20) continue;     // launch bay lane
+    if (z < -160) continue;                         // crane apron
+    if (rand() < 0.2) continue;                     // open lots
+    const rows = 3 + Math.floor(rand() * 2), tiers = 2 + Math.floor(rand() * rand() * 4.2);
+    stack(x, z, rows, tiers, rand() < 0.22, true);
+  }
+  // a few lone boxes on the apron (low cover near the cranes)
+  for (const [x, z] of [[-112,-176],[0,-178],[118,-178]]) stack(x, z, 2, 1, false, true);
+  // decorative yards far outside the play area (dropped first by the LOW preset)
+  for (let i = 0; i < 40; i++){ const a = rand()*Math.PI, r = 390 + rand()*300; stack(Math.cos(a)*r, Math.sin(a)*r * 0.8 + 120, 3 + Math.floor(rand()*2), 1 + Math.floor(rand()*4), rand() < .5, false); }
+  for (const d of deckCont) cont.push({x:d.x, y:d.y, z:d.z, ry:d.ry, c:pick()});
+  const cTex = canvasTex(64, 16, (g) => { g.fillStyle = '#d8d8d8'; g.fillRect(0,0,64,16); g.fillStyle = 'rgba(0,0,0,.28)'; for (let x = 1; x < 64; x += 3) g.fillRect(x, 1, 1, 14); g.strokeStyle = 'rgba(0,0,0,.5)'; g.strokeRect(0.5, 0.5, 63, 15); });
+  const cGeo = new THREE.BoxGeometry(CL - 0.4, CH - 0.15, CW - 0.25); cGeo.translate(0, CH/2, 0);
+  for (const c of cont) c.dc = Math.hypot(c.x, c.z);
+  cont.sort((a, b) => a.dc - b.dc);
+  const cim = new THREE.InstancedMesh(cGeo, new THREE.MeshLambertMaterial({color:0xffffff, map:cTex}), cont.length);
+  cont.forEach((c, i) => { dummy.position.set(c.x, c.y, c.z); dummy.rotation.set(0, c.ry, 0); dummy.scale.set(1,1,1); dummy.updateMatrix(); cim.setMatrixAt(i, dummy.matrix); col.setHex(c.c); cim.setColorAt(i, col); });
+  cim.instanceMatrix.needsUpdate = true; if (cim.instanceColor) cim.instanceColor.needsUpdate = true;
+  grp.add(cim);
+  const contEntry = {im:cim, full:cont.length, within:(r) => { let n = 0; while (n < cont.length && cont[n].dc <= r) n++; return n; }};
+  // red aviation lights (cranes) + ship mast lights
+  const redG = new THREE.BufferGeometry(); redG.setAttribute('position', new THREE.BufferAttribute(new Float32Array(redP), 3));
+  const redMat = new THREE.PointsMaterial({color:0xff2a20, size:9, map:glowTex, transparent:true, depthWrite:false, blending:THREE.AdditiveBlending});
+  grp.add(new THREE.Points(redG, redMat));
+  const shG = new THREE.BufferGeometry(); shG.setAttribute('position', new THREE.BufferAttribute(new Float32Array(shipLights), 3));
+  const shMat = new THREE.PointsMaterial({color:0xfff0c0, size:5, map:glowTex, transparent:true, depthWrite:false, blending:THREE.AdditiveBlending});
+  grp.add(new THREE.Points(shG, shMat));
+  // low harbour mist banks drifting over the water
+  const mistMat = new THREE.MeshBasicMaterial({color:0x5a7480, transparent:true, opacity:.07, depthWrite:false, fog:true, side:THREE.DoubleSide});
+  const mists = [];
+  for (let i = 0; i < 7; i++){ const m = new THREE.Mesh(new THREE.PlaneGeometry(260, 60), mistMat); m.rotation.x = -Math.PI/2; m.position.set(-400 + i*130, 3 + i % 3, -240 - (i % 2) * 50); grp.add(m); mists.push(m); }
+  decoMeshes.push(...mists);
+  return {
+    name:'port', group:grp, grid, fogCol:0x0d171c, fogMul:1.25, bg:0x050a0e, hemi:1.1, moon:0.75, bldg:[whEntry, contEntry],
+    setDeco(on){ for (const m of decoMeshes) m.visible = on; },
+    clampPlayer(pos){
+      let hit = null;
+      if (pos.z < PORT.minZ){ pos.z = PORT.minZ; hit = 'quay'; }
+      if (pos.z > PORT.maxZ){ pos.z = PORT.maxZ; hit = hit || 'bound'; }
+      if (pos.x < PORT.minX){ pos.x = PORT.minX; hit = hit || 'bound'; }
+      if (pos.x > PORT.maxX){ pos.x = PORT.maxX; hit = hit || 'bound'; }
+      return hit;
+    },
+    clampEnemy(p){ p.x = clamp(p.x, PORT.minX - 15, PORT.maxX + 15); p.z = clamp(p.z, PORT.minZ - 4, PORT.maxZ + 15); },
+    inBounds(x, z, m){ m = m || 0; return x > PORT.minX - 15 + m && x < PORT.maxX + 15 - m && z > PORT.minZ - 4 + m && z < PORT.maxZ + 15 - m; },
+    update(t, dt){
+      redMat.opacity = (Math.sin(t * 3.1) > 0.35) ? 1 : 0.12;
+      shMat.opacity = 0.6 + Math.sin(t * 0.7) * 0.2;
+      for (let i = 0; i < mists.length; i++){ const m = mists[i]; m.position.x += dt * (3 + i % 3); if (m.position.x > 520) m.position.x -= 1040; }
+    },
+  };
+}
+let stage = STAGES.city;
+function setStage(name){
+  if (!STAGES[name]){ if (name !== 'port') return; STAGES.port = buildPort(); applyStageQuality(STAGES.port); }
+  stage = STAGES[name];
+  for (const k in STAGES) STAGES[k].group.visible = STAGES[k] === stage;
+  colGrid = stage.grid;
+  scene.fog.color.setHex(stage.fogCol); scene.fog.density = Q.fog * stage.fogMul;
+  scene.background.setHex(stage.bg);
+  hemi.intensity = stage.hemi || 0.75; moon.intensity = stage.moon || 0.55;
+}
+function applyStageQuality(st){
+  for (const b of st.bldg) b.im.count = Q.bldR === Infinity ? b.full : b.within(Q.bldR);
+  st.setDeco(Q.deco);
 }
 
 /* ================= player mech (HEKATON) ================= */
@@ -889,8 +1224,9 @@ const bullets = [];
 for (let i = 0; i < 50; i++){ const m = new THREE.Mesh(tracerGeo, tracerMat); m.visible = false; scene.add(m); bullets.push({m, alive:false, pos:new THREE.Vector3(), prev:new THREE.Vector3(), vel:new THREE.Vector3(), life:0, target:null, dmg:1}); }
 const eShotGeo = new THREE.SphereGeometry(1.3, 10, 8);
 const eShotMat = new THREE.MeshBasicMaterial({color:0xff4a6a, transparent:true, blending:THREE.AdditiveBlending, depthWrite:false});
+const eShotMatH = new THREE.MeshBasicMaterial({color:0xc070ff, transparent:true, blending:THREE.AdditiveBlending, depthWrite:false}); // homing orbs (TWINSHELL phase 2)
 const eShots = [];
-for (let i = 0; i < 40; i++){ const m = new THREE.Mesh(eShotGeo, eShotMat); m.visible = false; scene.add(m); eShots.push({m, alive:false, pos:new THREE.Vector3(), vel:new THREE.Vector3(), life:0, dmg:7}); }
+for (let i = 0; i < 48; i++){ const m = new THREE.Mesh(eShotGeo, eShotMat); m.visible = false; scene.add(m); eShots.push({m, alive:false, pos:new THREE.Vector3(), vel:new THREE.Vector3(), life:0, dmg:7, homing:0}); }
 
 /* ================= enemies (ASHSHELL) ================= */
 const EM = {
@@ -961,18 +1297,91 @@ function makeLord(){
   }
   return {g, body, weak, legs:legsArr};
 }
+// 衝角殻 RAMSHELL（突進型）: keeps its distance, stops, glows red while charging up (~1s, warning line on the
+// ground), then rams in a straight line. A side-step makes it miss; it then slams into a wall / container and is
+// stunned for a few seconds with its rear vent (weak point) exposed.
+function makeRammer(){
+  const g = new THREE.Group(), body = new THREE.Group(); g.add(body);
+  const glowMat = new THREE.MeshLambertMaterial({color:0x4a3c34, emissive:0x000000});
+  const weakMat = new THREE.MeshBasicMaterial({color:0x3a2208});
+  part(body, EG.sph, glowMat, 0,4.6,-0.5, 5.2,4.2,7.6);
+  part(body, EG.sph, EM.shell2, 0,6.4,-1.6, 4.2,2.6,5.6);
+  part(body, EG.box, EM.dark, 0,2.4,0, 6.8,2.4,10.5);
+  part(body, EG.box, glowMat, 0,4.4,6.2, 7.4,5.6,2.2);            // ram plate
+  part(body, EG.cone, EM.shell2, 0,4.6,9.6, 1.9,6.5,1.9, Math.PI/2,0,0); // horn
+  for (const sx of [-1,1]){
+    part(body, EG.cone, EM.dark, sx*2.8,6.2,8, 0.9,3.6,0.9, Math.PI/2.3,0,sx*-0.3);
+    part(body, EG.box, EM.red, sx*1.7,5.6,7.35, 1,0.5,0.3);
+    part(body, EG.box, glowMat, sx*5.3,4.2,0, 1.2,3.6,8.5, 0,0,sx*-0.15);  // side plates
+  }
+  const weak = part(body, EG.sph, weakMat, 0,5.2,-7.6, 2.2,2.2,1.6);
+  const legsArr = [];
+  for (const sx of [-1,1]) for (const z of [-3.2, 3.2]){
+    const pivot = new THREE.Group(); pivot.position.set(sx*4.6, 3, z); body.add(pivot);
+    part(pivot, EG.box, EM.dark, sx*1.6, -1.2, 0, 1.4, 3.8, 1.4, 0, 0, sx*-0.35);
+    legsArr.push({pivot, s:sx, z});
+  }
+  return {g, body, legs:legsArr, glowMat, weakMat, weak, mats:[glowMat, weakMat]};
+}
+// 双殻王 TWINSHELL（殻王の一種。MISSION 02 のボス）: two clamshell halves armour its core.
+// Phase 1: the shell only opens to vent after a barrage / charge (core takes heavy damage only then).
+// At 50% HP the shells are torn off (transformation), phase 2 is faster with ground shockwaves and homing orbs.
+function makeTwin(){
+  const g = new THREE.Group(), body = new THREE.Group(); g.add(body);
+  const coreMat = new THREE.MeshBasicMaterial({color:0xffb020});
+  const ribMat = new THREE.MeshBasicMaterial({color:0xff3080});
+  const shellMat = new THREE.MeshLambertMaterial({color:0x4a4038, emissive:0x000000});
+  part(body, EG.sph, EM.dark, 0,8,0, 11,5.5,15);
+  part(body, EG.box, EM.shell2, 0,8,15, 9,6,6);
+  for (const sx of [-1,1]){
+    part(body, EG.box, EM.orange, sx*2.6,9.4,18.1, 1.6,0.8,0.4);
+    part(body, EG.box, EM.dark, sx*4.4,6,21, 1.3,1.3,8, 0, sx*-0.3, 0);
+  }
+  const core = part(body, EG.sph, coreMat, 0,13,0, 4.6,4.6,4.6);
+  const ribs = new THREE.Group(); body.add(ribs); ribs.visible = false;
+  for (let k = -2; k <= 2; k++){ const r = part(ribs, EG.torus, ribMat, 0,12,k*3.4, 1.4,1.4,1.4); r.rotation.y = Math.PI/2; r.scale.set(1.25 - Math.abs(k)*0.15, 1.25 - Math.abs(k)*0.15, 1); }
+  const shells = [];
+  for (const sx of [-1,1]){
+    const pv = new THREE.Group(); pv.position.set(0, 14, 0); body.add(pv); pv.userData.s = sx;
+    part(pv, EG.sph, shellMat, sx*5.2, 1, 0, 9.5, 7, 16.5);
+    part(pv, EG.sph, EM.shell2, sx*7.2, 3.2, -1, 6, 4, 12);
+    for (let k = 0; k < 4; k++) part(pv, EG.cone, EM.dark, sx*(7 + (k%2)), 6.5, -9 + k*5.5, 1.3, 5 + (k%2)*2, 1.3, 0, 0, sx*-0.5);
+    for (let k = 0; k < 3; k++) part(pv, EG.box, EM.orange, sx*13.6, 0.5 + k*1.3, -5 + k*4, 0.4, 0.5, 2);
+    shells.push(pv);
+  }
+  const legsArr = [];
+  for (const sx of [-1,1]) for (const z of [-9, 0, 9]){
+    const pivot = new THREE.Group(); pivot.position.set(sx*9.5, 7, z); body.add(pivot);
+    part(pivot, EG.box, EM.dark, sx*6, 0, 0, 12, 2.2, 2.2, 0, 0, sx*0.35);
+    part(pivot, EG.box, EM.shell2, sx*12, -4, 0, 2.2, 10, 2.2, 0, 0, sx*-0.25);
+    legsArr.push({pivot, s:sx, z});
+  }
+  return {g, body, core, coreMat, ribs, ribMat, shells, shellMat, legs:legsArr, mats:[coreMat, ribMat, shellMat]};
+}
 const ENEMY_DEF = {
   beetle: {hp:4, r:5.2, cy:3, score:800},
   floater: {hp:5, r:5, cy:0, score:900},
   lord: {hp:90, r:15, cy:10, score:6000},
+  rammer: {hp:9, r:6, cy:4.5, score:1100},
+  twin: {hp:170, r:16, cy:11, score:10000},
 };
+const BOSS_TYPES = {lord:true, twin:true};
+const ENEMY_NAMES = {beetle:'甲虫型', floater:'浮遊型', rammer:'突進型', lord:'殻王', twin:'双殻王'};
 const enemies = [];
 const WEAK_LOCAL = new THREE.Vector3(0,12,15.4);
+// ground warning line for charges (shared geometry: unit strip pointing +z from the origin)
+const warnGeo = new THREE.PlaneGeometry(1, 1); warnGeo.rotateX(-Math.PI/2); warnGeo.translate(0, 0, 0.5);
+function makeWarnLine(){
+  const m = new THREE.Mesh(warnGeo, new THREE.MeshBasicMaterial({color:0xff2a1a, transparent:true, opacity:0, blending:THREE.AdditiveBlending, depthWrite:false, side:THREE.DoubleSide}));
+  m.visible = false; m.renderOrder = 2; scene.add(m); return m;
+}
 function spawnEnemy(type, x, z){
   const def = ENEMY_DEF[type];
-  const model = type === 'beetle' ? makeBeetle() : (type === 'floater' ? makeFloater() : makeLord());
+  const model = type === 'beetle' ? makeBeetle() : type === 'floater' ? makeFloater() : type === 'rammer' ? makeRammer() : type === 'twin' ? makeTwin() : makeLord();
   const e = {type, model, g:model.g, hp:def.hp, maxHp:def.hp, r:def.r, cy:def.cy, alive:true, t:Math.random()*10, state:'chase', st:0,
     fireT: rnd(1.5, 3), orbit: Math.random() < .5 ? -1 : 1, dir:new THREE.Vector3(), vel:new THREE.Vector3(), hitFlash:0};
+  if (type === 'rammer'){ e.state = 'approach'; e.cd = rnd(2.5, 4); e.line = makeWarnLine(); }
+  if (type === 'twin'){ e.state = 'walk'; e.phase = 1; e.open = 0; e.openT = 0; e.atkCD = 3; e.atkN = 0; e.line = makeWarnLine(); e.waves = []; }
   e.g.position.set(x, type === 'floater' ? 24 : 0, z);
   scene.add(e.g); enemies.push(e);
   // spawn flare
@@ -983,8 +1392,39 @@ function enemyCenter(e, out){
   if (e.type === 'floater') return out.copy(e.g.position);
   return out.set(e.g.position.x, e.g.position.y + e.cy, e.g.position.z);
 }
-function weakPoint(e, out){ e.g.updateMatrixWorld(); return out.copy(WEAK_LOCAL).applyMatrix4(e.g.matrixWorld); }
-function removeEnemy(e){ scene.remove(e.g); e.alive = false; }
+function weakPoint(e, out){
+  e.g.updateMatrixWorld();
+  if (e.type === 'lord') return out.copy(WEAK_LOCAL).applyMatrix4(e.g.matrixWorld);
+  if (e.type === 'rammer') return e.model.weak.getWorldPosition(out);
+  if (e.type === 'twin') return e.model.core.getWorldPosition(out);
+  return enemyCenter(e, out);
+}
+// Weak point currently exposed? {r: hit radius, mul: damage multiplier} or null.
+function weakInfo(e){
+  if (e.type === 'lord') return {r:4.2, mul:3};
+  if (e.type === 'rammer') return e.state === 'stunned' ? {r:3.6, mul:4} : null;
+  if (e.type === 'twin'){
+    if (e.state === 'transform') return null;
+    if (e.phase === 2) return {r:5, mul:2.5};
+    return e.open > 0.45 ? {r:5.5, mul:3} : null;
+  }
+  return null;
+}
+// damage multiplier for a hit on the body (not the weak point)
+function bodyMul(e){
+  if (e.type === 'lord') return 0.5;
+  if (e.type === 'rammer') return e.state === 'stunned' ? 2 : 0.6;
+  if (e.type === 'twin') return e.state === 'transform' ? 0 : e.phase === 2 ? 0.5 : 0.12;
+  return 1;
+}
+function aimPoint(e, out){ return weakInfo(e) ? weakPoint(e, out) : enemyCenter(e, out); }
+function removeEnemy(e){
+  scene.remove(e.g); e.alive = false;
+  // per-instance materials / warning lines / shockwave rings are owned by the enemy: free them now
+  if (e.model.mats) for (const m of e.model.mats) m.dispose();
+  if (e.line){ scene.remove(e.line); e.line.material.dispose(); e.line = null; }
+  if (e.waves){ for (const w of e.waves){ scene.remove(w.m); w.m.material.dispose(); } e.waves.length = 0; }
+}
 
 /* ================= game state ================= */
 const G = {
@@ -993,12 +1433,152 @@ const G = {
   lock:null, lockPrev:null,
 };
 const SPAWN_ORDER = ['beetle','beetle','floater','beetle','floater','beetle','beetle','floater','beetle','floater','beetle','floater'];
+const SPAWN_ORDER_2 = ['beetle','beetle','floater','rammer','beetle','floater','beetle','rammer','floater','beetle','rammer','beetle','floater','rammer','beetle','floater'];
+// Terms added in game.html (not in world-bible.md; original names, defined here):
+//   衝角殻 RAMSHELL = 突進型の灰殻 / 双殻王 TWINSHELL = 二枚の殻を持つ殻王（MISSION 02 のボス）/ 汀都 港湾区画 = MISSION 02 の舞台
+//   整備 HANGAR = 機体強化画面 / 資材 PARTS = 作戦報酬（強化に使う）/ 横跳び SIDESTEP = 跳躍＋左右の横移動
+//   今日の作戦目標 DAILY = 日替わり目標 / 連続出撃 STREAK = 連続ログイン日数
+// Missions. M01 numbers are the original tuning (do not change: MISSION 01 must stay clearable without upgrades).
+const MISSIONS = {
+  1: {id:1, tag:'MISSION 01', name:'汀都 第七区画 防衛', stage:'city', time:180, order:SPAWN_ORDER, boss:'lord', killPts:800, bossPts:6000,
+      ranks:[20000, 15000, 10000], partsMul:1, firstBonus:250, hiKey:'grandstride_hiscore', rankKey:'grandstride_hirank', maxAlive:[4,5],
+      brief:'3分以内に灰殻12体と殻王を撃破。<br>一定のリズムで歩くと共鳴率が上がる。<br>共鳴率100%で鼓動モード OVERBEAT。'},
+  2: {id:2, tag:'MISSION 02', name:'汀都 港湾区画 夜間掃討', stage:'port', time:240, order:SPAWN_ORDER_2, boss:'twin', killPts:850, bossPts:10000,
+      ranks:[30000, 23000, 15000], partsMul:1.3, firstBonus:400, hiKey:'grandstride_m2_hiscore', rankKey:'grandstride_m2_hirank', maxAlive:[4,6],
+      brief:'4分以内に灰殻16体と双殻王を撃破。<br>突進型は溜めの赤い光が合図──横跳びで躱す。<br>激突して止まった背面が弱点。'},
+};
+let M = MISSIONS[1];
+const RANK_NAMES = ['S','A','B','C'];
+
+/* ---- persistent progress (localStorage, versioned JSON) ---- */
+const SAVE_KEY = 'grandstride_save';
+const SAVE_V = 1;
+// Upgrade tables: 5 levels per system; cost of the level you buy next.
+const UP_COST = [120, 200, 320, 480, 700];
+const UP_MAX = 5;
+const UPG = {
+  legs:  {name:'脚', en:'LEGS',  stats:(l) => [['脚圧最大 GRIP MAX', 100 + 8*l, ''], ['脚圧回復 GRIP REGEN', 100 + 12*l, '%'], ['旋回 TURN', 100 + 5*l, '%']]},
+  core:  {name:'炉', en:'CORE',  stats:(l) => [['炉温上昇 HEAT GAIN', 100 - 7*l, '%'], ['冷却 COOLING', 100 + 10*l, '%'], ['疾走 DASH', Math.round((25 + 1.2*l) * 3.6), 'km/h']]},
+  armor: {name:'装甲', en:'ARMOR', stats:(l) => [['装甲最大 ARMOR MAX', 100 + 12*l, ''], ['被ダメ軽減 DMG CUT', 3*l, '%']]},
+};
+const UP_KEYS = ['legs', 'core', 'armor'];
+function defaultSave(){ return {v:SAVE_V, parts:0, up:{legs:0, core:0, armor:0}, cleared:{}, launched:false, daily:null, streak:{last:'', n:0}}; }
+function loadSave(){
+  let d = null;
+  try { d = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); } catch(e){ d = null; }
+  const s = defaultSave();
+  if (!d || typeof d !== 'object' || d.v !== SAVE_V) return s;
+  s.parts = Math.max(0, Math.floor(+d.parts || 0));
+  for (const k of UP_KEYS) s.up[k] = clamp(Math.floor(+(d.up && d.up[k]) || 0), 0, UP_MAX);
+  if (d.cleared && typeof d.cleared === 'object') s.cleared = {1:!!d.cleared[1], 2:!!d.cleared[2]};
+  s.launched = !!d.launched;
+  if (d.daily && typeof d.daily === 'object' && typeof d.daily.date === 'string') s.daily = d.daily;
+  if (d.streak && typeof d.streak === 'object') s.streak = {last:String(d.streak.last || ''), n:Math.max(0, Math.floor(+d.streak.n || 0))};
+  return s;
+}
+let SAVE = loadSave();
+function writeSave(){ try { localStorage.setItem(SAVE_KEY, JSON.stringify(SAVE)); } catch(e){} }
+let sessionDebug = false; // set by debug upgrade / parts hooks: every later run in this page is marked debug (no records saved)
+function m2Unlocked(){ return !!SAVE.cleared[1]; }
+function upEffects(up){
+  return {gripMax:100 + 8*up.legs, gripRegen:1 + 0.12*up.legs, turnMul:1 + 0.05*up.legs,
+    heatMul:1 - 0.07*up.core, coolMul:1 + 0.1*up.core, dashSpd:25 + 1.2*up.core,
+    armorMax:100 + 12*up.armor, dmgRed:0.03*up.armor};
+}
+function nextUpCost(k){ const l = SAVE.up[k]; return l >= UP_MAX ? null : UP_COST[l]; }
+function cheapestUp(){ let c = null; for (const k of UP_KEYS){ const v = nextUpCost(k); if (v != null && (c == null || v < c)) c = v; } return c; }
+// Mission reward (PARTS): score/100 (score/200 on defeat) + rank bonus + first-clear bonus, scaled by mission.
+const RANK_BONUS = {S:120, A:80, B:40, C:20};
+function calcReward(m, win, score, rank, first){
+  const base = Math.floor(score / (win ? 100 : 200));
+  const rb = win ? RANK_BONUS[rank] || 0 : 0;
+  let total = Math.round((base + rb) * m.partsMul);
+  const fb = (win && first) ? m.firstBonus : 0;
+  total += fb;
+  if (!win) total = Math.max(15, total);
+  return {total, base:Math.round(base * m.partsMul), rank:Math.round(rb * m.partsMul), first:fb};
+}
+
+/* ---- daily operations (今日の作戦目標) + streak ----
+   3 goals per local date, chosen deterministically from the date. Counting goals accumulate over the day; "clear with…"
+   goals must be met in one run. At most one goal that needs MISSION 02. Debug runs never count. */
+const DAILY_POOL = [
+  {id:'kills',   n:[20,30], r:80,  txt:(n) => '灰殻を合計' + n + '体撃破', val:(s) => s.killsTotal},
+  {id:'beetle',  n:[10,16], r:70,  txt:(n) => '甲虫型を' + n + '体撃破', val:(s) => s.kills.beetle},
+  {id:'floater', n:[6,10],  r:70,  txt:(n) => '浮遊型を' + n + '体撃破', val:(s) => s.kills.floater},
+  {id:'overbeat',n:[2,3],   r:90,  txt:(n) => '鼓動モードを' + n + '回発動', val:(s) => s.overbeats},
+  {id:'weak',    n:[15,30], r:80,  txt:(n) => '弱点に' + n + '回命中', val:(s) => s.weakHits},
+  {id:'boss',    n:[1,1],   r:100, txt:() => '殻王を撃破', val:(s) => s.bossKills},
+  {id:'wins',    n:[2,2],   r:100, txt:(n) => '作戦を' + n + '回成功', val:(s) => s.win ? 1 : 0},
+  {id:'lowdmg',  n:[30,30], r:110, once:true, txt:(n) => '被ダメージ' + n + '以下でクリア', val:(s, n) => s.win && s.dmg <= n ? 1 : 0},
+  {id:'rankA',   n:[1,1],   r:110, once:true, txt:() => 'ランクA以上でクリア', val:(s) => s.win && (s.rank === 'S' || s.rank === 'A') ? 1 : 0},
+  {id:'acc',     n:[55,65], r:90,  once:true, txt:(n) => '命中率' + n + '%以上でクリア', val:(s, n) => s.win && s.acc * 100 >= n ? 1 : 0},
+  {id:'time',    n:[45,60], r:90,  once:true, txt:(n) => '残り' + n + '秒以上でクリア', val:(s, n) => s.win && s.timeLeft >= n ? 1 : 0},
+  {id:'rammer',  n:[4,6],   r:100, m2:true, txt:(n) => '突進型を' + n + '体撃破', val:(s) => s.kills.rammer},
+  {id:'crash',   n:[3,5],   r:100, m2:true, txt:(n) => '突進型を' + n + '回 激突させる', val:(s) => s.rammerCrashes},
+  {id:'wave',    n:[2,3],   r:120, m2:true, txt:(n) => '跳躍で衝撃波を' + n + '回回避', val:(s) => s.waveDodges},
+];
+const DAILY_ALL_BONUS = 100;
+let debugDate = null;
+function dateStr(d){ return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function today(){ return debugDate || dateStr(new Date()); }
+function shiftDate(ds, days){ const [y, m, d] = ds.split('-').map(Number); return dateStr(new Date(y, m - 1, d + days)); }
+function hashStr(str){ let h = 2166136261; for (let i = 0; i < str.length; i++){ h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+function genDaily(ds){
+  const r = mulberry32(hashStr('grandstride/' + ds));
+  const pool = DAILY_POOL.slice(); const goals = []; let m2 = 0;
+  while (goals.length < 3 && pool.length){
+    const i = Math.floor(r() * pool.length); const d = pool.splice(i, 1)[0];
+    if (d.m2 && m2 >= 1) continue;
+    if (d.m2) m2++;
+    const span = d.n[1] - d.n[0];
+    const n = span >= 5 ? d.n[0] + 5 * Math.floor(r() * (Math.floor(span / 5) + 1)) : d.n[0] + Math.floor(r() * (span + 1));
+    goals.push({id:d.id, n, target:d.once ? 1 : n, reward:d.r, m2:!!d.m2});
+  }
+  return goals;
+}
+function dailyDef(id){ return DAILY_POOL.find(d => d.id === id); }
+function goalText(g){ return dailyDef(g.id).txt(g.n); }
+// Makes sure SAVE.daily is today's set; also advances the login streak (small PARTS bonus once per day).
+let streakNote = '';
+function ensureDaily(){
+  const ds = today();
+  if (!SAVE.daily || SAVE.daily.date !== ds){
+    SAVE.daily = {date:ds, goals:genDaily(ds).map(g => Object.assign(g, {prog:0, done:false})), allDone:false};
+  }
+  if (SAVE.streak.last !== ds){
+    const cont = SAVE.streak.last && shiftDate(SAVE.streak.last, 1) === ds;
+    SAVE.streak = {last:ds, n:cont ? SAVE.streak.n + 1 : 1};
+    const bonus = 10 * Math.min(SAVE.streak.n, 7);
+    SAVE.parts += bonus;
+    streakNote = '連続出撃 STREAK ' + SAVE.streak.n + '日目 ボーナス 資材 +' + bonus;
+  }
+  writeSave();
+}
+// Apply one finished (non-debug) run to today's goals. Returns [{text, reward}] newly completed (+ all-clear bonus).
+function applyDaily(st){
+  ensureDaily();
+  const out = [];
+  for (const g of SAVE.daily.goals){
+    if (g.done) continue;
+    const v = dailyDef(g.id).val(st, g.n) || 0;
+    g.prog = dailyDef(g.id).once ? Math.max(g.prog, v) : g.prog + v;
+    if (g.prog >= g.target){ g.prog = g.target; g.done = true; SAVE.parts += g.reward; out.push({text:goalText(g), reward:g.reward}); }
+  }
+  if (!SAVE.daily.allDone && SAVE.daily.goals.every(g => g.done)){ SAVE.daily.allDone = true; SAVE.parts += DAILY_ALL_BONUS; out.push({text:'本日の目標 すべて達成', reward:DAILY_ALL_BONUS}); }
+  return out;
+}
+function newRunStats(){ return {kills:{beetle:0, floater:0, rammer:0}, killsTotal:0, overbeats:0, weakHits:0, bossKills:0, rammerCrashes:0, waveDodges:0, win:false, dmg:0, rank:'C', acc:0, timeLeft:0}; }
+G.st = newRunStats();
+
 const P = {};
 function resetPlayer(){
+  const U = upEffects(SAVE.up);
   Object.assign(P, {
     pos:new THREE.Vector3().copy(START).setZ(START.z + 4), heading:0, pitch:-0.08, v:0, turnRate:0, effTurn:0, y:0, vy:0, grounded:true,
-    armor:100, heat:0, overheated:false, grip:[100,100,100,100], gripLock:[false,false,false,false],
-    res:0, maxRes:0, resStep:0, overbeat:false, obT:0, fireCD:0, barrel:0, dashing:false, boostT:0, steadyT:0,
+    armor:U.armorMax, armorMax:U.armorMax, heat:0, overheated:false, grip:[U.gripMax,U.gripMax,U.gripMax,U.gripMax], gripLock:[false,false,false,false],
+    gripMax:U.gripMax, gripRegen:U.gripRegen, turnMul:U.turnMul, heatMul:U.heatMul, coolMul:U.coolMul, dashSpd:U.dashSpd, dmgRed:U.dmgRed,
+    res:0, maxRes:0, resStep:0, overbeat:false, obT:0, fireCD:0, barrel:0, dashing:false, boostT:0, steadyT:0, sideV:0,
     gait:0, lp:[0,0.5,0.5,0], bobY:0, bobV:0, trauma:0, flash:0, dmgTaken:0, shots:0, hits:0, recoil:0,
     mouseYaw:0, frameX:0, frameY:0, tiltX:0, tiltZ:0,
   });
@@ -1075,12 +1655,46 @@ function clearCracks(){ hudEl.cracks.innerHTML = ''; crackCount = 0; }
 
 /* ================= state transitions ================= */
 function showOnly(ids){
-  for (const id of ['title','launch','pause','result']) $(id).classList.toggle('hidden', ids.indexOf(id) < 0);
+  for (const id of ['title','launch','pause','result','hangar']) $(id).classList.toggle('hidden', ids.indexOf(id) < 0);
 }
-function hiscore(){ return parseInt(store.get('grandstride_hiscore', '0'), 10) || 0; }
+function hiscoreOf(m){ return parseInt(store.get(m.hiKey, '0'), 10) || 0; }
+function hiscore(){ return hiscoreOf(MISSIONS[1]); }
+let selMission = parseInt(store.get('grandstride_mission', '1'), 10) === 2 ? 2 : 1;
+function selectMission(id, quiet){
+  if (id === 2 && !m2Unlocked()){
+    if (!quiet){ setText($('titleNote'), 'MISSION 02 は MISSION 01 をクリアすると解放されます。'); snd('uiClick'); }
+    return false;
+  }
+  selMission = id; store.set('grandstride_mission', id);
+  if (G.state === 'title') setStage(MISSIONS[id].stage);
+  refreshTitle();
+  return true;
+}
 function refreshTitle(){
+  if (selMission === 2 && !m2Unlocked()) selMission = 1;
   setText($('hiVal'), String(hiscore()).padStart(6, '0'));
   setText($('hiRank'), store.get('grandstride_hirank', '') ? 'RANK ' + store.get('grandstride_hirank', '') : '');
+  setText($('hiVal2'), String(hiscoreOf(MISSIONS[2])).padStart(6, '0'));
+  setText($('hiRank2'), store.get('grandstride_m2_hirank', '') ? 'RANK ' + store.get('grandstride_m2_hirank', '') : '');
+  document.querySelectorAll('.mcard').forEach(b => {
+    const id = +b.dataset.m; const on = id === selMission;
+    b.classList.toggle('sel', on); b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    b.classList.toggle('locked', id === 2 && !m2Unlocked());
+  });
+  $('briefText').innerHTML = MISSIONS[selMission].brief;
+  setText($('tParts'), '◆' + SAVE.parts);
+  renderDaily();
+}
+function renderDaily(){
+  ensureDaily();
+  const d = SAVE.daily, el = $('daily');
+  let h = '<div class="dh">今日の作戦目標 DAILY<span>STREAK ' + SAVE.streak.n + '日</span></div>';
+  for (const g of d.goals){
+    h += '<div class="dg' + (g.done ? ' done' : '') + (g.m2 ? ' m2' : '') + '"><span>' + (g.done ? '✓ ' : '') + goalText(g) + '</span><b>' +
+      (g.done ? '達成 +' + g.reward : g.prog + '/' + g.target + ' ◆' + g.reward) + '</b></div>';
+  }
+  if (d.allDone) h += '<div class="dg done"><span>全目標達成ボーナス</span><b>+' + DAILY_ALL_BONUS + '</b></div>';
+  el.innerHTML = h;
 }
 function goTitle(){
   clearMission();
@@ -1090,17 +1704,22 @@ function goTitle(){
   hull.visible = true; rig.position.set(0,0,0); rig.rotation.set(0, Math.PI*0.15, 0);
   for (let i = 0; i < 4; i++){ legs[i].local.copy(FOOT_REST[i]); poseLeg(i); }
   setBayOpen(0); bayLight.intensity = 0;
+  if (selMission === 2 && !m2Unlocked()) selMission = 1;
+  setStage(MISSIONS[selMission].stage);
   exitLock(); refreshTitle();
+  if (streakNote){ setText($('titleNote'), streakNote); streakNote = ''; }
 }
 let audioInited = false;
 function initAudio(){ if (!audioInited){ audioInited = true; snd('init'); snd('setMaster', (parseInt(store.get('grandstride_vol','80'),10) || 0) / 100); } }
 
 function clearMission(){
-  for (const e of enemies) scene.remove(e.g);
+  for (const e of enemies) removeEnemy(e);
   enemies.length = 0;
   for (const b of bullets){ b.alive = false; b.m.visible = false; b.target = null; }
-  for (const s of eShots){ s.alive = false; s.m.visible = false; }
+  for (const s of eShots){ s.alive = false; s.m.visible = false; s.homing = 0; }
   for (const f of flashPool){ f.m.visible = false; }
+  for (const d of debris) scene.remove(d.m);
+  debris.length = 0;
   particleSystems.forEach(clearParticles);
   clearDecals(); clearCracks(); clearRadio();
   boomLight.intensity = 0; muzzleLight.intensity = 0;
@@ -1109,42 +1728,52 @@ function clearMission(){
   setAlarm(false);
   hudEl.tint.classList.remove('on'); hudEl.ob.classList.remove('on'); hudEl.resPanel.classList.remove('ob');
   hudEl.flash.style.opacity = 0; hudEl.lock.classList.remove('on');
+  hudEl.hud.classList.remove('boss');
 }
-function resetMission(){
+function resetMission(id){
+  if (id) M = MISSIONS[id] || MISSIONS[1];
   clearMission();
+  setStage(M.stage);
   resetPlayer();
-  Object.assign(G, {t:0, timeLeft:180, kills:0, spawned:0, lordSpawned:false, lordDead:false, lordTimer:-1, spawnT:2.5, ending:0, win:false, debugUsed:false});
+  Object.assign(G, {t:0, timeLeft:M.time, kills:0, spawned:0, lordSpawned:false, lordDead:false, lordTimer:-1, spawnT:2.5, ending:0, win:false, debugUsed:sessionDebug, st:newRunStats()});
   hull.visible = false;
   rig.position.copy(P.pos); rig.rotation.set(0,0,0);
   for (let i = 0; i < 4; i++){ legs[i].local.copy(FOOT_REST[i]); poseLeg(i); }
   input.fire = false; input.boost = false; input.fireTap = false;
+  setText($('mnTag'), M.tag); setText($('mnName'), M.name);
+  setText($('bossName').firstChild, M.boss === 'twin' ? '双殻王 TWINSHELL' : '殻王 SHELL LORD');
 }
-const launchSeq = {t:0, bootIdx:0, said:false, called:false, clunk:false};
+const launchSeq = {t:0, bootIdx:0, said:false, called:false, clunk:false, short:false};
 const BOOT_LINES = [
   ['鞍座 接続 SADDLE LINK', 'OK'], ['動力炉 CORE', 'ONLINE'], ['脚部 GRIP FL/FR/RL/RR', 'OK'],
   ['火器管制 FCS', 'OK'], ['索敵 RADAR', 'OK'], ['神経共鳴 NEURAL LINK', 'LINKED'],
 ];
 const BOOT_LIT = [['compass', 0.7], ['radarWrap', 1.0], ['gripPanel', 1.35], ['sysPanel', 1.7], ['topStats', 2.0], ['resPanel', 2.3], ['reticle', 2.7]];
-function startLaunch(){
+// The full launch sequence is the original 6.1s timeline played at 1/0.9 speed (done in 5.5s). After the first
+// launch it is replaced by a ~1s version (instruments light up, "HEKATON, LAUNCH", gate opens).
+const LAUNCH_K = 0.9, SHORT_LAUNCH = 1.0;
+function startLaunch(id){
   initAudio();
-  resetMission();
+  resetMission(id || selMission);
   G.state = 'launch';
   showOnly(['launch']);
   hudEl.hud.classList.remove('hidden'); hudEl.hud.classList.add('boot');
-  for (const [id] of BOOT_LIT) $(id).classList.remove('lit');
+  for (const [id2] of BOOT_LIT) $(id2).classList.remove('lit');
   hudEl.frame.classList.remove('hidden');
   $('touch').classList.add('hidden');
+  const short = !!SAVE.launched;
   const log = $('bootLog'); log.innerHTML = '';
-  BOOT_LINES.forEach(l => { const d = document.createElement('div'); d.innerHTML = l[0] + ' …… <span class="ok">' + l[1] + '</span>'; log.appendChild(d); });
+  if (!short) BOOT_LINES.forEach(l => { const d = document.createElement('div'); d.innerHTML = l[0] + ' …… <span class="ok">' + l[1] + '</span>'; log.appendChild(d); });
   $('launchFade').style.opacity = 1; $('launchFlood').style.opacity = 0;
   $('launchRes').classList.remove('on'); $('launchCall').classList.remove('on');
-  Object.assign(launchSeq, {t:0, t0:performance.now(), bootIdx:0, said:false, called:false, clunk:false});
+  Object.assign(launchSeq, {t:0, t0:performance.now(), bootIdx:0, said:false, called:false, clunk:false, short});
   setBayOpen(0); bayLight.intensity = 1.6; bayLight.color.setHex(0xff3020); bayLight.position.set(0, 30, 90);
   rig.position.set(P.pos.x, -2.5, P.pos.z);
-  snd('launchSequence');
+  snd(short ? 'launchShort' : 'launchSequence');
 }
 function beginPlay(){
   if (G.state !== 'launch' && G.state !== 'title' && G.state !== 'result' && G.state !== 'paused') return;
+  if (G.state === 'launch' && !SAVE.launched){ SAVE.launched = true; writeSave(); }
   G.state = 'play';
   showOnly([]);
   hudEl.hud.classList.remove('hidden', 'boot');
@@ -1156,8 +1785,13 @@ function beginPlay(){
   if (P.res < 40) P.res = 40;
   P.resStep = Math.floor(P.res / 25);
   clearRadio();
-  say('管制イツカより鞍士へ。汀都 第七区画に灰殻の群れ。制限時間3分、全機撃破してください。', {});
-  say('一定のリズムで歩けば共鳴率は上がります。焦らずに。', {});
+  if (M.id === 2){
+    say('管制イツカより鞍士へ。汀都 港湾区画、夜間掃討を開始。制限時間4分、灰殻16体と大型反応1。', {});
+    say('霧が濃い。コンテナの陰に注意して。突進型は、溜めの赤い光が合図です。', {});
+  } else {
+    say('管制イツカより鞍士へ。汀都 第七区画に灰殻の群れ。制限時間3分、全機撃破してください。', {});
+    say('一定のリズムで歩けば共鳴率は上がります。焦らずに。', {});
+  }
   G.spawnT = 1.5;
 }
 function pauseGame(){
@@ -1179,35 +1813,68 @@ function endMission(win){
   input.fire = false;
   setAlarm(false);
   if (P.overbeat){ P.overbeat = false; snd('overbeat', false); }
-  if (win){ snd('victory'); say('殻王の沈黙を確認。第七区画、防衛成功です。おかえりなさい、ヘカトン。', {urgent:true}); }
-  else { snd('defeat'); say(P.armor <= 0 ? 'ヘカトン、応答を！ 装甲限界…鞍士、脱出を！' : '時間切れです。第七区画、防衛線を放棄…撤退してください。', {urgent:true}); }
+  if (win){
+    snd('victory');
+    say(M.id === 2 ? '双殻王の沈黙を確認。港湾区画、掃討完了。…よく帰ってきました、ヘカトン。' : '殻王の沈黙を確認。第七区画、防衛成功です。おかえりなさい、ヘカトン。', {urgent:true});
+  } else {
+    snd('defeat');
+    say(P.armor <= 0 ? 'ヘカトン、応答を！ 装甲限界…鞍士、脱出を！' : (M.id === 2 ? '時間切れです。港湾区画から撤退してください。' : '時間切れです。第七区画、防衛線を放棄…撤退してください。'), {urgent:true});
+  }
 }
 function showResult(){
   G.state = 'result';
   exitLock();
   snd('engine', 0, 0, false); snd('servo', 0); setAlarm(false);
   $('touch').classList.add('hidden');
-  const win = G.win;
-  const used = Math.max(0, 180 - G.timeLeft);
+  const win = G.win, total = M.order.length;
+  const used = Math.max(0, M.time - G.timeLeft);
   const acc = P.shots ? P.hits / P.shots : 0;
-  let score = G.kills * 800 + (G.lordDead ? 6000 : 0) + (win ? Math.round(G.timeLeft * 30) : 0) + Math.round(acc * 3000) + Math.round(P.maxRes * 15) - Math.round(P.dmgTaken * 8);
+  let score = G.kills * M.killPts + (G.lordDead ? M.bossPts : 0) + (win ? Math.round(G.timeLeft * 30) : 0) + Math.round(acc * 3000) + Math.round(P.maxRes * 15) - Math.round(P.dmgTaken * 8);
   score = Math.max(0, score);
-  let rank = score >= 20000 ? 'S' : score >= 15000 ? 'A' : score >= 10000 ? 'B' : 'C';
+  const R = M.ranks;
+  let rank = score >= R[0] ? 'S' : score >= R[1] ? 'A' : score >= R[2] ? 'B' : 'C';
   if (!win && (rank === 'S' || rank === 'A')) rank = 'B';
   const rt = $('resTitle'); rt.textContent = win ? 'MISSION COMPLETE' : 'MISSION FAILED'; rt.className = win ? 'win' : 'lose';
-  $('resSub').textContent = win ? 'MISSION 01 — 汀都 第七区画 防衛 ／ 成功' : 'MISSION 01 — 汀都 第七区画 防衛 ／ 失敗';
-  $('rKills').textContent = (G.kills + (G.lordDead ? 1 : 0)) + ' / 13';
+  $('resSub').textContent = M.tag + ' — ' + M.name + (win ? ' ／ 成功' : ' ／ 失敗');
+  $('rKills').textContent = (G.kills + (G.lordDead ? 1 : 0)) + ' / ' + (total + 1);
   $('rAcc').textContent = Math.round(acc * 100) + '%';
   $('rRes').textContent = Math.round(P.maxRes) + '%';
   $('rDmg').textContent = String(Math.round(P.dmgTaken));
   $('rTime').textContent = fmtTime(used);
   $('rScore').textContent = String(score).padStart(6, '0');
   const rk = $('rank'); rk.textContent = rank; rk.className = rank;
-  const prev = hiscore();
-  if (score > prev && !G.debugUsed){ store.set('grandstride_hiscore', score); store.set('grandstride_hirank', rank); $('newHi').textContent = '最高スコア更新 NEW RECORD'; }
+  const prev = hiscoreOf(M);
+  const debug = !!G.debugUsed;
+  if (score > prev && !debug){ store.set(M.hiKey, score); store.set(M.rankKey, rank); $('newHi').textContent = '最高スコア更新 NEW RECORD'; }
   else $('newHi').textContent = '';
-  G.lastResult = {win, score, rank, debug:!!G.debugUsed, kills:G.kills + (G.lordDead ? 1 : 0), accuracy:acc, maxResonance:P.maxRes, damageTaken:P.dmgTaken, time:used};
+  // rewards / progress (never from debug runs)
+  const first = win && !SAVE.cleared[M.id];
+  const rew = calcReward(M, win, score, rank, first);
+  let daily = [], unlocked = false;
+  const st = Object.assign(G.st, {win, dmg:P.dmgTaken, rank, acc, timeLeft:G.timeLeft});
+  if (!debug){
+    ensureDaily();
+    SAVE.parts += rew.total;
+    if (win){ if (M.id === 1 && !SAVE.cleared[1]) unlocked = true; SAVE.cleared[M.id] = true; }
+    daily = applyDaily(st);
+    writeSave();
+  }
+  let h = '<div class="pp"><small>獲得資材 PARTS</small>+' + rew.total + (debug ? ' <small>(DEBUG — 未保存)</small>' : '') + '</div>';
+  h += '<div class="why">スコア ' + rew.base + (rew.rank ? ' ＋ ランク ' + rew.rank : '') + (rew.first ? ' ＋ 初回クリア ' + rew.first : '') + '　／　所持 ◆' + SAVE.parts + '</div>';
+  if (unlocked) h += '<div class="unl">MISSION 02「汀都 港湾区画 夜間掃討」解放 UNLOCKED</div>';
+  for (const d of daily) h += '<div class="dly">今日の作戦目標 達成：' + d.text + '　資材 +' + d.reward + '</div>';
+  const nc = cheapestUp();
+  const nxt = [];
+  if (nc != null) nxt.push(SAVE.parts >= nc ? '強化できます！ 整備へ' : '次の強化まで あと資材 ' + (nc - SAVE.parts));
+  const ri = RANK_NAMES.indexOf(rank);
+  if (ri > 0){ const need = R[ri - 1] - score; nxt.push(win || ri > 2 ? '次のランク ' + RANK_NAMES[ri - 1] + ' まで あと ' + need + '点' : '成功でランク ' + RANK_NAMES[ri - 1] + ' 以上を狙える'); }
+  else nxt.push('最高ランク S');
+  h += '<div class="nxt">' + nxt.join('　／　') + '</div>';
+  $('rewards').innerHTML = h;
+  G.lastResult = {win, score, rank, debug, mission:M.id, parts:rew.total, partsDetail:rew, daily, unlocked,
+    kills:G.kills + (G.lordDead ? 1 : 0), accuracy:acc, maxResonance:P.maxRes, damageTaken:P.dmgTaken, time:used};
   showOnly(['result']);
+  try { $('btnRetry').focus({preventScroll:true}); } catch(e){}
 }
 function fmtTime(s){ s = Math.max(0, Math.ceil(s)); return Math.floor(s/60) + ':' + String(s % 60).padStart(2, '0'); }
 
@@ -1232,6 +1899,19 @@ document.addEventListener('pointerlockerror', () => {});
 const KEYMAP = {KeyW:'f',ArrowUp:'f',KeyS:'b',ArrowDown:'b',KeyA:'l',ArrowLeft:'l',KeyD:'r',ArrowRight:'r'};
 window.addEventListener('keydown', (e) => {
   if (G.state === 'launch'){ skipLaunch(); e.preventDefault(); return; }
+  if (hangarFrom){
+    if (e.code === 'Escape' || e.code === 'Backspace'){ snd('uiClick'); closeHangar(); e.preventDefault(); }
+    else if (/^Digit[123]$/.test(e.code) && !e.repeat){ buyUpgrade(UP_KEYS[+e.code.slice(5) - 1]); e.preventDefault(); }
+    return;
+  }
+  if (G.state === 'title'){
+    const onBtn = document.activeElement && document.activeElement.tagName === 'BUTTON';
+    if (e.code === 'ArrowLeft' || e.code === 'Digit1'){ if (selectMission(1)) snd('uiClick'); e.preventDefault(); }
+    else if (e.code === 'ArrowRight' || e.code === 'Digit2'){ initAudio(); if (selectMission(2)) snd('uiClick'); e.preventDefault(); }
+    else if (e.code === 'KeyH'){ initAudio(); snd('uiClick'); openHangar('title'); e.preventDefault(); }
+    else if ((e.code === 'Enter' || e.code === 'Space') && !onBtn && !e.repeat){ initAudio(); snd('uiClick'); startLaunch(selMission); e.preventDefault(); }
+    return;
+  }
   if (e.code === 'Escape' || e.code === 'KeyP'){
     if (G.state === 'play') pauseGame(); else if (G.state === 'paused') resumeGame();
     e.preventDefault(); return;
@@ -1315,11 +1995,76 @@ holdBtn($('tDash'), () => { input.dashBtn = true; }, () => { input.dashBtn = fal
 $('tPause').addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); snd('uiClick'); pauseGame(); });
 
 // buttons
-$('btnLaunch').addEventListener('click', () => { initAudio(); snd('uiClick'); startLaunch(); });
+$('btnLaunch').addEventListener('click', () => { initAudio(); snd('uiClick'); startLaunch(selMission); });
+document.querySelectorAll('.mcard').forEach(b => b.addEventListener('click', (e) => { e.stopPropagation(); initAudio(); if (selectMission(+b.dataset.m)) snd('uiClick'); }));
+$('btnHangar').addEventListener('click', () => { initAudio(); snd('uiClick'); openHangar('title'); });
+$('btnResHangar').addEventListener('click', () => { snd('uiClick'); openHangar('result'); });
+$('hClose').addEventListener('click', () => { snd('uiClick'); closeHangar(); });
+$('hReset').addEventListener('click', () => { snd('uiClick'); $('hConfirm').classList.remove('hidden'); $('hReset').classList.add('hidden'); try { $('hNo').focus(); } catch(e){} });
+$('hNo').addEventListener('click', () => { snd('uiClick'); $('hConfirm').classList.add('hidden'); $('hReset').classList.remove('hidden'); });
+$('hYes').addEventListener('click', () => {
+  const keep = SAVE;
+  SAVE = defaultSave(); SAVE.daily = keep.daily; SAVE.streak = keep.streak; SAVE.launched = keep.launched;
+  writeSave(); snd('explosion', 0.3);
+  $('hConfirm').classList.add('hidden'); $('hReset').classList.remove('hidden');
+  if (selMission === 2) selectMission(1, true);
+  renderHangar(); setText($('hMsg'), '整備データを初期化しました。');
+});
+/* ---- hangar (整備) ---- */
+let hangarFrom = null;
+function openHangar(from){
+  if (from === 'title' && G.state !== 'title') return false;
+  if (from === 'result' && G.state !== 'result') return false;
+  hangarFrom = from; setText($('hMsg'), '');
+  $('hConfirm').classList.add('hidden'); $('hReset').classList.remove('hidden');
+  renderHangar(); showOnly(['hangar']);
+  try { const b = $('hSys').querySelector('.hbuy'); if (b) b.focus({preventScroll:true}); } catch(e){}
+  return true;
+}
+function closeHangar(){
+  if (!hangarFrom) return;
+  const f = hangarFrom; hangarFrom = null;
+  if (f === 'result'){ showOnly(['result']); refreshResultNext(); }
+  else { showOnly(['title']); refreshTitle(); }
+}
+function refreshResultNext(){
+  // the "next upgrade" hint on the result card follows purchases made from the result screen
+  const el = $('rewards').querySelector('.nxt'); if (!el) return;
+  const nc = cheapestUp(); const parts = el.textContent.split('　／　');
+  parts[0] = nc == null ? '強化はすべて最大' : SAVE.parts >= nc ? '強化できます！ 整備へ' : '次の強化まで あと資材 ' + (nc - SAVE.parts);
+  el.textContent = parts.join('　／　');
+}
+function renderHangar(){
+  setText($('hPartsN'), String(SAVE.parts));
+  let h = '';
+  for (const k of UP_KEYS){
+    const u = UPG[k], l = SAVE.up[k], cur = u.stats(l), nx = l < UP_MAX ? u.stats(l + 1) : null, cost = nextUpCost(k);
+    h += '<div class="hcol"><h3>' + u.name + ' ' + u.en + '<small>Lv ' + l + '/' + UP_MAX + '</small></h3><div class="pips">';
+    for (let i = 0; i < UP_MAX; i++) h += i < l ? '<i class="on"></i>' : '<i></i>';
+    h += '</div>';
+    for (let i = 0; i < cur.length; i++) h += '<div class="hrow"><span>' + cur[i][0] + '</span><b>' + cur[i][1] + cur[i][2] + (nx ? ' → <em>' + nx[i][1] + nx[i][2] + '</em>' : '') + '</b></div>';
+    h += '<button type="button" class="btn hbuy" data-k="' + k + '"' + (cost == null ? ' disabled' : '') + (cost != null && SAVE.parts < cost ? ' style="opacity:.55"' : '') + '>' +
+      (cost == null ? '最大 MAX' : '強化 UPGRADE <span class="cost">◆' + cost + '</span>') + '</button></div>';
+  }
+  $('hSys').innerHTML = h;
+  $('hSys').querySelectorAll('.hbuy').forEach(b => b.addEventListener('click', () => buyUpgrade(b.dataset.k)));
+}
+function buyUpgrade(k){
+  if (!UPG[k]) return false;
+  const cost = nextUpCost(k);
+  if (cost == null){ setText($('hMsg'), UPG[k].name + ' ' + UPG[k].en + ' は最大です。'); return false; }
+  if (SAVE.parts < cost){ snd('uiClick'); setText($('hMsg'), '資材が足りません（あと ◆' + (cost - SAVE.parts) + '）。作戦で資材を回収してください。'); return false; }
+  SAVE.parts -= cost; SAVE.up[k]++; writeSave();
+  snd('upgrade', SAVE.up[k]); snd('haptic', 80);
+  renderHangar();
+  setText($('hMsg'), UPG[k].name + ' ' + UPG[k].en + ' を Lv ' + SAVE.up[k] + ' に強化しました。');
+  try { const b = $('hSys').querySelector('.hbuy[data-k="' + k + '"]'); if (b && !b.disabled) b.focus({preventScroll:true}); } catch(e){}
+  return true;
+}
 $('launch').addEventListener('pointerdown', (e) => { e.preventDefault(); skipLaunch(); });
 $('btnResume').addEventListener('click', () => { snd('uiClick'); resumeGame(); });
 $('btnPauseTitle').addEventListener('click', () => { snd('uiClick'); goTitle(); });
-$('btnRetry').addEventListener('click', () => { initAudio(); snd('uiClick'); startLaunch(); });
+$('btnRetry').addEventListener('click', () => { initAudio(); snd('uiClick'); startLaunch(M.id); });
 $('btnToTitle').addEventListener('click', () => { snd('uiClick'); goTitle(); });
 (function(){
   const v = $('vol'); v.value = store.get('grandstride_vol', '80');
@@ -1342,7 +2087,7 @@ function fireShot(){
   b.pos.copy(start); b.prev.copy(start);
   let dir;
   if (G.lock && G.lock.alive){
-    const tp = G.lock.type === 'lord' ? weakPoint(G.lock, V2) : enemyCenter(G.lock, V2);
+    const tp = aimPoint(G.lock, V2);
     dir = V3.subVectors(tp, start).normalize();
     b.target = G.lock;
   } else {
@@ -1353,7 +2098,7 @@ function fireShot(){
   b.life = 1.3; b.alive = true; b.dmg = ob ? 2 : 1;
   b.m.material = ob ? tracerMatOB : tracerMat; b.m.visible = true; b.m.position.copy(start); b.m.quaternion.setFromUnitVectors(ZAX, dir);
   P.shots++;
-  P.heat += ob ? 1.6 : 3.2;
+  P.heat += (ob ? 1.6 : 3.2) * P.heatMul;
   P.fireCD = ob ? 0.075 : (0.30 - 0.17 * (P.res / 100));
   P.recoil = 0.012; P.trauma = Math.min(1, P.trauma + 0.05);
   muzzleLight.position.copy(start); muzzleLight.intensity = 3.5;
@@ -1380,7 +2125,7 @@ function updBullets(dt){
     if (!b.alive) continue;
     b.life -= dt;
     if (b.target && b.target.alive){
-      const tp = b.target.type === 'lord' ? weakPoint(b.target, tmpC) : enemyCenter(b.target, tmpC);
+      const tp = aimPoint(b.target, tmpC);
       V1.subVectors(tp, b.pos).normalize().multiplyScalar(320);
       b.vel.lerp(V1, Math.min(1, dt * 5));
     }
@@ -1389,12 +2134,13 @@ function updBullets(dt){
     let hit = false;
     for (const e of enemies){
       if (!e.alive) continue;
-      if (e.type === 'lord'){
+      const wi = weakInfo(e);
+      if (wi){
         weakPoint(e, tmpW);
-        if (segSphere(b.prev, b.pos, tmpW, 4.2)){ damageEnemy(e, b.dmg * 3, tmpW, true); hit = true; break; }
+        if (segSphere(b.prev, b.pos, tmpW, wi.r)){ damageEnemy(e, b.dmg * wi.mul, tmpW, true, wi.mul); hit = true; break; }
       }
       enemyCenter(e, tmpC);
-      if (segSphere(b.prev, b.pos, tmpC, e.r)){ damageEnemy(e, e.type === 'lord' ? b.dmg * 0.5 : b.dmg, b.pos, false); hit = true; break; }
+      if (segSphere(b.prev, b.pos, tmpC, e.r)){ damageEnemy(e, b.dmg * bodyMul(e), b.pos, false); hit = true; break; }
     }
     if (hit){ P.hits++; kill(b); continue; }
     if (b.pos.y <= 0.2){ b.pos.y = 0.3; sparks(b.pos, 8); dustBurst(b.pos.x, b.pos.z, 3, 0.6); kill(b); continue; }
@@ -1403,20 +2149,24 @@ function updBullets(dt){
   }
   function kill(b){ b.alive = false; b.m.visible = false; b.target = null; }
 }
-function damageEnemy(e, dmg, p, weak){
+let armoredPopT = 0;
+function damageEnemy(e, dmg, p, weak, mul){
   e.hp -= dmg; e.hitFlash = 0.12;
-  sparks(p, weak ? 22 : 12, weak ? [1,.85,.3] : [1,.6,.25], weak ? 40 : 28);
+  const armored = !weak && dmg < 0.3;
+  sparks(p, weak ? 22 : 12, weak ? [1,.85,.3] : armored ? [.7,.8,1] : [1,.6,.25], weak ? 40 : 28);
   snd('hitEnemy');
   hitT = 0.15;
-  P.res = Math.min(100, P.res + (weak ? 1.6 : 1.1));
-  if (weak) popup('弱点命中 WEAK POINT ×3');
+  P.res = Math.min(100, P.res + (weak ? 1.6 : armored ? 0.3 : 1.1));
+  if (weak){ popup('弱点命中 WEAK POINT ×' + (mul || 3)); G.st.weakHits++; }
+  else if (armored && e.state !== 'transform' && G.t - armoredPopT > 2.5){ armoredPopT = G.t; popup('装甲 ARMORED — 殻が開くのを待て'); }
+  if (e.type === 'twin' && e.phase === 1 && e.state !== 'transform' && e.hp <= e.maxHp / 2){ e.hp = e.maxHp / 2; twinTransform(e); return; }
   if (e.hp <= 0) killEnemy(e);
 }
 function killEnemy(e){
   if (!e.alive) return;
   enemyCenter(e, tmpC);
-  const big = e.type === 'lord';
-  explode(tmpC, big ? 1 : 0.45);
+  const big = !!BOSS_TYPES[e.type];
+  explode(tmpC, big ? 1 : e.type === 'rammer' ? 0.6 : 0.45);
   if (big){ setTimeout(() => { if (G.state === 'play' || G.state === 'result') explode(V1.copy(tmpC).add(V2.set(rnd(-8,8), rnd(0,8), rnd(-8,8))), 0.8); }, 350); }
   snd('explosion', big ? 1 : 0.5); snd('haptic', big ? 220 : 50);
   const dist = tmpC.distanceTo(P.pos);
@@ -1425,21 +2175,31 @@ function killEnemy(e){
   if (G.lock === e) G.lock = null;
   P.res = Math.min(100, P.res + 6);
   if (big){
-    G.lordDead = true; popup('殻王 撃破 SHELL LORD DESTROYED +6000');
+    G.lordDead = true; G.st.bossKills++;
+    popup(e.type === 'twin' ? '双殻王 撃破 TWINSHELL DESTROYED +' + M.bossPts : '殻王 撃破 SHELL LORD DESTROYED +6000');
+    if (e.type === 'twin') setTimeout(() => { if (G.state === 'play' || G.state === 'result') explode(V1.copy(tmpC).add(V2.set(rnd(-10,10), rnd(2,12), rnd(-10,10))), 1); }, 750);
     endMission(true);
   } else {
-    G.kills++; popup('撃破 DESTROYED +' + ENEMY_DEF[e.type].score);
-    const left = 12 - G.kills;
-    if (left === 8) say('灰殻、残り8体。いいリズムです。', {});
-    else if (left === 4) say('残り4体！ このまま押し切って。', {});
-    else if (left === 1) say('残り1体。…待って、地下から大きな反応が。', {});
+    G.kills++; popup('撃破 DESTROYED +' + (M.id === 1 ? ENEMY_DEF[e.type].score : M.killPts));
+    G.st.kills[e.type] = (G.st.kills[e.type] || 0) + 1; G.st.killsTotal++;
+    const left = M.order.length - G.kills;
+    if (M.id === 1){
+      if (left === 8) say('灰殻、残り8体。いいリズムです。', {});
+      else if (left === 4) say('残り4体！ このまま押し切って。', {});
+      else if (left === 1) say('残り1体。…待って、地下から大きな反応が。', {});
+    } else {
+      if (e.type === 'rammer' && G.st.kills.rammer === 1) say('突進型、撃破を確認。読み合いはあなたの勝ちです。', {});
+      if (left === 10) say('残り10体。霧の向こう、まだいます。', {});
+      else if (left === 5) say('残り5体！ 岸壁沿いに反応、気をつけて。', {});
+      else if (left === 1) say('残り1体。…海底から、巨大な反応が上がってくる！', {});
+    }
   }
 }
 // Incoming damage multiplier. QA: at 1.0 an idle mech died in ~30s of a 3:00 mission.
 const DAMAGE_SCALE = 0.5;
-function hurt(amount, src){
+function hurt(amount, src, extraGrip){
   if (G.state !== 'play' || G.ending > 0) return;
-  amount *= DAMAGE_SCALE;
+  amount *= DAMAGE_SCALE * (1 - P.dmgRed);
   P.armor = Math.max(0, P.armor - amount);
   P.dmgTaken += amount;
   P.trauma = Math.min(1, P.trauma + 0.3 + amount / 30);
@@ -1452,6 +2212,7 @@ function hurt(amount, src){
   const lz = -Math.sin(P.heading) * rel.x - Math.cos(P.heading) * rel.z; // forward
   const leg = (lz >= 0 ? 0 : 2) + (lx >= 0 ? 1 : 0);
   P.grip[leg] = Math.max(0, P.grip[leg] - 6 - amount * 0.8);
+  if (extraGrip){ for (let i = 0; i < 4; i++) P.grip[i] = Math.max(0, P.grip[i] - extraGrip * (i === leg ? 1.6 : 1)); }
   // direction indicator
   const ang = Math.atan2(lx, lz);
   hudEl.dmgDir.style.transform = 'rotate(' + ang + 'rad)'; dmgDirT = 1;
@@ -1478,18 +2239,29 @@ function pushOut(pos, r){
     }
   }
 }
-function fireEnemyShot(from, to, speed, dmg){
+function fireEnemyShot(from, to, speed, dmg, homing){
   const s = eShots.find(x => !x.alive); if (!s) return;
-  s.pos.copy(from); s.vel.subVectors(to, from).normalize().multiplyScalar(speed); s.life = 4; s.alive = true; s.dmg = dmg;
+  s.pos.copy(from); s.vel.subVectors(to, from).normalize().multiplyScalar(speed); s.life = homing ? 6 : 4; s.alive = true; s.dmg = dmg;
+  s.homing = homing || 0; s.m.material = homing ? eShotMatH : eShotMat;
   s.m.visible = true; s.m.position.copy(from);
 }
 function updEnemyShots(dt){
   const pc = V2.set(P.pos.x, P.y + 12, P.pos.z);
   for (const s of eShots){
     if (!s.alive) continue;
-    s.life -= dt; s.pos.addScaledVector(s.vel, dt); s.m.position.copy(s.pos);
-    s.m.scale.setScalar(1 + Math.sin(G.t * 30) * 0.15);
-    if (Math.random() < 0.6) emit(FX, s.pos.x, s.pos.y, s.pos.z, 0,0,0, 1,.25,.4,.7, 1.8, .25, -.5, 0, 0);
+    s.life -= dt;
+    if (s.homing > 0){
+      // limited turn rate (1.7 rad/s) so a dash or side-step still shakes it off
+      s.homing -= dt;
+      const sp = s.vel.length();
+      V1.subVectors(pc, s.pos).normalize();
+      V3.copy(s.vel).normalize();
+      const ang = Math.acos(clamp(V3.dot(V1), -1, 1)), k = ang > 1e-4 ? Math.min(1, 1.7 * dt / ang) : 1;
+      V3.lerp(V1, k).normalize(); s.vel.copy(V3).multiplyScalar(sp);
+    }
+    s.pos.addScaledVector(s.vel, dt); s.m.position.copy(s.pos);
+    s.m.scale.setScalar((s.homing > 0 ? 1.4 : 1) + Math.sin(G.t * 30) * 0.15);
+    if (Math.random() < dt * 36) emit(FX, s.pos.x, s.pos.y, s.pos.z, 0,0,0, s.homing > 0 ? .75 : 1, .25, s.homing > 0 ? 1 : .4, .7, 1.8, .25, -.5, 0, 0);
     if (s.pos.distanceToSquared(pc) < 8*8){ hurt(s.dmg, s.pos); explode(s.pos, 0.15); s.alive = false; s.m.visible = false; continue; }
     if (s.pos.y < 0.3 || buildingAt(s.pos.x, s.pos.y, s.pos.z) || s.life <= 0){ sparks(s.pos, 8, [1,.3,.45]); s.alive = false; s.m.visible = false; }
   }
@@ -1555,15 +2327,36 @@ function updEnemies(dt){
       }
       // footfall thuds
       if (Math.floor(e.t * 2) !== Math.floor((e.t - dt) * 2) && d < 200){ P.trauma = Math.min(1, P.trauma + 0.06); dustBurst(p.x + rnd(-10,10), p.z + rnd(-10,10), 3, 1.4); }
+    } else if (e.type === 'rammer'){
+      updRammer(e, dt, d, nx, nz);
+    } else if (e.type === 'twin'){
+      updTwin(e, dt, d, nx, nz, dx, dz);
     }
     // keep in arena
-    const r = Math.hypot(p.x, p.z); if (r > ARENA_R + 30){ p.x *= (ARENA_R + 30) / r; p.z *= (ARENA_R + 30) / r; }
+    stage.clampEnemy(p);
     // hit flash
     if (e.hitFlash > 0){ e.hitFlash -= dt; e.model.body.scale.setScalar(1 + e.hitFlash * 0.4); } else e.model.body.scale.setScalar(1);
   }
   return nearest;
 }
+// true if a circle of radius r at (x,z) touches no collider of the active stage
+function clearAt(x, z, r){
+  const gx = cellOf(x), gz = cellOf(z);
+  for (let a = gx - 1; a <= gx + 1; a++) for (let b = gz - 1; b <= gz + 1; b++){
+    const list = colGrid.get(gkey(a, b)); if (!list) continue;
+    for (const c of list){ const cx = clamp(x, c.minX, c.maxX), cz = clamp(z, c.minZ, c.maxZ); if ((x - cx) * (x - cx) + (z - cz) * (z - cz) < r * r) return false; }
+  }
+  return true;
+}
 function spawnPos(dist){
+  if (stage !== STAGES.city){
+    for (let tries = 0; tries < 30; tries++){
+      const a = Math.random() * Math.PI * 2, d = dist * 0.8 + rnd(0, 50);
+      const x = clamp(P.pos.x + Math.sin(a) * d, PORT.minX + 12, PORT.maxX - 12), z = clamp(P.pos.z + Math.cos(a) * d, PORT.minZ + 12, PORT.maxZ - 12);
+      if (clearAt(x, z, 9) && Math.hypot(x - P.pos.x, z - P.pos.z) > 75) return [x, z];
+    }
+    return [P.pos.x > 0 ? -150 : 150, -120];
+  }
   for (let tries = 0; tries < 12; tries++){
     const a = Math.random() * Math.PI * 2, d = dist + rnd(0, 40);
     let x = P.pos.x + Math.sin(a) * d, z = P.pos.z + Math.cos(a) * d;
@@ -1580,31 +2373,303 @@ function bearingName(x, z){
   return ['北','北東','東','南東','南','南西','西','北西'][Math.round(deg / 45) % 8];
 }
 function updSpawns(dt){
-  const aliveReg = enemies.filter(e => e.alive && e.type !== 'lord').length;
+  const total = M.order.length;
+  const aliveReg = enemies.filter(e => e.alive && !BOSS_TYPES[e.type]).length;
   G.spawnT -= dt;
-  const maxAlive = G.kills < 4 ? 4 : 5;
-  if (G.spawned < 12 && aliveReg < maxAlive && G.spawnT <= 0){
-    const type = SPAWN_ORDER[G.spawned];
+  const maxAlive = G.kills < 4 ? M.maxAlive[0] : M.maxAlive[1];
+  if (G.spawned < total && aliveReg < maxAlive && G.spawnT <= 0){
+    const type = M.order[G.spawned];
     const [x, z] = spawnPos(type === 'floater' ? 130 : 150);
     spawnEnemy(type, x, z);
     G.spawned++;
     G.spawnT = G.spawned < 4 ? 0.8 : 2.6;
     if (G.spawned === 1) say('灰殻の反応、' + bearingName(x, z) + 'から接近。甲虫型です。', {key:'spawn', cd:8});
+    else if (type === 'rammer' && M.order.indexOf('rammer') === G.spawned - 1){
+      say('新しい型──突進型（衝角殻）、' + bearingName(x, z) + '！ 止まって赤く光ったら突っ込んできます。溜めの光を見たら横へ！', {urgent:true});
+      say(isTouch ? '横跳びは 跳躍ボタン＋スティック左右。壁に激突させれば、背中の弱点が開きます。' : '横跳びは Space＋A/D。壁やコンテナに激突させれば、背中の弱点が開きます。', {});
+    }
+    else if (type === 'rammer') say('突進型、' + bearingName(x, z) + '方向。溜めの光に注意。', {key:'ram', cd:14});
     else if (type === 'floater') say('浮遊型、' + bearingName(x, z) + '方向。光弾に注意して。', {key:'float', cd:14});
   }
-  if (G.kills >= 12 && !G.lordSpawned){
+  if (G.kills >= total && !G.lordSpawned){
     if (G.lordTimer < 0) G.lordTimer = 2.5;
     G.lordTimer -= dt;
-    if (G.lordTimer <= 0){
-      G.lordSpawned = true;
-      const fx = -Math.sin(P.heading), fz = -Math.cos(P.heading);
-      let x = P.pos.x + fx * 150, z = P.pos.z + fz * 150; const r = Math.hypot(x, z); if (r > ARENA_R - 30){ x *= (ARENA_R - 30) / r; z *= (ARENA_R - 30) / r; }
-      const e = spawnEnemy('lord', x, z); e.fireT = 4;
-      P.trauma = 0.7;
-      say('大型反応──殻王（シェルロード）です！ 頭部の発光部が弱点、そこを狙って！', {urgent:true});
-      popup('警告 SHELL LORD APPROACHING');
-    }
+    if (G.lordTimer <= 0) spawnBoss();
   }
+}
+function spawnBoss(){
+  G.lordSpawned = true;
+  const fx = -Math.sin(P.heading), fz = -Math.cos(P.heading);
+  let x = P.pos.x + fx * 150, z = P.pos.z + fz * 150;
+  if (M.boss === 'lord'){
+    const r = Math.hypot(x, z); if (r > ARENA_R - 30){ x *= (ARENA_R - 30) / r; z *= (ARENA_R - 30) / r; }
+  } else {
+    let ok = false;
+    for (let k = 0; k < 40 && !ok; k++){
+      const a = Math.atan2(fx, fz) + (k ? rnd(-1.6, 1.6) : 0), d = k ? rnd(90, 170) : 140;
+      x = clamp(P.pos.x + Math.sin(a) * d, PORT.minX + 20, PORT.maxX - 20); z = clamp(P.pos.z + Math.cos(a) * d, PORT.minZ + 15, PORT.maxZ - 20);
+      ok = clearAt(x, z, 16) && Math.hypot(x - P.pos.x, z - P.pos.z) > 70;
+    }
+    if (!ok){ x = 0; z = P.pos.z > -40 ? -140 : 40; }
+  }
+  const e = spawnEnemy(M.boss, x, z); e.fireT = 4;
+  P.trauma = 0.7;
+  if (M.boss === 'twin'){
+    say('超大型反応──殻王「双殻王（ツインシェル）」！ 二枚の殻が開いた瞬間だけ、中の中枢を狙って！', {urgent:true});
+    say('殻は弾幕や突進のあと、排熱のために開きます。そこが勝負です。', {});
+    popup('警告 TWINSHELL APPROACHING');
+  } else {
+    say('大型反応──殻王（シェルロード）です！ 頭部の発光部が弱点、そこを狙って！', {urgent:true});
+    popup('警告 SHELL LORD APPROACHING');
+  }
+  return e;
+}
+
+/* ---- RAMSHELL (突進型) AI ---- */
+const RAM = {wind:1.0, speed:80, standMin:48, standMax:82, hitR:15, dmg:32, grip:14};
+function losClear(x0, z0, x1, z1){
+  const dx = x1 - x0, dz = z1 - z0, n = Math.ceil(Math.hypot(dx, dz) / 6);
+  for (let i = 1; i < n; i++){ const t = i / n; if (buildingAt(x0 + dx * t, 3, z0 + dz * t)) return false; }
+  return true;
+}
+function showLine(e, p, dir, len, width, op){
+  const l = e.line; if (!l) return;
+  l.visible = len > 0.5; l.position.set(p.x, 0.15, p.z); l.rotation.set(0, Math.atan2(dir.x, dir.z), 0);
+  l.scale.set(width, 1, Math.max(0.5, len)); l.material.opacity = op;
+}
+function hideLine(e){ if (e.line) e.line.visible = false; }
+function updRammer(e, dt, d, nx, nz){
+  const p = e.g.position, m = e.model;
+  e.st -= dt;
+  let glow = 0;
+  if (e.state === 'approach'){
+    let radial = 0; if (d > RAM.standMax) radial = 22; else if (d < RAM.standMin) radial = -14;
+    const tx = -nz * e.orbit, tz = nx * e.orbit;
+    p.x += (nx * radial + tx * 7) * dt; p.z += (nz * radial + tz * 7) * dt;
+    pushOut(p, 6);
+    e.g.lookAt(P.pos.x, 0, P.pos.z);
+    e.cd -= dt;
+    if (e.cd <= 0){
+      if (d < 115 && d > 30 && losClear(p.x, p.z, P.pos.x, P.pos.z)){
+        e.state = 'windup'; e.st = RAM.wind; e.dir.set(nx, 0, nz); e.len = d + 70;
+        snd('ramCharge', RAM.wind);
+        say(isTouch ? '突進型、溜めに入った！ 溜めの光を見たら横へ！' : '突進型、溜めに入った！ 溜めの光を見たら横へ！ Space＋A/D！', {key:'ramwarn', cd:25});
+      } else { e.cd = 0.4; if (Math.random() < 0.3) e.orbit *= -1; }
+    }
+  } else if (e.state === 'windup'){
+    glow = 1 - Math.max(0, e.st) / RAM.wind;
+    e.g.lookAt(p.x + e.dir.x, 0, p.z + e.dir.z);
+    m.body.position.x = Math.sin(e.t * 70) * 0.3 * glow;
+    showLine(e, p, e.dir, e.len, 11, 0.2 + 0.55 * glow * (0.6 + 0.4 * Math.sin(e.t * 30)));
+    if (Math.random() < dt * 30) emit(FX, p.x + rnd(-3,3), rnd(1,7), p.z + rnd(-3,3), 0, rnd(2,6), 0, 1,.2,.1,.8, rnd(1.5,3), .4, 0, 0, 1);
+    if (e.st <= 0){ e.state = 'charge'; e.trav = 0; e.hitDone = false; m.body.position.x = 0; }
+  } else if (e.state === 'charge'){
+    glow = 1;
+    const step = RAM.speed * dt;
+    p.x += e.dir.x * step; p.z += e.dir.z * step; e.trav += step;
+    showLine(e, p, e.dir, e.len - e.trav, 11, 0.35);
+    if (Math.random() < dt * 30) dustBurst(p.x, p.z, 1, 1.2);
+    const hd = Math.hypot(P.pos.x - p.x, P.pos.z - p.z);
+    if (!e.hitDone && hd < RAM.hitR && P.y < 4){
+      e.hitDone = true;
+      hurt(RAM.dmg, V1.copy(p), RAM.grip); P.v *= 0.2; P.trauma = 1; snd('ramImpact', 1);
+      P.pos.x += e.dir.x * 4; P.pos.z += e.dir.z * 4;
+      sparks(V1.set((p.x + P.pos.x) / 2, 6, (p.z + P.pos.z) / 2), 30);
+      e.state = 'recoil'; e.st = 1.2; hideLine(e);
+    } else {
+      const fx = p.x + e.dir.x * 7, fz = p.z + e.dir.z * 7;
+      const wall = !!buildingAt(fx, 3, fz) || !stage.inBounds(fx, fz, 0);
+      if (wall || e.trav >= e.len){
+        pushOut(p, 6);
+        e.state = 'stunned'; e.st = wall ? 3.4 : 2.2; hideLine(e);
+        if (wall){
+          G.st.rammerCrashes++;
+          snd('ramImpact', clamp(1 - hd / 250, 0.2, 1)); sparks(V1.set(fx, 4, fz), 26); dustBurst(fx, fz, 8, 1.6);
+          P.trauma = Math.min(1, P.trauma + clamp(0.4 - hd / 400, 0.05, 0.35));
+          say('激突！ 背面の弱点が露出、今です！', {key:'ramstun', cd:18}); popup('突進型 激突 STUNNED — 背面が弱点');
+        }
+      }
+    }
+  } else if (e.state === 'stunned'){
+    m.body.rotation.z = Math.sin(e.t * 9) * 0.08;
+    if (Math.random() < dt * 12) sparks(V1.set(p.x + rnd(-3,3), 8, p.z + rnd(-3,3)), 2, [1,.9,.4], 8);
+    if (e.st <= 0){ e.state = 'approach'; e.cd = rnd(3, 4.5); m.body.rotation.z = 0; }
+  } else if (e.state === 'recoil'){
+    p.x -= nx * 14 * dt; p.z -= nz * 14 * dt; pushOut(p, 6);
+    e.g.lookAt(P.pos.x, 0, P.pos.z);
+    if (e.st <= 0){ e.state = 'approach'; e.cd = rnd(3.5, 5); }
+  }
+  e.glow = lerp(e.glow || 0, glow, Math.min(1, dt * 10));
+  m.glowMat.emissive.setRGB(e.glow * 0.95, e.glow * 0.08, e.glow * 0.04);
+  m.weakMat.color.setHex(e.state === 'stunned' ? (Math.sin(e.t * 16) > 0 ? 0xffd040 : 0xff8a20) : 0x3a2208);
+  const walk = (e.state === 'approach' || e.state === 'recoil') ? 10 : e.state === 'charge' ? 26 : 0;
+  for (const L of m.legs) L.pivot.rotation.x = walk ? Math.sin(e.t * walk + L.z + (L.s > 0 ? Math.PI : 0)) * 0.5 : 0;
+}
+
+/* ---- TWINSHELL (双殻王) AI ---- */
+const TW = {
+  1: {walk:7,  wind:1.3, cspeed:62, fan:9,  volleys:2, ventT:3.4, stunT:3.6, hitR:22},
+  2: {walk:12, wind:0.9, cspeed:84, fan:11, volleys:3, ventT:1.6, stunT:2.6, hitR:22},
+};
+const waveGeo = new THREE.RingGeometry(0.9, 1, 64, 1); waveGeo.rotateX(-Math.PI / 2);
+const debris = []; // shell halves torn off in the transformation
+function startTwinAttack(e, d, nx, nz){
+  const p = e.g.position;
+  const canCharge = d > 40 && d < 170 && losClear(p.x, p.z, P.pos.x, P.pos.z);
+  const seq = e.phase === 1 ? ['barrage', 'charge'] : ['slam', 'homing', 'charge', 'barrage'];
+  let a = seq[e.atkN++ % seq.length];
+  if (a === 'charge' && !canCharge) a = e.phase === 1 ? 'barrage' : 'slam';
+  if (a === 'barrage'){ e.state = 'barrage'; e.vol = TW[e.phase].volleys; e.st = 0.6; sparks(V1.set(p.x + nx * 16, 16, p.z + nz * 16), 16, [1,.4,.2], 14); }
+  else if (a === 'charge'){
+    e.state = 'windup'; e.st = TW[e.phase].wind; e.dir.set(nx, 0, nz); e.len = d + 80;
+    snd('ramCharge', TW[e.phase].wind);
+    say('双殻王、突進の構え！ 横へ！', {key:'twcharge', cd:20});
+  } else if (a === 'slam'){
+    e.state = 'slam'; e.st = 0.9; snd('ramCharge', 0.9);
+    say('地面を這う衝撃波、来る！ 跳んで避けて！', {key:'wave', cd:16});
+  } else { e.state = 'homing'; e.st = 0.4; e.hn = 5; }
+}
+function twinTransform(e){
+  e.state = 'transform'; e.st = 4.0; e.tfT = 0; e.tfDet = false; hideLine(e);
+  snd('bossShift'); P.trauma = 0.8;
+  for (const s2 of eShots){ if (s2.homing){ s2.alive = false; s2.m.visible = false; } }
+  say('殻が…剥がれていく！？ 反応増大、形態が変わります！', {urgent:true});
+  say('動きが速くなる。衝撃波は跳んで、追尾弾は横跳びで振り切って！', {});
+  popup('警告 形態変化 TRANSFORMING');
+}
+function updTwinTransform(e, dt){
+  const m = e.model, p = e.g.position;
+  e.tfT += dt;
+  e.open = Math.min(1.2, e.open + dt * 1.2);
+  for (const pv of m.shells) pv.rotation.z = pv.userData.s * e.open * 0.95;
+  m.body.position.x = Math.sin(e.t * 50) * 0.5;
+  if (Math.random() < dt * 3) explode(V1.set(p.x + rnd(-12,12), rnd(8,20), p.z + rnd(-12,12)), 0.35);
+  P.trauma = Math.max(P.trauma, 0.35);
+  const k = clamp(e.tfT / 3, 0, 1);
+  m.coreMat.color.setRGB(lerp(1, 1, k), lerp(0.69, 0.19, k), lerp(0.13, 0.55, k));
+  if (e.tfT > 1.4 && !e.tfDet){
+    e.tfDet = true;
+    e.g.updateMatrixWorld();
+    for (const pv of m.shells){
+      const v = new THREE.Vector3(pv.userData.s, 0, 0).transformDirection(e.g.matrixWorld).multiplyScalar(20); v.y = 24;
+      scene.attach(pv);
+      debris.push({m:pv, v, spin:rnd(-2, 2), t:0, landed:false});
+    }
+    m.shells = [];
+    m.ribs.visible = true;
+    explode(V1.set(p.x, 16, p.z), 1); snd('explosion', 1); P.trauma = 1;
+  }
+  if (e.st <= 0){
+    e.phase = 2; e.state = 'walk'; e.atkCD = 1.2; e.atkN = 0; e.open = 0; m.body.position.x = 0;
+    say('中枢が剥き出しです。押し切って、ヘカトン！', {});
+  }
+}
+function updDebris(dt){
+  for (let i = debris.length - 1; i >= 0; i--){
+    const d = debris[i]; d.t += dt;
+    d.v.y -= 30 * dt; d.m.position.addScaledVector(d.v, dt); d.m.rotation.x += d.spin * dt; d.m.rotation.z += d.spin * 0.5 * dt;
+    if (!d.landed && d.m.position.y < 3){ d.landed = true; d.v.set(d.v.x * 0.2, 4, d.v.z * 0.2); dustBurst(d.m.position.x, d.m.position.z, 10, 2); snd('land', 0.6); }
+    if (d.t > 3.5){ scene.remove(d.m); debris.splice(i, 1); }
+  }
+}
+function updTwin(e, dt, d, nx, nz, dx, dz){
+  const p = e.g.position, m = e.model, C = TW[e.phase];
+  e.st -= dt;
+  let wantOpen = 0, walking = false;
+  if (e.state === 'transform'){ updTwinTransform(e, dt); }
+  else if (e.state === 'walk'){
+    if (d > 60){ p.x += nx * C.walk * dt; p.z += nz * C.walk * dt; walking = true; }
+    else if (d < 32){ p.x -= nx * C.walk * 0.6 * dt; p.z -= nz * C.walk * 0.6 * dt; walking = true; }
+    e.g.lookAt(P.pos.x, 0, P.pos.z);
+    e.atkCD -= dt;
+    if (e.atkCD <= 0 && d < 240) startTwinAttack(e, d, nx, nz);
+  } else if (e.state === 'barrage'){
+    e.g.lookAt(P.pos.x, 0, P.pos.z);
+    if (e.st <= 0){
+      if (e.vol > 0){
+        const from = V1.set(p.x + nx * 16, 16, p.z + nz * 16), base = Math.atan2(dx, dz), n = C.fan, off = (e.vol % 2) * 0.065;
+        for (let k = 0; k < n; k++){ const a = base + (k - (n - 1) / 2) * 0.13 + off; fireEnemyShot(from, V2.set(p.x + Math.sin(a) * d, P.y + 12, p.z + Math.cos(a) * d), 55, 7); }
+        sparks(from, 20, [1,.4,.2], 20); e.vol--; e.st = 0.5;
+      } else if (e.phase === 1){ e.state = 'vent'; e.st = C.ventT; say('殻が開いた！ 今、中枢を撃って！', {key:'twopen', cd:20}); }
+      else { e.state = 'walk'; e.atkCD = 1.4; }
+    }
+  } else if (e.state === 'vent'){
+    wantOpen = 1;
+    if (Math.random() < dt * 20) emit(SMOKE, p.x + rnd(-4,4), 20, p.z + rnd(-4,4), rnd(-2,2), rnd(8,14), rnd(-2,2), .7,.7,.72, .35, rnd(4,7), rnd(1,1.6), 2, -1, 0.5);
+    if (e.st <= 0){ e.state = 'walk'; e.atkCD = 2.2; }
+  } else if (e.state === 'windup'){
+    const g = 1 - Math.max(0, e.st) / C.wind;
+    e.g.lookAt(p.x + e.dir.x, 0, p.z + e.dir.z);
+    m.body.position.x = Math.sin(e.t * 60) * 0.4 * g;
+    showLine(e, p, e.dir, e.len, 30, 0.2 + 0.5 * g * (0.6 + 0.4 * Math.sin(e.t * 30)));
+    if (e.st <= 0){ e.state = 'charge'; e.trav = 0; e.hitDone = false; m.body.position.x = 0; }
+  } else if (e.state === 'charge'){
+    const step = C.cspeed * dt;
+    p.x += e.dir.x * step; p.z += e.dir.z * step; e.trav += step;
+    showLine(e, p, e.dir, e.len - e.trav, 30, 0.3);
+    if (Math.random() < dt * 30) dustBurst(p.x + rnd(-8,8), p.z + rnd(-8,8), 2, 1.6);
+    const hd = Math.hypot(P.pos.x - p.x, P.pos.z - p.z);
+    if (!e.hitDone && hd < C.hitR && P.y < 5){
+      e.hitDone = true; hurt(40, V1.copy(p), 16); P.v *= 0.1; P.trauma = 1; snd('ramImpact', 1);
+      P.pos.x += e.dir.x * 6; P.pos.z += e.dir.z * 6;
+      e.state = 'vent'; e.st = C.ventT * 0.6; hideLine(e);
+    } else {
+      const fx = p.x + e.dir.x * 17, fz = p.z + e.dir.z * 17;
+      const wall = !!buildingAt(fx, 3, fz) || !stage.inBounds(fx, fz, 0);
+      if (wall || e.trav >= e.len){
+        pushOut(p, 13); hideLine(e);
+        if (wall){ e.state = 'stunned'; e.st = C.stunT; snd('ramImpact', 1); explode(V1.set(fx, 6, fz), 0.5); P.trauma = Math.min(1, P.trauma + 0.4); say('激突した！ 殻が開いてる、撃ち込んで！', {key:'twstun', cd:15}); }
+        else { e.state = 'vent'; e.st = C.ventT * 0.7; }
+      }
+    }
+  } else if (e.state === 'stunned'){
+    wantOpen = 1; m.body.rotation.z = Math.sin(e.t * 7) * 0.05;
+    if (e.st <= 0){ e.state = 'walk'; e.atkCD = 1.5; m.body.rotation.z = 0; }
+  } else if (e.state === 'slam'){
+    const k = 1 - Math.max(0, e.st) / 0.9;
+    m.body.position.y = Math.sin(k * Math.PI * 0.5) * 6; m.body.rotation.x = -k * 0.25;
+    if (e.st <= 0){
+      m.body.position.y = 0; m.body.rotation.x = 0;
+      const w = new THREE.Mesh(waveGeo, new THREE.MeshBasicMaterial({color:0xff3a9a, transparent:true, opacity:.9, blending:THREE.AdditiveBlending, depthWrite:false, side:THREE.DoubleSide}));
+      w.position.set(p.x, 0.6, p.z); w.scale.set(4, 1, 4); scene.add(w);
+      e.waves.push({m:w, r:4, x:p.x, z:p.z, done:false});
+      snd('shockwave'); P.trauma = Math.min(1, P.trauma + 0.5); dustBurst(p.x, p.z, 16, 2.4);
+      e.slams = (e.slams || 0) + 1;
+      if (e.slams % 2 === 1){ e.st = 0.8; } // a second wave right behind the first on odd slams
+      else { e.state = 'walk'; e.atkCD = 1.6; }
+    }
+  } else if (e.state === 'homing'){
+    if (e.st <= 0 && e.hn > 0){
+      const from = V1.set(p.x, 22, p.z);
+      fireEnemyShot(from, V2.set(p.x + rnd(-30,30), 50, p.z + rnd(-30,30)), 40, 9, 2.8);
+      e.hn--; e.st = 0.22; sparks(from, 8, [.8,.4,1], 12);
+    } else if (e.hn <= 0 && e.st <= 0){ e.state = 'walk'; e.atkCD = 1.6; }
+  }
+  // shockwave rings: jump (boost) over them as they pass
+  for (let i = e.waves.length - 1; i >= 0; i--){
+    const w = e.waves[i];
+    w.r += 46 * dt; w.m.scale.set(w.r, 1 + w.r * 0.01, w.r); w.m.material.opacity = clamp(1 - w.r / 210, 0, 0.9);
+    if (Math.random() < dt * 40){ const a = Math.random() * Math.PI * 2; emit(SMOKE, w.x + Math.cos(a) * w.r, 1, w.z + Math.sin(a) * w.r, 0, rnd(2,5), 0, .5,.3,.45, .5, rnd(3,5), .6, 1.5, 0, 1); }
+    const pd = Math.hypot(P.pos.x - w.x, P.pos.z - w.z);
+    if (!w.done && Math.abs(pd - w.r) < 5){
+      w.done = true;
+      if (P.y < 2.2){ hurt(26, V1.set(w.x, 0, w.z), 12); P.trauma = 1; }
+      else { G.st.waveDodges++; popup('衝撃波 回避 DODGE'); P.res = Math.min(100, P.res + 5); }
+    }
+    if (w.r > 210){ scene.remove(w.m); w.m.material.dispose(); e.waves.splice(i, 1); }
+  }
+  if (e.state !== 'charge' && e.state !== 'transform') pushOut(p, 13);
+  if (e.state !== 'transform'){
+    e.open = approach(e.open, wantOpen, dt * 2.2);
+    for (const pv of m.shells) pv.rotation.z = pv.userData.s * e.open * 0.95;
+    if (e.phase === 1){ const b = e.open > 0.45 ? 0.55 + Math.sin(e.t * 10) * 0.2 : 0.25; m.coreMat.color.setRGB(1, 0.69 * b + 0.1, 0.13 * b); }
+    else { const b = 0.75 + Math.sin(e.t * 9) * 0.25; m.coreMat.color.setRGB(b, 0.19 * b, 0.55 * b); m.ribMat.color.setRGB(b, 0.2, 0.5 + 0.3 * b); }
+    const glow = e.state === 'windup' || e.state === 'charge' ? 1 : 0;
+    m.shellMat.emissive.setRGB(glow * 0.8, glow * 0.06, glow * 0.04);
+  }
+  const ls = walking ? (e.phase === 2 ? 6 : 4) : e.state === 'charge' ? 12 : 0;
+  for (const L of m.legs) L.pivot.rotation.x = ls ? Math.sin(e.t * ls + L.z * 0.3 + (L.s > 0 ? Math.PI : 0)) * 0.25 : 0;
+  if ((walking || e.state === 'charge') && Math.floor(e.t * 2) !== Math.floor((e.t - dt) * 2) && d < 200){ P.trauma = Math.min(1, P.trauma + 0.06); dustBurst(p.x + rnd(-10,10), p.z + rnd(-10,10), 3, 1.4); }
 }
 
 /* ================= player update ================= */
@@ -1622,31 +2687,42 @@ function updPlayer(dt){
   const res01 = P.res / 100;
   const gripZero = P.gripLock.some(Boolean);
   P.dashing = input.dash && input.fwd > 0.1 && !P.overheated && P.grounded;
-  let maxF = P.dashing ? 25 : 13, maxB = 6;
+  let maxF = P.dashing ? P.dashSpd : 13, maxB = 6;
   if (gripZero){ maxF *= 0.55; maxB *= 0.55; }
   const target = input.fwd > 0 ? input.fwd * maxF : input.fwd * maxB;
   if (P.grounded){
     const speeding = Math.abs(target) > Math.abs(P.v) && (Math.sign(target) === Math.sign(P.v) || Math.abs(P.v) < 0.3);
     P.v = approach(P.v, target, (speeding ? (P.dashing ? 7 : 4.2) : 5.5) * dt);
   }
-  const maxTurn = (0.5 + 0.55 * res01) * (gripZero ? 0.7 : 1) * (P.overbeat ? 1.25 : 1);
+  const maxTurn = (0.5 + 0.55 * res01) * (gripZero ? 0.7 : 1) * (P.overbeat ? 1.25 : 1) * P.turnMul;
   P.turnRate = approach(P.turnRate, input.turn * maxTurn, 1.5 * dt);
   const mTake = P.mouseYaw * Math.min(1, dt * 9);
   P.mouseYaw -= mTake;
-  const mClamp = clamp(mTake, -(1.6 + res01 * 1.4) * dt, (1.6 + res01 * 1.4) * dt);
+  const mLim = (1.6 + res01 * 1.4) * P.turnMul * dt;
+  const mClamp = clamp(mTake, -mLim, mLim);
   P.mouseYaw += (mTake - mClamp);
   const yawD = P.turnRate * dt + mClamp;
   P.heading += yawD;
   P.effTurn = lerp(P.effTurn, yawD / Math.max(dt, 1e-4), Math.min(1, dt * 8));
   const fx = -Math.sin(P.heading), fz = -Math.cos(P.heading);
   P.pos.x += fx * P.v * dt; P.pos.z += fz * P.v * dt;
+  // side-step (横跳び) momentum, along the mech's right axis
+  if (P.sideV){ P.pos.x += Math.cos(P.heading) * P.sideV * dt; P.pos.z += -Math.sin(P.heading) * P.sideV * dt; P.sideV = approach(P.sideV, 0, 30 * dt); }
   pushOut(P.pos, 10);
-  const r = Math.hypot(P.pos.x, P.pos.z);
-  if (r > ARENA_R){ P.pos.x *= ARENA_R / r; P.pos.z *= ARENA_R / r; P.v *= 0.9; say('作戦区域の境界です。戻ってください。', {key:'bound', cd:10}); }
+  const bnd = stage.clampPlayer(P.pos);
+  if (bnd){ P.v *= 0.9; if (bnd === 'quay') say('岸壁です。その先は海、戻ってください。', {key:'bound', cd:10}); else say('作戦区域の境界です。戻ってください。', {key:'bound', cd:10}); }
 
+  // side-step: boost + turn input (A/D or stick sideways) = a short lateral hop instead of a jump
+  if (input.boost && P.grounded && !P.overheated && P.heat < 92 && G.ending <= 0 && Math.abs(input.turn) > 0.5){
+    const dir = input.turn > 0 ? -1 : 1; // turn>0 = left
+    P.sideV = dir * 32; P.vy = 8; P.grounded = false; P.heat += 12 * P.heatMul; P.boostT = 0.35;
+    for (let i = 0; i < 4; i++){ const outer = dir > 0 ? (i === 0 || i === 2) : (i === 1 || i === 3); if (outer) P.grip[i] = Math.max(0, P.grip[i] - 8); }
+    snd('jumpBoost'); snd('haptic', 40); P.trauma = Math.min(1, P.trauma + 0.15);
+    input.boost = false;
+  }
   // jump
   if (input.boost && P.grounded && !P.overheated && P.heat < 92 && G.ending <= 0){
-    P.vy = 19; P.grounded = false; P.heat += 16; P.boostT = 0.7; if (P.v > 3) P.v += 4;
+    P.vy = 19; P.grounded = false; P.heat += 16 * P.heatMul; P.boostT = 0.7; if (P.v > 3) P.v += 4;
     snd('jumpBoost'); snd('haptic', 40); P.trauma = Math.min(1, P.trauma + 0.2);
     rig.updateMatrixWorld();
     for (let i = 0; i < 4; i++){ const w = V1.copy(legs[i].local).applyMatrix4(rig.matrixWorld); dustBurst(w.x, w.z, 6, 1.6); }
@@ -1655,7 +2731,7 @@ function updPlayer(dt){
   P.boostT = Math.max(0, P.boostT - dt);
   if (!P.grounded){
     P.vy -= 32 * dt; P.y += P.vy * dt;
-    if (P.boostT > 0){ for (let k = 0; k < 3; k++) emit(FX, P.pos.x + rnd(-3,3), P.y + 9, P.pos.z + rnd(-3,3), rnd(-2,2), -30, rnd(-2,2), .5,.85,1,.8, rnd(2,4), .35, 1, 0, 1); }
+    if (P.boostT > 0){ for (let k = 0, n = Math.round(dt * 180); k < n; k++) emit(FX, P.pos.x + rnd(-3,3), P.y + 9, P.pos.z + rnd(-3,3), rnd(-2,2), -30, rnd(-2,2), .5,.85,1,.8, rnd(2,4), .35, 1, 0, 1); }
     if (P.y <= 0){
       const inten = clamp(-P.vy / 22, 0.2, 1);
       P.y = 0; P.vy = 0; P.grounded = true;
@@ -1669,8 +2745,8 @@ function updPlayer(dt){
   }
 
   // heat
-  if (P.dashing) P.heat += 14 * dt;
-  P.heat -= (P.overheated ? 22 : (Math.abs(P.v) > 2 ? 7 : 12)) * dt;
+  if (P.dashing) P.heat += 14 * P.heatMul * dt;
+  P.heat -= (P.overheated ? 22 : (Math.abs(P.v) > 2 ? 7 : 12)) * P.coolMul * dt;
   if (P.heat >= 100 && !P.overheated){ P.overheated = true; P.heat = 100; say('炉温限界！ 強制冷却に入ります、射撃と疾走は一時停止！', {key:'oh', cd:6}); }
   if (P.overheated && P.heat < 35) { P.overheated = false; say('冷却完了。火器、戻りました。', {key:'cool', cd:6}); }
   P.heat = clamp(P.heat, 0, 100);
@@ -1684,8 +2760,8 @@ function updPlayer(dt){
     let drain = 0, regen = 0;
     if (tr > 0.3 && outer) drain += (tr - 0.3) * 24;
     if (P.dashing) drain += 9;
-    if (!P.dashing && P.grounded){ regen = (Math.abs(P.v) < 7 && tr < 0.35) ? 13 : 2.5; }
-    P.grip[i] = clamp(P.grip[i] - drain * dt + regen * dt, 0, 100);
+    if (!P.dashing && P.grounded){ regen = ((Math.abs(P.v) < 7 && tr < 0.35) ? 13 : 2.5) * P.gripRegen; }
+    P.grip[i] = clamp(P.grip[i] - drain * dt + regen * dt, 0, P.gripMax);
     if (P.grip[i] <= 0 && !P.gripLock[i]){ P.gripLock[i] = true; P.trauma = Math.min(1, P.trauma + 0.25); snd('haptic', 80); say('脚圧ゼロ、' + LEG_NAMES[i] + '脚！ 転倒の危険、速度を落として！', {key:'grip', cd:8}); }
     if (P.gripLock[i] && P.grip[i] >= 30) P.gripLock[i] = false;
   }
@@ -1707,7 +2783,7 @@ function updPlayer(dt){
   if (step > P.resStep && step < 4){ snd('resonanceUp'); }
   P.resStep = step;
   if (!P.overbeat && P.res >= 100){
-    P.overbeat = true; P.obT = 8; snd('overbeat', true); snd('resonanceUp'); snd('haptic', 120);
+    P.overbeat = true; P.obT = 8; G.st.overbeats++; snd('overbeat', true); snd('resonanceUp'); snd('haptic', 120);
     say('共鳴率100%──鼓動モード（OVERBEAT）！ 今です！', {urgent:false, key:'ob', cd:4});
   }
   if (P.overbeat){
@@ -1797,23 +2873,23 @@ function updLock(){
   let best = null, bestA = maxAng;
   for (const e of enemies){
     if (!e.alive) continue;
-    const c = e.type === 'lord' ? weakPoint(e, tmpC) : enemyCenter(e, tmpC);
+    const c = aimPoint(e, tmpC);
     V1.subVectors(c, camera.position); const d = V1.length(); if (d > 260) continue;
-    const a = Math.acos(clamp(V1.dot(aimDir) / d, -1, 1)) - (e.type === 'lord' ? 0.05 : 0);
+    const a = Math.acos(clamp(V1.dot(aimDir) / d, -1, 1)) - (BOSS_TYPES[e.type] ? 0.05 : 0);
     const stick = e === G.lock ? 0.04 : 0;
     if (a - stick < bestA){ bestA = a - stick; best = e; }
   }
   if (best && best !== G.lock) snd('lockOn');
   G.lock = best;
   if (best){
-    const c = best.type === 'lord' ? weakPoint(best, tmpC) : enemyCenter(best, tmpC);
+    const c = aimPoint(best, tmpC);
     const d = c.distanceTo(camera.position);
     V1.copy(c).project(camera);
     if (V1.z < 1){
       const x = (V1.x * 0.5 + 0.5) * window.innerWidth, y = (-V1.y * 0.5 + 0.5) * window.innerHeight;
       setSty(hudEl.lock, 'transform', 'translate(' + x.toFixed(0) + 'px,' + y.toFixed(0) + 'px)');
       hudEl.lock.classList.add('on');
-      setText(hudEl.lockTxt, (best.type === 'lord' ? 'WEAK ' : 'LOCK ') + Math.round(d) + 'm');
+      setText(hudEl.lockTxt, (weakInfo(best) ? 'WEAK ' : 'LOCK ') + Math.round(d) + 'm');
     } else hudEl.lock.classList.remove('on');
   } else hudEl.lock.classList.remove('on');
 }
@@ -1847,8 +2923,9 @@ function updHUD(dt){
   // heat/armor
   setSty(hudEl.heatBar, 'width', P.heat.toFixed(0) + '%'); setText(hudEl.heatVal, String(Math.round(P.heat)));
   hudEl.heatRow.classList.toggle('hot', P.heat > 85 || P.overheated); hudEl.heatRow.classList.toggle('warm', P.heat > 60);
-  setSty(hudEl.armorBar, 'width', P.armor.toFixed(0) + '%'); setText(hudEl.armorVal, String(Math.round(P.armor)));
-  hudEl.armorRow.classList.toggle('hot', P.armor < 30); hudEl.armorRow.classList.toggle('warm', P.armor < 60);
+  setSty(hudEl.armorBar, 'width', (P.armor / P.armorMax * 100).toFixed(0) + '%'); setText(hudEl.armorVal, String(Math.round(P.armor)));
+  hudEl.armorRow.classList.toggle('hot', P.armor < 30); hudEl.armorRow.classList.toggle('warm', P.armor < 0.6 * P.armorMax);
+  updBossBar();
   setText(hudEl.spd, String(Math.round(Math.abs(P.v) * 3.6)));
   // grip
   for (let i = 0; i < 4; i++){
@@ -1865,7 +2942,7 @@ function updHUD(dt){
   setSty(hudEl.strip, 'transform', 'translateX(' + (cw / 2 - (deg + 360) * 3).toFixed(0) + 'px)');
   setText(hudEl.cval, String(Math.round(deg) % 360).padStart(3, '0'));
   // counts
-  const remain = (12 - G.kills) + (G.lordDead ? 0 : 1);
+  const remain = (M.order.length - G.kills) + (G.lordDead ? 0 : 1);
   setText(hudEl.enemy, String(remain));
   setText(hudEl.timer, fmtTime(G.timeLeft));
   hudEl.timerBox.classList.toggle('alert', G.timeLeft < 30);
@@ -1891,6 +2968,15 @@ function updHUD(dt){
   // radar (20Hz is plenty; 10Hz on the low preset)
   radarAcc += dt; if (radarAcc >= Q.radarInt){ drawRadar(radarAcc); radarAcc = 0; }
 }
+const bossEl = {bar:$('bossBar'), fill:$('bossFill'), ph:$('bossPhase')};
+function updBossBar(){
+  let bo = null; for (const e of enemies) if (e.alive && BOSS_TYPES[e.type]){ bo = e; break; }
+  hudEl.hud.classList.toggle('boss', !!bo && G.state !== 'launch');
+  if (!bo) return;
+  setSty(bossEl.fill, 'width', clamp(bo.hp / bo.maxHp * 100, 0, 100).toFixed(1) + '%');
+  bossEl.bar.classList.toggle('p2', bo.phase === 2);
+  setText(bossEl.ph, bo.type === 'twin' ? (bo.state === 'transform' ? 'TRANSFORM' : 'PHASE ' + bo.phase) : '');
+}
 function drawRadar(dt){
   const c = radarCtx, W = 160, R = 74, range = 220;
   radarSweep = (radarSweep + dt * 2.2) % (Math.PI * 2);
@@ -1910,8 +2996,8 @@ function drawRadar(dt){
     const right = ch * rx - sh * rz, fwd = -sh * rx - ch * rz;
     let x = right / range * R, y = -fwd / range * R; const l = Math.hypot(x, y);
     const out = l > R; if (out){ x *= R / l; y *= R / l; }
-    const big = e.type === 'lord';
-    c.fillStyle = big ? (Math.sin(G.t * 10) > 0 ? '#ffb020' : '#ff5020') : e.type === 'floater' ? '#ff3b5b' : '#ff8a2a';
+    const big = !!BOSS_TYPES[e.type];
+    c.fillStyle = big ? (Math.sin(G.t * 10) > 0 ? '#ffb020' : '#ff5020') : e.type === 'floater' ? '#ff3b5b' : e.type === 'rammer' ? (e.state === 'windup' || e.state === 'charge' ? (Math.sin(G.t * 30) > 0 ? '#ffffff' : '#ff2020') : '#d65aff') : '#ff8a2a';
     c.beginPath(); c.arc(x, y, big ? 6 : out ? 2.5 : 3.6, 0, Math.PI * 2); c.fill();
   }
   c.restore();
@@ -1927,8 +3013,29 @@ function updTitle(dt){
   rig.position.y = Math.sin(G.t * 1.2) * 0.15;
   P.gait = 0;
 }
+function updLaunchShort(dt){
+  const L = launchSeq, t = L.t;
+  $('launchFade').style.opacity = clamp(1 - t / 0.25, 0, 1).toFixed(2);
+  for (const [id, at] of BOOT_LIT) if (t >= at * 0.16) $(id).classList.add('lit');
+  P.res = 40; setText($('launchResNum'), '40.0');
+  if (t > 0.12 && !L.called){ L.called = true; $('launchCall').classList.add('on'); }
+  if (t > 0.85) $('launchCall').classList.remove('on');
+  if (t > 0.5 && !L.clunk){ L.clunk = true; P.trauma = 0.5; P.bobV -= 4; snd('haptic', 90); }
+  const lift = clamp(t / 0.35, 0, 1);
+  P.y = lerp(-2.5, 0, lift * lift);
+  const open = clamp((t - 0.35) / 0.55, 0, 1);
+  setBayOpen(open * open * (3 - 2 * open));
+  $('launchFlood').style.opacity = (open > 0 ? Math.sin(Math.min(1, open * 1.3) * Math.PI) * 0.6 : 0).toFixed(2);
+  bayLight.intensity = 1.6 - open;
+  updCamera(dt);
+  rig.position.y = P.y; rig.updateMatrixWorld();
+  updHUD(dt); updRadio(dt);
+  if (t >= SHORT_LAUNCH) beginPlay();
+}
 function updLaunch(dt){
-  const L = launchSeq; L.t = (performance.now() - L.t0) / 1000; const t = L.t;
+  const L = launchSeq; L.t = (performance.now() - L.t0) / 1000;
+  if (L.short) return updLaunchShort(dt);
+  const t = L.t / LAUNCH_K; // original 6.1s timeline, played in 5.5s
   $('launchFade').style.opacity = clamp(1 - t / 0.8, 0, 1).toFixed(2);
   const log = $('bootLog').children;
   const bi = Math.floor((t - 0.3) / 0.32);
@@ -1959,6 +3066,7 @@ function updLaunch(dt){
 function updAmbient(dt){
   for (const s of searchlights){ s.m.rotation.set(Math.sin(G.t * s.sp + s.ph) * 0.45, 0, Math.cos(G.t * s.sp * 0.8 + s.ph) * 0.45); }
   const av = world.userData.aviMat; if (av) av.opacity = Math.sin(G.t * 2.5) > 0.2 ? 1 : 0.15;
+  stage.update(G.t, dt);
   // ash follows camera
   const p = ash.p, cx = camera.position.x, cz = camera.position.z;
   for (let i = 0; i < ash.cap; i++){
@@ -1993,7 +3101,7 @@ function updPlay(dt){
   const near = updEnemies(G.ending > 0 ? dt * 0.3 : dt);
   if (near < 70 && lastNear >= 70) say('灰殻、至近距離！ 接近してきます！', {key:'near', cd:12});
   lastNear = near;
-  updBullets(dt); updEnemyShots(dt);
+  updBullets(dt); updEnemyShots(dt); updDebris(dt);
   updCamera(dt);
   updLock();
   updHUD(dt);
@@ -2062,13 +3170,11 @@ function applyQuality(name){
   // antialias is fixed at renderer creation (see above); everything below switches live
   PR = Math.min(window.devicePixelRatio || 1, Q.pr); lowFpsSecs = 0;
   renderer.setPixelRatio(PR);
-  scene.fog.density = Q.fog;
+  scene.fog.density = Q.fog * stage.fogMul;
   camera.far = Q.far; // projection matrix is rebuilt in onResize()
   const u = world.userData;
   u.sky.scale.setScalar(Q.skyScale); u.stars.scale.setScalar(Q.skyScale);
-  for (const b of u.bldg) b.im.count = Q.bldR === Infinity ? b.full : b.within(Q.bldR);
-  u.pool.visible = Q.deco;
-  for (const s of searchlights) s.m.visible = Q.deco;
+  for (const k in STAGES) applyStageQuality(STAGES[k]); // buildings / containers by distance, light pools
   for (const S of particleSystems) setParticleCap(S, S.max * Q.fx);
   ash.cap = Math.max(16, Math.round(ash.n * Q.fx)); ash.g.setDrawRange(0, ash.cap);
   onResize();
@@ -2097,6 +3203,16 @@ applyQuality(qName); // also calls onResize()
 setShowFps(showFps);
 
 /* ================= test hooks ================= */
+function startMissionNow(id){
+  initAudio();
+  if (hangarFrom) hangarFrom = null;
+  if (G.state === 'paused') showOnly([]);
+  resetMission(id);
+  G.state = 'title'; // beginPlay accepts it; not 'launch', so this shortcut never marks the launch sequence as seen
+  P.res = 40;
+  beginPlay();
+  return G.state;
+}
 window.__GAME = {
   get state(){ return G.state; },
   get fps(){ return Math.round(fps); },
@@ -2105,21 +3221,67 @@ window.__GAME = {
   setQuality: (q) => setQuality(q) ? qName : false,
   get showFps(){ return showFps; },
   setShowFps: (on) => { setShowFps(on); return showFps; },
-  start(){
-    initAudio();
-    if (G.state === 'paused') showOnly([]);
-    resetMission();
-    G.state = 'launch';
-    P.res = 40;
-    beginPlay();
-    return G.state;
+  start(){ return startMissionNow(M.id); },
+  // Start MISSION id (1|2) straight into play (no launch sequence). Works even if MISSION 02 is still locked.
+  startMission(id){ id = +id === 2 ? 2 : 1; return startMissionNow(id); },
+  get missionId(){ return M.id; },
+  get selectedMission(){ return selMission; },
+  selectMission: (id) => selectMission(+id, true),
+  get m2Unlocked(){ return m2Unlocked(); },
+  get upgrades(){ return Object.assign({}, SAVE.up); },
+  get upgradeEffects(){ return upEffects(SAVE.up); },
+  get parts(){ return SAVE.parts; },
+  get hangarOpen(){ return !!hangarFrom; },
+  openHangar: () => openHangar(G.state === 'result' ? 'result' : 'title'),
+  closeHangar: () => { closeHangar(); return true; },
+  buyUpgrade: (k) => buyUpgrade(k),
+  debugSetUpgrades(o){
+    o = o || {};
+    for (const k of UP_KEYS) if (o[k] != null) SAVE.up[k] = clamp(Math.floor(+o[k] || 0), 0, UP_MAX);
+    writeSave(); sessionDebug = true; G.debugUsed = true; // debug: no records from now on in this page session
+    if (hangarFrom) renderHangar(); if (G.state === 'title') refreshTitle();
+    return Object.assign({}, SAVE.up);
   },
+  debugAddParts(n){
+    SAVE.parts = Math.max(0, SAVE.parts + Math.floor(+n || 0)); writeSave(); sessionDebug = true; G.debugUsed = true;
+    if (hangarFrom) renderHangar(); if (G.state === 'title') refreshTitle();
+    return SAVE.parts;
+  },
+  get boss(){
+    const e = enemies.find(x => x.alive && BOSS_TYPES[x.type]);
+    return e ? {type:e.type, phase:e.phase || 1, hp:e.hp, maxHp:e.maxHp, state:e.state, open:e.type === 'twin' ? +e.open.toFixed(2) : null, x:e.g.position.x, z:e.g.position.z} : null;
+  },
+  debugSpawnBoss(){
+    if (G.state !== 'play' || G.ending > 0) return false;
+    G.debugUsed = true;
+    const b = enemies.find(x => x.alive && BOSS_TYPES[x.type]);
+    if (b) return true;
+    for (const e of enemies.slice()) if (e.alive) removeEnemy(e);
+    G.kills = G.spawned = M.order.length;
+    spawnBoss();
+    return true;
+  },
+  debugBossPhase2(){
+    if (!this.debugSpawnBoss()) return false;
+    const b = enemies.find(x => x.alive && x.type === 'twin');
+    if (!b) return false; // MISSION 01's SHELL LORD has a single phase
+    if (b.phase === 1 && b.state !== 'transform'){ b.hp = b.maxHp / 2; twinTransform(b); }
+    return true;
+  },
+  get daily(){ ensureDaily(); return {date:SAVE.daily.date, goals:SAVE.daily.goals.map(g => ({id:g.id, text:goalText(g), prog:g.prog, target:g.target, done:g.done, reward:g.reward, m2:g.m2})), allDone:SAVE.daily.allDone, streak:SAVE.streak.n}; },
+  debugSetDate(ds){
+    if (ds != null && !/^\d{4}-\d{2}-\d{2}$/.test(String(ds))) return false;
+    debugDate = ds == null ? null : String(ds);
+    ensureDaily(); if (G.state === 'title') goTitle();
+    return today();
+  },
+  get launchShort(){ return !!SAVE.launched; },
   debugKillAll(){
     if (G.state !== 'play') return false;
     G.debugUsed = true; // QA shortcut: never record this run as a high score
-    for (const e of enemies.slice()) if (e.alive && e.type !== 'lord') killEnemy(e);
-    G.kills = 12; G.spawned = 12;
-    if (!G.lordSpawned){ G.lordSpawned = true; spawnEnemy('lord', P.pos.x, P.pos.z - 150); }
+    for (const e of enemies.slice()) if (e.alive && !BOSS_TYPES[e.type]) killEnemy(e);
+    G.kills = G.spawned = M.order.length;
+    if (!G.lordSpawned){ G.lordSpawned = true; spawnEnemy(M.boss, P.pos.x, P.pos.z - 150); }
     for (const e of enemies.slice()) if (e.alive) killEnemy(e);
     return true;
   },
@@ -2134,7 +3296,7 @@ window.__GAME = {
     let best = null, bd = 1e9;
     for (const e of enemies){ if (!e.alive) continue; const d = Math.hypot(e.g.position.x - P.pos.x, e.g.position.z - P.pos.z); if (d < bd){ bd = d; best = e; } }
     if (!best) return null;
-    const c = best.type === 'lord' ? weakPoint(best, new THREE.Vector3()) : enemyCenter(best, new THREE.Vector3());
+    const c = aimPoint(best, new THREE.Vector3());
     P.heading = Math.atan2(-(c.x - P.pos.x), -(c.z - P.pos.z)); P.mouseYaw = 0; P.turnRate = 0;
     P.pitch = clamp(Math.atan2(c.y - (P.y + 14), bd), -0.45, 0.35);
     return {type:best.type, dist:bd};
@@ -2142,19 +3304,20 @@ window.__GAME = {
   pause: () => pauseGame(),
   resume: () => resumeGame(),
   get player(){
-    return {x:P.pos.x, y:P.y, z:P.pos.z, heading:P.heading, speed:P.v, armor:P.armor, heat:P.heat, overheated:P.overheated,
+    return {x:P.pos.x, y:P.y, z:P.pos.z, heading:P.heading, speed:P.v, armor:P.armor, armorMax:P.armorMax, gripMax:P.gripMax, heat:P.heat, overheated:P.overheated,
       resonance:P.res, overbeat:P.overbeat, grip:P.grip.slice(), kills:G.kills, shots:P.shots, hits:P.hits, grounded:P.grounded};
   },
-  get mission(){ return {timeLeft:G.timeLeft, kills:G.kills, spawned:G.spawned, lordSpawned:G.lordSpawned, lordDead:G.lordDead,
+  get mission(){ return {id:M.id, total:M.order.length, timeLeft:G.timeLeft, kills:G.kills, spawned:G.spawned, lordSpawned:G.lordSpawned, lordDead:G.lordDead,
       enemiesAlive:enemies.filter(e => e.alive).length, ending:G.ending > 0, win:G.win}; },
   get result(){ return G.lastResult || null; },
-  get enemies(){ return enemies.filter(e => e.alive).map(e => ({type:e.type, x:e.g.position.x, y:e.g.position.y, z:e.g.position.z, hp:e.hp})); },
+  get enemies(){ return enemies.filter(e => e.alive).map(e => ({type:e.type, x:e.g.position.x, y:e.g.position.y, z:e.g.position.z, hp:e.hp, state:e.state})); },
 };
 
 // pre-compile every material once so the first spawn / shot does not hitch
 (function warmup(){
   try{
-    const tmp = [makeBeetle().g, makeFloater().g, makeLord().g];
+    const extra = [makeRammer(), makeTwin()];
+    const tmp = [makeBeetle().g, makeFloater().g, makeLord().g].concat(extra.map(m => m.g));
     tmp.forEach((g, i) => { g.position.set(i * 30, 0, -40); scene.add(g); });
     const pools = bullets.map(b => b.m).concat(eShots.map(s => s.m), flashPool.map(f => f.m));
     const prevMat = bullets[1].m.material; bullets[1].m.material = tracerMatOB;
@@ -2165,6 +3328,7 @@ window.__GAME = {
     pools.forEach(m => { m.visible = false; });
     bullets[1].m.material = prevMat;
     tmp.forEach(g => scene.remove(g));
+    extra.forEach(m => m.mats.forEach(x => x.dispose()));
   }catch(e){}
 })();
 goTitle();
