@@ -9,3 +9,8 @@ web/dist/kotomark-engine.js
 *.pem
 *signing-key*
 .kotomark/
+# Human review kit (docs/human-review.md): the generated sheet shows third-party text, and reviewer CSVs are private.
+out/
+/reviews/
+kotomark-review-*.csv
+*.review.csv

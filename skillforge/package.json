@@ -28,7 +28,9 @@
     "start": "node dist/server/index.js",
     "build:demo": "node web/build-demo.mjs",
     "kotomark": "tsx src/cli/index.ts",
-    "build:site": "npm run build:demo && node web/build-site.mjs"
+    "build:site": "npm run build:demo && node web/build-site.mjs",
+    "human-review": "node scripts/human-review.mjs",
+    "human-review:score": "node scripts/human-review-score.mjs"
   },
   "license": "Elastic-2.0",
   "dependencies": {
