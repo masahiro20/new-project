@@ -591,23 +591,27 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
     untranslated: ["未翻訳", "Untranslated"],
   };
   const FILTERS = [
-    { key: "all", ja: "すべて", en: "all", cats: CAT_ORDER },
-    { key: "term", ja: "訳揺れ", en: "term", cats: ["term"] },
-    { key: "notation", ja: "表記揺れ", en: "notation", cats: ["notation"] },
-    { key: "name", ja: "キャラ名", en: "name", cats: ["name"] },
-    { key: "honorific", ja: "敬称", en: "honorific", cats: ["honorific"] },
-    { key: "voice", ja: "口調", en: "voice", cats: ["voice"] },
-    { key: "other", ja: "その他", en: "tags etc.", cats: ["placeholder", "tag", "ruby", "length", "untranslated"] },
+    { key: "all", ja: "すべて", en: "all", ui: "All", cats: CAT_ORDER },
+    { key: "term", ja: "訳揺れ", en: "term", ui: "Terms", cats: ["term"] },
+    { key: "notation", ja: "表記揺れ", en: "notation", ui: "Notation", cats: ["notation"] },
+    { key: "name", ja: "キャラ名", en: "name", ui: "Names", cats: ["name"] },
+    { key: "honorific", ja: "敬称", en: "honorific", ui: "Honorifics", cats: ["honorific"] },
+    { key: "voice", ja: "口調", en: "voice", ui: "Voice", cats: ["voice"] },
+    { key: "other", ja: "その他", en: "tags etc.", ui: "Other (tags etc.)", cats: ["placeholder", "tag", "ruby", "length", "untranslated"] },
   ];
-  const SEV = { error: ["エラー", "error"], warning: ["警告", "warning"], info: ["参考", "info"] };
+  const sevName = (s) => (SEV_ORDER.includes(s) ? t("sev." + s) : s);
+  const catName = (c) => (CAT_TITLE[c] ? CAT_TITLE[c][ui === "en" ? 1 : 0] : c);
+  // 日本語画面は「日本語 + 英語の小見出し」、英語画面は英語のみ。
+  const catHeading = (c) => (ui === "en" ? esc(CAT_TITLE[c][1]) : `${esc(CAT_TITLE[c][0])} <span class="en">${esc(CAT_TITLE[c][1])}</span>`);
   const SEV_ORDER = ["error", "warning", "info"];
   const LANG = { ja: "JA", en: "EN" };
-  const KIND = { voice: "口調", "unglossaried-term": "未登録用語" };
+  const kindName = (k) => (k === "voice" || k === "unglossaried-term" ? t("kind." + k) : k);
   const KNOWN_EXT = /\.(csv|tsv|json|xlf|xliff|xlsx|xlsm|po|pot|yml|yaml|rpy|ks)$/i;
   const BINARY_EXT = /\.(xlsx|xlsm)$/i;
   const LOCALE_KEY = "kotomark.demo.locale";
+  // Returns the explicitly chosen message language, or null when the user never picked one (then it follows the UI).
   function loadLocale() {
-    try { const v = localStorage.getItem(LOCALE_KEY); return v === "en" || v === "ja" ? v : "ja"; } catch (_) { return "ja"; }
+    try { const v = localStorage.getItem(LOCALE_KEY); return v === "en" || v === "ja" ? v : null; } catch (_) { return null; }
   }
   function saveLocale(v) { try { localStorage.setItem(LOCALE_KEY, v); } catch (_) { /* storage unavailable: choice lasts this visit only */ } }
   function currentLocale() { return $("opt-locale-en").checked ? "en" : "ja"; }
@@ -618,6 +622,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
     sampleKey: null, dirty: false,
     result: null, md: "", rows: new Map(), tableByFile: new Map(),
     isSample: null, cat: "all", sev: { error: true, warning: true, info: true },
+    errors: { list: [], soft: false }, status: null,
   };
 
   // ---------- input helpers ----------
@@ -647,10 +652,10 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
     const ul = $("file-list");
     ul.innerHTML = state.files.map((f, i) => `
       <li><span class="name">${esc(f.name)}</span><span class="meta num">${esc(f.bytes ? fmtBytes(f.bytes.length) : fmtSize(f.text.length))}</span>
-        ${f.bytes ? "" : `<button type="button" class="btn-quiet btn-small" id="file-edit-${i}" data-edit="${i}">編集</button>`}
-        <button type="button" class="btn-quiet btn-small" id="file-del-${i}" data-del="${i}" aria-label="${esc(f.name)} を外す">外す</button></li>`).join("");
+        ${f.bytes ? "" : `<button type="button" class="btn-quiet btn-small" id="file-edit-${i}" data-edit="${i}">${t("file.edit")}</button>`}
+        <button type="button" class="btn-quiet btn-small" id="file-del-${i}" data-del="${i}" aria-label="${t("file.removeAria", esc(f.name))}">${t("file.remove")}</button></li>`).join("");
   }
-  function fmtSize(n) { return n < 1024 ? `${n} 文字` : `${(n / 1024).toFixed(1)}k 文字`; }
+  function fmtSize(n) { return n < 1024 ? t("size.chars", n) : t("size.kchars", (n / 1024).toFixed(1)); }
   function fmtBytes(n) { return n < 1024 ? `${n} B` : `${(n / 1024).toFixed(1)} KB`; }
 
   async function addFiles(fileList) {
@@ -689,20 +694,32 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
   // Engine errors start with the file name; the error list already shows it.
   function stripName(name, msg) { return msg.startsWith(name + ": ") ? msg.slice(name.length + 2) : msg; }
 
+  // Items: { where, msg } raw text, or { w: key, wArg?, m: key } dictionary keys (re-rendered on a UI switch).
   function showErrors(list, soft) {
+    state.errors = { list, soft: !!soft };
+    if (!soft) { state.status = null; $("run-status").textContent = ""; }
+    renderErrors();
+  }
+  function renderErrors() {
     const box = $("errors");
-    if (!soft) $("run-status").textContent = "";
+    const { list, soft } = state.errors;
     if (!list.length) { box.hidden = true; box.innerHTML = ""; return; }
     box.className = "errors" + (soft ? " soft" : "");
-    box.innerHTML = `<h3>${soft ? "一部の入力を読み込めませんでした（他のファイルでチェックを続行）" : "入力を確認してください"}</h3>
-      <ul>${list.map((e) => `<li><strong>${esc(e.where)}</strong>：${esc(e.msg)}</li>`).join("")}</ul>`;
+    const where = (e) => (e.w ? t(e.w, e.wArg) : e.where);
+    const msg = (e) => (e.m ? t(e.m) : e.msg);
+    box.innerHTML = `<h3>${soft ? t("err.softH") : t("err.hardH")}</h3>
+      <ul>${list.map((e) => `<li><strong>${esc(where(e))}</strong>${t("err.sep")}${esc(msg(e))}</li>`).join("")}</ul>`;
     box.hidden = false;
+  }
+  function renderStatus() {
+    const st = state.status;
+    $("run-status").innerHTML = st ? t("status", st.sample, st.n) : "";
   }
 
   function run(opts) {
     const keepFilters = !!(opts && opts.keepFilters);
     if (typeof Kotomark === "undefined") {
-      showErrors([{ where: "エンジン", msg: "チェックエンジンが組み込まれていません。web/build-demo.mjs でビルドしたHTMLを開いてください。" }]);
+      showErrors([{ w: "where.engine", m: "msg.noEngine" }]);
       return;
     }
     const errors = [];
@@ -710,11 +727,11 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
     const pasted = $("script-text").value;
     if (pasted.trim()) {
       let name = $("script-name").value.trim() || "script.csv";
-      if (inputs.some((f) => f.name === name)) name = "(貼り付け) " + name;
+      if (inputs.some((f) => f.name === name)) name = t("paste.prefix") + name;
       inputs.push({ name, text: pasted, format: $("script-format").value, pasted: true });
     }
     if (!inputs.length) {
-      showErrors([{ where: "台本", msg: "台本が空です。テキストを貼り付けるか、ファイルを追加してください。" }]);
+      showErrors([{ w: "where.script", m: "msg.emptyScript" }]);
       $("results").innerHTML = "";
       state.result = null;
       return;
@@ -728,12 +745,12 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
     try {
       loaded = Kotomark.loadInputs(files, { onError: (name, e) => errors.push({ where: name, msg: stripName(name, (e && e.message) || String(e)) }) });
     } catch (e) {
-      errors.push({ where: "読み込み", msg: (e && e.message) || String(e) });
+      errors.push({ w: "where.load", msg: (e && e.message) || String(e) });
     }
     const tables = [];
-    for (const t of loaded.tables) {
-      if (!t.rows.length) errors.push({ where: t.file, msg: "翻訳行が1行も見つかりませんでした。形式や列名を確認してください。" });
-      else tables.push(t);
+    for (const tb of loaded.tables) {
+      if (!tb.rows.length) errors.push({ where: tb.file, m: "msg.noRows" });
+      else tables.push(tb);
     }
     state.notes = loaded.notes;
     let glossary = Kotomark.EMPTY_GLOSSARY;
@@ -746,13 +763,13 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
         : first.includes("\t") && !first.includes(",") ? "glossary.tsv" : "glossary.csv";
       // TBX and ja/en-column CSVs are read in the script's direction (most rows win).
       let ja = 0, en = 0;
-      for (const t of tables) { if (t.sourceLang === "en") en += t.rows.length; else ja += t.rows.length; }
+      for (const tb of tables) { if (tb.sourceLang === "en") en += tb.rows.length; else ja += tb.rows.length; }
       try {
         const parsed = Kotomark.parseGlossaryWithNotes(gtext, gname, { sourceLang: en > ja ? "en" : "ja" });
         glossary = parsed.glossary;
-        state.notes = state.notes.concat(parsed.notes.map((n) => "用語集 " + n));
+        state.notes = state.notes.concat(parsed.notes.map((n) => ({ gloss: n })));
       }
-      catch (e) { glossError = true; errors.push({ where: "用語集 " + gname, msg: (e && e.message) || String(e) }); }
+      catch (e) { glossError = true; errors.push({ w: "where.gloss", wArg: gname, msg: (e && e.message) || String(e) }); }
     }
     if (glossError || !tables.length) {
       showErrors(errors);
@@ -764,7 +781,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
     try {
       result = Kotomark.runChecks(tables, glossary, { rules: $("opt-rules").checked, wideAsTwo: $("opt-wide").checked, locale: currentLocale() });
     } catch (e) {
-      errors.push({ where: "チェック", msg: (e && e.message) || String(e) });
+      errors.push({ w: "where.check", msg: (e && e.message) || String(e) });
       showErrors(errors);
       $("results").innerHTML = "";
       state.result = null;
@@ -775,13 +792,13 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
     state.md = Kotomark.renderMarkdown(result, { locale: currentLocale() });
     state.rows = new Map();
     state.tableByFile = new Map();
-    for (const t of tables) {
-      state.tableByFile.set(t.file, t);
-      for (const r of t.rows) {
+    for (const tb of tables) {
+      state.tableByFile.set(tb.file, tb);
+      for (const r of tb.rows) {
         // Paired .ks scenarios: a row lives in the translation file (r.file) and its original in r.sourceRef.
-        const refs = [[t.file, r.line], ...(r.file !== t.file ? [[r.file, r.line]] : []), ...(r.sourceRef ? [[r.sourceRef.file, r.sourceRef.line]] : [])];
+        const refs = [[tb.file, r.line], ...(r.file !== tb.file ? [[r.file, r.line]] : []), ...(r.sourceRef ? [[r.sourceRef.file, r.sourceRef.line]] : [])];
         for (const [file, line] of refs) {
-          if (!state.tableByFile.has(file)) state.tableByFile.set(file, t);
+          if (!state.tableByFile.has(file)) state.tableByFile.set(file, tb);
           state.rows.set(file + "\u0000" + line + "\u0000" + r.id, r);
           const lk = file + "\u0000" + line;
           if (!state.rows.has(lk)) state.rows.set(lk, r);
@@ -801,7 +818,8 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
     renderResults();
     if (openPackets && $("packets")) $("packets").open = true;
     const n = result.findings.length;
-    $("run-status").innerHTML = `${state.isSample ? "サンプルを実行しました：" : "チェック完了："}<span class="num">${n}</span>件の指摘 · <a href="#results" id="jump-results">結果を見る ↓</a>`;
+    state.status = { sample: !!state.isSample, n };
+    renderStatus();
   }
 
   // ---------- rendering ----------
@@ -823,7 +841,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
     const entries = Object.entries(u.counts).filter(([, n]) => n > 0).sort((a, b) => b[1] - a[1]);
     if (entries.length < 2) return "";
     const suffix = u.group === group ? "" : u.group.slice(group.length).replace(/^[:\s]+/, "");
-    return `<div class="usage"><span class="lbl">使用状況${suffix ? "（" + esc(suffix) + "）" : ""}</span>${entries.map(([k, n], i) =>
+    return `<div class="usage"><span class="lbl">${t("usage", suffix ? esc(suffix) : "")}</span>${entries.map(([k, n], i) =>
       `<span class="u${i > 0 ? " minor" : ""}">${esc(k)} <b>×${n}</b></span>`).join("")}</div>`;
   }
 
@@ -835,18 +853,18 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
     const mark = f.category === "length" ? "" : f.found;
     let fix = "";
     if (f.found || f.expected) {
-      fix = `<p class="fix">${f.found ? `<span class="k">検出</span><del>${esc(f.found)}</del>` : ""}${f.found && f.expected ? `<span class="arrow" aria-hidden="true">→</span>` : ""}${f.expected ? `<span class="k">${f.found ? "" : "期待"}</span><ins>${esc(f.expected)}</ins>` : ""}</p>`;
+      fix = `<p class="fix">${f.found ? `<span class="k">${t("fix.found")}</span><del>${esc(f.found)}</del>` : ""}${f.found && f.expected ? `<span class="arrow" aria-hidden="true">→</span>` : ""}${f.expected ? `<span class="k">${f.found ? "" : t("fix.expected")}</span><ins>${esc(f.expected)}</ins>` : ""}</p>`;
     }
     let lines = "";
     if (row) {
       lines = `<dl class="lines">
-        <div class="${f.side === "source" ? "is-side" : ""}"><dt>原文 ${esc(sl)}${row.speaker ? `<br><span class="speaker">${esc(row.speaker)}</span>` : ""}</dt><dd>${f.side === "source" ? highlight(row.source, mark) : esc(row.source)}</dd></div>
-        <div class="${f.side === "target" ? "is-side" : ""}"><dt>訳文 ${esc(tl)}</dt><dd>${f.side === "target" ? highlight(row.target, mark) : esc(row.target)}</dd></div>
+        <div class="${f.side === "source" ? "is-side" : ""}"><dt>${t("line.source")} ${esc(sl)}${row.speaker ? `<br><span class="speaker">${esc(row.speaker)}</span>` : ""}</dt><dd>${f.side === "source" ? highlight(row.source, mark) : esc(row.source)}</dd></div>
+        <div class="${f.side === "target" ? "is-side" : ""}"><dt>${t("line.target")} ${esc(tl)}</dt><dd>${f.side === "target" ? highlight(row.target, mark) : esc(row.target)}</dd></div>
       </dl>`;
     }
     const labeled = fb.on && fb.index.has(f) && labelOf(fb.index.get(f)).v;
     return `<li class="f${labeled ? " is-labeled" : ""}">
-      <div class="f-head"><span class="pill ${esc(f.severity)}">${esc((SEV[f.severity] || [f.severity])[0])}</span><code class="ref">${esc(f.file)}:${esc(f.line)}</code><code class="fid">${esc(f.id)}</code><span class="side">${f.side === "source" ? "原文側" : "訳文側"} · <span class="mono">${esc(f.rule)}</span></span></div>
+      <div class="f-head"><span class="pill ${esc(f.severity)}">${esc(sevName(f.severity))}</span><code class="ref">${esc(f.file)}:${esc(f.line)}</code><code class="fid">${esc(f.id)}</code><span class="side">${f.side === "source" ? t("side.source") : t("side.target")} · <span class="mono">${esc(f.rule)}</span></span></div>
       <p class="msg">${esc(f.message)}</p>${fix}${lines}${fb.on ? verdictHtml(f) : ""}</li>`;
   }
 
@@ -860,41 +878,42 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
     const activeCats = FILTERS.find((x) => x.key === state.cat).cats;
     const shown = all.filter((f) => activeCats.includes(f.category) && state.sev[f.severity]);
 
-    const meta = r.tables.map((t) => `<span class="mono">${esc(t.file)}</span> ${esc(String(t.format).toUpperCase())} <span class="num">${t.rows}</span>行 ${esc(t.sourceLang)}→${esc(t.targetLang)}`).join(" ／ ")
-      + ` ／ 用語集 <span class="num">${r.glossary.terms}</span>語・キャラ <span class="num">${r.glossary.characters}</span>人`;
+    const meta = r.tables.map((tb) => t("meta.table", `<span class="mono">${esc(tb.file)}</span>`, esc(String(tb.format).toUpperCase()), tb.rows, esc(tb.sourceLang), esc(tb.targetLang))).join(t("meta.sep"))
+      + t("meta.sep") + t("meta.gloss", r.glossary.terms, r.glossary.characters);
+    const noteText = (n) => (n && typeof n === "object" ? t("note.gloss", n.gloss) : n);
 
     let html = `<div class="res-head">
-      <div><h2>チェック結果 <span class="en">Results</span>${state.isSample ? `<span class="badge-sample">サンプル${state.isSample === "ja-en" ? "（日→英）" : "（英→日）"}</span>` : ""}</h2></div>
-      <div class="res-tools"><span class="copy-status" id="copy-status" role="status"></span><button type="button" class="chip" id="btn-pilot" aria-pressed="${fb.on}">試用モード（指摘に印を付ける）<span class="en">pilot</span></button><button type="button" id="btn-copy-md">Markdown をコピー</button></div>
+      <div><h2>${t("res.h")}${state.isSample ? `<span class="badge-sample">${t("badge.sample", state.isSample)}</span>` : ""}</h2></div>
+      <div class="res-tools"><span class="copy-status" id="copy-status" role="status"></span><button type="button" class="chip" id="btn-pilot" aria-pressed="${fb.on}">${t("pilot.btn")}</button><button type="button" id="btn-copy-md">${t("copy.mdBtn")}</button></div>
     </div>
     <p class="res-meta">${meta}</p>
-    ${state.notes && state.notes.length ? `<ul class="load-notes" aria-label="読み込みメモ">${state.notes.map((n) => `<li>${esc(n)}</li>`).join("")}</ul>` : ""}
-    <textarea id="md-fallback" readonly hidden aria-label="Markdown レポート"></textarea>
+    ${state.notes && state.notes.length ? `<ul class="load-notes" aria-label="${t("notes.aria")}">${state.notes.map((n) => `<li>${esc(noteText(n))}</li>`).join("")}</ul>` : ""}
+    <textarea id="md-fallback" readonly hidden aria-label="${t("md.aria")}"></textarea>
     <div class="summary">
-      <div><div class="filter-label" id="lbl-sev">重要度 <span class="en">severity · 合計 ${all.length}件</span></div>
+      <div><div class="filter-label" id="lbl-sev">${t("sev.label", all.length)}</div>
         <div class="chips" role="group" aria-labelledby="lbl-sev">${SEV_ORDER.map((s) => {
           const n = sevCount(s);
-          return `<button type="button" class="chip sev-${s}${n ? "" : " zero"}" id="sev-${s}" data-sev="${s}" aria-pressed="${state.sev[s]}">${SEV[s][0]} <span class="n">${n}</span></button>`;
+          return `<button type="button" class="chip sev-${s}${n ? "" : " zero"}" id="sev-${s}" data-sev="${s}" aria-pressed="${state.sev[s]}">${esc(sevName(s))} <span class="n">${n}</span></button>`;
         }).join("")}</div></div>
-      <div><div class="filter-label" id="lbl-cat">分類 <span class="en">category</span></div>
+      <div><div class="filter-label" id="lbl-cat">${t("cat.label")}</div>
         <div class="chips" role="group" aria-labelledby="lbl-cat">${FILTERS.map((c) => {
           const n = catCount(c.cats);
-          return `<button type="button" class="chip${n ? "" : " zero"}" id="cat-${c.key}" data-cat="${c.key}" aria-pressed="${state.cat === c.key}">${c.ja} <span class="en">${c.en}</span> <span class="n">${n}</span></button>`;
+          return `<button type="button" class="chip${n ? "" : " zero"}" id="cat-${c.key}" data-cat="${c.key}" aria-pressed="${state.cat === c.key}">${ui === "en" ? c.ui : `${c.ja} <span class="en">${c.en}</span>`} <span class="n">${n}</span></button>`;
         }).join("")}</div></div>
     </div>`;
     if (fb.on) html += fbPanelHtml();
 
     if (!all.length) {
-      html += `<p class="empty">揺れは見つかりませんでした。 <span class="en">No issues found.</span></p>`;
+      html += `<p class="empty">${t("empty.none")}</p>`;
     } else if (!shown.length) {
-      html += `<p class="empty">この絞り込みに該当する指摘はありません。</p>`;
+      html += `<p class="empty">${t("empty.filter")}</p>`;
     } else {
       for (const cat of CAT_ORDER) {
         const fs = shown.filter((f) => f.category === cat);
         if (!fs.length) continue;
         const groups = new Map();
         for (const f of fs) { const g = f.group || ""; if (!groups.has(g)) groups.set(g, []); groups.get(g).push(f); }
-        html += `<section class="cat" aria-labelledby="cat-h-${cat}"><h3 id="cat-h-${cat}">${CAT_TITLE[cat][0]} <span class="en">${CAT_TITLE[cat][1]}</span> <span class="n">${fs.length}件</span></h3>`;
+        html += `<section class="cat" aria-labelledby="cat-h-${cat}"><h3 id="cat-h-${cat}">${catHeading(cat)} <span class="n">${t("count", fs.length)}</span></h3>`;
         for (const [g, list] of groups) {
           const usages = usageFor(cat, g).map((u) => usageHtml(u, g)).join("");
           html += `<div class="group">${g || usages ? `<div class="group-head">${g ? `<h4>${esc(g)}</h4>` : ""}${usages}</div>` : ""}
@@ -906,10 +925,10 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
 
     const packets = r.reviewPackets || [];
     if (packets.length) {
-      html += `<details class="packets" id="packets"><summary>要判断パケット <span class="en">Review packets</span> <span class="n">${packets.length}件</span></summary>
-        <div class="packets-intro"><p>ルールだけでは判断できない行（口調・用語集にない頻出語）をまとめたものです。AIアシスタントや校正担当に渡して確認してください。</p>
-        <button type="button" class="btn-small" id="btn-copy-packets">パケットを JSON でコピー</button></div>
-        ${packets.map((p, i) => `<details class="packet" id="packet-${i}"><summary><span class="kind">${esc(KIND[p.kind] || p.kind)}</span><span class="subj">${esc(p.subject)}</span><span class="en num">${p.lines.length}行</span></summary>
+      html += `<details class="packets" id="packets"><summary>${t("pk.summary")} <span class="n">${t("count", packets.length)}</span></summary>
+        <div class="packets-intro"><p>${t("pk.intro")}</p>
+        <button type="button" class="btn-small" id="btn-copy-packets">${t("pk.copy")}</button></div>
+        ${packets.map((p, i) => `<details class="packet" id="packet-${i}"><summary><span class="kind">${esc(kindName(p.kind))}</span><span class="subj">${esc(p.subject)}</span><span class="en num">${t("pk.lines", p.lines.length)}</span></summary>
           <div class="packet-body"><p class="instr">${esc(p.instructions)}</p>
           <ol>${p.lines.map((l) => `<li><span><code class="ref">${esc(l.ref)}</code> <code class="fid">${esc(l.id)}</code>${l.speaker ? ` <span class="speaker">${esc(l.speaker)}</span>` : ""}</span>
             <span>${esc(l.source)}</span><span>${esc(l.target)}</span>${l.flagged ? `<span class="flag">${esc(l.flagged)}</span>` : ""}</li>`).join("")}</ol></div></details>`).join("")}
@@ -927,13 +946,13 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
       if (!navigator.clipboard || !navigator.clipboard.writeText) throw new Error("no clipboard");
       await navigator.clipboard.writeText(text);
       fb.hidden = true;
-      if (status) status.textContent = label + "をコピーしました。";
+      if (status) status.textContent = t("copy.done", label);
     } catch (_) {
       fb.value = text;
       fb.hidden = false;
       fb.focus();
       fb.select();
-      if (status) status.textContent = "自動コピーできませんでした。下のテキストを選択済みです（Ctrl+C / ⌘C でコピー）。";
+      if (status) status.textContent = t("copy.fail");
     }
   }
 
@@ -945,7 +964,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
   const FB_PREFIX = "kotomark.demo.fb.";
   const FB_INDEX = "kotomark.demo.fb.index";
   const FB_KEEP = 20;
-  const VERDICTS = [["tp", "正しい指摘", "TP"], ["fp", "誤検知", "FP"], ["unsure", "保留", "unsure"]];
+  const VERDICTS = [["tp"], ["fp"], ["unsure"]]; // labels: t("v." + verdict)
   const VERDICT_CSV = { tp: "TP", fp: "FP", unsure: "?" };
   function loadFlag(key, dflt) {
     try { const v = localStorage.getItem(key); return v === "1" ? true : v === "0" ? false : dflt; } catch (_) { return dflt; }
@@ -1035,19 +1054,19 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
     const labeled = tot.tp + tot.fp + tot.unsure;
     const rows = [...byCat.keys()].sort(catOrder).map((cat) => {
       const s = byCat.get(cat);
-      return `<tr><td>${esc((CAT_TITLE[cat] || [cat])[0])} <span class="en">${esc(cat)}</span></td><td>${s.tp + s.fp + s.unsure} / ${s.total}</td><td>${s.tp}</td><td>${s.fp}</td><td>${s.unsure}</td><td>${pct(s)}</td></tr>`;
+      return `<tr><td>${esc(catName(cat))} <span class="en">${esc(cat)}</span></td><td>${s.tp + s.fp + s.unsure} / ${s.total}</td><td>${s.tp}</td><td>${s.fp}</td><td>${s.unsure}</td><td>${pct(s)}</td></tr>`;
     }).join("");
-    return `<p class="fb-stats"><span>印を付けた指摘 <span class="en">labeled</span> <b id="fb-labeled">${labeled}</b> / <b id="fb-total">${tot.total}</b></span>
-      <span>適合率 <span class="en">precision TP/(TP+FP)</span> <b id="fb-precision">${pct(tot)}</b></span>
+    return `<p class="fb-stats"><span>${t("fb.labeled")} <b id="fb-labeled">${labeled}</b> / <b id="fb-total">${tot.total}</b></span>
+      <span>${t("fb.precision")} <b id="fb-precision">${pct(tot)}</b></span>
       <span class="en">TP ${tot.tp} · FP ${tot.fp} · unsure ${tot.unsure}</span></p>
-      <div class="fb-scroll"><table class="fb-table" id="fb-table"><caption class="sr-only">分類ごとの内訳</caption>
-        <thead><tr><th scope="col">分類 <span class="en">category</span></th><th scope="col">印 / 件数</th><th scope="col"><abbr title="正しい指摘">TP</abbr></th><th scope="col"><abbr title="誤検知">FP</abbr></th><th scope="col">保留</th><th scope="col">適合率</th></tr></thead>
+      <div class="fb-scroll"><table class="fb-table" id="fb-table"><caption class="sr-only">${t("fb.caption")}</caption>
+        <thead><tr><th scope="col">${t("fb.thCat")}</th><th scope="col">${t("fb.thLabeled")}</th><th scope="col"><abbr title="${t("fb.tp")}">TP</abbr></th><th scope="col"><abbr title="${t("fb.fp")}">FP</abbr></th><th scope="col">${t("fb.unsure")}</th><th scope="col">${t("fb.thPrec")}</th></tr></thead>
         <tbody>${rows}</tbody></table></div>`;
   }
   function knownListHtml() {
-    if (!fb.known.length) return `<li class="en">まだありません。 No missed issues logged.</li>`;
+    if (!fb.known.length) return t("known.empty");
     return fb.known.map((k, i) => `<li><code class="ref">${esc(k.id)}</code><span class="mono">${esc(k.cat)}</span><span class="memo">${esc(k.memo)}</span>
-      <button type="button" class="btn-quiet btn-small" data-known-del="${i}" aria-label="${esc(k.id)} を一覧から外す">外す</button></li>`).join("");
+      <button type="button" class="btn-quiet btn-small" data-known-del="${i}" aria-label="${t("known.delAria", esc(k.id))}">${t("known.del")}</button></li>`).join("");
   }
   function renderFb() {
     const s = $("fb-summary");
@@ -1059,40 +1078,40 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
   }
 
   function fbPanelHtml() {
-    const opts = CAT_ORDER.map((c) => `<option value="${c}"${fb.draft.cat === c ? " selected" : ""}>${esc(CAT_TITLE[c][0])} (${c})</option>`).join("");
+    const opts = CAT_ORDER.map((c) => `<option value="${c}"${fb.draft.cat === c ? " selected" : ""}>${esc(catName(c))} (${c})</option>`).join("");
     return `<section class="fb" id="fb" aria-labelledby="fb-h">
-      <h3 id="fb-h">フィードバック <span class="en">Pilot feedback</span></h3>
+      <h3 id="fb-h">${t("fb.h")}</h3>
       <ol class="fb-steps">
-        <li>各指摘の下で「正しい指摘 / 誤検知 / 保留」を選ぶ <span class="en">mark each finding TP / FP / unsure</span></li>
-        <li>誤検知には「コメント」で理由を一言 <span class="en">a short reason helps most</span></li>
-        <li>「ラベルをコピー（CSV）」→ メールやチャットに貼り付けて送る <span class="en">copy, paste, send</span></li>
-        <li>人のチェックで見つけた問題が指摘に無ければ「見逃しを追加」 <span class="en">log misses below</span></li>
+        <li>${t("fb.s1")}</li>
+        <li>${t("fb.s2")}</li>
+        <li>${t("fb.s3")}</li>
+        <li>${t("fb.s4")}</li>
       </ol>
-      <p class="hint">印はこのブラウザにだけ保存され、同じ入力で開き直すと復元されます。カテゴリごとに30件ほど見れば十分です。<span class="en">Saved in this browser only.</span></p>
+      <p class="hint">${t("fb.hint")}</p>
       <div id="fb-summary">${fbSummaryHtml()}</div>
       <div class="fb-actions">
-        <label class="check" for="fb-blank"><input type="checkbox" id="fb-blank"${fb.blank ? " checked" : ""}><span>原文・訳文の列を空にする（推奨）<span class="en"> omit script text</span></span></label>
-        <button type="button" id="btn-copy-labels" class="btn-primary btn-small">ラベルをコピー（CSV）</button>
+        <label class="check" for="fb-blank"><input type="checkbox" id="fb-blank"${fb.blank ? " checked" : ""}><span>${t("fb.blank")}</span></label>
+        <button type="button" id="btn-copy-labels" class="btn-primary btn-small">${t("fb.copyLabels")}</button>
         <span class="copy-status" id="fb-status" role="status"></span>
       </div>
-      <textarea id="fb-fallback" readonly hidden aria-label="ラベル CSV"></textarea>
+      <textarea id="fb-fallback" readonly hidden aria-label="${t("fb.labelsAria")}"></textarea>
       <form class="fb-known" id="fb-known-form" novalidate>
-        <h4>見逃しを追加 <span class="en">Add a missed issue (known.csv)</span></h4>
+        <h4>${t("known.h")}</h4>
         <div class="field-row">
-          <div class="field"><label for="known-ref">文字列ID か ファイル名:行 <span class="en">id or file:line</span></label>
+          <div class="field"><label for="known-ref">${t("known.ref")}</label>
             <input type="text" id="known-ref" spellcheck="false" autocomplete="off" placeholder="ch1_005 / script.csv:12" value="${esc(fb.draft.ref)}"></div>
-          <div class="field"><label for="known-cat">分類 <span class="en">category</span></label><select id="known-cat">${opts}</select></div>
-          <div class="field wide"><label for="known-memo">メモ <span class="en">note</span></label>
-            <input type="text" id="known-memo" autocomplete="off" maxlength="300" placeholder="魔導石の訳が Magic Stone" value="${esc(fb.draft.memo)}"></div>
+          <div class="field"><label for="known-cat">${t("known.cat")}</label><select id="known-cat">${opts}</select></div>
+          <div class="field wide"><label for="known-memo">${t("known.memo")}</label>
+            <input type="text" id="known-memo" autocomplete="off" maxlength="300" placeholder="${t("known.memoPh")}" value="${esc(fb.draft.memo)}"></div>
         </div>
         <div class="fb-actions">
-          <button type="submit" class="btn-small" id="btn-known-add">追加 <span class="en">add</span></button>
-          <button type="button" class="btn-small" id="btn-copy-known"${fb.known.length ? "" : " disabled"}>見逃しをコピー（CSV）</button>
+          <button type="submit" class="btn-small" id="btn-known-add">${t("known.add")}</button>
+          <button type="button" class="btn-small" id="btn-copy-known"${fb.known.length ? "" : " disabled"}>${t("known.copy")}</button>
           <span class="fb-msg" id="known-msg" role="status"></span>
           <span class="copy-status" id="known-status" role="status"></span>
         </div>
-        <textarea id="known-fallback" readonly hidden aria-label="見逃し CSV"></textarea>
-        <ul id="known-list" aria-label="追加した見逃し">${knownListHtml()}</ul>
+        <textarea id="known-fallback" readonly hidden aria-label="${t("known.csvAria")}"></textarea>
+        <ul id="known-list" aria-label="${t("known.listAria")}">${knownListHtml()}</ul>
       </form>
     </section>`;
   }
@@ -1103,10 +1122,10 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
     const l = labelOf(i);
     const ref = `${f.file}:${f.line}`;
     const showNote = !!l.c || fb.open.has(i);
-    return `<div class="verdict" role="group" aria-label="判定 ${esc(ref)} ${esc(f.rule)}">
-      <span class="vbtns">${VERDICTS.map(([v, ja, en]) => `<button type="button" class="vbtn" id="v-${i}-${v}" data-v="${v}" data-fi="${i}" aria-pressed="${l.v === v}">${ja} <span class="en">${en}</span></button>`).join("")}</span>
-      <button type="button" class="btn-quiet btn-small" id="vc-${i}" data-vnote="${i}" aria-expanded="${showNote}" aria-controls="vn-${i}">コメント</button>
-      <input type="text" class="vnote" id="vn-${i}" data-vnote-input="${i}" maxlength="300" autocomplete="off" placeholder="理由など一言（任意）" aria-label="コメント ${esc(ref)}" value="${esc(l.c)}"${showNote ? "" : " hidden"}>
+    return `<div class="verdict" role="group" aria-label="${t("v.aria", esc(ref), esc(f.rule))}">
+      <span class="vbtns">${VERDICTS.map(([v]) => `<button type="button" class="vbtn" id="v-${i}-${v}" data-v="${v}" data-fi="${i}" aria-pressed="${l.v === v}">${t("v." + v)}</button>`).join("")}</span>
+      <button type="button" class="btn-quiet btn-small" id="vc-${i}" data-vnote="${i}" aria-expanded="${showNote}" aria-controls="vn-${i}">${t("v.comment")}</button>
+      <input type="text" class="vnote" id="vn-${i}" data-vnote-input="${i}" maxlength="300" autocomplete="off" placeholder="${t("v.ph")}" aria-label="${t("v.commentAria", esc(ref))}" value="${esc(l.c)}"${showNote ? "" : " hidden"}>
     </div>`;
   }
   function updateVerdictRow(i) {
@@ -1152,14 +1171,14 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
     const cat = $("known-cat").value;
     const memo = $("known-memo").value.trim().replace(/[\r\n]+/g, " ");
     msg.textContent = "";
-    if (!ref) { msg.textContent = "文字列ID か「ファイル名:行」を入力してください。"; $("known-ref").focus(); return; }
+    if (!ref) { msg.textContent = t("known.needRef"); $("known-ref").focus(); return; }
     let id = ref;
     const m = ref.match(/^(.+):(\d+)$/);
     if (m) {
       const row = state.rows.get(m[1] + "\u0000" + m[2]);
       const isId = [...state.rows.values()].some((r) => r.id === ref);
       if (row) id = row.id;
-      else if (!isId) { msg.textContent = `「${ref}」の行が見つかりません。ファイル名と行番号（または文字列ID）を確認してください。`; $("known-ref").focus(); return; }
+      else if (!isId) { msg.textContent = t("known.notFound", ref); $("known-ref").focus(); return; }
     }
     fb.known.push({ id, cat, memo });
     fb.draft = { ref: "", cat, memo: "" };
@@ -1167,14 +1186,14 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
     $("known-memo").value = "";
     fbSave();
     renderFb();
-    $("known-status").textContent = `${id}（${cat}）を追加しました。`;
+    $("known-status").textContent = t("known.added", id, cat);
     $("known-ref").focus();
   }
 
   // ---------- samples ----------
   function loadSample(key) {
     if (!SAMPLES || !SAMPLES[key]) {
-      showErrors([{ where: "サンプル", msg: "サンプルが組み込まれていません。web/build-demo.mjs でビルドしたHTMLを開いてください。" }]);
+      showErrors([{ w: "where.sample", m: "msg.noSample" }]);
       return;
     }
     const s = SAMPLES[key];
@@ -1218,6 +1237,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
   for (const id of ["opt-locale-ja", "opt-locale-en"]) $(id).addEventListener("change", (e) => {
     if (!e.target.checked) return;
     saveLocale(e.target.value);
+    localeExplicit = true;
     if (state.result) { const keep = state.dirty; run({ keepFilters: true }); state.dirty = keep; }
   });
 
@@ -1276,20 +1296,20 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
   $("results").addEventListener("click", (e) => {
     const b = e.target.closest("button");
     if (!b) return;
-    if (b.id === "btn-copy-md") { copyText(state.md, "Markdown レポート"); return; }
-    if (b.id === "btn-copy-packets") { copyText(JSON.stringify(state.result.reviewPackets, null, 2), "レビューパケット"); return; }
+    if (b.id === "btn-copy-md") { copyText(state.md, t("copy.md")); return; }
+    if (b.id === "btn-copy-packets") { copyText(JSON.stringify(state.result.reviewPackets, null, 2), t("copy.packets")); return; }
     if (b.id === "btn-copy-labels") {
       let csv;
-      try { csv = labelsCsv(); } catch (err) { $("fb-status").textContent = "CSV を作れませんでした：" + ((err && err.message) || err); return; }
+      try { csv = labelsCsv(); } catch (err) { $("fb-status").textContent = t("csv.fail") + ((err && err.message) || err); return; }
       const { tot } = fbStats();
-      copyText(csv, `ラベル CSV（${tot.tp + tot.fp + tot.unsure} / ${tot.total}件に印）`, "fb-status", "fb-fallback");
+      copyText(csv, t("copy.labels", tot.tp + tot.fp + tot.unsure, tot.total), "fb-status", "fb-fallback");
       return;
     }
-    if (b.id === "btn-copy-known") { copyText(knownCsv(), `見逃し CSV（${fb.known.length}件）`, "known-status", "known-fallback"); return; }
+    if (b.id === "btn-copy-known") { copyText(knownCsv(), t("copy.known", fb.known.length), "known-status", "known-fallback"); return; }
     if (b.dataset.knownDel != null) {
       fb.known.splice(Number(b.dataset.knownDel), 1);
       fbSave(); renderFb();
-      $("known-status").textContent = "一覧から外しました。";
+      $("known-status").textContent = t("known.removed");
       $("known-ref").focus();
       return;
     }
@@ -1326,8 +1346,35 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--rule);
     const nb = $(focusId); if (nb) nb.focus();
   });
 
-  // Restore the remembered message language before the first run.
-  $(loadLocale() === "en" ? "opt-locale-en" : "opt-locale-ja").checked = true;
+  // UI language: re-render the chrome; the message language follows unless the user picked one explicitly.
+  function setUi(v) {
+    if (v !== "ja" && v !== "en") return;
+    ui = v;
+    applyStaticI18n();
+    renderFileList();
+    renderErrors();
+    renderStatus();
+    if (!localeExplicit && currentLocale() !== ui) {
+      $(ui === "en" ? "opt-locale-en" : "opt-locale-ja").checked = true;
+      if (state.result) { const keep = state.dirty; run({ keepFilters: true }); state.dirty = keep; return; }
+    }
+    if (state.result) {
+      const openPackets = $("packets") && $("packets").open;
+      renderResults();
+      if (openPackets && $("packets")) $("packets").open = true;
+    }
+  }
+  for (const id of ["ui-lang-ja", "ui-lang-en"]) $(id).addEventListener("change", (e) => {
+    if (!e.target.checked) return;
+    saveUi(e.target.value);
+    setUi(e.target.value);
+  });
+
+  // Restore the remembered UI and message language before the first run.
+  const savedLocale = loadLocale();
+  let localeExplicit = savedLocale !== null;
+  $((savedLocale || ui) === "en" ? "opt-locale-en" : "opt-locale-ja").checked = true;
+  applyStaticI18n();
   // Open in a working state: run the JA→EN sample immediately.
   loadSample("ja-en");
 })();
