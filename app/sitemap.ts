@@ -3,6 +3,7 @@ import { GUIDES } from "@/lib/guides";
 import { SAMPLE_UPDATED } from "@/lib/samples";
 import { siteUrl } from "@/lib/site";
 
+// Static so it also works in the GitHub Pages export (output: "export").
 export const dynamic = "force-static";
 
 export default function sitemap(): MetadataRoute.Sitemap {
