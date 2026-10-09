@@ -25011,8 +25011,20 @@ function runChecks(tables, glossary = EMPTY_GLOSSARY, opts = {}) {
 // src/core/report.ts
 var ICON = { error: "❌", warning: "⚠️", info: "ℹ️" };
 var CORE = ["term", "notation", "name", "honorific", "voice"];
-var loc = (f) => `\`${f.file}:${f.line}\``;
-var usageLine = (counts) => Object.entries(counts).sort((a, b) => b[1] - a[1]).map(([k, n]) => `${k} ×${n}`).join(" · ");
+var oneLine = (s) => s.replace(/\r\n|[\u0000-\u001f\u007f\u2028\u2029]/g, " ");
+function mdText(s) {
+  return oneLine(s).replace(/\\(?=[!-/:-@[-`{-~])/g, "\\\\").replace(/&(?=#?[A-Za-z0-9]+;)/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/[`*~]/g, "\\$&").replace(/\](?=\s*\()/g, "\\]").replace(/_/g, (m, i2, str) => /[\p{L}\p{N}]/u.test(str[i2 - 1] ?? "") && /[\p{L}\p{N}]/u.test(str[i2 + 1] ?? "") ? m : "\\_");
+}
+var mdHeading = (s) => mdText(s).replace(/#/g, "\\#");
+function mdCode(s) {
+  const v = oneLine(s);
+  const longest = Math.max(0, ...(v.match(/`+/g) ?? []).map((r) => r.length));
+  const fence = "`".repeat(longest + 1);
+  const pad = /^`|`$/.test(v) || /^ .*[^ ].* $/.test(v) ? " " : "";
+  return `${fence}${pad}${v}${pad}${fence}`;
+}
+var loc = (f) => mdCode(`${f.file}:${f.line}`);
+var usageLine = (counts) => Object.entries(counts).sort((a, b) => b[1] - a[1]).map(([k, n]) => `${mdText(k)} ×${n}`).join(" · ");
 function renderMarkdown(r, opts = {}) {
   const L = reportLabels(opts.locale);
   const TITLES = L.titles;
@@ -25021,7 +25033,7 @@ function renderMarkdown(r, opts = {}) {
   const out = [];
   out.push(`# ${L.heading}`, "");
   if (opts.licensedTo) out.push(`Licensed to ${opts.licensedTo.replace(/[\u0000-\u001f\u007f`*_<>[\]|\\]/g, "").slice(0, 100)}`, "");
-  for (const t of r.tables) out.push(L.tableLine(t.file, t.format.toUpperCase(), t.rows, t.sourceLang, t.targetLang));
+  for (const t of r.tables) out.push(L.tableLine(mdText(t.file), t.format.toUpperCase(), t.rows, t.sourceLang, t.targetLang));
   out.push(L.glossaryLine(r.glossary.terms, r.glossary.characters), "");
   out.push(L.summaryHeader, "|---|---:|---:|---:|");
   for (const c of CATEGORY_ORDER) {
@@ -25038,17 +25050,17 @@ function renderMarkdown(r, opts = {}) {
     if (!fs.length) continue;
     out.push(`## ${TITLES[c]}`, "");
     for (const [group2, list3] of countBy(fs, (f) => f.group ?? "")) {
-      if (group2) out.push(`### ${group2}`);
+      if (group2) out.push(`### ${mdHeading(group2)}`);
       const u = usage.find((x2) => x2.group === group2);
       if (u) out.push(`${L.usage}: ${usageLine(u.counts)}`);
       if (group2 || u) out.push("");
-      for (const f of list3) out.push(`- ${ICON[f.severity]} ${loc(f)} \`${f.id}\` (${L.side[f.side]}) — ${f.message}`);
+      for (const f of list3) out.push(`- ${ICON[f.severity]} ${loc(f)} ${mdCode(f.id)} (${L.side[f.side]}) — ${mdText(f.message)}`);
       out.push("");
     }
   }
   if (opts.includePackets !== false && r.reviewPackets.length) {
     out.push(`## ${L.packetsHeading}`, "");
-    out.push(L.packetsIntro(r.reviewPackets.length) + r.reviewPackets.map((p) => L.packetItem(p.kind, p.subject, p.lines.length)).join(L.packetSep), "");
+    out.push(L.packetsIntro(r.reviewPackets.length) + r.reviewPackets.map((p) => L.packetItem(p.kind, mdText(p.subject), p.lines.length)).join(L.packetSep), "");
   }
   return out.join("\n");
 }
