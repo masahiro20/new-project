@@ -1,0 +1,344 @@
+diff --git a/bg/index.html b/bg/index.html
+index a3efc2d..8c41d16 100644
+--- a/bg/index.html
++++ b/bg/index.html
+@@ -331,7 +331,7 @@ footer p{margin:0 0 4px}
+         <ul class="plain lede"><li>You see the full list of requests it will send.</li><li>A signed confirmation that expires after 5 minutes. It stops working if the plan changes in the meantime.</li><li>You type the connection’s label exactly.</li></ul></section>
+       <section class="card" aria-labelledby="s3"><h3 id="s3">Backing out is always one click</h3><p class="lede">Switching back to test mode or turning the stop off needs no confirmation.</p></section>
+       <section class="card" aria-labelledby="s4"><h3 id="s4">Failures are reported</h3><p class="lede">If a stop fails, we log it, notify you, and retry on the next hourly check.</p></section>
+-      <section class="card" aria-labelledby="s5"><h3 id="s5">Encrypted tokens</h3><p class="lede">Tokens are encrypted with AES-256-GCM and bound to their connection. We keep only the encrypted value and a masked hint (first 4 and last 4 characters). The token is never displayed again. Deleting a connection deletes its token.</p></section>
++      <section class="card" aria-labelledby="s5"><h3 id="s5">Encrypted tokens</h3><p class="lede">Tokens are encrypted with AES-256-GCM and bound to their connection. We keep only the encrypted value and a masked hint (the provider's public key prefix, such as sk-admin-, and the last 4 characters). The token is never displayed again. Deleting a connection deletes its token.</p></section>
+       <section class="card" aria-labelledby="s6"><h3 id="s6">Least privilege, as far as each provider allows</h3><p class="lede">The setup screen tells you how to issue the narrowest token each provider allows:</p>
+         <ul class="plain lede"><li><b>Vercel:</b> a token scoped to one team, ideally from a Member-role user, with an expiry date.</li><li><b>OpenAI and Anthropic:</b> a dedicated Admin key just for Budget Guard, which you can revoke at any time.</li></ul>
+         <p class="lede">Budget Guard only touches the projects and workspace you name.</p></section>
+@@ -375,7 +375,7 @@ footer p{margin:0 0 4px}
+     <div class="cols">
+       <section class="card" aria-labelledby="a1"><h3 id="a1">Email</h3><p class="lede">At 80% of your monthly budget, once per month per connection.</p></section>
+       <section class="card" aria-labelledby="a2"><h3 id="a2">Slack</h3><p class="lede">Alerts through a Slack incoming webhook you paste in.</p></section>
+-      <section class="card" aria-labelledby="a3"><h3 id="a3">Vercel Spend Management webhook</h3><p class="lede">Add Budget Guard’s webhook URL to your Vercel budget. When Vercel reports 50%, 75% or 100%, Budget Guard runs a check right away instead of waiting for the next hour. At 100%, if your stop is armed (live), it runs. Each webhook is verified with a per-connection signing secret.</p></section>
++      <section class="card" aria-labelledby="a3"><h3 id="a3">Vercel Spend Management webhook</h3><p class="lede">Add Budget Guard’s webhook URL to your Vercel budget. When Vercel reports 50%, 75% or 100%, Budget Guard runs a check right away instead of waiting for the next hour. At 100%, that check runs your armed (live) stop only if your Budget Guard budget is reached; Vercel's figure alone doesn't stop anything. Each webhook is verified with a per-connection signing secret.</p></section>
+     </div>
+   </section>
+ 
+diff --git a/signal-lab/budget-guard/README.md b/signal-lab/budget-guard/README.md
+index 9cd2a0b..db08a32 100644
+--- a/signal-lab/budget-guard/README.md
++++ b/signal-lab/budget-guard/README.md
+@@ -67,12 +67,12 @@ npm run typecheck && npm test && npm run build
+ - **署名の検証：** `x-vercel-signature` を、生のボディの HMAC-SHA1（hex）と定数時間で比較する（https://vercel.com/docs/webhooks/webhooks-api#securing-webhooks）。
+ - **受信後の確認：** ペイロードを zod で検証し、teamId が接続先と一致するか確かめる。同じ月・同じ閾値の通知は1回だけ処理する（Vercel の最大24時間の再送対策）。
+ - **50% / 75% の通知：** 記録して通知したあと、cron を待たずにその場で利用額を取り直す。
+-- **100% の通知：** Vercel 側の予算到達を上限到達として扱い、停止を実行する。ただし通常と同じ関門を通るので、テストモードでは記録だけ、live でも月1回だけ。
++- **100% の通知：** 決定 R3-03（signal-lab/docs/decisions.md）により、Vercel の通知だけでは停止しない。その場で取り直した額が Budget Guard の予算に達していれば、通常と同じ関門で停止する。接続ごとのオプトイン（`stopOnVercelAlert`、初期値オフ）を立てたときだけ、Vercel の 100% を上限到達として扱う（設定する画面はまだない）。
+ - **応答時間：** 応答は先に返し、メールや再チェックは `after()` で行う（Vercel のタイムアウトは30秒）。
+ - **注意：** Vercel の予算は Pro の月次クレジットを超えた分しか数えないので、Budget Guard の割合とずれることがある。`currentSpend` と `budgetAmount` は int（USD）としか書かれておらず、端数の扱いは未確認。
+ 
+ ## トークンと権限
+-- トークンは検証（読み取り専用の利用額取得）に成功したときだけ保存する。暗号文と伏せ字（先頭4文字＋末尾4文字）だけを持ち、画面には二度と出さない。接続を削除するとトークンも消える。
++- トークンは検証（読み取り専用の利用額取得）に成功したときだけ保存する。暗号文と伏せ字（各社の公開の接頭辞＋末尾4文字。16文字未満は `••••`）だけを持ち、画面には二度と出さない。接続を削除するとトークンも消える。
+ - **3社とも、コスト取得専用の読み取りキーはない**（2026-10-08 時点の公式ドキュメント）。利用額の読み取りと停止は同じキーで行うことになる。対策は次のとおり：
+   - 最小範囲の発行をUIで案内する（Vercel はチーム限定・Member ロール・有効期限付き、OpenAI / Anthropic は Budget Guard 専用の Admin キー）。
+   - 停止の対象は、ユーザーが指定したプロジェクトとワークスペースに限る。
+diff --git a/signal-lab/budget-guard/app/(product)/app/messages.tsx b/signal-lab/budget-guard/app/(product)/app/messages.tsx
+index 6b3aeec..ad91e03 100644
+--- a/signal-lab/budget-guard/app/(product)/app/messages.tsx
++++ b/signal-lab/budget-guard/app/(product)/app/messages.tsx
+@@ -8,6 +8,7 @@ export const MESSAGES: Record<string, { text: string; error?: boolean }> = {
+   armed: { text: "Live mode armed. At 100% of budget the stop action will run automatically." },
+   stopped: { text: "Stop action executed. See the activity log for how to undo it." },
+   "stop-failed": { text: "Stop action failed. See the activity log.", error: true },
++  "plan-failed": { text: "Could not build the stop plan (see the reason on this page). Nothing was sent.", error: true },
+   "mode-test": { text: "Back in test mode. Automatic stops will only be simulated." },
+   "mode-off": { text: "Stop action turned off. You will still get emails." },
+   "confirm-label-mismatch": { text: "The label you typed did not match. Nothing was changed.", error: true },
+diff --git a/signal-lab/budget-guard/app/(product)/app/page.tsx b/signal-lab/budget-guard/app/(product)/app/page.tsx
+index 44ab74e..f0af77b 100644
+--- a/signal-lab/budget-guard/app/(product)/app/page.tsx
++++ b/signal-lab/budget-guard/app/(product)/app/page.tsx
+@@ -1,8 +1,9 @@
+ import { Dashboard } from "@/components/client/Dashboard";
+ import { t } from "@/lib/i18n";
++import { demoTokensAllowed } from "@/lib/guard/demo";
+ import { showDemoBannerAtBuild } from "@/lib/payments/mode";
+ 
+ // Static shell (○). Data: GET /api/app/state; actions: /api/app/*.
+ export default function DashboardPage() {
+-  return <Dashboard labels={{ billing: t.access.billing, signOut: t.access.signOut, consent: t.consent }} allowDemo={showDemoBannerAtBuild()} />;
++  return <Dashboard labels={{ billing: t.access.billing, signOut: t.access.signOut, consent: t.consent }} allowDemo={showDemoBannerAtBuild() && demoTokensAllowed()} />;
+ }
+diff --git a/signal-lab/budget-guard/app/api/app/connections/[id]/route.ts b/signal-lab/budget-guard/app/api/app/connections/[id]/route.ts
+index a239c8a..60439b7 100644
+--- a/signal-lab/budget-guard/app/api/app/connections/[id]/route.ts
++++ b/signal-lab/budget-guard/app/api/app/connections/[id]/route.ts
+@@ -12,6 +12,8 @@ type Ctx = { params: Promise<{ id: string }> };
+ const notFound = () => json({ error: "not found", msg: "not-found" }, 404);
+ /** `msg` is a key of app/(product)/app/messages.tsx. */
+ const done = (msg: string, status = 200) => json({ ok: status < 400, msg }, status);
++/** The stop plan, or null when it can't be built (provider error, demo token outside demo mode): no 500. */
++const planOrNull = (conn: Parameters<typeof planFor>[0]) => planFor(conn).catch(() => null);
+ 
+ async function load(request: Request, ctx: Ctx, mutation: boolean) {
+   const kv = getKV();
+@@ -59,7 +61,8 @@ export async function POST(request: Request, ctx: Ctx) {
+       return done(`mode-${op.data.mode}`);
+ 
+     case "test-stop": {
+-      const plan = await planFor(conn);
++      const plan = await planOrNull(conn);
++      if (!plan) return done("plan-failed", 502);
+       const result = await runStop(plan, "test", {});
+       await appendLog(kv, account.id, [
+         { kind: "stop-test", connectionId: conn.id, message: `Manual test: would send ${result.requests.length} request(s). ${plan.summary}`, at },
+@@ -71,7 +74,8 @@ export async function POST(request: Request, ctx: Ctx) {
+       // Going live needs consent to the current Privacy Policy / Terms (re-consent after a version bump).
+       if (op.data.action === "arm-live" && !consentCurrent(account.entitlement.consent)) return done("consent-required", 403);
+       // Arm live / stop now: signed challenge (5 min, bound to the plan) + typed label.
+-      const plan = await planFor(conn);
++      const plan = await planOrNull(conn);
++      if (!plan) return done("plan-failed", 502);
+       const check = verifyChallenge(
+         op.data.challenge,
+         { connectionId: conn.id, action: op.data.action, plan, label: conn.label, typed: op.data.typed },
+diff --git a/signal-lab/budget-guard/app/globals.css b/signal-lab/budget-guard/app/globals.css
+index 776882c..f13a51b 100644
+--- a/signal-lab/budget-guard/app/globals.css
++++ b/signal-lab/budget-guard/app/globals.css
+@@ -96,7 +96,8 @@ select, input[type="number"], input[type="password"] { font: inherit; padding: 1
+ .guard.limit .meter span { background: #b4232c; }
+ .badge.mode-live { background: #b4232c; color: #fff; }
+ .badge.mode-off { background: var(--line); color: var(--muted); }
+-.plan { white-space: pre-wrap; word-break: break-all; font-size: .85rem; background: var(--bg); padding: 12px; border-radius: 8px; overflow-x: auto; }
++pre.plan { white-space: pre-wrap; word-break: break-all; font-size: .85rem; background: var(--bg); padding: 12px; border-radius: 8px; overflow-x: auto; }
++.prose, section.narrow { overflow-wrap: anywhere; }
+ .log { list-style: none; padding: 0; font-size: .9rem; }
+ .log li { padding: 6px 0; border-bottom: 1px solid var(--line); }
+ .log time { color: var(--muted); font-family: ui-monospace, monospace; }
+diff --git a/signal-lab/budget-guard/components/client/ConnectionPage.tsx b/signal-lab/budget-guard/components/client/ConnectionPage.tsx
+index 39b706d..1e3de4f 100644
+--- a/signal-lab/budget-guard/components/client/ConnectionPage.tsx
++++ b/signal-lab/budget-guard/components/client/ConnectionPage.tsx
+@@ -116,7 +116,7 @@ export function ConnectionPage({ labels }: { labels: Labels }) {
+             <div className="card stack">
+               <p>
+                 In Vercel → Settings → Billing → Spend Management, set the webhook URL below and paste the secret Vercel shows. Vercel posts at
+-                50/75/100% of its on-demand budget; Budget Guard then checks immediately, and at 100% runs this stop if it is armed.
++                50/75/100% of its on-demand budget; Budget Guard then checks immediately and runs this stop (if armed) when your Budget Guard budget is reached.
+               </p>
+               <pre className="plan">{conn.webhookUrl}</pre>
+               <p>Status: {conn.webhookSecretSet ? "secret saved (signature checked on every request)" : "not set (the URL rejects all requests)"}</p>
+diff --git a/signal-lab/budget-guard/docs/lp.md b/signal-lab/budget-guard/docs/lp.md
+index 60a6c6c..a73f339 100644
+--- a/signal-lab/budget-guard/docs/lp.md
++++ b/signal-lab/budget-guard/docs/lp.md
+@@ -90,7 +90,7 @@ You're giving a tool the power to stop production, so here's how we keep it from
+   - You type the connection's label exactly.
+ - **Backing out is always one click.** Switching back to test mode or turning the stop off needs no confirmation.
+ - **Failures are reported.** If a stop fails, we log it, notify you, and retry on the next hourly check.
+-- **Encrypted tokens.** Tokens are encrypted with AES-256-GCM and bound to their connection. We keep only the encrypted value and a masked hint (first 4 and last 4 characters). The token is never displayed again. Deleting a connection deletes its token.
++- **Encrypted tokens.** Tokens are encrypted with AES-256-GCM and bound to their connection. We keep only the encrypted value and a masked hint (the provider's public key prefix, such as sk-admin-, and the last 4 characters). The token is never displayed again. Deleting a connection deletes its token.
+ - **Least privilege, as far as each provider allows.** The setup screen tells you how to issue the narrowest token each provider allows:
+   - **Vercel:** a token scoped to one team, ideally from a Member-role user, with an expiry date.
+   - **OpenAI and Anthropic:** a dedicated Admin key just for Budget Guard, which you can revoke at any time.
+@@ -118,7 +118,7 @@ The providers' own controls are good, and they're free. If you only use one prov
+ 
+ - **Email** at 80% of your monthly budget, once per month per connection.
+ - **Slack** alerts through a Slack incoming webhook you paste in.
+-- **Vercel Spend Management webhook:** add Budget Guard's webhook URL to your Vercel budget. When Vercel reports 50%, 75% or 100%, Budget Guard runs a check right away instead of waiting for the next hour. At 100%, if your stop is armed (live), it runs. Each webhook is verified with a per-connection signing secret.
++- **Vercel Spend Management webhook:** add Budget Guard's webhook URL to your Vercel budget. When Vercel reports 50%, 75% or 100%, Budget Guard runs a check right away instead of waiting for the next hour. At 100%, that check runs your armed (live) stop only if your Budget Guard budget is reached; Vercel's figure alone doesn't stop anything. Each webhook is verified with a per-connection signing secret.
+ 
+ ---
+ 
+diff --git a/signal-lab/budget-guard/docs/trial-onboarding.md b/signal-lab/budget-guard/docs/trial-onboarding.md
+index b8ae35b..43de731 100644
+--- a/signal-lab/budget-guard/docs/trial-onboarding.md
++++ b/signal-lab/budget-guard/docs/trial-onboarding.md
+@@ -123,7 +123,7 @@
+ > - If a live stop ran and you want it undone: unpause the Vercel project, delete or raise the OpenAI project limit, or set the Anthropic keys back to active. You do this yourself in the provider's dashboard or API. Budget Guard lists the exact IDs in the activity log.
+ >
+ > **6. Your data**
+-> - We store: your email, your license, and for each connection the encrypted token, a masked hint (first 4 and last 4 characters), your budget and stop settings, spend readings and an activity log (last 50 entries).
++> - We store: your email, your license, and for each connection the encrypted token, a masked hint (the provider's public key prefix, such as sk-admin-, and the last 4 characters), your budget and stop settings, spend readings and an activity log (last 50 entries).
+ > - Storage is Upstash, email is Resend, hosting is Cloudflare.
+ > - We don't store card numbers. In demo mode only the last 4 digits are kept.
+ > - When the trial ends, monitoring stops and we delete your data 30 days later.
+@@ -170,7 +170,7 @@
+ > - live の停止が実行され、元に戻したい場合：Vercel はプロジェクトの unpause、OpenAI はプロジェクトの上限を削除または引き上げ、Anthropic はキーを active に戻す。プロバイダのダッシュボードか API で、ご自身で行う。対象の ID はアクティビティに出る。
+ >
+ > **6. データの扱い**
+-> - 保存するもの：メールアドレス、ライセンス。接続ごとに、暗号化したトークン、伏せ字（先頭4文字と末尾4文字）、予算と停止の設定、利用額の記録、アクティビティ（最新50件）。
++> - 保存するもの：メールアドレス、ライセンス。接続ごとに、暗号化したトークン、伏せ字（各社の公開の接頭辞（sk-admin- など）と末尾4文字）、予算と停止の設定、利用額の記録、アクティビティ（最新50件）。
+ > - 保存先は Upstash、メールは Resend、ホスティングは Cloudflare。
+ > - カード番号は保存しない。デモモードでは末尾4桁だけを持つ。
+ > - 試用が終わると監視は止まり、データは終了から30日後に削除する。
+@@ -207,7 +207,7 @@
+ | LP の閲覧・CTA | 同 `pageview`、`cta_click` | 個人は特定しない。 |
+ | 待機リストの人数 | 同 `waitlist` | — |
+ | 全体の接続数・プロバイダ別・demo トークンの数 | `GET /api/admin/stats` の `trial.connections`（`total`・`byProvider`・`demoToken`） | 認証は従来どおり `Authorization: Bearer $ADMIN_TOKEN`。索引 `bg:allconns` を使い、Upstash は 3 コマンド（`lib/guard/admin.ts`）。 |
+-| 本物の接続か `demo` か | 各アカウントの `budget-guard:bg:{アカウントID}:conns`（JSON）の `tokenHint`。`demo` は `••••`、本物は `先頭4…末尾4` | 試用者のダッシュボード（画面共有）でも「token …」として見える。 |
++| 本物の接続か `demo` か | 各アカウントの `budget-guard:bg:{アカウントID}:conns`（JSON）の `tokenHint`。`demo` は `••••`、本物は `公開の接頭辞…末尾4`（78dcf0d より前に追加した接続は `先頭4…末尾4`） | 試用者のダッシュボード（画面共有）でも「token …」として見える。 |
+ | テストモード／live の数 | `GET /api/admin/stats` の `trial.stopMode`（`off` / `test` / `live`） | ダッシュボードのバッジ「Stop: test mode」「Stop: LIVE」でも見える。 |
+ | live に切り替えた数 | 同上の `live` の数。アクティビティの `Stop action ARMED (live): …` | — |
+ | 今月の 80% 通知・100% 到達・テスト停止 | `GET /api/admin/stats` の `trial.thisMonth`（`warned`・`reachedLimit`・`testStopRecords`・`keyInvalid`） | 80%・100% は接続ごとの状態から数える。テスト停止はアクティビティ（`budget-guard:bg:{アカウントID}:activity` の `log`。最新50件だけ残る）の `Manual test:` と `TEST MODE` を数える。 |
+diff --git a/signal-lab/budget-guard/lib/entitlements.ts b/signal-lab/budget-guard/lib/entitlements.ts
+index b5233f9..3f24b3f 100644
+--- a/signal-lab/budget-guard/lib/entitlements.ts
++++ b/signal-lab/budget-guard/lib/entitlements.ts
+@@ -122,8 +122,16 @@ export async function upsertEntitlement(
+   // email, no payment) never takes over an email that points at a real (stripe) entitlement
+   // or at someone's still-active demo entitlement (otherwise anyone could redirect that
+   // person's magic link into an account the attacker also holds the license key for).
+-  const prevByEmail = entitlement.source === "demo" ? await findByEmail(kv, entitlement.email) : null;
+-  const prevLapsed = !!prevByEmail && prevByEmail.source === "demo" && (!isActive(prevByEmail) || trialEnded(prevByEmail) || !!prevByEmail.deletedAt);
++  // R2-05 (decision 2026-10-09): a Stripe purchase likewise doesn't take over an email that points
++  // at a live Stripe entitlement; it does once that one ended / was refunded / deleted, or when it
++  // points at a demo entitlement (unusable once billing is live).
++  const prevByEmail = await findByEmail(kv, entitlement.email);
++  const prevEnded = !!prevByEmail && (!isActive(prevByEmail) || !!prevByEmail.deletedAt);
++  const prevLapsed =
++    !!prevByEmail &&
++    (entitlement.source === "demo"
++      ? prevByEmail.source === "demo" && (prevEnded || trialEnded(prevByEmail))
++      : prevByEmail.source === "demo" || prevEnded);
+   if (!prevByEmail || prevLapsed) await kv.set(k.email(entitlement.email), entitlement.id);
+   if (entitlement.subscriptionId) await kv.set(k.sub(entitlement.subscriptionId), entitlement.id);
+   if (entitlement.paymentIntentId) await kv.set(k.pi(entitlement.paymentIntentId), entitlement.id);
+diff --git a/signal-lab/budget-guard/lib/guard/service.ts b/signal-lab/budget-guard/lib/guard/service.ts
+index ef7c85c..de7d94e 100644
+--- a/signal-lab/budget-guard/lib/guard/service.ts
++++ b/signal-lab/budget-guard/lib/guard/service.ts
+@@ -378,11 +378,13 @@ export async function handleVercelWebhook(
+     message: `${conn.label}: Vercel Spend Management reports $${payload.currentSpend} of its $${payload.budgetAmount} on-demand budget (${payload.thresholdPercent}% threshold).`,
+   };
+   await appendLog(kv, acct, [{ ...notice, at: now.toISOString() }]);
+-  const reachedLimit = payload.thresholdPercent >= 100;
++  // R3-03 (decision 2026-10-09): Vercel's 100% stops only when the connection opted in; otherwise the
++  // re-check below compares our own fetch with Budget Guard's budget, like every other check.
++  const reachedLimit = payload.thresholdPercent >= 100 && conn.stopOnVercelAlert === true;
+   return {
+     outcome: { status: 200, result: "handled" },
+-    // Mail the alert, then re-check now instead of waiting for the hourly cron. At 100%
+-    // we treat Vercel's own figure as the limit, so an armed stop runs immediately.
++    // Mail the alert, then re-check now instead of waiting for the hourly cron. At 100%, only with
++    // the opt-in, Vercel's own figure counts as the limit, so an armed stop runs immediately.
+     followUp: async () => {
+       await notify(kv, acct, ent.email, [notice]);
+       // If the cron (or a "Check now") holds this connection right now, wait for it rather than skip the forced check.
+diff --git a/signal-lab/budget-guard/lib/guard/store.ts b/signal-lab/budget-guard/lib/guard/store.ts
+index 3984fec..de5fb26 100644
+--- a/signal-lab/budget-guard/lib/guard/store.ts
++++ b/signal-lab/budget-guard/lib/guard/store.ts
+@@ -17,6 +17,12 @@ const LOG_SIZE = 50;
+ export interface StoredConnection extends Connection {
+   tokenHint: string;
+   createdAt: string;
++  /**
++   * Vercel only: also treat Vercel's own 100% Spend Management alert as "budget reached" (decision
++   * R3-03, docs/decisions.md 2026-10-09). Opt-in, default off: without it the webhook only triggers
++   * an immediate re-check against Budget Guard's own budget. (No UI for it yet.)
++   */
++  stopOnVercelAlert?: boolean;
+   /** Vercel only: Spend Management webhook secret, sealed with AAD `${id}:webhook`. */
+   sealedWebhookSecret?: string;
+   /** Consent given when this connection was added (stored with the connection: no extra write). */
+@@ -185,7 +191,7 @@ export async function updateConnection(
+   kv: KV,
+   acct: string,
+   id: string,
+-  patch: { stopMode?: StopMode; budgetUsd?: number; sealedWebhookSecret?: string | undefined },
++  patch: { stopMode?: StopMode; budgetUsd?: number; sealedWebhookSecret?: string | undefined; stopOnVercelAlert?: boolean },
+ ): Promise<void> {
+   const conns = await listConnections(kv, acct);
+   const i = conns.findIndex((c) => c.id === id);
+diff --git a/signal-lab/budget-guard/tests/channels.test.ts b/signal-lab/budget-guard/tests/channels.test.ts
+index a37ecb6..3e64e90 100644
+--- a/signal-lab/budget-guard/tests/channels.test.ts
++++ b/signal-lab/budget-guard/tests/channels.test.ts
+@@ -108,8 +108,9 @@ describe("Vercel Spend Management webhook", () => {
+     expect(retry.outcome.result).toBe("duplicate");
+     expect(retry.followUp).toBeUndefined();
+   });
+-  it("at 100% runs the stop through the usual gates (test mode → dry run)", async () => {
++  it("at 100%, with the opt-in (R3-03), runs the stop through the usual gates (test mode → dry run)", async () => {
+     const { kv, acct, conn } = await setup({ secret: "s3cret-value", stopMode: "test" });
++    await updateConnection(kv, acct, conn.id, { stopOnVercelAlert: true });
+     const body = payload(100);
+     const { followUp } = await handleVercelWebhook(kv, conn.id, body, sign(body, "s3cret-value"));
+     await followUp?.();
+diff --git a/signal-lab/budget-guard/tests/key-invalid.test.ts b/signal-lab/budget-guard/tests/key-invalid.test.ts
+index d1c66b0..33296b4 100644
+--- a/signal-lab/budget-guard/tests/key-invalid.test.ts
++++ b/signal-lab/budget-guard/tests/key-invalid.test.ts
+@@ -3,7 +3,8 @@ import { GET as adminStats } from "@/app/api/admin/stats/route";
+ import { upsertEntitlement } from "@/lib/entitlements";
+ import { trialMetrics } from "@/lib/guard/admin";
+ import { checkConnection, type Connection } from "@/lib/guard/check";
+-import { resetCronMemory, runCronSlice } from "@/lib/guard/cron";
++import { DEMO_INTERVAL_HOURS, resetCronMemory, runCronSlice } from "@/lib/guard/cron";
++import { isDue } from "@/lib/guard/schedule";
+ import { setSlackUrl } from "@/lib/guard/service";
+ import { addConnection, getLog, updateConnection } from "@/lib/guard/store";
+ import { devOutbox } from "@/lib/mail";
+@@ -132,7 +133,8 @@ describe("GET /api/admin/stats trial metrics", () => {
+       connections: { total: 3, byProvider: { openai: 2, vercel: 1, anthropic: 0 }, demoToken: 1 },
+       stopMode: { off: 1, test: 2, live: 0 },
+       thisMonth: { warned: 1, reachedLimit: 1, testStopRecords: 1, keyInvalid: 0 },
+-      neverChecked: 1, // the demo-token connection: checked every 12h (R3-02), not in this hour
++      // the demo-token connection: checked every 12h (R3-02); whether this hour is its slot depends on its random id
++      neverChecked: isDue(v.id, new Date(NOW), DEMO_INTERVAL_HOURS) ? 0 : 1,
+     });
+     expect(m.lastCheckedAt).toBe(NOW.toISOString());
+ 
+diff --git a/signal-lab/budget-guard/tests/security-poc.test.ts b/signal-lab/budget-guard/tests/security-poc.test.ts
+index 018f38d..b994db2 100644
+--- a/signal-lab/budget-guard/tests/security-poc.test.ts
++++ b/signal-lab/budget-guard/tests/security-poc.test.ts
+@@ -123,12 +123,13 @@ describe("Atlas PoCs (baseline 88cc595) — the attacks now fail", () => {
+     const { entitlement } = await upsertEntitlement(kv, { id: "dev_replay", email: "rp@example.com", plan: "monthly", source: "demo" });
+     const conn = await addConnection(kv, entitlement.id, { label: "V", target: { provider: "vercel", teamId: "team_1", projectIds: ["prj_1"] }, budgetUsd: 1000, token: "demo" });
+     await setVercelWebhookSecret(kv, entitlement.id, conn.id, "s3cret-value");
+-    await updateConnection(kv, entitlement.id, conn.id, { stopMode: "live" });
++    // Opted in to "stop on Vercel's 100%" (R3-03 decision: off by default), so October's alert stops.
++    await updateConnection(kv, entitlement.id, conn.id, { stopMode: "live", stopOnVercelAlert: true });
+     const body = JSON.stringify({ budgetAmount: 20, currentSpend: 20, teamId: "team_1", thresholdPercent: 100 });
+     const sig = createHmac("sha1", "s3cret-value").update(body).digest("hex");
+     const oct = await handleVercelWebhook(kv, conn.id, body, sig, new Date("2026-10-20T00:00:00Z"));
+     await oct.followUp?.();
+-    // October: Vercel's own 100% still stops (R3-03 is a spec decision, kept as documented in docs/lp.md).
++    // October: Vercel's own 100% stops (opt-in above).
+     expect(oct.outcome.result).toBe("handled");
+     const nov = await handleVercelWebhook(kv, conn.id, body, sig, new Date("2026-11-02T00:00:00Z"));
+     expect(nov.outcome.result).toBe("duplicate");
+@@ -139,4 +140,33 @@ describe("Atlas PoCs (baseline 88cc595) — the attacks now fail", () => {
+     expect(await getEntitlement(kv, entitlement.id)).toBeTruthy();
+     expect(devOutbox.length).toBeGreaterThan(0);
+   });
++
++  it("R3-03 (decision): without the opt-in, Vercel's 100% alone doesn't stop when our own spend is under budget", async () => {
++    const kv = createMemoryKV();
++    const { entitlement } = await upsertEntitlement(kv, { id: "dev_r303", email: "r303@example.com", plan: "monthly", source: "demo" });
++    // demo spend for Vercel is $42.50; budget $1000 → far under budget
++    const conn = await addConnection(kv, entitlement.id, { label: "V", target: { provider: "vercel", teamId: "team_1", projectIds: ["prj_1"] }, budgetUsd: 1000, token: "demo" });
++    await setVercelWebhookSecret(kv, entitlement.id, conn.id, "s3cret-value");
++    await updateConnection(kv, entitlement.id, conn.id, { stopMode: "live" });
++    const body = JSON.stringify({ budgetAmount: 20, currentSpend: 20, teamId: "team_1", thresholdPercent: 100 });
++    const sig = createHmac("sha1", "s3cret-value").update(body).digest("hex");
++    const r = await handleVercelWebhook(kv, conn.id, body, sig, new Date("2026-10-20T00:00:00Z"));
++    await r.followUp?.();
++    expect(r.outcome.result).toBe("handled");
++    const kinds = (await getLog(kv, entitlement.id)).map((e) => e.kind);
++    expect(kinds).toContain("vercel-alert");
++    expect(kinds).not.toContain("stopped");
++    expect(kinds).not.toContain("limit");
++  });
++
++  it("R2-05 (decision): a Stripe purchase doesn't take over an email that points at a live Stripe entitlement", async () => {
++    const kv = createMemoryKV();
++    await upsertEntitlement(kv, { id: "cs_test_victim", email: "s@example.com", plan: "monthly", source: "stripe" });
++    await upsertEntitlement(kv, { id: "cs_test_attacker", email: "s@example.com", plan: "monthly", source: "stripe" });
++    expect((await findByEmail(kv, "s@example.com"))?.id).toBe("cs_test_victim");
++    // once the first one ended, the new purchase takes the index
++    await upsertEntitlement(kv, { id: "cs_test_old", email: "t@example.com", plan: "monthly", source: "stripe", status: "canceled" });
++    await upsertEntitlement(kv, { id: "cs_test_new", email: "t@example.com", plan: "monthly", source: "stripe" });
++    expect((await findByEmail(kv, "t@example.com"))?.id).toBe("cs_test_new");
++  });
+ });
