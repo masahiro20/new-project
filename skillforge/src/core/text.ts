@@ -28,7 +28,7 @@ export function normalizeApostrophes(s: string): string {
 }
 
 /**
- * Placeholder syntaxes: {0} {name}, printf (%s %5d %.2f %1$s), ${var}, Wesnoth $var / $var|, [PLAYER],
+ * Placeholder syntaxes: {0} {name}, printf (%s %5d %.2f %1$s %c %ld), ${var}, Wesnoth $var / $var|, [PLAYER],
  * Ren'Py [player_name] / [player.name] and Ren'Py interpolation with a conversion flag or format spec
  * ([name!t], [name!u], [score:.2f]; the flags are part of the token, so they must match). A lowercase bracket token
  * without flags only counts when it looks like a variable (has `_`, `.` or a digit), so display labels such as
@@ -37,7 +37,7 @@ export function normalizeApostrophes(s: string): string {
  * Match it on `placeholderText(s)`, not the raw string, so Ren'Py escapes and text tags are out of the way.
  */
 export const PLACEHOLDER =
-  /\{[A-Za-z0-9_.$:]*\}|%(?:\d+\$)?[-+0#]*\d*(?:\.\d+)?[sdifxXu@]|\$\{[^}]+\}|\$[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*\|?|\[[A-Z][A-Z0-9_]+\]|\[(?=[a-z0-9_.]*[_.0-9])[a-z_][a-z0-9_.]*\]|\[[A-Za-z_][A-Za-z0-9_.]*(?:![rsatuilcq]+(?::[-<>^=+#0-9,_.]*[A-Za-z%]?)?|:[-<>^=+#0-9,_.]*[A-Za-z%]?)\]/g;
+  /\{[A-Za-z0-9_.$:]*\}|%(?:\d+\$)?[-+0#]*\d*(?:\.\d+)?(?:hh?|ll?|z|j|t)?[sdifxXuc@]|\$\{[^}]+\}|\$[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*\|?|\[[A-Z][A-Z0-9_]+\]|\[(?=[a-z0-9_.]*[_.0-9])[a-z_][a-z0-9_.]*\]|\[[A-Za-z_][A-Za-z0-9_.]*(?:![rsatuilcq]+(?::[-<>^=+#0-9,_.]*[A-Za-z%]?)?|:[-<>^=+#0-9,_.]*[A-Za-z%]?)\]/g;
 
 /** A bare lowercase bracket word ([name], [none]): a Ren'Py variable or a display label. rules.ts decides which. */
 export const BRACKET_WORD = /\[[a-z][a-z]*\]/g;

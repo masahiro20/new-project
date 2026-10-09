@@ -212,6 +212,8 @@ test("YAML: ja-JP.yml + en-US.yml paired by key like i18n JSON (sample)", () => 
     "term.forbidden faction.order_desc",
     "term.forbidden item.mana_stone_desc",
     "untranslated.empty menu.options",
+    // Key only in the English file (an extra key): info, never compared.
+    "untranslated.extra-key debug.fps",
   ]);
 });
 

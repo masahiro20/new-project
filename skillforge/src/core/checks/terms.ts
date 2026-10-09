@@ -263,7 +263,12 @@ export function checkNotation(tables: Table[], locale: Locale = "en", g?: Glossa
     const bases = settled.filter((b) => b.key !== key && b.key.length >= 2 && key.includes(b.key) && (tie || b.total >= group.length));
     const score = (form: string) => bases.filter((b) => containsWord(form, b.form)).length;
     const best = bases.length ? Math.max(...ranked.map(([f]) => score(f))) : 0;
-    const majority = best > 0 ? ranked.find(([f]) => score(f) === best)![0] : ranked[0]![0];
+    // On a tie the settled words decide; when they cannot (both forms contain them, e.g. デバッグ・モード /
+    // デバッグモード ×2 each), the form without middle dots wins, as most Japanese style guides write compounds.
+    const cands = ranked.filter(([f]) => bases.length === 0 || score(f) === best);
+    const top = cands.filter(([, hs]) => hs.length === cands[0]![1].length);
+    const dots = (f: string) => (f.match(/[・＝]/g) ?? []).length;
+    const majority = (tie ? [...top].sort((a, b) => dots(a[0]) - dots(b[0]))[0]! : cands[0]!)[0];
     usage.push({ category: "notation", group: label, counts: Object.fromEntries(ranked.map(([s, h]) => [s, h.length])) });
     for (const [surface, list] of ranked) {
       if (surface === majority) continue;
@@ -280,10 +285,14 @@ export function checkNotation(tables: Table[], locale: Locale = "en", g?: Glossa
   return { findings, usage };
 }
 
-/** `word` occurs in `compound` as a whole spelling: not followed by ー or a small kana (フォルダ is not in フォルダー). */
+/**
+ * `word` occurs in `compound` as a whole spelling: not followed by ー or a small kana (フォルダ is not in フォルダー).
+ * A middle dot after it is a word boundary (チーム is in チーム・アルファ as much as in チームアルファ), so the dot
+ * itself never decides a compound's group; the counts do.
+ */
 function containsWord(compound: string, word: string): boolean {
   for (let i = compound.indexOf(word); i >= 0; i = compound.indexOf(word, i + 1)) {
-    if (!/^[ーァィゥェォャュョ・]/.test(compound.slice(i + word.length))) return true;
+    if (!/^[ーァィゥェォャュョ]/.test(compound.slice(i + word.length))) return true;
   }
   return false;
 }

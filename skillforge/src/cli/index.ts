@@ -25,6 +25,9 @@ check options:
                                ./glossary.json or ./kotomark.glossary.csv if present. --no-glossary
                                disables the lookup. TBX and ja/en-column CSVs are read in the script's
                                direction (--source-lang ja|en to force it).
+  --source-lang ja|en          the original language: forces which file of a ja/en locale pair
+                               (ja.yml + en.yml) is the source, and the glossary direction. Default:
+                               the file with keys the other lacks, else a base/default name, else ja.
   --format md|json|junit|github  report format (default md). --json = --format json.
   --input-format <fmt>         force the input format (csv|tsv|json|xliff|xlsx|po|i18n-json|
                                unity-csv|unreal-csv|yaml|renpy); default: detected from extension
@@ -147,7 +150,7 @@ function main(argv: string[]): number {
   };
   const loadTables = (): Table[] => {
     const files = expandArgs(args, gPath ? [gPath] : []);
-    const { tables, notes } = loadInputs(readInputs(files), { format: inputFormat as Format | undefined, columns: parseColumns(values.columns), sheet });
+    const { tables, notes } = loadInputs(readInputs(files), { format: inputFormat as Format | undefined, columns: parseColumns(values.columns), sheet, pairSource: forcedSourceLang });
     for (const n of notes) console.error(`note: ${n}`);
     if (!tables.length) throw new UsageError("No tables could be read from the inputs.");
     return tables;

@@ -28,6 +28,14 @@ export interface Row {
   maxLength?: number;
   /** PO `#, fuzzy`: a draft translation gettext ignores at runtime. Reported as untranslated.fuzzy. */
   fuzzy?: boolean;
+  /**
+   * Paired locale files only: the key exists in just one of the two files. "target" = absent from the translation
+   * (reported as untranslated.empty), "source" = absent from the source file (an obsolete or extra key, reported as
+   * info untranslated.extra-key). Comparison rules (placeholders, tags, ruby, length) never run on these rows.
+   */
+  missing?: "source" | "target";
+  /** With `missing`: a plural variant (`.one`, `_few` …) that Japanese does not need (it has one plural form); not reported. */
+  pluralVariant?: boolean;
 }
 
 /** Concrete format a table was parsed as. */

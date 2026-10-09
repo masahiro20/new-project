@@ -80,24 +80,63 @@ function tags(s: string, pair: string, renpy: boolean): { list: string[]; unbala
 /** Bracketed text with non-ASCII inside: a translated label such as [なし] or a menu path [エクスポート]. */
 const TRANSLATED_BRACKET = /\[[^[\]\n]*[^\x00-\x7f][^[\]\n]*\]/g;
 
+/** A printf conversion: [1] argument number of `%2$s` (absent for `%s`), [2] flags, width, precision and type. */
+const PRINTF = /^%(?:(\d+)\$)?([-+0#]*\d*(?:\.\d+)?(?:hh?|ll?|z|j|t)?[sdifxXuc@])$/;
+
 /**
- * Placeholder differences. A bare lowercase [word] in the source may be a display label: it is not reported missing
- * when the target has a translated bracket label in its place ([none] → [なし]), and a [word] the target adds is not
- * reported when the source has the word unbracketed (a translator-written menu path). In Ren'Py text (`renpy`), bare
- * text tags such as {b} / {w} are tags, not placeholders (see placeholderText).
+ * printf arguments by position: `%s %d` and `%2$d %1$s` both give {1: s, 2: d} (gettext c-format lets a translation
+ * reorder arguments with `%n$`, and use one more than once). Undefined when one position gets two conversions.
  */
-function placeholderDiff(rawSource: string, rawTarget: string, renpy: boolean): { missing: string[]; extra: string[] } {
+function printfArgs(tokens: string[]): Map<number, string> | undefined {
+  const args = new Map<number, string>();
+  let next = 1;
+  for (const tok of tokens) {
+    const m = PRINTF.exec(tok);
+    if (!m) continue;
+    const pos = m[1] ? Number(m[1]) : next++;
+    if (args.has(pos) && args.get(pos) !== m[2]) return undefined;
+    args.set(pos, m[2]!);
+  }
+  return args;
+}
+
+const sameArgs = (a: Map<number, string>, b: Map<number, string>) => a.size === b.size && [...a].every(([k, v]) => b.get(k) === v);
+
+/** A placeholder that names its value (`{name}`, `%{count}`, `$var`, `[NAME]`, `%1$s`): repeating it or using it once less changes no argument. */
+const isNamed = (p: string) => !/^%[-+0#]*\d*(?:\.\d+)?(?:hh?|ll?|z|j|t)?[sdifxXuc@]$/.test(p);
+
+/**
+ * Placeholder differences. printf conversions are compared by argument position (see printfArgs), so a reordered
+ * `%2$s %1$s` matches `%s %s`. A named placeholder that both sides use, only a different number of times, is not a
+ * mismatch: it is returned in `fewer` / `more` (info). A bare lowercase [word] in the source may be a display label: it
+ * is not reported missing when the target has a translated bracket label in its place ([none] → [なし]), and a [word]
+ * the target adds is not reported when the source has the word unbracketed (a translator-written menu path). In
+ * Ren'Py text (`renpy`), bare text tags such as {b} / {w} are tags, not placeholders (see placeholderText).
+ */
+function placeholderDiff(rawSource: string, rawTarget: string, renpy: boolean): { missing: string[]; extra: string[]; fewer: string[]; more: string[] } {
   const source = placeholderText(rawSource, renpy);
   const target = placeholderText(rawTarget, renpy);
-  const { missing, extra } = diff(
-    [...(source.match(PLACEHOLDER) ?? []), ...(source.match(BRACKET_WORD) ?? [])],
-    [...(target.match(PLACEHOLDER) ?? []), ...(target.match(BRACKET_WORD) ?? [])],
-  );
+  let sTok = [...(source.match(PLACEHOLDER) ?? []), ...(source.match(BRACKET_WORD) ?? [])];
+  let tTok = [...(target.match(PLACEHOLDER) ?? []), ...(target.match(BRACKET_WORD) ?? [])];
+  const numbered = (xs: string[]) => xs.some((x) => PRINTF.exec(x)?.[1]);
+  if (numbered(sTok) || numbered(tTok)) {
+    const sa = printfArgs(sTok);
+    const ta = printfArgs(tTok);
+    if (sa && ta && sameArgs(sa, ta)) {
+      sTok = sTok.filter((x) => !PRINTF.test(x));
+      tTok = tTok.filter((x) => !PRINTF.test(x));
+    }
+  }
+  const d = diff(sTok, tTok);
+  const fewer = d.missing.filter((p) => isNamed(p) && tTok.includes(p));
+  const more = d.extra.filter((p) => isNamed(p) && sTok.includes(p));
   let labels = (target.match(TRANSLATED_BRACKET) ?? []).length - (source.match(TRANSLATED_BRACKET) ?? []).length;
   const isWord = (p: string) => /^\[[a-z]+\]$/.test(p);
   return {
-    missing: missing.filter((p) => !(isWord(p) && labels-- > 0)),
-    extra: extra.filter((p) => !(isWord(p) && new RegExp(`(?<![A-Za-z])${p.slice(1, -1)}(?![A-Za-z])`, "i").test(source.replace(PLACEHOLDER, " ")))),
+    missing: d.missing.filter((p) => !fewer.includes(p)).filter((p) => !(isWord(p) && labels-- > 0)),
+    extra: d.extra.filter((p) => !more.includes(p)).filter((p) => !(isWord(p) && new RegExp(`(?<![A-Za-z])${p.slice(1, -1)}(?![A-Za-z])`, "i").test(source.replace(PLACEHOLDER, " ")))),
+    fewer,
+    more,
   };
 }
 
@@ -124,6 +163,8 @@ function looksUntranslatedCopy(source: string, kept: Set<string>): boolean {
   if (!lower.some((w) => w.length >= 3) && lower.length < 2) return false;
   if (/https?:\/\/|www\.|@\w+\./.test(v)) return false;
   if (!/\s/.test(v) && (/[_./:;\\#$%{}()<>=|@\d]/.test(v) || /[a-z][A-Z]/.test(v))) return false;
+  // Command or option syntax inside the text: an identifier joined by : _ = or \ (unixsocket:path, log_level=debug).
+  if (/[A-Za-z0-9][:_=\\][A-Za-z0-9]/.test(v)) return false;
   if ((v.match(/[A-Za-z'\s-]/g) ?? []).length < v.length * 0.75) return false;
   return !words.every((w) => kept.has(w) || /^[A-Z0-9]+$/.test(w));
 }
@@ -212,6 +253,17 @@ export function checkRules(tables: Table[], opts: { wideAsTwo?: boolean; locale?
     const bilingual = !t.singleLang && t.rows.some((r) => r.target.trim());
     const kept = bilingual && t.targetLang === "ja" && t.sourceLang === "en" ? keptLatinWords(t) : undefined;
     for (const [ri, row] of t.rows.entries()) {
+      // A key present in only one file of a locale pair: nothing to compare. Absent from the translation → untranslated
+      // (unless it is a plural form Japanese does not need); absent from the source → an extra key (info).
+      if (row.missing) {
+        if (row.pluralVariant) continue;
+        if (row.missing === "target" && bilingual && row.source.trim()) {
+          out.push({ category: "untranslated", severity: "warning", rule: "untranslated.empty", ...base(row, "target"), message: msg.untranslatedMissingKey() });
+        } else if (row.missing === "source" && row.target.trim()) {
+          out.push({ category: "untranslated", severity: "info", rule: "untranslated.extra-key", ...base(row, "target"), message: msg.untranslatedExtraKey() });
+        }
+        continue;
+      }
       if (!row.target.trim()) {
         if (bilingual && row.source.trim()) {
           out.push({ category: "untranslated", severity: "warning", rule: "untranslated.empty", ...base(row, "target"), message: msg.untranslatedEmpty() });
@@ -246,6 +298,8 @@ export function checkRules(tables: Table[], opts: { wideAsTwo?: boolean; locale?
           category: "placeholder", severity: "error", rule: "placeholder.mismatch", ...base(row, "target"),
           message: msg.mismatch(ph.missing, ph.extra),
         });
+      } else if (ph.fewer.length || ph.more.length) {
+        out.push({ category: "placeholder", severity: "info", rule: "placeholder.count", ...base(row, "target"), message: msg.placeholderCount(ph.fewer, ph.more) });
       }
 
       const st = tags(row.source, pair, renpy);

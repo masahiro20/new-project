@@ -496,7 +496,7 @@ function ref(row) {
 function normalizeApostrophes(s) {
   return s.replace(/[\u2018\u2019\u02bc\u2032]/g, "'");
 }
-var PLACEHOLDER = /\{[A-Za-z0-9_.$:]*\}|%(?:\d+\$)?[-+0#]*\d*(?:\.\d+)?[sdifxXu@]|\$\{[^}]+\}|\$[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*\|?|\[[A-Z][A-Z0-9_]+\]|\[(?=[a-z0-9_.]*[_.0-9])[a-z_][a-z0-9_.]*\]|\[[A-Za-z_][A-Za-z0-9_.]*(?:![rsatuilcq]+(?::[-<>^=+#0-9,_.]*[A-Za-z%]?)?|:[-<>^=+#0-9,_.]*[A-Za-z%]?)\]/g;
+var PLACEHOLDER = /\{[A-Za-z0-9_.$:]*\}|%(?:\d+\$)?[-+0#]*\d*(?:\.\d+)?(?:hh?|ll?|z|j|t)?[sdifxXuc@]|\$\{[^}]+\}|\$[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*\|?|\[[A-Z][A-Z0-9_]+\]|\[(?=[a-z0-9_.]*[_.0-9])[a-z_][a-z0-9_.]*\]|\[[A-Za-z_][A-Za-z0-9_.]*(?:![rsatuilcq]+(?::[-<>^=+#0-9,_.]*[A-Za-z%]?)?|:[-<>^=+#0-9,_.]*[A-Za-z%]?)\]/g;
 var BRACKET_WORD = /\[[a-z][a-z]*\]/g;
 var RENPY_TAG_NAMES = /* @__PURE__ */ new Set([
   "b",
@@ -2375,6 +2375,14 @@ function pairLabel(a, b) {
   while (i2 < pa.length - 1 && i2 < pb.length - 1 && pa[i2] === pb[i2]) i2++;
   return `${a}+${pb.slice(i2).join("/")}`;
 }
+var PLURAL_KEY = /^(.*?)([._])(zero|one|two|few|many|other|plural)$/;
+function pluralSiblings(id) {
+  const m = PLURAL_KEY.exec(id);
+  if (!m || !m[1]) return void 0;
+  const [, stem, sep2, form] = m;
+  if (form === "plural") return [stem];
+  return form === "other" ? [] : [`${stem}${sep2}other`];
+}
 function pairTables(src, tgt) {
   const file2 = pairLabel(src.file, tgt.file);
   const byId = /* @__PURE__ */ new Map();
@@ -2383,13 +2391,22 @@ function pairTables(src, tgt) {
     if (q2) q2.push(r);
     else byId.set(r.id, [r]);
   }
+  const srcIds = new Set(src.rows.map((r) => r.id));
+  const tgtIds = new Set(tgt.rows.map((r) => r.id));
+  const pluralSkipped = [];
+  const legitPlural = (id, jaIds, otherIds) => {
+    const sib = pluralSiblings(id);
+    const ok = !!sib && sib.length > 0 && sib.every((x2) => jaIds.has(x2) || otherIds.has(x2));
+    if (ok) pluralSkipped.push(id);
+    return ok;
+  };
   const rows = [];
   const missingInTarget = [];
   for (const s of src.rows) {
     const t = byId.get(s.id)?.shift();
     if (!t) missingInTarget.push(s.id);
     const ctx = [s.context, t?.context && t.context !== s.context ? t.context : void 0, t ? void 0 : `missing in ${tgt.file}`].filter(Boolean);
-    rows.push({
+    const row = {
       file: file2,
       line: s.line,
       id: s.id,
@@ -2399,17 +2416,42 @@ function pairTables(src, tgt) {
       addressee: s.addressee ?? t?.addressee,
       context: ctx.join(" | ") || void 0,
       maxLength: s.maxLength ?? t?.maxLength
-    });
+    };
+    if (!t) {
+      row.missing = "target";
+      if (tgt.singleLang === "ja" && legitPlural(s.id, tgtIds, srcIds)) row.pluralVariant = true;
+    }
+    rows.push(row);
   }
   const onlyInTarget = [];
   for (const t of tgt.rows) {
     const q2 = byId.get(t.id);
     if (!q2 || !q2.includes(t)) continue;
     onlyInTarget.push(t.id);
-    rows.push({ ...t, file: file2, source: "", target: t.source, context: [t.context, `only in ${tgt.file}:${t.line}`].filter(Boolean).join(" | ") });
+    const row = { ...t, file: file2, source: "", target: t.source, missing: "source", context: [t.context, `only in ${tgt.file}:${t.line}`].filter(Boolean).join(" | ") };
+    if (src.singleLang === "ja" && legitPlural(t.id, srcIds, tgtIds)) row.pluralVariant = true;
+    rows.push(row);
   }
   const table = { file: file2, format: src.format, sourceLang: src.singleLang, targetLang: tgt.singleLang, rows };
-  return { table, missingInTarget, onlyInTarget };
+  return { table, missingInTarget, onlyInTarget, pluralSkipped };
+}
+var BASE_NAME = /(?:^|[/\\._\- ])(?:base|default|source|master|template|original|reference)(?=$|[/\\._\- ])/i;
+function pairDirection(ja2, en2, forced) {
+  if (forced) return { source: forced, why: `source language ${forced} as requested` };
+  const jaIds = new Set(ja2.rows.map((r) => r.id));
+  const enIds = new Set(en2.rows.map((r) => r.id));
+  const onlyJa = [...jaIds].filter((id) => !enIds.has(id)).length;
+  const onlyEn = [...enIds].filter((id) => !jaIds.has(id)).length;
+  const counts = `${onlyEn} key(s) only in en, ${onlyJa} only in ja`;
+  if (onlyEn > 0 && onlyEn >= 2 * onlyJa) return { source: "en", why: `en is the source: it has keys the ja file lacks (${counts}), so ja is the translation` };
+  if (onlyJa > 0 && onlyJa >= 2 * onlyEn) return { source: "ja", why: `ja is the source: it has keys the en file lacks (${counts}), so en is the translation` };
+  const jaBase = BASE_NAME.test(ja2.file);
+  const enBase = BASE_NAME.test(en2.file);
+  if (enBase !== jaBase) {
+    const l = enBase ? "en" : "ja";
+    return { source: l, why: `${l} is the source: its file name marks it as the base/default file` };
+  }
+  return { source: "ja", why: `key sets do not tell (${counts}); ja taken as the source (default; use --source-lang en if English is the original)` };
 }
 function loadInputs(files, opts = {}) {
   const notes = [];
@@ -2453,48 +2495,52 @@ function loadInputs(files, opts = {}) {
       opts.onError(input2.name, err2);
     }
   }
-  const srcLang = opts.langs?.source ?? "ja";
-  const tgtLang = otherLang(srcLang);
+  const forced = opts.pairSource ?? opts.langs?.source;
   const singles = parsed.filter((p) => p.table.singleLang);
   const nameLangMismatch = singles.filter((p) => {
     const named = langFromName(p.input.name);
     return named && named !== p.table.singleLang;
   });
   for (const p of nameLangMismatch) notes.push(`${p.table.file}: name suggests ${langFromName(p.input.name)} but its column/locale header says ${p.table.singleLang}; treated as ${p.table.singleLang}`);
-  const srcs = singles.filter((p) => p.table.singleLang === srcLang);
-  const tgts = singles.filter((p) => p.table.singleLang === tgtLang);
+  const jas = singles.filter((p) => p.table.singleLang === "ja");
+  const ens = singles.filter((p) => p.table.singleLang === "en");
   const pairs = [];
   const used = /* @__PURE__ */ new Set();
-  for (const s of srcs) {
-    const k = pairKey(s.input.name);
-    const sameKeySrc = srcs.filter((x2) => pairKey(x2.input.name) === k);
-    const cands = tgts.filter((t) => !used.has(t) && pairKey(t.input.name) === k);
-    if (sameKeySrc.length === 1 && cands.length === 1) {
-      pairs.push([s, cands[0], "matching names"]);
-      used.add(s).add(cands[0]);
+  for (const j of jas) {
+    const k = pairKey(j.input.name);
+    const sameKeyJa = jas.filter((x2) => pairKey(x2.input.name) === k);
+    const cands = ens.filter((e) => !used.has(e) && pairKey(e.input.name) === k);
+    if (sameKeyJa.length === 1 && cands.length === 1) {
+      pairs.push([j, cands[0], "matching names"]);
+      used.add(j).add(cands[0]);
     }
   }
-  const restS = srcs.filter((s) => !used.has(s));
-  const restT = tgts.filter((t) => !used.has(t));
-  if (restS.length === 1 && restT.length === 1) {
-    pairs.push([restS[0], restT[0], "the only two single-language files"]);
-    used.add(restS[0]).add(restT[0]);
+  const restJa = jas.filter((s) => !used.has(s));
+  const restEn = ens.filter((t) => !used.has(t));
+  if (restJa.length === 1 && restEn.length === 1) {
+    pairs.push([restJa[0], restEn[0], "the only two single-language files"]);
+    used.add(restJa[0]).add(restEn[0]);
   }
   const replaced = /* @__PURE__ */ new Map();
-  for (const [s, t, why] of pairs) {
-    const { table, missingInTarget, onlyInTarget } = pairTables(s.table, t.table);
+  for (const [j, e, why] of pairs) {
+    const dir = pairDirection(j.table, e.table, forced);
+    const [s, t] = dir.source === "ja" ? [j, e] : [e, j];
+    const { table, missingInTarget, onlyInTarget, pluralSkipped } = pairTables(s.table, t.table);
     replaced.set(s.table, table);
     replaced.set(t.table, null);
-    let note = `Paired ${s.table.file} (${srcLang}, ${s.table.rows.length} keys) with ${t.table.file} (${tgtLang}, ${t.table.rows.length} keys) by key (${why}) → ${table.file}`;
+    let note = `Paired ${s.table.file} (${s.table.singleLang}, ${s.table.rows.length} keys) with ${t.table.file} (${t.table.singleLang}, ${t.table.rows.length} keys) by key (${why}) → ${table.file}`;
     if (missingInTarget.length) note += `; ${missingInTarget.length} missing in ${t.table.file}: ${list(missingInTarget)}`;
     if (onlyInTarget.length) note += `; ${onlyInTarget.length} only in ${t.table.file}: ${list(onlyInTarget)}`;
+    note += `; direction ${s.table.singleLang}→${t.table.singleLang} (${dir.why})`;
+    if (pluralSkipped.length) note += `; ${pluralSkipped.length} plural variant key(s) absent from the Japanese file not reported (Japanese has one plural form): ${list(pluralSkipped)}`;
     notes.push(note);
   }
   for (const p of singles) {
     if (used.has(p)) continue;
     const lang = p.table.singleLang;
-    const why = srcs.length + tgts.length > 1 && (lang === srcLang ? restT.length : restS.length) ? "could not tell which file it pairs with (name the files like ui_ja.csv / ui_en.csv)" : `no ${otherLang(lang)} counterpart`;
-    notes.push(`${p.table.file}: single-language (${lang}), ${why}; checked alone (${lang === srcLang ? "source-side rules only" : "as source text"})`);
+    const why = jas.length + ens.length > 1 && (lang === "ja" ? restEn.length : restJa.length) ? "could not tell which file it pairs with (name the files like ui_ja.csv / ui_en.csv)" : `no ${otherLang(lang)} counterpart`;
+    const asSource = forced ? lang === forced : lang === "ja";
+    notes.push(`${p.table.file}: single-language (${lang}), ${why}; checked alone (${asSource ? "source-side rules only" : "as source text"})`);
   }
   const tables = [];
   for (const p of parsed) {
@@ -22745,6 +22791,9 @@ var en = {
   rubyLeak: () => "Ruby markup copied into the English text.",
   lengthLimit: (n, max2, wide) => `Length ${n} exceeds the limit of ${max2}${wide ? " (wide chars count 2)" : ""}.`,
   untranslatedEmpty: () => "The translation is empty.",
+  untranslatedMissingKey: () => "The key is missing from the translation file.",
+  untranslatedExtraKey: () => "The key is only in the translation file (obsolete, or not yet in the source file); comparison rules skipped.",
+  placeholderCount: (fewer, more) => [fewer.length && `used fewer times than in the source: ${fewer.join(" ")}`, more.length && `used more times than in the source: ${more.join(" ")}`].filter(Boolean).join("; ") + " (same placeholders; usually harmless).",
   untranslatedCopy: () => "The translation is identical to the source text (left untranslated?).",
   untranslatedFuzzy: () => "Fuzzy (draft) translation: gettext ignores it until it is reviewed and the fuzzy flag is removed.",
   untranslatedJapanese: () => "The English translation is Japanese text (left untranslated?).",
@@ -22790,6 +22839,9 @@ var ja = {
   rubyLeak: () => "ルビのマークアップが英語テキストに混入しています。",
   lengthLimit: (n, max2, wide) => `文字数${n}が上限${max2}を超えています${wide ? "（全角は2文字として計算）" : ""}。`,
   untranslatedEmpty: () => "訳文が空です。",
+  untranslatedMissingKey: () => "訳文のファイルにこのキーがありません。",
+  untranslatedExtraKey: () => "このキーは訳文のファイルにしかありません（廃止されたキー、または原文にまだ無いキー）。比較の検査はしていません。",
+  placeholderCount: (fewer, more) => [fewer.length && `原文より少ない回数: ${fewer.join(" ")}`, more.length && `原文より多い回数: ${more.join(" ")}`].filter(Boolean).join("／") + "（同じプレースホルダーで回数だけが違います。通常は問題ありません）",
   untranslatedCopy: () => "訳文が原文と同じです（未翻訳の可能性があります）。",
   untranslatedFuzzy: () => "fuzzy（仮訳）です。fuzzy フラグを外すまで gettext はこの訳を使いません。",
   untranslatedJapanese: () => "英語の訳文が日本語のままです（未翻訳の可能性があります）。",
@@ -23623,18 +23675,45 @@ function tags(s, pair, renpy) {
   return { list: list3, unbalanced: [...unbalanced, ...stack.map((n) => `<${n}>`)] };
 }
 var TRANSLATED_BRACKET = /\[[^[\]\n]*[^\x00-\x7f][^[\]\n]*\]/g;
+var PRINTF = /^%(?:(\d+)\$)?([-+0#]*\d*(?:\.\d+)?(?:hh?|ll?|z|j|t)?[sdifxXuc@])$/;
+function printfArgs(tokens) {
+  const args = /* @__PURE__ */ new Map();
+  let next = 1;
+  for (const tok of tokens) {
+    const m = PRINTF.exec(tok);
+    if (!m) continue;
+    const pos = m[1] ? Number(m[1]) : next++;
+    if (args.has(pos) && args.get(pos) !== m[2]) return void 0;
+    args.set(pos, m[2]);
+  }
+  return args;
+}
+var sameArgs = (a, b) => a.size === b.size && [...a].every(([k, v]) => b.get(k) === v);
+var isNamed = (p) => !/^%[-+0#]*\d*(?:\.\d+)?(?:hh?|ll?|z|j|t)?[sdifxXuc@]$/.test(p);
 function placeholderDiff(rawSource, rawTarget, renpy) {
   const source = placeholderText(rawSource, renpy);
   const target = placeholderText(rawTarget, renpy);
-  const { missing, extra } = diff(
-    [...source.match(PLACEHOLDER) ?? [], ...source.match(BRACKET_WORD) ?? []],
-    [...target.match(PLACEHOLDER) ?? [], ...target.match(BRACKET_WORD) ?? []]
-  );
+  let sTok = [...source.match(PLACEHOLDER) ?? [], ...source.match(BRACKET_WORD) ?? []];
+  let tTok = [...target.match(PLACEHOLDER) ?? [], ...target.match(BRACKET_WORD) ?? []];
+  const numbered = (xs) => xs.some((x2) => PRINTF.exec(x2)?.[1]);
+  if (numbered(sTok) || numbered(tTok)) {
+    const sa = printfArgs(sTok);
+    const ta = printfArgs(tTok);
+    if (sa && ta && sameArgs(sa, ta)) {
+      sTok = sTok.filter((x2) => !PRINTF.test(x2));
+      tTok = tTok.filter((x2) => !PRINTF.test(x2));
+    }
+  }
+  const d = diff(sTok, tTok);
+  const fewer = d.missing.filter((p) => isNamed(p) && tTok.includes(p));
+  const more = d.extra.filter((p) => isNamed(p) && sTok.includes(p));
   let labels = (target.match(TRANSLATED_BRACKET) ?? []).length - (source.match(TRANSLATED_BRACKET) ?? []).length;
   const isWord = (p) => /^\[[a-z]+\]$/.test(p);
   return {
-    missing: missing.filter((p) => !(isWord(p) && labels-- > 0)),
-    extra: extra.filter((p) => !(isWord(p) && new RegExp(`(?<![A-Za-z])${p.slice(1, -1)}(?![A-Za-z])`, "i").test(source.replace(PLACEHOLDER, " "))))
+    missing: d.missing.filter((p) => !fewer.includes(p)).filter((p) => !(isWord(p) && labels-- > 0)),
+    extra: d.extra.filter((p) => !more.includes(p)).filter((p) => !(isWord(p) && new RegExp(`(?<![A-Za-z])${p.slice(1, -1)}(?![A-Za-z])`, "i").test(source.replace(PLACEHOLDER, " ")))),
+    fewer,
+    more
   };
 }
 function keptLatinWords(t) {
@@ -23652,6 +23731,7 @@ function looksUntranslatedCopy(source, kept) {
   if (!lower.some((w) => w.length >= 3) && lower.length < 2) return false;
   if (/https?:\/\/|www\.|@\w+\./.test(v)) return false;
   if (!/\s/.test(v) && (/[_./:;\\#$%{}()<>=|@\d]/.test(v) || /[a-z][A-Z]/.test(v))) return false;
+  if (/[A-Za-z0-9][:_=\\][A-Za-z0-9]/.test(v)) return false;
   if ((v.match(/[A-Za-z'\s-]/g) ?? []).length < v.length * 0.75) return false;
   return !words.every((w) => kept.has(w) || /^[A-Z0-9]+$/.test(w));
 }
@@ -23720,6 +23800,15 @@ function checkRules(tables, opts = {}) {
     const bilingual = !t.singleLang && t.rows.some((r) => r.target.trim());
     const kept = bilingual && t.targetLang === "ja" && t.sourceLang === "en" ? keptLatinWords(t) : void 0;
     for (const [ri, row] of t.rows.entries()) {
+      if (row.missing) {
+        if (row.pluralVariant) continue;
+        if (row.missing === "target" && bilingual && row.source.trim()) {
+          out.push({ category: "untranslated", severity: "warning", rule: "untranslated.empty", ...base(row, "target"), message: msg.untranslatedMissingKey() });
+        } else if (row.missing === "source" && row.target.trim()) {
+          out.push({ category: "untranslated", severity: "info", rule: "untranslated.extra-key", ...base(row, "target"), message: msg.untranslatedExtraKey() });
+        }
+        continue;
+      }
       if (!row.target.trim()) {
         if (bilingual && row.source.trim()) {
           out.push({ category: "untranslated", severity: "warning", rule: "untranslated.empty", ...base(row, "target"), message: msg.untranslatedEmpty() });
@@ -23760,6 +23849,8 @@ ${row.target}`;
           ...base(row, "target"),
           message: msg.mismatch(ph.missing, ph.extra)
         });
+      } else if (ph.fewer.length || ph.more.length) {
+        out.push({ category: "placeholder", severity: "info", rule: "placeholder.count", ...base(row, "target"), message: msg.placeholderCount(ph.fewer, ph.more) });
       }
       const st = tags(row.source, pair, renpy);
       const tt = tags(row.target, pair, renpy);
@@ -24060,7 +24151,10 @@ function checkNotation(tables, locale = "en", g) {
     const bases = settled.filter((b) => b.key !== key && b.key.length >= 2 && key.includes(b.key) && (tie || b.total >= group2.length));
     const score = (form) => bases.filter((b) => containsWord(form, b.form)).length;
     const best = bases.length ? Math.max(...ranked.map(([f]) => score(f))) : 0;
-    const majority = best > 0 ? ranked.find(([f]) => score(f) === best)[0] : ranked[0][0];
+    const cands = ranked.filter(([f]) => bases.length === 0 || score(f) === best);
+    const top = cands.filter(([, hs]) => hs.length === cands[0][1].length);
+    const dots = (f) => (f.match(/[・＝]/g) ?? []).length;
+    const majority = (tie ? [...top].sort((a, b) => dots(a[0]) - dots(b[0]))[0] : cands[0])[0];
     usage.push({ category: "notation", group: label, counts: Object.fromEntries(ranked.map(([s, h]) => [s, h.length])) });
     for (const [surface, list3] of ranked) {
       if (surface === majority) continue;
@@ -24085,7 +24179,7 @@ function checkNotation(tables, locale = "en", g) {
 }
 function containsWord(compound, word) {
   for (let i2 = compound.indexOf(word); i2 >= 0; i2 = compound.indexOf(word, i2 + 1)) {
-    if (!/^[ーァィゥェォャュョ・]/.test(compound.slice(i2 + word.length))) return true;
+    if (!/^[ーァィゥェォャュョ]/.test(compound.slice(i2 + word.length))) return true;
   }
   return false;
 }
@@ -24923,6 +25017,9 @@ check options:
                                ./glossary.json or ./kotomark.glossary.csv if present. --no-glossary
                                disables the lookup. TBX and ja/en-column CSVs are read in the script's
                                direction (--source-lang ja|en to force it).
+  --source-lang ja|en          the original language: forces which file of a ja/en locale pair
+                               (ja.yml + en.yml) is the source, and the glossary direction. Default:
+                               the file with keys the other lacks, else a base/default name, else ja.
   --format md|json|junit|github  report format (default md). --json = --format json.
   --input-format <fmt>         force the input format (csv|tsv|json|xliff|xlsx|po|i18n-json|
                                unity-csv|unreal-csv|yaml|renpy); default: detected from extension
@@ -25035,7 +25132,7 @@ function main(argv) {
   };
   const loadTables = () => {
     const files = expandArgs(args, gPath ? [gPath] : []);
-    const { tables, notes } = loadInputs(readInputs(files), { format: inputFormat, columns: parseColumns(values.columns), sheet });
+    const { tables, notes } = loadInputs(readInputs(files), { format: inputFormat, columns: parseColumns(values.columns), sheet, pairSource: forcedSourceLang });
     for (const n of notes) console.error(`note: ${n}`);
     if (!tables.length) throw new UsageError("No tables could be read from the inputs.");
     return tables;

@@ -40,6 +40,12 @@ export interface Messages {
   rubyLeak(): string;
   lengthLimit(length: number, max: number, wideAsTwo: boolean): string;
   untranslatedEmpty(): string;
+  /** untranslated.empty on a paired locale file: the key is absent from the translation file. */
+  untranslatedMissingKey(): string;
+  /** untranslated.extra-key: the key is only in the translation file (obsolete or not yet in the source). */
+  untranslatedExtraKey(): string;
+  /** placeholder.count: the same named placeholders, used a different number of times. */
+  placeholderCount(fewer: string[], more: string[]): string;
   untranslatedCopy(): string;
   untranslatedFuzzy(): string;
   /** JA→EN: the English column holds Japanese text (copied source or never translated). */
@@ -111,6 +117,10 @@ const en: Messages = {
   rubyLeak: () => "Ruby markup copied into the English text.",
   lengthLimit: (n, max, wide) => `Length ${n} exceeds the limit of ${max}${wide ? " (wide chars count 2)" : ""}.`,
   untranslatedEmpty: () => "The translation is empty.",
+  untranslatedMissingKey: () => "The key is missing from the translation file.",
+  untranslatedExtraKey: () => "The key is only in the translation file (obsolete, or not yet in the source file); comparison rules skipped.",
+  placeholderCount: (fewer, more) =>
+    [fewer.length && `used fewer times than in the source: ${fewer.join(" ")}`, more.length && `used more times than in the source: ${more.join(" ")}`].filter(Boolean).join("; ") + " (same placeholders; usually harmless).",
   untranslatedCopy: () => "The translation is identical to the source text (left untranslated?).",
   untranslatedFuzzy: () => "Fuzzy (draft) translation: gettext ignores it until it is reviewed and the fuzzy flag is removed.",
   untranslatedJapanese: () => "The English translation is Japanese text (left untranslated?).",
@@ -165,6 +175,10 @@ const ja: Messages = {
   rubyLeak: () => "ルビのマークアップが英語テキストに混入しています。",
   lengthLimit: (n, max, wide) => `文字数${n}が上限${max}を超えています${wide ? "（全角は2文字として計算）" : ""}。`,
   untranslatedEmpty: () => "訳文が空です。",
+  untranslatedMissingKey: () => "訳文のファイルにこのキーがありません。",
+  untranslatedExtraKey: () => "このキーは訳文のファイルにしかありません（廃止されたキー、または原文にまだ無いキー）。比較の検査はしていません。",
+  placeholderCount: (fewer, more) =>
+    [fewer.length && `原文より少ない回数: ${fewer.join(" ")}`, more.length && `原文より多い回数: ${more.join(" ")}`].filter(Boolean).join("／") + "（同じプレースホルダーで回数だけが違います。通常は問題ありません）",
   untranslatedCopy: () => "訳文が原文と同じです（未翻訳の可能性があります）。",
   untranslatedFuzzy: () => "fuzzy（仮訳）です。fuzzy フラグを外すまで gettext はこの訳を使いません。",
   untranslatedJapanese: () => "英語の訳文が日本語のままです（未翻訳の可能性があります）。",
