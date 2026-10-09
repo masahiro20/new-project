@@ -168,7 +168,7 @@ export const guide: Guide = {
       url: "https://laws.e-gov.go.jp/law/424M60000100015",
     },
     {
-      label: "厚生労働省「児童福祉施設の設備及び運営に関する基準等の一部を改正する省令について（通知）」（令和4年12月28日 子発1228第1号・障発1228第4号。長野県掲載）",
+      label: "厚生労働省「児童福祉施設の設備及び運営に関する基準等の一部を改正する省令について（通知）」（令和4年12月28日 子発1228第1号・障発1228第4号）。長野県が掲載する国の通知の写し",
       url: "https://www.pref.nagano.lg.jp/shogai-shien/kodomoanzen/documents/setsubiuneikijun.pdf",
     },
     {
@@ -188,11 +188,11 @@ export const guide: Guide = {
       url: "https://www.cfa.go.jp/policies/child-safety/list/",
     },
     {
-      label: "こども家庭庁ほか「送迎用バスの置き去り防止を支援する安全装置の適切な運用及び点検整備について」（令和8年9月2日 事務連絡。長野県掲載）",
+      label: "こども家庭庁ほか「送迎用バスの置き去り防止を支援する安全装置の適切な運用及び点検整備について」（令和8年9月2日 事務連絡）。長野県が掲載する国の事務連絡の写し",
       url: "https://www.pref.nagano.lg.jp/shogai-shien/kodomoanzen/documents/20260902anzen.pdf",
     },
     {
-      label: "厚生労働省「安全装置の補助基準額等及び安全装置のリストの公表について」（令和5年1月31日 事務連絡。長野県掲載）",
+      label: "厚生労働省「安全装置の補助基準額等及び安全装置のリストの公表について」（令和5年1月31日 事務連絡）。長野県が掲載する国の事務連絡の写し",
       url: "https://www.pref.nagano.lg.jp/shogai-shien/kodomoanzen/documents/anzensouchilist.pdf",
     },
     {
