@@ -1,0 +1,6 @@
+This project was made with extensive use of generative AI (Claude).
+- **Code:** written by an AI coding assistant under Team GRANDSTRIDE's direction, then play-tested and adjusted.
+- **Text:** the store description, in-game text, Itsuka's radio lines, and the world setting and design documents were drafted by AI and edited and approved by the team.
+- **Graphics:** no AI image-generation models were used. In-game visuals are drawn at runtime by AI-written three.js code. The cover and screenshots are captures of the game. The promotional banner, header and title card were composed as vector art (SVG) by an AI assistant.
+- **Sound:** no AI-generated audio files. All sound is synthesized live with the Web Audio API by AI-written code.
+- Team GRANDSTRIDE chose the concept, directed the work and made the final decisions.

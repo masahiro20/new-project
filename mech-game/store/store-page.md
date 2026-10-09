@@ -19,8 +19,8 @@
 
 | 言語 | 文面 | 文字数 |
 |---|---|---|
-| EN | `Pilot a 28m four-legged war machine. Two missions, upgrades, daily goals. Free.` | 79 chars |
-| JA | `全高28mの四脚戦機で灰殻を討て。2つの作戦、機体の強化、毎日の作戦目標。ブラウザで今すぐ出撃。` | 48字 |
+| EN | `Pilot a 28m four-legged war machine. 3 missions, 3 bosses, upgrades. Free.` | 75 chars |
+| JA | `全高28mの四脚戦機で灰殻を討て。3つの作戦と3体のボス、機体の強化、毎日の作戦目標。ブラウザで今すぐ出撃。` | 53字 |
 
 予備案（EN）: `Four-legged cockpit mech action. Dodge, upgrade, fight. In your browser.`（72 chars）
 
@@ -38,12 +38,15 @@ GRANDSTRIDE is a first-person cockpit mech action game that runs in your browser
 
 ### Features
 
-- **Two missions.**
+- **Three missions, three bosses.**
   - **MISSION 01 "Shore City, Sector 7 Defense"**: 3 minutes, 12 Ashshell, then the Shell Lord.
   - **MISSION 02 "Shore City, Harbor Night Sweep"**: 4 minutes, 16 Ashshell (beetle, floater and the new charging **RAMSHELL**), then the **TWINSHELL**, a boss that changes into a second, faster form halfway through the fight. Unlocks when you clear MISSION 01.
-  - **MISSION 03: coming soon.**
+  - **MISSION 03 "Shore City, Third Seawall: Storm Watch"**: 5 minutes on the tidal flats in a storm. Fog cuts your view, so you fight by your instruments. Stand still and plant all four legs for a **TREMOR SCAN** that widens the radar. Bring 3 observation towers online to win back visibility, watch out for the **HAZE** that jams your gauges, and face the **MAELSHELL**, a three-phase boss that swims under the mud. Unlocks when you clear MISSION 02.
 - **Sidestep.** Hold a direction and hop sideways (`Space` + `A` / `D`, or BOOST + stick left / right). A RAMSHELL glows red before it charges: step aside, let it crash into a wall, and hit the weak point on its back.
 - **HANGAR upgrades.** Every mission pays out **PARTS**. Spend them to upgrade **Legs, Core and Armor**, 5 levels each: more leg grip, less heat, more armor. Your progress is saved in your browser.
+- **Medals, HARD mode and ASSIST.** Each mission has 3 medals (clear, rank A or better, clear while taking little damage). Cleared missions unlock **HARD** (tougher enemies, 1.5× PARTS). Lose the same mission twice in a row and you can relaunch in **ASSIST** mode (25% less damage taken; the rank medal is off while it is on).
+- **Your first minute is guided.** On your first sortie Itsuka walks you through moving, turning, firing, dashing and jumping before the first enemy arrives.
+- **Auto save.** PARTS, upgrades, medals and settings are saved the moment they change. Close the tab mid-mission and you still get the minimum reward next time.
 - **Daily operations.** 3 new goals every day ("destroy 10 beetles", "clear with rank A or better" and so on). Complete them for PARTS, and come back on consecutive days for a **STREAK** bonus.
 - **First-person cockpit, all the way.** The HUD is built into the cockpit: resonance meter, a grip readout for each of the four legs, core temperature gauge, and a warning-light panel.
 - **Four legs, four grip gauges (FL / FR / RL / RR).** Turning, landing, sidestepping and taking hits wear down each leg separately. When a leg's grip hits zero, the machine leans, slows down and turns sluggishly until the leg recovers. Stand still to regain grip faster.
@@ -76,7 +79,7 @@ Tip: click the game screen once to capture the mouse. Press `Esc` to release it.
 
 ### System requirements and known limitations
 
-- **This is a prototype.** Two missions, one weapon. Upgrades, PARTS, daily goals and high scores are saved in your browser only: clearing site data or switching browser / device starts you from zero. Expect rough edges, balance changes and bugs.
+- **This is a prototype.** Three missions, one weapon. Upgrades, PARTS, medals, daily goals and high scores are saved in your browser only: clearing site data or switching browser / device starts you from zero. Expect rough edges, balance changes and bugs.
 - **Recommended browsers:** latest desktop Chrome or Edge. Firefox should work. Safari (macOS / iOS) works but is less tested.
 - Requires WebGL. If you see "WEBGL UNAVAILABLE", turn on hardware acceleration in your browser settings.
 - **Low-spec PC, laptop on battery, or phone?** Set Quality to **Low** in the settings and check the FPS display.
@@ -91,15 +94,15 @@ GRANDSTRIDE is in early development by a small team. This browser prototype is a
 
 Next on the list:
 
-1. **MISSION 03** (coming soon)
-2. Leg swaps in the HANGAR (heavy legs, jump legs, anchor legs)
-3. More Ashshell types
-4. Rider skill tree
-5. **A Steam release.** The goal is a free demo on Steam, then Early Access. Follow this page to hear when the Steam page goes live.
+1. Leg swaps in the HANGAR (heavy legs, jump legs, anchor legs)
+2. More Ashshell types and missions
+3. Rider skill tree
+4. **A Steam release.** The goal is a free demo on Steam, then Early Access. Follow this page to hear when the Steam page goes live.
 
 **Feedback wanted.** Please tell us in the comments:
 - Could you tell what the leg grip and warning lights meant without reading anything?
 - Did the RAMSHELL's red glow give you enough warning to sidestep?
+- In the MISSION 03 storm, did the tremor scan and the towers help you find your way?
 - Did you reach OVERBEAT? How did it feel?
 - Which upgrade did you buy first, and did it make a difference?
 - What was your FPS, and on what device / browser?
@@ -130,12 +133,15 @@ GRANDSTRIDE is free to play. If you enjoyed it, a small tip (suggested $3) goes 
 
 ### 特徴
 
-- **2つの作戦。**
+- **3つの作戦、3体のボス。**
   - **MISSION 01「汀都 第七区画 防衛」**: 制限時間3分、灰殻12体、そして殻王。
   - **MISSION 02「汀都 港湾区画 夜間掃討」**: 制限時間4分、甲虫型・浮遊型・突進型（**衝角殻 RAMSHELL**）の灰殻16体、そして戦いの途中で姿を変えて2段階目に入るボス **双殻王 TWINSHELL**。MISSION 01 をクリアすると解放。
-  - **MISSION 03: 近日追加。**
+  - **MISSION 03「汀都 第三防潮堤外縁 嵐中観測戦」**: 制限時間5分、暴風雨の干潟。霧で前が見えず、計器が頼り。止まって4本の脚で踏み据えると **震動探知 TREMOR SCAN** でレーダーが広がる。観測塔3基を起動して視界を取り戻し、計器を乱す **霧殻** に気をつけながら、泥の下を泳ぐ3段階のボス **渦殻王 MAELSHELL** と戦う。MISSION 02 をクリアすると解放。
 - **横跳び SIDESTEP。** `Space`＋`A`/`D`（タッチは跳躍ボタン＋スティック左右）で横へ跳ぶ。突進型は突っ込む前に赤く光る。横に躱して壁に激突させれば、背中の弱点が開く。
 - **整備 HANGAR。** 作戦の報酬「資材 PARTS」で **脚・炉・装甲** をそれぞれ5段階まで強化。脚圧が増え、炉温が上がりにくくなり、装甲が厚くなる。進行はブラウザに保存。
+- **勲章・HARD・支援モード。** 作戦ごとに勲章が3つ（クリア／ランクA以上／被ダメージを抑えてクリア）。クリアした作戦は **HARD**（敵が強く、資材1.5倍）で遊べる。同じ作戦で2回続けて負けたら **支援モード ASSIST**（被ダメージ25%減。使用中はランクの勲章なし）で再出撃できる。
+- **最初の1分は案内つき。** 初めての出撃では、最初の敵が来る前に、イツカが移動・旋回・射撃・疾走・跳躍を順に案内する。
+- **オートセーブ。** 資材・強化・勲章・設定は変わった瞬間に保存。作戦の途中でタブを閉じても、次に開いたとき最低限の報酬を受け取れる。
 - **今日の作戦目標 DAILY。** 毎日3つの目標（「甲虫型を10体撃破」「ランクA以上でクリア」など）。達成で資材を獲得。毎日続けて遊ぶと **連続出撃 STREAK** ボーナス。
 - **最初から最後まで鞍座の中。** 計器は鞍座に組み込まれた形で表示。共鳴率メーター、4本脚それぞれの脚圧、炉温計、警告灯パネル。
 - **4本の脚、4つの脚圧（FL / FR / RL / RR）。** 旋回・着地・横跳び・被弾で脚ごとに減る。脚圧が0になった脚があると、回復するまで機体が傾き、足が鈍り、旋回も重くなる。止まっていると早く回復する。
@@ -168,7 +174,7 @@ GRANDSTRIDE is free to play. If you enjoyed it, a small tip (suggested $3) goes 
 
 ### 動作環境と既知の制限
 
-- **プロトタイプです。** 作戦2つ、武装1種。強化・資材・今日の作戦目標・最高スコアはブラウザにだけ保存されます（サイトのデータを消したり、別のブラウザや端末で遊ぶと最初から）。不具合や調整の変更があります。
+- **プロトタイプです。** 作戦3つ、武装1種。強化・資材・勲章・今日の作戦目標・最高スコアはブラウザにだけ保存されます（サイトのデータを消したり、別のブラウザや端末で遊ぶと最初から）。不具合や調整の変更があります。
 - **推奨ブラウザ:** 最新の PC 版 Chrome / Edge。Firefox も動作見込み。Safari（Mac / iPhone）は動きますが確認が少なめです。
 - WebGL が必要です。「WEBGL UNAVAILABLE」と出たら、ブラウザの設定でハードウェアアクセラレーションを有効にしてください。
 - **低スペック PC・ノート PC のバッテリー駆動・スマホでは、品質を「低」に**して、FPS 表示を確認してください。
@@ -182,11 +188,10 @@ GRANDSTRIDE is free to play. If you enjoyed it, a small tip (suggested $3) goes 
 
 これから作るもの:
 
-1. **MISSION 03**（近日追加）
-2. 整備での脚部の換装（重装脚・跳躍脚・杭脚）
-3. 新しい灰殻
-4. 鞍士スキルツリー
-5. **Steam での配信。** Steam の無料体験版、続いて早期アクセスを目指しています。このページをフォローすると、Steam のページ公開をお知らせします。
+1. 整備での脚部の換装（重装脚・跳躍脚・杭脚）
+2. 新しい灰殻と作戦
+3. 鞍士スキルツリー
+4. **Steam での配信。** Steam の無料体験版、続いて早期アクセスを目指しています。このページをフォローすると、Steam のページ公開をお知らせします。
 
 **感想を募集しています。** コメント欄で教えてください。
 - 説明を読まずに、脚圧や警告灯の意味は分かりましたか？
