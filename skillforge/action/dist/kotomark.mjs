@@ -496,8 +496,52 @@ function ref(row) {
 function normalizeApostrophes(s) {
   return s.replace(/[\u2018\u2019\u02bc\u2032]/g, "'");
 }
-var PLACEHOLDER = /\{[A-Za-z0-9_.$:]*\}|%(?:\d+\$)?[-+0#]*\d*(?:\.\d+)?[sdifxXu@]|\$\{[^}]+\}|\$[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*\|?|\[[A-Z][A-Z0-9_]+\]|\[(?=[a-z0-9_.]*[_.0-9])[a-z_][a-z0-9_.]*\]/g;
+var PLACEHOLDER = /\{[A-Za-z0-9_.$:]*\}|%(?:\d+\$)?[-+0#]*\d*(?:\.\d+)?[sdifxXu@]|\$\{[^}]+\}|\$[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*\|?|\[[A-Z][A-Z0-9_]+\]|\[(?=[a-z0-9_.]*[_.0-9])[a-z_][a-z0-9_.]*\]|\[[A-Za-z_][A-Za-z0-9_.]*(?:![rsatuilcq]+(?::[-<>^=+#0-9,_.]*[A-Za-z%]?)?|:[-<>^=+#0-9,_.]*[A-Za-z%]?)\]/g;
 var BRACKET_WORD = /\[[a-z][a-z]*\]/g;
+var RENPY_TAG_NAMES = /* @__PURE__ */ new Set([
+  "b",
+  "i",
+  "u",
+  "s",
+  "plain",
+  "a",
+  "alpha",
+  "alt",
+  "art",
+  "color",
+  "cps",
+  "font",
+  "image",
+  "k",
+  "outlinecolor",
+  "rb",
+  "rt",
+  "size",
+  "space",
+  "vspace",
+  "w",
+  "p",
+  "nw",
+  "fast",
+  "done",
+  "clear",
+  "shader"
+]);
+var RENPY_PACING_TAGS = /* @__PURE__ */ new Set(["w", "p", "nw", "fast", "done", "clear"]);
+var RENPY_TAG = /\{(\/?)([a-z]+)(=[^{}]*)?\}/g;
+var RENPY_NAMES_SRC = [...RENPY_TAG_NAMES].join("|");
+var RENPY_UNAMBIGUOUS = new RegExp(`\\{(?:/(?:${RENPY_NAMES_SRC})|(?:${RENPY_NAMES_SRC})=[^{}]*)\\}`);
+function isRenpyText(s, format) {
+  return format === "renpy" || RENPY_UNAMBIGUOUS.test(s);
+}
+var LBRACE = "";
+var LBRACKET = "";
+function hideRenpyEscapes(s) {
+  return s.replace(/\[\[/g, LBRACKET).replace(/\{\{(?![A-Za-z0-9_.$:]*\}\})/g, LBRACE).replace(/\{#[^{}]*\}/g, "");
+}
+function placeholderText(s, renpy = false) {
+  return hideRenpyEscapes(s).replace(RENPY_TAG, (m, close, name, value) => RENPY_TAG_NAMES.has(name) && (renpy || close || value) ? "" : m);
+}
 var visibleCache = /* @__PURE__ */ new Map();
 function visibleText(s) {
   const hit = visibleCache.get(s);
@@ -508,7 +552,7 @@ function visibleText(s) {
   return v;
 }
 function stripMarkup(s) {
-  return normalizeApostrophes(s).replace(/<rt>.*?<\/rt>/g, "").replace(/<\/?[A-Za-z][^<>]*>/g, "").replace(/\{([^{}|]+)\|[^{}]+\}/g, "$1").replace(/[|｜]([^《|｜]+)《[^》]+》/g, "$1").replace(PLACEHOLDER, "");
+  return hideRenpyEscapes(normalizeApostrophes(s)).replace(/<rt>.*?<\/rt>/g, "").replace(/\{rt\}.*?\{\/rt\}/g, "").replace(/<\/?[A-Za-z][^<>]*>/g, "").replace(RENPY_TAG, (m, _c, name) => RENPY_TAG_NAMES.has(name) ? "" : m).replace(/\{([^{}|]+)\|[^{}]+\}/g, "$1").replace(/[|｜]([^《|｜]+)《[^》]+》/g, "$1").replace(PLACEHOLDER, "").replace(/\uE000/g, "{").replace(/\uE001/g, "[");
 }
 function katakanaKey(s) {
   return s.replace(/[・＝=ー\-‐]/g, "").replace(/ヴァ/g, "バ").replace(/ヴィ/g, "ビ").replace(/ヴェ/g, "ベ").replace(/ヴォ/g, "ボ").replace(/ヴ/g, "ブ").replace(/([エケセテネヘメレゲゼデベペェ])イ/g, "$1").replace(/([オコソトノホモヨロゴゾドボポョォ])ウ$/, "$1").replace(/[ァィゥェォ]/g, (c) => String.fromCharCode(c.charCodeAt(0) + 1));
@@ -23457,10 +23501,12 @@ var KNOWN_TAGS = /* @__PURE__ */ new Set([
   "italic",
   "bold"
 ]);
-var EMPHASIS_TAGS = /* @__PURE__ */ new Set(["i", "b", "em", "strong", "u", "italic", "bold"]);
+var EMPHASIS_TAGS = /* @__PURE__ */ new Set(["i", "b", "em", "strong", "u", "italic", "bold", "plain"]);
 var RUBY_TAGS = /* @__PURE__ */ new Set(["ruby", "rt", "rp", "rb"]);
 var VOID_TAGS = /* @__PURE__ */ new Set(["br", "sprite", "img", "hr", "space", "page", "pos", "voffset", "x", "ph", "bpt", "ept", "it"]);
+var RENPY_VOID_TAGS = /* @__PURE__ */ new Set(["image", "space", "vspace"]);
 var RUBY_BRACE = /\{([^{}|]+)\|([^{}]+)\}/g;
+var RUBY_RENPY = /(?:\{rb\}(.*?)\{\/rb\})?\s*\{rt\}(.*?)\{\/rt\}/g;
 var RUBY_AOZORA = /[|｜]([^《|｜]+)《([^》]+)》/g;
 var KANA_ONLY = /^[ぁ-ゖァ-ヺー・\s]+$/;
 var multiset = (xs) => {
@@ -23476,7 +23522,7 @@ function diff(a, b) {
   return { missing, extra };
 }
 var base = (row, side) => ({ file: row.file, line: row.line, id: row.id, side });
-function tags(s, pair) {
+function tags(s, pair, renpy) {
   const list3 = [];
   const stack = [];
   const unbalanced = [];
@@ -23490,10 +23536,23 @@ function tags(s, pair) {
     else if (stack[stack.length - 1] === name) stack.pop();
     else unbalanced.push(`</${name}>`);
   }
+  const rstack = [];
+  for (const [, close, name, value] of hideRenpyEscapes(s).matchAll(RENPY_TAG)) {
+    if (!RENPY_TAG_NAMES.has(name) || !(renpy || close || value)) continue;
+    if (RENPY_PACING_TAGS.has(name) || name === "rb" || name === "rt") continue;
+    list3.push(close ? `{/${name}}` : `{${name}}`);
+    if (RENPY_VOID_TAGS.has(name)) continue;
+    if (!close) rstack.push(name);
+    else if (rstack[rstack.length - 1] === name) rstack.pop();
+    else unbalanced.push(`{/${name}}`);
+  }
+  unbalanced.push(...rstack.map((n) => `{${n}}`));
   return { list: list3, unbalanced: [...unbalanced, ...stack.map((n) => `<${n}>`)] };
 }
 var TRANSLATED_BRACKET = /\[[^[\]\n]*[^\x00-\x7f][^[\]\n]*\]/g;
-function placeholderDiff(source, target) {
+function placeholderDiff(rawSource, rawTarget, renpy) {
+  const source = placeholderText(rawSource, renpy);
+  const target = placeholderText(rawTarget, renpy);
   const { missing, extra } = diff(
     [...source.match(PLACEHOLDER) ?? [], ...source.match(BRACKET_WORD) ?? []],
     [...target.match(PLACEHOLDER) ?? [], ...target.match(BRACKET_WORD) ?? []]
@@ -23502,7 +23561,7 @@ function placeholderDiff(source, target) {
   const isWord = (p) => /^\[[a-z]+\]$/.test(p);
   return {
     missing: missing.filter((p) => !(isWord(p) && labels-- > 0)),
-    extra: extra.filter((p) => !(isWord(p) && new RegExp(`(?<![A-Za-z])${p.slice(1, -1)}(?![A-Za-z])`, "i").test(source)))
+    extra: extra.filter((p) => !(isWord(p) && new RegExp(`(?<![A-Za-z])${p.slice(1, -1)}(?![A-Za-z])`, "i").test(source.replace(PLACEHOLDER, " "))))
   };
 }
 function keptLatinWords(t) {
@@ -23543,7 +23602,10 @@ function checkRules(tables, opts = {}) {
       if (kept && row.target.trim() === row.source.trim() && looksUntranslatedCopy(row.source, kept)) {
         out.push({ category: "untranslated", severity: "info", rule: "untranslated.copy", ...base(row, "target"), message: msg.untranslatedCopy() });
       }
-      const ph = placeholderDiff(row.source, row.target);
+      const pair = `${row.source}
+${row.target}`;
+      const renpy = isRenpyText(pair, t.format);
+      const ph = placeholderDiff(row.source, row.target, renpy);
       if (ph.missing.length || ph.extra.length) {
         out.push({
           category: "placeholder",
@@ -23553,12 +23615,10 @@ function checkRules(tables, opts = {}) {
           message: msg.mismatch(ph.missing, ph.extra)
         });
       }
-      const pair = `${row.source}
-${row.target}`;
-      const st = tags(row.source, pair);
-      const tt = tags(row.target, pair);
+      const st = tags(row.source, pair, renpy);
+      const tt = tags(row.target, pair, renpy);
       const td2 = diff(st.list, tt.list);
-      const emphasisOnly = t.targetLang === "ja" && !td2.extra.length && td2.missing.every((x2) => EMPHASIS_TAGS.has(x2.replace(/[</>]/g, "").toLowerCase()));
+      const emphasisOnly = t.targetLang === "ja" && !td2.extra.length && td2.missing.every((x2) => EMPHASIS_TAGS.has(x2.replace(/[</>{}]/g, "").toLowerCase()));
       if (td2.missing.length && emphasisOnly) {
         out.push({ category: "tag", severity: "info", rule: "tag.emphasis-dropped", ...base(row, "target"), message: msg.tagEmphasisDropped(td2.missing) });
       } else if (td2.missing.length || td2.extra.length) {
@@ -23576,19 +23636,21 @@ ${row.target}`;
       }
       if (jaSide) {
         const ja2 = jaSide === "source" ? row.source : row.target;
-        for (const m of [...ja2.matchAll(RUBY_BRACE), ...ja2.matchAll(RUBY_AOZORA), ...ja2.matchAll(/<ruby(?:\s[^>]*)?>(.*?)(?:<rp>[^<]*<\/rp>)?<rt>(.*?)<\/rt>(?:<rp>[^<]*<\/rp>)?\s*<\/ruby>/g)]) {
-          const reading = m[2].replace(/<[^>]+>/g, "");
+        for (const m of [...ja2.matchAll(RUBY_BRACE), ...ja2.matchAll(RUBY_AOZORA), ...ja2.matchAll(/<ruby(?:\s[^>]*)?>(.*?)(?:<rp>[^<]*<\/rp>)?<rt>(.*?)<\/rt>(?:<rp>[^<]*<\/rp>)?\s*<\/ruby>/g), ...ja2.matchAll(RUBY_RENPY)]) {
+          const reading = m[2].replace(/<[^>]+>|\{[^{}]*\}/g, "");
           if (!KANA_ONLY.test(reading)) {
-            out.push({ category: "ruby", severity: "warning", rule: "ruby.reading", ...base(row, jaSide), message: msg.rubyReading(reading, m[1]) });
+            out.push({ category: "ruby", severity: "warning", rule: "ruby.reading", ...base(row, jaSide), message: msg.rubyReading(reading, m[1] ?? "") });
           }
         }
         const opens = (ja2.match(/<ruby(?:\s[^>]*)?>/g) ?? []).length;
-        if (opens !== (ja2.match(/<\/ruby>/g) ?? []).length || opens !== (ja2.match(/<rt(?:\s[^>]*)?>/g) ?? []).length) {
+        const count = (re) => (ja2.match(re) ?? []).length;
+        const renpyRubyBad = count(/\{rt\}/g) !== count(/\{\/rt\}/g) || count(/\{rb\}/g) !== count(/\{\/rb\}/g) || count(/\{rb\}/g) > count(/\{rt\}/g);
+        if (opens !== (ja2.match(/<\/ruby>/g) ?? []).length || opens !== (ja2.match(/<rt(?:\s[^>]*)?>/g) ?? []).length || renpyRubyBad) {
           out.push({ category: "ruby", severity: "error", rule: "ruby.malformed", ...base(row, jaSide), message: msg.rubyMalformed() });
         }
         const enSide = jaSide === "source" ? "target" : "source";
         const en2 = enSide === "source" ? row.source : row.target;
-        if (/<ruby>|<rt>|[｜][^《]+《|\{[^{}|]+\|[^{}]+\}/.test(en2)) {
+        if (/<ruby>|<rt>|\{r[bt]\}|[｜][^《]+《|\{[^{}|]+\|[^{}]+\}/.test(en2)) {
           out.push({ category: "ruby", severity: "error", rule: "ruby.leak", ...base(row, enSide), message: msg.rubyLeak() });
         }
       }

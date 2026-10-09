@@ -1,4 +1,4 @@
-import { BRACKET_WORD, displayLength, PLACEHOLDER, visibleText } from "../text.js";
+import { BRACKET_WORD, displayLength, isRenpyText, PLACEHOLDER, placeholderText, RENPY_PACING_TAGS, RENPY_TAG, RENPY_TAG_NAMES, hideRenpyEscapes, visibleText } from "../text.js";
 import { messages } from "../i18n.js";
 import type { Finding, Locale, Row, Side, Table } from "../types.js";
 
@@ -15,11 +15,15 @@ const KNOWN_TAGS = new Set([
   "width", "gradient", "page", "x", "g", "ph", "bpt", "ept", "it", "bx", "ex", "sc", "italic", "bold",
 ]);
 /** Emphasis that Japanese typography usually drops; losing it is a warning, not a broken string. */
-const EMPHASIS_TAGS = new Set(["i", "b", "em", "strong", "u", "italic", "bold"]);
+const EMPHASIS_TAGS = new Set(["i", "b", "em", "strong", "u", "italic", "bold", "plain"]);
 const RUBY_TAGS = new Set(["ruby", "rt", "rp", "rb"]);
 /** Tags that never take a closing tag (HTML, Unity TextMeshPro). */
 const VOID_TAGS = new Set(["br", "sprite", "img", "hr", "space", "page", "pos", "voffset", "x", "ph", "bpt", "ept", "it"]);
+/** Ren'Py tags that never take a closing tag (pacing tags are skipped before this is consulted). */
+const RENPY_VOID_TAGS = new Set(["image", "space", "vspace"]);
 const RUBY_BRACE = /\{([^{}|]+)\|([^{}]+)\}/g;
+/** Ren'Py ruby: {rb}base{/rb}{rt}reading{/rt}; the {rb} part is optional (then the base is the text before). */
+const RUBY_RENPY = /(?:\{rb\}(.*?)\{\/rb\})?\s*\{rt\}(.*?)\{\/rt\}/g;
 const RUBY_AOZORA = /[|｜]([^《|｜]+)《([^》]+)》/g;
 const KANA_ONLY = /^[ぁ-ゖァ-ヺー・\s]+$/;
 
@@ -43,7 +47,7 @@ const base = (row: Row, side: Side) => ({ file: row.file, line: row.line, id: ro
  * Tags in `s`. A bare `<word>` that is not a known tag and is never closed in `pair` (source + target) is display
  * text such as `<unknown>` / `<不明>`, not markup.
  */
-function tags(s: string, pair: string): { list: string[]; unbalanced: string[] } {
+function tags(s: string, pair: string, renpy: boolean): { list: string[]; unbalanced: string[] } {
   const list: string[] = [];
   const stack: string[] = [];
   const unbalanced: string[] = [];
@@ -57,6 +61,19 @@ function tags(s: string, pair: string): { list: string[]; unbalanced: string[] }
     else if (stack[stack.length - 1] === name) stack.pop();
     else unbalanced.push(`</${name}>`);
   }
+  // Ren'Py text tags ({b}…{/b}, {color=#f00}…{/color}), compared by name like HTML. Pacing tags ({w}, {p}, {nw},
+  // {fast}) are the translator's to place, and Ren'Py ruby ({rb}/{rt}) is handled by the ruby checks.
+  const rstack: string[] = [];
+  for (const [, close, name, value] of hideRenpyEscapes(s).matchAll(RENPY_TAG)) {
+    if (!RENPY_TAG_NAMES.has(name!) || !(renpy || close || value)) continue;
+    if (RENPY_PACING_TAGS.has(name!) || name === "rb" || name === "rt") continue;
+    list.push(close ? `{/${name}}` : `{${name}}`);
+    if (RENPY_VOID_TAGS.has(name!)) continue;
+    if (!close) rstack.push(name!);
+    else if (rstack[rstack.length - 1] === name) rstack.pop();
+    else unbalanced.push(`{/${name}}`);
+  }
+  unbalanced.push(...rstack.map((n) => `{${n}}`));
   return { list, unbalanced: [...unbalanced, ...stack.map((n) => `<${n}>`)] };
 }
 
@@ -66,9 +83,12 @@ const TRANSLATED_BRACKET = /\[[^[\]\n]*[^\x00-\x7f][^[\]\n]*\]/g;
 /**
  * Placeholder differences. A bare lowercase [word] in the source may be a display label: it is not reported missing
  * when the target has a translated bracket label in its place ([none] → [なし]), and a [word] the target adds is not
- * reported when the source has the word unbracketed (a translator-written menu path).
+ * reported when the source has the word unbracketed (a translator-written menu path). In Ren'Py text (`renpy`), bare
+ * text tags such as {b} / {w} are tags, not placeholders (see placeholderText).
  */
-function placeholderDiff(source: string, target: string): { missing: string[]; extra: string[] } {
+function placeholderDiff(rawSource: string, rawTarget: string, renpy: boolean): { missing: string[]; extra: string[] } {
+  const source = placeholderText(rawSource, renpy);
+  const target = placeholderText(rawTarget, renpy);
   const { missing, extra } = diff(
     [...(source.match(PLACEHOLDER) ?? []), ...(source.match(BRACKET_WORD) ?? [])],
     [...(target.match(PLACEHOLDER) ?? []), ...(target.match(BRACKET_WORD) ?? [])],
@@ -77,7 +97,7 @@ function placeholderDiff(source: string, target: string): { missing: string[]; e
   const isWord = (p: string) => /^\[[a-z]+\]$/.test(p);
   return {
     missing: missing.filter((p) => !(isWord(p) && labels-- > 0)),
-    extra: extra.filter((p) => !(isWord(p) && new RegExp(`(?<![A-Za-z])${p.slice(1, -1)}(?![A-Za-z])`, "i").test(source))),
+    extra: extra.filter((p) => !(isWord(p) && new RegExp(`(?<![A-Za-z])${p.slice(1, -1)}(?![A-Za-z])`, "i").test(source.replace(PLACEHOLDER, " ")))),
   };
 }
 
@@ -130,7 +150,9 @@ export function checkRules(tables: Table[], opts: { wideAsTwo?: boolean; locale?
         out.push({ category: "untranslated", severity: "info", rule: "untranslated.copy", ...base(row, "target"), message: msg.untranslatedCopy() });
       }
 
-      const ph = placeholderDiff(row.source, row.target);
+      const pair = `${row.source}\n${row.target}`;
+      const renpy = isRenpyText(pair, t.format);
+      const ph = placeholderDiff(row.source, row.target, renpy);
       if (ph.missing.length || ph.extra.length) {
         out.push({
           category: "placeholder", severity: "error", rule: "placeholder.mismatch", ...base(row, "target"),
@@ -138,11 +160,10 @@ export function checkRules(tables: Table[], opts: { wideAsTwo?: boolean; locale?
         });
       }
 
-      const pair = `${row.source}\n${row.target}`;
-      const st = tags(row.source, pair);
-      const tt = tags(row.target, pair);
+      const st = tags(row.source, pair, renpy);
+      const tt = tags(row.target, pair, renpy);
       const td = diff(st.list, tt.list);
-      const emphasisOnly = t.targetLang === "ja" && !td.extra.length && td.missing.every((x) => EMPHASIS_TAGS.has(x.replace(/[</>]/g, "").toLowerCase()));
+      const emphasisOnly = t.targetLang === "ja" && !td.extra.length && td.missing.every((x) => EMPHASIS_TAGS.has(x.replace(/[</>{}]/g, "").toLowerCase()));
       if (td.missing.length && emphasisOnly) {
         out.push({ category: "tag", severity: "info", rule: "tag.emphasis-dropped", ...base(row, "target"), message: msg.tagEmphasisDropped(td.missing) });
       } else if (td.missing.length || td.extra.length) {
@@ -159,19 +180,21 @@ export function checkRules(tables: Table[], opts: { wideAsTwo?: boolean; locale?
 
       if (jaSide) {
         const ja = jaSide === "source" ? row.source : row.target;
-        for (const m of [...ja.matchAll(RUBY_BRACE), ...ja.matchAll(RUBY_AOZORA), ...ja.matchAll(/<ruby(?:\s[^>]*)?>(.*?)(?:<rp>[^<]*<\/rp>)?<rt>(.*?)<\/rt>(?:<rp>[^<]*<\/rp>)?\s*<\/ruby>/g)]) {
-          const reading = m[2]!.replace(/<[^>]+>/g, "");
+        for (const m of [...ja.matchAll(RUBY_BRACE), ...ja.matchAll(RUBY_AOZORA), ...ja.matchAll(/<ruby(?:\s[^>]*)?>(.*?)(?:<rp>[^<]*<\/rp>)?<rt>(.*?)<\/rt>(?:<rp>[^<]*<\/rp>)?\s*<\/ruby>/g), ...ja.matchAll(RUBY_RENPY)]) {
+          const reading = m[2]!.replace(/<[^>]+>|\{[^{}]*\}/g, "");
           if (!KANA_ONLY.test(reading)) {
-            out.push({ category: "ruby", severity: "warning", rule: "ruby.reading", ...base(row, jaSide), message: msg.rubyReading(reading, m[1]!) });
+            out.push({ category: "ruby", severity: "warning", rule: "ruby.reading", ...base(row, jaSide), message: msg.rubyReading(reading, m[1] ?? "") });
           }
         }
         const opens = (ja.match(/<ruby(?:\s[^>]*)?>/g) ?? []).length;
-        if (opens !== (ja.match(/<\/ruby>/g) ?? []).length || opens !== (ja.match(/<rt(?:\s[^>]*)?>/g) ?? []).length) {
+        const count = (re: RegExp) => (ja.match(re) ?? []).length;
+        const renpyRubyBad = count(/\{rt\}/g) !== count(/\{\/rt\}/g) || count(/\{rb\}/g) !== count(/\{\/rb\}/g) || count(/\{rb\}/g) > count(/\{rt\}/g);
+        if (opens !== (ja.match(/<\/ruby>/g) ?? []).length || opens !== (ja.match(/<rt(?:\s[^>]*)?>/g) ?? []).length || renpyRubyBad) {
           out.push({ category: "ruby", severity: "error", rule: "ruby.malformed", ...base(row, jaSide), message: msg.rubyMalformed() });
         }
         const enSide: Side = jaSide === "source" ? "target" : "source";
         const en = enSide === "source" ? row.source : row.target;
-        if (/<ruby>|<rt>|[｜][^《]+《|\{[^{}|]+\|[^{}]+\}/.test(en)) {
+        if (/<ruby>|<rt>|\{r[bt]\}|[｜][^《]+《|\{[^{}|]+\|[^{}]+\}/.test(en)) {
           out.push({ category: "ruby", severity: "error", rule: "ruby.leak", ...base(row, enSide), message: msg.rubyLeak() });
         }
       }

@@ -114,6 +114,29 @@ test("draft_glossary proposes terms without saving anything", async () => {
   await a.close();
 });
 
+test("ja.json + en.json are paired by key in check_script, get_review_packets and draft_glossary; pairing notes are returned", async () => {
+  const a = await connect(alice);
+  const tables = [
+    { filename: "locales/ja.json", content: JSON.stringify({ menu: { start: "魔導石を使う", stone: "魔導石が光った" }, greet: "ようこそ、{name}さん", only_ja: "未訳" }) },
+    { filename: "locales/en.json", content: JSON.stringify({ menu: { start: "Use the Magic Stone", stone: "The Mana Stone glowed" }, greet: "Welcome", extra: "Extra" }) },
+  ];
+  const res = await a.callTool({ name: "check_script", arguments: { tables } });
+  assert.ok(!res.isError, JSON.stringify(res.content));
+  const sc = res.structuredContent as { tables: { file: string; sourceLang: string; targetLang: string; rows: number }[]; findings: { rule: string; id: string }[]; notes: string[] };
+  assert.deepEqual(sc.tables.map((t) => [t.file, t.sourceLang, t.targetLang, t.rows]), [["locales/ja.json+en.json", "ja", "en", 5]]);
+  assert.ok(sc.findings.some((f) => f.rule === "placeholder.mismatch" && f.id === "greet"), "placeholders compared across the pair");
+  assert.match(sc.notes.join("\n"), /Paired locales\/ja\.json \(ja, 4 keys\) with locales\/en\.json \(en, 4 keys\).*1 missing in locales\/en\.json: only_ja.*1 only in locales\/en\.json: extra/);
+  assert.match((res.content as { text: string }[])[0]!.text, /^Note: Paired locales\/ja\.json/);
+  const packets = await a.callTool({ name: "get_review_packets", arguments: { tables } });
+  assert.ok(!packets.isError);
+  assert.match((packets.structuredContent as { notes: string[] }).notes.join("\n"), /Paired locales\/ja\.json/);
+  const draft = await a.callTool({ name: "draft_glossary", arguments: { tables } });
+  assert.ok(!draft.isError);
+  assert.match((draft.structuredContent as { inputNotes: string[] }).inputNotes.join("\n"), /Paired locales\/ja\.json/);
+  assert.match((draft.content as { text: string }[])[0]!.text, /Input: Paired/);
+  await a.close();
+});
+
 test("rate limit returns 429 with Retry-After (solo plan: 30/min)", async () => {
   let last = 0;
   let retry: string | null = null;

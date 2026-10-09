@@ -29,19 +29,68 @@ export function normalizeApostrophes(s: string): string {
 
 /**
  * Placeholder syntaxes: {0} {name}, printf (%s %5d %.2f %1$s), ${var}, Wesnoth $var / $var|, [PLAYER],
- * Ren'Py [player_name]. A lowercase bracket token only counts when it looks like a variable (has `_`, `.` or a
- * digit), so display labels such as [none] / [empty] are not placeholders; see BRACKET_WORD for bare [word]s.
+ * Ren'Py [player_name] / [player.name] and Ren'Py interpolation with a conversion flag or format spec
+ * ([name!t], [name!u], [score:.2f]; the flags are part of the token, so they must match). A lowercase bracket token
+ * without flags only counts when it looks like a variable (has `_`, `.` or a digit), so display labels such as
+ * [none] / [empty] are not placeholders; see BRACKET_WORD for bare [word]s.
  * The printf branch has no space flag: "40% defense" is text, not `% d`.
+ * Match it on `placeholderText(s)`, not the raw string, so Ren'Py escapes and text tags are out of the way.
  */
 export const PLACEHOLDER =
-  /\{[A-Za-z0-9_.$:]*\}|%(?:\d+\$)?[-+0#]*\d*(?:\.\d+)?[sdifxXu@]|\$\{[^}]+\}|\$[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*\|?|\[[A-Z][A-Z0-9_]+\]|\[(?=[a-z0-9_.]*[_.0-9])[a-z_][a-z0-9_.]*\]/g;
+  /\{[A-Za-z0-9_.$:]*\}|%(?:\d+\$)?[-+0#]*\d*(?:\.\d+)?[sdifxXu@]|\$\{[^}]+\}|\$[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*\|?|\[[A-Z][A-Z0-9_]+\]|\[(?=[a-z0-9_.]*[_.0-9])[a-z_][a-z0-9_.]*\]|\[[A-Za-z_][A-Za-z0-9_.]*(?:![rsatuilcq]+(?::[-<>^=+#0-9,_.]*[A-Za-z%]?)?|:[-<>^=+#0-9,_.]*[A-Za-z%]?)\]/g;
 
 /** A bare lowercase bracket word ([name], [none]): a Ren'Py variable or a display label. rules.ts decides which. */
 export const BRACKET_WORD = /\[[a-z][a-z]*\]/g;
 
+/**
+ * Ren'Py text tag names (https://www.renpy.org/doc/html/text.html#text-tags). In braces, `{/name}` and
+ * `{name=value}` with one of these names are always tags (placeholders never contain `/` or `=`); a bare `{name}`
+ * is a tag only in Ren'Py text (see `isRenpyText`), elsewhere `{b}` / `{i}` stay placeholders like `{0}` / `{name}`.
+ */
+export const RENPY_TAG_NAMES = new Set([
+  "b", "i", "u", "s", "plain", "a", "alpha", "alt", "art", "color", "cps", "font", "image", "k", "outlinecolor", "rb", "rt",
+  "size", "space", "vspace", "w", "p", "nw", "fast", "done", "clear", "shader",
+]);
+/** Ren'Py pacing / display-control tags: not compared between source and translation. */
+export const RENPY_PACING_TAGS = new Set(["w", "p", "nw", "fast", "done", "clear"]);
+/** A Ren'Py text tag candidate: [1] "/" for a closer, [2] name, [3] "=value". Check the name against RENPY_TAG_NAMES. */
+export const RENPY_TAG = /\{(\/?)([a-z]+)(=[^{}]*)?\}/g;
+const RENPY_NAMES_SRC = [...RENPY_TAG_NAMES].join("|");
+/** Markup only Ren'Py writes: a `{/name}` closer or a `{name=value}` tag with a Ren'Py tag name. */
+const RENPY_UNAMBIGUOUS = new RegExp(`\\{(?:/(?:${RENPY_NAMES_SRC})|(?:${RENPY_NAMES_SRC})=[^{}]*)\\}`);
+
+/** Does `s` read as Ren'Py text? True for a Ren'Py table, or when the text has a `{/b}` closer or a `{color=…}` tag. */
+export function isRenpyText(s: string, format?: string): boolean {
+  return format === "renpy" || RENPY_UNAMBIGUOUS.test(s);
+}
+
+// Private-use stand-ins for escaped brackets, restored to one bracket where text is shown or measured.
+const LBRACE = "\uE000";
+const LBRACKET = "\uE001";
+
+/**
+ * Hide Ren'Py escapes: `[[` is a literal `[` and `{{` a literal `{`, except `{{name}}` (an i18next / Mustache
+ * placeholder, kept as is). Also drops `{#disambiguator}` comments, which are neither shown nor placeholders.
+ */
+export function hideRenpyEscapes(s: string): string {
+  return s
+    .replace(/\[\[/g, LBRACKET)
+    .replace(/\{\{(?![A-Za-z0-9_.$:]*\}\})/g, LBRACE)
+    .replace(/\{#[^{}]*\}/g, "");
+}
+
+/**
+ * `s` prepared for placeholder matching: escapes and `{#…}` hidden, Ren'Py text tags removed (closers and
+ * `{name=value}` always, bare `{b}` / `{w}` only when `renpy`). Match PLACEHOLDER / BRACKET_WORD on the result.
+ */
+export function placeholderText(s: string, renpy = false): string {
+  return hideRenpyEscapes(s).replace(RENPY_TAG, (m, close: string, name: string, value?: string) =>
+    RENPY_TAG_NAMES.has(name) && (renpy || close || value) ? "" : m);
+}
+
 const visibleCache = new Map<string, string>();
 
-/** Remove markup (tags, ruby, placeholders) so text checks and length counts see only visible text. Memoized. */
+/** Remove markup (HTML / Ren'Py tags, ruby, placeholders, `{#…}`; `{{` / `[[` become one bracket) so text checks and length counts see only visible text. Memoized. */
 export function visibleText(s: string): string {
   const hit = visibleCache.get(s);
   if (hit !== undefined) return hit;
@@ -52,12 +101,16 @@ export function visibleText(s: string): string {
 }
 
 function stripMarkup(s: string): string {
-  return normalizeApostrophes(s)
+  return hideRenpyEscapes(normalizeApostrophes(s))
     .replace(/<rt>.*?<\/rt>/g, "")
+    .replace(/\{rt\}.*?\{\/rt\}/g, "")
     .replace(/<\/?[A-Za-z][^<>]*>/g, "")
+    .replace(RENPY_TAG, (m, _c: string, name: string) => (RENPY_TAG_NAMES.has(name) ? "" : m))
     .replace(/\{([^{}|]+)\|[^{}]+\}/g, "$1")
     .replace(/[|｜]([^《|｜]+)《[^》]+》/g, "$1")
-    .replace(PLACEHOLDER, "");
+    .replace(PLACEHOLDER, "")
+    .replace(/\uE000/g, "{")
+    .replace(/\uE001/g, "[");
 }
 
 /**
