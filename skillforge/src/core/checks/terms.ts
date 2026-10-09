@@ -1,15 +1,6 @@
-import { containsPhrase, countBy, enPhraseRegex, isInterjection, KATAKANA_RUN, katakanaKey, looksJapanese, ref, textOf, visibleText } from "../text.js";
+import { containsPhrase, countBy, enPhraseRegex, isInterjection, KATAKANA_RUN, katakanaKey, looksJapanese, ref, singularOf, textOf, visibleText } from "../text.js";
 import { messages } from "../i18n.js";
 import type { Finding, Glossary, Locale, ReviewPacket, Side, Table, UsageSummary } from "../types.js";
-
-/** Fold a plural last word to its singular so a term stored as "Egg Hunts" also matches "Egg hunt". */
-function singularOf(phrase: string): string {
-  return phrase.replace(/([A-Za-z]+)$/, (w) =>
-    /^[A-Z]{2,}s$/.test(w) ? w.slice(0, -1) // AIs, NPCs
-      : w.length > 4 && /ies$/i.test(w) ? `${w.slice(0, -3)}y`
-      : w.length > 4 && /(x|ch|sh|ss)es$/i.test(w) ? w.slice(0, -2)
-        : w.length > 3 && /[^s]s$/i.test(w) && !/(us|is)$/i.test(w) ? w.slice(0, -1) : w);
-}
 
 const isAllCaps = (s: string) => /[A-Z].*[A-Z]/.test(s) && !/[a-z]/.test(s);
 
@@ -69,7 +60,11 @@ export function checkTerms(tables: Table[], g: Glossary, locale: Locale = "en"):
         const tgt = visibleText(row.target);
         const forbiddenHit = (term.forbidden ?? []).find((f) => containsPhrase(tgt, f, t.targetLang));
         if (rowHits[ri]![ti]) {
-          const hit = approved.find((a) => containsPhrase(tgt, a, t.targetLang, false, true));
+          // English: an inflected form (Renoted for Renote) counts unless a forbidden variant is on the line, so
+          // a forbidden variant that is itself an inflection of the approved rendering is still reported.
+          const strict = t.targetLang === "ja";
+          const hit = approved.find((a) => containsPhrase(tgt, a, t.targetLang, false, strict)) ??
+            (forbiddenHit ? undefined : approved.find((a) => containsPhrase(tgt, a, t.targetLang, false, true)));
           if (hit) {
             counts[hit] = (counts[hit] ?? 0) + 1;
           } else if (forbiddenHit) {

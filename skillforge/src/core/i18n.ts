@@ -19,6 +19,10 @@ export interface Messages {
   honorificPolicyKeep(jaWithHonorific: string, found: string, expected: string): string;
   honorificDrift(form: string, jaHon: string, majority: string, count: number): string;
   honorificSourceShift(hon: string, majority: string, count: number): string;
+  /** JA→EN: the forms used for one speaker → addressee + honorific are tied, so there is no majority to follow. */
+  honorificSplit(jaHon: string, split: string): string;
+  /** JA→EN: the Japanese has name + honorific but the English drops the name (title-only address). */
+  honorificNameDropped(jaForm: string, majority: string, count: number): string;
   /** EN→JA: the same English form is dressed with a different Japanese honorific. */
   honorificTargetDrift(jaHon: string, enForm: string, majority: string, count: number): string;
   voiceFirstPersonProfile(name: string, odd: string[], expected: string[]): string;
@@ -55,6 +59,9 @@ const en: Messages = {
   honorificPolicyRomanized: (f, p) => `Romanized honorific "${f}" but the project policy is "${p}".`,
   honorificPolicyKeep: (ja, f, e) => `Policy is "keep" but "${ja}" is rendered "${f}" (expected "${e}").`,
   honorificDrift: (form, jaHon, m, n) => `"${form}" here, but this speaker's "${jaHon}" is rendered "${m}" in ${n} other lines.`,
+  honorificSplit: (jaHon, split) => `This speaker's "${jaHon}" is rendered inconsistently with no majority (${split}). Pick one form.`,
+  honorificNameDropped: (ja, m, n) =>
+    `"${ja}" is rendered without the name here, but as "${m}" in ${n} other lines by this speaker. Confirm the title-only address is intended.`,
   honorificSourceShift: (h, m, n) =>
     `In Japanese this speaker uses "${h}" here but "${m}" in ${n} other lines. Confirm it is an intentional shift (and that the English reflects it).`,
   honorificTargetDrift: (h, e, m, n) => `"${e}" is rendered with "${h}" here, but with "${m}" in ${n} other lines by this speaker.`,
@@ -96,6 +103,9 @@ const ja: Messages = {
   honorificPolicyRomanized: (f, p) => `ローマ字の敬称「${f}」が使われていますが、プロジェクトの敬称方針は${POLICY_JA[p] ?? `「${p}」`}です。`,
   honorificPolicyKeep: (jaName, f, e) => `敬称方針は「keep」（ローマ字で残す）ですが、「${jaName}」が「${f}」と訳されています（期待される訳は「${e}」）。`,
   honorificDrift: (form, jaHon, m, n) => `ここでは「${form}」ですが、この話者の「${jaHon}」は他の${n}行で「${m}」と訳されています。`,
+  honorificSplit: (jaHon, split) => `この話者の「${jaHon}」の訳し方が揃っておらず、多数派がありません（${split}）。どれかに統一してください。`,
+  honorificNameDropped: (ja, m, n) =>
+    `「${ja}」がここでは名前なしで訳されていますが、この話者の他の${n}行では「${m}」です。名前を省いた呼び方が意図どおりか確認してください。`,
   honorificSourceShift: (h, m, n) =>
     `日本語でこの話者はここで「${h}」を使っていますが、他の${n}行では「${m}」です。意図的な変化か（英語にも反映されているか）確認してください。`,
   honorificTargetDrift: (h, e, m, n) => `「${e}」がここでは「${h}」付きで訳されていますが、この話者の他の${n}行では「${m}」です。`,

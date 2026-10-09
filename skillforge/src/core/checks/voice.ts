@@ -1,5 +1,5 @@
 import { findCharacter } from "./names.js";
-import { countBy, escapeRegExp, normalizeApostrophes, ref, visibleText } from "../text.js";
+import { countBy, damerauLevenshtein, escapeRegExp, normalizeApostrophes, ref, visibleText } from "../text.js";
 import { messages } from "../i18n.js";
 import type { Finding, Glossary, Locale, ReviewPacket, Row, Side, Table, UsageSummary, VoiceProfile } from "../types.js";
 
@@ -103,24 +103,69 @@ export function checkHonorifics(tables: Table[], g: Glossary, locale: Locale = "
   }
 
   // Same speaker, same addressee, same Japanese honorific → the English should be dressed the same way.
-  for (const [, group] of countBy(hits.filter((h) => !h.enToJa && h.rendering), (h) => `${h.speaker}\u0000${h.char}\u0000${h.jaHon}`)) {
+  // Forms that break the honorific policy (Gald-dono under "localize") never set the majority; they are still
+  // pointed at the majority when there is one. On a tie among the remaining forms there is no majority: those
+  // lines get an info finding that the group is split, and policy-breaking lines keep only honorific.policy.
+  const violates = (form: string) => (policy === "drop" || policy === "localize") && /-\w+$/.test(form);
+  const jaToEn = hits.filter((h) => !h.enToJa);
+  const majorityOf = new Map<string, { form: string; n: number }>();
+  for (const [key, group] of countBy(jaToEn.filter((h) => h.rendering), (h) => `${h.speaker}\u0000${h.char}\u0000${h.jaHon}`)) {
     const first = group[0]!;
     const label = `${first.row.speaker ?? "?"} → ${first.char} (${first.jaHon})`;
+    const name = (form: string) => form.replace("{name}", first.char);
     const forms = countBy(group, (h) => h.rendering!);
     const ranked = [...forms.entries()].sort((a, b) => b[1].length - a[1].length);
-    usage.push({ category: "honorific", group: label, counts: Object.fromEntries(ranked.map(([k, v]) => [k.replace("{name}", first.char), v.length])) });
-    if (forms.size < 2) continue;
-    const majority = ranked[0]![0].replace("{name}", first.char);
-    for (const [form, list] of ranked.slice(1)) {
+    usage.push({ category: "honorific", group: label, counts: Object.fromEntries(ranked.map(([k, v]) => [name(k), v.length])) });
+    const ok = ranked.filter(([f]) => !violates(f));
+    const tie = ok.length >= 2 && ok[0]![1].length === ok[1]![1].length;
+    if (ok.length && !tie) majorityOf.set(key, { form: name(ok[0]![0]), n: ok[0]![1].length });
+    if (!ok.length || (ok.length < 2 && ranked.length < 2)) continue;
+    if (tie) {
+      const split = ok.map(([f, l]) => `${name(f)} ×${l.length}`).join(" / ");
+      for (const [form, list] of ok) {
+        for (const h of list) {
+          findings.push({
+            category: "honorific", severity: "info", rule: "honorific.drift", group: label,
+            file: h.row.file, line: h.row.line, id: h.row.id, side: h.enSide,
+            message: msg.honorificSplit(first.jaHon, split),
+            found: name(form),
+          });
+        }
+      }
+      continue;
+    }
+    const majority = name(ok[0]![0]);
+    for (const [form, list] of ranked.filter(([f]) => f !== ok[0]![0])) {
       for (const h of list) {
         findings.push({
           category: "honorific", severity: "warning", rule: "honorific.drift", group: label,
           file: h.row.file, line: h.row.line, id: h.row.id, side: h.enSide,
-          message: msg.honorificDrift(form.replace("{name}", first.char), first.jaHon, majority, forms.get(ranked[0]![0])!.length),
-          found: form.replace("{name}", first.char), expected: majority,
+          message: msg.honorificDrift(name(form), first.jaHon, majority, ok[0]![1].length),
+          found: name(form), expected: majority,
         });
       }
     }
+  }
+
+  // The Japanese has name + honorific but the English has no name ("Your Highness" for セレス様) while this
+  // speaker's group has a clear majority form (Lady Ceres ×4). Reported as info in addition to name.missing
+  // (names.ts), because a title-only address can be a deliberate localization.
+  for (const h of jaToEn) {
+    if (h.rendering || h.jaHon === "(呼び捨て)") continue;
+    const c = g.characters.find((x) => x.en === h.char);
+    const en = visibleText(h.row[h.enSide]);
+    if (c?.forbidden?.en?.some((f) => en.includes(f))) continue; // name.forbidden owns this line
+    // A misspelt name (Ceris for Ceres) is name.near-miss's business, not a dropped name.
+    const names = [c?.en ?? h.char, ...(c?.aliases?.en ?? [])].map((n) => n.toLowerCase());
+    if ([...en.matchAll(/[A-Z][a-z]+/g)].some((m) => names.some((n) => damerauLevenshtein(m[0].toLowerCase(), n) <= (n.length >= 7 ? 2 : 1)))) continue;
+    const maj = majorityOf.get(`${h.speaker}\u0000${h.char}\u0000${h.jaHon}`);
+    if (!maj || maj.n < 2) continue;
+    findings.push({
+      category: "honorific", severity: "info", rule: "honorific.drift", group: `${h.row.speaker ?? "?"} → ${h.char} (${h.jaHon})`,
+      file: h.row.file, line: h.row.line, id: h.row.id, side: h.enSide,
+      message: msg.honorificNameDropped(`${c?.ja ?? h.char}${h.jaHon}`, maj.form, maj.n),
+      expected: maj.form,
+    });
   }
 
   // Japanese source: a speaker switching how they address someone (様 → さん). Often intentional, so info only.
@@ -146,23 +191,59 @@ export function checkHonorifics(tables: Table[], g: Glossary, locale: Locale = "
 // ---------- voice (first-person pronoun, politeness, contractions) ----------
 
 const AFTER = "(?=[はがのをにもとだっ、。！？…!?\\s」』]|たち|達|ら|$)";
-const KANJI_PRONOUN = new RegExp(`(?<![\\u4e00-\\u9fff])(私|僕|俺|儂|拙者|我輩|吾輩|妾|某)${AFTER}`, "g");
+// 余 / 我 / 吾 are pronouns only on their own: 余計, 余裕, 余り, 我慢 and 我々 ("we") fail AFTER or the kanji
+// lookbehind, a digit before 余 is a count (10余), and 我が / 吾が (我が国, "our") and 我ら ("we") are used in a
+// formal register by speakers whatever their own pronoun is, so they are not counted.
+const KANJI_PRONOUN = new RegExp(
+  `(?<![\\u4e00-\\u9fff])(私|僕|俺|儂|拙者|我輩|吾輩|妾|某)${AFTER}|(?<![\\u4e00-\\u9fff0-9０-９])(余|我(?![がら])|吾(?![がら]))${AFTER}`,
+  "g",
+);
 // Multi-mora kana pronouns may follow a particle (だからぼくは); short/ambiguous ones (わし, うち) must not follow kana (こわし, まわし).
+// わたくし / わたし / あたし may also follow an attributive ending (巫女であるわたくし, 戦うあたし).
 const KANA_PRONOUN = new RegExp(
-  `(?:(?<![ぁ-ゖ])|(?<=[をはがにもとらてでどねよさ]))(わたくし|わたし|あたし|あたい|ぼく|おれ|わらわ|それがし|オレ|ボク|ワタシ|ウチ)${AFTER}|(?<![ぁ-ゖ])(わし|うち)(?=[はがもの、]|ら)`,
+  `(?:(?<![ぁ-ゖ])|(?<=[をはがにもとらてでどねよさ]))(わたくし|わたし|あたし|あたい|ぼく|おれ|わらわ|それがし|オレ|ボク|ワタシ|ウチ)${AFTER}|(?<=[るたいなだのう])(わたくし|わたし|あたし)${AFTER}|(?<![ぁ-ゖ])(わし|うち)(?=[はがもの、]|ら)`,
   "g",
 );
 const POLITE = /(です|(?<!ます)ます(?!ます)|でした|ました|ません|ましょう|ください|でしょう|ございま)/;
 const PLAIN_END = /(だ|だろ|だろう|じゃねえ|じゃない|ぞ|ぜ|んだ|かよ|ねえか|よな|よ|ね|わ|な|か|かい|だい|さ|ろ|しろ|てやる|てろ)[。、！？!?…」』\s]*$/;
+// Plain verb/adjective endings (dictionary, past, negative, volitional, ている), used only for characters whose
+// profile sets politeness. た needs a verb-like kana before it (あなた, また are not past tense); う only after
+// い/あ/わ (言う, 会う, 笑う) or as volitional ろう/よう/こう, never ありがとう / おはよう / そう / どう.
+const PLAIN_VERB_END = /(?:る|ない|[っしいきちりみびにぎじえけげせぜてでねべめれん]た|[いあわ]う|ろう|(?<!おは)よう|こう)[。、！？!?…」』\s]*$/;
 
-export function firstPersonPronouns(ja: string): string[] {
-  return [...new Set([...ja.matchAll(KANJI_PRONOUN), ...ja.matchAll(KANA_PRONOUN)].map((m) => (m[1] ?? m[2])!))];
+const extraPronounCache = new Map<string, RegExp | undefined>();
+
+/** Pronouns listed in profiles (firstPerson) that the built-in lists do not know, compiled with the same boundaries. */
+function extraPronounRegex(words: string[]): RegExp | undefined {
+  const key = words.join("\u0000");
+  if (extraPronounCache.has(key)) return extraPronounCache.get(key);
+  const extra = words.filter((w) => w && ![...w.matchAll(KANJI_PRONOUN), ...w.matchAll(KANA_PRONOUN)].some((m) => m[0] === w));
+  const kanji = extra.filter((w) => !/^[ぁ-ゖ]/.test(w)).map(escapeRegExp);
+  const kana = extra.filter((w) => /^[ぁ-ゖ]/.test(w)).map(escapeRegExp);
+  const alts = [
+    kanji.length && `(?<![\\u4e00-\\u9fff])(${kanji.join("|")})${AFTER}`,
+    kana.length && `(?:(?<![ぁ-ゖ])|(?<=[をはがにもとらてでどねよさ]))(${kana.join("|")})${AFTER}`,
+  ].filter(Boolean);
+  const re = alts.length ? new RegExp(alts.join("|"), "g") : undefined;
+  extraPronounCache.set(key, re);
+  return re;
 }
 
-export function politeness(ja: string): "polite" | "plain" | undefined {
+/** First-person pronouns in a Japanese line. `extra` adds pronouns from character profiles (always detected). */
+export function firstPersonPronouns(ja: string, extra: string[] = []): string[] {
+  const xre = extra.length ? extraPronounRegex(extra) : undefined;
+  return [...new Set([...ja.matchAll(KANJI_PRONOUN), ...ja.matchAll(KANA_PRONOUN), ...(xre ? ja.matchAll(xre) : [])]
+    .map((m) => m.slice(1).find((x) => x !== undefined)!))];
+}
+
+/**
+ * Polite / plain / undecided. With `profiled` (the character's profile sets politeness), plain verb endings
+ * (〜る。〜た。〜ない。〜ている。) also count as plain; majority guesses keep the narrower PLAIN_END.
+ */
+export function politeness(ja: string, profiled = false): "polite" | "plain" | undefined {
   if (POLITE.test(ja)) return "polite";
   const sentences = ja.split(/(?<=[。、！？!?])/);
-  return sentences.some((s) => PLAIN_END.test(s.trim())) ? "plain" : undefined;
+  return sentences.some((s) => PLAIN_END.test(s.trim()) || (profiled && PLAIN_VERB_END.test(s.trim()))) ? "plain" : undefined;
 }
 
 const CONTRACTION = /\b(?:[A-Za-z]+n['’]t|(?:I|you|we|they|he|she|it|that|there|who|what|where|here|let)['’](?:s|re|ve|ll|d|m)|I['’]m|[A-Za-z]+['’](?:ll|ve|re))\b/gi;
@@ -183,6 +264,8 @@ export function checkVoice(tables: Table[], g: Glossary, minLines = 3, locale: L
       })),
   );
 
+  // Every pronoun named in any profile is detected (余 in Zeno's profile is caught in Gald's lines too).
+  const profilePronouns = [...new Set(g.characters.flatMap((c) => c.voice?.ja?.firstPerson ?? []))];
   for (const [key, group] of countBy(lines, (l) => speakerKey(g, l.row))) {
     const ch = findCharacter(g, group[0]!.row.speaker);
     const profile: VoiceProfile = ch?.voice ?? {};
@@ -194,7 +277,7 @@ export function checkVoice(tables: Table[], g: Glossary, minLines = 3, locale: L
     };
 
     // First-person pronoun
-    const pron = group.filter((l) => l.jaSide).map((l) => ({ l, p: firstPersonPronouns(visibleText(l.row[l.jaSide!])) })).filter((x) => x.p.length);
+    const pron = group.filter((l) => l.jaSide).map((l) => ({ l, p: firstPersonPronouns(visibleText(l.row[l.jaSide!]), profilePronouns) })).filter((x) => x.p.length);
     if (pron.length) {
       const tally: Record<string, number> = {};
       pron.forEach((x) => x.p.forEach((p) => (tally[p] = (tally[p] ?? 0) + 1)));
@@ -222,7 +305,7 @@ export function checkVoice(tables: Table[], g: Glossary, minLines = 3, locale: L
     }
 
     // Politeness level
-    const pol = group.filter((l) => l.jaSide).map((l) => ({ l, p: politeness(visibleText(l.row[l.jaSide!])) })).filter((x) => x.p);
+    const pol = group.filter((l) => l.jaSide).map((l) => ({ l, p: politeness(visibleText(l.row[l.jaSide!]), !!profile.ja?.politeness) })).filter((x) => x.p);
     if (pol.length) {
       const polite = pol.filter((x) => x.p === "polite").length;
       usage.push({ category: "voice", group: `${name}: politeness`, counts: { polite, plain: pol.length - polite } });

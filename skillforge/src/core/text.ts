@@ -119,23 +119,69 @@ export function clearTextCaches(): void {
   phraseCache.clear();
 }
 
+/** Fold a plural last word to its singular so a term stored as "Egg Hunts" also matches "Egg hunt". */
+export function singularOf(phrase: string): string {
+  return phrase.replace(/([A-Za-z]+)$/, (w) =>
+    /^[A-Z]{2,}s$/.test(w) ? w.slice(0, -1) // AIs, NPCs
+      : w.length > 4 && /ies$/i.test(w) ? `${w.slice(0, -3)}y`
+      : w.length > 4 && /(x|ch|sh|ss)es$/i.test(w) ? w.slice(0, -2)
+        : w.length > 3 && /[^s]s$/i.test(w) && !/(us|is)$/i.test(w) ? w.slice(0, -1) : w);
+}
+
+/**
+ * Inflected forms of the last word of a glossary rendering, for matching it in an English translation:
+ * plural either way (notes ⇔ Note), -s/-es, -ed/-d, -ing (with e-drop: Renote → Renoting; with a doubled final
+ * consonant: ban → banned), y → ies/ied/ying, and -ion/-ions only when the word ends in -ct/-te
+ * (react → reaction, delete → deletion). A word ending in -ction/-ation is reduced to its verb first, so a term stored
+ * as "reaction" also matches "reacted" and "federation" matches "federating". Deliberately no -er/-ers
+ * (react → reacter is rare; "Stone" → "Stoner" is not the same word). Returns a regex source fragment.
+ */
+function inflectedWord(word: string): string {
+  const w = singularOf(word);
+  if (!/^[A-Za-z]{3,}$/.test(w) || /^[A-Z]+$/.test(w)) return `${escapeRegExp(w)}(?:e?s)?`;
+  let stem = w;
+  let tail = "";
+  if (/[ca]tion$/i.test(w) && w.length >= 8) {
+    // reaction → react, federation → federat(e); a short stem (station → stat) is left alone.
+    stem = w.slice(0, -3);
+    tail = /ct$/i.test(stem) ? "(?:s|ed|ing|ions?)?" : "(?:e|es|ed|ing|ions?)?";
+    return `${escapeRegExp(stem)}${tail}`;
+  }
+  if (/[^aeiou]y$/i.test(w)) return `${escapeRegExp(w.slice(0, -1))}(?:y|ies|ied|ying)`;
+  if (/e$/i.test(w)) {
+    stem = w.slice(0, -1);
+    const ion = /te$/i.test(w) ? "|ions?" : "";
+    return `${escapeRegExp(stem)}(?:e|es|ed|ing${ion})`;
+  }
+  const ion = /ct$/i.test(w) ? "|ions?" : "";
+  // Short CVC words double their final consonant (ban → banned, stop → stopping).
+  const dbl = /^[^aeiou]*[aeiou][bdgklmnprt]$/i.test(w) ? `${escapeRegExp(w.slice(-1))}?` : "";
+  return `${escapeRegExp(w)}(?:e?s|${dbl}ed|${dbl}ing${ion})?`;
+}
+
 /**
  * English phrase matcher: whole words, any whitespace (incl. line breaks / NBSP) between words,
  * tolerant of plurals (-s/-es, -y→-ies, -f/-fe→-ves) and possessive 's. Terms match case-insensitively;
  * character names are case-sensitive so "Will" does not match "will". Compiled regexes are cached.
+ * With `inflect` (the translation side of a term check), the last word also matches its inflected forms
+ * (see inflectedWord).
  */
-export function enPhraseRegex(phrase: string, caseSensitive = false): RegExp {
-  const key = `${caseSensitive ? 1 : 0}\u0000${phrase}`;
+export function enPhraseRegex(phrase: string, caseSensitive = false, inflect = false): RegExp {
+  const key = `${caseSensitive ? 1 : 0}${inflect ? 1 : 0}\u0000${phrase}`;
   let re = phraseCache.get(key);
   if (!re) {
     // Apostrophes match in any typographic form (Li'sar = Li’sar).
-    const words = normalizeApostrophes(phrase).trim().split(/\s+/).map((w) => escapeRegExp(w).replace(/'/g, "['\u2018\u2019\u02bc]"));
+    const raw = normalizeApostrophes(phrase).trim().split(/\s+/);
+    const words = raw.map((w) => escapeRegExp(w).replace(/'/g, "['\u2018\u2019\u02bc]"));
     const last = words.pop()!;
-    const tail = /y$/i.test(last) && !/[aeiou]y$/i.test(last)
-      ? `${last.slice(0, -1)}(?:y|ies)`
-      : /fe?$/i.test(last)
-        ? `${last.replace(/fe?$/i, "")}(?:fe?s?|ves)`
-        : `${last}(?:e?s)?`;
+    const lastRaw = raw[raw.length - 1]!;
+    const tail = inflect && /^[A-Za-z]+$/.test(lastRaw)
+      ? inflectedWord(lastRaw)
+      : /y$/i.test(last) && !/[aeiou]y$/i.test(last)
+        ? `${last.slice(0, -1)}(?:y|ies)`
+        : /fe?$/i.test(last)
+          ? `${last.replace(/fe?$/i, "")}(?:fe?s?|ves)`
+          : `${last}(?:e?s)?`;
     re = new RegExp(`(?<![A-Za-z])${[...words, tail].join("[\\s\\u00a0]+")}(?:['\u2018\u2019\u02bc]s)?(?![A-Za-z])`, caseSensitive ? "" : "i");
     phraseCache.set(key, re);
   }
@@ -143,12 +189,13 @@ export function enPhraseRegex(phrase: string, caseSensitive = false): RegExp {
 }
 
 /**
- * Does `text` contain `phrase`? English: whole words via enPhraseRegex. Japanese: a substring, or with `loose`,
- * the same words with grammar around them (see jaLooseRegex). Apostrophes are compared in ASCII form.
+ * Does `text` contain `phrase`? English: whole words via enPhraseRegex; with `loose`, the last word may also be
+ * inflected (Renote ⇔ Renoted, notes ⇔ Note). Japanese: a substring, or with `loose`, the same words with
+ * grammar around them (see jaLooseRegex). Apostrophes are compared in ASCII form.
  */
 export function containsPhrase(text: string, phrase: string, lang: Lang, caseSensitive = false, loose = false): boolean {
   if (!phrase) return false;
-  if (lang !== "ja") return enPhraseRegex(phrase, caseSensitive).test(text);
+  if (lang !== "ja") return enPhraseRegex(phrase, caseSensitive, loose).test(text);
   const t = normalizeApostrophes(text);
   const p = normalizeApostrophes(phrase);
   return t.includes(p) || (loose && jaLooseRegex(p).test(t));

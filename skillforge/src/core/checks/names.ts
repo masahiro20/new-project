@@ -121,7 +121,7 @@ export function checkNames(tables: Table[], g: Glossary, locale: Locale = "en"):
 
   // Speaker-label drift: the same character labelled differently across files/rows.
   const speakerRows = tables.flatMap((t) => t.rows.filter((r) => r.speaker));
-  const normSpeaker = (s: string) => katakanaKey(s.toLowerCase().replace(/[\s._\-・()（）]/g, ""));
+  const normSpeaker = (s: string) => katakanaKey(hiraganaToKatakana(s.toLowerCase()).replace(/[\s._\-・()（）]/g, ""));
   for (const [, rows] of countBy(speakerRows, (r) => findCharacter(g, r.speaker)?.id ?? normSpeaker(r.speaker!))) {
     const forms = countBy(rows, (r) => r.speaker!);
     if (forms.size < 2) continue;
@@ -141,7 +141,9 @@ export function checkNames(tables: Table[], g: Glossary, locale: Locale = "en"):
   if (g.characters.length) {
     const labels = new Set(g.characters.flatMap((c) => [c.id, ...jaNames(c), ...enNames(c)].map(normSpeaker)));
     for (const [label, rows] of countBy(speakerRows, (r) => r.speaker!)) {
-      const key = normSpeaker(label);
+      // A label that resolves to a character (ガルド（騎士長）, りん) is reported as name.speaker-label, not unknown.
+      if (findCharacter(g, label)) continue;
+      const key = normSpeaker(stripSpeakerTitle(label));
       if (labels.has(key)) continue;
       const near = [...labels].find((l) => l.length >= 3 && damerauLevenshtein(key, l) === 1);
       if (!near) continue;
@@ -158,9 +160,26 @@ export function checkNames(tables: Table[], g: Glossary, locale: Locale = "en"):
   return { findings, usage };
 }
 
-/** Resolve a speaker label to a glossary character (by id, ja/en name or alias). */
+/** Hiragana → katakana (りん → リン), so a speaker label typed in hiragana resolves to its katakana name. */
+export function hiraganaToKatakana(s: string): string {
+  return s.replace(/[\u3041-\u3096]/g, (c) => String.fromCharCode(c.charCodeAt(0) + 0x60));
+}
+
+/** Drop a trailing bracketed title or note from a speaker label: ガルド（騎士長）, ガルド(騎士長), ガルド【騎士長】, Gald (armored). */
+export function stripSpeakerTitle(label: string): string {
+  const stripped = label.trim().replace(/\s*(?:（[^（）]*）|\([^()]*\)|【[^【】]*】)$/, "").trim();
+  return stripped || label.trim();
+}
+
+/**
+ * Resolve a speaker label to a glossary character (by id, ja/en name or alias), case-insensitively. A trailing
+ * bracketed title is ignored and hiragana matches katakana, so ガルド（騎士長） and りん resolve to ガルド and リン.
+ */
 export function findCharacter(g: Glossary, label?: string): GlossaryCharacter | undefined {
   if (!label) return undefined;
-  const k = label.trim().toLowerCase();
-  return g.characters.find((c) => [c.id, ...jaNames(c), ...enNames(c)].some((n) => n.toLowerCase() === k));
+  const exact = label.trim().toLowerCase();
+  const loose = hiraganaToKatakana(stripSpeakerTitle(label).toLowerCase());
+  const names = (c: GlossaryCharacter) => [c.id, ...jaNames(c), ...enNames(c)].map((n) => n.toLowerCase());
+  return g.characters.find((c) => names(c).some((n) => n === exact)) ??
+    g.characters.find((c) => names(c).some((n) => hiraganaToKatakana(n) === loose));
 }

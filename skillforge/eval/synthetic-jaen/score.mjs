@@ -2,7 +2,9 @@
 // Score Kotomark JSON reports against truth.csv.
 //
 //   node eval/synthetic-jaen/score.mjs --truth truth.csv --clean-G clean.G.json --drifted-G drifted.G.json \
-//        --clean-A clean.A.json --drifted-A drifted.A.json --out results.json
+//        --clean-A clean.A.json --drifted-A drifted.A.json --out results.json [--before old-results.json]
+//
+// --before embeds the configs of an earlier results.json under "before" (kept for the fixes.md comparison).
 //
 // A truth row is "found" when a finding sits on the same line with one of the rules in its `expect` column.
 // Findings that match no truth row are looked up in JUDGEMENTS (the evaluator's manual verdicts, keyed by
@@ -16,7 +18,7 @@ const opt = (n) => { const i = args.indexOf(`--${n}`); return i >= 0 ? args[i + 
 
 // Manual verdicts for findings on the drifted script that match no injected error (evaluator, 2026-10-09).
 const JUDGEMENTS = {
-  "82:honorific.drift": { verdict: "FP", note: "clean line (Hayate: Sir Gald). The 殿 group is a 1-1-1 tie (Sir Gald / Gald-dono / Gald) and the engine picks the policy-violating Gald-dono as the 'majority'" },
+  "82:honorific.drift": { verdict: "FP", note: "clean line (Hayate: Sir Gald). The 殿 group is a 1-1-1 tie (Sir Gald / Gald-dono / Gald). Before the fixes (fixes.md): warning pointing at the policy-violating Gald-dono as the 'majority'. After: info 'split, no majority' (Sir Gald ×1 / Gald ×1), still counted FP because the line itself is correct" },
 };
 
 function parseCsv(text) {
@@ -93,6 +95,10 @@ const result = {
     A: { description: "--no-glossary", ...score(load(opt("drifted-A")), load(opt("clean-A"))) },
   },
 };
+if (opt("before")) {
+  const old = JSON.parse(readFileSync(opt("before"), "utf8"));
+  result.before = old.before ?? { note: "engine before the fixes in fixes.md (2026-10-09)", configs: old.configs };
+}
 writeFileSync(opt("out"), JSON.stringify(result, null, 1) + "\n");
 const g = result.configs.G, a = result.configs.A;
 console.error(`G: recall ${g.recall.found}/${g.recall.injected} (CI ${g.recall.foundCi}), precision ${g.precision.all.precision} (unjudged ${g.precision.all.unjudged}); A: recall ${a.recall.found}/${a.recall.injected}, precision ${a.precision.all.precision} (unjudged ${a.precision.all.unjudged})`);
