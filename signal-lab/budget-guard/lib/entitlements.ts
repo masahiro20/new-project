@@ -118,18 +118,27 @@ export async function upsertEntitlement(
     return { entitlement: existing, created: false };
   }
   await kv.set(k.license(entitlement.licenseKey), entitlement.id);
-  // Latest purchase wins for magic links — except a demo purchase (buyer-chosen, unverified
-  // email, no payment) never takes over an email that points at a real (stripe) entitlement
-  // or at someone's still-active demo entitlement (otherwise anyone could redirect that
-  // person's magic link into an account the attacker also holds the license key for).
-  const prevByEmail = entitlement.source === "demo" ? await findByEmail(kv, entitlement.email) : null;
-  const prevLapsed = !!prevByEmail && prevByEmail.source === "demo" && (!isActive(prevByEmail) || trialEnded(prevByEmail) || !!prevByEmail.deletedAt);
-  if (!prevByEmail || prevLapsed) await kv.set(k.email(entitlement.email), entitlement.id);
+  // Magic links follow the email index. A new purchase never takes it over while it points at an
+  // entitlement still in use (R2-03, R2-05: decisions.md 2026-10-09) — otherwise anyone could buy
+  // with someone else's email and redirect that person's sign-in links into an account whose
+  // license key the buyer holds. The new purchase still works through its success page and key.
+  //   - a still-valid stripe entitlement (not ended / refunded / deleted): kept, for any purchase
+  //   - a demo purchase (unverified email, no payment) never takes over a stripe entitlement at all
+  //   - a demo entitlement is kept against a demo purchase while its trial runs; a paid one replaces it
+  const prev = await findByEmail(kv, entitlement.email);
+  if (!prev || !keepsEmailIndex(prev, entitlement)) await kv.set(k.email(entitlement.email), entitlement.id);
   if (entitlement.subscriptionId) await kv.set(k.sub(entitlement.subscriptionId), entitlement.id);
   if (entitlement.paymentIntentId) await kv.set(k.pi(entitlement.paymentIntentId), entitlement.id);
   if (entitlement.customerId) await kv.set(k.customer(entitlement.customerId), entitlement.id);
   if (entitlement.source === "demo" || ENDED.includes(entitlement.status)) await kv.sadd(k.retention(), entitlement.id);
   return { entitlement, created: true };
+}
+
+/** Does the email index stay on `prev` when `next` is bought with the same email? */
+function keepsEmailIndex(prev: Entitlement, next: Entitlement): boolean {
+  if (prev.deletedAt || !isActive(prev)) return prev.source === "stripe" && next.source === "demo";
+  if (prev.source === "stripe") return true;
+  return next.source === "demo" && !trialEnded(prev);
 }
 
 export async function setStatus(kv: KV, e: Entitlement, status: EntitlementStatus, now = new Date()): Promise<Entitlement> {

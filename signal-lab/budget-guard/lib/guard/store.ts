@@ -23,6 +23,11 @@ export interface StoredConnection extends Connection {
   consent?: ConsentRecord;
   /** Added with the offline "demo" token: indexed in `bg:democonns`, not in the real work list (R3-02). */
   demo?: true;
+  /**
+   * Vercel only, opt-in (default off, R3-03): Vercel Spend Management's 100% alert alone counts as
+   * "budget reached", so an armed (live) stop runs even if our fetched spend is below the budget.
+   */
+  vercelLimitStops?: boolean;
 }
 
 export interface AccountSettings {
@@ -109,6 +114,8 @@ export async function moveToDemoIndex(kv: KV, ref: string): Promise<void> {
 }
 /** Cron: drop a ref whose connection is gone or whose account is no longer monitored (re-added by reindexAccount). */
 export const dropFromIndex = (kv: KV, ref: string, demo: boolean) => kv.srem(indexOf(demo), ref);
+/** Cron: put a ref back (its account turned active again while the cron was dropping it). */
+export const addToIndex = (kv: KV, ref: string, demo: boolean) => kv.sadd(indexOf(demo), ref);
 
 /** Put an account's connections back into the cron's index (its subscription became active again). */
 export async function reindexAccount(kv: KV, acct: string): Promise<number> {
@@ -185,7 +192,7 @@ export async function updateConnection(
   kv: KV,
   acct: string,
   id: string,
-  patch: { stopMode?: StopMode; budgetUsd?: number; sealedWebhookSecret?: string | undefined },
+  patch: { stopMode?: StopMode; budgetUsd?: number; sealedWebhookSecret?: string | undefined; vercelLimitStops?: boolean },
 ): Promise<void> {
   const conns = await listConnections(kv, acct);
   const i = conns.findIndex((c) => c.id === id);

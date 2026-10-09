@@ -65,6 +65,7 @@ export function AddConnectionForm({ allowDemo, onAdded, consent, blocked }: { al
         {info.tokenName} <input type="password" name="token" required autoComplete="off" placeholder={allowDemo ? 'Type "demo" to try offline' : ""} />
       </label>
       <p className="hint">{info.leastPrivilege}</p>
+      <p className="hint">{info.spendScope}</p>
       <ConsentCheckbox labels={consent} checked={agreed} onChange={setAgreed} />
       <button className="btn" disabled={pending || !agreed || blocked}>{pending ? "Checking token…" : "Add connection"}</button>
       {state.message && <p className={state.status === "error" ? "msg err" : "msg"} role={state.status === "error" ? "alert" : undefined}>{state.message}</p>}

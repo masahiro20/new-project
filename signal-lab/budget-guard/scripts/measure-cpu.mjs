@@ -14,7 +14,7 @@
 // "warm" = median / max of --runs later requests. Data: one demo purchase + one
 // connection with the offline "demo" token (PAYMENTS_MODE=demo, in-memory KV).
 import { spawn } from "node:child_process";
-import { readdirSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { setTimeout as sleep } from "node:timers/promises";
 
 const arg = (name, def) => {
@@ -26,7 +26,8 @@ const INSPECTOR = Number(arg("inspector", "9239"));
 const RUNS = Number(arg("runs", "15"));
 const BASE = `http://localhost:${PORT}`;
 const ORIGIN = BASE;
-const CRON_SECRET = "local-dummy-cron-secret";
+// The local .dev.vars (npm run cf:dev-vars) holds a random CRON_SECRET; read it from there.
+const CRON_SECRET = readFileSync(new URL("../.dev.vars", import.meta.url), "utf8").match(/^CRON_SECRET=(.*)$/m)?.[1] ?? "";
 
 let send;
 async function connectInspector() {

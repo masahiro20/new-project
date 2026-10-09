@@ -13,7 +13,7 @@ import { adapterFor } from "./providers";
 import { isDemoMode } from "../payments/mode";
 
 /** Active, and (for demo entitlements) only while demo mode is on — mirrors entitlementUsable. */
-const monitored = (e: Entitlement | null): e is Entitlement => isActive(e) && (e.source !== "demo" || (isDemoMode() && !trialEnded(e)));
+export const monitored = (e: Entitlement | null): e is Entitlement => isActive(e) && (e.source !== "demo" || (isDemoMode() && !trialEnded(e)));
 import { runStop, type FetchLike, type StopPlan, type StopResult } from "./stop";
 import {
   appendLog,
@@ -154,7 +154,7 @@ export async function checkAccount(
   email: string,
   now = new Date(),
   only?: string,
-  opts: { forceLimit?: boolean; notifyFetch?: FetchLike } = {},
+  opts: { vercelLimitReached?: boolean; notifyFetch?: FetchLike } = {},
 ): Promise<Notice[]> {
   return (await checkAccountDetailed(kv, acct, email, now, only, opts)).notices;
 }
@@ -173,7 +173,7 @@ export async function checkAccountDetailed(
   email: string,
   now = new Date(),
   only?: string,
-  opts: { forceLimit?: boolean; notifyFetch?: FetchLike } = {},
+  opts: { vercelLimitReached?: boolean; notifyFetch?: FetchLike } = {},
 ): Promise<{ notices: Notice[]; busy: string[]; checked: number }> {
   const ids = only ? [only] : (await listConnections(kv, acct)).map((c) => c.id);
   const all: Notice[] = [];
@@ -216,7 +216,12 @@ export async function checkConnectionLocked(
   opts: {
     email?: string;
     requireEntitlement?: boolean;
-    forceLimit?: boolean;
+    /**
+     * Vercel Spend Management reported 100% (webhook). Counts as "budget reached" only for a
+     * connection that opted in (vercelLimitStops, R3-03); otherwise this is a normal check of the
+     * spend we fetch now, against the Budget Guard budget.
+     */
+    vercelLimitReached?: boolean;
     notifyFetch?: FetchLike;
     /** Cron: skip if this connection was already checked in this UTC hour (and record it). */
     hour?: string;
@@ -265,7 +270,8 @@ export async function checkConnectionLocked(
       notices.push({ kind: "error", connectionId: conn.id, message: `${conn.label}: ${reason}` });
     }
     if (token !== undefined && fetchImpl) {
-      const result = await checkConnection(conn, prevState, { token, fetchImpl, now, forceLimit: opts.forceLimit });
+      const forceLimit = !!opts.vercelLimitReached && conn.target.provider === "vercel" && conn.vercelLimitStops === true;
+      const result = await checkConnection(conn, prevState, { token, fetchImpl, now, forceLimit });
       const saved: GuardState = { ...result.state, stopModel: 2 };
       if (opts.hour) saved.lastHour = opts.hour;
       writes[storeKeys.state(acct, conn.id)] = JSON.stringify(saved);
@@ -381,13 +387,14 @@ export async function handleVercelWebhook(
   const reachedLimit = payload.thresholdPercent >= 100;
   return {
     outcome: { status: 200, result: "handled" },
-    // Mail the alert, then re-check now instead of waiting for the hourly cron. At 100%
-    // we treat Vercel's own figure as the limit, so an armed stop runs immediately.
+    // Mail the alert, then re-check now instead of waiting for the hourly cron: fetch the spend
+    // and judge it against the Budget Guard budget, like every check (R3-03). Vercel's own 100%
+    // counts as the limit only when the connection opted in ("Stop on Vercel's 100% alert").
     followUp: async () => {
       await notify(kv, acct, ent.email, [notice]);
-      // If the cron (or a "Check now") holds this connection right now, wait for it rather than skip the forced check.
+      // If the cron (or a "Check now") holds this connection right now, wait for it rather than skip this check.
       for (let attempt = 0; attempt < 4; attempt++) {
-        const r = await checkAccountDetailed(kv, acct, ent.email, now, conn.id, { forceLimit: reachedLimit });
+        const r = await checkAccountDetailed(kv, acct, ent.email, now, conn.id, { vercelLimitReached: reachedLimit });
         if (r.busy.length === 0) break;
         await new Promise((resolve) => setTimeout(resolve, 5000));
       }

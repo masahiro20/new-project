@@ -1,17 +1,19 @@
 import { timingSafeEqual } from "node:crypto";
 import { getKV } from "@/lib/redis";
-import { isProduction } from "@/lib/site";
+import { isDevEnv, usableSecret } from "@/lib/secrets";
 import { cronBatchSize, runCronSlice } from "@/lib/guard/cron";
 
 // Hourly check. Vercel (vercel.json, hourly) sends `Authorization: Bearer $CRON_SECRET`
 // and, with CRON_BATCH_SIZE unset, checks every connection in one call. Cloudflare
 // runs lib/guard/cron.ts directly from cf-worker.ts every minute in small slices; this
-// route stays usable there for manual runs. Without CRON_SECRET it only works outside production.
+// route stays usable there for manual runs. Without CRON_SECRET it only works in development / test.
 export const maxDuration = 300;
 
 function authorized(request: Request): boolean {
-  const secret = process.env.CRON_SECRET;
-  if (!secret) return !isProduction();
+  // Unset: only in development / test (fail closed when NODE_ENV is unset or anything else).
+  if (!process.env.CRON_SECRET) return isDevEnv();
+  const secret = usableSecret("CRON_SECRET"); // weak / example value in production → deny
+  if (!secret) return false;
   const given = Buffer.from(request.headers.get("authorization") ?? "");
   const expected = Buffer.from(`Bearer ${secret}`);
   return given.length === expected.length && timingSafeEqual(given, expected);

@@ -7,6 +7,8 @@
 // Not used by `next build` / Vercel. Types are declared locally so `tsc` passes
 // before .open-next/ exists and without pulling the Workers runtime types into the app.
 
+// Must stay first: globals the OpenNext bundles need at startup, and NODE_ENV (see the file).
+import "./cf-prelude";
 // @ts-ignore `.open-next/worker.js` is generated at build time
 import { default as handler } from "./.open-next/worker.js";
 // @ts-ignore generated at build time. Evaluate the Next.js server at isolate startup
@@ -15,18 +17,26 @@ import "./.open-next/server-functions/default/handler.mjs";
 // The cron slice runs without Next.js (bundled separately by wrangler; evaluated at startup).
 import { cronBatchSize, runCronSlice } from "./lib/guard/cron";
 import { getKV } from "./lib/redis";
-
-// R1-11: a deployed Worker is production. Nothing sets NODE_ENV at runtime (OpenNext only replaces
-// the literal `process.env.NODE_ENV` at build time), and checks such as demoTokensAllowed() or the
-// fail-closed key / secret fallbacks read it through a variable. Read via a variable here too, so
-// no bundler define rewrites this line.
-const runtimeEnv: Record<string, string | undefined> = process.env;
-runtimeEnv.NODE_ENV ||= "production";
+import { runStartupChecks } from "./lib/startup-checks";
 
 type Env = Record<string, unknown>;
 type Ctx = { waitUntil(p: Promise<unknown>): void; passThroughOnException(): void };
 type OpenNextHandler = { fetch(request: Request, env: Env, ctx: Ctx): Promise<Response> };
 type ScheduledController = { cron: string; scheduledTime: number };
+
+let startupChecked: string | null | undefined;
+/** runStartupChecks once per isolate (after the env is copied in); the problem, or null. */
+function startupProblem(): string | null {
+  if (startupChecked === undefined) {
+    try {
+      runStartupChecks(process.env);
+      startupChecked = null;
+    } catch (err) {
+      startupChecked = err instanceof Error ? err.message : String(err);
+    }
+  }
+  return startupChecked;
+}
 
 /**
  * Cron: one small slice of the hourly check per run (lib/guard/cron.ts), called
@@ -38,8 +48,13 @@ type ScheduledController = { cron: string; scheduledTime: number };
 async function runCron(controller: ScheduledController, env: Env): Promise<void> {
   // process.env carries vars/secrets (nodejs_compat); prefer the binding values explicitly.
   for (const [k, v] of Object.entries(env)) if (typeof v === "string") process.env[k] = v;
+  // The startup checks (instrumentation.ts) guard the Next.js server; the cron runs without it.
+  // A broken setup must not stop the monitoring, so check, do the work anyway, then fail the
+  // invocation so it shows in the Cron Events log.
+  const configError = startupProblem();
   const result = await runCronSlice(getKV(), { now: new Date(controller.scheduledTime), batch: cronBatchSize() });
   const line = `[cron] ${controller.cron} ${JSON.stringify(result)}`;
+  if (configError) throw new Error(`${line} — configuration error: ${configError}`);
   // Undecryptable tokens (R1-01) also fail the invocation, so they show in the Cron Events log.
   if (result.errors || result.tokenErrors) throw new Error(line);
   console.log(line);
@@ -59,8 +74,22 @@ function withClientIp(request: Request): Request {
   return new Request(request, { headers });
 }
 
+/**
+ * Every request: the startup checks must have passed in this isolate (lib/startup-checks.ts). The
+ * instrumentation hook already makes Next answer 500 when they fail; this is the same check at the
+ * Worker's edge, so a misconfigured deployment is refused even if the hook doesn't load (as before
+ * cf-prelude.ts) — including static pages. Once per isolate; afterwards a cached boolean.
+ */
+function refuseIfMisconfigured(env: Env): Response | null {
+  if (startupChecked === undefined) for (const [k, v] of Object.entries(env)) if (typeof v === "string") process.env[k] = v;
+  const problem = startupProblem();
+  if (!problem) return null;
+  console.error(`[startup] ${problem}`);
+  return new Response("Server misconfigured. The operator has been notified in the logs.", { status: 500, headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" } });
+}
+
 export default {
-  fetch: (request: Request, env: Env, ctx: Ctx) => (handler as OpenNextHandler).fetch(withClientIp(request), env, ctx),
+  fetch: (request: Request, env: Env, ctx: Ctx) => refuseIfMisconfigured(env) ?? (handler as OpenNextHandler).fetch(withClientIp(request), env, ctx),
   async scheduled(controller: ScheduledController, env: Env) {
     await runCron(controller, env);
   },

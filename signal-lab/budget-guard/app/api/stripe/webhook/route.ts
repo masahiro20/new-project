@@ -2,10 +2,11 @@ import { after } from "next/server";
 import { processStripeEvent } from "@/lib/payments/stripe-webhook";
 import { getKV } from "@/lib/redis";
 import { getStripe } from "@/lib/payments/stripe";
+import { usableSecret } from "@/lib/secrets";
 
 // Node runtime (no `runtime` export). The raw body is needed for signature verification.
 export async function POST(request: Request) {
-  const secret = process.env.STRIPE_WEBHOOK_SECRET;
+  const secret = usableSecret("STRIPE_WEBHOOK_SECRET"); // unset, or malformed in production → not configured
   if (!secret || !process.env.STRIPE_SECRET_KEY) return Response.json({ error: "webhook not configured" }, { status: 503 });
 
   const body = await request.text();

@@ -23,7 +23,7 @@
 | Three integrations | 3 社それぞれの「読むもの／100% での停止／戻し方」の表。Vercel はプロジェクトを一時停止、OpenAI はプロジェクトに予算額のハード上限、Anthropic はワークスペースの API キーを inactive。取り消せない操作はしない。各社の注意点（Vercel は本番のみ、OpenAI の上限は即時でない、Anthropic の Priority Tier は対象外）。 |
 | Safety | テストモードが既定。ライブ化には 3 つの確認（リクエスト一覧・5 分で切れる署名付き確認・ラベル入力）。戻すのはワンクリック。失敗は記録・通知・再試行。トークンは AES-256-GCM で暗号化。最小権限の発行手順を案内。正直な注意：どの社にも読み取り専用のコストキーはない。 |
 | How it compares | 各社の標準機能との比較表。1 社だけなら標準の上限から始めるべきと明記。Budget Guard の違いは、複数社の一元表示、事前にテストできる停止、細かい対象指定。標準機能の方が優れる点（プロバイダ側で強制、毎時より速い、第三者に管理キーを渡さない）も書いている。 |
-| Alerts | 80% でメール（接続ごとに月 1 回）、Slack の incoming webhook、Vercel Spend Management の webhook で即時チェック。 |
+| Alerts | 80% でメール（接続ごとに月 1 回）、Slack の incoming webhook、Vercel Spend Management の webhook で即時チェック。Vercel の通知だけでは止めず、その場で利用額を取り直して Budget Guard の予算で判定する。Vercel の 100% 通知だけで止めたい人は、接続ごとのオプトイン「Vercel の 100% 通知でも止める」をオンにする（初期値はオフ。オンにするには live への切り替えと同じ確認が要る）。 |
 | Pricing | **案・承認待ち。** Monthly $9／月（監視接続 3 つまで、毎時チェック、80% 通知と 100% 停止、テストモード）、Yearly $79／年（2 か月分お得）。いつでも解約でき、支払済み期間の終わりまで使える。 |
 | FAQ | 必要なキー、管理者キーが要る理由、データの鮮度（日単位・途中集計）、100% で即止まるわけではないこと、通知だけの使い方、テストモードの中身、停止の戻し方（ユーザー自身が操作、ワンクリック復旧は未実装）、月替わりの動作、保存するデータと削除、標準機能の代わりではないこと。 |
 | Coming later | 未実装：ワンクリック復旧、利用状況グラフ、Slack 以外の汎用 webhook、対応プロバイダの追加（例：Cloudflare、GCP。範囲は未定）。 |
@@ -118,7 +118,7 @@ The providers' own controls are good, and they're free. If you only use one prov
 
 - **Email** at 80% of your monthly budget, once per month per connection.
 - **Slack** alerts through a Slack incoming webhook you paste in.
-- **Vercel Spend Management webhook:** add Budget Guard's webhook URL to your Vercel budget. When Vercel reports 50%, 75% or 100%, Budget Guard runs a check right away instead of waiting for the next hour. At 100%, if your stop is armed (live), it runs. Each webhook is verified with a per-connection signing secret.
+- **Vercel Spend Management webhook:** add Budget Guard's webhook URL to your Vercel budget. When Vercel reports 50%, 75% or 100%, Budget Guard checks your spend right away instead of waiting for the next hour. Vercel's alert alone doesn't stop anything: your stop runs only if that check shows your Budget Guard budget is reached, because the budget you set in Vercel is a separate number. If you want Vercel's 100% alert to run your armed stop by itself, turn on "Stop on Vercel's 100% alert" for that connection (off by default; turning it on needs the same confirmation as arming). Each webhook is verified with a per-connection signing secret.
 
 ---
 

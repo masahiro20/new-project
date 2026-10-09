@@ -24,9 +24,10 @@ OpenNext（`@opennextjs/cloudflare`）で Next.js 16 アプリを 1 つの Worke
 | `scripts/measure-cpu.mjs` | ルートごとの CPU 時間をローカル workerd で計測（`npm run cf:cpu`。§8.1） |
 | `wrangler.jsonc` | Worker 名 `budget-guard`、`nodejs_compat`、`compatibility_date` 2026-09-01、静的アセット（`ASSETS`）、毎分の cron（`* * * * *`）、`CRON_BATCH_SIZE=2`（§7） |
 | `open-next.config.ts` | OpenNext の設定。読み取り専用の static-assets キャッシュ（R2/KV 不要）＋ `enableCacheInterception` |
+| `cf-prelude.ts` | `cf-worker.ts` の最初の import。OpenNext のバンドルより先に `__filename` / `__dirname` と `NODE_ENV` を入れる（§8.2.1） |
 | `cf-worker.ts` | Worker の入口。OpenNext が生成した `.open-next/worker.js` を包み、次を足す：`scheduled()`（cron の 1 スライスを Next を通さずに実行。§7）、Next サーバーの起動時読み込み（§8.2）、`x-forwarded-for` を `cf-connecting-ip` に固定（レート制限の回避防止） |
 | `scripts/patch-opennext.mjs` | OpenNext 1.20.9 が Next 16.4 の `preview-props.json` を読めない不具合の回避（`build:cf` で自動実行。§9） |
-| `.dev.vars.example` | ローカル用のダミー値。`.dev.vars` にコピーして使う |
+| `.dev.vars.example` | ローカル用の雛形。秘密の値は `__GENERATE__` の印だけで、そのままでは使えない。`npm run cf:dev-vars`（`scripts/gen-dev-vars.mjs`）で、毎回ランダムな値を入れた `.dev.vars` を作る |
 | `scripts/gen-og.tsx` + `app/*.png` | OG 画像と favicon を静的 PNG にした（`npm run og` で再生成） |
 | `proxy.ts`（削除） | §4 を参照。`/app` は API が 401 を返し、ブラウザが `/access` へ移る |
 | 削除：`app/actions/access.ts`、`app/(product)/app/actions.ts`、`app/checkout/demo/actions.ts`、`app/(product)/app/c/[id]/page.tsx`、`lib/session.ts` | Server Actions と動的ページを API＋静的な殻に置き換えた。停止ページの URL は `/app/c?id=conn_…` |
@@ -94,10 +95,10 @@ Worker の `process.env` には、wrangler の vars と secrets がリクエス�
 |---|---|---|---|
 | `NEXT_PUBLIC_SITE_URL` | ★ | **ビルド時**の環境変数 | 例 `NEXT_PUBLIC_SITE_URL=https://budget-guard.<sub>.workers.dev npm run deploy`。未設定だとメールのリンクが `http://localhost:3000` になる |
 | `PAYMENTS_MODE` | ★ | `wrangler secret put` **と、ビルド時の環境変数の両方** | 当面 `demo`。静的ページのバナーはビルド時の値で決まる。実行時と違うと決済が止まる（§2.2） |
-| `ACCESS_SECRET` | ★ | secret | 32文字以上（`openssl rand -base64 32`）。NODE_ENV が development・test 以外で未設定ならエラー。`.dev.vars.example` の例の値は、`PAYMENTS_MODE=demo` 以外ではエラー（demo では警告だけ。公開する前に必ず生成した値にする） |
-| `TOKEN_ENCRYPTION_KEY` | ★ | secret | 32バイトの base64。NODE_ENV が development・test 以外で未設定ならエラー。全ゼロなど 1 種類のバイトだけの鍵（例の値）は、`PAYMENTS_MODE=demo` 以外ではエラー |
-| `TOKEN_ENCRYPTION_KEY_PREVIOUS` | — | secret | 鍵のローテーション用。以前の鍵（カンマ区切り）。復号にだけ使う。全接続を新しい鍵で保存し直したら消す |
-| `NODE_ENV` | — | `wrangler.jsonc` の vars（`production`） | Worker の実行時には誰も設定しないため（OpenNext はビルド時に文字どおりの `process.env.NODE_ENV` を置き換えるだけ）、vars で入れる。`cf-worker.ts` でも未設定なら `production` にする（R1-11） |
+| `ACCESS_SECRET` | ★ | secret | 32 文字以上で、ランダムな値（`openssl rand -base64 32`）。§3.1 の規則で検査する |
+| `TOKEN_ENCRYPTION_KEY` | ★ | secret | 32 バイトのランダムな値を base64 で（`openssl rand -base64 32`）。§3.1 |
+| `TOKEN_ENCRYPTION_KEY_PREVIOUS` | — | secret | 鍵のローテーション用。以前の鍵（カンマ区切り、それぞれ 32 バイトの base64）。復号にだけ使う。全接続を新しい鍵で保存し直したら消す。§3.1 |
+| `NODE_ENV` | — | `wrangler.jsonc` の vars（`production`） | Worker の実行時には誰も設定しないため（OpenNext はビルド時に文字どおりの `process.env.NODE_ENV` を置き換えるだけ）、vars で入れる。`cf-prelude.ts` でも未設定なら `production` にする（R1-11） |
 | `CRON_SECRET` | ★ | secret | `/api/cron/check`（Vercel の cron、手動実行）の認証。Cloudflare の `scheduled()` はルートを通らないので使わない |
 | `CRON_BATCH_SIZE` | — | `wrangler.jsonc` の vars（`2`） | 1 回の cron で調べる接続数。**Vercel では設定しない**（未設定なら 1 回で全件。Vercel の cron は毎時 1 回だけなので） |
 | `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | ★（推奨） | secret | 未設定ならメモリ上の KV（`PAYMENTS_MODE=demo` のときだけ許可。§5） |
@@ -105,6 +106,33 @@ Worker の `process.env` には、wrangler の vars と secrets がリクエス�
 | `ADMIN_TOKEN` | 任意 | secret | `/api/admin/stats` |
 | `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` | stripe 時 | secret | 入れると（`PAYMENTS_MODE` 未設定なら）stripe モードになる |
 | `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` | 任意 | ビルド時 | Worker 1 つなので通常は不要 |
+
+### 3.1 秘密の値の規則（`lib/secrets.ts`）
+NODE_ENV が development・test 以外（Worker は常に production）では、次の値を**拒否する**。`PAYMENTS_MODE=demo` でも同じ。例外のスイッチは無い（公開の demo にも本物の Cookie と本物のトークンがあるため。Atlas の確認 #1）。
+
+| 変数 | 必須 | 規則 |
+|---|---|---|
+| `ACCESS_SECRET` | ★ | 32 文字以上。違う文字が 10 種類以上 |
+| `CRON_SECRET` | ★ | 同上 |
+| `ADMIN_TOKEN` | — | 同上。未設定なら `/api/admin/stats` は無効（404） |
+| `TOKEN_ENCRYPTION_KEY` | ★ | base64 で 32 バイト。違うバイトが 8 種類以上 |
+| `TOKEN_ENCRYPTION_KEY_PREVIOUS` | — | どの鍵も同上。今の鍵と同じものは不可 |
+| `STRIPE_SECRET_KEY` | stripe 時 | `sk_live_…`・`sk_test_…`・`rk_…` の形 |
+| `STRIPE_WEBHOOK_SECRET` | stripe 時 | `whsec_…` の形 |
+| `UPSTASH_REDIS_REST_TOKEN` | URL を入れたとき | 20 文字以上。違う文字が 10 種類以上 |
+| `RESEND_API_KEY` | — | `re_…` の形 |
+
+- **全部に共通して拒否するもの：**
+  - 空の値。
+  - リポジトリに載っている例の値（`.dev.vars.example` の以前の値、開発用の固定値）。
+  - 仮の値に見えるもの（`dummy`、`change-me`、`example`、`placeholder`、`__GENERATE__` などを含む）。
+- **`PAYMENTS_MODE` も production では必須：** 書いていないと拒否する。自動で demo になる動作（R2-06）を本番では使わない。
+- **検査する場所：**
+  1. 起動時：`instrumentation.ts` → `lib/startup-checks.ts`。問題があると、Next はすべてのリクエストに 500 を返す。
+  2. Workers の入口：`cf-worker.ts` が、isolate ごとに最初のリクエスト（と cron）の前に同じ検査をする。起動時のフックが読み込めなかったとしても、静的ページを含めて 500 で止まる。
+  3. 使う場所：`accessSecret()`、`encryptionKey()`、cron のルート、admin、Stripe webhook。弱い値は使わずに拒否する。
+- **エラーの内容：** 変数名と理由だけをログに出す。値は出さない。
+- Vercel の Spend Management webhook の秘密（接続ごと、利用者が入力）は、Vercel が発行する値なので 8〜200 文字の検査だけ。Slack の URL は形式で検査する。
 
 ```bash
 npx wrangler secret put PAYMENTS_MODE        # demo
@@ -151,10 +179,10 @@ npx wrangler secret put UPSTASH_REDIS_REST_TOKEN
 
 ## 6. ローカル確認（workerd）
 ```bash
-cp .dev.vars.example .dev.vars    # ダミー値。PAYMENTS_MODE=demo、Upstash なし
+npm run cf:dev-vars               # .dev.vars を作る（秘密はランダム。PAYMENTS_MODE=demo、Upstash なし）
 npm run preview:cron              # http://localhost:8787
 curl -i localhost:8787/api/cron/check                                              # 401
-curl -i -H "Authorization: Bearer local-dummy-cron-secret" localhost:8787/api/cron/check   # 200
+curl -i -H "Authorization: Bearer $(grep ^CRON_SECRET= .dev.vars | cut -d= -f2-)" localhost:8787/api/cron/check   # 200
 curl "localhost:8787/__scheduled?cron=*+*+*+*+*"                                   # scheduled() → 1 スライス
 curl "localhost:8787/cdn-cgi/handler/scheduled?cron=*+*+*+*+*&time=1893456001000"  # 時刻を指定（別の「時」を試す）
 ```
@@ -430,6 +458,38 @@ cron の列には、demo の接続の確認（1 時間に最大 2 件、最悪�
   - 起動時の CPU：63 → 125 ms
   - 最初の API：228 → 168 ms
 - 静的ページだけの訪問者にも起動時のコストはかかる。ただし起動時間の上限 1 秒に対して十分小さい。
+
+### 8.2.1 起動時のチェック（instrumentation.ts）
+- **以前の不具合：** Workers では、起動時のチェックが `ReferenceError: __filename is not defined` で読み込みに失敗していた。決済の設定ミスなどを起動時に止める仕組みが効いていなかった（2026-10-09 に修正）。
+- **原因：**
+  - `instrumentation.ts` の中身ではなく、Turbopack が出力した読み込み役（`.next/server/chunks/[turbopack]_runtime.js`）にある。これが、評価されたときに `path.resolve(__filename, …)` を実行する。
+  - workerd の ES モジュールには `__filename` が無い。OpenNext は `globalThis.__filename` / `__dirname` を空文字で定義するが、それは最初のリクエストの初期化（`.open-next/cloudflare/init.js` の `initRuntime()`）でだけ行う。
+  - 一方 `cf-worker.ts` は、Next サーバーを isolate の起動時に読み込む（§8.2）。そのとき Next はサーバーの準備の中でフックを読み込み、まだ定義されていない `__filename` に触れていた。
+  - OpenNext 側の対応：フックの動的な `require` は静的な `require` に書き換えている（`patchInstrumentation`）。ミドルウェアからの読み込みは止めている。
+- **修正：**
+  - `cf-prelude.ts` を `cf-worker.ts` の最初の import にした。ほかのモジュールより先に評価されるので、OpenNext と同じ値（空文字）で `__filename` / `__dirname` を定義する。`NODE_ENV` の既定値（R1-11）もここで入れる。
+  - workerd は、起動時点で vars と secrets を `process.env` に入れている（`nodejs_compat`、互換日 2026-09-01）。そのため、起動時のチェックが本物の設定で判定できる。
+- **チェックの中身**（`lib/startup-checks.ts`。`instrumentation.ts` から呼ぶ）：
+  - `PAYMENTS_MODE` が不正なとき（`stripe` なのに `STRIPE_SECRET_KEY` が無い、など）。
+  - 秘密の値が §3.1 の規則に合わないとき（`ACCESS_SECRET`、`TOKEN_ENCRYPTION_KEY`、`CRON_SECRET` など全部。`PAYMENTS_MODE=demo` でも例外なし）。
+  - production で `PAYMENTS_MODE` を書いていないとき。
+  - 失敗すると、Next はすべてのリクエストに 500 を返す（フェイルクローズ）。ビルド中（`NEXT_PHASE=phase-production-build`）は調べない。
+- **cron（`scheduled()`）：** Next を通らないので、isolate ごとに 1 回、同じチェックを実行する。設定ミスがあっても、その回の確認はやり終えてから、呼び出しを失敗にする（Cron Events のログに出る）。設定ミスで監視まで止めないため。
+- **workerd での確認**（2026-10-09、`wrangler dev --test-scheduled`。結果は `/`・`/api/app/state`・`POST /api/access/magic`・`/pricing`・`scheduled()` の順）：
+
+| 設定 | 結果 | ログ |
+|---|---|---|
+| 正常（`npm run cf:dev-vars` で作った値） | 200・401（未ログイン）・200・200・200 | `[payments] mode=demo …` と cron の 1 行だけ。`__filename` のエラーは出ない |
+| 以前の `.dev.vars.example` の例の値（`PAYMENTS_MODE=demo`） | 全部 500 | `Server configuration refused: ACCESS_SECRET is a published example value …; TOKEN_ENCRYPTION_KEY …; CRON_SECRET …` |
+| `ACCESS_SECRET` が短い（20 文字） | 全部 500 | `… ACCESS_SECRET is shorter than 32 characters` |
+| `PAYMENTS_MODE=stripe`、キーなし | 全部 500 | `… PAYMENTS_MODE=stripe but STRIPE_SECRET_KEY is not set …; STRIPE_WEBHOOK_SECRET is not set` |
+| `ACCESS_SECRET` なし | 全部 500 | `… ACCESS_SECRET is not set` |
+
+- 設定ミスのときの cron：その回の確認はやり終え、そのあとで呼び出しを失敗にする（ログに `configuration error: …`）。
+- 拒否したときの応答：利用者には「Server misconfigured.」とだけ返す。理由は運営者のログにだけ出す。
+
+- 起動時間：`wrangler check startup` で、待ち時間を除く CPU は約 135 ms（`(program)` を含めて約 185 ms）。チェックが動くようになっても、上限の 1 秒に対して十分小さい。
+- 正常な設定のときも、`StaticAssetsIncrementalCache: Failed to set to read-only cache` が出る。今回の変更の前からあり、静的ページのキャッシュを書き込めないという通知で、表示には影響しない。
 
 ### 8.3 制限の一覧
 | 制限（Free） | 値 | この app への影響 |

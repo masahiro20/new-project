@@ -28,6 +28,9 @@ export const connOpSchema = z.discriminatedUnion("op", [
   z.object({ op: z.literal("mode"), mode: z.enum(["test", "off"]) }),
   z.object({ op: z.literal("confirm"), action: z.enum(["arm-live", "stop-now"]), challenge: z.string().max(2000), typed: z.string().max(200) }),
   z.object({ op: z.literal("webhook-secret"), remove: z.boolean().optional(), secret: z.string().max(500).optional() }),
+  // R3-03: "Stop on Vercel's 100% alert". Turning it on needs the same signed challenge + typed label
+  // as arming live (challenge action "vercel-limit-on"); turning it off (the safe side) needs nothing.
+  z.object({ op: z.literal("vercel-limit"), enabled: z.boolean(), challenge: z.string().max(2000).optional(), typed: z.string().max(200).optional() }),
 ]);
 
 export const slackSchema = z.discriminatedUnion("op", [

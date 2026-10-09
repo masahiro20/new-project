@@ -320,4 +320,53 @@ describe("R3-02: demo connections and lapsed accounts don't stretch the check in
     await setStatus(kv, canceled, "active"); // resubscribed
     expect((await listConnRefs(kv)).length).toBe(6);
   });
+
+  // Atlas VERIFY #2: the cron's SREM of a lapsed account must not undo a reactivation that happened
+  // between its "inactive" read and the SREM.
+  it("a reactivation racing the cron's index removal keeps the connections monitored", async () => {
+    const now = HOUR;
+    const raw = createMemoryKV(() => now);
+    const { entitlement } = await upsertEntitlement(raw, { id: "cs_test_race", email: "race@example.com", plan: "monthly", source: "stripe" });
+    const conn = await addConnection(raw, entitlement.id, { label: "R", target, budgetUsd: 100, token: FAKE_TOKEN });
+    const canceled = await setStatus(raw, entitlement, "canceled");
+    let raced = false;
+    // Right before the cron's SREM on the index, the customer resubscribes (setStatus → SADD).
+    const kv = new Proxy(raw, {
+      get: (t, p: keyof KV) =>
+        p === "srem"
+          ? async (key: string, ...members: string[]) => {
+              if (!raced && key.endsWith("bg:allconns")) {
+                raced = true;
+                await setStatus(raw, canceled, "active");
+              }
+              return t.srem(key, ...members);
+            }
+          : t[p],
+    }) as KV;
+    const r = await runCronSlice(kv, { now: new Date(now), interval: 1 });
+    expect(raced).toBe(true);
+    expect(r.skipped).toBe(1);
+    expect(await listConnRefs(raw)).toContain(connRef(entitlement.id, conn.id));
+  });
+
+  // Atlas VERIFY #3: with more demo connections due in an hour than the cap, the same first ones
+  // (sorted) were picked every time and the rest never checked — nor dropped when their trial ended.
+  it("every demo connection is checked within a few 12-hour cycles (round robin, not always the first ones)", async () => {
+    const kv = createMemoryKV(() => HOUR);
+    const { stats, kv: c } = counted(kv);
+    for (let a = 0; a < 20; a++) {
+      const { entitlement } = await upsertEntitlement(kv, { id: `cs_test_rr${a}`, email: `rr${a}@example.com`, plan: "monthly", source: "stripe" });
+      for (let i = 0; i < 3; i++) await addConnection(kv, entitlement.id, { label: `D${i}`, target, budgetUsd: 100, token: "demo" });
+    }
+    const demoRefs = await listDemoConnRefs(kv); // 60 demo connections ≈ 5 per 12-hour slot, 2 checked per hour
+    const cycles = Math.ceil(demoRefs.length / DEMO_INTERVAL_HOURS / DEMO_CHECKS_PER_HOUR) + 1;
+    for (let h = 0; h < DEMO_INTERVAL_HOURS * cycles; h++) {
+      resetCronMemory();
+      await runCronSlice(c, { now: new Date(HOUR + h * 3600_000) });
+    }
+    const checked = new Set([...stats.stateWrites.keys()].map((k) => k.slice(k.lastIndexOf(":") + 1)));
+    const missed = demoRefs.map((r) => r.slice(r.lastIndexOf("|") + 1)).filter((id) => !checked.has(id));
+    expect(missed).toEqual([]);
+  });
 });
+

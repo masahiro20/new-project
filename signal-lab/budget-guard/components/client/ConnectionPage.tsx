@@ -41,12 +41,13 @@ export function ConnectionPage({ labels }: { labels: Labels }) {
     setBusy(false);
   }
 
-  function confirm(action: "arm-live" | "stop-now") {
+  function confirm(action: "arm-live" | "stop-now" | "vercel-limit-on") {
     return (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       const typed = String(new FormData(e.currentTarget).get("typed") ?? "");
       e.currentTarget.reset();
-      void op({ op: "confirm", action, challenge: view?.challenges?.[action] ?? "", typed });
+      const challenge = view?.challenges?.[action] ?? "";
+      void op(action === "vercel-limit-on" ? { op: "vercel-limit", enabled: true, challenge, typed } : { op: "confirm", action, challenge, typed });
     };
   }
 
@@ -55,7 +56,7 @@ export function ConnectionPage({ labels }: { labels: Labels }) {
   const { connection: conn, plan, planError } = view;
   const info = PROVIDER_INFO[conn.provider];
 
-  const Confirm = ({ action, cta, danger }: { action: "arm-live" | "stop-now"; cta: string; danger?: boolean }) => (
+  const Confirm = ({ action, cta, danger }: { action: "arm-live" | "stop-now" | "vercel-limit-on"; cta: string; danger?: boolean }) => (
     <form onSubmit={confirm(action)} className="stack">
       <label>
         Type <code>{conn.label}</code> to confirm
@@ -73,6 +74,8 @@ export function ConnectionPage({ labels }: { labels: Labels }) {
         <h1>{conn.label}: stop action</h1>
         <Flash msg={msg} />
         <p className="lead">{info.stop}</p>
+        {info.stopNote && <p className="msg err" data-testid="stop-note">{info.stopNote}</p>}
+        <p className="hint" data-testid="spend-scope">{info.spendScope}</p>
         <p>
           Current mode: <span className={`badge mode-${conn.stopMode}`} data-testid="stop-mode">{conn.stopMode.toUpperCase()}</span>
         </p>
@@ -116,7 +119,8 @@ export function ConnectionPage({ labels }: { labels: Labels }) {
             <div className="card stack">
               <p>
                 In Vercel → Settings → Billing → Spend Management, set the webhook URL below and paste the secret Vercel shows. Vercel posts at
-                50/75/100% of its on-demand budget; Budget Guard then checks immediately, and at 100% runs this stop if it is armed.
+                50/75/100% of its on-demand budget; Budget Guard then re-checks your spend immediately and stops (if armed) only when your
+                Budget Guard budget of {`$${conn.budgetUsd.toFixed(2)}`} is reached.
               </p>
               <pre className="plan">{conn.webhookUrl}</pre>
               <p>Status: {conn.webhookSecretSet ? "secret saved (signature checked on every request)" : "not set (the URL rejects all requests)"}</p>
@@ -138,6 +142,19 @@ export function ConnectionPage({ labels }: { labels: Labels }) {
                 <button className="btn secondary" disabled={busy} onClick={() => op({ op: "webhook-secret", remove: true })}>Remove secret</button>
               )}
               <p className="hint">Vercel&apos;s budget counts only usage beyond the Pro monthly credit, so its percentage can differ from ours.</p>
+            </div>
+            <h3>Stop on Vercel&apos;s 100% alert (optional, off by default)</h3>
+            <div className="card stack" data-testid="vercel-limit">
+              <p>
+                Status: <strong>{conn.vercelLimitStops ? "on" : "off"}</strong>. When on and the stop is armed (live), Vercel&apos;s own 100% alert runs
+                the stop even if the spend we read is still below your Budget Guard budget. Vercel&apos;s budget is a separate number set in
+                Vercel, so only turn this on if it is the limit you want enforced.
+              </p>
+              {conn.vercelLimitStops ? (
+                <button className="btn secondary" disabled={busy} onClick={() => op({ op: "vercel-limit", enabled: false })}>Turn off</button>
+              ) : plan ? (
+                <Confirm action="vercel-limit-on" cta="Turn on" />
+              ) : null}
             </div>
           </>
         )}

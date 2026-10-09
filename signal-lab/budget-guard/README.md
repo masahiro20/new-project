@@ -11,7 +11,7 @@ npm run typecheck && npm test && npm run build
 ```
 - 決済は `PAYMENTS_MODE` で切り替える。Stripe キーがなければ **demo**（お金は動かない。全ページに「デモ：実際の請求はありません」を表示）。`STRIPE_SECRET_KEY` を入れると、コードを変えずに **stripe** になる。詳しくは [docs/demo-payments.md](docs/demo-payments.md)。
 - 本番ビルドでデモを見せる：`npm run build && PAYMENTS_MODE=demo ACCESS_SECRET=<32文字以上> npm start`（Upstash なしならメモリ上の KV。再起動で消える）
-- Cloudflare Workers（無料プラン、OpenNext）でも動く：`cp .dev.vars.example .dev.vars && PAYMENTS_MODE=demo npm run preview`（workerd、http://localhost:8787）。デプロイは `PAYMENTS_MODE=demo npm run deploy`（オーナーが実行）。
+- Cloudflare Workers（無料プラン、OpenNext）でも動く：`npm run cf:dev-vars && PAYMENTS_MODE=demo npm run preview`（workerd、http://localhost:8787）。デプロイは `PAYMENTS_MODE=demo npm run deploy`（オーナーが実行）。
   - ページはすべて静的（○）で、ダッシュボードは API からブラウザで描画する。CPU 10 ms に収めるため。
   - バナーはビルド時の `PAYMENTS_MODE` で決まる。
   - ルートごとの CPU 時間は `npm run cf:cpu` で測れる。

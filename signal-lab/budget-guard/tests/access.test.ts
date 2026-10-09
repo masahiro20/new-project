@@ -45,7 +45,9 @@ describe("access token", () => {
     expect(() => accessSecret({ ACCESS_SECRET: "short" })).toThrow("32");
     vi.spyOn(console, "warn").mockImplementation(() => {});
     expect(accessSecret({ NODE_ENV: "development" }).length).toBeGreaterThan(32);
-    expect(new TextDecoder().decode(accessSecret({ ACCESS_SECRET: "z".repeat(40) }))).toBe("z".repeat(40));
+    const strong = "Q3x9Lm2Vb7Np4Rt8Kw1Yz6Hc5Jd0FgSa"; // production rules: ≥ 32 chars, varied, no placeholder (lib/secrets.ts)
+    expect(new TextDecoder().decode(accessSecret({ ACCESS_SECRET: strong }))).toBe(strong);
+    expect(() => accessSecret({ ACCESS_SECRET: "z".repeat(40) })).toThrow(/distinct/);
   });
 });
 

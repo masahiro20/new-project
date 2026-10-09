@@ -5,7 +5,7 @@ import { upsertEntitlement } from "@/lib/entitlements";
 import { devOutbox } from "@/lib/mail";
 import { isSlackWebhookUrl, postSlack, verifyVercelSignature } from "@/lib/guard/notify-channels";
 import { handleVercelWebhook, notify, setSlackUrl, setVercelWebhookSecret } from "@/lib/guard/service";
-import { addConnection, getConnection, getLog, getSettings, updateConnection } from "@/lib/guard/store";
+import { addConnection, getConnection, getLog, getSettings, getState, updateConnection } from "@/lib/guard/store";
 
 const sign = (body: string, secret: string) => createHmac("sha1", secret).update(body).digest("hex");
 const SLACK = "https://hooks.slack.com/services/T000/B000/XXXXXXXX";
@@ -108,13 +108,46 @@ describe("Vercel Spend Management webhook", () => {
     expect(retry.outcome.result).toBe("duplicate");
     expect(retry.followUp).toBeUndefined();
   });
-  it("at 100% runs the stop through the usual gates (test mode → dry run)", async () => {
-    const { kv, acct, conn } = await setup({ secret: "s3cret-value", stopMode: "test" });
+  it("at 100% without the opt-in: re-checks now and judges by the Budget Guard budget (R3-03) — no stop below it", async () => {
+    const { kv, acct, conn } = await setup({ secret: "s3cret-value", stopMode: "live" });
     const body = payload(100);
-    const { followUp } = await handleVercelWebhook(kv, conn.id, body, sign(body, "s3cret-value"));
+    const { outcome, followUp } = await handleVercelWebhook(kv, conn.id, body, sign(body, "s3cret-value"));
+    expect(outcome.result).toBe("handled");
     await followUp?.();
     const kinds = (await getLog(kv, acct)).map((e) => e.kind);
+    expect(kinds).toEqual(["vercel-alert"]); // checked ($42.50 of $1000): nothing to say, nothing stopped
+    expect((await getState(kv, acct, conn.id))?.stoppedAt).toBeUndefined();
+  });
+  it("at 100% without the opt-in, a spend over the Budget Guard budget still stops right away", async () => {
+    const { kv, acct, conn } = await setup({ secret: "s3cret-value", stopMode: "live" });
+    await updateConnection(kv, acct, conn.id, { budgetUsd: 40 }); // demo spend $42.50 > $40
+    const body = payload(100);
+    await (await handleVercelWebhook(kv, conn.id, body, sign(body, "s3cret-value"))).followUp?.();
+    expect((await getLog(kv, acct)).map((e) => e.kind)).toContain("stopped");
+  });
+  it("at 100% with the opt-in: Vercel's figure counts as the limit, through the usual gates (test mode → dry run, live → stop)", async () => {
+    const t = await setup({ secret: "s3cret-value", stopMode: "test" });
+    await updateConnection(t.kv, t.acct, t.conn.id, { vercelLimitStops: true });
+    const body = payload(100);
+    await (await handleVercelWebhook(t.kv, t.conn.id, body, sign(body, "s3cret-value"))).followUp?.();
+    const kinds = (await getLog(t.kv, t.acct)).map((e) => e.kind);
     expect(kinds).toContain("stop-test");
+    expect(kinds).not.toContain("stopped");
+
+    const l = await setup({ secret: "s3cret-value", stopMode: "live" });
+    await updateConnection(l.kv, l.acct, l.conn.id, { vercelLimitStops: true });
+    await (await handleVercelWebhook(l.kv, l.conn.id, body, sign(body, "s3cret-value"))).followUp?.();
+    expect((await getLog(l.kv, l.acct)).map((e) => e.kind)).toContain("stopped");
+  });
+  it("50% and 75% alerts only trigger a check, opted in or not", async () => {
+    const { kv, acct, conn } = await setup({ secret: "s3cret-value", stopMode: "live" });
+    await updateConnection(kv, acct, conn.id, { vercelLimitStops: true });
+    for (const pct of [50, 75]) {
+      const body = payload(pct);
+      await (await handleVercelWebhook(kv, conn.id, body, sign(body, "s3cret-value"))).followUp?.();
+    }
+    const kinds = (await getLog(kv, acct)).map((e) => e.kind);
+    expect(kinds.filter((k) => k === "vercel-alert").length).toBe(2);
     expect(kinds).not.toContain("stopped");
   });
   it("ignores webhooks for lapsed accounts", async () => {

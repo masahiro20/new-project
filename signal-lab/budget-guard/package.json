@@ -16,7 +16,8 @@
     "upload": "npm run build:cf && opennextjs-cloudflare upload",
     "cf:size": "npm run build:cf && wrangler deploy --dry-run --outdir .wrangler/dry-run",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
-    "cf:cpu": "node scripts/measure-cpu.mjs"
+    "cf:cpu": "node scripts/measure-cpu.mjs",
+    "cf:dev-vars": "node scripts/gen-dev-vars.mjs"
   },
   "dependencies": {
     "@upstash/redis": "^1.35.0",

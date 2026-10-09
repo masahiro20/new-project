@@ -43,7 +43,7 @@ interface PaymentProvider {
 | `lib/payments/card.ts` | カード検証（Luhn・未来の有効期限・3〜4桁の CVC・名義）。ブラウザとサーバーの両方で使う |
 | `lib/payments/stripe.ts` | stripe 実装（従来のコードをそのまま移動）。当面はテストモードのキーを想定 |
 | `lib/payments/stripe-webhook.ts` | Stripe webhook の処理（変更なし。`stripeProvider` を明示して渡す） |
-| `instrumentation.ts` | 起動時に `getPaymentsMode` を実行し、設定ミスならエラーにする（全リクエストが 500） |
+| `instrumentation.ts` | 起動時に `lib/startup-checks.ts` を実行する（`getPaymentsMode` と、`ACCESS_SECRET`・`TOKEN_ENCRYPTION_KEY` の確認）。設定ミスならエラーにする（全リクエストが 500）。Cloudflare Workers でも動く（docs/deploy-cloudflare.md §8.2.1） |
 
 ## 3. demo の購入フロー
 
@@ -121,6 +121,6 @@ P0 の現状：
 5. **画面**
    - `app/checkout/demo/page.tsx` と、カード入力のクライアントコンポーネントをコピーする。プラン表示は P0 の価格（`PRICE_JPY`）に差し替える。
    - `components/DemoBanner.tsx` を `app/layout.tsx` に入れる。
-6. **起動時チェック**：`instrumentation.ts` をコピーする。
+6. **起動時チェック**：`instrumentation.ts` と `lib/startup-checks.ts` をコピーする。
 7. **環境変数**：`.env.example` の `PAYMENT_DISABLED` を削除し、`PAYMENTS_MODE=` を追加する。
 8. **テスト**：`tests/payments.test.ts` のうち、モード判定の表・カード検証・stripe モードで demo の ID を拒否する部分を移す。

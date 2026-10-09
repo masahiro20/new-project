@@ -56,7 +56,8 @@ export async function runStop(
 
 // --- Confirmation challenge -------------------------------------------------
 
-export type ConfirmAction = "arm-live" | "stop-now";
+/** "vercel-limit-on": opt in to stopping on Vercel's own 100% alert (R3-03) — as strong as arming. */
+export type ConfirmAction = "arm-live" | "stop-now" | "vercel-limit-on";
 
 const CHALLENGE_TTL_MS = 5 * 60 * 1000;
 

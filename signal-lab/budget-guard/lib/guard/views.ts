@@ -32,6 +32,8 @@ export type ConnView = {
   tokenHint: string;
   budgetUsd: number;
   stopMode: StopMode;
+  /** Vercel: "Stop on Vercel's 100% alert" (R3-03, default off); null for other providers. */
+  vercelLimitStops: boolean | null;
   snapshot: Snapshot | null;
 };
 
@@ -51,7 +53,8 @@ export type ConnectionDetailView = {
   plan: StopPlan | null;
   planError: string | null;
   /** HMAC-signed, 5 min, bound to connection + action + plan fingerprint (lib/guard/stop.ts). */
-  challenges: { "arm-live": string; "stop-now": string } | null;
+  /** "vercel-limit-on" only for Vercel connections. */
+  challenges: { "arm-live": string; "stop-now": string; "vercel-limit-on"?: string } | null;
 };
 
 export function meOf(account: Account): Me {
@@ -74,6 +77,7 @@ const connView = (c: StoredConnection, snapshot: Snapshot | null): ConnView => (
   tokenHint: c.tokenHint,
   budgetUsd: c.budgetUsd,
   stopMode: c.stopMode,
+  vercelLimitStops: c.target.provider === "vercel" ? c.vercelLimitStops === true : null,
   snapshot,
 });
 
@@ -116,6 +120,12 @@ export async function connectionDetailView(kv: KV, account: Account, conn: Store
     },
     plan,
     planError,
-    challenges: plan ? { "arm-live": issueChallenge(conn.id, "arm-live", plan, secret, now), "stop-now": issueChallenge(conn.id, "stop-now", plan, secret, now) } : null,
+    challenges: plan
+      ? {
+          "arm-live": issueChallenge(conn.id, "arm-live", plan, secret, now),
+          "stop-now": issueChallenge(conn.id, "stop-now", plan, secret, now),
+          ...(conn.target.provider === "vercel" && { "vercel-limit-on": issueChallenge(conn.id, "vercel-limit-on", plan, secret, now) }),
+        }
+      : null,
   };
 }

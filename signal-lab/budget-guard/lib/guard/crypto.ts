@@ -1,5 +1,5 @@
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:crypto";
-import { isTrivialKey, refuseDummySecret } from "../dummy-secrets";
+import { assertSecretUsable, isDevEnv } from "../secrets";
 
 // Provider tokens are stored only as AES-256-GCM ciphertext. The connection id is
 // bound as AAD so a ciphertext copied onto another connection fails to decrypt.
@@ -7,7 +7,6 @@ const VERSION = "v1";
 const IV_BYTES = 12;
 const TAG_BYTES = 16;
 const DEV_KEY_SEED = "budget-guard-dev-only-key";
-const DEV_ENVS = new Set(["development", "test"]);
 
 let warned = false;
 
@@ -16,12 +15,12 @@ export function encryptionKey(env: NodeJS.ProcessEnv = process.env): Buffer {
   if (raw) {
     const key = Buffer.from(raw, "base64");
     if (key.length !== 32) throw new Error("TOKEN_ENCRYPTION_KEY must be 32 bytes, base64-encoded");
-    if (isTrivialKey(key)) refuseDummySecret("TOKEN_ENCRYPTION_KEY", env); // R1-13
+    assertSecretUsable("TOKEN_ENCRYPTION_KEY", raw, env); // production: no published / non-random key (R1-13)
     return key;
   }
   // Fail closed: the public dev key is used only when NODE_ENV says development / test,
   // never when NODE_ENV is unset or anything else (e.g. a Worker bundle without NODE_ENV).
-  if (!DEV_ENVS.has(env.NODE_ENV ?? "")) throw new Error("TOKEN_ENCRYPTION_KEY is not set");
+  if (!isDevEnv(env)) throw new Error("TOKEN_ENCRYPTION_KEY is not set");
   if (!warned) {
     warned = true;
     console.warn("[budget-guard] TOKEN_ENCRYPTION_KEY unset: using a fixed dev key. Never use this with real tokens.");
@@ -43,6 +42,7 @@ export function encryptSecret(plain: string, aad: string, key: Buffer = encrypti
  * always sealed with TOKEN_ENCRYPTION_KEY; re-seal and then drop the old key.
  */
 export function previousKeys(env: NodeJS.ProcessEnv = process.env): Buffer[] {
+  if (env.TOKEN_ENCRYPTION_KEY_PREVIOUS) assertSecretUsable("TOKEN_ENCRYPTION_KEY_PREVIOUS", env.TOKEN_ENCRYPTION_KEY_PREVIOUS, env);
   return (env.TOKEN_ENCRYPTION_KEY_PREVIOUS ?? "")
     .split(",")
     .map((s) => s.trim())

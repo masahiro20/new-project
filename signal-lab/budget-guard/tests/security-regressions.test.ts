@@ -1,4 +1,5 @@
 import { createCipheriv, randomBytes } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 // Regression tests for the P2 security review (Atlas, qa/p2-security). One describe per finding.
@@ -15,10 +16,14 @@ import { POST as complete } from "@/app/api/checkout/complete/route";
 import { GET as demoPortal } from "@/app/api/checkout/demo/portal/route";
 import { POST as demoPay } from "@/app/api/checkout/demo/route";
 import { POST as magic } from "@/app/api/access/magic/route";
+import { GET as cronCheck } from "@/app/api/cron/check/route";
+import { POST as stripeHook } from "@/app/api/stripe/webhook/route";
+import { secretProblems } from "@/lib/secrets";
+import { runStartupChecks } from "@/lib/startup-checks";
 import { POST as addConn } from "@/app/api/app/connections/route";
 import { ACCESS_COOKIE, accessSecret, signAccessToken } from "@/lib/access";
 import { newConsent } from "@/lib/consent";
-import { findByEmail, setStatus, upsertEntitlement } from "@/lib/entitlements";
+import { findByEmail, findByLicense, setStatus, upsertEntitlement } from "@/lib/entitlements";
 import { checkConnection, migrateLegacyStop, type Connection } from "@/lib/guard/check";
 import { decryptSecret, encryptionKey, encryptSecret } from "@/lib/guard/crypto";
 import { demoFetch } from "@/lib/guard/demo";
@@ -26,7 +31,7 @@ import { ProviderHttpError } from "@/lib/guard/providers";
 import { redactSecrets } from "@/lib/guard/redact";
 import { resetCronMemory, runCronSlice } from "@/lib/guard/cron";
 import { checkConnectionLocked, providerFetch } from "@/lib/guard/service";
-import { addConnection, appendLog, getLog, getState, removeConnection, saveState, updateConnection } from "@/lib/guard/store";
+import { addConnection, appendLog, getConnection, getLog, getState, removeConnection, saveState, updateConnection } from "@/lib/guard/store";
 import { createDemoCheckout, DEMO_CHECKOUTS_PER_DAY } from "@/lib/payments/demo";
 import { createMemoryKV, getKV, upstashErrorMessage } from "@/lib/redis";
 
@@ -364,24 +369,75 @@ describe("R3-02: demo purchases are capped site-wide per day", () => {
   });
 });
 
-describe("R1-13 / ACCESS_SECRET: published dummy secrets and a missing secret fail closed", () => {
+describe("R1-13 + Atlas VERIFY #1: example, empty, short or placeholder secrets are refused in production — demo or not", () => {
   const zeroKey = Buffer.alloc(32).toString("base64");
-  it("the all-zero TOKEN_ENCRYPTION_KEY is refused outside dev/test, warned in an explicit demo", () => {
-    expect(() => encryptionKey({ NODE_ENV: "production", TOKEN_ENCRYPTION_KEY: zeroKey } as NodeJS.ProcessEnv)).toThrow(/example value/);
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
-    expect(encryptionKey({ NODE_ENV: "production", PAYMENTS_MODE: "demo", TOKEN_ENCRYPTION_KEY: zeroKey } as NodeJS.ProcessEnv).length).toBe(32);
+  const prod = { NODE_ENV: "production", PAYMENTS_MODE: "demo" };
+  const strong = () => randomBytes(32).toString("base64url");
+
+  it("TOKEN_ENCRYPTION_KEY: the all-zero example key fails with PAYMENTS_MODE=demo too; dev/test may use it", () => {
+    expect(() => encryptionKey({ ...prod, TOKEN_ENCRYPTION_KEY: zeroKey } as NodeJS.ProcessEnv)).toThrow(/published example value/);
+    expect(() => encryptionKey({ ...prod, TOKEN_ENCRYPTION_KEY: Buffer.alloc(32, 7).toString("base64") } as NodeJS.ProcessEnv)).toThrow(/not random/);
     expect(encryptionKey({ NODE_ENV: "test", TOKEN_ENCRYPTION_KEY: zeroKey } as NodeJS.ProcessEnv).length).toBe(32);
-    warn.mockRestore();
-    expect(encryptionKey({ NODE_ENV: "production", TOKEN_ENCRYPTION_KEY: randomBytes(32).toString("base64") } as NodeJS.ProcessEnv).length).toBe(32);
+    expect(encryptionKey({ ...prod, TOKEN_ENCRYPTION_KEY: randomBytes(32).toString("base64") } as NodeJS.ProcessEnv).length).toBe(32);
   });
-  it("ACCESS_SECRET: unset is an error unless NODE_ENV is development/test; the example value too", () => {
+
+  it("ACCESS_SECRET: unset, the example value, a placeholder or a low-entropy value fail; a random one works", () => {
     expect(() => accessSecret({})).toThrow(/ACCESS_SECRET/);
     expect(() => accessSecret({ NODE_ENV: "staging" })).toThrow(/ACCESS_SECRET/);
     expect(accessSecret({ NODE_ENV: "test" }).length).toBeGreaterThan(0);
-    expect(() => accessSecret({ NODE_ENV: "production", ACCESS_SECRET: "local-dummy-access-secret-change-me-0123456789" })).toThrow(/example value/);
-    expect(accessSecret({ NODE_ENV: "production", ACCESS_SECRET: "x".repeat(20) + randomBytes(12).toString("hex") }).length).toBeGreaterThan(0);
+    expect(() => accessSecret({ ...prod, ACCESS_SECRET: "local-dummy-access-secret-change-me-0123456789" })).toThrow(/published example value/);
+    expect(() => accessSecret({ ...prod, ACCESS_SECRET: "__GENERATE__" + "a".repeat(30) })).toThrow(/placeholder/);
+    expect(() => accessSecret({ ...prod, ACCESS_SECRET: "abababababababababababababababababab" })).toThrow(/distinct/);
+    expect(accessSecret({ ...prod, ACCESS_SECRET: strong() }).length).toBeGreaterThan(0);
+  });
+
+  it("startup checks list every bad secret (names and reasons, never values)", () => {
+    const env = {
+      ...prod,
+      ACCESS_SECRET: "local-dummy-access-secret-change-me-0123456789",
+      TOKEN_ENCRYPTION_KEY: zeroKey,
+      CRON_SECRET: "local-dummy-cron-secret",
+      ADMIN_TOKEN: "short-admin",
+      UPSTASH_REDIS_REST_URL: "https://example.upstash.io",
+      RESEND_API_KEY: "not-a-resend-key",
+    };
+    const problems = secretProblems(env);
+    for (const name of ["ACCESS_SECRET", "TOKEN_ENCRYPTION_KEY", "CRON_SECRET", "ADMIN_TOKEN", "UPSTASH_REDIS_REST_TOKEN", "RESEND_API_KEY"]) {
+      expect(problems.some((p) => p.startsWith(name)), name).toBe(true);
+    }
+    expect(problems.join(" ")).not.toContain("local-dummy");
+    expect(() => runStartupChecks(env)).toThrow(/Server configuration refused/);
+    // Stripe mode: both Stripe secrets are required and must look like Stripe's.
+    expect(secretProblems({ NODE_ENV: "production", PAYMENTS_MODE: "stripe", STRIPE_SECRET_KEY: "sk_test_dummy" }).join(" ")).toMatch(/STRIPE_SECRET_KEY is not a Stripe.*STRIPE_WEBHOOK_SECRET is not set/);
+  });
+
+  it("every secret in .dev.vars.example is refused as is; the generated .dev.vars values pass", () => {
+    const example = readFileSync(new URL("../.dev.vars.example", import.meta.url), "utf8");
+    const vars = Object.fromEntries(example.split("\n").filter((l) => /^[A-Z_]+=/.test(l)).map((l) => [l.slice(0, l.indexOf("=")), l.slice(l.indexOf("=") + 1)]));
+    expect(Object.keys(vars)).toEqual(expect.arrayContaining(["ACCESS_SECRET", "TOKEN_ENCRYPTION_KEY", "CRON_SECRET"]));
+    const problems = secretProblems({ NODE_ENV: "production", ...vars });
+    for (const name of ["ACCESS_SECRET", "TOKEN_ENCRYPTION_KEY", "CRON_SECRET"]) expect(problems.some((p) => p.startsWith(name)), name).toBe(true);
+    // What scripts/gen-dev-vars.mjs puts in their place.
+    const generated = { ...vars, ACCESS_SECRET: strong(), CRON_SECRET: strong(), TOKEN_ENCRYPTION_KEY: randomBytes(32).toString("base64") };
+    expect(secretProblems({ NODE_ENV: "production", ...generated })).toEqual([]);
+  });
+
+  it("where a secret is used: a weak CRON_SECRET / ADMIN_TOKEN denies every caller, a malformed Stripe webhook secret is 'not configured'", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    const err = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    vi.stubEnv("CRON_SECRET", "local-dummy-cron-secret");
+    expect((await cronCheck(new Request("http://x/api/cron/check", { headers: { authorization: "Bearer local-dummy-cron-secret" } }))).status).toBe(401);
+    vi.stubEnv("CRON_SECRET", "");
+    expect((await cronCheck(new Request("http://x/api/cron/check"))).status).toBe(401); // unset in production: closed
+    vi.stubEnv("ADMIN_TOKEN", "admin");
+    expect((await adminStats(new Request("http://x/api/admin/stats", { headers: { authorization: "Bearer admin" } }))).status).toBe(404);
+    vi.stubEnv("STRIPE_SECRET_KEY", "sk_test_" + "a1B2c3D4".repeat(4));
+    vi.stubEnv("STRIPE_WEBHOOK_SECRET", "whsec_short");
+    expect((await stripeHook(new Request("http://x/api/stripe/webhook", { method: "POST", body: "{}" }))).status).toBe(503);
+    err.mockRestore();
   });
 });
+
 
 describe("R2-07: magic links are limited per recipient too", () => {
   it("a 4th request for one address within 10 minutes answers the same but sends nothing", async () => {
@@ -479,5 +535,79 @@ describe("R2-01 follow-up: a rebuilt entitlement keeps the purchase time", () =>
     // A future or broken time falls back to now.
     const { entitlement: e2 } = await upsertEntitlement(kv, { id: "cs_test_r201c", email: "c@example.com", plan: "monthly", source: "stripe" }, { createdAt: "2999-01-01T00:00:00Z" });
     expect(Date.parse(e2.createdAt)).toBeLessThanOrEqual(Date.now());
+  });
+});
+
+describe("R3-03: the 'Stop on Vercel's 100% alert' opt-in (API)", () => {
+  async function vercelAccount(id: string) {
+    const kv = getKV();
+    const { entitlement } = await upsertEntitlement(kv, { id, email: `${id}@example.com`, plan: "monthly", source: "stripe", consent: newConsent("checkout") });
+    const cookie = await signAccessToken({ sub: entitlement.id, plan: entitlement.plan });
+    const conn = await addConnection(kv, entitlement.id, { label: "Vercel prod", target: { provider: "vercel", teamId: "team_1", projectIds: ["prj_1"] }, budgetUsd: 100, token: "demo" });
+    return { kv, acct: entitlement.id, cookie, conn };
+  }
+  const post = (id: string, body: unknown, cookie: string) => postConn(req(`/api/app/connections/${id}`, { body, cookie }), ctx(id));
+
+  it("is off by default and shown as off", async () => {
+    const { conn, cookie } = await vercelAccount("cs_test_r303a");
+    const view = await (await getConn(req(`/api/app/connections/${conn.id}`, { cookie }), ctx(conn.id))).json();
+    expect(view.connection.vercelLimitStops).toBe(false);
+    expect(view.challenges["vercel-limit-on"]).toBeTruthy();
+  });
+
+  it("turning it on needs the signed challenge + typed label (like arming live); turning it off needs nothing", async () => {
+    const { kv, acct, conn, cookie } = await vercelAccount("cs_test_r303b");
+    expect((await post(conn.id, { op: "vercel-limit", enabled: true }, cookie)).status).toBe(400);
+    const view = await (await getConn(req(`/api/app/connections/${conn.id}`, { cookie }), ctx(conn.id))).json();
+    const challenge = view.challenges["vercel-limit-on"];
+    expect((await (await post(conn.id, { op: "vercel-limit", enabled: true, challenge, typed: "wrong" }, cookie)).json()).msg).toBe("confirm-label-mismatch");
+    // The arm-live challenge can't be reused for this action.
+    expect((await (await post(conn.id, { op: "vercel-limit", enabled: true, challenge: view.challenges["arm-live"], typed: "Vercel prod" }, cookie)).json()).msg).toBe("confirm-wrong-target");
+    expect((await getConnection(kv, acct, conn.id))?.vercelLimitStops).toBeFalsy();
+
+    expect((await (await post(conn.id, { op: "vercel-limit", enabled: true, challenge, typed: "Vercel prod" }, cookie)).json()).msg).toBe("vercel-limit-on");
+    expect((await getConnection(kv, acct, conn.id))?.vercelLimitStops).toBe(true);
+
+    expect((await (await post(conn.id, { op: "vercel-limit", enabled: false }, cookie)).json()).msg).toBe("vercel-limit-off");
+    expect((await getConnection(kv, acct, conn.id))?.vercelLimitStops).toBe(false);
+  });
+
+  it("only exists for Vercel connections", async () => {
+    const kv = getKV();
+    const { entitlement } = await upsertEntitlement(kv, { id: "cs_test_r303c", email: "r303c@example.com", plan: "monthly", source: "stripe", consent: newConsent("checkout") });
+    const cookie = await signAccessToken({ sub: entitlement.id, plan: entitlement.plan });
+    const conn = await addConnection(kv, entitlement.id, { label: "OpenAI prod", target: { provider: "openai", projectId: "proj_1" }, budgetUsd: 10, token: "demo" });
+    expect((await post(conn.id, { op: "vercel-limit", enabled: false }, cookie)).status).toBe(404);
+  });
+});
+
+describe("R2-05: a Stripe purchase doesn't take over the email index of a valid Stripe entitlement", () => {
+  it("a second purchase with the same email leaves magic links on the first; the new one still has its own key", async () => {
+    const kv = createMemoryKV();
+    await upsertEntitlement(kv, { id: "cs_test_victimAAAA", email: "V2@example.com", plan: "monthly", source: "stripe" });
+    const { entitlement: attacker } = await upsertEntitlement(kv, { id: "cs_test_attackerBB", email: "v2@example.com", plan: "monthly", source: "stripe" });
+    expect((await findByEmail(kv, "v2@example.com"))?.id).toBe("cs_test_victimAAAA");
+    expect((await findByLicense(kv, attacker.licenseKey))?.id).toBe("cs_test_attackerBB");
+  });
+
+  it("an ended (canceled / refunded) or deleted Stripe entitlement is replaced", async () => {
+    for (const end of ["canceled", "refunded", "deleted"] as const) {
+      const kv = createMemoryKV();
+      const { entitlement: old } = await upsertEntitlement(kv, { id: `cs_test_old_${end}`, email: "w@example.com", plan: "monthly", source: "stripe" });
+      if (end === "deleted") await kv.set(`budget-guard:ent:${old.id}`, JSON.stringify({ ...old, deletedAt: new Date().toISOString() }));
+      else await setStatus(kv, old, end);
+      await upsertEntitlement(kv, { id: `cs_test_new_${end}`, email: "w@example.com", plan: "monthly", source: "stripe" });
+      expect((await findByEmail(kv, "w@example.com"))?.id, end).toBe(`cs_test_new_${end}`);
+    }
+  });
+
+  it("a paid purchase replaces a demo entitlement; a demo purchase never replaces a Stripe one, even ended", async () => {
+    const kv = createMemoryKV();
+    await upsertEntitlement(kv, { id: "demo_trialAAAAAAAAAAAAAAAAA", email: "x@example.com", plan: "monthly", source: "demo" });
+    const { entitlement: paid } = await upsertEntitlement(kv, { id: "cs_test_paidX", email: "x@example.com", plan: "monthly", source: "stripe" });
+    expect((await findByEmail(kv, "x@example.com"))?.id).toBe("cs_test_paidX");
+    await setStatus(kv, paid, "canceled");
+    await upsertEntitlement(kv, { id: "demo_laterBBBBBBBBBBBBBBBBB", email: "x@example.com", plan: "monthly", source: "demo" });
+    expect((await findByEmail(kv, "x@example.com"))?.id).toBe("cs_test_paidX");
   });
 });

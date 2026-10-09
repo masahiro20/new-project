@@ -98,7 +98,7 @@ describe("/api/app/* auth", () => {
 
   it("the demo token is refused in a real production deploy", async () => {
     vi.stubEnv("NODE_ENV", "production");
-    vi.stubEnv("ACCESS_SECRET", "test-secret-test-secret-test-secret-0000");
+    vi.stubEnv("ACCESS_SECRET", "Q3x9Lm2Vb7Np4Rt8Kw1Yz6Hc5Jd0FgSa-api-routes");
     vi.stubEnv("STRIPE_SECRET_KEY", "sk_test_dummy");
     const cookie = await signAccessToken({ sub: alice.e.id, plan: "monthly" });
     const input = { provider: "openai", label: "x", budgetUsd: "5", projectId: "proj_1", token: "demo", consent: true };

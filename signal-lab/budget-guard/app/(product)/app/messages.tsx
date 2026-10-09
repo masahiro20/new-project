@@ -24,6 +24,8 @@ export const MESSAGES: Record<string, { text: string; error?: boolean }> = {
   "hook-saved": { text: "Webhook secret saved. Vercel alerts for this team will now trigger an immediate check." },
   "hook-removed": { text: "Webhook secret removed. The webhook URL now rejects every request." },
   "hook-invalid": { text: "The secret looks wrong (8–200 characters).", error: true },
+  "vercel-limit-on": { text: "On: when this connection is armed, Vercel's 100% alert alone will run the stop." },
+  "vercel-limit-off": { text: "Off: a Vercel alert triggers an immediate check, and the stop runs only at your Budget Guard budget." },
 };
 
 export function Flash({ msg }: { msg?: string | string[] }) {

@@ -1,10 +1,11 @@
 import { key, type KV } from "../redis";
 import { demoTokensAllowed } from "./demo";
-import { checkConnectionLocked } from "./service";
+import { getEntitlement } from "../entitlements";
+import { checkConnectionLocked, monitored } from "./service";
 import { sweepPurchases } from "../payments/purchases";
 import { MAX_DELETES_PER_SWEEP, MAX_PURCHASES_PER_SWEEP, SWEEP_EVERY_HOURS, sweepRetention } from "./retention";
 import { hourIndex, intervalFor, isDue, nextCheckHour } from "./schedule";
-import { dropFromIndex, listConnRefs, listDemoConnRefs, moveToDemoIndex, parseConnRef, rebuildConnIndex } from "./store";
+import { addToIndex, dropFromIndex, listConnRefs, listDemoConnRefs, moveToDemoIndex, parseConnRef, rebuildConnIndex } from "./store";
 
 // Hourly check, split into small slices so one invocation stays inside the Workers
 // Free limits (10 ms CPU, 50 subrequests) — and inside Upstash's free 500k commands a
@@ -45,6 +46,18 @@ export const DEMO_INTERVAL_HOURS = 12;
 export const DEMO_CHECKS_PER_HOUR = 2;
 /** Work-list items of demo connections carry this prefix (their schedule is DEMO_INTERVAL_HOURS). */
 const DEMO_PREFIX = "~";
+
+/**
+ * Which of the demo connections due this hour get checked: at most DEMO_CHECKS_PER_HOUR, in turn —
+ * each 12-hour cycle starts where the last one stopped (round robin over the sorted list), so every
+ * one is checked within ceil(due / cap) cycles, and lapsed ones are found and dropped (Atlas VERIFY #3).
+ */
+export function pickDemo(due: string[], now: Date): string[] {
+  if (due.length <= DEMO_CHECKS_PER_HOUR) return due;
+  const sorted = [...due].sort();
+  const start = (Math.floor(hourIndex(now) / DEMO_INTERVAL_HOURS) * DEMO_CHECKS_PER_HOUR) % sorted.length;
+  return Array.from({ length: DEMO_CHECKS_PER_HOUR }, (_, j) => sorted[(start + j) % sorted.length]);
+}
 
 /** CRON_BATCH_SIZE (connections per run); unset = all of them (Vercel). */
 export function cronBatchSize(env: Record<string, string | undefined> = process.env): number {
@@ -131,11 +144,10 @@ export async function runCronSlice(
     const interval = opts.interval ?? intervalFor(refs.length);
     const due = refs.filter((ref) => isDue(parseConnRef(ref)?.id ?? ref, now, interval));
     // Demo tokens only work in development / an explicit demo deployment: elsewhere skip the SMEMBERS.
-    const demoDue = (demoTokensAllowed() ? await listDemoConnRefs(kv) : [])
-      .filter((ref) => isDue(parseConnRef(ref)?.id ?? ref, now, DEMO_INTERVAL_HOURS))
-      .sort()
-      .slice(0, DEMO_CHECKS_PER_HOUR)
-      .map((ref) => DEMO_PREFIX + ref);
+    const demoDue = pickDemo(
+      (demoTokensAllowed() ? await listDemoConnRefs(kv) : []).filter((ref) => isDue(parseConnRef(ref)?.id ?? ref, now, DEMO_INTERVAL_HOURS)),
+      now,
+    ).map((ref) => DEMO_PREFIX + ref);
     due.push(...demoDue);
     const sentinel = `${SENTINEL_PREFIX}${interval}`;
     await kv.sadd(k.pending, sentinel, ...due);
@@ -189,7 +201,14 @@ export async function runCronSlice(
       } else result.skipped++; // removed, no longer monitored, or already checked this hour by an overlapping run
       // R3-02: keep the index to connections that are really monitored, so its size (→ interval) isn't inflated.
       if (r.status === "demo") await moveToDemoIndex(kv, indexRef);
-      else if (r.status === "missing" || r.status === "inactive") await dropFromIndex(kv, indexRef, demo); // setStatus re-adds on reactivation
+      else if (r.status === "missing") await dropFromIndex(kv, indexRef, demo);
+      else if (r.status === "inactive" && parsed) {
+        await dropFromIndex(kv, indexRef, demo); // setStatus re-adds on reactivation…
+        // …unless that reactivation (entitlement write, then SADD) ran between our "inactive" read and
+        // this SREM, erasing its SADD. Read the entitlement again after the SREM: active → put it back.
+        // (setStatus writes the entitlement before its SADD, so one of the two always re-adds.)
+        if (monitored(await getEntitlement(kv, parsed.acct))) await addToIndex(kv, indexRef, demo);
+      }
       await kv.srem(k.pending, ref);
     } catch (err) {
       result.errors++;

@@ -88,6 +88,28 @@ export async function POST(request: Request, ctx: Ctx) {
       return done(stopped.ok ? "stopped" : "stop-failed", stopped.ok ? 200 : 502);
     }
 
+    case "vercel-limit": {
+      // R3-03: Vercel's own 100% alert stops only when opted in. Off is the safe side (no confirmation);
+      // on is as strong as arming live: consent to the current terms + signed challenge + typed label.
+      if (conn.target.provider !== "vercel") return notFound();
+      if (!op.data.enabled) {
+        await updateConnection(kv, account.id, conn.id, { vercelLimitStops: false });
+        await appendLog(kv, account.id, [{ kind: "info", connectionId: conn.id, message: "Stop on Vercel's 100% alert: off (stops only at the Budget Guard budget)", at }]);
+        return done("vercel-limit-off");
+      }
+      if (!consentCurrent(account.entitlement.consent)) return done("consent-required", 403);
+      const plan = await planFor(conn);
+      const check = verifyChallenge(
+        op.data.challenge ?? "",
+        { connectionId: conn.id, action: "vercel-limit-on", plan, label: conn.label, typed: op.data.typed ?? "" },
+        challengeSecret(),
+      );
+      if (!check.ok) return done(`confirm-${check.reason}`, 400);
+      await updateConnection(kv, account.id, conn.id, { vercelLimitStops: true });
+      await appendLog(kv, account.id, [{ kind: "info", connectionId: conn.id, message: `Stop on Vercel's 100% alert: ON (when armed: ${plan.summary})`, at }]);
+      return done("vercel-limit-on");
+    }
+
     case "webhook-secret": {
       if (conn.target.provider !== "vercel") return notFound();
       const remove = op.data.remove === true;

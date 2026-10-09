@@ -1,19 +1,21 @@
-# Local values for `npm run preview` (workerd). Copy to .dev.vars (git-ignored).
-# DUMMY values only — never put real keys here. Production: `npx wrangler secret put NAME`.
-# The ACCESS_SECRET / TOKEN_ENCRYPTION_KEY below are refused unless PAYMENTS_MODE=demo (R1-13);
-# generate real ones (openssl rand -base64 32) before anyone else can reach the deployment.
+# Template for local `npm run preview` (workerd). Don't copy it by hand: run
+#   npm run cf:dev-vars
+# which writes .dev.vars (git-ignored) with a fresh random value for every __GENERATE__ below.
+# The Worker refuses placeholder, example, empty or short secrets (lib/secrets.ts), also with
+# PAYMENTS_MODE=demo — a demo deployment still holds real cookies and real provider tokens.
+# Production: `npx wrangler secret put NAME` with values from `openssl rand -base64 32`.
 
 # Demo payments: no money moves, every page shows 「デモ：実際の請求はありません」.
 PAYMENTS_MODE=demo
 # NB: static pages bake the banner at build time — build with the same value:
 #   PAYMENTS_MODE=demo npm run preview
 
-# 32+ chars. Dummy for local use only (production: openssl rand -base64 32).
-ACCESS_SECRET=local-dummy-access-secret-change-me-0123456789
-# 32 bytes, base64. Dummy (production: openssl rand -base64 32).
-TOKEN_ENCRYPTION_KEY=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
-# Cron route auth (Authorization: Bearer $CRON_SECRET). Dummy.
-CRON_SECRET=local-dummy-cron-secret
+# 32+ characters.
+ACCESS_SECRET=__GENERATE__
+# 32 random bytes, base64.
+TOKEN_ENCRYPTION_KEY=__GENERATE_KEY__
+# Cron route auth (Authorization: Bearer $CRON_SECRET). 32+ characters.
+CRON_SECRET=__GENERATE__
 
 # Leave Upstash unset locally → in-memory KV (per isolate, lost on restart).
 # UPSTASH_REDIS_REST_URL=

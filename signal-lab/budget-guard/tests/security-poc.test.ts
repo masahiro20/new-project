@@ -118,17 +118,31 @@ describe("Atlas PoCs (baseline 88cc595) — the attacks now fail", () => {
     expect((await findByEmail(kv, "v@example.com"))?.id).toBe("demo_victimAAAAAAAAAAAAAAAA");
   });
 
-  it("R2-04/R3-09: the same signed 100% body replayed next month is a duplicate (no second forced stop)", async () => {
+  it("R3-03: Vercel's 100% alert alone no longer stops a connection far below its Budget Guard budget ($42.50 of $1000)", async () => {
     const kv = createMemoryKV();
-    const { entitlement } = await upsertEntitlement(kv, { id: "dev_replay", email: "rp@example.com", plan: "monthly", source: "demo" });
+    const { entitlement } = await upsertEntitlement(kv, { id: "dev_r303", email: "r303@example.com", plan: "monthly", source: "demo" });
     const conn = await addConnection(kv, entitlement.id, { label: "V", target: { provider: "vercel", teamId: "team_1", projectIds: ["prj_1"] }, budgetUsd: 1000, token: "demo" });
     await setVercelWebhookSecret(kv, entitlement.id, conn.id, "s3cret-value");
     await updateConnection(kv, entitlement.id, conn.id, { stopMode: "live" });
     const body = JSON.stringify({ budgetAmount: 20, currentSpend: 20, teamId: "team_1", thresholdPercent: 100 });
     const sig = createHmac("sha1", "s3cret-value").update(body).digest("hex");
     const oct = await handleVercelWebhook(kv, conn.id, body, sig, new Date("2026-10-20T00:00:00Z"));
+    expect(oct.outcome.result).toBe("handled");
     await oct.followUp?.();
-    // October: Vercel's own 100% still stops (R3-03 is a spec decision, kept as documented in docs/lp.md).
+    expect((await getLog(kv, entitlement.id)).map((e) => e.kind)).not.toContain("stopped");
+  });
+
+  it("R2-04/R3-09: the same signed 100% body replayed next month is a duplicate (no second forced stop)", async () => {
+    const kv = createMemoryKV();
+    const { entitlement } = await upsertEntitlement(kv, { id: "dev_replay", email: "rp@example.com", plan: "monthly", source: "demo" });
+    const conn = await addConnection(kv, entitlement.id, { label: "V", target: { provider: "vercel", teamId: "team_1", projectIds: ["prj_1"] }, budgetUsd: 1000, token: "demo" });
+    await setVercelWebhookSecret(kv, entitlement.id, conn.id, "s3cret-value");
+    // Opted in to "Stop on Vercel's 100% alert" (R3-03), so the October alert is a real stop.
+    await updateConnection(kv, entitlement.id, conn.id, { stopMode: "live", vercelLimitStops: true });
+    const body = JSON.stringify({ budgetAmount: 20, currentSpend: 20, teamId: "team_1", thresholdPercent: 100 });
+    const sig = createHmac("sha1", "s3cret-value").update(body).digest("hex");
+    const oct = await handleVercelWebhook(kv, conn.id, body, sig, new Date("2026-10-20T00:00:00Z"));
+    await oct.followUp?.();
     expect(oct.outcome.result).toBe("handled");
     const nov = await handleVercelWebhook(kv, conn.id, body, sig, new Date("2026-11-02T00:00:00Z"));
     expect(nov.outcome.result).toBe("duplicate");

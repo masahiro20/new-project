@@ -375,7 +375,7 @@ footer p{margin:0 0 4px}
     <div class="cols">
       <section class="card" aria-labelledby="a1"><h3 id="a1">Email</h3><p class="lede">At 80% of your monthly budget, once per month per connection.</p></section>
       <section class="card" aria-labelledby="a2"><h3 id="a2">Slack</h3><p class="lede">Alerts through a Slack incoming webhook you paste in.</p></section>
-      <section class="card" aria-labelledby="a3"><h3 id="a3">Vercel Spend Management webhook</h3><p class="lede">Add Budget Guard’s webhook URL to your Vercel budget. When Vercel reports 50%, 75% or 100%, Budget Guard runs a check right away instead of waiting for the next hour. At 100%, if your stop is armed (live), it runs. Each webhook is verified with a per-connection signing secret.</p></section>
+      <section class="card" aria-labelledby="a3"><h3 id="a3">Vercel Spend Management webhook</h3><p class="lede">Add Budget Guard’s webhook URL to your Vercel budget. When Vercel reports 50%, 75% or 100%, Budget Guard checks your spend right away instead of waiting for the next hour. Vercel’s alert alone doesn’t stop anything: your stop runs only if that check shows your Budget Guard budget is reached, because the budget you set in Vercel is a separate number. If you want Vercel’s 100% alert to run your armed stop by itself, turn on “Stop on Vercel’s 100% alert” for that connection (off by default; turning it on needs the same confirmation as arming). Each webhook is verified with a per-connection signing secret.</p></section>
     </div>
   </section>
 

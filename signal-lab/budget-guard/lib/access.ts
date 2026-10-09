@@ -5,7 +5,7 @@ import { findByEmail } from "./entitlements";
 import { t } from "./i18n";
 import { sendMail } from "./mail";
 import { key, type KV } from "./redis";
-import { isDummyAccessSecret, refuseDummySecret } from "./dummy-secrets";
+import { assertSecretUsable, isDevEnv } from "./secrets";
 import { isBuildPhase, isProduction, siteUrl, warnOnce } from "./site";
 
 // Pure access primitives (no next/* imports) so they run under vitest.
@@ -17,12 +17,12 @@ export function accessSecret(env: Record<string, string | undefined> = process.e
   const secret = env.ACCESS_SECRET;
   if (secret) {
     if (secret.length < 32) throw new Error("ACCESS_SECRET must be at least 32 characters");
-    if (isDummyAccessSecret(secret)) refuseDummySecret("ACCESS_SECRET", env); // R1-13
+    assertSecretUsable("ACCESS_SECRET", secret, env); // production: no published / placeholder / weak value (R1-13)
     return new TextEncoder().encode(secret);
   }
   // Fail closed (like TOKEN_ENCRYPTION_KEY, R1-04): the public dev secret only when NODE_ENV says
   // development / test — not when it is unset or anything else (e.g. a Worker bundle without it).
-  if (env.NODE_ENV !== "development" && env.NODE_ENV !== "test" && !isBuildPhase()) throw new Error("ACCESS_SECRET must be set");
+  if (!isDevEnv(env) && !isBuildPhase()) throw new Error("ACCESS_SECRET must be set");
   warnOnce("access-secret", "[access] ACCESS_SECRET is not set — using a fixed dev secret.");
   return new TextEncoder().encode(DEV_SECRET);
 }
