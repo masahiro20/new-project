@@ -43,6 +43,9 @@ h1 .red { color: var(--red); }
 h2 { font-family: var(--display); font-weight: 400; font-size: 20px; margin: 0; }
 p { margin: 0; max-width: 68ch; }
 .stats { display: flex; flex-wrap: wrap; gap: 4px 18px; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+details.vid { font-size: 14px; }
+details.vid summary { cursor: pointer; color: var(--red); }
+details.vid video { display: block; width: 100%; max-width: 860px; aspect-ratio: 16 / 9; height: auto; margin-top: 10px; background: var(--stage); border: 1px solid var(--rule); }
 .stats b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
 button { font: inherit; color: inherit; }
 button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
@@ -130,6 +133,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
     <h1>LEDGERBREAKER 第1話<span class="red">「払わねえよ。」</span>絵コンテ</h1>
     <p>アバン・覚醒シーン・タグは作画コンテ、それ以外は文字コンテです。モニターで尺どおりに再生できます（音声なし、台詞は字幕で表示）。</p>
     <div class="stats" id="stats"></div>
+    <details class="vid"><summary>作画カットだけをつないだ動画（MP4・約7分）を見る</summary><video src="animatic/ep01-animatic-drawn.mp4" controls muted playsinline preload="none"></video></details>
   </header>
 
   <div class="tabs" role="tablist" aria-label="表示">
