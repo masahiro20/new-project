@@ -6,6 +6,8 @@ Wording rule: findings are "pattern detected" (JP: 「パターンを検出」).
 the only exception is OSV MAL-* advisories. Unbuilt features are marked "(roadmap)".
 -->
 
+> **オーナー向けの説明（日本語）：** これは Atlas の LP の原稿（下書き・未公開）。本文は海外のお客様向けなので英語のままにしている。公開・告知・待機リストでの実データの収集は、すべてオーナーの承認が必要。`{{DOMAIN}}`・`{{WAITLIST_FORM_URL}}`・`{{CONTACT_EMAIL}}`・`{{RULES_URL}}` は未記入のまま。判定の文言は「パターンを検出」で、OSV の MAL-* を除いて「マルウェア」「悪意がある」とは書かない。実際の LP の HTML は `atlas/site/index.html` で、数字はホールドアウトの規模だけに差し替え済み（精度の数字は載せない方針。`docs/decisions.md` を参照）。末尾の X 投稿の下書きは、X のアカウントができるまで投稿しない。
+
 # Atlas — landing page copy (DRAFT, not published)
 
 > Status: DRAFT · Owner approval required before publishing · Domain: `{{DOMAIN}}` · Waitlist form: `{{WAITLIST_FORM_URL}}`

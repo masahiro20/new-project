@@ -1,3 +1,5 @@
+日本語版：[README.ja.md](README.ja.md)
+
 # atlas-scan
 
 A one-command, **read-only** static scanner for MCP servers, Claude skills and plugins.

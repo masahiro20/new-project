@@ -1,3 +1,9 @@
+> **【オーナー向けの説明（日本語）・社外に出す前にこの枠ごと削除する】**
+> - **何の資料か：** 企業の情報システム・セキュリティ担当者に渡す、Atlas の英語の1枚資料（MCP サーバーとスキルの許可リストの紹介と、パイロットの案内）。`atlas/docs/enterprise-one-pager.html` と同じ内容の Markdown 版で、両方をそろえて保つ。
+> - **状態：** 下書き。オーナーの承認があるまで、社外への送付・印刷・提示はしない。精度の数字は載せず、ホールドアウトの規模の数字（41,320 ファイル、100件）だけを載せている（`atlas/reports/stage3-holdout.md`）。
+> - **埋める箇所：** 末尾の連絡先 `{{CONTACT_EMAIL}}` と `{{DOMAIN}}`（リーダーが埋める）。価格表（Team／Business／Enterprise）は予定の価格で、プランの中身は未確定。
+> - **文言：** 判定は "pattern detected"（パターンを検出）。OSV の MAL-* は ID で参照するだけにし、認証や準拠をうたう表現は入れない。以下の英語の本文は変えていない。
+
 <!--
 DRAFT - NOT FOR EXTERNAL USE. Atlas enterprise one-pager (English), Growth role, 2026-10-09.
 Markdown twin of atlas/docs/enterprise-one-pager.html (keep both in sync).
@@ -6,7 +12,7 @@ Placeholders the leader fills: {{CONTACT_EMAIL}}, {{DOMAIN}}. Holdout numbers fi
 Wording: findings are "pattern detected"; OSV MAL-* referenced by id only; no certification/compliance claims.
 -->
 
-> **DRAFT** — internal only. Needs owner approval before any external use. Accuracy figures are placeholders pending holdout validation.
+> **DRAFT** — internal only. Needs owner approval before any external use. Accuracy figures are withheld until the scanner is re-validated on a fresh random sample.
 
 **Atlas** · Enterprise brief · MCP servers & agent skills
 

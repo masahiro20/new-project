@@ -1,3 +1,5 @@
+日本語版：[README.ja.md](README.ja.md)
+
 # atlas-scan GitHub Action
 
 A composite action that runs [`atlas-scan`](../cli/README.md) — the static, **read-only**

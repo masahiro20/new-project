@@ -1,4 +1,8 @@
-| Rule | v0 all | v0 src | v1 regex-only all | v1 all | v1 src+skill | v1 src+skill high/crit | suppressed | new via AST |
+# ステージ2：ルール別の集計表（100件試験）
+
+`atlas/scanner/compare_runs.py` が出力した表に、日本語の見出しを付けたもの。スクリプトで作り直すと英語の見出しに戻る。本文の説明は `stage2-scan-100.md` を参照。
+
+| ルール | v0 全体 | v0 src | v1 正規表現のみ 全体 | v1 全体 | v1 src+skill | v1 src+skill の high/critical | 抑制 | AST で新たに検出 |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
 | ATL-CE-001 | 329 | 60 | 360 | 345 | 113 | 0 | 359 | 344 |
 | ATL-CE-002 | 100 | 31 | 100 | 95 | 12 | 0 | 89 | 84 |
@@ -20,29 +24,29 @@
 | ATL-TP-003 | 85 | 18 | 91 | 45 | 8 | 3 | 46 | 0 |
 | ATL-TP-004 | 36 | 5 | 36 | 32 | 2 | 2 | 4 | 0 |
 | ATL-TP-005 | 6 | 2 | 6 | 6 | 1 | 0 | 0 | 0 |
-| **Total** | **1646** | **698** | **1667** | **1379** | **554** | **32** | **782** | **494** |
+| **合計** | **1646** | **698** | **1667** | **1379** | **554** | **32** | **782** | **494** |
 
-Suppression reasons:
+抑制の理由（出力の `why` は英語のまま）：
 
-| Reason | Count |
-|---|---:|
-| not confirmed as executable code by AST | 323 |
-| duplicate of AST finding | 275 |
-| negated or cited as an example | 35 |
-| inside a detection pattern / pattern list (AST) | 32 |
-| quoted in documentation | 26 |
-| inside a code comment (AST) | 23 |
-| inside a detection pattern / assertion (AST) | 22 |
-| placeholder, not a concrete command | 13 |
-| inside a line comment (heuristic) | 11 |
-| detection-rule file (YARA/semgrep) | 9 |
-| assertion literal (AST) | 7 |
-| embedded media (magic bytes) | 4 |
-| inside a code comment (heuristic) | 2 |
+| 理由（`why`） | 意味 | 件数 |
+|---|---|---:|
+| not confirmed as executable code by AST | AST で実行されるコードと確認できなかった | 323 |
+| duplicate of AST finding | AST による検出と重複 | 275 |
+| negated or cited as an example | 否定文の中、または例としての引用 | 35 |
+| inside a detection pattern / pattern list (AST) | 検出パターン・パターン一覧の中（AST） | 32 |
+| quoted in documentation | ドキュメント中の引用 | 26 |
+| inside a code comment (AST) | コードのコメントの中（AST） | 23 |
+| inside a detection pattern / assertion (AST) | 検出パターン・アサーションの中（AST） | 22 |
+| placeholder, not a concrete command | プレースホルダーで、具体的なコマンドではない | 13 |
+| inside a line comment (heuristic) | 行コメントの中（簡易判定） | 11 |
+| detection-rule file (YARA/semgrep) | 検出ルールのファイル（YARA/semgrep） | 9 |
+| assertion literal (AST) | アサーションのリテラル（AST） | 7 |
+| embedded media (magic bytes) | 埋め込みメディア（マジックバイト） | 4 |
+| inside a code comment (heuristic) | コードのコメントの中（簡易判定） | 2 |
 
-Security-component score bucketed with the A-F thresholds (provenance/maintenance not collected in this run):
+セキュリティ部分のスコアを A〜F のしきい値で分けたもの（今回は出所と保守状況を集めていない）：
 
-| Grade | Repos |
+| グレード | リポジトリ数 |
 |---|---:|
 | A | 78 |
 | B | 10 |
@@ -50,4 +54,4 @@ Security-component score bucketed with the A-F thresholds (provenance/maintenanc
 | D | 0 |
 | F | 5 |
 
-Files: 36873. AST parsed: 16078, parse failed: 8, minified skipped: 3.
+ファイル数：36,873。AST で解析：16,078、解析に失敗：8、圧縮されたファイルとして除外：3。

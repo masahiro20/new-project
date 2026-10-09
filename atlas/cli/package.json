@@ -14,7 +14,8 @@
     "scanner/ast_py.py",
     "scanner/trust.py",
     "scanner/js/ast_dump.cjs",
-    "README.md"
+    "README.md",
+    "README.ja.md"
   ],
   "scripts": {
     "sync": "node scripts/sync.mjs",
