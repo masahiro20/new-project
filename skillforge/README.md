@@ -77,6 +77,7 @@ KOTOMARK_API_TOKENS=secret1 NODE_ENV=production npm run build && npm start
 - `npm test`：全テスト（読み込み、検査、回帰、用語集の下書き、保存と認証、CLI、MCP の通し）。
 - `npm run check:sample`：`samples/ja-en` を CLI で検査してレポートを出します。
 - `npm run serve`：MCP サーバーを `http://localhost:8787/mcp` で起動します（開発時は認証なし）。
+- 本番（`NODE_ENV=production`）では、トークンと `KOTOMARK_ENCRYPTION_KEY` が無いと起動しません。Docker イメージと Fly.io／Render への公開手順は [`docs/deploy.md`](docs/deploy.md) を参照してください。
 
 Claude Code から使う（ローカルでの試験）：
 

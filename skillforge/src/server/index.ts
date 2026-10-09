@@ -15,6 +15,8 @@ import { clearTextCaches } from "../core/text.js";
  * legacy KOTOMARK_API_TOKENS. With no tokens configured the server runs open, but only outside production.
  */
 const PORT = Number(process.env.PORT ?? 8787);
+/** Bind address: HOST if set; all interfaces in production (container behind the host's proxy); Node's default otherwise. */
+export const HOST = process.env.HOST || (process.env.NODE_ENV === "production" ? "0.0.0.0" : undefined);
 const MAX_BODY = 25_000_000;
 const tokens = tokenStoreFromEnv();
 const store = storeFromEnv();
@@ -50,9 +52,10 @@ export const httpServer = createServer(async (req, res) => {
   const started = Date.now();
   const url = new URL(req.url ?? "/", "http://localhost");
   let user = "-";
+  // Health checks (no auth, no body read) are not logged: the host polls them every few seconds.
+  if (url.pathname === "/healthz") return send(res, 200, { ok: true });
   res.on("finish", () => console.log(`${req.method} ${url.pathname} ${res.statusCode} user=${user} ${Date.now() - started}ms`));
   try {
-    if (url.pathname === "/healthz") return send(res, 200, { ok: true });
     if (url.pathname !== "/mcp") return send(res, 404, { error: "not found" });
     const principal = authenticate(req);
     if (!principal) {
@@ -86,5 +89,5 @@ export const httpServer = createServer(async (req, res) => {
 });
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  httpServer.listen(PORT, () => console.log(`kotomark MCP listening on :${PORT}/mcp${tokens.open ? " (no tokens configured: open dev mode)" : ""}`));
+  httpServer.listen(PORT, HOST, () => console.log(`kotomark MCP listening on ${HOST ?? ""}:${PORT}/mcp${tokens.open ? " (no tokens configured: open dev mode)" : ""}`));
 }

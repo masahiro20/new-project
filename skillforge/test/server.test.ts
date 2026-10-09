@@ -154,6 +154,17 @@ test("rate limit returns 429 with Retry-After (solo plan: 30/min)", async () => 
   assert.ok(Number(retry) >= 1);
 });
 
+test("/healthz answers 200 without auth, even with a bad token, and is not logged", async () => {
+  const before = logged.length;
+  for (const headers of [{}, { authorization: "Bearer wrong" }]) {
+    const res = await fetch(`${base}/healthz`, { headers });
+    assert.equal(res.status, 200);
+    assert.deepEqual(await res.json(), { ok: true });
+  }
+  await new Promise((r) => setImmediate(r));
+  assert.ok(!logged.slice(before).some((l) => l.includes("/healthz")));
+});
+
 test("access log never contains script or glossary text", () => {
   assert.ok(logged.some((l) => /POST \/mcp 200 user=alice/.test(l)), "log lines are written");
   for (const needle of ["魔導石", "Mana Stone", "Lisette", "script.csv", "ember"]) {

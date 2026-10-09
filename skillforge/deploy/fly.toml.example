@@ -1,0 +1,47 @@
+# Fly.io 用の設定例（まだ有効ではありません）。使い方は docs/deploy.md を参照。
+#   cp deploy/fly.toml.example fly.toml   # リポジトリ直下に置いてから `fly deploy`
+# 秘密情報はここに書かず、`fly secrets set` で入れます:
+#   KOTOMARK_ENCRYPTION_KEY（必須）, KOTOMARK_API_TOKENS（初回だけの管理用トークン、任意）
+#   KOTOMARK_ANTHROPIC_API_KEY は設定しない（サーバー側判断は既定でオフ）
+
+app = "kotomark-mcp"          # ← 空いているアプリ名に変更（URL は https://<app>.fly.dev）
+primary_region = "nrt"        # 東京
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  NODE_ENV = "production"
+  PORT = "8080"
+  HOST = "0.0.0.0"
+  KOTOMARK_DATA_DIR = "/data"
+
+# 用語集（暗号化済み）と tokens.json を置くボリューム。
+# 先に作成: fly volumes create kotomark_data --region nrt --size 1
+[[mounts]]
+  source = "kotomark_data"
+  destination = "/data"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"   # アクセスが無いときは停止（停止中は rootfs 分だけ課金）
+  auto_start_machines = true    # リクエストが来たら自動で起動
+  min_machines_running = 0
+  # 利用制限はメモリ上なので、マシンは必ず1台（fly scale count 1）。
+
+  [http_service.concurrency]
+    type = "requests"
+    soft_limit = 20
+    hard_limit = 25
+
+  [[http_service.checks]]
+    grace_period = "10s"
+    interval = "30s"
+    timeout = "5s"
+    method = "GET"
+    path = "/healthz"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"

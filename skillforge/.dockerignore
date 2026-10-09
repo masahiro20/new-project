@@ -1,0 +1,23 @@
+# Only package*.json, tsconfig.json, scripts/build-cli.mjs, src/ and deploy/*.sh are needed.
+node_modules
+dist
+.git
+.gitignore
+.kotomark-data
+.env
+.env.*
+*.tsbuildinfo
+action
+docs
+eval
+lp
+plugin
+samples
+site
+test
+web
+.github-example
+deploy/*.example
+README.md
+Dockerfile
+.dockerignore

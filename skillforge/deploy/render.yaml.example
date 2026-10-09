@@ -1,0 +1,32 @@
+# Render 用の Blueprint 例（まだ有効ではありません）。使い方は docs/deploy.md を参照。
+#   cp deploy/render.yaml.example render.yaml   # リポジトリ直下に置いて push → Render で Blueprint として読み込む
+# 秘密情報は sync: false にしてあり、Render の画面で入力します（このファイルには書かない）。
+services:
+  - type: web
+    name: kotomark-mcp
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: starter            # ディスクは有料プランのみ。無料プランは不可
+    region: singapore        # Render に東京リージョンは無い（日本から最寄り）
+    numInstances: 1          # 利用制限はメモリ上・ディスクは1台専用 → 必ず1台
+    healthCheckPath: /healthz
+    autoDeploy: false        # 手動でデプロイ（意図しない公開を防ぐ）
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "8080"
+      - key: HOST
+        value: 0.0.0.0
+      - key: KOTOMARK_DATA_DIR
+        value: /data
+      - key: KOTOMARK_ENCRYPTION_KEY   # 必須: openssl rand -base64 32 で作成し、別の場所にも保管
+        sync: false
+      - key: KOTOMARK_API_TOKENS       # 任意: 初回の動作確認用トークン。利用者用は `kotomark token create` で発行
+        sync: false
+      # KOTOMARK_ANTHROPIC_API_KEY は設定しない（サーバー側判断は既定でオフ。有効化はデータポリシー改訂が先）
+    disk:
+      name: kotomark-data
+      mountPath: /data
+      sizeGB: 1
