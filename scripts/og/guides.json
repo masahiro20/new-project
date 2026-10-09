@@ -1,0 +1,105 @@
+[
+  {
+    "slug": "gyakutai-boushi-gensan",
+    "title": "虐待防止措置未実施減算とは？3つの要件と必要な書類"
+  },
+  {
+    "slug": "shintai-kousoku-gensan",
+    "title": "身体拘束廃止未実施減算とは？施設・居住系10%、通所系1%の要件"
+  },
+  {
+    "slug": "unei-shidou-junbi",
+    "title": "障害福祉の運営指導で指摘されやすい書類チェックリスト"
+  },
+  {
+    "slug": "bcp-gensan-jidou",
+    "title": "業務継続計画未策定減算｜放課後等デイサービスの経過措置・BCPひな形・研修訓練の記録"
+  },
+  {
+    "slug": "gensan-kasan-hayamihyo",
+    "title": "障害福祉の減算早見表【令和6年度改定】サービス種別ごとの減算率一覧"
+  },
+  {
+    "slug": "gyakutai-iinkai-gijiroku",
+    "title": "虐待防止委員会の議事録ひな形と例｜放課後等デイサービスの議題例・身体拘束適正化委員会"
+  },
+  {
+    "slug": "group-home-gensan",
+    "title": "グループホームの減算対策｜身体拘束10%・虐待防止・BCPの要件と書類",
+    "serviceType": "共同生活援助（グループホーム）"
+  },
+  {
+    "slug": "gyakutai-kenshu-shiryou",
+    "title": "虐待防止研修の資料｜放デイ・児童発達支援の60分構成例と無料の公的資料"
+  },
+  {
+    "slug": "houkago-day-shintai-kousoku-rei",
+    "title": "放課後等デイサービスの身体拘束はどこから？パニック時の抱きとめ・施錠・送迎の判断"
+  },
+  {
+    "slug": "houkago-day-gensan",
+    "title": "放課後等デイサービスの減算対策｜虐待防止・身体拘束・BCPと必要書類",
+    "serviceType": "放課後等デイサービス"
+  },
+  {
+    "slug": "jidou-hattatsu-gensan",
+    "title": "児童発達支援の減算対策｜虐待防止・身体拘束・BCPの要件と必要書類",
+    "serviceType": "児童発達支援"
+  },
+  {
+    "slug": "kenshu-rikaido-test",
+    "title": "虐待防止研修のテスト問題10問と解答｜放課後等デイサービス・児童発達支援向け"
+  },
+  {
+    "slug": "kyotaku-kaigo-gensan",
+    "title": "居宅介護・重度訪問介護の減算対策｜身体拘束・虐待防止・BCPの書類",
+    "serviceType": "居宅介護・重度訪問介護"
+  },
+  {
+    "slug": "reiwa9-kaitei-jidou",
+    "title": "令和9年度報酬改定で放課後等デイサービスはどうなる？2026年10月時点の検討状況"
+  },
+  {
+    "slug": "seikatsu-kaigo-gensan",
+    "title": "生活介護の減算対策｜身体拘束・虐待防止・BCPの要件と必要な書類",
+    "serviceType": "生活介護"
+  },
+  {
+    "slug": "unei-shidou-shiteki-jidou",
+    "title": "運営指導の指摘事項と改善報告書の書き方｜放課後等デイサービス・児童発達支援"
+  },
+  {
+    "slug": "shisetsu-nyusho-gensan",
+    "title": "障害者支援施設の減算対策｜身体拘束10%・虐待防止・BCPと必要書類",
+    "serviceType": "施設入所支援（障害者支援施設）"
+  },
+  {
+    "slug": "shintai-kousoku-shishin",
+    "title": "身体拘束の指針ひな形｜児童発達支援・放課後等デイサービスの例文と虐待防止の指針"
+  },
+  {
+    "slug": "shuro-a-gensan",
+    "title": "就労継続支援A型の減算対策｜虐待防止・身体拘束・BCPと雇用契約の注意点",
+    "serviceType": "就労継続支援A型"
+  },
+  {
+    "slug": "shuro-b-gensan",
+    "title": "就労継続支援B型の減算対策｜虐待防止・身体拘束・BCPの書類と要件",
+    "serviceType": "就労継続支援B型"
+  },
+  {
+    "slug": "shuro-ikou-gensan",
+    "title": "就労移行支援の減算対策｜虐待防止・身体拘束・BCPの要件と必要書類",
+    "serviceType": "就労移行支援"
+  },
+  {
+    "slug": "soudan-shien-gensan",
+    "title": "計画相談支援・障害児相談支援の減算｜虐待防止・身体拘束・BCPの適用範囲",
+    "serviceType": "相談支援"
+  },
+  {
+    "slug": "tanki-nyusho-gensan",
+    "title": "短期入所（ショートステイ）の減算対策｜虐待防止・身体拘束・BCPと書類",
+    "serviceType": "短期入所"
+  }
+]

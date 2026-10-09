@@ -1,4 +1,6 @@
+import Image from "next/image";
 import Link from "next/link";
+import heroArt from "./hero.svg";
 import { SERVICE_GUIDES, TOPIC_GUIDES } from "@/lib/guides";
 import { siteUrl, SITE_NAME } from "@/lib/site";
 import { jsonLdHtml } from "@/lib/jsonld";
@@ -63,29 +65,33 @@ export default function Home() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdHtml(jsonLd) }} />
 
       <section className="hero">
-        <div className="wrap">
-          <p className="eyebrow">障害福祉サービス事業所向け</p>
-          <h1>
-            虐待防止・身体拘束適正化の書類、
-            <br />
-            AIで年間分まとめて作成。
-          </h1>
-          <p className="lead">
-            委員会の議事録、研修資料と理解度テスト、身体拘束等適正化の指針まで。事業所の情報を入力するだけで、運営指導で確認される書類一式がそろいます。
-          </p>
-          <div className="actions">
-            {ai ? (
-              <>
-                <Link href="/generate" className="btn">無料で年間計画を作る</Link>
-                <Link href="/check" className="btn secondary">減算リスクを1分で診断</Link>
-              </>
-            ) : (
-              <>
-                <Link href="/check" className="btn">減算リスクを1分で診断</Link>
-                <Link href="/samples" className="btn secondary">書類サンプルを見る（無料）</Link>
-              </>
-            )}
+        <div className="wrap hero-grid">
+          <div>
+            <p className="eyebrow">障害福祉サービス事業所向け</p>
+            <h1>
+              虐待防止・身体拘束適正化の書類、
+              <br />
+              AIで年間分まとめて作成。
+            </h1>
+            <p className="lead">
+              委員会の議事録、研修資料と理解度テスト、身体拘束等適正化の指針まで。事業所の情報を入力するだけで、運営指導で確認される書類一式がそろいます。
+            </p>
+            <div className="actions">
+              {ai ? (
+                <>
+                  <Link href="/generate" className="btn">無料で年間計画を作る</Link>
+                  <Link href="/check" className="btn secondary">減算リスクを1分で診断</Link>
+                </>
+              ) : (
+                <>
+                  <Link href="/check" className="btn">減算リスクを1分で診断</Link>
+                  <Link href="/samples" className="btn secondary">書類サンプルを見る（無料）</Link>
+                </>
+              )}
+            </div>
           </div>
+          {/* Decorative: the headline already says what the picture shows. */}
+          <Image src={heroArt} alt="" priority className="hero-art" sizes="(max-width: 860px) 100vw, 460px" />
         </div>
       </section>
 
