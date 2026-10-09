@@ -26,9 +26,9 @@
 
 | チーム | 1 | 2 | 3 |
 |---|---|---|---|
-| P0 Mina | 計測（Cookie なし）と Search Console の確認ファイルの置き場所 | 集客計画の残りの解説ページ | Midas のチェックリスト PDF を /samples に掲載 |
+| P0 Mina | Atlas のセキュリティパッチ 0001〜0010 と生成上限15回（d30） | 診断から購入までの導線の計測設計 | 解説ページを月10本ずつ追加（検索の多い順） |
 | P2 Vega | 計算機 v2（モデルの追加、条件を URL で共有） | Budget Guard の機能紹介ページ（静的） | デモ動画の台本と絵コンテ |
-| P1 Forge | 実データの検証結果を LP の「実績」欄に反映 | GitHub Action としてのパッケージ化 | 用語集のインポート（CSV・TBX） |
+| P1 Forge | d29 の反映（LICENSE・条件・名前のチェック） | 署名付きライセンスキーの実装（Atlas のレビュー付き） | 人による精度の確認（判定者を AI 以外にも広げる案） |
 | P3 Kana | 最小対（アクセントだけが違う語の組）の練習モード | 結果を共有するカード画像 | Anki への書き出し |
 | P4 Ren | J-PlatPat の再確認（Tanuki Scout） | Firefox への移植 | P2 計算機の QA（報告は p4 ブランチ） |
 | P5 Atlas | GitHub Action 化と SARIF 出力 | Allowlist Builder の UI 仕上げ | 企業向けの1枚資料（英語） |
