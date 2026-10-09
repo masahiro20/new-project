@@ -11,11 +11,6 @@
 <priority>0.8</priority>
 </url>
 <url>
-<loc>https://masahiro20.github.io/new-project/generate/</loc>
-<changefreq>monthly</changefreq>
-<priority>0.8</priority>
-</url>
-<url>
 <loc>https://masahiro20.github.io/new-project/guide/</loc>
 <lastmod>2026-10-09</lastmod>
 <changefreq>weekly</changefreq>
@@ -29,6 +24,11 @@
 </url>
 <url>
 <loc>https://masahiro20.github.io/new-project/terms/</loc>
+<changefreq>yearly</changefreq>
+<priority>0.2</priority>
+</url>
+<url>
+<loc>https://masahiro20.github.io/new-project/privacy/</loc>
 <changefreq>yearly</changefreq>
 <priority>0.2</priority>
 </url>
