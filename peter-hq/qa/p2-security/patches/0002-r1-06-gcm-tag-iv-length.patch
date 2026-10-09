@@ -1,0 +1,107 @@
+From 001a50591f276caa21417f2284eb6575822f16b6 Mon Sep 17 00:00:00 2001
+From: Atlas QA <atlas@local>
+Date: Fri, 9 Oct 2026 04:06:30 +0000
+Subject: [PATCH 02/12] R1-06: AES-GCM の認証タグ長（16バイト）と IV
+ 長（12バイト）を固定する
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+createDecipheriv に authTagLength を渡していなかったため、Node は4バイトまで短くした
+タグでも復号を通していた（PoC で再現）。暗号化・復号の両方で { authTagLength: 16 } を渡し、
+復号前に IV 12バイト・タグ 16バイトであることを確かめる。既存の暗号文（16バイトのタグ）は
+そのまま開ける。元パッチ：p2-review/r1-01.patch（指摘 ID は R1-06）。
+回帰テスト：tests/security-regressions.test.ts（R1-06）。
+---
+ signal-lab/budget-guard/lib/guard/crypto.ts   | 14 ++++++---
+ .../tests/security-regressions.test.ts        | 29 +++++++++++++++++++
+ 2 files changed, 39 insertions(+), 4 deletions(-)
+
+diff --git a/signal-lab/budget-guard/lib/guard/crypto.ts b/signal-lab/budget-guard/lib/guard/crypto.ts
+index aed11ed..ff08f23 100644
+--- a/signal-lab/budget-guard/lib/guard/crypto.ts
++++ b/signal-lab/budget-guard/lib/guard/crypto.ts
+@@ -3,6 +3,8 @@ import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:
+ // Provider tokens are stored only as AES-256-GCM ciphertext. The connection id is
+ // bound as AAD so a ciphertext copied onto another connection fails to decrypt.
+ const VERSION = "v1";
++const IV_BYTES = 12;
++const TAG_BYTES = 16;
+ const DEV_KEY_SEED = "budget-guard-dev-only-key";
+ 
+ let warned = false;
+@@ -23,8 +25,8 @@ export function encryptionKey(env: NodeJS.ProcessEnv = process.env): Buffer {
+ }
+ 
+ export function encryptSecret(plain: string, aad: string, key: Buffer = encryptionKey()): string {
+-  const iv = randomBytes(12);
+-  const cipher = createCipheriv("aes-256-gcm", key, iv);
++  const iv = randomBytes(IV_BYTES);
++  const cipher = createCipheriv("aes-256-gcm", key, iv, { authTagLength: TAG_BYTES });
+   cipher.setAAD(Buffer.from(aad));
+   const ct = Buffer.concat([cipher.update(plain, "utf8"), cipher.final()]);
+   return [VERSION, iv, cipher.getAuthTag(), ct].map((p) => (typeof p === "string" ? p : p.toString("base64url"))).join(".");
+@@ -33,9 +35,13 @@ export function encryptSecret(plain: string, aad: string, key: Buffer = encrypti
+ export function decryptSecret(sealed: string, aad: string, key: Buffer = encryptionKey()): string {
+   const [version, iv, tag, ct] = sealed.split(".");
+   if (version !== VERSION || !iv || !tag || ct === undefined) throw new Error("Malformed sealed secret");
+-  const decipher = createDecipheriv("aes-256-gcm", key, Buffer.from(iv, "base64url"));
++  const ivBuf = Buffer.from(iv, "base64url");
++  const tagBuf = Buffer.from(tag, "base64url");
++  // Refuse truncated tags / odd IVs: without authTagLength, GCM accepts tags as short as 4 bytes.
++  if (ivBuf.length !== IV_BYTES || tagBuf.length !== TAG_BYTES) throw new Error("Malformed sealed secret");
++  const decipher = createDecipheriv("aes-256-gcm", key, ivBuf, { authTagLength: TAG_BYTES });
+   decipher.setAAD(Buffer.from(aad));
+-  decipher.setAuthTag(Buffer.from(tag, "base64url"));
++  decipher.setAuthTag(tagBuf);
+   return Buffer.concat([decipher.update(Buffer.from(ct, "base64url")), decipher.final()]).toString("utf8");
+ }
+ 
+diff --git a/signal-lab/budget-guard/tests/security-regressions.test.ts b/signal-lab/budget-guard/tests/security-regressions.test.ts
+index e40d3a3..fff3ae2 100644
+--- a/signal-lab/budget-guard/tests/security-regressions.test.ts
++++ b/signal-lab/budget-guard/tests/security-regressions.test.ts
+@@ -1,3 +1,4 @@
++import { createCipheriv, randomBytes } from "node:crypto";
+ import { afterEach, describe, expect, it, vi } from "vitest";
+ 
+ // Regression tests for the P2 security review (Atlas, qa/p2-security). One describe per finding.
+@@ -10,6 +11,7 @@ import { GET as getConn, POST as postConn } from "@/app/api/app/connections/[id]
+ import { ACCESS_COOKIE, signAccessToken } from "@/lib/access";
+ import { upsertEntitlement } from "@/lib/entitlements";
+ import { checkConnection, type Connection } from "@/lib/guard/check";
++import { decryptSecret, encryptSecret } from "@/lib/guard/crypto";
+ import { demoFetch } from "@/lib/guard/demo";
+ import { addConnection, getState, saveState } from "@/lib/guard/store";
+ import { getKV } from "@/lib/redis";
+@@ -78,3 +80,30 @@ describe("R3-01: a test-mode dry run must not block the live stop after arming",
+     expect(s?.limitNotifiedAt).toBe("x"); // the rest of the month's state is kept
+   });
+ });
++
++describe("R1-06: AES-GCM tag / IV length are fixed (16 / 12 bytes)", () => {
++  const key = randomBytes(32);
++  /** Seal with a truncated tag, as a forger with KV write access would try. */
++  function sealShortTag(plain: string, aad: string, tagBytes: number): string {
++    const iv = randomBytes(12);
++    const c = createCipheriv("aes-256-gcm", key, iv, { authTagLength: tagBytes });
++    c.setAAD(Buffer.from(aad));
++    const ct = Buffer.concat([c.update(plain, "utf8"), c.final()]);
++    return ["v1", iv.toString("base64url"), c.getAuthTag().toString("base64url"), ct.toString("base64url")].join(".");
++  }
++  it("rejects 4- and 8-byte tags (Node accepts them without authTagLength)", () => {
++    expect(() => decryptSecret(sealShortTag("sk-secret", "conn_x", 4), "conn_x", key)).toThrow();
++    expect(() => decryptSecret(sealShortTag("sk-secret", "conn_x", 8), "conn_x", key)).toThrow();
++  });
++  it("rejects a non-12-byte IV and a truncated tag from a real ciphertext", () => {
++    const [v, iv, tag, ct] = encryptSecret("sk-secret", "conn_x", key).split(".");
++    const shortTag = Buffer.from(tag, "base64url").subarray(0, 4).toString("base64url");
++    expect(() => decryptSecret([v, iv, shortTag, ct].join("."), "conn_x", key)).toThrow();
++    const longIv = Buffer.concat([Buffer.from(iv, "base64url"), Buffer.alloc(4)]).toString("base64url");
++    expect(() => decryptSecret([v, longIv, tag, ct].join("."), "conn_x", key)).toThrow();
++  });
++  it("still opens normal ciphertexts (16-byte tag) — existing data stays readable", () => {
++    expect(decryptSecret(encryptSecret("sk-secret", "conn_x", key), "conn_x", key)).toBe("sk-secret");
++    expect(encryptSecret("sk-secret", "conn_x", key).split(".")[2]).toHaveLength(22); // 16 bytes base64url
++  });
++});

@@ -1,0 +1,74 @@
+From 1c0dbce4315fa8b72943c5fb93b46d617a36bfb4 Mon Sep 17 00:00:00 2001
+From: Atlas QA <atlas@local>
+Date: Fri, 9 Oct 2026 04:07:50 +0000
+Subject: [PATCH 05/12] R1-01: トークンを復号できないとき、接続IDと理由を
+ console.error に出す
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+鍵の入れ替え・取り違えで openToken が失敗すると、notice は kind:"error" になり
+notify() はメールも Slack も送らないため、監視と自動停止が黙って止まっていた（PoC で再現：
+mails 0、console.error 0、cron は "checked" と数える）。運用側のログ・アラートで
+気づけるよう、接続IDと理由だけ（暗号文は出さない）を console.error に出す。
+残課題：起動時の fail-fast（encryptionKey() の事前呼び出し）、cron の errors への計上、
+CRON_SECRET 欠落時の 401 の検知（REPORT.md 参照）。元パッチ：p2-review/r1-04.patch。
+回帰テスト：tests/security-regressions.test.ts（R1-01）。
+---
+ signal-lab/budget-guard/lib/guard/service.ts  |  6 +++++-
+ .../tests/security-regressions.test.ts        | 20 ++++++++++++++++++-
+ 2 files changed, 24 insertions(+), 2 deletions(-)
+
+diff --git a/signal-lab/budget-guard/lib/guard/service.ts b/signal-lab/budget-guard/lib/guard/service.ts
+index bf30a53..a4d698e 100644
+--- a/signal-lab/budget-guard/lib/guard/service.ts
++++ b/signal-lab/budget-guard/lib/guard/service.ts
+@@ -233,7 +233,11 @@ export async function checkConnectionLocked(
+       token = openToken(conn);
+       fetchImpl = fetchFor(token);
+     } catch (err) {
+-      notices.push({ kind: "error", connectionId: conn.id, message: `${conn.label}: ${err instanceof Error ? err.message : err}` });
++      const reason = err instanceof Error ? err.message : String(err);
++      // The user can't fix this (missing / rotated TOKEN_ENCRYPTION_KEY): monitoring is off for
++      // this connection, so tell the operator. Only the id and the reason, never the sealed value.
++      console.error(`[guard] cannot open token for ${conn.id}: ${reason}`);
++      notices.push({ kind: "error", connectionId: conn.id, message: `${conn.label}: ${reason}` });
+     }
+     if (token !== undefined && fetchImpl) {
+       const result = await checkConnection(conn, prevState, { token, fetchImpl, now, forceLimit: opts.forceLimit });
+diff --git a/signal-lab/budget-guard/tests/security-regressions.test.ts b/signal-lab/budget-guard/tests/security-regressions.test.ts
+index d122ba6..c46fe97 100644
+--- a/signal-lab/budget-guard/tests/security-regressions.test.ts
++++ b/signal-lab/budget-guard/tests/security-regressions.test.ts
+@@ -13,8 +13,9 @@ import { upsertEntitlement } from "@/lib/entitlements";
+ import { checkConnection, type Connection } from "@/lib/guard/check";
+ import { decryptSecret, encryptionKey, encryptSecret } from "@/lib/guard/crypto";
+ import { demoFetch } from "@/lib/guard/demo";
++import { checkConnectionLocked } from "@/lib/guard/service";
+ import { addConnection, getState, saveState } from "@/lib/guard/store";
+-import { getKV } from "@/lib/redis";
++import { createMemoryKV, getKV } from "@/lib/redis";
+ 
+ const BASE = "http://localhost:3000";
+ type Opts = { method?: string; body?: unknown; cookie?: string };
+@@ -143,3 +144,20 @@ describe("R1-02: key rotation (TOKEN_ENCRYPTION_KEY_PREVIOUS)", () => {
+     expect(() => decryptSecret(encryptSecret("x", "a", randomBytes(32)), "a")).toThrow("TOKEN_ENCRYPTION_KEY_PREVIOUS");
+   });
+ });
++
++describe("R1-01: a token that can't be decrypted is reported to the operator", () => {
++  it("logs console.error with the connection id (never the sealed value)", async () => {
++    const kv = createMemoryKV();
++    const { entitlement } = await upsertEntitlement(kv, { id: "dev_r101", email: "r101@example.com", plan: "monthly", source: "demo" });
++    // Sealed with a key the server doesn't have (rotated / wrong TOKEN_ENCRYPTION_KEY).
++    const conn = await addConnection(kv, entitlement.id, { label: "L", target: { provider: "vercel", teamId: "t", projectIds: ["p"] }, budgetUsd: 10, token: "demo" }, randomBytes(32));
++    const err = vi.spyOn(console, "error").mockImplementation(() => {});
++    const r = await checkConnectionLocked(kv, entitlement.id, conn.id, new Date(), { email: entitlement.email });
++    expect(r.status).toBe("checked");
++    expect(err).toHaveBeenCalledOnce();
++    const line = String(err.mock.calls[0][0]);
++    expect(line).toContain(conn.id);
++    expect(line).not.toContain(conn.sealedToken);
++    err.mockRestore();
++  });
++});

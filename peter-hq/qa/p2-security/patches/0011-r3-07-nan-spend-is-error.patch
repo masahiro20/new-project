@@ -1,0 +1,51 @@
+From 53415d1deec936259a8e599c9756a887ea659d4f Mon Sep 17 00:00:00 2001
+From: Atlas QA <atlas@local>
+Date: Fri, 9 Oct 2026 04:11:11 +0000
+Subject: [PATCH 11/12] R3-07:
+ 支出額が有限の数でなければ取得エラーとして扱う（NaN で "ok" にしない）
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+OpenAI の amount.value や Anthropic の amount が数値に変換できない形式になると、合計が NaN、
+比率も NaN になり、NaN >= 1 が false のため level=ok と判定され、通知も停止もエラー表示も
+出なかった（PoC で再現）。fetchSpend の結果が Number.isFinite でなければ例外にし、
+既存の「Usage fetch failed」（kind: error）の経路に乗せる。
+残課題：kind=error はメールしないため、取得エラーが続いたら知らせる仕組み（R1-01 と共通）。
+元パッチ：p2-review/r3-07.patch。回帰テスト：tests/security-regressions.test.ts（R3-07）。
+---
+ signal-lab/budget-guard/lib/guard/check.ts             |  2 ++
+ .../budget-guard/tests/security-regressions.test.ts    | 10 ++++++++++
+ 2 files changed, 12 insertions(+)
+
+diff --git a/signal-lab/budget-guard/lib/guard/check.ts b/signal-lab/budget-guard/lib/guard/check.ts
+index 4d0956f..89d8912 100644
+--- a/signal-lab/budget-guard/lib/guard/check.ts
++++ b/signal-lab/budget-guard/lib/guard/check.ts
+@@ -46,6 +46,8 @@ export async function checkConnection(conn: Connection, prev: GuardState | undef
+   let spendUsd: number;
+   try {
+     ({ spendUsd } = await adapter.fetchSpend(conn.target, deps.token, periodStart(deps.now), deps.now, deps.fetchImpl));
++    // NaN / Infinity (an unexpected amount format) would evaluate as "ok" forever: report it instead of failing open.
++    if (!Number.isFinite(spendUsd)) throw new Error(`Provider returned a non-numeric spend (${spendUsd})`);
+   } catch (err) {
+     const message = `Usage fetch failed: ${err instanceof Error ? err.message : err}`;
+     if (isAuthFailure(err) && !state.keyInvalidAt) {
+diff --git a/signal-lab/budget-guard/tests/security-regressions.test.ts b/signal-lab/budget-guard/tests/security-regressions.test.ts
+index f5c5370..271618a 100644
+--- a/signal-lab/budget-guard/tests/security-regressions.test.ts
++++ b/signal-lab/budget-guard/tests/security-regressions.test.ts
+@@ -274,3 +274,13 @@ describe("R3-05: provider calls have a timeout and never follow redirects", () =
+     }
+   });
+ });
++
++describe("R3-07: a non-numeric spend is a fetch error, not \"ok\"", () => {
++  it("NaN from the provider is reported and never evaluated", async () => {
++    const f = async () => Response.json({ data: [{ results: [{ amount: { value: "n/a", currency: "usd" } }] }], has_more: false });
++    const conn: Connection = { ...vercelConn("live"), target: { provider: "openai", projectId: "proj_1" } };
++    const r = await checkConnection(conn, undefined, { token: "t", fetchImpl: f, now: new Date("2026-10-15T10:00:00Z") });
++    expect(r.evaluation).toBeUndefined();
++    expect(r.notices).toEqual([expect.objectContaining({ kind: "error", message: expect.stringContaining("non-numeric spend") })]);
++  });
++});

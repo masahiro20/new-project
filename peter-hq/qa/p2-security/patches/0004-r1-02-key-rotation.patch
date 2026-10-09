@@ -1,0 +1,112 @@
+From 27e5e23a6d5e716b0e24202d35827754f5a37cb3 Mon Sep 17 00:00:00 2001
+From: Atlas QA <atlas@local>
+Date: Fri, 9 Oct 2026 04:07:26 +0000
+Subject: [PATCH 04/12] R1-02:
+ 暗号鍵のローテーション（TOKEN_ENCRYPTION_KEY_PREVIOUS
+ で旧鍵による復号を許す）
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+鍵を替えると保存済みのトークン・Slack URL・webhook secret がすべて開けなくなるため、
+漏洩が疑われても鍵を替えにくかった。復号のときだけ TOKEN_ENCRYPTION_KEY_PREVIOUS
+（カンマ区切り）の鍵も順に試す。保存は常に TOKEN_ENCRYPTION_KEY で行う。
+鍵を明示して呼んだ場合はその鍵だけを使う（ほかの鍵に落ちない）。
+r1-01.patch（タグ長固定）と r1-03.patch は crypto.ts で衝突するため、タグ長の確認を
+decryptWith の中に残す形で手で統合した。
+残課題：全データを新しい鍵で再暗号化するスクリプト、v2 形式（鍵ID・AAD の拡張、R1-14）。
+回帰テスト：tests/security-regressions.test.ts（R1-02）。
+---
+ signal-lab/budget-guard/.env.example          |  3 ++
+ signal-lab/budget-guard/lib/guard/crypto.ts   | 33 ++++++++++++++++++-
+ .../tests/security-regressions.test.ts        | 22 +++++++++++++
+ 3 files changed, 57 insertions(+), 1 deletion(-)
+
+diff --git a/signal-lab/budget-guard/.env.example b/signal-lab/budget-guard/.env.example
+index 6109c04..3e7981f 100644
+--- a/signal-lab/budget-guard/.env.example
++++ b/signal-lab/budget-guard/.env.example
+@@ -36,6 +36,9 @@ NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=
+ # ★ プロバイダのトークンを暗号化する鍵（32バイトを base64）。生成例: openssl rand -base64 32
+ #   未設定の開発環境では固定の開発用鍵を使います（本番ではエラー）。鍵を変えると保存済みトークンは復号できません。
+ TOKEN_ENCRYPTION_KEY=
++# 鍵のローテーション用：以前の鍵（カンマ区切り、各32バイト base64）。復号にだけ使い、新しい保存は常に TOKEN_ENCRYPTION_KEY。
++#   全接続を新しい鍵で再暗号化したら削除する。
++TOKEN_ENCRYPTION_KEY_PREVIOUS=
+ # ★ 毎時 cron（vercel.json）の認証。Vercel は Authorization: Bearer $CRON_SECRET を付けて呼びます。
+ #   未設定だと /api/cron/check は開発環境でのみ動きます。
+ CRON_SECRET=
+diff --git a/signal-lab/budget-guard/lib/guard/crypto.ts b/signal-lab/budget-guard/lib/guard/crypto.ts
+index a35b342..052afca 100644
+--- a/signal-lab/budget-guard/lib/guard/crypto.ts
++++ b/signal-lab/budget-guard/lib/guard/crypto.ts
+@@ -35,7 +35,38 @@ export function encryptSecret(plain: string, aad: string, key: Buffer = encrypti
+   return [VERSION, iv, cipher.getAuthTag(), ct].map((p) => (typeof p === "string" ? p : p.toString("base64url"))).join(".");
+ }
+ 
+-export function decryptSecret(sealed: string, aad: string, key: Buffer = encryptionKey()): string {
++/**
++ * Keys that may still open older ciphertexts during a rotation, from
++ * TOKEN_ENCRYPTION_KEY_PREVIOUS (comma-separated, each 32 bytes base64). New data is
++ * always sealed with TOKEN_ENCRYPTION_KEY; re-seal and then drop the old key.
++ */
++export function previousKeys(env: NodeJS.ProcessEnv = process.env): Buffer[] {
++  return (env.TOKEN_ENCRYPTION_KEY_PREVIOUS ?? "")
++    .split(",")
++    .map((s) => s.trim())
++    .filter(Boolean)
++    .map((s) => {
++      const k = Buffer.from(s, "base64");
++      if (k.length !== 32) throw new Error("TOKEN_ENCRYPTION_KEY_PREVIOUS entries must be 32 bytes, base64-encoded");
++      return k;
++    });
++}
++
++/** With an explicit key: that key only. Otherwise the current key, then each previous key. */
++export function decryptSecret(sealed: string, aad: string, key?: Buffer): string {
++  if (key) return decryptWith(sealed, aad, key);
++  const keys = [encryptionKey(), ...previousKeys()];
++  for (let i = 0; i < keys.length; i++) {
++    try {
++      return decryptWith(sealed, aad, keys[i]);
++    } catch (err) {
++      if (i === keys.length - 1) throw err;
++    }
++  }
++  throw new Error("unreachable");
++}
++
++function decryptWith(sealed: string, aad: string, key: Buffer): string {
+   const [version, iv, tag, ct] = sealed.split(".");
+   if (version !== VERSION || !iv || !tag || ct === undefined) throw new Error("Malformed sealed secret");
+   const ivBuf = Buffer.from(iv, "base64url");
+diff --git a/signal-lab/budget-guard/tests/security-regressions.test.ts b/signal-lab/budget-guard/tests/security-regressions.test.ts
+index 7711f74..d122ba6 100644
+--- a/signal-lab/budget-guard/tests/security-regressions.test.ts
++++ b/signal-lab/budget-guard/tests/security-regressions.test.ts
+@@ -121,3 +121,25 @@ describe("R1-04: the public dev key only in development / test", () => {
+     expect(encryptionKey({ TOKEN_ENCRYPTION_KEY: k.toString("base64") } as unknown as NodeJS.ProcessEnv).equals(k)).toBe(true);
+   });
+ });
++
++describe("R1-02: key rotation (TOKEN_ENCRYPTION_KEY_PREVIOUS)", () => {
++  it("opens data sealed with a previous key, seals new data with the current key", () => {
++    const oldKey = randomBytes(32);
++    const newKey = randomBytes(32);
++    const sealedOld = encryptSecret("sk-old", "conn_rot", oldKey);
++    vi.stubEnv("TOKEN_ENCRYPTION_KEY", newKey.toString("base64"));
++    expect(() => decryptSecret(sealedOld, "conn_rot")).toThrow(); // without the previous key: unreadable
++    vi.stubEnv("TOKEN_ENCRYPTION_KEY_PREVIOUS", ` ${randomBytes(32).toString("base64")}, ${oldKey.toString("base64")} `);
++    expect(decryptSecret(sealedOld, "conn_rot")).toBe("sk-old");
++    const sealedNew = encryptSecret("sk-new", "conn_rot");
++    expect(decryptSecret(sealedNew, "conn_rot", newKey)).toBe("sk-new");
++    expect(() => decryptSecret(sealedNew, "conn_rot", oldKey)).toThrow();
++    // An explicit key never falls back to the others.
++    expect(() => decryptSecret(sealedOld, "conn_rot", newKey)).toThrow();
++  });
++  it("a malformed previous key is a clear error", () => {
++    vi.stubEnv("TOKEN_ENCRYPTION_KEY", randomBytes(32).toString("base64"));
++    vi.stubEnv("TOKEN_ENCRYPTION_KEY_PREVIOUS", "short");
++    expect(() => decryptSecret(encryptSecret("x", "a", randomBytes(32)), "a")).toThrow("TOKEN_ENCRYPTION_KEY_PREVIOUS");
++  });
++});

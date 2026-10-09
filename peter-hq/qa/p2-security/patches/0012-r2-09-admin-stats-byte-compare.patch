@@ -1,0 +1,62 @@
+From 5b425046a6668d6c35b33794e19fdce0d3b026d4 Mon Sep 17 00:00:00 2001
+From: Atlas QA <atlas@local>
+Date: Fri, 9 Oct 2026 04:11:42 +0000
+Subject: [PATCH 12/12] R2-09: admin/stats の Bearer
+ 比較をバイト長で行う（多バイト文字で 500 にしない）
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+文字列の長さだけを比べてから timingSafeEqual に渡していたため、長さは同じでバイト数が
+違う（Latin-1 の非 ASCII 文字を含む）ヘッダーで RangeError になり、404 ではなく 500 を
+返していた。認証の回避にはならない（info）。両方を Buffer にしてからバイト長を比べる。
+元パッチ：p2-review/r2-04.patch（指摘 ID は R2-09）。
+回帰テスト：tests/security-regressions.test.ts（R2-09）。
+---
+ signal-lab/budget-guard/app/api/admin/stats/route.ts |  5 +++--
+ .../budget-guard/tests/security-regressions.test.ts  | 12 ++++++++++++
+ 2 files changed, 15 insertions(+), 2 deletions(-)
+
+diff --git a/signal-lab/budget-guard/app/api/admin/stats/route.ts b/signal-lab/budget-guard/app/api/admin/stats/route.ts
+index 42eb583..9448130 100644
+--- a/signal-lab/budget-guard/app/api/admin/stats/route.ts
++++ b/signal-lab/budget-guard/app/api/admin/stats/route.ts
+@@ -6,8 +6,9 @@ import { trialMetrics } from "@/lib/guard/admin";
+ /** GET with `Authorization: Bearer $ADMIN_TOKEN` → last 14 days of counters, waitlist size and trial metrics (lib/guard/admin.ts). */
+ export async function GET(request: Request) {
+   const expected = process.env.ADMIN_TOKEN;
+-  const given = request.headers.get("authorization")?.replace(/^Bearer /, "") ?? "";
+-  const ok = !!expected && given.length === expected.length && timingSafeEqual(Buffer.from(given), Buffer.from(expected));
++  const given = Buffer.from(request.headers.get("authorization")?.replace(/^Bearer /, "") ?? "");
++  // Compare byte lengths: a multi-byte header of equal string length would make timingSafeEqual throw (500).
++  const ok = !!expected && given.length === Buffer.byteLength(expected) && timingSafeEqual(given, Buffer.from(expected));
+   if (!ok) return new Response(null, { status: 404 });
+   const kv = getKV();
+   return Response.json(
+diff --git a/signal-lab/budget-guard/tests/security-regressions.test.ts b/signal-lab/budget-guard/tests/security-regressions.test.ts
+index 271618a..7a851c2 100644
+--- a/signal-lab/budget-guard/tests/security-regressions.test.ts
++++ b/signal-lab/budget-guard/tests/security-regressions.test.ts
+@@ -9,6 +9,7 @@ vi.mock("next/server", async (orig) => ({ ...(await orig<typeof import("next/ser
+ 
+ import { GET as getConn, POST as postConn } from "@/app/api/app/connections/[id]/route";
+ import { POST as signout } from "@/app/api/access/signout/route";
++import { GET as adminStats } from "@/app/api/admin/stats/route";
+ import { GET as state } from "@/app/api/app/state/route";
+ import { POST as complete } from "@/app/api/checkout/complete/route";
+ import { GET as demoPortal } from "@/app/api/checkout/demo/portal/route";
+@@ -284,3 +285,14 @@ describe("R3-07: a non-numeric spend is a fetch error, not \"ok\"", () => {
+     expect(r.notices).toEqual([expect.objectContaining({ kind: "error", message: expect.stringContaining("non-numeric spend") })]);
+   });
+ });
++
++describe("R2-09: admin/stats compares byte lengths (no 500 on a multi-byte header)", () => {
++  it("a Latin-1 header of the same string length is a plain 404", async () => {
++    vi.stubEnv("ADMIN_TOKEN", "admin-token-0123456789");
++    const wrong = "admin-token-012345678\u00e9"; // same string length, one more byte in UTF-8
++    const res = await adminStats(new Request("http://x/api/admin/stats", { headers: { authorization: `Bearer ${wrong}` } }));
++    expect(res.status).toBe(404);
++    const ok = await adminStats(new Request("http://x/api/admin/stats", { headers: { authorization: "Bearer admin-token-0123456789" } }));
++    expect(ok.status).toBe(200);
++  });
++});

@@ -1,0 +1,194 @@
+From fe63e7519eb9db5f97006d0e064ed5edf9e712e9 Mon Sep 17 00:00:00 2001
+From: Atlas QA <atlas@local>
+Date: Fri, 9 Oct 2026 04:05:59 +0000
+Subject: [PATCH 01/12] R3-01: テストモードの試行停止で stoppedAt
+ を立てない（live に切り替えた月も自動停止を走らせる）
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+test モードの dry run は state.stopTestedAt に記録し、stoppedAt は live の停止だけが
+立てるようにした。evaluate には、live のときは stoppedAt、それ以外は stopTestedAt を
+渡すので、test モードでの「月1回だけ記録」はこれまでどおり。
+移行：修正前のデータ（test の dry run が stoppedAt を立てたもの）のため、test/off から
+arm-live したときに今月の stoppedAt を消す（clearStoppedAt）。live→test→live の場合も
+消えるため、予算超過のままなら再度停止が走る（arm し直した利用者の意図どおり）。
+回帰テスト：tests/security-regressions.test.ts（R3-01）。
+---
+ .../app/api/app/connections/[id]/route.ts     |  3 +-
+ signal-lab/budget-guard/lib/guard/check.ts    |  6 +-
+ signal-lab/budget-guard/lib/guard/evaluate.ts |  2 +
+ signal-lab/budget-guard/lib/guard/store.ts    | 14 ++++
+ .../tests/security-regressions.test.ts        | 80 +++++++++++++++++++
+ 5 files changed, 102 insertions(+), 3 deletions(-)
+ create mode 100644 signal-lab/budget-guard/tests/security-regressions.test.ts
+
+diff --git a/signal-lab/budget-guard/app/api/app/connections/[id]/route.ts b/signal-lab/budget-guard/app/api/app/connections/[id]/route.ts
+index 977689e..6395c35 100644
+--- a/signal-lab/budget-guard/app/api/app/connections/[id]/route.ts
++++ b/signal-lab/budget-guard/app/api/app/connections/[id]/route.ts
+@@ -4,7 +4,7 @@ import { adapterFor } from "@/lib/guard/providers";
+ import { connIdSchema, connOpSchema } from "@/lib/guard/schemas";
+ import { checkAccountDetailed, challengeSecret, fetchFor, openToken, planFor, setVercelWebhookSecret } from "@/lib/guard/service";
+ import { runStop, verifyChallenge } from "@/lib/guard/stop";
+-import { appendLog, getConnection, removeConnection, updateConnection } from "@/lib/guard/store";
++import { appendLog, clearStoppedAt, getConnection, removeConnection, updateConnection } from "@/lib/guard/store";
+ import { connectionDetailView } from "@/lib/guard/views";
+ 
+ type Ctx = { params: Promise<{ id: string }> };
+@@ -78,6 +78,7 @@ export async function POST(request: Request, ctx: Ctx) {
+       if (!check.ok) return done(`confirm-${check.reason}`, 400);
+       if (op.data.action === "arm-live") {
+         await updateConnection(kv, account.id, conn.id, { stopMode: "live" });
++        if (conn.stopMode !== "live") await clearStoppedAt(kv, account.id, conn.id);
+         await appendLog(kv, account.id, [{ kind: "stop-test", connectionId: conn.id, message: `Stop action ARMED (live): ${plan.summary}`, at }]);
+         return done("armed");
+       }
+diff --git a/signal-lab/budget-guard/lib/guard/check.ts b/signal-lab/budget-guard/lib/guard/check.ts
+index e6d5073..4d0956f 100644
+--- a/signal-lab/budget-guard/lib/guard/check.ts
++++ b/signal-lab/budget-guard/lib/guard/check.ts
+@@ -63,7 +63,9 @@ export async function checkConnection(conn: Connection, prev: GuardState | undef
+   }
+   if (state.keyInvalidAt) delete state.keyInvalidAt; // the key works again: the next failure is reported again
+ 
+-  const evaluation = evaluate(deps.forceLimit ? Math.max(spendUsd, conn.budgetUsd) : spendUsd, conn.budgetUsd, state, {
++  // A test-mode dry run must not count as "already stopped" once the connection is armed live.
++  const stopState = conn.stopMode === "live" ? state : { ...state, stoppedAt: state.stopTestedAt };
++  const evaluation = evaluate(deps.forceLimit ? Math.max(spendUsd, conn.budgetUsd) : spendUsd, conn.budgetUsd, stopState, {
+     stopEnabled: conn.stopMode !== "off",
+   });
+   const pct = Math.round(evaluation.ratio * 100);
+@@ -86,7 +88,7 @@ export async function checkConnection(conn: Connection, prev: GuardState | undef
+       const plan = await adapter.planStop(conn.target, deps.token, conn.budgetUsd, deps.fetchImpl);
+       stop = await runStop(plan, conn.stopMode, adapter.authHeaders(deps.token), deps.fetchImpl);
+       if (stop.dryRun) {
+-        state.stoppedAt = stamp; // test mode: record once per period so we don't spam
++        state.stopTestedAt = stamp; // test mode: record once per period so we don't spam (not stoppedAt: arming live must still stop)
+         notices.push({ kind: "stop-test", connectionId: conn.id, message: `TEST MODE — would have run: ${plan.summary}` });
+       } else if (stop.ok) {
+         state.stoppedAt = stamp;
+diff --git a/signal-lab/budget-guard/lib/guard/evaluate.ts b/signal-lab/budget-guard/lib/guard/evaluate.ts
+index c2484d9..4418a66 100644
+--- a/signal-lab/budget-guard/lib/guard/evaluate.ts
++++ b/signal-lab/budget-guard/lib/guard/evaluate.ts
+@@ -9,6 +9,8 @@ export interface GuardState {
+   warnedAt?: string;
+   limitNotifiedAt?: string;
+   stoppedAt?: string;
++  /** Test mode recorded a would-be stop this period. Kept apart from stoppedAt so arming "live" later in the month still stops. */
++  stopTestedAt?: string;
+   /** UTC hour ("2026-10-09T03") the hourly cron last checked this connection: a second cron run of that hour skips it. */
+   lastHour?: string;
+   /** Set when the provider rejected the token (401/403) and we told the user; cleared by the next successful fetch. Survives the monthly reset. */
+diff --git a/signal-lab/budget-guard/lib/guard/store.ts b/signal-lab/budget-guard/lib/guard/store.ts
+index 57a29fe..64d00b7 100644
+--- a/signal-lab/budget-guard/lib/guard/store.ts
++++ b/signal-lab/budget-guard/lib/guard/store.ts
+@@ -184,6 +184,20 @@ export const claimHookEvent = (kv: KV, id: string, event: string) => kv.set(k.ho
+ export const listAccounts = (kv: KV) => kv.smembers(k.accounts());
+ export const getState = (kv: KV, acct: string, id: string) => getJSON<GuardState>(kv, k.state(acct, id));
+ export const saveState = (kv: KV, acct: string, id: string, s: GuardState) => setJSON(kv, k.state(acct, id), s);
++
++/**
++ * Arming "live": drop a stoppedAt that a test-mode dry run wrote before stopTestedAt
++ * existed (data from before this fix). Only a live stop sets stoppedAt now, so when the
++ * connection comes from test/off any stoppedAt of this month is that leftover — kept, it
++ * would block the armed stop until the next month.
++ */
++export async function clearStoppedAt(kv: KV, acct: string, id: string): Promise<void> {
++  const s = await getState(kv, acct, id);
++  if (s?.stoppedAt) {
++    delete s.stoppedAt;
++    await saveState(kv, acct, id, s);
++  }
++}
+ export const getSnapshot = async (kv: KV, acct: string, id: string): Promise<Snapshot | null> => (await getActivity(kv, acct)).snaps[id] ?? null;
+ export async function saveSnapshot(kv: KV, acct: string, id: string, s: Snapshot): Promise<void> {
+   const activity = await getActivity(kv, acct);
+diff --git a/signal-lab/budget-guard/tests/security-regressions.test.ts b/signal-lab/budget-guard/tests/security-regressions.test.ts
+new file mode 100644
+index 0000000..e40d3a3
+--- /dev/null
++++ b/signal-lab/budget-guard/tests/security-regressions.test.ts
+@@ -0,0 +1,80 @@
++import { afterEach, describe, expect, it, vi } from "vitest";
++
++// Regression tests for the P2 security review (Atlas, qa/p2-security). One describe per finding.
++
++// after() needs a Next request scope; record the callbacks instead.
++const afterCalls: (() => unknown)[] = [];
++vi.mock("next/server", async (orig) => ({ ...(await orig<typeof import("next/server")>()), after: (fn: () => unknown) => void afterCalls.push(fn) }));
++
++import { GET as getConn, POST as postConn } from "@/app/api/app/connections/[id]/route";
++import { ACCESS_COOKIE, signAccessToken } from "@/lib/access";
++import { upsertEntitlement } from "@/lib/entitlements";
++import { checkConnection, type Connection } from "@/lib/guard/check";
++import { demoFetch } from "@/lib/guard/demo";
++import { addConnection, getState, saveState } from "@/lib/guard/store";
++import { getKV } from "@/lib/redis";
++
++const BASE = "http://localhost:3000";
++type Opts = { method?: string; body?: unknown; cookie?: string };
++function req(path: string, o: Opts = {}): Request {
++  const headers = new Headers({ host: "localhost:3000", origin: BASE });
++  if (o.body !== undefined) headers.set("content-type", "application/json");
++  if (o.cookie) headers.set("cookie", `${ACCESS_COOKIE}=${o.cookie}`);
++  return new Request(BASE + path, { method: o.method ?? (o.body !== undefined ? "POST" : "GET"), headers, body: o.body !== undefined ? JSON.stringify(o.body) : undefined });
++}
++const ctx = (id: string) => ({ params: Promise.resolve({ id }) });
++afterEach(() => {
++  vi.useRealTimers();
++  vi.unstubAllEnvs();
++});
++
++const vercelConn = (stopMode: Connection["stopMode"], budgetUsd = 50): Connection => ({
++  id: "conn_r301",
++  label: "Vercel prod",
++  budgetUsd,
++  stopMode,
++  sealedToken: "",
++  target: { provider: "vercel", teamId: "team_1", projectIds: ["prj_1"] },
++});
++
++describe("R3-01: a test-mode dry run must not block the live stop after arming", () => {
++  it("test → live in the same month: the next check runs the stop", async () => {
++    const f = demoFetch({ vercel: 60 }); // $60 of $50
++    const test = await checkConnection(vercelConn("test"), undefined, { token: "t", fetchImpl: f, now: new Date("2026-10-15T10:00:00Z") });
++    expect(test.notices.map((n) => n.kind)).toContain("stop-test");
++    expect(test.state.stoppedAt).toBeUndefined();
++    expect(test.state.stopTestedAt).toBeTruthy();
++
++    // Test mode still records the dry run once a month.
++    const again = await checkConnection(vercelConn("test"), test.state, { token: "t", fetchImpl: f, now: new Date("2026-10-15T11:00:00Z") });
++    expect(again.notices.map((n) => n.kind)).not.toContain("stop-test");
++
++    const live = await checkConnection(vercelConn("live"), again.state, { token: "t", fetchImpl: f, now: new Date("2026-10-15T12:00:00Z") });
++    expect(live.stop?.dryRun).toBe(false);
++    expect(live.stop?.ok).toBe(true);
++    expect(live.notices.map((n) => n.kind)).toContain("stopped");
++    expect(live.state.stoppedAt).toBeTruthy();
++
++    // ...and only once a month in live mode, too.
++    const after = await checkConnection(vercelConn("live"), live.state, { token: "t", fetchImpl: f, now: new Date("2026-10-15T13:00:00Z") });
++    expect(after.stop).toBeUndefined();
++  });
++
++  it("arm-live clears a stoppedAt left by a dry run of the old code (data from before the fix)", async () => {
++    const kv = getKV();
++    const { entitlement } = await upsertEntitlement(kv, { id: "cs_test_r301", email: "r301@example.com", plan: "monthly", source: "stripe" });
++    const cookie = await signAccessToken({ sub: entitlement.id, plan: entitlement.plan });
++    const conn = await addConnection(kv, entitlement.id, { label: "OpenAI prod", target: { provider: "openai", projectId: "proj_1" }, budgetUsd: 10, token: "demo" });
++    await saveState(kv, entitlement.id, conn.id, { period: new Date().toISOString().slice(0, 7), stoppedAt: new Date().toISOString(), limitNotifiedAt: "x" });
++
++    const view = await (await getConn(req(`/api/app/connections/${conn.id}`, { cookie }), ctx(conn.id))).json();
++    const r = await postConn(
++      req(`/api/app/connections/${conn.id}`, { body: { op: "confirm", action: "arm-live", challenge: view.challenges["arm-live"], typed: "OpenAI prod" }, cookie }),
++      ctx(conn.id),
++    );
++    expect((await r.json()).msg).toBe("armed");
++    const s = await getState(kv, entitlement.id, conn.id);
++    expect(s?.stoppedAt).toBeUndefined();
++    expect(s?.limitNotifiedAt).toBe("x"); // the rest of the month's state is kept
++  });
++});

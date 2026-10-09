@@ -1,0 +1,106 @@
+From a1cfe73c014e3412fac26c46f30dfd2f2fb68814 Mon Sep 17 00:00:00 2001
+From: Atlas QA <atlas@local>
+Date: Fri, 9 Oct 2026 04:10:56 +0000
+Subject: [PATCH 10/12] R3-05: プロバイダーと Slack への fetch
+ にタイムアウトを付け、リダイレクトを追わない
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+プロバイダー（Vercel / OpenAI / Anthropic）への呼び出しを providerFetch にまとめ、
+AbortSignal.timeout(20秒) を付ける。応答しないプロバイダーが接続ロック（120秒）や cron を
+抱え込むのを防ぐ。リダイレクトは追わない（Anthropic の x-api-key は別オリジンへの
+リダイレクトでも消されず、307/308 では停止の POST 本文も再送されるため）。
+元パッチ（r3-05.patch）の redirect: "error" は、Cloudflare Workers の fetch が
+"follow" / "manual" しか受け付けない可能性がある（未確認）ため、redirect: "manual" にして
+3xx をエラーとして扱う形に変えた。Slack は 10秒のタイムアウトと manual（3xx は !ok で失敗）。
+残課題：Anthropic のキーが多いとき（最大 10×1000 件を直列に POST）は1件20秒でもロックを超えうる。
+ロックの解放をトークン比較付きにする。回帰テスト：tests/security-regressions.test.ts（R3-05）。
+---
+ .../budget-guard/lib/guard/notify-channels.ts |  8 +++++++-
+ signal-lab/budget-guard/lib/guard/service.ts  | 17 ++++++++++++++++-
+ .../tests/security-regressions.test.ts        | 19 ++++++++++++++++++-
+ 3 files changed, 41 insertions(+), 3 deletions(-)
+
+diff --git a/signal-lab/budget-guard/lib/guard/notify-channels.ts b/signal-lab/budget-guard/lib/guard/notify-channels.ts
+index 71ea99b..f5d1956 100644
+--- a/signal-lab/budget-guard/lib/guard/notify-channels.ts
++++ b/signal-lab/budget-guard/lib/guard/notify-channels.ts
+@@ -41,6 +41,12 @@ export async function postSlack(url: string, text: string, fetchImpl: FetchLike
+     return;
+   }
+   if (!isSlackWebhookUrl(url)) throw new Error("Not a Slack incoming webhook URL");
+-  const res = await fetchImpl(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text }) });
++  const res = await fetchImpl(url, {
++    method: "POST",
++    headers: { "content-type": "application/json" },
++    body: JSON.stringify({ text }),
++    redirect: "manual", // never follow (see providerFetch in service.ts); a 3xx is !ok below
++    signal: AbortSignal.timeout(10_000),
++  });
+   if (!res.ok) throw new Error(`Slack ${res.status}: ${(await res.text()).slice(0, 100)}`);
+ }
+diff --git a/signal-lab/budget-guard/lib/guard/service.ts b/signal-lab/budget-guard/lib/guard/service.ts
+index a4d698e..5f56360 100644
+--- a/signal-lab/budget-guard/lib/guard/service.ts
++++ b/signal-lab/budget-guard/lib/guard/service.ts
+@@ -37,9 +37,24 @@ import type { GuardState } from "./evaluate";
+ 
+ // Glue between the pure guard logic and the template's KV, mail and entitlements.
+ 
++/** Per-request limit for provider calls: a hung provider must not hold the connection lock (CONN_LOCK_SECONDS) or the cron run. */
++export const PROVIDER_TIMEOUT_MS = 20_000;
++
++/**
++ * Provider fetch: bounded in time, and never follows redirects (a redirect would carry the
++ * admin token — x-api-key is not stripped cross-origin — and replay POST bodies to another host).
++ * redirect "manual" + refusing 3xx rather than redirect "error": Cloudflare Workers' fetch has
++ * historically accepted only "follow" / "manual".
++ */
++export const providerFetch: FetchLike = async (url, init) => {
++  const res = await fetch(url, { ...init, redirect: "manual", signal: init.signal ?? AbortSignal.timeout(PROVIDER_TIMEOUT_MS) });
++  if (res.status >= 300 && res.status < 400) throw new Error(`${new URL(url).host} answered ${res.status} (redirect refused)`);
++  return res;
++};
++
+ /** Real fetch, or the offline demo for the "demo" token (see demoTokensAllowed). */
+ export function fetchFor(token: string): FetchLike {
+-  if (!isDemoToken(token)) return fetch;
++  if (!isDemoToken(token)) return providerFetch;
+   if (!demoTokensAllowed()) throw new Error("The demo token is disabled in production");
+   return demoFetch();
+ }
+diff --git a/signal-lab/budget-guard/tests/security-regressions.test.ts b/signal-lab/budget-guard/tests/security-regressions.test.ts
+index 07dad60..f5c5370 100644
+--- a/signal-lab/budget-guard/tests/security-regressions.test.ts
++++ b/signal-lab/budget-guard/tests/security-regressions.test.ts
+@@ -20,7 +20,7 @@ import { decryptSecret, encryptionKey, encryptSecret } from "@/lib/guard/crypto"
+ import { demoFetch } from "@/lib/guard/demo";
+ import { ProviderHttpError } from "@/lib/guard/providers";
+ import { redactSecrets } from "@/lib/guard/redact";
+-import { checkConnectionLocked } from "@/lib/guard/service";
++import { checkConnectionLocked, providerFetch } from "@/lib/guard/service";
+ import { addConnection, getState, saveState } from "@/lib/guard/store";
+ import { createDemoCheckout } from "@/lib/payments/demo";
+ import { createMemoryKV, getKV } from "@/lib/redis";
+@@ -257,3 +257,20 @@ describe("R2-03: a demo purchase never takes over the email index of an active e
+     expect((await findByEmail(kv, "w@example.com"))?.id).toBe("demo_newDDDDDDDDDDDDDDDDDDD");
+   });
+ });
++
++describe("R3-05: provider calls have a timeout and never follow redirects", () => {
++  it("passes redirect: manual + an abort signal, and refuses a 3xx", async () => {
++    const seen: RequestInit[] = [];
++    vi.stubGlobal("fetch", async (_url: string, init: RequestInit) => {
++      seen.push(init);
++      return new Response(null, { status: 307, headers: { location: "https://elsewhere.example/" } });
++    });
++    try {
++      await expect(providerFetch("https://api.anthropic.com/v1/x", { method: "POST", headers: { "x-api-key": "k" } })).rejects.toThrow("redirect refused");
++      expect(seen[0].redirect).toBe("manual");
++      expect(seen[0].signal).toBeInstanceOf(AbortSignal);
++    } finally {
++      vi.unstubAllGlobals();
++    }
++  });
++});

@@ -1,0 +1,74 @@
+From af4b1078e3814556bf76fe84eb862863888b9bab Mon Sep 17 00:00:00 2001
+From: Atlas QA <atlas@local>
+Date: Fri, 9 Oct 2026 04:10:11 +0000
+Subject: [PATCH 09/12] R2-03: デモ購入は、active な entitlement
+ を指しているメールの索引を上書きしない
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+PAYMENTS_MODE=demo では、他人のメールアドレスでデモ購入すると ent-by-email がその購入に
+向き直り、被害者のマジックリンクが攻撃者もライセンスキーを持つアカウントに届いていた
+（PoC で再現）。デモ購入が索引を書き換えるのは、索引が空のときか、指している先が
+失効した（active でない）デモの entitlement のときだけにする。
+残課題：根本対策（メールの所有確認、またはメールごとに複数の entitlement を持ち、
+マジックリンク側で選ばせる）。Stripe モードの同種の問題は R2-05（パッチなし）。
+元パッチ：p2-review/r2-03.patch。回帰テスト：tests/security-regressions.test.ts（R2-03）。
+---
+ signal-lab/budget-guard/lib/entitlements.ts    |  8 +++++---
+ .../tests/security-regressions.test.ts         | 18 +++++++++++++++++-
+ 2 files changed, 22 insertions(+), 4 deletions(-)
+
+diff --git a/signal-lab/budget-guard/lib/entitlements.ts b/signal-lab/budget-guard/lib/entitlements.ts
+index a887f7d..0402baf 100644
+--- a/signal-lab/budget-guard/lib/entitlements.ts
++++ b/signal-lab/budget-guard/lib/entitlements.ts
+@@ -76,10 +76,12 @@ export async function upsertEntitlement(
+     return { entitlement: existing, created: false };
+   }
+   await kv.set(k.license(entitlement.licenseKey), entitlement.id);
+-  // Latest purchase wins for magic links — except a demo purchase (buyer-chosen email,
+-  // no payment) never takes over an email that already points at a real (stripe) entitlement.
++  // Latest purchase wins for magic links — except a demo purchase (buyer-chosen, unverified
++  // email, no payment) never takes over an email that points at a real (stripe) entitlement
++  // or at someone's still-active demo entitlement (otherwise anyone could redirect that
++  // person's magic link into an account the attacker also holds the license key for).
+   const prevByEmail = entitlement.source === "demo" ? await findByEmail(kv, entitlement.email) : null;
+-  if (!prevByEmail || prevByEmail.source === "demo") await kv.set(k.email(entitlement.email), entitlement.id);
++  if (!prevByEmail || (prevByEmail.source === "demo" && !isActive(prevByEmail))) await kv.set(k.email(entitlement.email), entitlement.id);
+   if (entitlement.subscriptionId) await kv.set(k.sub(entitlement.subscriptionId), entitlement.id);
+   if (entitlement.paymentIntentId) await kv.set(k.pi(entitlement.paymentIntentId), entitlement.id);
+   if (entitlement.customerId) await kv.set(k.customer(entitlement.customerId), entitlement.id);
+diff --git a/signal-lab/budget-guard/tests/security-regressions.test.ts b/signal-lab/budget-guard/tests/security-regressions.test.ts
+index 7f2dd31..07dad60 100644
+--- a/signal-lab/budget-guard/tests/security-regressions.test.ts
++++ b/signal-lab/budget-guard/tests/security-regressions.test.ts
+@@ -14,7 +14,7 @@ import { POST as complete } from "@/app/api/checkout/complete/route";
+ import { GET as demoPortal } from "@/app/api/checkout/demo/portal/route";
+ import { POST as demoPay } from "@/app/api/checkout/demo/route";
+ import { ACCESS_COOKIE, signAccessToken } from "@/lib/access";
+-import { upsertEntitlement } from "@/lib/entitlements";
++import { findByEmail, setStatus, upsertEntitlement } from "@/lib/entitlements";
+ import { checkConnection, type Connection } from "@/lib/guard/check";
+ import { decryptSecret, encryptionKey, encryptSecret } from "@/lib/guard/crypto";
+ import { demoFetch } from "@/lib/guard/demo";
+@@ -241,3 +241,19 @@ describe("R2-02: sign-out revokes the account's access cookies server side", ()
+     expect((await demoPortal(req("/api/checkout/demo/portal", { cookie }))).status).toBe(401);
+   });
+ });
++
++describe("R2-03: a demo purchase never takes over the email index of an active entitlement", () => {
++  it("an attacker's demo purchase with the victim's email leaves the magic link pointing at the victim", async () => {
++    const kv = createMemoryKV();
++    await upsertEntitlement(kv, { id: "demo_victimAAAAAAAAAAAAAAAA", email: "V@example.com", plan: "monthly", source: "demo" });
++    await upsertEntitlement(kv, { id: "demo_attackerBBBBBBBBBBBBBB", email: "v@example.com", plan: "monthly", source: "demo" });
++    expect((await findByEmail(kv, "v@example.com"))?.id).toBe("demo_victimAAAAAAAAAAAAAAAA");
++  });
++  it("a lapsed demo entitlement can still be replaced by a new demo purchase", async () => {
++    const kv = createMemoryKV();
++    const { entitlement } = await upsertEntitlement(kv, { id: "demo_oldCCCCCCCCCCCCCCCCCCC", email: "w@example.com", plan: "monthly", source: "demo" });
++    await setStatus(kv, entitlement, "canceled");
++    await upsertEntitlement(kv, { id: "demo_newDDDDDDDDDDDDDDDDDDD", email: "w@example.com", plan: "monthly", source: "demo" });
++    expect((await findByEmail(kv, "w@example.com"))?.id).toBe("demo_newDDDDDDDDDDDDDDDDDDD");
++  });
++});

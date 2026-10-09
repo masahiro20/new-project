@@ -1,0 +1,75 @@
+From bf66aa43cf06e2910f9475ad7e44e221bfd55d92 Mon Sep 17 00:00:00 2001
+From: Atlas QA <atlas@local>
+Date: Fri, 9 Oct 2026 04:06:54 +0000
+Subject: [PATCH 03/12] R1-04: 開発用の固定鍵は NODE_ENV が development / test
+ のときだけ使う（fail-closed）
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+これまでは NODE_ENV === "production" のときだけ鍵の未設定をエラーにしていたため、
+NODE_ENV が未設定・staging などの環境では、ソースに書かれた固定鍵でトークンを暗号化していた。
+development / test 以外（未設定を含む）は "TOKEN_ENCRYPTION_KEY is not set" で止める。
+注意：Cloudflare の cron 経路（cf-worker.ts）で NODE_ENV が未定義の場合、TOKEN_ENCRYPTION_KEY が
+入っていれば影響はない。入っていなければ、これまで黙って開発用の鍵を使っていたところが
+エラーになる（意図した変更）。元パッチ：p2-review/r1-02.patch（指摘 ID は R1-04）。
+同じ形の lib/access.ts の accessSecret は今回は変えていない（REPORT.md の残課題）。
+---
+ signal-lab/budget-guard/lib/guard/crypto.ts      |  5 ++++-
+ .../tests/security-regressions.test.ts           | 16 +++++++++++++++-
+ 2 files changed, 19 insertions(+), 2 deletions(-)
+
+diff --git a/signal-lab/budget-guard/lib/guard/crypto.ts b/signal-lab/budget-guard/lib/guard/crypto.ts
+index ff08f23..a35b342 100644
+--- a/signal-lab/budget-guard/lib/guard/crypto.ts
++++ b/signal-lab/budget-guard/lib/guard/crypto.ts
+@@ -6,6 +6,7 @@ const VERSION = "v1";
+ const IV_BYTES = 12;
+ const TAG_BYTES = 16;
+ const DEV_KEY_SEED = "budget-guard-dev-only-key";
++const DEV_ENVS = new Set(["development", "test"]);
+ 
+ let warned = false;
+ 
+@@ -16,7 +17,9 @@ export function encryptionKey(env: NodeJS.ProcessEnv = process.env): Buffer {
+     if (key.length !== 32) throw new Error("TOKEN_ENCRYPTION_KEY must be 32 bytes, base64-encoded");
+     return key;
+   }
+-  if (env.NODE_ENV === "production") throw new Error("TOKEN_ENCRYPTION_KEY is not set");
++  // Fail closed: the public dev key is used only when NODE_ENV says development / test,
++  // never when NODE_ENV is unset or anything else (e.g. a Worker bundle without NODE_ENV).
++  if (!DEV_ENVS.has(env.NODE_ENV ?? "")) throw new Error("TOKEN_ENCRYPTION_KEY is not set");
+   if (!warned) {
+     warned = true;
+     console.warn("[budget-guard] TOKEN_ENCRYPTION_KEY unset: using a fixed dev key. Never use this with real tokens.");
+diff --git a/signal-lab/budget-guard/tests/security-regressions.test.ts b/signal-lab/budget-guard/tests/security-regressions.test.ts
+index fff3ae2..7711f74 100644
+--- a/signal-lab/budget-guard/tests/security-regressions.test.ts
++++ b/signal-lab/budget-guard/tests/security-regressions.test.ts
+@@ -11,7 +11,7 @@ import { GET as getConn, POST as postConn } from "@/app/api/app/connections/[id]
+ import { ACCESS_COOKIE, signAccessToken } from "@/lib/access";
+ import { upsertEntitlement } from "@/lib/entitlements";
+ import { checkConnection, type Connection } from "@/lib/guard/check";
+-import { decryptSecret, encryptSecret } from "@/lib/guard/crypto";
++import { decryptSecret, encryptionKey, encryptSecret } from "@/lib/guard/crypto";
+ import { demoFetch } from "@/lib/guard/demo";
+ import { addConnection, getState, saveState } from "@/lib/guard/store";
+ import { getKV } from "@/lib/redis";
+@@ -107,3 +107,17 @@ describe("R1-06: AES-GCM tag / IV length are fixed (16 / 12 bytes)", () => {
+     expect(encryptSecret("sk-secret", "conn_x", key).split(".")[2]).toHaveLength(22); // 16 bytes base64url
+   });
+ });
++
++describe("R1-04: the public dev key only in development / test", () => {
++  it("throws when NODE_ENV is unset, staging or production and no key is set", () => {
++    for (const NODE_ENV of [undefined, "", "staging", "production"]) {
++      expect(() => encryptionKey({ NODE_ENV } as NodeJS.ProcessEnv)).toThrow("TOKEN_ENCRYPTION_KEY is not set");
++    }
++  });
++  it("uses the dev key in development / test, and a set key everywhere", () => {
++    expect(encryptionKey({ NODE_ENV: "development" } as NodeJS.ProcessEnv)).toHaveLength(32);
++    expect(encryptionKey({ NODE_ENV: "test" } as NodeJS.ProcessEnv)).toHaveLength(32);
++    const k = randomBytes(32);
++    expect(encryptionKey({ TOKEN_ENCRYPTION_KEY: k.toString("base64") } as unknown as NodeJS.ProcessEnv).equals(k)).toBe(true);
++  });
++});

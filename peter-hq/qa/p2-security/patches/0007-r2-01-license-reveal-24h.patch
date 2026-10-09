@@ -1,0 +1,127 @@
+From 95c70843e273eaff57d72cd608b2e187bec777c4 Mon Sep 17 00:00:00 2001
+From: Atlas QA <atlas@local>
+Date: Fri, 9 Oct 2026 04:08:53 +0000
+Subject: [PATCH 07/12] R2-01: checkout complete
+ がライセンスキーを返すのは購入から24時間以内に限る
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+POST /api/checkout/complete は、チェックアウトID（cs_… / demo_…）さえあれば何日たっても
+ライセンスキー（失効させられない永続の認証情報）を返していた（PoC：30日後も返る）。
+/api/access/verify の session_id ログインと同じ24時間の窓を設け、それを過ぎたら
+licenseKey: null を返す（paid / active はこれまでどおり）。/success の画面は、キーが
+無いときに「メールを確認・/access でサインイン」の案内を出す（SuccessView.tsx）。
+残課題：KV のキャッシュが無いときは resolveEntitlement が createdAt=now で作り直すので、
+Stripe の session.created を createdAt に使う。ライセンスキーの再発行（ローテーション）。
+元パッチ：p2-review/r2-01.patch。回帰テスト：tests/security-regressions.test.ts（R2-01）。
+---
+ .../app/api/checkout/complete/route.ts        |  9 ++++++-
+ .../components/client/SuccessView.tsx         |  7 +++++-
+ .../tests/security-regressions.test.ts        | 25 +++++++++++++++++++
+ 3 files changed, 39 insertions(+), 2 deletions(-)
+
+diff --git a/signal-lab/budget-guard/app/api/checkout/complete/route.ts b/signal-lab/budget-guard/app/api/checkout/complete/route.ts
+index f64c3a1..2696ff8 100644
+--- a/signal-lab/budget-guard/app/api/checkout/complete/route.ts
++++ b/signal-lab/budget-guard/app/api/checkout/complete/route.ts
+@@ -6,6 +6,12 @@ import { fulfillCheckout, onNewEntitlement, providerForCheckout } from "@/lib/pa
+ import { clientIp, rateLimit } from "@/lib/ratelimit";
+ import { getKV } from "@/lib/redis";
+ 
++// Same window as /api/access/verify: the checkout id is a bearer capability that
++// lives on in browser history, logs and shared URLs, so it may reveal the license
++// key (a permanent credential) only shortly after purchase. Later the buyer uses the
++// emailed key or a magic link.
++const LICENSE_REVEAL_WINDOW_MS = 24 * 60 * 60 * 1000;
++
+ /**
+  * POST (JSON {session_id}) from the static /success page: confirm payment with the
+  * provider (no need to wait for the webhook) and issue the entitlement (idempotent).
+@@ -29,12 +35,13 @@ export async function POST(request: Request) {
+ 
+   const { entitlement, created } = await fulfillCheckout(kv, checkout, provider.name);
+   if (created) after(() => onNewEntitlement(kv, entitlement, provider));
++  const fresh = Date.now() - Date.parse(entitlement.createdAt) <= LICENSE_REVEAL_WINDOW_MS;
+   return json({
+     paid: true,
+     id: entitlement.id,
+     demo: provider.name === "demo",
+     planLabel: getPlan(entitlement.plan)?.label ?? entitlement.plan,
+     active: isActive(entitlement),
+-    licenseKey: isActive(entitlement) ? entitlement.licenseKey : null,
++    licenseKey: isActive(entitlement) && fresh ? entitlement.licenseKey : null,
+   });
+ }
+diff --git a/signal-lab/budget-guard/components/client/SuccessView.tsx b/signal-lab/budget-guard/components/client/SuccessView.tsx
+index 67c48c5..47d48e3 100644
+--- a/signal-lab/budget-guard/components/client/SuccessView.tsx
++++ b/signal-lab/budget-guard/components/client/SuccessView.tsx
+@@ -27,7 +27,7 @@ export function SuccessView({ labels, banner }: { labels: Labels; banner: React.
+       {result.demo && banner}
+       <h1>{labels.title}</h1>
+       {result.demo && <p className="hint">Plan: {result.planLabel}（デモ購入 / demo purchase）</p>}
+-      {result.active ? (
++      {result.active && result.licenseKey ? (
+         <>
+           <p>{labels.key}</p>
+           <p><span className="license" data-testid="license-key">{result.licenseKey}</span></p>
+@@ -37,6 +37,11 @@ export function SuccessView({ labels, banner }: { labels: Labels; banner: React.
+             <button className="btn">{labels.open}</button>
+           </form>
+         </>
++      ) : result.active ? (
++        // More than 24h after purchase the checkout id no longer reveals the key (/api/checkout/complete).
++        <p className="hint" data-testid="license-expired">
++          ライセンスキーは購入時のメールをご確認ください / Your license key was sent by email. <a href="/access">Sign in</a>
++        </p>
+       ) : (
+         <p className="notice">{labels.notPaid}</p>
+       )}
+diff --git a/signal-lab/budget-guard/tests/security-regressions.test.ts b/signal-lab/budget-guard/tests/security-regressions.test.ts
+index 410a401..b223540 100644
+--- a/signal-lab/budget-guard/tests/security-regressions.test.ts
++++ b/signal-lab/budget-guard/tests/security-regressions.test.ts
+@@ -8,6 +8,8 @@ const afterCalls: (() => unknown)[] = [];
+ vi.mock("next/server", async (orig) => ({ ...(await orig<typeof import("next/server")>()), after: (fn: () => unknown) => void afterCalls.push(fn) }));
+ 
+ import { GET as getConn, POST as postConn } from "@/app/api/app/connections/[id]/route";
++import { POST as complete } from "@/app/api/checkout/complete/route";
++import { POST as demoPay } from "@/app/api/checkout/demo/route";
+ import { ACCESS_COOKIE, signAccessToken } from "@/lib/access";
+ import { upsertEntitlement } from "@/lib/entitlements";
+ import { checkConnection, type Connection } from "@/lib/guard/check";
+@@ -17,6 +19,7 @@ import { ProviderHttpError } from "@/lib/guard/providers";
+ import { redactSecrets } from "@/lib/guard/redact";
+ import { checkConnectionLocked } from "@/lib/guard/service";
+ import { addConnection, getState, saveState } from "@/lib/guard/store";
++import { createDemoCheckout } from "@/lib/payments/demo";
+ import { createMemoryKV, getKV } from "@/lib/redis";
+ 
+ const BASE = "http://localhost:3000";
+@@ -176,3 +179,25 @@ describe("R1-05: provider error bodies are redacted before they reach mail / Sla
+     expect(e.message).toBe("api.openai.com 401: Incorrect API key provided: sk-[redacted]");
+   });
+ });
++
++describe("R2-01: the checkout id reveals the license key only within 24h of purchase", () => {
++  it("returns the key right after purchase and at 23h, but not after 24h", async () => {
++    const kv = getKV();
++    const co = await createDemoCheckout(kv, "monthly", "r201@example.com");
++    const card = { number: "4242 4242 4242 4242", expiry: "12/34", cvc: "123", name: "TARO YAMADA" };
++    expect((await demoPay(req("/api/checkout/demo", { body: { id: co.id, ...card } }))).status).toBe(200);
++    const first = await (await complete(req("/api/checkout/complete", { body: { session_id: co.id } }))).json();
++    expect(first.licenseKey).toMatch(/^SLAB-/);
++
++    vi.useFakeTimers({ toFake: ["Date"] });
++    vi.setSystemTime(Date.now() + 23 * 3600 * 1000);
++    expect((await (await complete(req("/api/checkout/complete", { body: { session_id: co.id } }))).json()).licenseKey).toBe(first.licenseKey);
++
++    vi.setSystemTime(Date.now() + 2 * 3600 * 1000); // 25h after purchase
++    const late = await complete(req("/api/checkout/complete", { body: { session_id: co.id } }));
++    expect(late.status).toBe(200);
++    const body = await late.json();
++    expect(body).toMatchObject({ paid: true, active: true, licenseKey: null });
++    expect(JSON.stringify(body)).not.toContain(first.licenseKey);
++  });
++});

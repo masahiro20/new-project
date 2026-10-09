@@ -1,0 +1,535 @@
+{
+  "target": "peter/p2-signal-lab 88cc595 signal-lab/budget-guard",
+  "verified_by": "Atlas（セキュリティ）",
+  "date": "2026-10-09",
+  "verdict_legend": {
+    "CONFIRMED": "PoC で再現、またはコードから確定的に言える",
+    "PLAUSIBLE": "コード上の経路はあるが、環境・外部 API・設定の未確認の前提に依存する",
+    "REJECTED": "指摘が誤り",
+    "UNVERIFIED": "情報不足で判断できない（info）",
+    "NO_ISSUE": "問題が無いことの確認"
+  },
+  "findings": [
+    {
+      "id": "R3-01",
+      "merged_from": [
+        "R3-01"
+      ],
+      "severity": "high",
+      "reviewer_severity": "high",
+      "verdict": "CONFIRMED",
+      "title": "test モードの dry run が stoppedAt を立て、同じ月に live に切り替えても自動停止が走らない",
+      "location": "signal-lab/budget-guard/lib/guard/check.ts:84-90, evaluate.ts:61, app/api/app/connections/[id]/route.ts:79-82",
+      "patch": "0001",
+      "verification": "PoC：test で $60/$50 → stop-test。live に切り替えた次の判定で stop=undefined、notices=[]。arm-live は state を触らない。",
+      "fix": "test の dry run は stopTestedAt に記録。arm-live 時に旧データの stoppedAt を消す（0001）。"
+    },
+    {
+      "id": "R3-02",
+      "merged_from": [
+        "R3-02"
+      ],
+      "severity": "high",
+      "reviewer_severity": "high",
+      "verdict": "CONFIRMED",
+      "title": "demo モードの本番で、無料アカウント＋demo 接続を大量に作ると全テナントの確認間隔が最大12時間に延びる",
+      "location": "signal-lab/budget-guard/lib/guard/cron.ts:110-116, schedule.ts, store.ts:137-141",
+      "patch": "なし",
+      "verification": "コード：addConnection は demo トークンでも bg:allconns に sadd。失効アカウントの接続も removeConnection まで残る。intervalFor(252)=12。demo 購入は IP あたり 20回/10分のみ。",
+      "fix": "REPORT.md「パッチの無い high / medium の修正方針」参照。"
+    },
+    {
+      "id": "R1-01",
+      "merged_from": [
+        "R1-01"
+      ],
+      "severity": "medium",
+      "reviewer_severity": "medium",
+      "verdict": "CONFIRMED",
+      "title": "トークンを復号できないと監視が黙って止まる（メール・Slack・ログのいずれにも出ない）",
+      "location": "signal-lab/budget-guard/lib/guard/service.ts:232-237, 111",
+      "patch": "0005（部分）",
+      "verification": "PoC：別の鍵で封じた接続 → status checked、メール 0 件、console.error 0 回。",
+      "fix": "console.error に接続IDと理由（0005）。起動時 fail-fast・cron errors への計上は未対応。"
+    },
+    {
+      "id": "R1-02",
+      "merged_from": [
+        "R1-02"
+      ],
+      "severity": "medium",
+      "reviewer_severity": "medium",
+      "verdict": "CONFIRMED",
+      "title": "暗号鍵をローテーションできない",
+      "location": "signal-lab/budget-guard/lib/guard/crypto.ts",
+      "patch": "0004",
+      "verification": "コード：復号は TOKEN_ENCRYPTION_KEY だけで行う。鍵を替えると全件 'Unsupported state…'（R1-01 の PoC と同じ失敗）。",
+      "fix": "TOKEN_ENCRYPTION_KEY_PREVIOUS で旧鍵による復号（0004）。再暗号化スクリプトは未作成。"
+    },
+    {
+      "id": "R1-03",
+      "merged_from": [
+        "R1-03"
+      ],
+      "severity": "medium",
+      "reviewer_severity": "medium",
+      "verdict": "CONFIRMED",
+      "title": "解約・返金後も管理者トークンを無期限に保持。削除手段とプライバシーポリシーの記載がない",
+      "location": "signal-lab/budget-guard/lib/guard/service.ts:215-218, lib/payments/stripe-webhook.ts, content/legal/privacy.ts",
+      "patch": "なし",
+      "verification": "コード：canceled/refunded は cron が inactive としてスキップするだけで、conns/settings は消えない。privacy.ts の「取得する情報」にトークン・Slack URL の記載なし。",
+      "fix": "REPORT.md 参照。"
+    },
+    {
+      "id": "R2-01",
+      "merged_from": [
+        "R2-01",
+        "R1 担当外メモ（session_id）"
+      ],
+      "severity": "medium",
+      "reviewer_severity": "medium",
+      "verdict": "CONFIRMED",
+      "title": "チェックアウトIDだけで、いつまでもライセンスキーを取り出せる（verify の24時間制限をすり抜ける）",
+      "location": "signal-lab/budget-guard/app/api/checkout/complete/route.ts:38",
+      "patch": "0007",
+      "verification": "PoC：demo 購入から30日後でも /api/checkout/complete が licenseKey を返した。",
+      "fix": "24時間を過ぎたら licenseKey:null（0007）。"
+    },
+    {
+      "id": "R2-02",
+      "merged_from": [
+        "R2-02"
+      ],
+      "severity": "medium",
+      "reviewer_severity": "medium",
+      "verdict": "CONFIRMED",
+      "title": "ログアウトしてもサーバー側でセッションが失効しない（30日有効の JWT）",
+      "location": "signal-lab/budget-guard/app/api/access/signout/route.ts, lib/api.ts:63-69",
+      "patch": "0008",
+      "verification": "PoC：ログアウト後もコピーした Cookie で /api/app/state が 200。",
+      "fix": "sessionsValidAfter（0008）。"
+    },
+    {
+      "id": "R2-03",
+      "merged_from": [
+        "R2-03"
+      ],
+      "severity": "medium",
+      "reviewer_severity": "medium",
+      "verdict": "CONFIRMED",
+      "title": "demo モードで、他人のメールでデモ購入するとその人のマジックリンクを攻撃者のアカウントに向けられる",
+      "location": "signal-lab/budget-guard/lib/entitlements.ts:79-80",
+      "patch": "0009",
+      "verification": "PoC：active な demo entitlement があるメールで別のデモ購入 → ent-by-email が後者を指す。",
+      "fix": "active な entitlement を指す索引は上書きしない（0009）。"
+    },
+    {
+      "id": "R3-03",
+      "merged_from": [
+        "R3-03"
+      ],
+      "severity": "medium",
+      "reviewer_severity": "medium",
+      "verdict": "PLAUSIBLE",
+      "title": "Vercel Spend Management の 100% webhook が、Budget Guard 側の予算と無関係に停止を強制する",
+      "location": "signal-lab/budget-guard/lib/guard/check.ts:66, service.ts:316-329",
+      "patch": "なし",
+      "verification": "PoC：予算 $1000・支出 $42.50 の live 接続が、Vercel の 100% 通知（$20 の予算）で停止した。docs/lp.md:121 に「100% で停止する」と書かれた仕様どおりの動作。誤作動になるかは、利用者が Vercel 側に置く予算次第。",
+      "fix": "REPORT.md 参照（仕様判断が必要）。"
+    },
+    {
+      "id": "R3-04",
+      "merged_from": [
+        "R3-04"
+      ],
+      "severity": "medium",
+      "reviewer_severity": "medium",
+      "verdict": "PLAUSIBLE",
+      "title": "webhook の重複排除キーを先に確保してから after() で停止するため、後続が失敗すると 100% の停止が失われる",
+      "location": "signal-lab/budget-guard/lib/guard/service.ts:306-329, app/api/webhooks/vercel/[id]/route.ts",
+      "patch": "なし",
+      "verification": "コード：claimHookEvent（40日 NX）→ 200 → followUp。followUp の例外・busy 4回（約20秒）で強制チェックが行われず、claim は残る。after() が打ち切られる条件（maxDuration 未設定、Cloudflare の waitUntil の上限）は未確認。",
+      "fix": "REPORT.md 参照。"
+    },
+    {
+      "id": "R3-05",
+      "merged_from": [
+        "R3-05"
+      ],
+      "severity": "medium",
+      "reviewer_severity": "medium",
+      "verdict": "CONFIRMED",
+      "title": "プロバイダー／Slack への fetch にタイムアウトがなく、リダイレクトも追う",
+      "location": "signal-lab/budget-guard/lib/guard/service.ts:41-45, notify-channels.ts:44",
+      "patch": "0010",
+      "verification": "コード：fetch に signal も redirect も渡していない（既定は follow、タイムアウトなし）。ロック期限切れによる二重実行などの帰結は、プロバイダーが応答しない場合に限られる（PoC はしていない）。",
+      "fix": "providerFetch（20秒、redirect:manual＋3xx 拒否）、Slack 10秒（0010）。"
+    },
+    {
+      "id": "R3-06",
+      "merged_from": [
+        "R3-06"
+      ],
+      "severity": "medium",
+      "reviewer_severity": "medium",
+      "verdict": "PLAUSIBLE",
+      "title": "Vercel の支出をチーム全体・全 ChargeCategory で合計しているのに、止めるのは選んだプロジェクトだけ",
+      "location": "signal-lab/budget-guard/lib/guard/providers.ts:63-75",
+      "patch": "なし",
+      "verification": "コード：ChargeCategory・ProjectId で絞らずに BilledCost を合計している。実データの内訳（Purchase/Tax/Credit が含まれるか）は未確認。",
+      "fix": "ChargeCategory==='Usage' に絞る、プロジェクトで絞るオプション、UI に集計範囲を明記。"
+    },
+    {
+      "id": "R2-04",
+      "merged_from": [
+        "R2-04",
+        "R3-09"
+      ],
+      "severity": "low",
+      "reviewer_severity": "low",
+      "verdict": "CONFIRMED",
+      "title": "Vercel webhook は翌月に再送（リプレイ）すると強制停止を起こせる",
+      "location": "signal-lab/budget-guard/lib/guard/service.ts:306, notify-channels.ts:11-23",
+      "patch": "なし",
+      "verification": "PoC：10月に受けた 100% の本文と署名を11月に再送 → handled、live 接続が再び stopped。R3-03 と組み合わさると、実際の支出が少なくても止まる。",
+      "fix": "R3-03 の修正（自前の取得値と照合）＋ sha256(rawBody) の長期記録。"
+    },
+    {
+      "id": "R1-04",
+      "merged_from": [
+        "R1-04",
+        "R2-10（後半：dev 秘密への fallback）"
+      ],
+      "severity": "low",
+      "reviewer_severity": "low",
+      "verdict": "CONFIRMED",
+      "title": "開発用の固定鍵への切り替えが NODE_ENV==='production' のときだけ止まる（fail-open）",
+      "location": "signal-lab/budget-guard/lib/guard/crypto.ts:17-22",
+      "patch": "0003",
+      "verification": "PoC：encryptionKey({}) が固定鍵を返した。",
+      "fix": "development/test 以外は投げる（0003）。accessSecret は未対応。"
+    },
+    {
+      "id": "R1-05",
+      "merged_from": [
+        "R1-05"
+      ],
+      "severity": "low",
+      "reviewer_severity": "low",
+      "verdict": "CONFIRMED",
+      "title": "プロバイダーのエラー本文がメール・Slack・ログにそのまま出る",
+      "location": "signal-lab/budget-guard/lib/guard/providers.ts:30, stop.ts:48",
+      "patch": "0006",
+      "verification": "コード：本文の先頭200/300文字をそのまま message にしている。",
+      "fix": "伏せ字（0006）。"
+    },
+    {
+      "id": "R1-06",
+      "merged_from": [
+        "R1-06"
+      ],
+      "severity": "low",
+      "reviewer_severity": "low",
+      "verdict": "CONFIRMED",
+      "title": "AES-GCM の認証タグ長と IV 長を固定していない",
+      "location": "signal-lab/budget-guard/lib/guard/crypto.ts:36-38",
+      "patch": "0002",
+      "verification": "PoC：4バイトのタグで復号が通った。",
+      "fix": "authTagLength:16、IV 12（0002）。"
+    },
+    {
+      "id": "R1-07",
+      "merged_from": [
+        "R1-07"
+      ],
+      "severity": "low",
+      "reviewer_severity": "low",
+      "verdict": "CONFIRMED",
+      "title": "tokenHint がトークンの先頭4文字と末尾4文字を平文で保存・返却する",
+      "location": "signal-lab/budget-guard/lib/guard/crypto.ts:43-46",
+      "patch": "なし",
+      "verification": "コード：maskSecret は slice(0,4)…slice(-4)。",
+      "fix": "末尾4文字のみ＋既知プレフィックス（テスト2件の更新が必要）。"
+    },
+    {
+      "id": "R1-08",
+      "merged_from": [
+        "R1-08"
+      ],
+      "severity": "low",
+      "reviewer_severity": "low",
+      "verdict": "PLAUSIBLE",
+      "title": "conns 配列の更新が原子的でなく、削除した接続が復活しうる",
+      "location": "signal-lab/budget-guard/lib/guard/store.ts:117-171",
+      "patch": "なし",
+      "verification": "コード：listConnections → setJSON の read-modify-write。同時操作のタイミングが要る。",
+      "fix": "アカウント単位のロック、または Lua。"
+    },
+    {
+      "id": "R1-09",
+      "merged_from": [
+        "R1-09"
+      ],
+      "severity": "low",
+      "reviewer_severity": "low",
+      "verdict": "CONFIRMED",
+      "title": "接続を削除しても activity.log・hook のクレーム等が残る",
+      "location": "signal-lab/budget-guard/lib/guard/store.ts:161-171",
+      "patch": "なし",
+      "verification": "コード：removeConnection は log と bg:hook:* を消さない。",
+      "fix": "削除時に log から該当 connectionId を除く等。"
+    },
+    {
+      "id": "R1-10",
+      "merged_from": [
+        "R1-10"
+      ],
+      "severity": "low",
+      "reviewer_severity": "low",
+      "verdict": "CONFIRMED",
+      "title": "POST /api/app/connections がトークン有効性のオラクルになり、レート制限がない",
+      "location": "signal-lab/budget-guard/app/api/app/connections/route.ts:10-29",
+      "patch": "なし",
+      "verification": "コード：rateLimit 呼び出しがない。",
+      "fix": "アカウント・IP ごとの rateLimit。"
+    },
+    {
+      "id": "R2-05",
+      "merged_from": [
+        "R2-05"
+      ],
+      "severity": "low",
+      "reviewer_severity": "low",
+      "verdict": "CONFIRMED",
+      "title": "Stripe モードでもメールの索引は最後の購入が勝つ",
+      "location": "signal-lab/budget-guard/lib/entitlements.ts:79",
+      "patch": "なし",
+      "verification": "コード：source が stripe のときは prevByEmail を見ずに上書き。",
+      "fix": "メールの所有確認／entitlement の一覧から選択。"
+    },
+    {
+      "id": "R2-06",
+      "merged_from": [
+        "R2-06"
+      ],
+      "severity": "low",
+      "reviewer_severity": "low",
+      "verdict": "CONFIRMED",
+      "title": "本番で Stripe キーも PAYMENTS_MODE も無いと自動で demo になる（設計上の fail-open）",
+      "location": "signal-lab/budget-guard/lib/payments/mode.ts:31",
+      "patch": "なし",
+      "verification": "コード・tests/payments.test.ts で意図された動作。",
+      "fix": "本番では PAYMENTS_MODE=demo 明示時だけ demo。"
+    },
+    {
+      "id": "R2-07",
+      "merged_from": [
+        "R2-07"
+      ],
+      "severity": "low",
+      "reviewer_severity": "low",
+      "verdict": "CONFIRMED",
+      "title": "メール送信量に宛先ごとの上限がない",
+      "location": "signal-lab/budget-guard/app/api/access/magic/route.ts:20",
+      "patch": "なし",
+      "verification": "コード：rateLimit は IP 単位のみ。",
+      "fix": "宛先ごとの rateLimit。"
+    },
+    {
+      "id": "R3-07",
+      "merged_from": [
+        "R3-07"
+      ],
+      "severity": "low",
+      "reviewer_severity": "low",
+      "verdict": "CONFIRMED",
+      "title": "金額が NaN になると『正常（ok）』と判定され続ける",
+      "location": "signal-lab/budget-guard/lib/guard/check.ts:48",
+      "patch": "0011",
+      "verification": "PoC：spend NaN → level ok、notices []。",
+      "fix": "有限でなければ取得エラー（0011）。"
+    },
+    {
+      "id": "R3-08",
+      "merged_from": [
+        "R3-08"
+      ],
+      "severity": "low",
+      "reviewer_severity": "low",
+      "verdict": "CONFIRMED",
+      "title": "監査ログが不十分（50件のリングバッファ、モード変更が stop-test 扱い）",
+      "location": "signal-lab/budget-guard/lib/guard/store.ts:13,78-80",
+      "patch": "なし",
+      "verification": "コード：LOG_SIZE=50、mode 変更は kind 'stop-test'。",
+      "fix": "別キーの追記専用監査ログ。"
+    },
+    {
+      "id": "R3-10",
+      "merged_from": [
+        "R3-10"
+      ],
+      "severity": "low",
+      "reviewer_severity": "low",
+      "verdict": "PLAUSIBLE",
+      "title": "OpenAI の停止が既存のプロジェクト上限を上書きし、Undo では元の上限が失われる",
+      "location": "signal-lab/budget-guard/lib/guard/providers.ts:107-113",
+      "patch": "なし",
+      "verification": "コード：既存値を読まずに POST、Undo は DELETE。OpenAI API の実際の上書き挙動は未確認。",
+      "fix": "停止前に GET して保存、Undo で復元。"
+    },
+    {
+      "id": "R3-11",
+      "merged_from": [
+        "R3-11"
+      ],
+      "severity": "low",
+      "reviewer_severity": "low",
+      "verdict": "CONFIRMED",
+      "title": "停止の失敗が毎時再試行・毎回通知される。手動停止はロックも stoppedAt も使わない",
+      "location": "signal-lab/budget-guard/lib/guard/check.ts:94-97, app/api/app/connections/[id]/route.ts:84-91",
+      "patch": "なし",
+      "verification": "コード：失敗時 stoppedAt を立てず、毎回 stop-failed notice（メール対象）。",
+      "fix": "失敗回数と指数バックオフ、手動停止を withConnLock 内で。"
+    },
+    {
+      "id": "R3-12",
+      "merged_from": [
+        "R3-12"
+      ],
+      "severity": "low",
+      "reviewer_severity": "low",
+      "verdict": "PLAUSIBLE",
+      "title": "開発依存の vitest 3.2.7 系に勧告がある（本番依存は0件）",
+      "location": "signal-lab/budget-guard/package-lock.json",
+      "patch": "なし",
+      "verification": "package-lock の vitest 3.2.7 は確認。勧告の内容は npm audit がネットワーク不可のため未再確認。",
+      "fix": "vitest を修正版へ。"
+    },
+    {
+      "id": "R1-11",
+      "merged_from": [
+        "R1-11"
+      ],
+      "severity": "info",
+      "reviewer_severity": "info",
+      "verdict": "UNVERIFIED",
+      "title": "Cloudflare の cron 経路での NODE_ENV",
+      "location": "signal-lab/budget-guard/cf-worker.ts",
+      "patch": "なし",
+      "verification": "wrangler の define を確認できていない（dry-run 未実行）。0003 で鍵側は fail-closed にした。",
+      "fix": "npm run cf:size の出力で確認。"
+    },
+    {
+      "id": "R1-12",
+      "merged_from": [
+        "R1-12"
+      ],
+      "severity": "info",
+      "reviewer_severity": "info",
+      "verdict": "UNVERIFIED",
+      "title": "Upstash のエラーメッセージに値が入る可能性",
+      "location": "signal-lab/budget-guard/lib/redis.ts:165-195",
+      "patch": "なし",
+      "verification": "@upstash/redis のエラー書式は未確認。",
+      "fix": "KV アダプターで例外を包む。"
+    },
+    {
+      "id": "R1-13",
+      "merged_from": [
+        "R1-13"
+      ],
+      "severity": "info",
+      "reviewer_severity": "info",
+      "verdict": "CONFIRMED",
+      "title": ".dev.vars.example の TOKEN_ENCRYPTION_KEY が全ゼロ32バイトで検証を通る",
+      "location": "signal-lab/budget-guard/.dev.vars.example:12",
+      "patch": "なし",
+      "verification": "確認：base64 で 32 バイトすべて 0x00。",
+      "fix": "手順書の強調、既知のダミー鍵を拒否。"
+    },
+    {
+      "id": "R1-14",
+      "merged_from": [
+        "R1-14"
+      ],
+      "severity": "info",
+      "reviewer_severity": "info",
+      "verdict": "CONFIRMED",
+      "title": "AAD が接続IDだけで、アカウントIDも用途ラベルも入っていない",
+      "location": "signal-lab/budget-guard/lib/guard/crypto.ts",
+      "patch": "なし",
+      "verification": "コード確認。",
+      "fix": "v2 形式で移行（R1-02 と同時）。"
+    },
+    {
+      "id": "R2-08",
+      "merged_from": [
+        "R2-08"
+      ],
+      "severity": "info",
+      "reviewer_severity": "info",
+      "verdict": "CONFIRMED",
+      "title": "アクセス Cookie に __Host- 接頭辞が無い",
+      "location": "signal-lab/budget-guard/lib/access.ts:50",
+      "patch": "なし",
+      "verification": "コード確認。",
+      "fix": "本番では __Host- 名に。"
+    },
+    {
+      "id": "R2-09",
+      "merged_from": [
+        "R2-09"
+      ],
+      "severity": "info",
+      "reviewer_severity": "info",
+      "verdict": "CONFIRMED",
+      "title": "admin/stats で多バイト文字のヘッダーが 500 になる",
+      "location": "signal-lab/budget-guard/app/api/admin/stats/route.ts:10",
+      "patch": "0012",
+      "verification": "コード：文字列長の比較のあと timingSafeEqual が RangeError。",
+      "fix": "バイト長で比較（0012）。"
+    },
+    {
+      "id": "R2-10",
+      "merged_from": [
+        "R2-10"
+      ],
+      "severity": "info",
+      "reviewer_severity": "info",
+      "verdict": "CONFIRMED",
+      "title": "停止の確認 challenge は5分間なら何度でも使える",
+      "location": "signal-lab/budget-guard/lib/guard/stop.ts:76",
+      "patch": "なし",
+      "verification": "コード：nonce なし。使用にはセッションが要る。後半（dev 秘密への fallback）は R1-04 に統合。",
+      "fix": "nonce を KV に SET NX。"
+    },
+    {
+      "id": "R3-13",
+      "merged_from": [
+        "R3-13"
+      ],
+      "severity": "info",
+      "reviewer_severity": "info",
+      "verdict": "NO_ISSUE",
+      "title": "SSRF：利用者が指定できるホストはない",
+      "location": "signal-lab/budget-guard/lib/guard/schemas.ts",
+      "patch": "なし",
+      "verification": "スキーマと encodeURIComponent を確認。リダイレクト追従は 0010 で解消。",
+      "fix": null
+    },
+    {
+      "id": "R3-14",
+      "merged_from": [
+        "R3-14"
+      ],
+      "severity": "info",
+      "reviewer_severity": "info",
+      "verdict": "NO_ISSUE",
+      "title": "依存関係の衛生（install スクリプト・取得元・integrity）",
+      "location": "signal-lab/budget-guard/package.json",
+      "patch": "なし",
+      "verification": "package-lock の resolved/integrity を確認。",
+      "fix": null
+    }
+  ]
+}

@@ -1,0 +1,106 @@
+From a9bcaf9e8d8be57166f0c0e206a19e699cf82923 Mon Sep 17 00:00:00 2001
+From: Atlas QA <atlas@local>
+Date: Fri, 9 Oct 2026 04:08:13 +0000
+Subject: [PATCH 06/12] R1-05:
+ プロバイダーのエラー本文から、トークンらしい文字列を伏せ字にする
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+ProviderHttpError と停止失敗時の本文（最大200〜300文字）は、メール・Slack・ダッシュボード・
+サーバーログにそのまま出る。外に出す前に sk-…、Bearer …、"token":… などを [redacted] に置き換える
+（lib/guard/redact.ts）。本文の中身はプロバイダー次第で制御できないための多層防御。
+残課題：利用者向けの文言をステータスコードから決めた固定文にし、本文はサーバーログだけに残す。
+元パッチ：p2-review/r1-05.patch。回帰テスト：tests/security-regressions.test.ts（R1-05）。
+---
+ signal-lab/budget-guard/lib/guard/providers.ts    |  3 ++-
+ signal-lab/budget-guard/lib/guard/redact.ts       | 11 +++++++++++
+ signal-lab/budget-guard/lib/guard/stop.ts         |  3 ++-
+ .../tests/security-regressions.test.ts            | 15 +++++++++++++++
+ 4 files changed, 30 insertions(+), 2 deletions(-)
+ create mode 100644 signal-lab/budget-guard/lib/guard/redact.ts
+
+diff --git a/signal-lab/budget-guard/lib/guard/providers.ts b/signal-lab/budget-guard/lib/guard/providers.ts
+index 411da8e..7a7c15a 100644
+--- a/signal-lab/budget-guard/lib/guard/providers.ts
++++ b/signal-lab/budget-guard/lib/guard/providers.ts
+@@ -1,3 +1,4 @@
++import { redactSecrets } from "./redact";
+ import type { FetchLike, StopPlan } from "./stop";
+ 
+ // One adapter per provider. Endpoints and field paths follow docs/provider-apis.md
+@@ -27,7 +28,7 @@ export class ProviderHttpError extends Error {
+     readonly status: number,
+     body: string,
+   ) {
+-    super(`${host} ${status}: ${body.slice(0, 200)}`);
++    super(`${host} ${status}: ${redactSecrets(body.slice(0, 200))}`);
+   }
+ }
+ 
+diff --git a/signal-lab/budget-guard/lib/guard/redact.ts b/signal-lab/budget-guard/lib/guard/redact.ts
+new file mode 100644
+index 0000000..317b3b7
+--- /dev/null
++++ b/signal-lab/budget-guard/lib/guard/redact.ts
+@@ -0,0 +1,11 @@
++// Provider error bodies end up in emails, Slack, the dashboard log and server logs.
++// Strip anything that looks like a credential before they leave the provider call.
++const PATTERNS: RegExp[] = [
++  /\b(sk-[A-Za-z0-9_*-]{6,})/g, // OpenAI / Anthropic keys (incl. provider-masked forms)
++  /\b(bearer\s+)[A-Za-z0-9._~+/=-]{6,}/gi,
++  /("?(?:token|api[_-]?key|authorization|secret)"?\s*[:=]\s*"?)[^"\s,}]{6,}/gi,
++];
++
++export function redactSecrets(text: string): string {
++  return PATTERNS.reduce((s, re) => s.replace(re, (_m, keep: string) => (keep.startsWith("sk-") ? "sk-[redacted]" : `${keep}[redacted]`)), text);
++}
+diff --git a/signal-lab/budget-guard/lib/guard/stop.ts b/signal-lab/budget-guard/lib/guard/stop.ts
+index 8f0ac7d..0fe8db0 100644
+--- a/signal-lab/budget-guard/lib/guard/stop.ts
++++ b/signal-lab/budget-guard/lib/guard/stop.ts
+@@ -1,4 +1,5 @@
+ import { createHmac, timingSafeEqual } from "node:crypto";
++import { redactSecrets } from "./redact";
+ 
+ // Stop actions are destructive, so they go through three gates:
+ //  1. mode "test" (the default) never sends the request; it records what would be sent.
+@@ -45,7 +46,7 @@ export async function runStop(
+         headers: { ...headers, ...(req.body !== undefined ? { "content-type": "application/json" } : {}) },
+         body: req.body !== undefined ? JSON.stringify(req.body) : undefined,
+       });
+-      results.push({ ...req, status: res.status, ...(res.ok ? {} : { error: (await res.text()).slice(0, 300) }) });
++      results.push({ ...req, status: res.status, ...(res.ok ? {} : { error: redactSecrets((await res.text()).slice(0, 300)) }) });
+     } catch (err) {
+       results.push({ ...req, error: err instanceof Error ? err.message : String(err) });
+     }
+diff --git a/signal-lab/budget-guard/tests/security-regressions.test.ts b/signal-lab/budget-guard/tests/security-regressions.test.ts
+index c46fe97..410a401 100644
+--- a/signal-lab/budget-guard/tests/security-regressions.test.ts
++++ b/signal-lab/budget-guard/tests/security-regressions.test.ts
+@@ -13,6 +13,8 @@ import { upsertEntitlement } from "@/lib/entitlements";
+ import { checkConnection, type Connection } from "@/lib/guard/check";
+ import { decryptSecret, encryptionKey, encryptSecret } from "@/lib/guard/crypto";
+ import { demoFetch } from "@/lib/guard/demo";
++import { ProviderHttpError } from "@/lib/guard/providers";
++import { redactSecrets } from "@/lib/guard/redact";
+ import { checkConnectionLocked } from "@/lib/guard/service";
+ import { addConnection, getState, saveState } from "@/lib/guard/store";
+ import { createMemoryKV, getKV } from "@/lib/redis";
+@@ -161,3 +163,16 @@ describe("R1-01: a token that can't be decrypted is reported to the operator", (
+     err.mockRestore();
+   });
+ });
++
++describe("R1-05: provider error bodies are redacted before they reach mail / Slack / logs", () => {
++  it("masks key-like strings, bearer tokens and token fields", () => {
++    const out = redactSecrets('Incorrect API key provided: sk-admin-abcd1234****wxyz. Authorization: Bearer abcdef123456 {"token":"tok_9f3c8a7b"}');
++    expect(out).not.toMatch(/abcd1234|abcdef123456|tok_9f3c8a7b/);
++    expect(out).toContain("sk-[redacted]");
++    expect(out).toContain("Incorrect API key provided");
++  });
++  it("ProviderHttpError carries the redacted body", () => {
++    const e = new ProviderHttpError("api.openai.com", 401, "Incorrect API key provided: sk-proj-1234567890abcdef");
++    expect(e.message).toBe("api.openai.com 401: Incorrect API key provided: sk-[redacted]");
++  });
++});

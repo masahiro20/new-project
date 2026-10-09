@@ -1,0 +1,200 @@
+From 00ff7bfd1b0baea061de1101bfd1efbfc200273c Mon Sep 17 00:00:00 2001
+From: Atlas QA <atlas@local>
+Date: Fri, 9 Oct 2026 04:09:39 +0000
+Subject: [PATCH 08/12] R2-02:
+ ログアウトでサーバー側のセッションを失効させる（sessionsValidAfter）
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+アクセス Cookie は30日有効のステートレス JWT で、ログアウトは Cookie を消すだけだった
+（PoC：ログアウト後もコピーした Cookie で /api/app/state が 200）。
+entitlement に sessionsValidAfter（epoch 秒）を持たせ、ログアウトで現在時刻を書く。
+accountFrom（lib/api.ts）と demo portal の demoClaims で、JWT の iat がそれより古ければ拒否する
+（全端末ログアウト）。accountFrom は entitlement を毎回読んでいるので KV コマンドは増えない
+（demo portal は1回増える）。
+既存テストの変更：tests/access.test.ts の "round-trips claims" は verifyAccessToken の戻り値を
+toEqual で比べていた。戻り値に iat が加わったため、iat: expect.any(Number) を足した。
+注意：revokeSessions は entitlement の read-modify-write で、Stripe webhook の setStatus と
+同時に走ると、どちらかの更新が失われうる（REPORT.md の残課題）。
+元パッチ：p2-review/r2-02.patch。回帰テスト：tests/security-regressions.test.ts（R2-02）。
+---
+ .../app/api/access/signout/route.ts           | 10 +++--
+ .../app/api/checkout/demo/portal/route.ts     |  6 ++-
+ signal-lab/budget-guard/lib/access.ts         |  4 +-
+ signal-lab/budget-guard/lib/api.ts            |  2 +
+ signal-lab/budget-guard/lib/entitlements.ts   |  8 ++++
+ signal-lab/budget-guard/tests/access.test.ts  |  3 +-
+ .../tests/security-regressions.test.ts        | 40 +++++++++++++++++++
+ 7 files changed, 66 insertions(+), 7 deletions(-)
+
+diff --git a/signal-lab/budget-guard/app/api/access/signout/route.ts b/signal-lab/budget-guard/app/api/access/signout/route.ts
+index 7ff8930..f1fa686 100644
+--- a/signal-lab/budget-guard/app/api/access/signout/route.ts
++++ b/signal-lab/budget-guard/app/api/access/signout/route.ts
+@@ -1,10 +1,14 @@
+ import { NextResponse } from "next/server";
+-import { forbiddenOrigin, sameOrigin } from "@/lib/api";
+-import { ACCESS_COOKIE } from "@/lib/access";
++import { forbiddenOrigin, readCookie, sameOrigin } from "@/lib/api";
++import { ACCESS_COOKIE, verifyAccessToken } from "@/lib/access";
++import { revokeSessions } from "@/lib/entitlements";
++import { getKV } from "@/lib/redis";
+ 
+-/** POST: clear the access cookie. */
++/** POST: revoke this account's access cookies server side (all devices) and clear ours. */
+ export async function POST(request: Request) {
+   if (!sameOrigin(request)) return forbiddenOrigin();
++  const claims = await verifyAccessToken(readCookie(request, ACCESS_COOKIE));
++  if (claims) await revokeSessions(getKV(), claims.sub);
+   const res = NextResponse.json({ ok: true, redirect: "/" }, { headers: { "Cache-Control": "no-store" } });
+   res.cookies.delete(ACCESS_COOKIE);
+   return res;
+diff --git a/signal-lab/budget-guard/app/api/checkout/demo/portal/route.ts b/signal-lab/budget-guard/app/api/checkout/demo/portal/route.ts
+index 71ae6fc..6e5adb5 100644
+--- a/signal-lab/budget-guard/app/api/checkout/demo/portal/route.ts
++++ b/signal-lab/budget-guard/app/api/checkout/demo/portal/route.ts
+@@ -11,7 +11,11 @@ import { getKV } from "@/lib/redis";
+ 
+ async function demoClaims(request: Request) {
+   const claims = await verifyAccessToken(readCookie(request, ACCESS_COOKIE));
+-  return claims && isDemoCheckoutId(claims.sub) ? claims : null;
++  if (!claims || !isDemoCheckoutId(claims.sub)) return null;
++  // Same server-side sign-out check as accountFrom (lib/api.ts).
++  const e = await getEntitlement(getKV(), claims.sub);
++  if (e?.sessionsValidAfter && (claims.iat ?? 0) < e.sessionsValidAfter) return null;
++  return claims;
+ }
+ 
+ export async function GET(request: Request) {
+diff --git a/signal-lab/budget-guard/lib/access.ts b/signal-lab/budget-guard/lib/access.ts
+index cd8ecfa..254fcc7 100644
+--- a/signal-lab/budget-guard/lib/access.ts
++++ b/signal-lab/budget-guard/lib/access.ts
+@@ -23,7 +23,7 @@ export function accessSecret(env: Record<string, string | undefined> = process.e
+   return new TextEncoder().encode(DEV_SECRET);
+ }
+ 
+-export type AccessClaims = { sub: string; plan: string };
++export type AccessClaims = { sub: string; plan: string; iat?: number };
+ 
+ export async function signAccessToken(claims: AccessClaims, secret = accessSecret(), days = config.access.sessionDays): Promise<string> {
+   return new SignJWT({ plan: claims.plan })
+@@ -40,7 +40,7 @@ export async function verifyAccessToken(token: string | undefined, secret = acce
+   try {
+     const { payload } = await jwtVerify(token, secret, { algorithms: ["HS256"], audience: config.slug });
+     if (!payload.sub || typeof payload.plan !== "string") return null;
+-    return { sub: payload.sub, plan: payload.plan };
++    return { sub: payload.sub, plan: payload.plan, iat: payload.iat };
+   } catch {
+     return null;
+   }
+diff --git a/signal-lab/budget-guard/lib/api.ts b/signal-lab/budget-guard/lib/api.ts
+index 06cf97f..43d241f 100644
+--- a/signal-lab/budget-guard/lib/api.ts
++++ b/signal-lab/budget-guard/lib/api.ts
+@@ -65,6 +65,8 @@ export async function accountFrom(request: Request, kv: KV): Promise<Account | n
+   const claims = await verifyAccessToken(readCookie(request, ACCESS_COOKIE));
+   if (!claims) return null;
+   const entitlement = await resolveEntitlement(kv, claims.sub);
++  // Signed out (server side) after this cookie was issued → the cookie is dead even if it was copied.
++  if (entitlement?.sessionsValidAfter && (claims.iat ?? 0) < entitlement.sessionsValidAfter) return null;
+   return isActive(entitlement) ? { id: entitlement.id, email: entitlement.email, entitlement } : null;
+ }
+ 
+diff --git a/signal-lab/budget-guard/lib/entitlements.ts b/signal-lab/budget-guard/lib/entitlements.ts
+index 7d0e0c8..a887f7d 100644
+--- a/signal-lab/budget-guard/lib/entitlements.ts
++++ b/signal-lab/budget-guard/lib/entitlements.ts
+@@ -18,6 +18,8 @@ export type Entitlement = {
+   paymentIntentId?: string;
+   createdAt: string;
+   updatedAt: string;
++  /** Access cookies issued before this (epoch seconds) are rejected — set by sign-out. */
++  sessionsValidAfter?: number;
+ };
+ 
+ export type NewEntitlement = Omit<Entitlement, "licenseKey" | "createdAt" | "updatedAt" | "status"> & { status?: EntitlementStatus };
+@@ -84,6 +86,12 @@ export async function upsertEntitlement(
+   return { entitlement, created: true };
+ }
+ 
++/** Server-side sign-out: every access cookie issued before now stops working. */
++export async function revokeSessions(kv: KV, id: string, nowSeconds = Math.floor(Date.now() / 1000)): Promise<void> {
++  const e = await getEntitlement(kv, id);
++  if (e) await setJSON(kv, k.ent(id), { ...e, sessionsValidAfter: nowSeconds, updatedAt: new Date().toISOString() });
++}
++
+ export async function setStatus(kv: KV, e: Entitlement, status: EntitlementStatus): Promise<Entitlement> {
+   const next = { ...e, status, updatedAt: new Date().toISOString() };
+   await setJSON(kv, k.ent(e.id), next);
+diff --git a/signal-lab/budget-guard/tests/access.test.ts b/signal-lab/budget-guard/tests/access.test.ts
+index de4e8c4..ac71bbe 100644
+--- a/signal-lab/budget-guard/tests/access.test.ts
++++ b/signal-lab/budget-guard/tests/access.test.ts
+@@ -11,7 +11,8 @@ afterEach(() => vi.useRealTimers());
+ describe("access token", () => {
+   it("round-trips claims", async () => {
+     const token = await signAccessToken({ sub: "cs_test_1", plan: "lifetime" }, secret, 30);
+-    expect(await verifyAccessToken(token, secret)).toEqual({ sub: "cs_test_1", plan: "lifetime" });
++    // iat is returned too (server-side sign-out compares it with sessionsValidAfter).
++    expect(await verifyAccessToken(token, secret)).toEqual({ sub: "cs_test_1", plan: "lifetime", iat: expect.any(Number) });
+   });
+ 
+   it("rejects wrong secret, tampering, missing token and other algorithms", async () => {
+diff --git a/signal-lab/budget-guard/tests/security-regressions.test.ts b/signal-lab/budget-guard/tests/security-regressions.test.ts
+index b223540..7f2dd31 100644
+--- a/signal-lab/budget-guard/tests/security-regressions.test.ts
++++ b/signal-lab/budget-guard/tests/security-regressions.test.ts
+@@ -8,7 +8,10 @@ const afterCalls: (() => unknown)[] = [];
+ vi.mock("next/server", async (orig) => ({ ...(await orig<typeof import("next/server")>()), after: (fn: () => unknown) => void afterCalls.push(fn) }));
+ 
+ import { GET as getConn, POST as postConn } from "@/app/api/app/connections/[id]/route";
++import { POST as signout } from "@/app/api/access/signout/route";
++import { GET as state } from "@/app/api/app/state/route";
+ import { POST as complete } from "@/app/api/checkout/complete/route";
++import { GET as demoPortal } from "@/app/api/checkout/demo/portal/route";
+ import { POST as demoPay } from "@/app/api/checkout/demo/route";
+ import { ACCESS_COOKIE, signAccessToken } from "@/lib/access";
+ import { upsertEntitlement } from "@/lib/entitlements";
+@@ -201,3 +204,40 @@ describe("R2-01: the checkout id reveals the license key only within 24h of purc
+     expect(JSON.stringify(body)).not.toContain(first.licenseKey);
+   });
+ });
++
++describe("R2-02: sign-out revokes the account's access cookies server side", () => {
++  it("a copied cookie is rejected after sign-out; a new sign-in works", async () => {
++    vi.useFakeTimers({ toFake: ["Date"] });
++    vi.setSystemTime(new Date("2026-10-09T10:00:00Z"));
++    const kv = getKV();
++    const { entitlement } = await upsertEntitlement(kv, { id: "cs_test_r202", email: "r202@example.com", plan: "monthly", source: "stripe" });
++    const stolen = await signAccessToken({ sub: entitlement.id, plan: entitlement.plan });
++    expect((await state(req("/api/app/state", { cookie: stolen }))).status).toBe(200);
++
++    vi.setSystemTime(new Date("2026-10-09T10:05:00Z"));
++    expect((await signout(req("/api/access/signout", { body: {}, cookie: stolen }))).status).toBe(200);
++    expect((await state(req("/api/app/state", { cookie: stolen }))).status).toBe(401);
++
++    vi.setSystemTime(new Date("2026-10-09T10:06:00Z"));
++    const fresh = await signAccessToken({ sub: entitlement.id, plan: entitlement.plan });
++    expect((await state(req("/api/app/state", { cookie: fresh }))).status).toBe(200);
++  });
++  it("sign-out without a cookie still answers 200 and changes nothing", async () => {
++    expect((await signout(req("/api/access/signout", { body: {} }))).status).toBe(200);
++  });
++  it("the demo portal also rejects a signed-out cookie", async () => {
++    vi.stubEnv("PAYMENTS_MODE", "demo");
++    vi.useFakeTimers({ toFake: ["Date"] });
++    vi.setSystemTime(new Date("2026-10-09T11:00:00Z"));
++    const kv = getKV();
++    const co = await createDemoCheckout(kv, "monthly", "r202d@example.com");
++    const card = { number: "4242 4242 4242 4242", expiry: "12/34", cvc: "123", name: "TARO YAMADA" };
++    await demoPay(req("/api/checkout/demo", { body: { id: co.id, ...card } }));
++    await complete(req("/api/checkout/complete", { body: { session_id: co.id } }));
++    const cookie = await signAccessToken({ sub: co.id, plan: "monthly" });
++    expect((await demoPortal(req("/api/checkout/demo/portal", { cookie }))).status).toBe(200);
++    vi.setSystemTime(new Date("2026-10-09T11:05:00Z"));
++    await signout(req("/api/access/signout", { body: {}, cookie }));
++    expect((await demoPortal(req("/api/checkout/demo/portal", { cookie }))).status).toBe(401);
++  });
++});
