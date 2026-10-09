@@ -62,18 +62,34 @@ lp = lp.replace(PRIVATE_EVAL_LINK, "");
 lp = lp.replace(/\s*<!-- TODO before launch: the repo is private[^>]*-->/, "");
 lp = lp.replace(/\s*<!-- TODO before going live:[\s\S]*?-->/, "");
 
+// The demo file is a fragment (the artifact host adds the skeleton). Its leading run of head-only elements
+// (<title>, <style>, <meta>, <link>, comments) goes into <head>; everything from the first other element on is the body.
+function splitHead(html) {
+  const HEAD_ITEM = /^\s*(?:<!--[\s\S]*?-->|<title\b[^>]*>[\s\S]*?<\/title>|<style\b[^>]*>[\s\S]*?<\/style>|<meta\b[^>]*>|<link\b[^>]*>)/i;
+  let head = "";
+  let rest = html;
+  for (let m; (m = HEAD_ITEM.exec(rest)); ) {
+    head += m[0];
+    rest = rest.slice(m[0].length);
+  }
+  return { head: head.trim(), body: rest.replace(/^\s+/, "") };
+}
+
 // Demo: the artifact host adds the document skeleton, so add it here.
 let demo = readFileSync(join(root, "web/dist/kotomark-demo.html"), "utf8");
 demo = stripGoogleFonts(demo);
+const demoParts = splitHead(demo);
+if (!/<title\b/i.test(demoParts.head) || /<title\b|<\/style>/i.test(demoParts.body.slice(0, 2000))) throw new Error("build-site: could not move the demo's <title>/<style> into <head>");
 demo = `<!doctype html>
 <html lang="ja">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
+${demoParts.head}
 </head>
 <body>
-${demo}
+${demoParts.body}
 </body>
 </html>
 `;

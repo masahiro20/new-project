@@ -13,6 +13,10 @@
 <title>Kotomark（仮称）— 日英ゲーム台本の一貫性チェック</title>
 <meta name="description" content="Kotomark（仮称）は日英ゲームローカライズ向けの台本全体の一貫性チェックです。用語・カタカナ表記・キャラ名・敬称・口調の揺れを、ファイル名と行番号付きで指摘します。">
 <meta name="color-scheme" content="light dark">
+<!-- Share previews. No canonical / og:url / og:image yet: the public URL (GitHub Pages) is not confirmed. -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Kotomark（仮称）— 日英ゲーム台本の一貫性チェック">
+<meta property="og:description" content="日英ゲームローカライズ向けの台本全体の一貫性チェック。用語・カタカナ表記・キャラ名・敬称・口調の揺れを、ファイル名と行番号付きで指摘します。JA↔EN script consistency checker for game localization.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%231c4a86'/%3E%3Cpath d='M9 8v16M9 16l9-8M12.5 13l6 11' stroke='%23fff' stroke-width='3' fill='none' stroke-linecap='square'/%3E%3Ccircle cx='24' cy='23' r='2.6' fill='%23e0533d'/%3E%3C/svg%3E">
 <style>
 /* Tokens: cool paper + ink, 藍 (indigo) for interaction, 朱 (vermilion) only as the proofreader's mark on drift. */
@@ -466,7 +470,7 @@ section { scroll-margin-top: 72px; }
       <ul class="proof-facts">
         <li><span class="n">19 / 19</span><span class="t" lang="ja"><b>カタカナ表記揺れ</b>は、調整に使っていないデータで判定できた19件すべてが本物でした。例：ユーザ／ユーザー、プレイヤー／プレーヤー。</span><span class="t" lang="en"><b>Katakana notation drift:</b> all 19 judged findings on the untuned data were real, e.g. ユーザ / ユーザー and プレイヤー / プレーヤー.</span></li>
         <li><span class="n">281 / 290</span><span class="t" lang="ja"><b>未翻訳の行</b>を、行番号付きで1件ずつ報告します。誤検知は、数字だけ・変数だけなど訳す必要のない行でした。</span><span class="t" lang="en"><b>Untranslated lines</b> are reported one by one, with line numbers. The false positives were lines with nothing to translate, such as numbers or a lone variable.</span></li>
-        <li><span class="n">17</span><span class="t" lang="ja"><b>公開プロジェクト</b>で検証（調整に使用11本、未使用6本）。</span><span class="t" lang="en"><b>Open-source projects</b> tested (11 used for tuning, 6 held out).</span></li>
+        <li><span class="n">17</span><span class="t" lang="ja"><b>公開プロジェクト</b>で検証（調整に使用11本、測定時点で未使用6本〔その後、修正に使用〕）。</span><span class="t" lang="en"><b>Open-source projects</b> tested (11 used for tuning, 6 held out at the time of measurement and used for fixes since).</span></li>
       </ul>
     </div>
 
@@ -479,7 +483,7 @@ section { scroll-margin-top: 72px; }
         <li><a href="https://github.com/godotengine/godot">Godot Engine</a> <span class="t" lang="ja">（エディタ）</span><span class="t" lang="en">(editor)</span></li>
         <li><a href="https://github.com/wesnoth/wesnoth">Battle for Wesnoth</a> <span class="t" lang="ja">（キャンペーン・UI）</span><span class="t" lang="en">(campaign, UI)</span></li>
       </ul>
-      <span class="t" lang="ja">調整に使っていない検証用：</span><span class="t" lang="en">Held out (never used for tuning):</span>
+      <span class="t" lang="ja">測定時点で未使用の検証用（その後、修正に使用）：</span><span class="t" lang="en">Held out at the time of measurement (used for fixes since):</span>
       <ul>
         <li><a href="https://github.com/widelands/widelands">Widelands</a></li>
         <li><a href="https://github.com/flareteam/flare-game">Flare: Empyrean Campaign</a></li>

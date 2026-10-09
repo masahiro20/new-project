@@ -319,6 +319,15 @@ test("loadInputs: decodes UTF-8 (BOM) and UTF-16 bytes, honours per-file format,
   assert.match(errs[0]!, /^foo\.csv foo\.csv: Could not find source\/target columns/);
 });
 
+test("column errors keep the header list short (binary or non-tabular input)", () => {
+  const header = Array.from({ length: 400 }, (_, i) => `col${i}`).join(",");
+  const errs: string[] = [];
+  loadInputs([{ name: "wide.csv", data: `${header}\n${header}\n` }], { onError: (_f, e) => errs.push(e.message) });
+  assert.equal(errs.length, 1);
+  assert.match(errs[0]!, /Could not find source\/target columns in \[col0, col1, [^\]]*… \(400 columns\)\]/);
+  assert.ok(errs[0]!.length < 400, errs[0]);
+});
+
 test("loadInputs: every sample under samples/formats loads and the deliberate drifts fire", () => {
   const names = ["book.xlsx", "ui.po", "locales/ja.json", "locales/en.json", "unity_table.csv", "unreal/ST_Dialogue_ja.csv", "unreal/ST_Dialogue_en.csv"];
   const { tables } = loadInputs(names.map(sample));
