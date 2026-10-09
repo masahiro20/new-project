@@ -13,6 +13,9 @@ export const metadata: Metadata = {
   description: config.description,
   openGraph: { type: "website", locale: config.locale === "ja" ? "ja_JP" : "en_US", siteName: config.name },
   twitter: { card: "summary_large_image" },
+  // /success?session_id, /access?token, /checkout/demo?id and /app/c?id carry capabilities
+  // in the query: never send the URL (or even the origin) to other sites.
+  referrer: "same-origin",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

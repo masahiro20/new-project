@@ -56,6 +56,14 @@ describe("sameOrigin (CSRF)", () => {
     expect(sameOrigin(req("/x", { method: "POST", origin: "null" }))).toBe(false);
     expect(sameOrigin(req("/x", { method: "POST", site: "cross-site" }))).toBe(false);
   });
+  it("normalises proxy headers (case, default port, lists) without trusting other origins", () => {
+    const behindProxy = (origin: string, xfh: string, xfp = "https") =>
+      sameOrigin(new Request("http://internal:8080/x", { method: "POST", headers: { origin, "x-forwarded-host": xfh, "x-forwarded-proto": xfp } }), []);
+    expect(behindProxy("https://example.com", "Example.COM:443")).toBe(true);
+    expect(behindProxy("https://example.com", "example.com, proxy.internal", "https,http")).toBe(true);
+    expect(behindProxy("https://evil.example", "example.com")).toBe(false);
+    expect(behindProxy("http://example.com", "example.com")).toBe(false);
+  });
   it("readCookie parses the Cookie header", () => {
     expect(readCookie(new Request(BASE, { headers: { cookie: `a=1; ${ACCESS_COOKIE}=tok%2E; b=2` } }), ACCESS_COOKIE)).toBe("tok.");
   });

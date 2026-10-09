@@ -35,12 +35,16 @@ export function sameOrigin(request: Request, extra: string[] = [siteUrl()]): boo
   const origin = request.headers.get("origin");
   if (!origin || origin === "null") return false;
   const allowed = new Set([originOf(request.url), ...extra.map(originOf)].filter(Boolean));
-  const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
+  // Proxies may send comma-separated lists, mixed case or an explicit default port;
+  // normalise through URL so "Example.com:443" matches the browser's "https://example.com".
+  const first = (name: string) => request.headers.get(name)?.split(",")[0]?.trim() || undefined;
+  const host = first("x-forwarded-host") ?? first("host");
   if (host) {
-    const proto = request.headers.get("x-forwarded-proto") ?? new URL(request.url).protocol.replace(":", "");
-    allowed.add(`${proto}://${host}`);
+    const proto = first("x-forwarded-proto") ?? new URL(request.url).protocol.replace(":", "");
+    const forwarded = originOf(`${proto}://${host}`);
+    if (forwarded) allowed.add(forwarded);
   }
-  return allowed.has(origin);
+  return allowed.has(originOf(origin) ?? "");
 }
 
 export function readCookie(request: Request, name: string): string | undefined {
