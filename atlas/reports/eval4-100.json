@@ -1,0 +1,1638 @@
+{
+ "note": "Atlas EVAL4（4つ目の標本）：公式 MCP Registry から固定シードで純粋に無作為抽出した公開リポジトリ100件。人手による選別・厳選は一切なし。corpus-100.json・holdout-100.json・validation-100.json とはリポジトリ単位でもオーナー単位でも重複しない（各標本の到達不能リストと予備候補を含めて除外）。未検査（スキャンはまだ実施していない）。2026-10-09 に HEAD を取得。インストール・ビルド・import・実行は一切していない。",
+ "sampling": {
+  "registry_snapshot": "2026-10-09 に取得した https://registry.modelcontextprotocol.io/v0/servers?version=latest の全件クロール（全ページ、キー空間分割カーソルクロール）、サーバーエントリ 40,911 件、名前順。holdout・validation と同じファイル（scratchpad holdout-work/registry-full.json）を再利用し、再クロールはしていない。",
+  "population_rule": "status が active、かつ repository.url が github.com/<owner>/<repo> 形式の URL、かつ registryType が {npm, pypi, oci} のいずれかであるパッケージを1つ以上持つもの。レジストリ全体を対象とする（stage 2 が使った先頭1,500件に限定しない）。",
+  "dedupe": "一意なリポジトリを GitHub オーナー（大文字小文字を区別しない）でまとめ、1オーナーにつき1リポジトリ",
+  "exclusions": "次のいずれかに現れるオーナー（したがってその全リポジトリ）を除外：atlas/reports/corpus-100.json（検査済み100件と到達不能14件）、atlas/reports/holdout-100.json（100件、到達不能15件、および holdout の取得で試した順位116-130の予備候補15件：scratchpad holdout-extra/ の予備クローン14件と到達不能の予備1件）、atlas/reports/validation-100.json（100件、到達不能13件、および validation の取得で試した順位114-130の予備候補17件：scratchpad validation-extra/ の予備クローン13件と到達不能の予備4件）。除外オーナー集合は計371（corpus 111 + holdout 130 + validation 130、相互重複なし）。",
+  "draw": "オーナーをソートしたのち random.Random(20261011).shuffle(owners)。複数リポジトリを持つオーナーは同じ乱数列から rng.choice(sorted(repos)) で1件を選ぶ。sampled_rank はシャッフル後のオーナー列での位置。候補を順位順に取得し、到達可能な先頭100件を採用（順位 1..110）。到達不能な候補（非公開・削除済み：git が認証情報を要求）は記録し、次の順位で置き換えた。取得は順位130まで行い、採用外の順位111-130のうち到達可能な18件は予備クローンとして scratchpad eval4-extra/ に置いた（到達不能の予備2件）。",
+  "seed": 20261011,
+  "counts": {
+   "registry_entries": 40911,
+   "active_with_github_and_package_entries": 14429,
+   "unique_repos": 12857,
+   "unique_owners": 9035,
+   "excluded_owner_set_size": {
+    "corpus100": 111,
+    "holdout100_incl_spares": 130,
+    "validation100_incl_spares": 130,
+    "extra_dirs": 27,
+    "union": 371
+   },
+   "owners_excluded_overlap_with_corpus100": 97,
+   "owners_excluded_overlap_with_holdout100": 130,
+   "owners_excluded_overlap_with_validation100": 130,
+   "owners_excluded_total": 357,
+   "repos_of_excluded_owners": 552,
+   "population_owners_after_exclusion": 8678,
+   "candidates_tried": 110,
+   "unreachable": 10,
+   "kept": 100,
+   "unreachable_rate": 0.091
+  },
+  "kept_from_first_1500_registry_entries": 0,
+  "fetch": "git init; git fetch --depth 1 --no-recurse-submodules --no-tags origin HEAD; checkout FETCH_HEAD; -c core.hooksPath=/dev/null -c core.symlinks=false -c protocol.file.allow=never; GIT_LFS_SKIP_SMUDGE=1; GIT_TERMINAL_PROMPT=0。クローン先は scratchpad eval4/。ツール：scratchpad tools/eval4_sample.py（validation_sample.py に validation の除外を追加したもの）、fetch_holdout.py、eval4_manifest.py（validation_manifest.py ベース）"
+ },
+ "repos": [
+  {
+   "repo": "https://github.com/im-sham/aegis-protocol",
+   "owner": "im-sham",
+   "dir": "im-sham__aegis-protocol",
+   "registry_names": [
+    "io.github.im-sham/aegis-protocol"
+   ],
+   "packages": [
+    "npm:@aegis-protocol/mcp-server"
+   ],
+   "commit": "fa7c97f17390c6a5857311534b6d66aa9f62f937",
+   "sampled_rank": 1,
+   "registry_crawl_index": 22911,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/chunkydonut21/caelario-mcp",
+   "owner": "chunkydonut21",
+   "dir": "chunkydonut21__caelario-mcp",
+   "registry_names": [
+    "io.github.chunkydonut21/caelario"
+   ],
+   "packages": [
+    "npm:caelario-mcp"
+   ],
+   "commit": "b3d6a14f9003828092c5f82a507bc642241d824e",
+   "sampled_rank": 2,
+   "registry_crawl_index": 19712,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/shimon-ks/tasklite-mcp",
+   "owner": "shimon-ks",
+   "dir": "shimon-ks__tasklite-mcp",
+   "registry_names": [
+    "net.tasklite/mcp"
+   ],
+   "packages": [
+    "npm:@tasklite/mcp"
+   ],
+   "commit": "f6ef564a7e64143d8a68383f167e6a9dbca5d117",
+   "sampled_rank": 3,
+   "registry_crawl_index": 39169,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/choreoatlas/over_reach_detector",
+   "owner": "choreoatlas",
+   "dir": "choreoatlas__over_reach_detector",
+   "registry_names": [
+    "io.github.choreoatlas/over-reach-detector"
+   ],
+   "packages": [
+    "pypi:over-reach-detector"
+   ],
+   "commit": "c72bc0f8419ecc5c1999c972e2d81e2745699fed",
+   "sampled_rank": 4,
+   "registry_crawl_index": 19606,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/Pantani/ableton-mind",
+   "owner": "pantani",
+   "dir": "Pantani__ableton-mind",
+   "registry_names": [
+    "io.github.Pantani/ableton-mind"
+   ],
+   "packages": [
+    "npm:ableton-mind"
+   ],
+   "commit": "80688beaf15e41df145ceb6670c7b636b5303ad5",
+   "sampled_rank": 6,
+   "registry_crawl_index": 16015,
+   "owner_repo_choices": 2
+  },
+  {
+   "repo": "https://github.com/yourmatematt/agent-billboard-mcp",
+   "owner": "yourmatematt",
+   "dir": "yourmatematt__agent-billboard-mcp",
+   "registry_names": [
+    "io.github.yourmatematt/agent-billboard-mcp"
+   ],
+   "packages": [
+    "npm:agent-billboard-mcp"
+   ],
+   "commit": "11e79dba781838a4eba3acafc6486de39b13fb5e",
+   "sampled_rank": 7,
+   "registry_crawl_index": 37549,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/synopsys0/postfader-fl-studio-mcp",
+   "owner": "synopsys0",
+   "dir": "synopsys0__postfader-fl-studio-mcp",
+   "registry_names": [
+    "io.github.synopsys0/postfader-fl-studio-mcp"
+   ],
+   "packages": [
+    "pypi:postfader-fl-studio-mcp"
+   ],
+   "commit": "dec5985377b7cae9808f2e76189e4c096f51059a",
+   "sampled_rank": 8,
+   "registry_crawl_index": 35635,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/mendapi/mendapi",
+   "owner": "mendapi",
+   "dir": "mendapi__mendapi",
+   "registry_names": [
+    "com.mendapi/mendapi"
+   ],
+   "packages": [
+    "npm:mendapi"
+   ],
+   "commit": "2452f3ceb70eaee14a85f281616d5dc279ab5d40",
+   "sampled_rank": 9,
+   "registry_crawl_index": 6884,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/datoushiwo/wechat-writer-mcp",
+   "owner": "datoushiwo",
+   "dir": "datoushiwo__wechat-writer-mcp",
+   "registry_names": [
+    "io.github.datoushiwo/wechat-writer-mcp"
+   ],
+   "packages": [
+    "npm:wechat-writer-mcp"
+   ],
+   "commit": "829c7cc290e391108cce4ca9b6aa2635181cc7a1",
+   "sampled_rank": 10,
+   "registry_crawl_index": 20609,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/ndjordjevic/pinrag",
+   "owner": "ndjordjevic",
+   "dir": "ndjordjevic__pinrag",
+   "registry_names": [
+    "io.github.ndjordjevic/pinrag"
+   ],
+   "packages": [
+    "pypi:pinrag"
+   ],
+   "commit": "3f3336e69bbe45e193a96210de5675568a383c1d",
+   "sampled_rank": 11,
+   "registry_crawl_index": 28039,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/open-mtor-atlas/atlas",
+   "owner": "open-mtor-atlas",
+   "dir": "open-mtor-atlas__atlas",
+   "registry_names": [
+    "io.github.open-mtor-atlas/mtor-atlas"
+   ],
+   "packages": [
+    "npm:mtor-atlas-mcp"
+   ],
+   "commit": "e7588a55695a1a2d150df4997db88dd0d094335b",
+   "sampled_rank": 12,
+   "registry_crawl_index": 28678,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/yeominux/md-feedback",
+   "owner": "yeominux",
+   "dir": "yeominux__md-feedback",
+   "registry_names": [
+    "io.github.yeominux/md-feedback"
+   ],
+   "packages": [
+    "npm:md-feedback"
+   ],
+   "commit": "dc4d83a5c9391f54400328e3905ec9f17c18c7d9",
+   "sampled_rank": 13,
+   "registry_crawl_index": 37488,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/Alvi97/angular-signal-forms-migration-mcp",
+   "owner": "alvi97",
+   "dir": "Alvi97__angular-signal-forms-migration-mcp",
+   "registry_names": [
+    "io.github.Alvi97/angular-signal-forms-migration-mcp"
+   ],
+   "packages": [
+    "npm:angular-signal-forms-migration-mcp"
+   ],
+   "commit": "5d71d9f8c0ab699787f508053bb4fca197790983",
+   "sampled_rank": 14,
+   "registry_crawl_index": 12162,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/gitwormq/datasieve-mcp",
+   "owner": "gitwormq",
+   "dir": "gitwormq__datasieve-mcp",
+   "registry_names": [
+    "io.github.gitwormq/datasieve"
+   ],
+   "packages": [
+    "npm:datasieve-mcp"
+   ],
+   "commit": "370a6ec6d9f7c864c2cb960a40883f873ba9b158",
+   "sampled_rank": 15,
+   "registry_crawl_index": 22204,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/jbacalso24/mimry",
+   "owner": "jbacalso24",
+   "dir": "jbacalso24__mimry",
+   "registry_names": [
+    "io.github.jbacalso24/mimry"
+   ],
+   "packages": [
+    "pypi:mimry"
+   ],
+   "commit": "77eac93e3bf4caa43bd06a2e1988907a35f6e1c6",
+   "sampled_rank": 16,
+   "registry_crawl_index": 23356,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/EveryPageApp/everypage-mcp",
+   "owner": "everypageapp",
+   "dir": "EveryPageApp__everypage-mcp",
+   "registry_names": [
+    "co.everypage/mcp"
+   ],
+   "packages": [
+    "npm:everypage-mcp"
+   ],
+   "commit": "09f28c24c1fe5a7f39bea10f9f154e2f0805564e",
+   "sampled_rank": 17,
+   "registry_crawl_index": 3068,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/nightmoose/contractgate",
+   "owner": "nightmoose",
+   "dir": "nightmoose__contractgate",
+   "registry_names": [
+    "io.github.nightmoose/contractgate"
+   ],
+   "packages": [
+    "npm:@nightmoose/contractgate-mcp-server"
+   ],
+   "commit": "c3da2bd0f7294e303ab7bdf875caa9c4d21ec5a7",
+   "sampled_rank": 18,
+   "registry_crawl_index": 28205,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/barissozudogru/release-intel-mcp",
+   "owner": "barissozudogru",
+   "dir": "barissozudogru__release-intel-mcp",
+   "registry_names": [
+    "io.github.barissozudogru/release-intel"
+   ],
+   "packages": [
+    "npm:@barissozudogru/release-intel-mcp"
+   ],
+   "commit": "d66f3c520eb9ac292c734db267d8249ec26289a8",
+   "sampled_rank": 19,
+   "registry_crawl_index": 18900,
+   "owner_repo_choices": 3
+  },
+  {
+   "repo": "https://github.com/Automations-Project/VSCode-Airtable-Formula",
+   "owner": "automations-project",
+   "dir": "Automations-Project__VSCode-Airtable-Formula",
+   "registry_names": [
+    "io.github.Automations-Project/airtable-user-mcp"
+   ],
+   "packages": [
+    "npm:airtable-user-mcp"
+   ],
+   "commit": "1156119825ae9f1be271db0780ebefa4390bb14b",
+   "sampled_rank": 20,
+   "registry_crawl_index": 12416,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/YimingYAN/fivetran-mcp",
+   "owner": "yimingyan",
+   "dir": "YimingYAN__fivetran-mcp",
+   "registry_names": [
+    "io.github.YimingYAN/fivetran-mcp"
+   ],
+   "packages": [
+    "pypi:fivetran-mcp"
+   ],
+   "commit": "e0a1b26cb32b7f2b7c50b9b0e8f1579f0ab75b2c",
+   "sampled_rank": 21,
+   "registry_crawl_index": 17623,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/codexguy/regiabi-plugins",
+   "owner": "codexguy",
+   "dir": "codexguy__regiabi-plugins",
+   "registry_names": [
+    "com.regiabi/chart-mcp"
+   ],
+   "packages": [
+    "npm:@bicharts/chart-mcp"
+   ],
+   "commit": "b2dfefb931a3c4621b648ac6eb80afd584dc0880",
+   "sampled_rank": 22,
+   "registry_crawl_index": 7991,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/Hug0x0/mcp-reunion",
+   "owner": "hug0x0",
+   "dir": "Hug0x0__mcp-reunion",
+   "registry_names": [
+    "io.github.Hug0x0/mcp-reunion"
+   ],
+   "packages": [
+    "npm:mcp-reunion"
+   ],
+   "commit": "73ba0f2c6b539c86a088f90665d96fe7811acdde",
+   "sampled_rank": 24,
+   "registry_crawl_index": 14570,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/microtoll/pqc-scan",
+   "owner": "microtoll",
+   "dir": "microtoll__pqc-scan",
+   "registry_names": [
+    "io.github.microtoll/pqc-scan"
+   ],
+   "packages": [
+    "npm:@microtoll/pqc-scan"
+   ],
+   "commit": "33bfc6e2c0c14af48406ba47c201bcaf8ed3e284",
+   "sampled_rank": 25,
+   "registry_crawl_index": 26693,
+   "owner_repo_choices": 2
+  },
+  {
+   "repo": "https://github.com/blackdiamond-labs/scalebrowser-mcp",
+   "owner": "blackdiamond-labs",
+   "dir": "blackdiamond-labs__scalebrowser-mcp",
+   "registry_names": [
+    "net.scalebrowser/mcp"
+   ],
+   "packages": [
+    "npm:@scalebrowser/mcp"
+   ],
+   "commit": "0dede256a373df0fc3ff441587b16a015c6e2a27",
+   "sampled_rank": 26,
+   "registry_crawl_index": 39146,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/thomenz/brmarket-mcp",
+   "owner": "thomenz",
+   "dir": "thomenz__brmarket-mcp",
+   "registry_names": [
+    "io.github.thomenz/brmarket-mcp"
+   ],
+   "packages": [
+    "npm:brmarket-mcp"
+   ],
+   "commit": "d7da2379d6b471bc0f35507634e7759e1805535f",
+   "sampled_rank": 27,
+   "registry_crawl_index": 36163,
+   "owner_repo_choices": 3
+  },
+  {
+   "repo": "https://github.com/cyntrisec/cyntrisec-cli",
+   "owner": "cyntrisec",
+   "dir": "cyntrisec__cyntrisec-cli",
+   "registry_names": [
+    "io.github.cyntrisec/cyntrisec"
+   ],
+   "packages": [
+    "pypi:cyntrisec"
+   ],
+   "commit": "a2039a2f06b291a4d1b305076f1e0d57d37a036b",
+   "sampled_rank": 28,
+   "registry_crawl_index": 20400,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/Vublox/vublox-agent-tools",
+   "owner": "vublox",
+   "dir": "Vublox__vublox-agent-tools",
+   "registry_names": [
+    "io.github.Vublox/sports"
+   ],
+   "packages": [
+    "npm:@vublox/agent-tools"
+   ],
+   "commit": "828e07037606f48703326f3e9b5f22b69aab38b6",
+   "sampled_rank": 29,
+   "registry_crawl_index": 17379,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/quirna/quirna-mcp",
+   "owner": "quirna",
+   "dir": "quirna__quirna-mcp",
+   "registry_names": [
+    "io.github.quirna/mcp"
+   ],
+   "packages": [
+    "npm:@quirna/mcp"
+   ],
+   "commit": "8dc9bb8d33a4b11558301f7e6e861bca738d35fc",
+   "sampled_rank": 30,
+   "registry_crawl_index": 31281,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/kalehdoo/warehouse-mcp",
+   "owner": "kalehdoo",
+   "dir": "kalehdoo__warehouse-mcp",
+   "registry_names": [
+    "io.github.kalehdoo/warehouse-mcp"
+   ],
+   "packages": [
+    "npm:warehouse-mcp"
+   ],
+   "commit": "4ee3454aeb762563622985a41cc6eab37e2bad0b",
+   "sampled_rank": 31,
+   "registry_crawl_index": 24039,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/introfini/mcp-server-zotero-dev",
+   "owner": "introfini",
+   "dir": "introfini__mcp-server-zotero-dev",
+   "registry_names": [
+    "io.github.introfini/mcp-server-zotero-dev"
+   ],
+   "packages": [
+    "npm:@introfini/mcp-server-zotero-dev"
+   ],
+   "commit": "24f8f5010d5cf05f178400b096a53ba8ec75b1a0",
+   "sampled_rank": 32,
+   "registry_crawl_index": 23058,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/tuananh/hyper-mcp",
+   "owner": "tuananh",
+   "dir": "tuananh__hyper-mcp",
+   "registry_names": [
+    "io.github.tuananh/hyper-mcp"
+   ],
+   "packages": [
+    "oci:docker.io/tuananh/hyper-mcp:v0.1.6"
+   ],
+   "commit": "f3e1aff5e6f07a15746d62cd3349bc0e44e6347a",
+   "sampled_rank": 33,
+   "registry_crawl_index": 36446,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/echo-mem/echo-mem",
+   "owner": "echo-mem",
+   "dir": "echo-mem__echo-mem",
+   "registry_names": [
+    "io.github.ayushcodes10/echo-mem"
+   ],
+   "packages": [
+    "pypi:echo-mem"
+   ],
+   "commit": "904a5f01ee0f282b880581e043c97a45e7173841",
+   "sampled_rank": 34,
+   "registry_crawl_index": 18846,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/mittalpk/mcp-server-pgvector",
+   "owner": "mittalpk",
+   "dir": "mittalpk__mcp-server-pgvector",
+   "registry_names": [
+    "io.github.mittalpk/pgvector"
+   ],
+   "packages": [
+    "pypi:mcp-server-pgvector"
+   ],
+   "commit": "f4e086d6757aaf75c37ada5a7a0fe6b0c213a752",
+   "sampled_rank": 36,
+   "registry_crawl_index": 26842,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/nelsonjordanme/clypt-mcp-server",
+   "owner": "nelsonjordanme",
+   "dir": "nelsonjordanme__clypt-mcp-server",
+   "registry_names": [
+    "io.github.nelsonjordanme/clypt"
+   ],
+   "packages": [
+    "npm:@useclypt/mcp-server"
+   ],
+   "commit": "8ad64e95fc3815eab098921822b73ad1905b9634",
+   "sampled_rank": 37,
+   "registry_crawl_index": 28055,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/phaedo-labs/phaedo-mcp",
+   "owner": "phaedo-labs",
+   "dir": "phaedo-labs__phaedo-mcp",
+   "registry_names": [
+    "io.github.phaedo-labs/phaedo-mcp"
+   ],
+   "packages": [
+    "npm:phaedo-mcp"
+   ],
+   "commit": "cfa7e703f7237381b8795145b79ca1c0ef1c7fa5",
+   "sampled_rank": 38,
+   "registry_crawl_index": 29082,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/CryptoQuantOfficial/cryptoquant-mcp",
+   "owner": "cryptoquantofficial",
+   "dir": "CryptoQuantOfficial__cryptoquant-mcp",
+   "registry_names": [
+    "com.cryptoquant/mcp-server"
+   ],
+   "packages": [
+    "npm:cryptoquant-mcp"
+   ],
+   "commit": "b6a87abeb557b10609f29577d0d473f7533c0bd0",
+   "sampled_rank": 39,
+   "registry_crawl_index": 4662,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/intent-driven-software/idf-mcp",
+   "owner": "intent-driven-software",
+   "dir": "intent-driven-software__idf-mcp",
+   "registry_names": [
+    "io.github.intent-driven-software/idf-mcp"
+   ],
+   "packages": [
+    "npm:@intent-driven/mcp-server"
+   ],
+   "commit": "5794c16df4c256b1d8c4d9a69c60c1078ebeaca6",
+   "sampled_rank": 40,
+   "registry_crawl_index": 23051,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/voidmobcom/voidmob-mcp",
+   "owner": "voidmobcom",
+   "dir": "voidmobcom__voidmob-mcp",
+   "registry_names": [
+    "io.github.voidmobcom/voidmob-mcp"
+   ],
+   "packages": [
+    "npm:@voidmob/mcp"
+   ],
+   "commit": "ac3a50f44121db1a89ab2ea67901fd89f64a9b47",
+   "sampled_rank": 42,
+   "registry_crawl_index": 36941,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/enrichgateagent-png/beacon-mcp",
+   "owner": "enrichgateagent-png",
+   "dir": "enrichgateagent-png__beacon-mcp",
+   "registry_names": [
+    "io.github.enrichgateagent-png/beacon-mcp"
+   ],
+   "packages": [
+    "npm:beacon-mcp"
+   ],
+   "commit": "78d9a42be04076f45e86155e03a272f553335e8b",
+   "sampled_rank": 43,
+   "registry_crawl_index": 21391,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/takeaseatventure/cron-mcp",
+   "owner": "takeaseatventure",
+   "dir": "takeaseatventure__cron-mcp",
+   "registry_names": [
+    "io.github.takeaseatventure/cron-mcp"
+   ],
+   "packages": [
+    "npm:cron-mcp-server"
+   ],
+   "commit": "902a68ec71582aa228a1e1e1775946188ac3c44f",
+   "sampled_rank": 44,
+   "registry_crawl_index": 35672,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/Ophir-Protocol/ophir",
+   "owner": "ophir-protocol",
+   "dir": "Ophir-Protocol__ophir",
+   "registry_names": [
+    "io.github.Ophir-ai-creator/ophir"
+   ],
+   "packages": [
+    "npm:@ophirai/mcp-server"
+   ],
+   "commit": "17b0e617cb37be34a1bb44c8fe3ffecb9988ea60",
+   "sampled_rank": 45,
+   "registry_crawl_index": 15939,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/hedging8563/tokenlab-mcp-server",
+   "owner": "hedging8563",
+   "dir": "hedging8563__tokenlab-mcp-server",
+   "registry_names": [
+    "io.github.hedging8563/tokenlab"
+   ],
+   "packages": [
+    "npm:@tokenlabai/mcp-server"
+   ],
+   "commit": "34a1f3b7e3daf1481f460d93d9458ba64149d7c2",
+   "sampled_rank": 46,
+   "registry_crawl_index": 22535,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/andreilungeanu/cursor-delegate-mcp",
+   "owner": "andreilungeanu",
+   "dir": "andreilungeanu__cursor-delegate-mcp",
+   "registry_names": [
+    "io.github.andreilungeanu/cursor-delegate-mcp"
+   ],
+   "packages": [
+    "npm:cursor-delegate-mcp"
+   ],
+   "commit": "f43b8dd3132257cd15ede2b977306242ed5c284e",
+   "sampled_rank": 47,
+   "registry_crawl_index": 18308,
+   "owner_repo_choices": 2
+  },
+  {
+   "repo": "https://github.com/tresor4k/realdentalcosts-mcp",
+   "owner": "tresor4k",
+   "dir": "tresor4k__realdentalcosts-mcp",
+   "registry_names": [
+    "io.github.tresor4k/realdentalcosts-mcp"
+   ],
+   "packages": [
+    "npm:realdentalcosts-mcp"
+   ],
+   "commit": "9182aa27f610c993f13043d6371bd091332bd17d",
+   "sampled_rank": 48,
+   "registry_crawl_index": 36368,
+   "owner_repo_choices": 6
+  },
+  {
+   "repo": "https://github.com/abuhamza/tideways-mcp-server",
+   "owner": "abuhamza",
+   "dir": "abuhamza__tideways-mcp-server",
+   "registry_names": [
+    "io.github.abuhamza/tideways-mcp-server"
+   ],
+   "packages": [
+    "npm:tideways-mcp-server",
+    "oci:ghcr.io/abuhamza/tideways-mcp-server:2.1.0"
+   ],
+   "commit": "b5c638a3cf3cce04ea353ea6285a689c80e400b6",
+   "sampled_rank": 49,
+   "registry_crawl_index": 17776,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/AceDataCloud/HappyHorseMCP",
+   "owner": "acedatacloud",
+   "dir": "AceDataCloud__HappyHorseMCP",
+   "registry_names": [
+    "io.github.AceDataCloud/mcp-happyhorse"
+   ],
+   "packages": [
+    "pypi:mcp-happyhorse"
+   ],
+   "commit": "86415757ba8ee2791d8de10ea53de988ba2fbff0",
+   "sampled_rank": 50,
+   "registry_crawl_index": 11978,
+   "owner_repo_choices": 27
+  },
+  {
+   "repo": "https://github.com/rom-baro/arcwall-mcp",
+   "owner": "rom-baro",
+   "dir": "rom-baro__arcwall-mcp",
+   "registry_names": [
+    "io.github.rom-baro/arcwall-security"
+   ],
+   "packages": [
+    "npm:@arcwall/mcp-server"
+   ],
+   "commit": "028e5ac6f97719957fd210cf64603e08bdf48aa1",
+   "sampled_rank": 51,
+   "registry_crawl_index": 31771,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/alondmnt/joplin-mcp",
+   "owner": "alondmnt",
+   "dir": "alondmnt__joplin-mcp",
+   "registry_names": [
+    "io.github.alondmnt/joplin-mcp"
+   ],
+   "packages": [
+    "pypi:joplin-mcp"
+   ],
+   "commit": "b84c3131e64c54bfdd354e7c62373e19cf22364b",
+   "sampled_rank": 52,
+   "registry_crawl_index": 18210,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/bighub-io/bighub",
+   "owner": "bighub-io",
+   "dir": "bighub-io__bighub",
+   "registry_names": [
+    "io.bighub/mcp"
+   ],
+   "packages": [
+    "npm:@bighub/bighub-mcp"
+   ],
+   "commit": "61f4e2f269b1a4abe6d4f4bbee320e4abb1df88c",
+   "sampled_rank": 53,
+   "registry_crawl_index": 11405,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/QuantuLabs/Hivemind",
+   "owner": "quantulabs",
+   "dir": "QuantuLabs__Hivemind",
+   "registry_names": [
+    "io.github.QuantuLabs/hivemind"
+   ],
+   "packages": [
+    "npm:@quantulabs/hivemind"
+   ],
+   "commit": "b74985caf1c343bb1ce8e1a2f86835190aa8d1e0",
+   "sampled_rank": 54,
+   "registry_crawl_index": 16216,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/pixfaro/mcp",
+   "owner": "pixfaro",
+   "dir": "pixfaro__mcp",
+   "registry_names": [
+    "com.pixfaro/mcp"
+   ],
+   "packages": [
+    "npm:@pixfaro/mcp"
+   ],
+   "commit": "05cd59e5168669e52f3c02b550629f1d65e7e02a",
+   "sampled_rank": 55,
+   "registry_crawl_index": 7623,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/Mastercard/developers-agent-toolkit",
+   "owner": "mastercard",
+   "dir": "Mastercard__developers-agent-toolkit",
+   "registry_names": [
+    "io.github.Mastercard/developers-mcp"
+   ],
+   "packages": [
+    "npm:@mastercard/developers-mcp"
+   ],
+   "commit": "2c6781ce476a222faf93862a735ced7777aa02ae",
+   "sampled_rank": 56,
+   "registry_crawl_index": 15433,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/microservices-sh/mcp",
+   "owner": "microservices-sh",
+   "dir": "microservices-sh__mcp",
+   "registry_names": [
+    "sh.microservices/mcp"
+   ],
+   "packages": [
+    "npm:@microservices-sh/mcp"
+   ],
+   "commit": "f87778c4fa4fea0d72fd87335ed07ebc842cd267",
+   "sampled_rank": 57,
+   "registry_crawl_index": 39942,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/kingwarthur/camelotwebtools-mcp",
+   "owner": "kingwarthur",
+   "dir": "kingwarthur__camelotwebtools-mcp",
+   "registry_names": [
+    "io.github.kingwarthur/camelotwebtools-mcp"
+   ],
+   "packages": [
+    "npm:camelotwebtools-mcp"
+   ],
+   "commit": "6f982dbc2623e998c3dcf573b5fe04049272f508",
+   "sampled_rank": 59,
+   "registry_crawl_index": 24194,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/DeanWard/HAL",
+   "owner": "deanward",
+   "dir": "DeanWard__HAL",
+   "registry_names": [
+    "io.github.DeanWard/HAL"
+   ],
+   "packages": [
+    "npm:hal-mcp"
+   ],
+   "commit": "cc02a64c074ab0f205275e03add93d0fb407aa64",
+   "sampled_rank": 60,
+   "registry_crawl_index": 13535,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/udah1/hilan-mcp",
+   "owner": "udah1",
+   "dir": "udah1__hilan-mcp",
+   "registry_names": [
+    "io.github.udah1/hilan-mcp"
+   ],
+   "packages": [
+    "npm:hilan-mcp"
+   ],
+   "commit": "b1c2ac36492efac7098b35c06874ae2cd0ef0efa",
+   "sampled_rank": 62,
+   "registry_crawl_index": 36530,
+   "owner_repo_choices": 2
+  },
+  {
+   "repo": "https://github.com/jpicklyk/task-orchestrator",
+   "owner": "jpicklyk",
+   "dir": "jpicklyk__task-orchestrator",
+   "registry_names": [
+    "io.github.jpicklyk/task-orchestrator"
+   ],
+   "packages": [
+    "oci:ghcr.io/jpicklyk/task-orchestrator:3.16.0"
+   ],
+   "commit": "ed1b49b695a69f09eed71e8a86514ff9082aa4de",
+   "sampled_rank": 63,
+   "registry_crawl_index": 23845,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/ptrinh/freeport",
+   "owner": "ptrinh",
+   "dir": "ptrinh__freeport",
+   "registry_names": [
+    "io.github.ptrinh/freeport-nostr"
+   ],
+   "packages": [
+    "npm:freeport-nostr-mcp"
+   ],
+   "commit": "5d33034911b41cb4836cd3c11587aaf06056be81",
+   "sampled_rank": 64,
+   "registry_crawl_index": 31160,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/lumiclip/lumiclip-mcp-server",
+   "owner": "lumiclip",
+   "dir": "lumiclip__lumiclip-mcp-server",
+   "registry_names": [
+    "io.github.lumiclip/lumiclip"
+   ],
+   "packages": [
+    "npm:@lumiclip/mcp-server"
+   ],
+   "commit": "8da27d8cf182fa28782fc79d5f8f90954d485820",
+   "sampled_rank": 65,
+   "registry_crawl_index": 24841,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/Cyberweasel777/botindex-mcp-server",
+   "owner": "cyberweasel777",
+   "dir": "Cyberweasel777__botindex-mcp-server",
+   "registry_names": [
+    "io.github.Cyberweasel777/botindex-mcp-server"
+   ],
+   "packages": [
+    "npm:botindex-mcp-server"
+   ],
+   "commit": "736bc7297b6b5b38d17420479a8e283f211d923b",
+   "sampled_rank": 66,
+   "registry_crawl_index": 13391,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/CE-RISE-software/dp-engineering-assistant",
+   "owner": "ce-rise-software",
+   "dir": "CE-RISE-software__dp-engineering-assistant",
+   "registry_names": [
+    "io.github.CE-RISE-software/dp-engineering-assistant"
+   ],
+   "packages": [
+    "oci:ghcr.io/ce-rise-software/dp-engineering-assistant-mcp:0.0.1"
+   ],
+   "commit": "4b945b3be762ee5974a104e5839740a1612493f8",
+   "sampled_rank": 68,
+   "registry_crawl_index": 12754,
+   "owner_repo_choices": 2
+  },
+  {
+   "repo": "https://github.com/R09722akaBennett/nano-pdf-mcp",
+   "owner": "r09722akabennett",
+   "dir": "R09722akaBennett__nano-pdf-mcp",
+   "registry_names": [
+    "io.github.R09722akaBennett/nano-pdf-mcp"
+   ],
+   "packages": [
+    "oci:docker.io/taibennett/nano-pdf-mcp:0.1.0"
+   ],
+   "commit": "8bc5918b912db855cd381b4559c3930bed5fecc3",
+   "sampled_rank": 69,
+   "registry_crawl_index": 16222,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/kovoor/vueuse-mcp",
+   "owner": "kovoor",
+   "dir": "kovoor__vueuse-mcp",
+   "registry_names": [
+    "io.github.kovoor/vueuse-mcp"
+   ],
+   "packages": [
+    "npm:vueuse-mcp"
+   ],
+   "commit": "c0339d4dcdd743a79a30db0c0c4be7ccc8baff87",
+   "sampled_rank": 70,
+   "registry_crawl_index": 24300,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/stsepelin/checktrail",
+   "owner": "stsepelin",
+   "dir": "stsepelin__checktrail",
+   "registry_names": [
+    "io.github.stsepelin/checktrail"
+   ],
+   "packages": [
+    "npm:@stsepelin/checktrail"
+   ],
+   "commit": "0f5d8656381d75262423f0ebf93abc810d839212",
+   "sampled_rank": 71,
+   "registry_crawl_index": 35506,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/Memphora/memphora-mcp",
+   "owner": "memphora",
+   "dir": "Memphora__memphora-mcp",
+   "registry_names": [
+    "io.github.Memphora/memphora"
+   ],
+   "packages": [
+    "pypi:memphora-mcp"
+   ],
+   "commit": "3117f9b908d880d84b2f9ac5eeb4a6f3246138ad",
+   "sampled_rank": 72,
+   "registry_crawl_index": 15484,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/danchev/spherepay-mcp",
+   "owner": "danchev",
+   "dir": "danchev__spherepay-mcp",
+   "registry_names": [
+    "io.github.danchev/spherepay"
+   ],
+   "packages": [
+    "pypi:spherepay-mcp"
+   ],
+   "commit": "927f101491a28ea70ab320048377329a4bc519e5",
+   "sampled_rank": 73,
+   "registry_crawl_index": 20522,
+   "owner_repo_choices": 3
+  },
+  {
+   "repo": "https://github.com/chamade-io/mcp-server",
+   "owner": "chamade-io",
+   "dir": "chamade-io__mcp-server",
+   "registry_names": [
+    "io.chamade/server"
+   ],
+   "packages": [
+    "npm:@chamade/mcp-server"
+   ],
+   "commit": "8951ecc600afab5b7f59bec7ce97645db2b01813",
+   "sampled_rank": 75,
+   "registry_crawl_index": 11452,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/sun-jingtao/tapd-mcp-server",
+   "owner": "sun-jingtao",
+   "dir": "sun-jingtao__tapd-mcp-server",
+   "registry_names": [
+    "io.github.sun-jingtao/tapd-mcp-server"
+   ],
+   "packages": [
+    "npm:tapd-mcp-server"
+   ],
+   "commit": "813783466eff9fee26a73d3223985666806c3780",
+   "sampled_rank": 76,
+   "registry_crawl_index": 35554,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/dengxuhui/igpsport-mcp",
+   "owner": "dengxuhui",
+   "dir": "dengxuhui__igpsport-mcp",
+   "registry_names": [
+    "io.github.dengxuhui/igpsport-mcp"
+   ],
+   "packages": [
+    "pypi:igpsport-mcp"
+   ],
+   "commit": "ca600bfa08d7c07a765fd594d43cc768c53493de",
+   "sampled_rank": 77,
+   "registry_crawl_index": 20745,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/sebbsssss/clude",
+   "owner": "sebbsssss",
+   "dir": "sebbsssss__clude",
+   "registry_names": [
+    "io.github.sebbsssss/clude"
+   ],
+   "packages": [
+    "npm:@clude/sdk"
+   ],
+   "commit": "cecf234f10397b1e21dec2ff65ded864982f3564",
+   "sampled_rank": 78,
+   "registry_crawl_index": 34648,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/anulum/synapse-channel",
+   "owner": "anulum",
+   "dir": "anulum__synapse-channel",
+   "registry_names": [
+    "io.github.anulum/synapse-channel"
+   ],
+   "packages": [
+    "pypi:synapse-channel"
+   ],
+   "commit": "bbc9c427ae42ebd0c6abcb4ef3c35f33c1b530de",
+   "sampled_rank": 79,
+   "registry_crawl_index": 18422,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/commit-check/commit-check-mcp",
+   "owner": "commit-check",
+   "dir": "commit-check__commit-check-mcp",
+   "registry_names": [
+    "io.github.commit-check/commit-check-mcp"
+   ],
+   "packages": [
+    "pypi:commit-check-mcp"
+   ],
+   "commit": "2a9ad94f9644c5a29bcf31d82501a8bc1d42e347",
+   "sampled_rank": 80,
+   "registry_crawl_index": 20037,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/bitatlas-group/bitatlas",
+   "owner": "bitatlas-group",
+   "dir": "bitatlas-group__bitatlas",
+   "registry_names": [
+    "io.github.bitatlas-group/bitatlas"
+   ],
+   "packages": [
+    "npm:@bitatlas/mcp-server"
+   ],
+   "commit": "aa58a794e27d79672ad1af2d384999c4971816b6",
+   "sampled_rank": 81,
+   "registry_crawl_index": 19104,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/girik-chadha/interviewer-mcp",
+   "owner": "girik-chadha",
+   "dir": "girik-chadha__interviewer-mcp",
+   "registry_names": [
+    "io.github.girik-chadha/interviewer-mcp"
+   ],
+   "packages": [
+    "npm:interviewer-mcp"
+   ],
+   "commit": "957f29a8badea26224a57795f151544b10ac3e06",
+   "sampled_rank": 82,
+   "registry_crawl_index": 22178,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/pgalyen1987/NodeProxy",
+   "owner": "pgalyen1987",
+   "dir": "pgalyen1987__NodeProxy",
+   "registry_names": [
+    "io.github.pgalyen1987/nodeproxy",
+    "io.github.pgalyen1987/tokensqueezer",
+    "io.github.pgalyen1987/vectorcache"
+   ],
+   "packages": [
+    "pypi:nodeproxy-tools",
+    "npm:@nodeproxy/langchain",
+    "npm:@nodeproxy/tokensqueezer",
+    "npm:@nodeproxy/vectorcache"
+   ],
+   "commit": "d28f73700be27a6b1f9accac33c275e6acdd36c4",
+   "sampled_rank": 83,
+   "registry_crawl_index": 29077,
+   "owner_repo_choices": 2
+  },
+  {
+   "repo": "https://github.com/mtbun/storeshots-mcp",
+   "owner": "mtbun",
+   "dir": "mtbun__storeshots-mcp",
+   "registry_names": [
+    "io.github.mtbun/storeshots-mcp"
+   ],
+   "packages": [
+    "npm:storeshots-mcp"
+   ],
+   "commit": "5c4dc9703f218bd34cf031b9ed2cab42b6d831f6",
+   "sampled_rank": 84,
+   "registry_crawl_index": 27880,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/cmdenney/logicnodes-mcp-bridge",
+   "owner": "cmdenney",
+   "dir": "cmdenney__logicnodes-mcp-bridge",
+   "registry_names": [
+    "io.github.cmdenney/logicnodes-mcp-bridge"
+   ],
+   "packages": [
+    "npm:@logicnodez/mcp-bridge"
+   ],
+   "commit": "ff7742cd488c64d08b3418d7aeacffd71fe525ae",
+   "sampled_rank": 85,
+   "registry_crawl_index": 19806,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/gawk-dev/mcpgawk",
+   "owner": "gawk-dev",
+   "dir": "gawk-dev__mcpgawk",
+   "registry_names": [
+    "io.github.gawk-dev/mcpgawk"
+   ],
+   "packages": [
+    "pypi:mcpgawk"
+   ],
+   "commit": "806ce3097ce9978459fe8ee2ea3c5e4094551d61",
+   "sampled_rank": 86,
+   "registry_crawl_index": 22045,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/Arbromagency-Sato/idphantom-mcp-server",
+   "owner": "arbromagency-sato",
+   "dir": "Arbromagency-Sato__idphantom-mcp-server",
+   "registry_names": [
+    "io.github.Arbromagency-Sato/phantom-mcp-server"
+   ],
+   "packages": [
+    "npm:@phantomid/mcp-server"
+   ],
+   "commit": "721d6097e2507e4fd1cd39aaea798feca5df17fa",
+   "sampled_rank": 87,
+   "registry_crawl_index": 12301,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/thingscorp/thatmgmt-mcp",
+   "owner": "thingscorp",
+   "dir": "thingscorp__thatmgmt-mcp",
+   "registry_names": [
+    "io.github.Thingscorp/thatmgmt-mcp"
+   ],
+   "packages": [
+    "npm:@thatmgmt/mcp"
+   ],
+   "commit": "e0389c581ca0c4aa75b785f66f8a2c4abaccf305",
+   "sampled_rank": 88,
+   "registry_crawl_index": 17122,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/krulewis/tokencast",
+   "owner": "krulewis",
+   "dir": "krulewis__tokencast",
+   "registry_names": [
+    "io.github.krulewis/tokencast"
+   ],
+   "packages": [
+    "pypi:tokencast"
+   ],
+   "commit": "f06e2253d74a50a24eb03e7d1537d655ac0f1592",
+   "sampled_rank": 89,
+   "registry_crawl_index": 24336,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/AnthonyPuggs/ausecon-mcp-server",
+   "owner": "anthonypuggs",
+   "dir": "AnthonyPuggs__ausecon-mcp-server",
+   "registry_names": [
+    "io.github.AnthonyPuggs/ausecon-mcp-server"
+   ],
+   "packages": [
+    "pypi:ausecon-mcp-server"
+   ],
+   "commit": "46865a97b1468a1e7420dc024259bd94303a8802",
+   "sampled_rank": 90,
+   "registry_crawl_index": 12271,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/iris-eval/mcp-server",
+   "owner": "iris-eval",
+   "dir": "iris-eval__mcp-server",
+   "registry_names": [
+    "io.github.iris-eval/mcp-server"
+   ],
+   "packages": [
+    "npm:@iris-eval/mcp-server"
+   ],
+   "commit": "ade0c5e4398e2ffee5cb54505667885b826a2641",
+   "sampled_rank": 91,
+   "registry_crawl_index": 23109,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/opsmill/infrahub-mcp",
+   "owner": "opsmill",
+   "dir": "opsmill__infrahub-mcp",
+   "registry_names": [
+    "com.opsmill/infrahub-mcp"
+   ],
+   "packages": [
+    "pypi:infrahub-mcp"
+   ],
+   "commit": "10338bdeb625e9f1ebbff08c1404913fdabdde11",
+   "sampled_rank": 92,
+   "registry_crawl_index": 7398,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/CodesWhat/portkey-admin-mcp",
+   "owner": "codeswhat",
+   "dir": "CodesWhat__portkey-admin-mcp",
+   "registry_names": [
+    "io.github.CodesWhat/portkey-admin-mcp"
+   ],
+   "packages": [
+    "npm:portkey-admin-mcp"
+   ],
+   "commit": "8beaa4ab644a59e9347fd4186e4e5e6bba5661c6",
+   "sampled_rank": 93,
+   "registry_crawl_index": 13236,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/jorgell23-sys/mdcx",
+   "owner": "jorgell23-sys",
+   "dir": "jorgell23-sys__mdcx",
+   "registry_names": [
+    "io.github.jorgell23-sys/markdown-document-search",
+    "io.github.jorgell23-sys/mdcx"
+   ],
+   "packages": [
+    "pypi:mdcx"
+   ],
+   "commit": "8b3f6a69145c7de2e874f274807b57ad344380de",
+   "sampled_rank": 94,
+   "registry_crawl_index": 23812,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/mariorojasmz/apolo-cad",
+   "owner": "mariorojasmz",
+   "dir": "mariorojasmz__apolo-cad",
+   "registry_names": [
+    "io.github.mariorojasmz/apolo-cad"
+   ],
+   "packages": [
+    "pypi:apolo-cad"
+   ],
+   "commit": "472d602bb56a987298f09520d262a4502976251a",
+   "sampled_rank": 95,
+   "registry_crawl_index": 25129,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/Synectic-Research/research-scan",
+   "owner": "synectic-research",
+   "dir": "Synectic-Research__research-scan",
+   "registry_names": [
+    "org.synectic/research-scan"
+   ],
+   "packages": [
+    "pypi:research-scan"
+   ],
+   "commit": "592f58542c43e24cec203a1d39a07b143dc0b697",
+   "sampled_rank": 96,
+   "registry_crawl_index": 39596,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/PrimeUpYourLife/dynamic-telegram-bot-api-mcp",
+   "owner": "primeupyourlife",
+   "dir": "PrimeUpYourLife__dynamic-telegram-bot-api-mcp",
+   "registry_names": [
+    "io.github.patricktobias86/dynamic-telegram-bot-api-mcp"
+   ],
+   "packages": [
+    "npm:dynamic-telegram-bot-api-mcp"
+   ],
+   "commit": "2f476e683ddc85d7fb37eb50f9e8f1132f384365",
+   "sampled_rank": 97,
+   "registry_crawl_index": 28900,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/tixuz/openemis-mcp",
+   "owner": "tixuz",
+   "dir": "tixuz__openemis-mcp",
+   "registry_names": [
+    "io.github.tixuz/openemis"
+   ],
+   "packages": [
+    "npm:openemis-mcp"
+   ],
+   "commit": "f88a80fc1d5b815b5480e0aafd910d5b7dd2a9b9",
+   "sampled_rank": 100,
+   "registry_crawl_index": 36229,
+   "owner_repo_choices": 2
+  },
+  {
+   "repo": "https://github.com/vor-bot/epitaxy-mcp",
+   "owner": "vor-bot",
+   "dir": "vor-bot__epitaxy-mcp",
+   "registry_names": [
+    "xyz.crossgrain/epitaxy"
+   ],
+   "packages": [
+    "pypi:epitaxy-mcp"
+   ],
+   "commit": "934d45bbc63f23fc6d2276130094ac1009c5db7c",
+   "sampled_rank": 101,
+   "registry_crawl_index": 40817,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/inotakeh/symbol-mcp-server",
+   "owner": "inotakeh",
+   "dir": "inotakeh__symbol-mcp-server",
+   "registry_names": [
+    "io.github.inotakeh/symbol"
+   ],
+   "packages": [
+    "npm:symbol-mcp-server"
+   ],
+   "commit": "4af362ec9fd3f2ccd7b7f83db90635733641ff8c",
+   "sampled_rank": 102,
+   "registry_crawl_index": 23040,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/kryptobaseddev/cleo",
+   "owner": "kryptobaseddev",
+   "dir": "kryptobaseddev__cleo",
+   "registry_names": [
+    "io.github.kryptobaseddev/cleo-mcp-server"
+   ],
+   "packages": [
+    "npm:@cleocode/cleo"
+   ],
+   "commit": "d176497ccc7b3582b0ed07b0805f36750a3151ce",
+   "sampled_rank": 103,
+   "registry_crawl_index": 24342,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/gege-mn/ray-mcp",
+   "owner": "gege-mn",
+   "dir": "gege-mn__ray-mcp",
+   "registry_names": [
+    "io.github.gege-mn/ray-mcp"
+   ],
+   "packages": [
+    "npm:@gege-mn/ray-mcp"
+   ],
+   "commit": "ebdfa1be1482da858932371f3d8838a23b37df0a",
+   "sampled_rank": 104,
+   "registry_crawl_index": 22065,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/starnikovoleg/tgatlas-mcp",
+   "owner": "starnikovoleg",
+   "dir": "starnikovoleg__tgatlas-mcp",
+   "registry_names": [
+    "io.github.starnikovoleg/tgatlas"
+   ],
+   "packages": [
+    "npm:tgatlas-mcp"
+   ],
+   "commit": "2d8d4e9c8e998fbd528197847812da2597ef877e",
+   "sampled_rank": 105,
+   "registry_crawl_index": 35420,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/robin24/simconnect-mcp",
+   "owner": "robin24",
+   "dir": "robin24__simconnect-mcp",
+   "registry_names": [
+    "io.github.robin24/simconnect-mcp"
+   ],
+   "packages": [
+    "pypi:simconnect-mcp"
+   ],
+   "commit": "87ab9e1186102bee02600a09fa887d7d77400792",
+   "sampled_rank": 106,
+   "registry_crawl_index": 31651,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/hulin42/keynote-harvest-mcp",
+   "owner": "hulin42",
+   "dir": "hulin42__keynote-harvest-mcp",
+   "registry_names": [
+    "io.github.hulin42/keynote-harvest-mcp"
+   ],
+   "packages": [
+    "npm:keynote-harvest-mcp"
+   ],
+   "commit": "842396f26d72214d05e013903a111cce13c4afc0",
+   "sampled_rank": 107,
+   "registry_crawl_index": 22741,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/tonylchang/janus-mcp",
+   "owner": "tonylchang",
+   "dir": "tonylchang__janus-mcp",
+   "registry_names": [
+    "io.github.tonylchang/janus-mcp"
+   ],
+   "packages": [
+    "pypi:janus-mcp-server",
+    "oci:ghcr.io/tonylchang/janus-mcp:v0.4.1"
+   ],
+   "commit": "61329397aa881e017b4ba2c4e3956409a2781154",
+   "sampled_rank": 108,
+   "registry_crawl_index": 36303,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/cuttalo/depscope-mcp",
+   "owner": "cuttalo",
+   "dir": "cuttalo__depscope-mcp",
+   "registry_names": [
+    "dev.depscope/mcp"
+   ],
+   "packages": [
+    "npm:depscope-mcp"
+   ],
+   "commit": "56861c45564b9489b759a301153956c4b79be41a",
+   "sampled_rank": 109,
+   "registry_crawl_index": 10046,
+   "owner_repo_choices": 1
+  },
+  {
+   "repo": "https://github.com/millennialdreamer/cheaplane",
+   "owner": "millennialdreamer",
+   "dir": "millennialdreamer__cheaplane",
+   "registry_names": [
+    "io.github.millennialdreamer/cheaplane"
+   ],
+   "packages": [
+    "pypi:cheaplane"
+   ],
+   "commit": "5bad5f77ef2f0d3badf2dbd4940f0c8437d1a1c0",
+   "sampled_rank": 110,
+   "registry_crawl_index": 26752,
+   "owner_repo_choices": 1
+  }
+ ],
+ "unreachable": [
+  {
+   "repo": "https://github.com/tris686/helpdental",
+   "owner": "tris686",
+   "sampled_rank": 5,
+   "registry_names": [
+    "io.github.tris686/helpdental-mcp"
+   ],
+   "error": "unreachable: fatal: could not read Username for 'https://github.com': terminal prompts disabled"
+  },
+  {
+   "repo": "https://github.com/salvisare/sensecritiq",
+   "owner": "salvisare",
+   "sampled_rank": 23,
+   "registry_names": [
+    "io.github.salvisare/sensecritiq"
+   ],
+   "error": "unreachable: fatal: could not read Username for 'https://github.com': terminal prompts disabled"
+  },
+  {
+   "repo": "https://github.com/addiinnocent/glashaus",
+   "owner": "addiinnocent",
+   "sampled_rank": 35,
+   "registry_names": [
+    "io.github.addiinnocent/glashaus-mcp"
+   ],
+   "error": "unreachable: fatal: could not read Username for 'https://github.com': terminal prompts disabled"
+  },
+  {
+   "repo": "https://github.com/TruthStack1/truthstack-mcp",
+   "owner": "truthstack1",
+   "sampled_rank": 41,
+   "registry_names": [
+    "io.github.TruthStack1/truthstack-mcp"
+   ],
+   "error": "unreachable: fatal: could not read Username for 'https://github.com': terminal prompts disabled"
+  },
+  {
+   "repo": "https://github.com/aitor-alt/pixel",
+   "owner": "aitor-alt",
+   "sampled_rank": 58,
+   "registry_names": [
+    "io.github.aitor-alt/pixel-squads"
+   ],
+   "error": "unreachable: fatal: could not read Username for 'https://github.com': terminal prompts disabled"
+  },
+  {
+   "repo": "https://github.com/amirj4m/jamgate",
+   "owner": "amirj4m",
+   "sampled_rank": 61,
+   "registry_names": [
+    "io.github.amirj4m/jamgate"
+   ],
+   "error": "unreachable: fatal: could not read Username for 'https://github.com': terminal prompts disabled"
+  },
+  {
+   "repo": "https://github.com/QuantaSeal/quantaseal",
+   "owner": "quantaseal",
+   "sampled_rank": 67,
+   "registry_names": [
+    "io.github.Lokeshwaranramu/quantaseal"
+   ],
+   "error": "unreachable: fatal: could not read Username for 'https://github.com': terminal prompts disabled"
+  },
+  {
+   "repo": "https://github.com/mguay22/fundlens",
+   "owner": "mguay22",
+   "sampled_rank": 74,
+   "registry_names": [
+    "io.github.mguay22/fundlens"
+   ],
+   "error": "unreachable: fatal: could not read Username for 'https://github.com': terminal prompts disabled"
+  },
+  {
+   "repo": "https://github.com/fegalvezg/scout-app",
+   "owner": "fegalvezg",
+   "sampled_rank": 98,
+   "registry_names": [
+    "io.github.fegalvezg/skaut-mcp"
+   ],
+   "error": "unreachable: fatal: could not read Username for 'https://github.com': terminal prompts disabled"
+  },
+  {
+   "repo": "https://github.com/most-ai-com/mostai-mcp",
+   "owner": "most-ai-com",
+   "sampled_rank": 99,
+   "registry_names": [
+    "io.github.most-ai-com/mostai-mcp"
+   ],
+   "error": "unreachable: fatal: could not read Username for 'https://github.com': terminal prompts disabled"
+  }
+ ]
+}
