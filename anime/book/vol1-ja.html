@@ -1,0 +1,1027 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>帳簿の書 Vol.1｜LEDGERBREAKER</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=IBM+Plex+Mono:wght@400;600&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="book.css">
+<style>
+/* Vol.0 から引き継いだ追加 */
+.art { height: var(--h, 90mm); flex: none; position: relative; }
+.svg-inline > svg, figure .svg-inline > svg { display: block; width: 100%; height: 100%; }
+.art > img, .art > .svg-inline { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; display: block; }
+.art.grow-fig { flex: 1; height: auto; min-height: 0; }
+.cover-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.cover-veil { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(18,20,27,.55) 0%, rgba(18,20,27,0) 22%, rgba(18,20,27,0) 58%, rgba(18,20,27,.92) 100%); }
+.cover-top { position: absolute; top: 12mm; left: 12mm; right: 12mm; display: flex; justify-content: space-between; font-family: var(--mono); font-size: 7pt; letter-spacing: .2em; color: var(--bone); }
+.cover-title { position: absolute; left: 12mm; right: 12mm; bottom: 14mm; display: flex; flex-direction: column; gap: 2mm; color: var(--bone); }
+.cover-title .t { font-family: var(--display); font-size: 40pt; line-height: 1; color: #E5172F; letter-spacing: .01em; }
+.cover-title .sub { font-family: var(--display); font-size: 15pt; line-height: 1.2; }
+.cover-title .vol { font-family: var(--mono); font-size: 8pt; letter-spacing: .22em; border-top: .3mm solid rgba(236,230,214,.5); padding-top: 2mm; display: flex; justify-content: space-between; }
+.board { background: var(--night); color: var(--bone); font-family: var(--mono); font-size: 7pt; line-height: 1.55; padding: 3mm 3.5mm; }
+.board .row { display: grid; grid-template-columns: 10mm 1fr 14mm; gap: 2mm; border-bottom: .15mm solid rgba(236,230,214,.18); padding: .5mm 0; }
+.board .row:last-child { border-bottom: 0; }
+.board .hd { color: #A49F93; letter-spacing: .14em; margin-bottom: 1mm; }
+.board .zero { color: #E5172F; font-weight: 600; }
+.notice { border: .8mm double var(--ink); padding: 3mm 4mm; background: #FBFAF4; display: flex; flex-direction: column; gap: 1.2mm; }
+.notice .ttl { font-family: var(--display); font-size: 13pt; line-height: 1.25; text-align: center; letter-spacing: .12em; }
+.notice .issuer { font-family: var(--mono); font-size: 6.5pt; letter-spacing: .12em; color: var(--muted); text-align: right; }
+.notice ol { margin: 0; padding-left: 4.5mm; }
+.blk { background: var(--ink); color: var(--ink); padding: 0 .4em; }
+.form { border: .3mm solid var(--ink); font-size: 7.4pt; line-height: 1.5; background: #FBFAF4; }
+.form .fh { background: var(--ink); color: var(--paper); font-family: var(--mono); font-size: 6.6pt; letter-spacing: .14em; padding: 1mm 2.5mm; display: flex; justify-content: space-between; }
+.form .fr { display: grid; grid-template-columns: 22mm 1fr; border-top: .2mm solid var(--rule); }
+.form .fr > span { padding: .8mm 2.5mm; }
+.form .fr > span:first-child { font-family: var(--mono); font-size: 6.3pt; color: var(--muted); letter-spacing: .06em; border-right: .2mm solid var(--rule); }
+.form .oath { padding: 1.4mm 2.5mm; border-top: .2mm solid var(--rule); }
+.hint { border-top: .2mm dashed var(--red); padding-top: 1.5mm; font-size: 7.8pt; line-height: 1.6; }
+.hint b { color: var(--red); font-family: var(--mono); font-size: 6.5pt; letter-spacing: .12em; display: block; }
+.colo { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 3mm; margin-top: auto; }
+.colo-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .32; display: block; }
+.colo dl { display: grid; grid-template-columns: 28mm 1fr; gap: .8mm 3mm; margin: 0; font-size: 7.6pt; line-height: 1.55; }
+.colo dt { font-family: var(--mono); font-size: 6.4pt; letter-spacing: .1em; color: #A49F93; padding-top: .3mm; }
+.colo dd { margin: 0; }
+.colo .legal { border-top: .2mm solid rgba(236,230,214,.35); padding-top: 2mm; font-size: 7pt; line-height: 1.6; color: #CFC8B8; }
+ol.toc.tight li { padding: 1mm 0; }
+.big-quote { font-family: var(--display); font-size: 26pt; line-height: 1.15; color: var(--red); }
+.page.dark .runhead { color: #A49F93; border-color: rgba(236,230,214,.25); }
+
+/* Vol.1 で足したもの */
+/* 絵コンテ：1カット＝コマ（左）＋カット表（右） */
+.cut { display: grid; grid-template-columns: 80mm 1fr; gap: 3.5mm; align-items: start; }
+.frame { position: relative; width: 100%; aspect-ratio: 16 / 9; background: #fff; border: .3mm solid var(--ink); }
+.frame > img, .frame > .svg-inline { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.cut-id { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 6.6pt; letter-spacing: .08em; border-bottom: .3mm solid var(--ink); padding-bottom: .6mm; margin-bottom: 1mm; }
+.cut-id b { color: var(--red); font-weight: 600; }
+.cut dl.sheet { display: grid; grid-template-columns: 9mm 1fr; gap: .3mm 1.5mm; margin: 0 0 1mm; font-size: 6.6pt; line-height: 1.45; }
+.cut dl.sheet dt { font-family: var(--mono); font-size: 5.8pt; color: var(--muted); letter-spacing: .06em; padding-top: .2mm; }
+.cut dl.sheet dd { margin: 0; }
+.redact { display: inline-block; width: 100%; height: 2.6mm; background: var(--ink); vertical-align: -.5mm; }
+.cut .why { font-size: 7.3pt; line-height: 1.55; }
+.cut-note { font-size: 7.4pt; line-height: 1.6; }
+.theme { font-family: var(--display); font-size: 13pt; line-height: 1.3; }
+/* Webtoon：コマは幅800の縦長。比率はstyleで渡す */
+.panel { position: relative; width: 100%; aspect-ratio: var(--ar); background: #0B0C11; }
+.panel > img, .panel > .svg-inline { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.wt-row { display: grid; gap: 4mm; align-items: start; }
+.wt-cap { font-size: 7.2pt; line-height: 1.55; color: #CFC8B8; }
+.wt-cap b { font-family: var(--mono); font-size: 6.4pt; letter-spacing: .12em; color: #E5172F; display: block; font-weight: 600; }
+.page.dark .lede, .page.dark p { color: var(--bone); }
+.page.dark .note { background: rgba(236,230,214,.08); }
+.chip { display: inline-block; width: 3mm; height: 3mm; vertical-align: -.5mm; margin-right: 1mm; border: .15mm solid var(--ink); }
+.spoiler { border: .6mm solid var(--red); background: repeating-linear-gradient(-45deg, #FBFAF4 0 2mm, #F6E9E4 2mm 4mm); padding: 2mm 3mm; font-size: 7.6pt; }
+.contract { border: .8mm double var(--ink); background: #FBFAF4; padding: 4mm 5mm; display: flex; flex-direction: column; gap: 1.6mm; font-size: 8pt; line-height: 1.65; }
+.contract .ttl { font-family: var(--display); font-size: 15pt; text-align: center; letter-spacing: .3em; }
+.contract .art-no { font-weight: 700; margin-right: 1.5mm; }
+.contract .hand { font-family: var(--body); font-weight: 500; border-left: .6mm solid #F0921E; padding-left: 2.5mm; }
+.contract .twelve { border: .4mm solid var(--red); padding: 1.6mm 2.5mm; }
+.contract .sign { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; font-size: 7.4pt; margin-top: 1mm; }
+.contract .sign span { border-top: .2mm solid var(--ink); padding-top: 1mm; }
+.mark-read { background: var(--night); color: var(--bone); font-family: var(--mono); font-size: 7.4pt; line-height: 1.7; padding: 3mm 4mm; }
+.mark-read .amb { color: #F0921E; }
+.mark-read .red { color: #E5172F; }
+.kv { display: grid; grid-template-columns: 15mm 1fr; gap: 1mm 3mm; font-size: 7.8pt; line-height: 1.55; }
+.kv dt { font-weight: 700; }
+.kv dd { margin: 0; }
+table.ledger.mem td:nth-child(4) { font-weight: 700; }
+</style>
+</head>
+<body>
+
+<!-- ================= p1 表紙 ================= -->
+<section class="page bleed dark">
+  <img class="cover-art" src="art/vol1-cover.svg" alt="">
+  <div class="cover-veil"></div>
+  <div class="cover-top"><span>P7 ANIME ORIGINAL</span><span>BOOK OF THE LEDGER</span></div>
+  <div class="cover-title">
+    <span class="t">LEDGER<br>BREAKER</span>
+    <span class="sub">帳簿破り</span>
+    <div class="vol"><span>帳簿の書 Vol.1</span><span>設定資料集・第2話編</span></div>
+  </div>
+</section>
+
+<!-- ================= p2 本書について ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>LEDGERBREAKER ／ 帳簿の書 Vol.1</span><span>本書について</span></div>
+  <span class="chapter-no">Before you open the ledger</span>
+  <h1>本書について</h1>
+  <p class="lede">『帳簿の書 Vol.1』は、オリジナルアニメ企画『LEDGERBREAKER／<span style="white-space:nowrap">帳簿破り』</span>の設定資料集の2冊目です。Vol.0 が「世界と人物」の帳簿なら、この1冊は「作り方」と「第2話」の帳簿です。</p>
+  <div class="stack">
+    <h3>この本に入っているもの</h3>
+    <p>前半は、第1話がどう<strong>絵コンテ</strong>になり、どう<strong>Webtoon のカラーページ</strong>になったかのメイキング。後半は、第2話「投資契約」で増えた場所と決まりごと──昇降骨の内部、中層の街、登録所、決済円、そして投資契約の条文です。</p>
+  </div>
+  <div class="box">
+    <h4>ネタバレの範囲</h4>
+    <p>本書の内容は<strong>第2話「投資契約」まで</strong>です。第2話の結末にもふれます。第3話以降の展開と、人物の大きな秘密は書いていません。p35「記憶の帳簿」は、第2話の結末を含むページです。</p>
+  </div>
+  <div class="note small">
+    <h4>ご注意</h4>
+    <p>・本書は制作準備段階の資料です。設定・名称・デザインは、今後の制作で変わる場合があります。</p>
+    <p>・第1話の絵コンテは、絵と演出の解説だけを載せています。<strong>台詞欄は黒く伏せています。</strong></p>
+    <p>・Webtoon 第1話は、全40コマのうち10コマを収録しています。</p>
+    <p>・第2話の脚本は、冒頭1分30秒（COLD OPEN）のみを抜粋しています（決定稿前の稿より）。</p>
+    <p>・まだ決まっていない名前や数字は、書類の中でも黒塗りにしています。</p>
+    <p>・本作はフィクションです。実在の人物・団体・宗教・金融機関とは関係ありません。</p>
+  </div>
+  <div style="margin-top:auto; align-self:flex-end"><span class="stamp">閲覧許可<small>BOURSE · COPY 001</small></span></div>
+  <div class="folio"><span>本書について</span><span class="no">02</span></div>
+</section>
+
+<!-- ================= p3 目次 ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>LEDGERBREAKER ／ 帳簿の書 Vol.1</span><span>目次</span></div>
+  <span class="chapter-no">Contents</span>
+  <h1>目次</h1>
+  <ol class="toc tight">
+    <li><span>これまでの話</span><span class="pg">04</span></li>
+    <li><span><strong>第1章　第1話 絵コンテの裏側</strong></span><span class="pg">05</span></li>
+    <li><span>　縦の街／手首／無音／名乗り／見上げる／白い空間／赤／止め</span><span class="pg">05–12</span></li>
+    <li><span><strong>第2章　Webtoon 第1話 カラーページ</strong></span><span class="pg">13</span></li>
+    <li><span>　色の決め方──線画・彩色・色指定</span><span class="pg">19</span></li>
+    <li><span><strong>第3章　第2話「投資契約」</strong></span><span class="pg">21</span></li>
+    <li><span>　見どころと「予算」という考え方</span><span class="pg">22</span></li>
+    <li><span><strong>第4章　骨の中、中層の上</strong></span><span class="pg">23</span></li>
+    <li><span>　昇降骨の断面図と「髄の道」</span><span class="pg">23</span></li>
+    <li><span>　中層の街並み</span><span class="pg">25</span></li>
+    <li><span>　バース中層登録所と「仮登録」</span><span class="pg">27</span></li>
+    <li><span>　決済円の構造図と決済カード</span><span class="pg">28</span></li>
+    <li><span>　投資契約書（正本）</span><span class="pg">30</span></li>
+    <li><span><strong>第5章　人物の更新</strong>　ミオ／ツバメ／ニル／ケイ</span><span class="pg">31</span></li>
+    <li><span>　記憶の帳簿 <span class="red small">（ネタバレ注意）</span></span><span class="pg">35</span></li>
+    <li><span><strong>第6章　第2話 脚本抜粋</strong>　COLD OPEN（00:00–01:30）</span><span class="pg">36</span></li>
+    <li><span>用語集</span><span class="pg">38</span></li>
+    <li><span>あとがき／次の帳簿</span><span class="pg">39</span></li>
+    <li><span>奥付</span><span class="pg">40</span></li>
+  </ol>
+  <div class="folio"><span>目次</span><span class="no">03</span></div>
+</section>
+
+<!-- ================= p4 これまでの話 ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>LEDGERBREAKER ／ 帳簿の書 Vol.1</span><span>これまでの話</span></div>
+  <span class="chapter-no">Previously</span>
+  <h1>これまでの話</h1>
+  <p class="mono small muted">第1話「払わねえよ。」のあらすじ</p>
+  <div class="stack">
+    <p>力がすべて神からの借り物である縦長の都市、カネグラ。いちばん下の層・底帳で麺屋台を手伝う赤羽ジンは、どの神からも借りられない格付け<strong class="red">ZERO</strong>の少年だった。左腕には手首から肘まで、父が残した“無限の借金”の赤い印。</p>
+    <p>取立日の夜、仮面の取立人ニルが、育ての親・霧島ケイの担保を取り立てに来る。特別取立状が指定した担保は、ケイの中にある<strong>ジンの記憶すべて</strong>。屋台の道具で立ち向かったジンは、なすすべなく倒される。</p>
+    <p>倒れたジンに、手首の印から子どもの声が話しかける。ゼロの貸主ハザマ。「踏み倒す？」──その約束で、ジンは触れた相手の借力を<strong>約3秒差し押さえ、自分のものとして使う力〈デフォルト〉</strong>に目覚める。ニルの鎖を奪って引き寄せ、拳で仮面にひびを入れた。ニルは「お前の父親と同じ力だ」と言い残し、取立を保留して去る。</p>
+    <p>代わりにジンが払ったのは、たった一つ残っていた<strong>父の顔の記憶</strong>だった。</p>
+    <p>一部始終を琥珀色の〈眼〉で見ていたのが、闇金の娘で格付けAの投資家、葛葉ミオ。「勝率：未定義」の少年に、彼女は投資契約を持ちかける。ジンは三つの条件をのませ、紙ではなく、手袋ごしの握手で契約を結んだ。</p>
+  </div>
+  <div class="note small" style="margin-top:auto">
+    <h4>第1話の終わりの時点</h4>
+    <p>ジン：格付け ZERO（残高 −∞）。〈デフォルト〉を1回使用。　ケイ：印は「期日超過：3」のまま。その下に琥珀のインクで、保証人ミオの一行が書き足された。　ミオ：ジンの保証人（握手の契約）。</p>
+  </div>
+  <div class="folio"><span>これまでの話</span><span class="no">04</span></div>
+</section>
+
+<!-- ================= p5 第1章 絵コンテ（扉＋縦の街） ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>第1章　第1話 絵コンテの裏側</span><span>CH.1 STORYBOARD</span></div>
+  <span class="chapter-no">Chapter 1 ── Behind the Storyboard</span>
+  <h1>第1話 絵コンテの裏側</h1>
+  <p class="cut-note">第1話の絵コンテは225カット、そのうち作画は91枚。ここから16枚を選び、カットの狙い・カメラ・間の取り方を解説します。絵コンテの台詞欄は、本書では<span class="blk">伏せ字</span>にしています。</p>
+  <p class="theme">1｜縦の街を、縦のカメラで</p>
+  <div class="cut">
+    <div class="frame"><img src="../storyboard/ep01/frames/s1-c01b.svg" alt="S1 C1 真俯瞰の底帳"></div>
+    <div>
+      <div class="cut-id"><span>S1 · C<b>01</b></span><span>6.0 秒</span></div>
+      <dl class="sheet"><dt>CAM</dt><dd>黒→F.I.、真俯瞰からクレーン降下</dd><dt>SHOT</dt><dd>真俯瞰 ELS</dd><dt>台詞</dt><dd><span class="redact"></span></dd></dl>
+      <p class="why">本編の最初の画。黒みを2秒置いてから、真上の俯瞰でゆっくり降りていく。肋骨が四方から弧を描き、その底に夜市の灯り。ロゴもテロップも出さない。</p>
+    </div>
+  </div>
+  <div class="cut">
+    <div class="frame"><img src="../storyboard/ep01/frames/s1-c02b.svg" alt="S1 C2 肋骨を見上げる"></div>
+    <div>
+      <div class="cut-id"><span>S1 · C<b>02</b></span><span>8.0 秒</span></div>
+      <dl class="sheet"><dt>CAM</dt><dd>FIX→TILT UP</dd><dt>SHOT</dt><dd>LS→あおり</dd><dt>台詞</dt><dd><span class="redact"></span></dd></dl>
+      <p class="why">鐘で群衆が一斉に止まる。コマ止めではなく芝居で止める。2秒後、群衆の視線を追って上へ。頭上で閉じる肋骨は、この作品の「見上げる」構図の基本形。</p>
+    </div>
+  </div>
+  <div class="folio"><span>第1章　第1話 絵コンテの裏側</span><span class="no">05</span></div>
+</section>
+
+<!-- ================= p6 手首 ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>第1章　第1話 絵コンテの裏側</span><span>2 / WRISTS</span></div>
+  <p class="theme">2｜1.2秒の手首</p>
+  <p class="cut-note">取立日の告知が点ったあと、手首のアップを4カット続けて打つ。「残高 −120」「−3,400」「−18」、そして「−9,999」。数字を一つ読ませるのに必要な最短の長さが、1.2秒です。</p>
+  <div class="cut">
+    <div class="frame"><img src="../storyboard/ep01/frames/s1-c06.svg" alt="S1 C6 職人の手首"></div>
+    <div>
+      <div class="cut-id"><span>S1 · C<b>06</b></span><span>1.2 秒</span></div>
+      <dl class="sheet"><dt>CAM</dt><dd>FIX</dd><dt>SHOT</dt><dd>CU（手首）</dd><dt>台詞</dt><dd>なし</dd></dl>
+      <p class="why">職人の太い腕。数字がふっと浮かぶだけ。4カットは腕の太さ・角度・年齢を変え、「街じゅうの人」に見せる。</p>
+    </div>
+  </div>
+  <div class="cut">
+    <div class="frame"><img src="../storyboard/ep01/frames/s1-c09.svg" alt="S1 C9 震える手首"></div>
+    <div>
+      <div class="cut-id"><span>S1 · C<b>09</b></span><span>2.4 秒</span></div>
+      <dl class="sheet"><dt>CAM</dt><dd>手持ち（ブレ）</dd><dt>SHOT</dt><dd>CU（手首）</dd><dt>台詞</dt><dd>なし</dd></dl>
+      <p class="why">4カット目だけ尺を倍にし、カメラも手持ちにする。自分の右手で左手首を握りしめ、数字が二重にぶれる。ここで初めて「怖さ」が出る。</p>
+    </div>
+  </div>
+  <div class="note small" style="margin-top:auto">
+    <h4>リズムの考え方</h4>
+    <p>同じ長さの短いカットを3つ並べてリズムを作り、4つ目でそれを崩す。崩れたところに、観客の目が止まります。</p>
+  </div>
+  <div class="folio"><span>第1章　第1話 絵コンテの裏側</span><span class="no">06</span></div>
+</section>
+
+<!-- ================= p7 無音 ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>第1章　第1話 絵コンテの裏側</span><span>3 / SILENCE</span></div>
+  <p class="theme">3｜音を消す</p>
+  <p class="cut-note">広場で、路上の歌い手が〈声〉を取り立てられる。この世界のルールを、説明の台詞を使わずに伝えるための数秒です。</p>
+  <div class="cut">
+    <div class="frame"><img src="../storyboard/ep01/frames/s1-c14b.svg" alt="S1 C14 叫ぶ口"></div>
+    <div>
+      <div class="cut-id"><span>S1 · C<b>14</b></span><span>4.5 秒</span></div>
+      <dl class="sheet"><dt>CAM</dt><dd>同ポジ、ゆっくりT.U.</dd><dt>SHOT</dt><dd>ECU（顔）</dd><dt>台詞</dt><dd>なし（叫び→無音）</dd></dl>
+      <p class="why">叫びの途中で、音だけが“ブツッ”と切れる。画は変えず、口だけが叫び続け、カメラは寄り続ける。3秒以上の完全な無音を、観客にも体験させる。</p>
+    </div>
+  </div>
+  <div class="cut">
+    <div class="frame"><img src="../storyboard/ep01/frames/s1-c15b.svg" alt="S1 C15 広場の全景"></div>
+    <div>
+      <div class="cut-id"><span>S1 · C<b>15</b></span><span>4.5 秒</span></div>
+      <dl class="sheet"><dt>CAM</dt><dd>FIX→T.B.</dd><dt>SHOT</dt><dd>MS→LS</dd><dt>台詞</dt><dd><span class="redact"></span></dd></dl>
+      <p class="why">取立人が帳簿を閉じる「パタン」だけが戻ってくる。引きの全景で、輪になった群衆は全員が顔をそむけている。誰も止めない、という画。</p>
+    </div>
+  </div>
+  <div class="folio"><span>第1章　第1話 絵コンテの裏側</span><span class="no">07</span></div>
+</section>
+
+<!-- ================= p8 名乗り ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>第1章　第1話 絵コンテの裏側</span><span>4 / FREEZE</span></div>
+  <p class="theme">4｜止めて、名乗る</p>
+  <p class="cut-note">無音の広場から一転、陶器の割れる音で主人公が飛び込んでくる。ここからは速さと軽さで見せるパート。</p>
+  <div class="cut">
+    <div class="frame"><img src="../storyboard/ep01/frames/s2-c05a.svg" alt="S2 C5 屋根の三段跳び"></div>
+    <div>
+      <div class="cut-id"><span>S2 · C<b>05</b></span><span>8 秒</span></div>
+      <dl class="sheet"><dt>CAM</dt><dd>PAN→（右上へ）</dd><dt>SHOT</dt><dd>LS</dd><dt>台詞</dt><dd>なし</dd></dl>
+      <p class="why">段々の屋台屋根を三段跳びで上がる。軌跡は点線で指示。横長の大ロングで、下から見上げる見習いとの高さの差を見せる。</p>
+    </div>
+  </div>
+  <div class="cut">
+    <div class="frame"><img src="../storyboard/ep01/frames/s2-c07b.svg" alt="S2 C7 格付けカード"></div>
+    <div>
+      <div class="cut-id"><span>S2 · C<b>07</b></span><span>12 秒</span></div>
+      <dl class="sheet"><dt>CAM</dt><dd>STOP MOTION→POP</dd><dt>SHOT</dt><dd>FS</dd><dt>台詞</dt><dd><span class="redact"></span></dd></dl>
+      <p class="why">空中で逆さまのまま完全に静止。画面をモノトーン寄りにして太い黒枠を付け、格付けカードが右からスライドしてバウンドする。走り続けた画を、ここで一度止める。</p>
+    </div>
+  </div>
+  <div class="folio"><span>第1章　第1話 絵コンテの裏側</span><span class="no">08</span></div>
+</section>
+
+<!-- ================= p9 見上げる ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>第1章　第1話 絵コンテの裏側</span><span>5 / LOOKING UP</span></div>
+  <p class="theme">5｜見上げる恐怖</p>
+  <p class="cut-note">袋小路で、見習いたちが一歩下がる。その理由を、カメラはジンの頭の後ろから見せる。</p>
+  <div class="cut">
+    <div class="frame"><img src="../storyboard/ep01/frames/s2-c11a.svg" alt="S2 C11 壁の上のニル"></div>
+    <div>
+      <div class="cut-id"><span>S2 · C<b>11</b></span><span>6 秒</span></div>
+      <dl class="sheet"><dt>CAM</dt><dd>ゆっくりT.U.</dd><dt>SHOT</dt><dd>極端なあおり LS→FS</dd><dt>台詞</dt><dd>なし</dd></dl>
+      <p class="why">行き止まりの壁の上に、取立人ニル。動くのはコートの裾だけ。腕に巻いた鎖も、まだ使わない。「何もしない」ことで強さを見せる。</p>
+    </div>
+  </div>
+  <div class="cut">
+    <div class="frame"><img src="../storyboard/ep01/frames/s2-c14b.svg" alt="S2 C14 −∞の印"></div>
+    <div>
+      <div class="cut-id"><span>S2 · C<b>14</b></span><span>6 秒</span></div>
+      <dl class="sheet"><dt>CAM</dt><dd>FIX</dd><dt>SHOT</dt><dd>ECU（左前腕）</dd><dt>台詞</dt><dd>なし</dd></dl>
+      <p class="why">赤い印の「−∞」が2回、ドクンと脈打つ。絵コンテで赤を使ってよいのは、ジンとハザマの印・赤いインク・「契約停止」のカウンターだけ。だから、この赤はよく目立つ。</p>
+    </div>
+  </div>
+  <div class="folio"><span>第1章　第1話 絵コンテの裏側</span><span class="no">09</span></div>
+</section>
+
+<!-- ================= p10 白い空間 ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>第1章　第1話 絵コンテの裏側</span><span>6 / WHITE LEDGER</span></div>
+  <p class="theme">6｜白い帳簿の空間</p>
+  <p class="cut-note">倒れたジンの内側。路地の喧噪から、つなぎ0フレームで真っ白な空間へ切り替わる。</p>
+  <div class="cut">
+    <div class="frame"><img src="../storyboard/ep01/frames/s3-c01.svg" alt="S3 C1 白い帳簿の空間"></div>
+    <div>
+      <div class="cut-id"><span>S3 · C<b>01</b></span><span>9.0 秒</span></div>
+      <dl class="sheet"><dt>CAM</dt><dd>FIX→SLOW T.U.</dd><dt>SHOT</dt><dd>ELS／上下なし</dd><dt>台詞</dt><dd>なし</dd></dl>
+      <p class="why">舞う頁は、落ちるもの・横に流れるもの・昇るものを混ぜる。重力の向きをなくして「上下のない場所」にする。どの頁にも赤で「−∞」。</p>
+    </div>
+  </div>
+  <div class="cut">
+    <div class="frame"><img src="../storyboard/ep01/frames/s3-c04.svg" alt="S3 C4 インクが子どもの形になる"></div>
+    <div>
+      <div class="cut-id"><span>S3 · C<b>04</b></span><span>10.0 秒</span></div>
+      <dl class="sheet"><dt>CAM</dt><dd>FIX／ピント送り</dd><dt>SHOT</dt><dd>OTS（ジン越し）MS</dd><dt>台詞</dt><dd><span class="redact"></span></dd></dl>
+      <p class="why">赤いインクの滴が逆再生の雨のように下から昇り、頭・胴・脚の順で裸足の子どもの形になる。顔は帳簿の頁で隠したまま。ピントはジンからハザマへ送る。</p>
+    </div>
+  </div>
+  <div class="folio"><span>第1章　第1話 絵コンテの裏側</span><span class="no">10</span></div>
+</section>
+
+<!-- ================= p11 赤／スロー ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>第1章　第1話 絵コンテの裏側</span><span>7 / RED &amp; SLOW</span></div>
+  <p class="theme">7｜赤で塗りつぶす、4倍で触る</p>
+  <p class="cut-note">約束の判子が落ち、現実へ戻る。〈デフォルト〉が初めて発動するまでの、いちばん速いカットといちばん遅いカット。</p>
+  <div class="cut">
+    <div class="frame"><img src="../storyboard/ep01/frames/s3-c08b.svg" alt="S3 C8 赤が広がる"></div>
+    <div>
+      <div class="cut-id"><span>S3 · C<b>08</b></span><span>6.0 秒</span></div>
+      <dl class="sheet"><dt>CAM</dt><dd>FIX→着地でCAM SHAKE</dd><dt>SHOT</dt><dd>あおり LS→全面</dd><dt>台詞</dt><dd>なし</dd></dl>
+      <p class="why">巨大な判子が着地した瞬間、赤いインクが中心から6コマで画面全体を覆う。縁はしぶきでギザギザに。最後のフレームは全面の赤のまま、現実へカット。</p>
+    </div>
+  </div>
+  <div class="cut">
+    <div class="frame"><img src="../storyboard/ep01/frames/s3-c12.svg" alt="S3 C12 手首をつかむ"></div>
+    <div>
+      <div class="cut-id"><span>S3 · C<b>12</b></span><span>4.0 秒</span></div>
+      <dl class="sheet"><dt>CAM</dt><dd>FIX（4倍スロー）</dd><dt>SHOT</dt><dd>ECU（手と手首）</dd><dt>台詞</dt><dd>なし</dd></dl>
+      <p class="why">ジンの赤い左手が、ニルの黒い印の手首をつかむ。指が一本ずつ巻きつき、接触点からガラスのひびのような線。宙の塵も止まって見えるほど遅くする。</p>
+    </div>
+  </div>
+  <div class="folio"><span>第1章　第1話 絵コンテの裏側</span><span class="no">11</span></div>
+</section>
+
+<!-- ================= p12 止め ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>第1章　第1話 絵コンテの裏側</span><span>8 / IMPACT</span></div>
+  <p class="theme">8｜止まった鎖、白黒の一撃</p>
+  <div class="cut">
+    <div class="frame"><img src="../storyboard/ep01/frames/s3-c14a.svg" alt="S3 C14 止まった鎖"></div>
+    <div>
+      <div class="cut-id"><span>S3 · C<b>14</b></span><span>7.0 秒</span></div>
+      <dl class="sheet"><dt>CAM</dt><dd>FIX（止め）→FIX</dd><dt>SHOT</dt><dd>LS（やや俯瞰）</dd><dt>台詞</dt><dd>なし</dd></dl>
+      <p class="why">ジンを狙った鎖が、刃先を数十センチ手前にしたまま12コマ止まる。震えるのは刃先だけ。「差し押さえ」の3秒を、止まった物で見せる。</p>
+    </div>
+  </div>
+  <div class="cut">
+    <div class="frame"><img src="../storyboard/ep01/frames/s3-c18.svg" alt="S3 C18 インパクト"></div>
+    <div>
+      <div class="cut-id"><span>S3 · C<b>18</b></span><span>2.0 秒</span></div>
+      <dl class="sheet"><dt>CAM</dt><dd>FIX→CAM SHAKE（大）</dd><dt>SHOT</dt><dd>ECU（拳と仮面）</dd><dt>台詞</dt><dd>なし</dd></dl>
+      <p class="why">白黒反転のインパクトフレームを2コマずつ3連。通常の色に戻った瞬間に、仮面に亀裂が走る。カウンターは「00:01」。</p>
+    </div>
+  </div>
+  <div class="note small" style="margin-top:auto">
+    <h4>絵コンテの読み方</h4>
+    <p><strong>T.U.／T.B.</strong>：カメラが寄る／引く。<strong>PAN／TILT</strong>：横／縦に振る。<strong>FIX</strong>：固定。<strong>OTS</strong>：人物の肩越し。<strong>ELS・LS・MS・BS・CU・ECU</strong>：画面に入る範囲（広い順）。<strong>F.I.</strong>：黒から明るくなる。コマの中の<span style="color:#2E6BD6; font-weight:700">青い線</span>はカメラの指示で、完成画面には映りません。</p>
+  </div>
+  <div class="folio"><span>第1章　第1話 絵コンテの裏側</span><span class="no">12</span></div>
+</section>
+
+<!-- ================= p13 第2章 Webtoon 扉 ================= -->
+<section class="page dark">
+  <div class="runhead"><span>第2章　Webtoon 第1話</span><span>CH.2 WEBTOON</span></div>
+  <span class="chapter-no">Chapter 2 ── Webtoon Episode 1, in Colour</span>
+  <h1>Webtoon 第1話 カラーページ</h1>
+  <p class="small">スマートフォンで縦に読む Webtoon 版の第1話（全40コマ）から、10コマを選びました。Webtoon 版はアニメ第1話を圧縮し、〈デフォルト〉の覚醒までを1話に収めています。コマとコマのあいだの空白も、演出の一部です。</p>
+  <div class="wt-row" style="grid-template-columns: 1fr 1fr">
+    <div class="stack">
+      <div class="panel" style="--ar: 800/1000"><img src="../webtoon/ep01/clean/color/p01.svg" alt="Webtoon コマ1"></div>
+      <p class="wt-cap"><b>PANEL 01 · 下の余白 60px</b>最初の縦長のコマで、肋骨の街と鐘を見せる。「ゴォン」の文字が小さくなりながら、読者の目を下へ引く。</p>
+    </div>
+    <div class="stack">
+      <div class="panel" style="--ar: 800/1300"><img src="../webtoon/ep01/clean/color/p02.svg" alt="Webtoon コマ2"></div>
+      <p class="wt-cap"><b>PANEL 02 · 下の余白 40px</b>見上げる群衆の目線で、公開格付け盤。上位は読める大きさ、下へ行くほど名前がつぶれて読めない。それが格差の画。</p>
+    </div>
+  </div>
+  <div class="folio"><span>第2章　Webtoon 第1話</span><span class="no">13</span></div>
+</section>
+
+<!-- ================= p14 Webtoon 2 ================= -->
+<section class="page dark">
+  <div class="runhead"><span>第2章　Webtoon 第1話</span><span>PANELS 05 · 10</span></div>
+  <div class="wt-row" style="grid-template-columns: 1fr 1fr">
+    <div class="stack">
+      <div class="panel" style="--ar: 800/1120"><img src="../webtoon/ep01/clean/color/p05.svg" alt="Webtoon コマ5"></div>
+      <p class="wt-cap"><b>PANEL 05 · 声が消える</b>叫びの途中で「ブツッ」。中身のない吹き出しで無音を見せる。喉から引き抜かれる光の頁は決算象牙（C08）、色が抜けた喉は取立灰（C09）。最初の5コマで「代償」を見せるのが Webtoon 版の約束。</p>
+    </div>
+    <div class="stack">
+      <div class="panel" style="--ar: 800/1360"><img src="../webtoon/ep01/clean/color/p10.svg" alt="Webtoon コマ10"></div>
+      <p class="wt-cap"><b>PANEL 10 · ZERO のカード</b>アニメのストップモーションを、縦長のコマ1枚に置き換えた。逆さのジンと格付けカード。赤い印と前髪の一房、カードの「ZERO」だけが帳簿の赤。</p>
+    </div>
+  </div>
+  <div class="folio"><span>第2章　Webtoon 第1話</span><span class="no">14</span></div>
+</section>
+
+<!-- ================= p15 Webtoon 3 ================= -->
+<section class="page dark">
+  <div class="runhead"><span>第2章　Webtoon 第1話</span><span>PANELS 32 · 33</span></div>
+  <div class="panel" style="--ar: 800/420"><img src="../webtoon/ep01/clean/color/p32.svg" alt="Webtoon コマ32"></div>
+  <p class="wt-cap"><b>PANEL 32 · 下の余白 400px</b>台詞のない横長の細いコマ。左にニルの黒い印の手首、右から伸びるジンの赤い左手。まだ届いていない、その「間」。スマートフォンでは、この下を大きく空けて次の全高コマへ落とす。</p>
+  <div class="wt-row" style="grid-template-columns: 52mm 1fr">
+    <div class="panel" style="--ar: 800/1400"><img src="../webtoon/ep01/clean/color/p33.svg" alt="Webtoon コマ33"></div>
+    <div class="stack">
+      <p class="wt-cap"><b>PANEL 33 · 全高コマ</b>つかむ。黒い印が真っ白に消え、残高の数字に赤い取り消し線。赤いインクが飛び散る。音はガラスが割れるような高い音だけ。</p>
+      <p class="wt-cap">読者の目は、上の仮面→つかむ手→ジンの目、の順に一気に落ちる。アニメでは4倍スローで見せた一瞬を、Webtoon では<strong style="color:var(--bone)">コマの縦の長さ</strong>で引き延ばしている。</p>
+      <div class="note small"><h4>〈デフォルト〉の3点セット</h4><p>①相手の印の数字に赤い取り消し線 ②赤いカウンター「契約停止 00:03」③代償の記憶が帳簿の紙のように白く抜ける。アニメ・Webtoon・本書で同じ見せ方にそろえている。</p></div>
+    </div>
+  </div>
+  <div class="folio"><span>第2章　Webtoon 第1話</span><span class="no">15</span></div>
+</section>
+
+<!-- ================= p16 Webtoon 4 ================= -->
+<section class="page dark">
+  <div class="runhead"><span>第2章　Webtoon 第1話</span><span>PANEL 34</span></div>
+  <div class="panel" style="--ar: 800/760"><img src="../webtoon/ep01/clean/color/p34.svg" alt="Webtoon コマ34"></div>
+  <p class="wt-cap"><b>PANEL 34 · 下の余白 120px</b>赤いカウンター「契約停止 00:03」。地は白い帳簿の色（C80）、文字は帳簿の赤。ここから先の3秒を、コマの数で刻んでいく──00:02、00:01、00:00。</p>
+  <div class="note small" style="margin-top:auto">
+    <h4>アニメと Webtoon、時間の数え方の違い</h4>
+    <p>アニメは「秒」で間を作る。Webtoon は読者が自分の指でスクロールするので、間は<strong>コマの下の余白（px）</strong>で作る。コマ32の下は400px、コマ37の下は300px。シーンが変わるところは大きく空け、たたみかけるところは余白0にする。</p>
+  </div>
+  <div class="folio"><span>第2章　Webtoon 第1話</span><span class="no">16</span></div>
+</section>
+
+<!-- ================= p17 Webtoon 5 ================= -->
+<section class="page dark">
+  <div class="runhead"><span>第2章　Webtoon 第1話</span><span>PANELS 36 · 37</span></div>
+  <div class="wt-row" style="grid-template-columns: 1fr 1fr">
+    <div class="stack">
+      <div class="panel" style="--ar: 800/1100"><img src="../webtoon/ep01/clean/color/p36.svg" alt="Webtoon コマ36"></div>
+      <p class="wt-cap"><b>PANEL 36 · 下の余白 0px</b>鎖ごとニルを引き寄せ、右の拳を引く。決め台詞は吹き出しを使わず、大きな文字で置く。余白0で、次の衝撃へそのまま落とす。</p>
+    </div>
+    <div class="stack">
+      <div class="panel" style="--ar: 800/1200"><img src="../webtoon/ep01/clean/color/p37.svg" alt="Webtoon コマ37"></div>
+      <p class="wt-cap"><b>PANEL 37 · 下の余白 300px</b>無音から一撃だけ最大音量。拳が帳簿の表紙形の仮面に入り、大きな亀裂。白地に集中線。カウンターは 00:01。この亀裂は、第2話で「綴じ直された仮面」になる（p33）。</p>
+    </div>
+  </div>
+  <div class="folio"><span>第2章　Webtoon 第1話</span><span class="no">17</span></div>
+</section>
+
+<!-- ================= p18 Webtoon 6 琥珀の瞳 ================= -->
+<section class="page dark">
+  <div class="runhead"><span>第2章　Webtoon 第1話</span><span>PANEL 40</span></div>
+  <div class="wt-row" style="grid-template-columns: 66mm 1fr; flex: 1; min-height: 0">
+    <div class="panel" style="--ar: 800/1400"><img src="art/vol1-wt-p40-nodialogue.svg" alt="Webtoon コマ40（台詞なし）"></div>
+    <div class="stack">
+      <p class="wt-cap"><b>PANEL 40 · 最後のコマ</b>引き。中層の高い茶房の窓辺。極端なアップで、右目の虹彩の中を数字が流れる。片目は前髪で隠れている。</p>
+      <p class="wt-cap">Webtoon 版の配色は「帳簿の赤」だけを強い色にする決まり。その中で、<strong style="color:#F0921E">このコマのミオの瞳だけが琥珀</strong>（C70）です。</p>
+      <p class="wt-cap">40コマ読んできた目に、初めて赤以外の強い色が入る。それが「次の話へ続く」合図になる。色で引きを作るための、ただ一つの例外です。</p>
+      <div class="note small" style="margin-top:auto"><h4>残りの30コマ</h4><p>Webtoon 第1話の残り30コマは、本書には載せていません。のちに無料で公開する予定のために、とってあります。</p></div>
+    </div>
+  </div>
+  <div class="folio"><span>第2章　Webtoon 第1話</span><span class="no">18</span></div>
+</section>
+
+<!-- ================= p19 色の決め方① ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>第2章　色の決め方</span><span>LINE → COLOUR</span></div>
+  <h2>色の決め方──線画、彩色、色指定</h2>
+  <p class="small">1コマの絵は、3つの段階を通って仕上がります。コマ10（p14）を例に、順に見ていきます。</p>
+  <div class="cols" style="gap:4mm">
+    <figure>
+      <div class="panel" style="--ar: 800/1360; background:#fff; border:.3mm solid var(--ink)"><img src="../webtoon/ep01/clean/lineart/p10.svg" alt="コマ10 線画"></div>
+      <figcaption><strong>① 線画</strong>　白地に主線とベタ（黒）だけ。人物の主線は #1A1718、背景は #2A2A2A と色を分けている。</figcaption>
+    </figure>
+    <figure>
+      <div class="panel" style="--ar: 800/1360"><img src="../webtoon/ep01/clean/color/p10.svg" alt="コマ10 彩色"></div>
+      <figcaption><strong>② 彩色</strong>　フラットに塗り、影は1段だけ（アニメ塗り）。光源は「頂からの白い光」と「提灯の暖色」の2つ。</figcaption>
+    </figure>
+  </div>
+  <div class="note small" style="margin-top:auto">
+    <h4>なぜ影は1段だけか</h4>
+    <p>複数の作画担当が同じ話を描くため、塗りの手数を少なくして、誰が塗ってもそろうようにしています。そのかわり、色の番号をきっちり決めます（次のページ）。</p>
+  </div>
+  <div class="folio"><span>第2章　色の決め方</span><span class="no">19</span></div>
+</section>
+
+<!-- ================= p20 色の決め方② ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>第2章　色の決め方</span><span>COLOUR CALLOUTS</span></div>
+  <div class="wt-row" style="grid-template-columns: 56mm 1fr">
+    <figure>
+      <div class="panel" style="--ar: 800/1360; background:#fff; border:.3mm solid var(--ink)"><img src="../webtoon/ep01/clean/color-callouts/p10.svg" alt="コマ10 色指定"></div>
+      <figcaption><strong>③ 色指定</strong>　線画の上に、塗り分けの場所ごとに色番号を引き出し線で書き込む。</figcaption>
+    </figure>
+    <div class="stack">
+      <p class="small">色は <strong>C01〜C83</strong> の番号で呼びます。番号の表にない色は使わず、例外は必ず表に書き足します。コマ10で使っている色は15個。</p>
+      <table class="ledger">
+        <tbody>
+          <tr><td><span class="chip" style="background:#1B1F2E"></span>C01</td><td>金庫夜（夜空）</td></tr>
+          <tr><td><span class="chip" style="background:#3E5A5C"></span>C02</td><td>底帳鈍青（壁）</td></tr>
+          <tr><td><span class="chip" style="background:#F2B65A"></span>C05</td><td>提灯の灯</td></tr>
+          <tr><td><span class="chip" style="background:#C9A24A"></span>C07</td><td>取引所金（カードの枠）</td></tr>
+          <tr><td><span class="chip" style="background:#E5172F"></span>C20</td><td>ジンの印</td></tr>
+          <tr><td><span class="chip" style="background:#E5172F"></span>C32</td><td>ジンの前髪の一房</td></tr>
+          <tr><td><span class="chip" style="background:#C8102E"></span>C34</td><td>ジンの手ぬぐい</td></tr>
+          <tr><td><span class="chip" style="background:#1F2A44"></span>C33</td><td>ジンの作業着（紺）</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="box">
+    <h4>2つのルール</h4>
+    <p class="small"><strong class="red">① 赤は帳簿の色だけ。</strong>高い彩度の赤は、負債とジン（とハザマ）にしか使わない。背景やモブの服には使わず、看板の赤も錆色（C03）に落とす。だから画面に赤が出たら、それは必ず借金の話です。</p>
+    <p class="small"><strong style="color:#B86A0C">② ミオの琥珀だけ例外。</strong>Webtoon 第1話で赤以外の強い色を使うのは、最後のコマのミオの瞳（C70）だけ。次話への引きを、色で見せるためです。</p>
+  </div>
+  <div class="folio"><span>第2章　色の決め方</span><span class="no">20</span></div>
+</section>
+
+<!-- ================= p21 第3章 第2話 ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>第3章　第2話「投資契約」</span><span>CH.3 EPISODE 2</span></div>
+  <span class="chapter-no">Chapter 3 ── Episode 2</span>
+  <h1>第2話「投資契約」</h1>
+  <p class="mono small muted">EPISODE 2 — "TERMS AND CONDITIONS"　／　約22分</p>
+  <div class="stack">
+    <p>握手の翌朝、ミオが持ってきたのは、バースに出すための正式な投資契約書だった。最後の頁の第十二条には「負けたら、保証人が失った分はジンの借金になる」。父の借金で腕が真っ赤なジンは、紙の束を突き返す。<span class="red">「借金はもうごめんだ」</span>。</p>
+    <p>けれど、ミオの〈眼〉が読み上げたのは、ケイの保証が切れるまでの日数──<strong>29日</strong>。そして、取立日より前に組める決済戦の登録は<strong>今夜八時</strong>で締め切られる。</p>
+    <p>格付けZEROでは昇降骨の籠に乗れない。ツバメの裏道情報を頼りに、ジンとミオは骨の中の古い穴をよじ登る。追ってくるのは、仮面を綴じ直した取立人ニル。ミオの〈眼〉が読み、ジンが触る。使っていい〈デフォルト〉は、2回だけ。</p>
+  </div>
+  <table class="ledger">
+    <thead><tr><th>ブロック</th><th>時間</th><th>内容</th></tr></thead>
+    <tbody>
+      <tr><td>COLD OPEN</td><td class="num">00:00</td><td>朝メシ／反射の〈デフォルト〉／ミオ現る</td></tr>
+      <tr><td>OP</td><td class="num">01:30</td><td>オープニング（第2話から）</td></tr>
+      <tr><td>ACT 1</td><td class="num">03:00</td><td>正式契約の細則／29日と今夜の締切／裏道の情報</td></tr>
+      <tr><td>アイキャッチ</td><td class="num">08:40</td><td>「残り 2」</td></tr>
+      <tr><td>ACT 2</td><td class="num">08:50</td><td>昇降骨の内部／ニルの追跡／2回だけ触る</td></tr>
+      <tr><td>ACT 3</td><td class="num">15:40</td><td>中層の光／仮登録／格付け盤に名前</td></tr>
+      <tr><td>ED・Cパート</td><td class="num">19:50</td><td>エンディング／屋台の深夜、ニルの帳簿</td></tr>
+    </tbody>
+  </table>
+  <div class="folio"><span>第3章　第2話「投資契約」</span><span class="no">21</span></div>
+</section>
+
+<!-- ================= p22 見どころ／予算 ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>第3章　第2話「投資契約」</span><span>HIGHLIGHTS</span></div>
+  <h2>第2話の見どころ3つ</h2>
+  <div class="box">
+    <h4>① 40秒で、力のルールが全部わかる</h4>
+    <p class="small">朝の屋台。チャーシューを狙って降ってきたツバメの手首を、ジンが反射でつかむ。赤い取り消し線、「00:03」、借りた速さで丼を全部空中で受け止める──そして、空の丼。触る・3秒・奪って使う・記憶で払う。第2話から見始めた人にも、説明なしで伝わる冒頭です。</p>
+  </div>
+  <div class="box">
+    <h4>② 2つのカウンター</h4>
+    <p class="small">赤い「契約停止 00:03」に加えて、第2話では<strong style="color:#B86A0C">琥珀のカウンター</strong>が画面の反対側に出ます。同じ相手にもう一度効くまでの<strong>再接続の10秒</strong>を、ミオの〈眼〉が数えている。二つの時間が同時に進む中で、ジンは「10秒ちょうど」に跳ぶ。</p>
+  </div>
+  <div class="box">
+    <h4>③ 初めて、名前が載る</h4>
+    <p class="small">中層の広場の格付け盤。灰色の空行のさらに下で、赤いインクがひとりでに書いていく──「AKABA JIN／ZERO（仮）」。最下位から始まる成り上がりの、ゼロ地点の記録です。</p>
+  </div>
+  <div class="note">
+    <h4>新しい考え方：「予算」</h4>
+    <p class="small">朝の1回を、ミオは「ただの浪費」と言い切ります。〈デフォルト〉は使うたびにジンの記憶を一つ取る力。だからミオは、触っていい回数を<strong>先に決める</strong>。昇降骨の中の予算は<strong>2回</strong>。足りなければ、足りるように自分が読む──それが、ジンの勝ち分の五割を受け取る保証人の仕事だ、と。</p>
+    <p class="small muted">第2話で〈デフォルト〉を使ったのは、朝の1回と昇降骨の2回、計3回。</p>
+  </div>
+  <div class="folio"><span>第3章　第2話「投資契約」</span><span class="no">22</span></div>
+</section>
+
+<!-- ================= p23 昇降骨 断面図 ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>第4章　骨の中、中層の上</span><span>CH.4 THE LIFT BONE</span></div>
+  <span class="chapter-no">Chapter 4 ── Inside the Bone, Above the Slums</span>
+  <figure class="art grow-fig">
+    <img src="art/vol1-liftbone-ja.svg" alt="昇降骨の断面図">
+  </figure>
+  <figcaption>昇降骨の断面。中央が籠の縦坑、それに巻きつくように走るのが「髄の道」。番号1〜3が交差、赤い①②が〈デフォルト〉を使った場所。</figcaption>
+  <div class="folio"><span>第4章　骨の中、中層の上</span><span class="no">23</span></div>
+</section>
+
+<!-- ================= p24 髄の道 ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>第4章　骨の中、中層の上</span><span>THE MARROW ROAD</span></div>
+  <h2>昇降骨と「髄の道」</h2>
+  <p>昇降骨は、層と層をつなぐ骨の内部のエレベーター。中は空洞で、格付けを照会して乗る鉄の籠が上り下りしている。その空洞のまわりに、もう一本、古い穴が通っている。かつて神の髄が流れていた跡──<strong>「髄の道」</strong>だ。</p>
+  <table class="ledger">
+    <thead><tr><th>地点</th><th>何があるか</th></tr></thead>
+    <tbody>
+      <tr><td>底帳口</td><td>骨の根元に開いた巨大な穴。改札の照会機の前に列。</td></tr>
+      <tr><td>第一交差</td><td>髄の道が籠の縦坑と交わる1か所目。籠の通過を待って渡る。</td></tr>
+      <tr><td>第二交差</td><td>取立局の見張りの持ち場。第2話ではニルが待っていた。</td></tr>
+      <tr><td>第三交差</td><td>籠の通り道の真上。上から籠が下りてくると、逃げ場がない。</td></tr>
+      <tr><td>出口</td><td>道の終わりにはまった格子。外は中層の骨の出口テラス。</td></tr>
+    </tbody>
+  </table>
+  <p class="small">中には骨の輪が同心円のように重なり、はしごの代わりになる。真下から見上げると、はるか上に白い光が見える。道の地図は、ツバメが丼のふたの裏に油性の鉛筆で描いたものしかない（p32）。</p>
+  <div class="cols">
+    <div class="notice small">
+      <span class="ttl" style="font-size:10pt">ご乗骨のみなさまへ</span>
+      <p>格付けをお持ちでない方は、ご乗骨いただけません。<br>格付けA以上の方であっても、<strong>格付けのない方を同伴してのご乗骨はできません。</strong></p>
+      <span class="issuer">取引所〈バース〉運輸課</span>
+    </div>
+    <div class="box small">
+      <h4>帳簿にない移動</h4>
+      <p>格付けのない者（ZERO）が登録なしで層を上がることを「帳簿にない移動」という。取立局は、取立日でなくても回収に動ける。第2話でニルが昇降骨を追ってきた根拠がこれ。</p>
+    </div>
+  </div>
+  <div class="folio"><span>第4章　骨の中、中層の上</span><span class="no">24</span></div>
+</section>
+
+<!-- ================= p25 中層の街並み 図 ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>第4章　骨の中、中層の上</span><span>THE MID-TIER</span></div>
+  <h2>中層の街並み</h2>
+  <p class="small">骨の出口の格子を蹴り外した先。画面がハレーションで真っ白になり、ゆっくりと露出が戻る──第2話 ACT 3 の最初の景色を、一枚の図にしました。</p>
+  <figure class="art" style="--h:76mm">
+    <img src="art/vol1-midtier-ja.svg" alt="中層の街並み">
+  </figure>
+  <figcaption>中層、夜。番号は次のページの解説に対応。</figcaption>
+  <div class="cols small">
+    <div class="stack">
+      <h3>におい</h3>
+      <p>底帳の煮干しのかわりに、屋台の油と排気ガス。映像では、湯気の色でにおいを見せる。</p>
+    </div>
+    <div class="stack">
+      <h3>音</h3>
+      <p>中層のテーマはシティポップ調のベースライン。底帳の汚水の滝の音は、ここでは聞こえない。</p>
+    </div>
+  </div>
+  <div class="note small" style="margin-top:auto">
+    <h4>人々のしぐさ</h4>
+    <p>中層の人々は、歩きながら何度も手首の印を確かめる。残高が上がれば住む場所も上がり、下がれば落ちる街だからだ。</p>
+  </div>
+  <div class="folio"><span>第4章　骨の中、中層の上</span><span class="no">25</span></div>
+</section>
+
+<!-- ================= p26 中層 解説 ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>第4章　骨の中、中層の上</span><span>THE MID-TIER</span></div>
+  <h2>中層の六つの場所</h2>
+  <dl class="gloss" style="grid-template-columns: 30mm 1fr">
+    <dt>① 骨の出口テラス</dt><dd>髄の道の出口。内側から蹴り外した格子が転がっている。底帳から来た者が最初に立つ、中層の端。</dd>
+    <dt>② 空中ロープウェイ</dt><dd>骨と骨のあいだを渡る錆色のゴンドラ。乗り場の下は、決済戦の中継を見る人のたまり場。</dd>
+    <dt>③ 街頭モニター</dt><dd>決済戦を生中継する大画面。過去の試合の映像も流れ続ける。賭け屋のオッズもここに出る。</dd>
+    <dt>④ 公開格付け盤</dt><dd>広場に立つ盤。AAAからDまで、名前が滝のように流れる。最上段の近くに「AA 榊ドウゲン」。</dd>
+    <dt>⑤ バース中層登録所</dt><dd>白い大理石の小さな窓口。決済戦の登録はここで受け付ける。壁の時刻盤の秒針は、白い帳簿の空間と同じ音で鳴る（p27）。</dd>
+    <dt>⑥ ネオン看板と屋台</dt><dd>両替・賭・質・酒・湯。看板の色は貸主の色を借りるが、帳簿の赤だけは使わない。</dd>
+  </dl>
+  <div class="board">
+    <div class="hd">公開格付け盤 ── 中層・登録所前の広場（第2話）</div>
+    <div class="row"><span>AA</span><span>榊 ドウゲン</span><span style="color:#9AA3AD">● 鈍銀</span></div>
+    <div class="row"><span>A</span><span>（公認選手）</span><span>…</span></div>
+    <div class="row"><span>B</span><span>（公認選手）</span><span>…</span></div>
+    <div class="row"><span>C</span><span>（公認選手）</span><span>…</span></div>
+    <div class="row"><span>D</span><span>────────────</span><span>…</span></div>
+    <div class="row"><span></span><span style="color:#5C5466">（灰色の空行）</span><span></span></div>
+    <div class="row zero"><span>ZERO</span><span>AKABA JIN／ZERO（仮）</span><span>−∞</span></div>
+  </div>
+  <div class="quote" style="margin-top:auto">「上しかねえってことだろ」<span class="en">"Means there's nowhere to go but up." ── 赤羽ジン（第2話）</span></div>
+  <div class="folio"><span>第4章　骨の中、中層の上</span><span class="no">26</span></div>
+</section>
+
+<!-- ================= p27 登録所と仮登録 ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>第4章　骨の中、中層の上</span><span>REGISTRY</span></div>
+  <h2>バース中層登録所と「仮登録」</h2>
+  <p class="small">中層の決済戦には、毎月の<strong>登録締切</strong>があります。第2話では「取立日より前に組める最後の一枚」が、その夜の八時に締め切られました。</p>
+  <figure class="art" style="--h:66mm">
+    <img src="art/vol1-registry-ja.svg" alt="仮登録のしくみ">
+  </figure>
+  <div class="cols small">
+    <div class="stack">
+      <h3>ZEROはどうやって登録するのか</h3>
+      <p>照会機にジンの手首を当てると「残高：計測不能」。ZEROの登録には前例がない。そこで、保証人が同伴して自分の印を照合し、担保を出すことを示す。これが<strong>仮登録</strong>。</p>
+    </div>
+    <div class="stack">
+      <h3>いつ「正式」になるのか</h3>
+      <p>正式な登録は、第一決済戦で<strong>担保宣言</strong>をしたときに成立する。ミオは窓口で、自分の与信枠の3割──上限いっぱい──を賭けると言った。</p>
+    </div>
+  </div>
+  <div class="note small" style="margin-top:auto">
+    <h4>登録係が手を止めた場所</h4>
+    <p>契約書をめくっていた登録係は、第十二条で手を止め、ちらりとジンを見た。何が書いてあるのかは、p30 で。</p>
+  </div>
+  <div class="folio"><span>第4章　骨の中、中層の上</span><span class="no">27</span></div>
+</section>
+
+<!-- ================= p28 決済円 構造図 ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>第4章　骨の中、中層の上</span><span>SETTLEMENT RING</span></div>
+  <h2>決済円の構造図</h2>
+  <p class="small">決済戦〈セトルメント〉は、バース公認の円の上で行われます。ジンの初戦の会場に決まったのは、<strong>中層第七決済円</strong>。</p>
+  <figure class="art grow-fig">
+    <img src="art/vol1-ring-ja.svg" alt="決済円の構造図">
+  </figure>
+  <p class="small muted">時間制限・勝利条件・賭け金の決まりは、Vol.0 p10 と同じ（シリーズ・バイブル準拠）。</p>
+  <div class="folio"><span>第4章　骨の中、中層の上</span><span class="no">28</span></div>
+</section>
+
+<!-- ================= p29 決済カード ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>第4章　骨の中、中層の上</span><span>THE CARD</span></div>
+  <h2>決済カードのルール</h2>
+  <p>決済戦の組み合わせを、中層では<strong>決済カード</strong>と呼ぶ。カードは登録所で組まれ、広場の掲示と街頭モニターに出る。ミオの〈眼〉には、その掲示が琥珀色に浮かんで見える。</p>
+  <div class="notice">
+    <span class="ttl">中層 決済カード（抜粋）</span>
+    <table class="ledger">
+      <thead><tr><th>決済円</th><th>日程</th><th>組み合わせ</th></tr></thead>
+      <tbody>
+        <tr><td>第七決済円</td><td>三日後</td><td>赤羽ジン（ZERO／保証人 葛葉）　対　<span class="blk">＿＿＿＿＿＿</span>（格付けC）</td></tr>
+        <tr><td>第三決済円</td><td>二日後</td><td>（公認選手 B）　対　（公認選手 B）</td></tr>
+        <tr><td>第五決済円</td><td>四日後</td><td>（公認選手 C）　対　（公認選手 D）</td></tr>
+      </tbody>
+    </table>
+    <span class="issuer">取引所〈バース〉中層登録所</span>
+  </div>
+  <table class="ledger">
+    <thead><tr><th>決まりごと</th><th>中身</th></tr></thead>
+    <tbody>
+      <tr><td>登録締切</td><td>毎月ある。締切を過ぎると、その月のカードには入れない。</td></tr>
+      <tr><td>取立日との関係</td><td>ケイの保証は「第一決済戦の賞金で払う」約束。取立日までにカードが組まれないと、保証が流れる（p34）。</td></tr>
+      <tr><td>ZEROの出場</td><td>与信枠がないので、保証人が代わりに担保を宣言する場合のみ。</td></tr>
+      <tr><td>賭け金</td><td>与信枠の最大3割、相手と同率。</td></tr>
+    </tbody>
+  </table>
+  <div class="box small">
+    <h4>初戦の相手について</h4>
+    <p>相手は炎の貸主〈ヒクベ〉から借りる、格付けCの選手。朱の印の筋は肘まで。ミオの〈眼〉が出した勝率は<strong>96.1%</strong>、ジンの欄は「未定義」のまま点滅している。名前と姿は、まだ設定を固めている途中のため、本書では伏せています。</p>
+  </div>
+  <div class="folio"><span>第4章　骨の中、中層の上</span><span class="no">29</span></div>
+</section>
+
+<!-- ================= p30 投資契約書 ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>第4章　骨の中、中層の上</span><span>THE CONTRACT</span></div>
+  <h2>投資契約書（正本）</h2>
+  <p class="small muted">第2話でミオがバースに出した契約書を、本書のために条文の形で書き起こしたもの（抜粋）。第1話の握手の契約を、紙にしたものです。</p>
+  <div class="contract">
+    <span class="ttl">投資契約書</span>
+    <p style="text-align:center" class="small mono">正本 ／ 取引所〈バース〉提出用</p>
+    <p>保証人 <strong>葛葉ミオ</strong>（以下「保証人」）と、債務者 <strong>赤羽ジン</strong>（以下「債務者」）は、次のとおり契約する。</p>
+    <p><span class="art-no">第一条</span>保証人は、債務者の決済戦において担保宣言を代行し、自らの与信枠から担保を拠出する。</p>
+    <p><span class="art-no">第二条</span>第一戦の賞金は、特約一に従い、霧島ケイの延滞の返済にあてる。第二戦以降の勝ち分は、その五割を保証人が受け取る。</p>
+    <p class="small muted">（第三条〜第十一条　略）</p>
+    <div class="hand">
+      <p><span class="art-no">特約一</span>最初の決済戦の賞金で、真っ先にケイの延滞を払う。</p>
+      <p><span class="art-no">特約二</span>赤羽ジンのために、誰の担保も取らない。</p>
+      <p><span class="art-no">特約三</span>葛葉の帳簿も、いつか一緒に燃える。</p>
+    </div>
+    <div class="twelve">
+      <p><span class="art-no red">第十二条</span>敗北によって保証人が失った担保は、債務者・赤羽ジンの、葛葉家に対する債務とする。</p>
+    </div>
+    <div class="sign"><span>保証人　葛葉ミオ　<span class="sw" style="background:#F0921E"></span>琥珀の印</span><span>債務者　赤羽ジン　<span class="sw" style="background:#E5172F"></span>（署名）</span></div>
+  </div>
+  <div class="cols small">
+    <p><strong>四割と五割。</strong>第1話でミオが言ったのは「勝ち分の四割」。あれは情報と装備だけの値段で、担保まで出すなら保証料込みで五割──と、ミオは説明する。</p>
+    <p><strong>特約は手書き。</strong>三つの特約は、第1話の肋骨の上でジンが指を立てて言った条件を、一字一句そのまま。三つ目だけ、筆圧が少し強い。</p>
+  </div>
+  <div class="folio"><span>第4章　骨の中、中層の上</span><span class="no">30</span></div>
+</section>
+
+<!-- ================= p31 ミオ ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>第5章　人物の更新</span><span>CH.5 / KUZUHA MIO</span></div>
+  <span class="chapter-no">Chapter 5 ── Character Updates</span>
+  <div class="char-head">
+    <div><div class="char-kana">KUZUHA MIO ／ くずは みお</div><div class="char-name">葛葉 ミオ</div></div>
+    <span class="stamp">保証人<small>GUARANTOR</small></span>
+  </div>
+  <p>第2話のミオは、ジンの<strong>保証人</strong>として正式に名前を出す。担保を出すのも、担保宣言をするのも、彼女だ。</p>
+  <h3>〈眼〉の読み方</h3>
+  <div class="mark-read">
+    <span class="amb">● 籠、上り。第一交差の通過まで 41秒</span><br>
+    <span class="amb">● 次の足場は右に3輪、上に2輪</span><br>
+    <span class="amb">● 取立人／格付けAA　借力：差押鎖〈鉄の貸主〉　同時制御：最大9本</span><br>
+    <span class="amb">● 右上、二本。0.6秒後。左のは囮</span><br>
+    <span class="amb">● 再接続まで 10</span>　<span class="red">契約停止 00:03</span>
+  </div>
+  <p class="small">ミオの〈眼〉が出すのは、時間・距離・軌道・相手の格付けと借力、そして勝率。第2話では、ニルの「次の動き」を秒単位で読んだ。〈眼〉の数字は琥珀、〈デフォルト〉の数字は赤。画面の上で色を分けている。</p>
+  <div class="cols small">
+    <div class="note">
+      <h4>「予算」という考え方</h4>
+      <p>触っていい回数を、先に決める。昇降骨では2回。朝の1回は「浪費」。数字で人を信用してきたミオらしい、ジンの記憶の守り方でもある。</p>
+    </div>
+    <div class="note">
+      <h4>取り分</h4>
+      <p>第一戦の賞金はケイの延滞へ。第二戦からは勝ち分の五割。負けたときの損は、第十二条でジンの借金になる。</p>
+    </div>
+  </div>
+  <div class="hint"><b>BALANCE NOTE</b>縦坑の中で一瞬、右目を押さえた。数字の列が砂嵐のように乱れて、すぐ戻る。最後は右目を閉じ、左目だけで読み続けた。目薬は一滴。視界は、なかなか戻らない。</div>
+  <div class="quote" style="margin-top:auto">「足りるように私が読む。それが五割の仕事」<span class="en">── 葛葉ミオ（第2話）</span></div>
+  <div class="folio"><span>第5章　人物の更新</span><span class="no">31</span></div>
+</section>
+
+<!-- ================= p32 ツバメ ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>第5章　人物の更新</span><span>TSUBAME</span></div>
+  <div class="char-head">
+    <div><div class="char-kana">TSUBAME ／ つばめ</div><div class="char-name">ツバメ</div></div>
+    <span class="stamp">裏道屋<small>BACK ROADS</small></span>
+  </div>
+  <figure class="art" style="--h:90mm">
+    <img src="art/vol1-tsubame.svg" alt="ツバメ 全身の設定画">
+  </figure>
+  <p>第2話のツバメは<strong>裏道屋</strong>。昇降骨の中の古い穴「髄の道」の通り方と、見張りの数を知っていた。地図は丼のふたの裏。報酬はいつもどおり麺一杯で、ジンの返事は「ツケで」。</p>
+  <p class="small">朝の屋台では、屋根から翠の残像になってジンのチャーシューを狙った。反射で手首をつかまれ、〈デフォルト〉を受けた最初の「味方」でもある。</p>
+  <div class="hint"><b>BALANCE NOTE</b>〈デフォルト〉を受けたあと、ツバメは自分の手首を見ていた。翠の数字が一瞬だけ、見たことのない桁まで跳ね上がる。彼女は慌てて、パーカーの袖で隠した。</div>
+  <div class="quote" style="margin-top:auto">「情報料は麺一杯ね！」<span class="en">"Info costs one bowl of noodles!"</span></div>
+  <div class="folio"><span>第5章　人物の更新</span><span class="no">32</span></div>
+</section>
+
+<!-- ================= p33 ニル ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>第5章　人物の更新</span><span>NIL</span></div>
+  <div class="char-head">
+    <div><div class="char-kana">NIL ／ にる</div><div class="char-name">ニル</div></div>
+    <span class="stamp">AA級<small>COLLECTOR</small></span>
+  </div>
+  <figure class="art" style="--h:66mm">
+    <img src="art/vol1-nil-mask.svg" alt="ニルの綴じ直した仮面の設定画">
+  </figure>
+  <p>第1話でジンの拳が入れた亀裂を、ニルは<strong>灰色の糸で綴じ直した</strong>。仮面の形は変えず、ひびの上を×の綴じ目が渡っている。当面、ニルはこの仮面で描く。</p>
+  <dl class="data">
+    <dt>格付け</dt><dd>AA（ミオの〈眼〉による）</dd>
+    <dt>借力</dt><dd>差押鎖〈鉄の貸主〉。同時に最大9本</dd>
+    <dt>鎖の新しい描写</dt><dd>縛った相手の担保が、<strong>糸</strong>になって引き出される。ミオの場合は、右目から琥珀の光の糸</dd>
+    <dt>動き</dt><dd>縦坑の壁に鎖を打ち込み、重力を無視して“横向きに”立つ。鎖を足場に、階段のように上ってくる</dd>
+    <dt>追う理由</dt><dd>帳簿にない移動（p24）。「お前は、別の頁だ」</dd>
+  </dl>
+  <div class="hint"><b>BALANCE NOTE</b>止まった籠の屋根で、ニルは黒い帳簿を開いた。「赤羽ジン　昇層　未回収」。そのすぐ上に、同じ赤いインクで書かれた古い一行がある。名前の部分は、黒く塗りつぶされている。</div>
+  <div class="quote" style="margin-top:auto">「お支払いの時間です。」<span class="en">"Payment is due."</span></div>
+  <div class="folio"><span>第5章　人物の更新</span><span class="no">33</span></div>
+</section>
+
+<!-- ================= p34 ケイ ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>第5章　人物の更新</span><span>KIRISHIMA KEI</span></div>
+  <div class="char-head">
+    <div><div class="char-kana">KIRISHIMA KEI ／ きりしま けい</div><div class="char-name">霧島 ケイ</div></div>
+    <span class="stamp">残29日<small>GUARANTEE</small></span>
+  </div>
+  <p>第1話の終わりで、ケイの延滞には<strong>保証人</strong>がついた。けれどその保証には、期限がある。</p>
+  <div class="mark-read">
+    <span style="color:#A49F93">ケイの左手首（ミオの〈眼〉の視界）</span><br>
+    <span style="color:#8592F0">● 期日超過：3</span><br>
+    <span class="amb">● 保証人：葛葉ミオ</span><br>
+    <span class="amb">● 支払予定：第一決済戦</span><br>
+    <span class="red">● 取立日まで：29日</span>
+  </div>
+  <div class="box small">
+    <h4>保証の失効</h4>
+    <p>この保証は「第一決済戦の賞金で払う」という約束。<strong>取立日までに一戦目が組まれなければ、保証は流れ、特別取立状がもう一度有効になる。</strong>そうなれば、あの仮面がまた来る──今度は保留なしで。</p>
+  </div>
+  <p class="small">ケイは、借金で借金を返すのは「いちばん下手な返し方」だと言う。それでも背を向けたまま、ジンに一つだけ教えた。逃げるときは壁に背中をつけるな。円でも穴でも、<strong>縁を回れ</strong>。回っているうちは、追う方が先にばてる。ジンはその言葉どおり、縦坑の輪の縁を走って鎖をかわした。</p>
+  <div class="hint"><b>BALANCE NOTE</b>どこで覚えたのかと聞かれて、ケイは「麺の湯切りで」と答えた。そう言いながら、左袖の下の焼印のあたりを、指がなぞっていた。</div>
+  <div class="quote" style="margin-top:auto">「食え。話はそれからだ。」<span class="en">"Eat. Then we talk."</span></div>
+  <div class="folio"><span>第5章　人物の更新</span><span class="no">34</span></div>
+</section>
+
+<!-- ================= p35 記憶の帳簿 ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>第5章　人物の更新</span><span>THE MEMORY LEDGER</span></div>
+  <h2>記憶の帳簿</h2>
+  <div class="spoiler"><strong class="red">ネタバレ注意</strong>　このページには、第2話の結末までの内容が含まれます。</div>
+  <p class="small">〈デフォルト〉は、1回使うたびにジンの記憶を一つ、ハザマに払う力。止めた借力が大きいほど、大事な記憶が取られる。ここまでにジンが払った記憶を、帳簿の形でまとめました。</p>
+  <table class="ledger mem">
+    <thead><tr><th>話</th><th>場面</th><th>止めた借力</th><th>払った記憶</th></tr></thead>
+    <tbody>
+      <tr><td class="num">1</td><td>屋台前の路地</td><td>ニルの差押鎖（AA）</td><td class="red">父の顔</td></tr>
+      <tr><td class="num">2</td><td>朝の屋台</td><td>ツバメの速さ（D）</td><td class="red">その朝の朝食</td></tr>
+      <tr><td class="num">2</td><td>縦坑・第二〜第三交差</td><td>ニルの鎖（AA）</td><td class="red">ネギ多めの常連の老人の顔</td></tr>
+      <tr><td class="num">2</td><td>第三交差・網の上</td><td>ニル本人（AA）</td><td class="red">ケイが初めて「うちの子」と呼んだ日</td></tr>
+    </tbody>
+  </table>
+  <div class="stack small">
+    <p><strong>朝食。</strong>空の丼を前に「俺、メシ食ったっけ？」。ジンは笑ってごまかした。</p>
+    <p><strong>老人の顔。</strong>第1話の冒頭、洗濯ロープを滑りながら丼を渡した、窓辺の老人。中層の屋台で客が「ネギ多めで」と叫んだとき、ジンの足は一瞬止まる。なぜ引っかかったのかは、もう分からない。</p>
+    <p><strong>「うちの子」。</strong>割烹着の裾をつかむ小さな手と、若いケイの声。記憶は罫線入りの白い頁になり、はがれて闇へ舞い上がった。ハザマは言った。「いまのは、ちょっと高かったよ」。</p>
+    <p>その夜、屋台でケイは、ジンがその日に大泣きしたことをツバメに話して笑う。「あいつ、絶対『覚えてねえ』って言うよ」。観客だけが、それが本当になったことを知っている。</p>
+  </div>
+  <div class="note small" style="margin-top:auto">
+    <h4>ミオに見えているもの</h4>
+    <p>ジンが何を払ったのか、ミオには分からない。〈眼〉に映るのは、「−∞」の横で<strong>読めない桁が一つ動く</strong>ことだけ。ジンは「払ってねえよ。踏み倒しただけ」と笑う。</p>
+  </div>
+  <div class="folio"><span>第5章　人物の更新</span><span class="no">35</span></div>
+</section>
+
+<!-- ================= p36 脚本抜粋 1 ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>第6章　第2話　脚本抜粋</span><span>COLD OPEN 1/2</span></div>
+  <span class="chapter-no">Chapter 6 ── Episode 2 Script Excerpt</span>
+  <h2>脚本抜粋　COLD OPEN</h2>
+  <p class="small muted">第2話 冒頭1分30秒（00:00–01:30）。決定稿前の稿より抜粋・再構成。本編とは異なる場合があります。</p>
+  <div class="script">
+    <div class="sh">○底帳・麺屋台「霧島」跡・朝<span class="tc">00:00–00:55</span></div>
+    <p class="cue">【SKIP-PROOF】ロゴもテロップも出さない。最初の1フレームから湯気。</p>
+    <p class="act">割れた丼の山を手前に、湯気の向こうに壊れた屋台。柱には、鎖でえぐられた溝が三本残っている。</p>
+    <p class="act">ケイが、仮のカウンターにしている木箱の上へ丼を一つ置く。</p>
+    <div class="dl"><span class="who">ケイ</span><span>「食え。話はそれからだ」</span></div>
+    <p class="act">ジンが箸を割る。目に入ったのは丼ではなく、ケイの左手首だった。色あせた藍の印に「期日超過：3」。その下に、琥珀色のインクで「保証人：葛葉ミオ／支払予定：第一決済戦」。ケイは手のひらでそれを隠す。ジン、何も言わずに麺を一気にすする。</p>
+    <p class="cue">【SE】屋根の上で、翠の光がかすかに鳴る。</p>
+    <p class="act">超高速の主観。屋根から、翠の残像になったツバメが降ってくる。狙いはジンの丼のチャーシューだ。</p>
+    <div class="dl"><span class="who">ツバメ</span><span>「いっただきー！」</span></div>
+    <p class="act">ジンの左手が、反射でツバメの手首をつかむ。</p>
+    <p class="cue">【SE】ガラスが割れるような、高く澄んだ音。</p>
+    <p class="act">赤いインクが空中に散る。ツバメの手首の翠の数字に、赤い取り消し線が一本。</p>
+    <p class="act" style="font-family:var(--mono); font-weight:600">表示「<span class="red">契約停止　00:03</span>」</p>
+    <p class="act">ツバメの残像が止まり、ただの12歳になって空中でつんのめる。今度はジンの体に翠の筋が走る。世界がスローになる。跳ねた丼、宙を舞う箸、チャーシュー、落ちかけた空の丼が三つ。ジンは〈速さ〉を借りたまま全部を空中で受け止めて積み、最後にツバメの襟首をつまむ。</p>
+    <p class="act" style="font-family:var(--mono); font-weight:600">表示「00:00　契約再開」</p>
+  </div>
+  <div class="folio"><span>第6章　第2話　脚本抜粋</span><span class="no">36</span></div>
+</section>
+
+<!-- ================= p37 脚本抜粋 2 ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>第6章　第2話　脚本抜粋</span><span>COLD OPEN 2/2</span></div>
+  <div class="script">
+    <div class="dl"><span class="who">ツバメ</span><span>「……え、いま、アニキ、速っ……」</span></div>
+    <p class="act">ジンの手には、空の丼が一つ残っている。</p>
+    <div class="dl"><span class="who">ジン</span><span>「……なあケイ。俺、メシ、食ったっけ？」<br><span class="mono small muted">"...Hey, Kei. Did I eat already?"</span></span></div>
+    <p class="act">ケイの手が止まる。</p>
+    <p class="cue">【CAM】インサート。ほんの一瞬前の、麺をすするジン。その映像が帳簿の紙のように白く抜ける。【SE】紙を破る、乾いた音（小）。</p>
+    <div class="dl"><span class="who">ハザマ</span><span>（ジンの手首から、小さく）「ねえジン、それ、つけとくね」</span></div>
+    <div class="dl"><span class="who">ジン</span><span>（笑って）「なんだ、食ってたのか。どうりで腹いっぱいだ」</span></div>
+    <p class="act">ツバメは自分の手首を見ている。翠の数字が一瞬だけ、見たことのない桁まで跳ね上がる。ツバメは慌ててパーカーの袖で隠す。</p>
+
+    <div class="sh">○同・朝<span class="tc">00:55–01:30</span></div>
+    <p class="act">ジンの丼に、日傘の影が落ちる。葛葉ミオが立っている。肩には黒い上着、手には閉じた扇子。琥珀色の右目に、まだ数字の残光が流れている。</p>
+    <div class="dl"><span class="who">ミオ</span><span>「今の一回。ただの浪費ね」<br><span class="mono small muted">"That touch? Pure waste."</span></span></div>
+    <p class="act">ミオは分厚い紙の束を、木箱の上へどさりと置く。表紙には金の縁取りで「投資契約書（正本）」。</p>
+    <div class="dl"><span class="who">ミオ</span><span>「昨日のは握手。今日のは、取引所〈バース〉に出す紙」</span></div>
+    <p class="cue">【SE】判子を押す音、一発。【BGM】OPイントロ、イン。</p>
+    <div class="sh">OP<span class="tc">01:30–03:00</span></div>
+    <p class="act">OPの最後のカットは、毎話「ジンの手首の赤い印」で締める。今話はカウンター表示「<span class="red">残り 2</span>」を重ねて、本編へ。</p>
+  </div>
+  <div class="note small" style="margin-top:auto">
+    <h4>この冒頭の設計</h4>
+    <p>第2話から見始めた人のための冒頭です。触る、3秒、奪って使う、記憶で払う。力のルールを、説明の台詞なしで約40秒に入れています。最後のミオのひと言が、この話のテーマ「予算」の入口になります。</p>
+  </div>
+  <div class="folio"><span>第6章　第2話　脚本抜粋</span><span class="no">37</span></div>
+</section>
+
+<!-- ================= p38 用語集 ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>用語集</span><span>GLOSSARY</span></div>
+  <h2>用語集──第2話で増えた言葉</h2>
+  <dl class="gloss">
+    <dt>投資契約書（正本）</dt><dd>ミオがバースに出した正式な契約書。第1話の握手の契約を紙にしたもの。</dd>
+    <dt>保証人</dt><dd>格付けのない者の代わりに担保を出し、担保宣言をする者。ジンの保証人はミオ。</dd>
+    <dt>特約</dt><dd>契約書に手書きで足した三つの条件。第1話でジンが出したもの。</dd>
+    <dt>第十二条</dt><dd>負けて保証人が失った担保は、ジンの葛葉家への借金になる、という条文。</dd>
+    <dt>保証の失効</dt><dd>取立日までに第一決済戦が組まれないと保証が流れ、特別取立状が生き返ること。</dd>
+    <dt>登録締切</dt><dd>中層の決済戦の、毎月の登録の締め切り。</dd>
+    <dt>バース中層登録所</dt><dd>決済戦の登録を受け付ける、中層の白い大理石の窓口。</dd>
+    <dt>仮登録</dt><dd>ZEROの登録。保証人が同伴して印を照合する。正式登録は第一決済戦の担保宣言で。</dd>
+    <dt>決済カード</dt><dd>決済戦の組み合わせ。登録所で組まれ、広場とモニターに出る。</dd>
+    <dt>乗骨</dt><dd>昇降骨の籠に乗ること。格付けの照会が要る。ZEROは不可、同伴も不可。</dd>
+    <dt>底帳口</dt><dd>底帳側の昇降骨の入口。改札の照会機がある。</dd>
+    <dt>髄の道</dt><dd>昇降骨の中の、神の髄が通っていた古い穴。籠の縦坑と三回交差する。</dd>
+    <dt>帳簿にない移動</dt><dd>格付けのない者が登録なしで層を上がること。取立局はいつでも回収に動ける。</dd>
+    <dt>予算</dt><dd>ミオの言葉。〈デフォルト〉を使っていい回数を、先に決めておくこと。</dd>
+    <dt>再接続</dt><dd>差し押さえた契約が戻ってから、同じ相手にもう一度効くまでの約10秒。</dd>
+    <dt>骨の出口テラス</dt><dd>中層側の、髄の道の出口。</dd>
+    <dt>中層第七決済円</dt><dd>ジンの初戦の会場。</dd>
+    <dt>裏道屋</dt><dd>表の道を通れない人に、裏の道を売る商売。ツバメの自称。</dd>
+  </dl>
+  <div class="folio"><span>用語集</span><span class="no">38</span></div>
+</section>
+
+<!-- ================= p39 あとがき ================= -->
+<section class="page ruled">
+  <div class="runhead"><span>あとがき</span><span>AFTERWORD</span></div>
+  <h2>あとがき──数える人と、数えない人</h2>
+  <div class="stack">
+    <p>第2話は、数字の話です。29日、今夜八時、41秒、10秒、2回、3割、五割。ミオは何でも数え、ジンはほとんど何も数えません。</p>
+    <p>それでもジンは、ミオの数えた「2回」を守りました。数えない人が、数える人を信じたのです。そしてミオは、ジンが何を払っているのかを数えられない。〈眼〉に映るのは、読めない桁が一つ動くことだけです。この二人の帳簿は、たぶん最後まで合いません。合わないまま、背中を預け合っていく話にしたいと思っています。</p>
+    <p>前半では、第1話がどう組み立てられたかをお見せしました。音を消す数秒、1.2秒の手首、赤を一色しか使わない決まり。見えないところで、たくさんのことを数えています。</p>
+    <p>Vol.0 に続いて、この帳簿を手に取ってくださったあなたに、心からの感謝を。つけは、本編で必ず返します。</p>
+    <p style="text-align:right">ショーランナー　Hikaru（P7 Anime）</p>
+  </div>
+  <div class="box" style="margin-top:auto">
+    <span class="chapter-no">Next Ledger</span>
+    <h2>帳簿の書 Vol.2（予定）</h2>
+    <p class="small">第3話「初決済」／"First Settlement" から。中層第七決済円で、初めての公認決済戦。相手の勝率は96.1%、触っていいのは、たぶん一回だけ。制作が決まりしだい、お知らせします。</p>
+  </div>
+  <div class="folio"><span>あとがき</span><span class="no">39</span></div>
+</section>
+
+<!-- ================= p40 奥付 ================= -->
+<section class="page dark">
+  <img class="colo-bg" src="art/back.svg" alt="">
+  <div class="colo">
+    <span class="chapter-no">Colophon</span>
+    <h2>LEDGERBREAKER 帳簿の書 Vol.1</h2>
+    <p class="small" style="color:#CFC8B8">オリジナルアニメ企画『帳簿破り』（LEDGERBREAKER）設定資料集　第2話編<br>2026年　初版発行（日本語版）</p>
+    <dl>
+      <dt>原作・企画</dt><dd>P7 Anime</dd>
+      <dt>ショーランナー</dt><dd>Hikaru</dd>
+      <dt>シリーズ構成・脚本</dt><dd>P7 Anime 脚本チーム</dd>
+      <dt>絵コンテ（第1話）</dt><dd>P7 Anime 演出チーム</dd>
+      <dt>Webtoon（第1話）</dt><dd>P7 Anime 作画・色彩設計チーム</dd>
+      <dt>キャラクター・美術</dt><dd>P7 Anime キャラクターデザイン／美術</dd>
+      <dt>編集・構成</dt><dd>P7 Anime 編集部</dd>
+      <dt>発行</dt><dd>masahiro20 / P7 Anime</dd>
+      <dt>書体</dt><dd>Dela Gothic One／Zen Kaku Gothic New／IBM Plex Mono（Google Fonts, SIL Open Font License 1.1）</dd>
+    </dl>
+    <div class="legal">
+      <p><strong>AI使用の表示：</strong>本書の文章および図版（絵コンテ・Webtoon・設定画を含む）は、AIを用いて制作し、オーナーが編集・監修したものです。</p>
+      <p>本書は制作準備段階の資料であり、内容は今後変更される場合があります。本作はフィクションです。</p>
+      <p style="margin-top:1.5mm; color:var(--bone)">© 2026 masahiro20 / P7 Anime　無断転載・複製を禁じます。</p>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>
