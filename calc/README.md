@@ -6,7 +6,7 @@ Live URL: https://masahiro20.github.io/new-project/calc/ (served from a copy on 
 
 ## v2 changes (2026-10-09)
 
-- **Google Gemini models.** 11 Gemini rows (provider `google`) from the official Gemini API pricing page, Paid tier, Standard, text/image/video input. Three are main models (pre-selected): Gemini 3.8 Flash, Gemini 3.5 Flash-Lite and Gemini 3.1 Pro Preview. The other eight are under "Older models". Pro models use the tier for prompts of 200K tokens or less. Gemini 3.8/3.7/3.6 Flash prices are promotional through 2026-12-31.
+- **Google Gemini models.** 11 Gemini rows (provider `google`) from the official Gemini API pricing page, Paid tier, Standard, text/image/video input. Three are main models (pre-selected): Gemini 3.8 Flash, Gemini 3.5 Flash-Lite and Gemini 3.1 Pro Preview. The other eight are under "More models". Pro models use the tier for prompts of 200K tokens or less. Gemini 3.8/3.7/3.6 Flash prices are promotional through 2026-12-31.
 - **Gemini cache assumption.** Gemini has a cached-token price (used as `cacheRead`) and an hourly storage price, but no cache-write price. Cache-write tokens on Gemini targets are charged at the input price, and storage is not modelled. `cacheWrite` is `null` on every Gemini row.
 - **Google provider.** Model names starting with `gemini` (or `models/gemini`) are detected as Google. There is no dedicated Gemini export parser: Gemini usage goes through the generic CSV (see the FAQ). Step 05 has a provider filter: All / Anthropic / OpenAI / Google.
 - **Share link.** "Copy share link" (step 03) puts settings and aggregate totals in the URL hash: `#s=<base64url(JSON)>`, with `v: 1`. A "What's in this link" disclosure shows the exact JSON and warns that the totals reveal usage volume. Opening a link restores that state, shows a "Loaded from shared link" badge, and offers a "Clear shared link" button. Invalid links show an error and load the sample instead.
@@ -63,7 +63,7 @@ Details:
 
 - Change the numbers, `source`, `note` and `checkedOn`. Values are USD per 1M tokens and `null` means not listed. Every "Checked …" date on the page is filled in from `PRICES.checkedOn`.
 - A row counts toward totals only when it has `status: "verified"` and non-null `input`/`output`. Every other row is shown as "Unverified", and users can type a price into it.
-- Models listed in `MAIN_IDS` (UI code) are pre-selected and shown first. All other models go under "Older models".
+- Models listed in `MAIN_IDS` (UI code) are pre-selected and shown first. All other models go under "More models" (a neutral label: it does not claim a model is older or legacy unless its note says the provider page does).
 - If a model has a different price tier (e.g. Haiku 5.5 over 100K tokens, OpenAI over 272K, Gemini Pro over 200K), update the copy in "How it works" and the notes in step 05.
 - Gemini rows: keep `cacheWrite: null` (Gemini lists no cache-write price). Use the text input price. Gemini 3.8/3.7/3.6 Flash prices change on 2027-01-01 (to $1.50 / $7.50 / cached $0.15). Update them then.
 - Run `node calc/tests/logic.test.js`. One test checks that the Anthropic and OpenAI prices match `signal-lab/model-switch-calculator/index.html`. The source tool has no Gemini rows, so Google rows and dates are not compared. Update both files together.

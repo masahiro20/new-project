@@ -1,43 +1,49 @@
 <!doctype html>
-<!-- Source for og.png (1200x630). Not linked from the site. Re-render with Playwright:
-     page.setViewportSize({width:1200,height:630}); page.goto('file://.../og-template.html'); page.screenshot({path:'og.png'}) -->
+<!-- Source for og.png (1200x630). Not linked from the site. Re-render with Playwright (Chromium):
+     page.setViewportSize({width:1200,height:630}); page.goto('file://.../og-template.html'); page.screenshot({path:'og.png'})
+     Numbers = the page's default view of the built-in Anthropic sample (30-day normalised, keep cache ratio, default
+     models), prices checked 2026-10-09. Rows are a subset of that comparison; the cheapest bar uses the page's chart
+     colour for the cheapest model (--accent #1c5ca3). Values sit in their own column so the dashed "Current" line
+     never crosses them. Scale: 200px = $700. -->
 <html lang="en"><head><meta charset="utf-8"><title>og.png template</title>
 <style>
 *{box-sizing:border-box}
 html,body{margin:0;width:1200px;height:630px;overflow:hidden}
 body{background:#f3f4f1;color:#191c1a;font-family:Inter,"IBM Plex Sans",system-ui,sans-serif;display:flex}
-.l{width:540px;padding:64px 0 56px 72px;display:flex;flex-direction:column}
+.l{width:520px;padding:64px 0 56px 72px;display:flex;flex-direction:column}
 .brand{display:flex;align-items:center;gap:14px;font-size:30px;font-weight:600;letter-spacing:-.01em}
-h1{font-size:58px;line-height:1.08;margin:44px 0 0;letter-spacing:-.025em;font-weight:700}
+h1{font-size:56px;line-height:1.08;margin:44px 0 0;letter-spacing:-.025em;font-weight:700}
 .sub{margin-top:auto;font-size:22px;color:#5a625d;line-height:1.45}
 .sub b{color:#1d7446;font-weight:600}
-.r{flex:1;margin:56px 64px 56px 20px;background:#fff;border:1px solid #d6dbd5;border-radius:14px;padding:30px 34px;display:flex;flex-direction:column}
-.cap{display:flex;justify-content:space-between;font-size:17px;color:#5a625d;margin-bottom:18px}
+.r{flex:1;margin:48px 56px 48px 24px;background:#fff;border:1px solid #d6dbd5;border-radius:14px;padding:26px 30px 22px;display:flex;flex-direction:column}
+.cap{display:flex;justify-content:space-between;align-items:center;font-size:17px;color:#5a625d;margin-bottom:14px}
 .tag{color:#8f5b00;background:#faefd6;border:1px solid #8f5b00;border-radius:5px;padding:1px 9px;font-size:15px}
-.chart{position:relative;flex:1}
-.row{display:grid;grid-template-columns:190px 1fr;align-items:center;height:60px}
+.chart{position:relative;flex:1;padding-bottom:30px}
+.row{display:grid;grid-template-columns:200px 200px 1fr;align-items:center;height:62px}
 .name{font-size:18px;white-space:nowrap;text-align:right;padding-right:14px}
-.bar{height:30px;border-radius:5px;background:#8fb0d6;position:relative}
+.track{position:relative;height:30px}
+.bar{height:30px;border-radius:5px;background:#8fb0d6;min-width:3px}
 .bar.best{background:#1c5ca3}
-.val{position:absolute;left:calc(100% + 6px);top:1px;background:#fff;padding:0 4px;z-index:1;font:600 18px "IBM Plex Mono",ui-monospace,monospace;white-space:nowrap}
-.cur{position:absolute;top:-6px;bottom:22px;border-left:2px dashed #191c1a}
-.cur span{position:absolute;bottom:-26px;left:-60px;width:120px;text-align:center;font-size:15px}
+.val{padding-left:14px;font:500 18px "IBM Plex Mono",ui-monospace,monospace;white-space:nowrap;color:#5a625d}
+.val.best{color:#191c1a;font-weight:700}
+.cur{position:absolute;top:-4px;bottom:26px;border-left:2px dashed #191c1a}
+.cur span{position:absolute;bottom:-28px;left:-70px;width:140px;text-align:center;font-size:15px;white-space:nowrap}
 </style></head><body>
 <div class="l">
   <div class="brand"><svg width="44" height="44" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="#1c5ca3"/><rect x="7" y="8" width="18" height="4" rx="2" fill="#fff"/><rect x="7" y="14" width="11" height="4" rx="2" fill="#8fb0d6"/><rect x="7" y="20" width="6" height="4" rx="2" fill="#6fcb97"/></svg>Model Switch Calculator</div>
   <h1>What would your LLM bill be on another model?</h1>
-  <p class="sub">Paste an Anthropic or OpenAI usage export.<br><b>Runs in your browser.<br>No uploads, no tracking.</b></p>
+  <p class="sub">Compare Claude, GPT and Gemini on your own usage export.<br><b>Runs in your browser.<br>No uploads, no tracking.</b></p>
 </div>
 <div class="r">
   <div class="cap"><span>USD / month, same traffic</span><span class="tag">Sample data</span></div>
-  <!-- Values from the built-in Anthropic sample, prices checked 2026-10-08. Scale: 220px = $700 -->
   <div class="chart">
-    <div class="row"><div class="name">Claude Haiku 5.5</div><div><div class="bar best" style="width:11px"><span class="val">$35.56</span></div></div></div>
-    <div class="row"><div class="name">GPT-5.4 mini</div><div><div class="bar" style="width:90px"><span class="val">$287.16</span></div></div></div>
-    <div class="row"><div class="name">o4-mini</div><div><div class="bar" style="width:123px"><span class="val">$391.16</span></div></div></div>
-    <div class="row"><div class="name">GPT-6.1 Sol</div><div><div class="bar" style="width:215px"><span class="val">$682.61</span></div></div></div>
-    <div class="row"><div class="name">Claude Sonnet 5.5</div><div><div class="bar" style="width:216px"><span class="val">$686.07</span></div></div></div>
-    <div class="cur" style="left:calc(190px + 121px)"><span>Current $383.92</span></div>
+    <div class="row"><div class="name">GPT-6 Luna</div><div class="track"><div class="bar best" style="width:10.1px"></div></div><div class="val best" data-model="GPT-6 Luna">$35.39</div></div>
+    <div class="row"><div class="name">Claude Haiku 5.5</div><div class="track"><div class="bar" style="width:10.2px"></div></div><div class="val" data-model="Claude Haiku 5.5">$35.56</div></div>
+    <div class="row"><div class="name">Gemini 3.5 Flash-Lite</div><div class="track"><div class="bar" style="width:39.3px"></div></div><div class="val" data-model="Gemini 3.5 Flash-Lite">$137.60</div></div>
+    <div class="row"><div class="name">Gemini 3.8 Flash</div><div class="track"><div class="bar" style="width:75.1px"></div></div><div class="val" data-model="Gemini 3.8 Flash">$262.80</div></div>
+    <div class="row"><div class="name">GPT-5.4 mini</div><div class="track"><div class="bar" style="width:82.0px"></div></div><div class="val" data-model="GPT-5.4 mini">$287.16</div></div>
+    <div class="row"><div class="name">Claude Sonnet 5.5</div><div class="track"><div class="bar" style="width:196.0px"></div></div><div class="val" data-model="Claude Sonnet 5.5">$686.07</div></div>
+    <div class="cur" data-current="383.92" style="left:calc(200px + 109.7px)"><span>Current $383.92</span></div>
   </div>
 </div>
 </body></html>

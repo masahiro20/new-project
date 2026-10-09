@@ -297,5 +297,28 @@ T("Bedrock id with date and version suffix matches", () => {
 });
 T("zone-less text date keeps its calendar day", () => assert.equal(Logic.toDay("09/01/2026"), "2026-09-01"));
 
+/* ---------------- cheapest: ties and zero usage ---------------- */
+T("cheapest: every model at the minimum (to the cent) is marked; OpenAI sample ties Haiku 5.5 and GPT-6 Luna", () => {
+  const a = Logic.aggregate(Logic.parseUsage(Samples.openai).rows);
+  const r = Logic.compute(a, PRICES, { mode: "30d", keepCache: true, manual: {}, selected: new Set(["claude-haiku-5-5", "gpt-6-luna", "gpt-5.4-mini"]) });
+  const ids = r.cheapestAll.map((x) => x.model.id).sort();
+  assert.deepEqual(plain(ids), ["claude-haiku-5-5", "gpt-6-luna"]);
+  assert(r.scenarios.filter((x) => x.isCheapest).length === 2);
+  assert.equal(r.cheapest, r.cheapestAll[0]);
+  const min = Math.round(r.scenarios[0].cost * 100);
+  r.scenarios.forEach((x) => assert.equal(x.isCheapest, Math.round(x.cost * 100) === min, x.model.id));
+});
+T("cheapest: single winner on the Anthropic sample with default models (GPT-6 Luna $35.39)", () => {
+  const r = Logic.compute(aA, PRICES, { mode: "30d", keepCache: true, manual: {}, selected: new Set([...MAIN, "gemini-3.8-flash", "gemini-3.5-flash-lite", "gemini-3.1-pro-preview"]) });
+  assert.equal(r.cheapestAll.length, 1); assert.equal(r.cheapest.model.id, "gpt-6-luna"); assert.equal(r.cheapest.cost.toFixed(2), "35.39");
+});
+T("cheapest: none when total usage is 0", () => {
+  const z = { unc: 0, cw5: 0, cw1: 0, cr: 0, out: 0 };
+  const agg = { totals: { ...z }, byModel: [{ model: "gpt-6-luna", provider: "openai", tok: { ...z } }], minDate: null, maxDate: null, spanDays: null, activeDays: 0, rowCount: 1 };
+  const r = Logic.compute(agg, PRICES, { mode: "raw", keepCache: true, manual: {}, selected: null });
+  assert(r.scenarios.length > 0); assert.equal(r.cheapest, null); assert.equal(r.cheapestAll.length, 0);
+  assert(r.scenarios.every((x) => x.isCheapest === false));
+});
+
 console.log(`\npass ${pass} fail ${fail}`);
 process.exit(fail ? 1 : 0);

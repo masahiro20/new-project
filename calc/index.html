@@ -150,6 +150,7 @@ td input[type=number]{width:84px;font:inherit;font-family:var(--font-mono);font-
 .chart .grid{stroke:var(--line-soft)}
 .chart .barr{fill:var(--bar)} .chart .barr.best{fill:var(--accent)}
 .chart .cur{stroke:var(--fg);stroke-dasharray:4 3}
+.chart text.val{paint-order:stroke;stroke:var(--surface);stroke-width:3px;stroke-linejoin:round}
 .chart .hit:hover+.barr,.chart g.b:hover .barr{opacity:.85}
 .notes{font-size:.86rem;color:var(--muted);padding-left:1.2em;margin:8px 0 0}
 .notes li{margin-bottom:4px}
@@ -197,8 +198,18 @@ details.legacy[open] summary{margin-bottom:8px}
 footer{color:var(--muted);font-size:.82rem;margin-top:36px;border-top:1px solid var(--line);padding-top:16px}
 footer p{margin:0 0 4px}
 @media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+.badge.ph{display:none}
 @media (max-width:480px){
   section.card{padding:14px}
+  #compare-table .sec{display:none}
+  #compare-table .badge.ph{display:inline-block}
+  #compare-table th,#compare-table td{padding:6px 6px}
+  #compare-table .mcell{white-space:normal;min-width:0}
+  #compare-table th{white-space:normal}
+  #compare-table{font-size:.84rem}
+  #compare-table th,#compare-table td{padding:6px 4px}
+  #compare-table td.num{font-size:.8rem}
+  #compare-table .mcell .badge{margin-top:2px}
   dl.stats{grid-template-columns:minmax(0,1fr)}
   .headline .v{font-size:1.15rem}
   .cta{width:100%;text-align:center}
@@ -315,7 +326,7 @@ footer p{margin:0 0 4px}
     </fieldset>
     <div class="tablewrap"><table id="price-table"></table></div>
     <details id="legacy-details" class="legacy">
-      <summary id="legacy-summary">Older models (<span id="legacy-count">0</span>)</summary>
+      <summary id="legacy-summary">More models (<span id="legacy-count">0</span>)</summary>
       <div class="tablewrap"><table id="price-table-legacy"></table></div>
     </details>
     <ul class="notes" id="price-notes"></ul>
@@ -690,7 +701,7 @@ const PRICES = {
       "cacheWrite": null,
       "status": "verified",
       "source": "https://developers.openai.com/api/docs/pricing",
-      "note": "o-series reasoning model (older)."
+      "note": "o-series reasoning model."
     },
     {
       "provider": "openai",
@@ -702,7 +713,7 @@ const PRICES = {
       "cacheWrite": null,
       "status": "verified",
       "source": "https://developers.openai.com/api/docs/pricing",
-      "note": "o-series reasoning model (older)."
+      "note": "o-series reasoning model."
     },
     {
       "provider": "google",
@@ -841,7 +852,7 @@ const PRICES = {
     "Anthropic prices were read today from the official pricing page (platform.claude.com/docs/en/about-claude/pricing). Model IDs come from platform.claude.com/docs/en/about-claude/models/overview and model-ids-and-versions. The claude-api skill was not used as a price source.",
     "Anthropic cacheWrite = 5-minute cache write (1.25x input). 1h write = 2x input. Cache read = 0.1x input by default, 0.05x on Opus 5.5 / Sonnet 5.5, and 0.025x on Fable 5.1 / Mythos 5.1.",
     "Anthropic Batch API: 50% off input and output. Stacks with caching. Fast mode is not available with Batch.",
-    "Anthropic long context: Claude 4.6+ models (except Haiku 5.5) get the full 1M context at standard pricing. Haiku 5.5 has two price tiers split at 100K prompt tokens.",
+    "Anthropic long context: Claude 4.6 and later models get the full 1M-token context window at their standard per-token price, with no long-context surcharge (a 900K-token request is billed at the same rate as a 9K-token request). Claude Haiku 5.5 is the exception: it has two price tiers, and a request whose prompt (including cache reads and writes) is over 100K tokens pays the higher tier.",
     "Anthropic inference_geo='us' applies a 1.1x multiplier (4.6+ models).",
     "Also listed but not included above: Claude Mythos 5.1 / Mythos 5 (limited availability, same prices as Fable 5.1 / Fable 5), Claude Fable 5 ($10/$50, cache read $1), and retired models Opus 4.1/4, Sonnet 4, Haiku 3.5.",
     "OpenAI prices were read today from the raw HTML of developers.openai.com/api/docs/pricing (platform.openai.com/docs/pricing redirects there, 301). The WebFetch summary had mis-transcribed the long-context columns; the figures here come from the raw data.",
@@ -1217,8 +1228,15 @@ const Logic = (() => {
       scenarios.push({ model: m, price: p, cost, delta, pct, isCurrent: currentIds.has(m.id) });
     }
     scenarios.sort((a, b) => a.cost - b.cost);
+    // Cheapest: every scenario whose cost equals the minimum at the displayed precision (cents),
+    // so models that show the same price all get the badge. None when there is no usage at all.
+    const cents = (v) => Math.round(v * 100);
+    const hasUsage = sumTok(tokens) > 0;
+    const minCents = scenarios.length ? cents(scenarios[0].cost) : null;
+    scenarios.forEach((sc) => { sc.isCheapest = hasUsage && cents(sc.cost) === minCents; });
+    const cheapestAll = scenarios.filter((sc) => sc.isCheapest);
     return { factor: f, tokens, current: breakdown.length ? current : null, currentComplete, coverage, unpricedModels, breakdown, scenarios, excluded,
-      cheapest: scenarios[0] || null };
+      cheapest: cheapestAll[0] || null, cheapestAll };
   }
 
   return { normKey, normModel, inferProvider, toNum, toDay, parseDelimited, classifyHeader, parseUsage, aggregate,
@@ -1510,24 +1528,26 @@ if (typeof document !== "undefined") (() => {
     const best = r.cheapest;
     $("headline").innerHTML =
       `<div><div class="k">Current cost${r.currentComplete ? "" : " (priced models only)"}</div><div class="v">${fmtUSD(cur)}</div></div>` +
-      (best ? `<div><div class="k">Cheapest option</div><div class="v">${esc(best.model.name)} ${fmtUSD(best.cost)}</div></div>` : "") +
+      (best ? `<div><div class="k">Cheapest option${r.cheapestAll.length > 1 ? ` (${r.cheapestAll.length}-way tie)` : ""}</div><div class="v">${r.cheapestAll.map((x) => esc(x.model.name)).join(" / ")} ${fmtUSD(best.cost)}</div></div>` : "") +
       (best && best.delta != null ? `<div><div class="k">Difference if you switch to it</div><div class="v ${best.delta < 0 ? "neg" : best.delta > 0 ? "pos" : ""}">${fmtSigned(best.delta)} (${fmtPct(best.pct)})</div></div>` : "");
 
     // compare table
-    let html = `<thead><tr><th class="num">#</th><th>Target model</th><th class="num">Cost</th><th class="num">vs current</th><th class="num">vs current (%)</th><th>Price</th></tr></thead><tbody>`;
+    // .sec columns (#, vs current $, Price) are hidden at phone width so Cost and % stay visible
+    let html = `<thead><tr><th class="num sec">#</th><th>Target model</th><th class="num">Cost</th><th class="num sec">vs current</th><th class="num">vs current (%)</th><th class="sec">Price</th></tr></thead><tbody>`;
     r.scenarios.forEach((s, i) => {
-      const cls = [s === best ? "cheapest" : "", s.isCurrent ? "current" : ""].join(" ").trim();
-      const tags = (s === best ? ` <span class="badge ok">Cheapest</span>` : "") + (s.isCurrent ? ` <span class="badge acc">In use now</span>` : "");
-      html += `<tr class="${cls}"><td class="num">${i + 1}</td><td><span class="prov">${esc(PROV[s.model.provider] || s.model.provider)}</span><span class="mname">${esc(s.model.name)}</span>${tags}</td>` +
-        `<td class="num">${fmtUSD(s.cost)}</td><td class="num ${s.delta < 0 ? "neg" : s.delta > 0 ? "pos" : ""}">${fmtSigned(s.delta)}</td>` +
+      const cls = [s.isCheapest ? "cheapest" : "", s.isCurrent ? "current" : ""].join(" ").trim();
+      const tags = (s.isCheapest ? ` <span class="badge ok">Cheapest</span>` : "") + (s.isCurrent ? ` <span class="badge acc">In use now</span>` : "") +
+        (s.price.kind === "manual" ? ` <span class="badge warn ph">Manual</span>` : "");
+      html += `<tr class="${cls}"><td class="num sec">${i + 1}</td><td class="mcell"><span class="prov">${esc(PROV[s.model.provider] || s.model.provider)}</span><span class="mname">${esc(s.model.name)}</span>${tags}</td>` +
+        `<td class="num">${fmtUSD(s.cost)}</td><td class="num sec ${s.delta < 0 ? "neg" : s.delta > 0 ? "pos" : ""}">${fmtSigned(s.delta)}</td>` +
         `<td class="num ${s.pct < 0 ? "neg" : s.pct > 0 ? "pos" : ""}">${fmtPct(s.pct)}</td>` +
-        `<td>${s.price.kind === "manual" ? '<span class="badge warn">Manual</span>' : '<span class="badge ok">Verified</span>'}</td></tr>`;
+        `<td class="sec">${s.price.kind === "manual" ? '<span class="badge warn">Manual</span>' : '<span class="badge ok">Verified</span>'}</td></tr>`;
     });
     r.excluded.forEach((m) => {
-      html += `<tr class="excluded"><td class="num">—</td><td><span class="prov">${esc(PROV[m.provider] || m.provider)}</span><span class="mname">${esc(m.name)}</span></td>` +
-        `<td class="num">Unverified</td><td class="num">—</td><td class="num">—</td><td><span class="badge warn">Unverified · excluded</span></td></tr>`;
+      html += `<tr class="excluded"><td class="num sec">—</td><td class="mcell"><span class="prov">${esc(PROV[m.provider] || m.provider)}</span><span class="mname">${esc(m.name)}</span> <span class="badge warn ph">Unverified</span></td>` +
+        `<td class="num">Unverified</td><td class="num sec">—</td><td class="num">—</td><td class="sec"><span class="badge warn">Unverified · excluded</span></td></tr>`;
     });
-    if (!r.scenarios.length && !r.excluded.length) html += `<tr><td colspan="6">No models selected. Tick “Compare” in step 05.</td></tr>`;
+    if (!r.scenarios.length && !r.excluded.length) html += `<tr><td colspan="6" class="mcell">No models selected. Tick “Compare” in step 05.</td></tr>`;
     $("compare-table").innerHTML = html + "</tbody>";
 
     renderChart(r);
@@ -1552,7 +1572,7 @@ if (typeof document !== "undefined") (() => {
     const rows = r.scenarios;
     if (!rows.length) { el.innerHTML = ""; return; }
     const W = Math.max(300, Math.round(el.clientWidth || 720));
-    const labelW = Math.min(W < 520 ? 118 : 200, Math.max(100, ...rows.map((s) => s.model.name.length * 7.2 + 12))), valW = W < 520 ? 74 : 92, rowH = 26, top = 22, bottom = 26;
+    const labelW = Math.min(W < 520 ? 118 : 200, Math.max(100, ...rows.map((s) => s.model.name.length * 7.2 + 12))), valW = W < 520 ? 80 : 92, rowH = 26, top = 22, bottom = 26;
     const H = top + rows.length * rowH + bottom;
     const rawMax = Math.max(...rows.map((s) => s.cost), r.currentComplete && r.current ? r.current : 0) || 1;
     const want = W < 520 ? 2 : 4;
@@ -1568,20 +1588,33 @@ if (typeof document !== "undefined") (() => {
       s += `<line class="grid" x1="${gx}" x2="${gx}" y1="${top - 6}" y2="${H - bottom}" stroke-width="1"/>`;
       s += `<text class="sub" x="${gx}" y="${top - 10}" text-anchor="${i === 0 ? "start" : i === ticks ? "end" : "middle"}">${esc(compactUSD(v))}</text>`;
     }
-    if (r.currentComplete && r.current != null) {
-      const cx = x(r.current);
-      s += `<line class="cur" x1="${cx}" x2="${cx}" y1="${top - 4}" y2="${H - bottom + 4}" stroke-width="1.5"/>`;
-      s += `<text class="lbl" x="${cx}" y="${H - 8}" text-anchor="${cx > W - 90 ? "end" : cx < labelW + 60 ? "start" : "middle"}" font-size="11">Current ${esc(fmtUSD(r.current))}</text>`;
+    // The dashed "Current" line sits behind the bars; its label goes in the bottom margin,
+    // below the last row. Value labels that would cross the line are moved to its right.
+    const fs = W < 520 ? 11 : 12;
+    const textW = (str) => str.length * fs * 0.62 + 2; // conservative estimate for tabular digits
+    const cx = r.currentComplete && r.current != null ? x(r.current) : null;
+    if (cx != null) {
+      s += `<line class="cur" x1="${cx}" x2="${cx}" y1="${top - 4}" y2="${H - bottom + 2}" stroke-width="1.5"/>`;
+      const lab = `Current ${fmtUSD(r.current)}`, lw = textW(lab) * 11 / fs;
+      const lx = Math.min(Math.max(cx, lw / 2 + 2), W - lw / 2 - 2);
+      s += `<text class="lbl" x="${lx}" y="${H - 6}" text-anchor="middle" font-size="11">${esc(lab)}</text>`;
     }
     rows.forEach((sc, i) => {
       const y = top + i * rowH;
       const w = Math.max(2, x(sc.cost) - labelW);
-      const best = sc === r.cheapest;
+      const best = !!sc.isCheapest;
+      const val = fmtUSD(sc.cost), vw = textW(val);
+      let vx = labelW + w + 6;
+      if (cx != null && vx - 3 <= cx + 1 && vx + vw + 3 >= cx - 1) vx = cx + 6; // would collide with the line
+      if (vx + vw > W) vx = Math.max(labelW + 2, W - vw);
       s += `<g class="b"><title>${esc(sc.model.name)}: ${esc(fmtUSD(sc.cost))}${sc.delta != null ? " (vs current " + esc(fmtSigned(sc.delta)) + ")" : ""}</title>`;
       s += `<rect x="0" y="${y}" width="${W}" height="${rowH}" fill="transparent"/>`;
-      s += `<text class="lbl" font-size="${W < 520 ? 11 : 12}" x="${labelW - 8}" y="${y + rowH / 2 + 4}" text-anchor="end"${best ? ' font-weight="600"' : ""}>${esc(sc.model.name)}</text>`;
+      // names that don't fit the label column are shortened with an ellipsis (full name in <title>)
+      const maxCh = Math.floor((labelW - 12) / (fs * 0.56));
+      const nm = sc.model.name.length > maxCh ? sc.model.name.slice(0, Math.max(1, maxCh - 1)).trimEnd() + "…" : sc.model.name;
+      s += `<text class="lbl" font-size="${fs}" x="${labelW - 8}" y="${y + rowH / 2 + 4}" text-anchor="end"${best ? ' font-weight="600"' : ""}>${esc(nm)}</text>`;
       s += `<rect class="barr${best ? " best" : ""}" x="${labelW}" y="${y + 5}" width="${w}" height="${rowH - 10}" rx="3"/>`;
-      s += `<text class="${best ? "lbl" : "sub"}" font-size="${W < 520 ? 11 : 12}" x="${labelW + w + 6}" y="${y + rowH / 2 + 4}"${best ? ' font-weight="600"' : ""}>${esc(fmtUSD(sc.cost))}</text></g>`;
+      s += `<text class="val ${best ? "lbl" : "sub"}" font-size="${fs}" x="${vx}" y="${y + rowH / 2 + 4}"${best ? ' font-weight="600"' : ""}>${esc(val)}</text></g>`;
     });
     el.innerHTML = s + "</svg>";
   }
@@ -1656,7 +1689,7 @@ if (typeof document !== "undefined") (() => {
     const models = PRICES.models || [];
     const main = models.filter(isMain), older = models.filter((m) => !isMain(m));
     let html = `<tr class="group"><th colspan="8" scope="rowgroup">Current models (${main.length})</th></tr>` + main.map(row).join("");
-    if (older.length) html += `<tr class="group"><th colspan="8" scope="rowgroup">Older models (${older.length})</th></tr>` + older.map(row).join("");
+    if (older.length) html += `<tr class="group"><th colspan="8" scope="rowgroup">More models (${older.length})</th></tr>` + older.map(row).join("");
     $("static-prices-body").innerHTML = html;
     const raw = Array.isArray(PRICES.notes) ? PRICES.notes : PRICES.notes ? [PRICES.notes] : [];
     $("research-details").hidden = raw.length === 0;
