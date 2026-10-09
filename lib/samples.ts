@@ -26,7 +26,7 @@ export const SAMPLE_FACILITY = {
   useRestraint: "なし" as "なし" | "あり" | "検討中",
 };
 
-export const SAMPLE_UPDATED = "2026-10-08";
+export const SAMPLE_UPDATED = "2026-10-09";
 
 const committee = `# 虐待防止・身体拘束等適正化 年間実施計画表（令和8年度）
 

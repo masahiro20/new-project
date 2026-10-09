@@ -62,6 +62,7 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
       dateModified: guide.updated,
       inLanguage: "ja",
       mainEntityOfPage: url,
+      image: guideOgImage(guide.slug, guide.title).url,
       author: org,
       publisher: org,
       ...(guide.serviceType ? { about: { "@type": "Thing", name: guide.serviceType } } : {}),
