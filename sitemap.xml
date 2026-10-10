@@ -12,7 +12,7 @@
 </url>
 <url>
 <loc>https://masahiro20.github.io/new-project/guide/</loc>
-<lastmod>2026-10-09</lastmod>
+<lastmod>2026-10-10</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.7</priority>
 </url>
@@ -135,7 +135,7 @@
 </url>
 <url>
 <loc>https://masahiro20.github.io/new-project/guide/jidou-hyouka-kouhyou/</loc>
-<lastmod>2026-10-09</lastmod>
+<lastmod>2026-10-10</lastmod>
 <changefreq>monthly</changefreq>
 <priority>0.7</priority>
 </url>
@@ -232,6 +232,12 @@
 <url>
 <loc>https://masahiro20.github.io/new-project/guide/kasuhara-taisaku/</loc>
 <lastmod>2026-10-09</lastmod>
+<changefreq>monthly</changefreq>
+<priority>0.7</priority>
+</url>
+<url>
+<loc>https://masahiro20.github.io/new-project/guide/shien-program-rei/</loc>
+<lastmod>2026-10-10</lastmod>
 <changefreq>monthly</changefreq>
 <priority>0.7</priority>
 </url>
