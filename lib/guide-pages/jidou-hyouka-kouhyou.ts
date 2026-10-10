@@ -6,7 +6,7 @@ export const guide: Guide = {
   description:
     "放課後等デイサービス・児童発達支援に求められる3つの「公表」（自己評価・保護者評価の結果、支援プログラム、障害福祉サービス等情報公表）の違いを1つの表で整理しました。根拠条文、頻度、届出先、未公表減算（所定単位数の85%を算定）と情報公表未報告減算（5%）の期間も解説します。",
   published: "2026-10-09",
-  updated: "2026-10-09",
+  updated: "2026-10-10",
   summary:
     "放課後等デイサービス・児童発達支援には3つの「公表」があります。①自己評価・保護者評価の結果と改善内容をおおむね年1回以上公表（基準省令第26条）、②5領域との関連を明らかにした支援プログラムの公表（第26条の2）、③児童福祉法第33条の18に基づく情報公表の報告です。①②は公表方法と内容を都道府県に届け出ていないと所定単位数の85%で算定、③は未報告で所定単位数の5%が減算されます。",
   body: `放課後等デイサービス・児童発達支援の「公表」は、名前が似ていても**3つの別々の義務**です。結論を先にまとめます。
@@ -154,5 +154,5 @@ export const guide: Guide = {
       url: "https://laws.e-gov.go.jp/law/322AC0000000164",
     },
   ],
-  related: ["unei-shidou-shiteki-jidou", "gensan-kasan-hayamihyo", "houkago-day-gensan", "jidou-hattatsu-gensan"],
+  related: ["shien-program-rei", "unei-shidou-shiteki-jidou", "gensan-kasan-hayamihyo", "houkago-day-gensan", "jidou-hattatsu-gensan"],
 };
