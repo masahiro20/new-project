@@ -1,0 +1,657 @@
+<!doctype html>
+<html lang="ja" class="l-ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>サンプル監査レポート — Kotomark（仮称）</title>
+<meta name="description" content="Battle for Wesnoth の日本語訳（2,921件の文字列）を Kotomark で検査した結果のサンプル。直すべき問題20件を、原文・訳文・修正案付きで掲載。">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%231c4a86'/%3E%3Cpath d='M9 8v16M9 16l9-8M12.5 13l6 11' stroke='%23fff' stroke-width='3' fill='none' stroke-linecap='square'/%3E%3Ccircle cx='24' cy='23' r='2.6' fill='%23e0533d'/%3E%3C/svg%3E">
+<style>
+:root {
+  --bg: #f2f3f1; --bg-band: #e8eae7; --surface: #ffffff;
+  --ink: #14171c; --ink-2: #3f444d; --ink-3: #5d636d;
+  --rule: #d2d5d1; --rule-strong: #14171c;
+  --accent: #1c4a86; --accent-hover: #143a6c; --accent-ink: #ffffff; --accent-soft: #e1e8f3;
+  --mark: #b8321f; --mark-soft: #f8e3df; --warn: #8a5a00; --warn-soft: #f6ecd6;
+  --ok: #2c6a4a; --ok-soft: #dfeee5; --focus: #1c4a86;
+  --font-ui: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Meiryo", "Noto Sans JP", system-ui, sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --radius: 4px; --wrap: 960px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1217; --bg-band: #141820; --surface: #191e27;
+    --ink: #e7e9ed; --ink-2: #bcc2cc; --ink-3: #9aa1ad;
+    --rule: #2c323d; --rule-strong: #e7e9ed;
+    --accent: #8db3ec; --accent-hover: #b0cbf3; --accent-ink: #0f1217; --accent-soft: #1d2a3f;
+    --mark: #ff8f7a; --mark-soft: #3a1f1b; --warn: #f0c36a; --warn-soft: #33290f;
+    --ok: #82cfa3; --ok-soft: #17301f; --focus: #8db3ec;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1217; --bg-band: #141820; --surface: #191e27; --ink: #e7e9ed; --ink-2: #bcc2cc; --ink-3: #9aa1ad;
+  --rule: #2c323d; --rule-strong: #e7e9ed; --accent: #8db3ec; --accent-hover: #b0cbf3; --accent-ink: #0f1217;
+  --accent-soft: #1d2a3f; --mark: #ff8f7a; --mark-soft: #3a1f1b; --warn: #f0c36a; --warn-soft: #33290f;
+  --ok: #82cfa3; --ok-soft: #17301f; --focus: #8db3ec;
+}
+.l-ja .t[lang="en"], .l-en .t[lang="ja"] { display: none !important; }
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-ui); font-size: 16px; line-height: 1.75; overflow-wrap: anywhere; }
+:lang(en) { line-height: 1.6; }
+h1, h2, h3 { line-height: 1.35; margin: 0; }
+p, ul, ol, dl, dd { margin: 0; }
+a { color: var(--accent); text-underline-offset: 3px; }
+a:hover { color: var(--accent-hover); }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; border-radius: 2px; }
+code, .mono { font-family: var(--font-mono); font-size: .9em; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.skip { position: absolute; left: -9999px; top: 8px; z-index: 10; background: var(--surface); color: var(--ink); padding: 8px 12px; border: 2px solid var(--focus); }
+.skip:focus { left: 16px; }
+.wrap { max-width: var(--wrap); margin: 0 auto; padding-inline: 24px; }
+@media (max-width: 600px) { .wrap { padding-inline: 16px; } }
+
+.site-head { border-bottom: 1px solid var(--rule); background: var(--bg); }
+.site-head .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 60px; flex-wrap: wrap; }
+.brand { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; font-weight: 700; font-size: 17px; }
+.brand small { font-weight: 400; font-size: 12px; color: var(--ink-3); }
+@media (max-width: 420px) { .brand small { display: none; } }
+.lang { display: inline-flex; border: 1px solid var(--rule-strong); border-radius: var(--radius); overflow: hidden; }
+.lang button { font: inherit; font-size: 13px; line-height: 1; padding: 8px 10px; min-height: 36px; border: 0; cursor: pointer; background: transparent; color: var(--ink); white-space: nowrap; }
+.lang button + button { border-left: 1px solid var(--rule-strong); }
+.lang button[aria-pressed="true"] { background: var(--ink); color: var(--bg); font-weight: 700; }
+.lang button:focus-visible { outline-offset: -3px; }
+
+.intro { padding: 40px 0 32px; }
+.eyebrow { font-family: var(--font-mono); font-size: 13px; color: var(--ink-3); margin-bottom: 12px; }
+.intro h1 { font-size: clamp(24px, 4vw, 34px); }
+.lede { margin-top: 16px; font-size: 18px; color: var(--ink-2); max-width: 44em; }
+.lede strong { color: var(--ink); }
+.facts { margin-top: 20px; font-size: 14px; color: var(--ink-3); }
+.facts a { color: inherit; }
+
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); gap: 12px; margin-top: 28px; padding: 0; list-style: none; }
+.stat { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); padding: 14px 16px; }
+.stat .n { display: block; font-family: var(--font-mono); font-size: 28px; line-height: 1.2; font-weight: 500; }
+.stat .l { font-size: 13px; color: var(--ink-2); }
+.stat.s-error .n { color: var(--mark); }
+.stat.s-warning .n { color: var(--warn); }
+
+.band { padding: 40px 0; border-top: 1px solid var(--rule); }
+.band.alt { background: var(--bg-band); }
+.band h2 { font-size: clamp(20px, 3vw, 26px); margin-bottom: 14px; }
+.band > .wrap > p { color: var(--ink-2); max-width: 46em; }
+.table-scroll { overflow-x: auto; margin-top: 16px; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; background: var(--surface); border: 1px solid var(--rule); }
+th, td { padding: 8px 10px; border-bottom: 1px solid var(--rule); text-align: right; }
+thead th { font-size: 12px; color: var(--ink-3); font-weight: 500; }
+th[scope="row"], thead th:first-child { text-align: left; font-weight: 400; }
+td { font-family: var(--font-mono); }
+.zero { color: var(--ink-3); }
+tfoot td, tfoot th { font-weight: 700; border-bottom: 0; }
+.table-note { margin-top: 10px; font-size: 13px; color: var(--ink-3); }
+
+.cards { list-style: none; padding: 0; margin: 20px 0 0; display: grid; gap: 16px; }
+.card { background: var(--surface); border: 1px solid var(--rule); border-left: 4px solid var(--ink-3); border-radius: var(--radius); padding: 16px 18px 18px; }
+.card.sev-error { border-left-color: var(--mark); }
+.card.sev-warning { border-left-color: var(--warn); }
+.card-head { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 12px; align-items: baseline; }
+.card-head .num { font-family: var(--font-mono); font-size: 13px; color: var(--ink-3); }
+.card-head h3 { font-size: 17px; }
+.card-head .loc { grid-column: 2; font-family: var(--font-mono); font-size: 13px; }
+.sev { display: inline-block; font-size: 12px; font-weight: 700; padding: 0 8px; border-radius: 2px; margin-right: 6px; vertical-align: 2px; background: var(--bg-band); color: var(--ink-2); }
+.sev-error .sev { background: var(--mark-soft); color: var(--mark); }
+.sev-warning .sev { background: var(--warn-soft); color: var(--warn); }
+.pair { margin-top: 12px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px 16px; }
+@media (max-width: 640px) { .pair { grid-template-columns: minmax(0, 1fr); } }
+.pair > div { border-top: 1px dashed var(--rule); padding-top: 8px; }
+.pair dt { font-size: 12px; color: var(--ink-3); }
+.pair dd { font-size: 15px; }
+.pair q { quotes: "“" "”"; }
+.pair q:lang(ja) { quotes: "「" "」"; }
+.empty { color: var(--mark); font-size: 14px; }
+.what { margin-top: 12px; color: var(--ink-2); font-size: 15px; }
+.related { margin-top: 6px; font-size: 13px; color: var(--ink-3); }
+.related a { font-family: var(--font-mono); margin-right: 6px; }
+.fix { margin-top: 12px; background: var(--ok-soft); border-radius: var(--radius); padding: 10px 12px; }
+.fix-label { font-size: 12px; color: var(--ok); font-weight: 700; }
+.fix-text { font-size: 15px; }
+
+.method ul { padding-left: 1.2em; display: grid; gap: 8px; max-width: 48em; color: var(--ink-2); font-size: 15px; }
+.cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; font: inherit; font-weight: 700; font-size: 16px; text-decoration: none; padding: 12px 20px; min-height: 48px; border-radius: var(--radius); background: var(--accent); color: var(--accent-ink); border: 1px solid var(--accent); }
+.btn:hover { background: var(--accent-hover); border-color: var(--accent-hover); color: var(--accent-ink); }
+.btn.ghost { background: transparent; color: var(--ink); border-color: var(--rule-strong); }
+.btn.ghost:hover { background: var(--surface); color: var(--ink); }
+
+.site-foot { border-top: 1px solid var(--rule); padding: 28px 0 40px; font-size: 13px; color: var(--ink-3); }
+.site-foot .wrap { display: grid; gap: 8px; }
+@media print { .lang, .cta, .skip { display: none; } .card { break-inside: avoid; } body { background: #fff; } }
+</style>
+<script>
+(function () {
+  var saved = null;
+  try { saved = localStorage.getItem("kotomark-lp-lang"); } catch (e) { saved = null; }
+  var nav = "";
+  try { nav = (navigator.languages && navigator.languages[0]) || navigator.language || ""; } catch (e) { nav = ""; }
+  var lang = (saved === "ja" || saved === "en") ? saved : (/^ja\b/i.test(nav) ? "ja" : "en");
+  var root = document.documentElement;
+  root.classList.remove("l-ja", "l-en");
+  root.classList.add("l-" + lang);
+  root.lang = lang;
+})();
+</script>
+</head>
+<body>
+<a class="skip" href="#main"><span class="t" lang="ja">本文へ移動</span><span class="t" lang="en">Skip to content</span></a>
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="../">
+      <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><rect width="32" height="32" rx="4" fill="currentColor"/><path d="M9 8v16M9 16l9-8M12.5 13l6 11" stroke="var(--bg)" stroke-width="3" fill="none" stroke-linecap="square"/><circle cx="24" cy="23" r="2.6" fill="var(--mark)"/></svg>
+      <span>Kotomark <small><span class="t" lang="ja">（仮称）</span><span class="t" lang="en">(working name)</span></small></span>
+    </a>
+    <div class="lang" role="group" aria-label="Language / 言語">
+      <button type="button" data-set-lang="ja" lang="ja" aria-pressed="true">日本語</button>
+      <button type="button" data-set-lang="en" lang="en" aria-pressed="false">English</button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+<section class="intro" aria-labelledby="title">
+  <div class="wrap">
+    <p class="eyebrow"><span class="t" lang="ja">サンプル監査レポート</span><span class="t" lang="en">Sample audit report</span> · Battle for Wesnoth · EN → JA</p>
+    <h1 id="title"><span class="t" lang="ja">2,921件の翻訳文字列から、直すべき問題を見つける</span><span class="t" lang="en">Finding what to fix in 2,921 translated strings</span></h1>
+    <p class="lede"><span class="t" lang="ja">オープンソースのゲーム <strong>Battle for Wesnoth</strong> の日本語訳（2ファイル・2,921件の文字列）を Kotomark で検査すると、<strong>218件の指摘</strong>（エラー3・警告211・参考4）が出ました。そのうち、ローカライズ責任者がまず見るべき<strong>20件</strong>を、原文・訳文・修正案付きで掲載します。</span><span class="t" lang="en">Kotomark run on the Japanese translation of the open-source game <strong>Battle for Wesnoth</strong> (2 files, 2,921 strings) returned <strong>218 findings</strong> (3 errors, 211 warnings, 4 info). Below are the <strong>20</strong> a localization lead should look at first, each with source, target and a suggested fix.</span></p>
+    <p class="facts"><span class="t" lang="ja">対象：<a href="https://github.com/wesnoth/wesnoth/blob/9ec35a2f4cbaf036dedf9e96272a03387d7bc03a/po/wesnoth-httt/ja.po">po/wesnoth-httt/ja.po</a>（キャンペーン「Heir to the Throne」の台詞など、1,230件）・<a href="https://github.com/wesnoth/wesnoth/blob/9ec35a2f4cbaf036dedf9e96272a03387d7bc03a/po/wesnoth-lib/ja.po">po/wesnoth-lib/ja.po</a>（UI・地形・ヘルプの文字列、1,691件）、コミット <code>9ec35a2</code>。2026-10-09 実行、既定の設定・用語集なし。</span><span class="t" lang="en">Files: <a href="https://github.com/wesnoth/wesnoth/blob/9ec35a2f4cbaf036dedf9e96272a03387d7bc03a/po/wesnoth-httt/ja.po">po/wesnoth-httt/ja.po</a> (campaign “Heir to the Throne”: dialogue etc., 1,230 strings) and <a href="https://github.com/wesnoth/wesnoth/blob/9ec35a2f4cbaf036dedf9e96272a03387d7bc03a/po/wesnoth-lib/ja.po">po/wesnoth-lib/ja.po</a> (UI, terrain and help strings, 1,691 strings), commit <code>9ec35a2</code>. Run on 2026-10-09 with default settings and no glossary.</span></p>
+    <ul class="stats" aria-label="Summary / 概要">
+      <li class="stat"><span class="n">2,921</span><span class="l"><span class="t" lang="ja">検査した文字列</span><span class="t" lang="en">strings checked</span></span></li>
+      <li class="stat s-error"><span class="n">3</span><span class="l"><span class="t" lang="ja">エラー</span><span class="t" lang="en">errors</span></span></li>
+      <li class="stat s-warning"><span class="n">211</span><span class="l"><span class="t" lang="ja">警告</span><span class="t" lang="en">warnings</span></span></li>
+      <li class="stat"><span class="n">4</span><span class="l"><span class="t" lang="ja">参考</span><span class="t" lang="en">info</span></span></li>
+      <li class="stat"><span class="n">20</span><span class="l"><span class="t" lang="ja">このページに掲載（確認済み）</span><span class="t" lang="en">shown here (checked)</span></span></li>
+    </ul>
+  </div>
+</section>
+
+<section class="band alt" aria-labelledby="counts-title">
+  <div class="wrap">
+    <h2 id="counts-title"><span class="t" lang="ja">指摘の内訳</span><span class="t" lang="en">Findings by check</span></h2>
+    <p><span class="t" lang="ja">大半は未翻訳と「古い訳のまま」（原文が変わったあと訳が更新されていない行）です。表記揺れ・変数・タグの指摘は数こそ少ないものの、画面の不具合や誤訳につながります。</span><span class="t" lang="en">Most findings are untranslated or stale strings (the source changed and the translation was not updated). Notation, placeholder and tag findings are fewer, but they lead to on-screen bugs or wrong text.</span></p>
+    <div class="table-scroll" tabindex="0" role="region" aria-labelledby="counts-title">
+      <table>
+        <thead>
+          <tr><th scope="col"><span class="t" lang="ja">検査</span><span class="t" lang="en">Check</span></th><th scope="col"><span class="t" lang="ja">エラー</span><span class="t" lang="en">Error</span></th><th scope="col"><span class="t" lang="ja">警告</span><span class="t" lang="en">Warning</span></th><th scope="col"><span class="t" lang="ja">参考</span><span class="t" lang="en">Info</span></th><th scope="col"><span class="t" lang="ja">計</span><span class="t" lang="en">Total</span></th><th scope="col"><span class="t" lang="ja">掲載</span><span class="t" lang="en">Shown</span></th></tr>
+        </thead>
+        <tbody>
+            <tr><th scope="row"><span class="t" lang="ja">古い訳のまま（fuzzy）</span><span class="t" lang="en">Stale translation (fuzzy)</span></th><td><span class="zero">–</span></td><td>103</td><td><span class="zero">–</span></td><td><b>103</b></td><td>9</td></tr>
+            <tr><th scope="row"><span class="t" lang="ja">未翻訳</span><span class="t" lang="en">Untranslated</span></th><td><span class="zero">–</span></td><td>97</td><td><span class="zero">–</span></td><td><b>97</b></td><td>3</td></tr>
+            <tr><th scope="row"><span class="t" lang="ja">カタカナの表記揺れ</span><span class="t" lang="en">Katakana notation drift</span></th><td><span class="zero">–</span></td><td>11</td><td><span class="zero">–</span></td><td><b>11</b></td><td>4</td></tr>
+            <tr><th scope="row"><span class="t" lang="ja">変数（プレースホルダー）の不一致</span><span class="t" lang="en">Placeholder mismatch</span></th><td>2</td><td><span class="zero">–</span></td><td><span class="zero">–</span></td><td><b>2</b></td><td>2</td></tr>
+            <tr><th scope="row"><span class="t" lang="ja">タグの不一致</span><span class="t" lang="en">Tag mismatch</span></th><td>1</td><td><span class="zero">–</span></td><td><span class="zero">–</span></td><td><b>1</b></td><td>1</td></tr>
+            <tr><th scope="row"><span class="t" lang="ja">強調タグの省略</span><span class="t" lang="en">Emphasis tag dropped</span></th><td><span class="zero">–</span></td><td><span class="zero">–</span></td><td>2</td><td><b>2</b></td><td><span class="zero">–</span></td></tr>
+            <tr><th scope="row"><span class="t" lang="ja">一人称の揺れ</span><span class="t" lang="en">First-person pronoun drift</span></th><td><span class="zero">–</span></td><td><span class="zero">–</span></td><td>2</td><td><b>2</b></td><td>1</td></tr>
+        </tbody>
+        <tfoot>
+          <tr><th scope="row"><span class="t" lang="ja">合計</span><span class="t" lang="en">Total</span></th><td>3</td><td>211</td><td>4</td><td>218</td><td>20</td></tr>
+        </tfoot>
+      </table>
+    </div>
+    <p class="table-note"><span class="t" lang="ja">重大度は Kotomark の既定の区分です。fuzzy（要確認）の印が付いた訳は、一般的な gettext のビルドでは使われず、画面には英語が出ます。</span><span class="t" lang="en">Severities are Kotomark's defaults. Entries marked fuzzy are normally skipped by gettext builds, so players see English.</span></p>
+  </div>
+</section>
+
+<section class="band" aria-labelledby="top-title">
+  <div class="wrap">
+    <h2 id="top-title"><span class="t" lang="ja">直すべき問題 20件</span><span class="t" lang="en">20 issues worth fixing</span></h2>
+    <p><span class="t" lang="ja">重大度が高く、判断に迷わないものを、検査の種類が偏らないように選びました。行番号のリンクは固定コミットの GitHub 上の該当行を開きます。原文・訳文は Battle for Wesnoth の作者・翻訳者によるもので、短い抜粋として引用しています（GPL-2.0-or-later）。</span><span class="t" lang="en">Picked for severity and clarity, spread across check types. Each line link opens that line on GitHub at the pinned commit. Source and target text is by the Battle for Wesnoth authors and translators, quoted as short excerpts (GPL-2.0-or-later).</span></p>
+    <ol class="cards">
+    <li class="card sev-error">
+      <article aria-labelledby="f1-h">
+        <header class="card-head">
+          <span class="num" aria-hidden="true">01</span>
+          <h3 id="f1-h"><span class="sev"><span class="t" lang="ja">エラー</span><span class="t" lang="en">Error</span></span> <span class="t" lang="ja">変数（プレースホルダー）の不一致</span><span class="t" lang="en">Placeholder mismatch</span></h3>
+          <a class="loc" href="https://github.com/wesnoth/wesnoth/blob/9ec35a2f4cbaf036dedf9e96272a03387d7bc03a/po/wesnoth-lib/ja.po#L7948"><span class="sr-only"><span class="t" lang="ja">GitHub で開く：</span><span class="t" lang="en">Open on GitHub: </span></span>wesnoth-lib/ja.po:7948</a>
+        </header>
+        <dl class="pair">
+          <div><dt><span class="t" lang="ja">原文（英語）</span><span class="t" lang="en">Source (EN)</span></dt><dd><q lang="en">$count/1000 tiles</q></dd></div>
+          <div><dt><span class="t" lang="ja">訳文（日本語）</span><span class="t" lang="en">Target (JA)</span></dt><dd><q lang="ja">/1000 タイル</q></dd></div>
+        </dl>
+        <p class="what"><span class="t" lang="ja">訳文に変数 $count がありません。数が消えて「/1000 タイル」だけが表示されます（この行は旧原文 “/1000 tiles” の訳で、fuzzy の印も付いています）。</span><span class="t" lang="en">The translation has no $count, so the number disappears and only “/1000 タイル” is shown. (It is the translation of the old source “/1000 tiles” and is also marked fuzzy.)</span></p>
+        
+        <div class="fix">
+          <p class="fix-label"><span class="t" lang="ja">修正案（AIの提案。翻訳者の確認が必要です）</span><span class="t" lang="en">Suggested fix (AI suggestion for your translator to review)</span></p>
+          <p class="fix-text" lang="ja">$count/1000 タイル</p>
+        </div>
+      </article>
+    </li>
+    <li class="card sev-error">
+      <article aria-labelledby="f2-h">
+        <header class="card-head">
+          <span class="num" aria-hidden="true">02</span>
+          <h3 id="f2-h"><span class="sev"><span class="t" lang="ja">エラー</span><span class="t" lang="en">Error</span></span> <span class="t" lang="ja">変数（プレースホルダー）の不一致</span><span class="t" lang="en">Placeholder mismatch</span></h3>
+          <a class="loc" href="https://github.com/wesnoth/wesnoth/blob/9ec35a2f4cbaf036dedf9e96272a03387d7bc03a/po/wesnoth-lib/ja.po#L9914"><span class="sr-only"><span class="t" lang="ja">GitHub で開く：</span><span class="t" lang="en">Open on GitHub: </span></span>wesnoth-lib/ja.po:9914</a>
+        </header>
+        <dl class="pair">
+          <div><dt><span class="t" lang="ja">原文（英語）</span><span class="t" lang="en">Source (EN)</span></dt><dd><q lang="en">In section ‘[$section|]’ the mandatory subtag ‘[$tag|]’ is missing.</q></dd></div>
+          <div><dt><span class="t" lang="ja">訳文（日本語）</span><span class="t" lang="en">Target (JA)</span></dt><dd><q lang="ja">「 [$section|] 」セクションにおいて必須のキー「 $key| 」が設定されていません。</q></dd></div>
+        </dl>
+        <p class="what"><span class="t" lang="ja">訳文は旧原文（必須の「キー」が未設定）のままです。原文の $tag がなく、原文にない $key が入っています。表示されるエラーの内容が変わってしまいます。</span><span class="t" lang="en">The translation still renders the old message (a missing mandatory key). It drops $tag and uses $key, which is not in the source, so the error message says the wrong thing.</span></p>
+        
+        <div class="fix">
+          <p class="fix-label"><span class="t" lang="ja">修正案（AIによる訳の提案。翻訳者の確認が必要です）</span><span class="t" lang="en">Suggested fix (an AI-drafted translation for your translator to review)</span></p>
+          <p class="fix-text" lang="ja">「 [$section|] 」セクションに必須のサブタグ「 [$tag|] 」がありません。</p>
+        </div>
+      </article>
+    </li>
+    <li class="card sev-error">
+      <article aria-labelledby="f3-h">
+        <header class="card-head">
+          <span class="num" aria-hidden="true">03</span>
+          <h3 id="f3-h"><span class="sev"><span class="t" lang="ja">エラー</span><span class="t" lang="en">Error</span></span> <span class="t" lang="ja">タグの不一致</span><span class="t" lang="en">Tag mismatch</span></h3>
+          <a class="loc" href="https://github.com/wesnoth/wesnoth/blob/9ec35a2f4cbaf036dedf9e96272a03387d7bc03a/po/wesnoth-lib/ja.po#L4132"><span class="sr-only"><span class="t" lang="ja">GitHub で開く：</span><span class="t" lang="en">Open on GitHub: </span></span>wesnoth-lib/ja.po:4132</a>
+        </header>
+        <dl class="pair">
+          <div><dt><span class="t" lang="ja">原文（英語）</span><span class="t" lang="en">Source (EN)</span></dt><dd><q lang="en">Gender:</q></dd></div>
+          <div><dt><span class="t" lang="ja">訳文（日本語）</span><span class="t" lang="en">Target (JA)</span></dt><dd><q lang="ja">&lt;b&gt;性別：&lt;/b&gt;</q></dd></div>
+        </dl>
+        <p class="what"><span class="t" lang="ja">原文から太字タグ &lt;b&gt; が外されたのに、訳文に残っています（旧原文 “&lt;b&gt;Gender:&lt;/b&gt;” の訳）。</span><span class="t" lang="en">The source no longer has the &lt;b&gt; bold tag, but the translation still does (it translates the old source “&lt;b&gt;Gender:&lt;/b&gt;”).</span></p>
+        
+        <div class="fix">
+          <p class="fix-label"><span class="t" lang="ja">修正案（AIの提案。翻訳者の確認が必要です）</span><span class="t" lang="en">Suggested fix (AI suggestion for your translator to review)</span></p>
+          <p class="fix-text" lang="ja">性別：</p>
+        </div>
+      </article>
+    </li>
+    <li class="card sev-warning">
+      <article aria-labelledby="f4-h">
+        <header class="card-head">
+          <span class="num" aria-hidden="true">04</span>
+          <h3 id="f4-h"><span class="sev"><span class="t" lang="ja">警告</span><span class="t" lang="en">Warning</span></span> <span class="t" lang="ja">古い訳のまま（fuzzy）</span><span class="t" lang="en">Stale translation (fuzzy)</span></h3>
+          <a class="loc" href="https://github.com/wesnoth/wesnoth/blob/9ec35a2f4cbaf036dedf9e96272a03387d7bc03a/po/wesnoth-lib/ja.po#L4139"><span class="sr-only"><span class="t" lang="ja">GitHub で開く：</span><span class="t" lang="en">Open on GitHub: </span></span>wesnoth-lib/ja.po:4139</a>
+        </header>
+        <dl class="pair">
+          <div><dt><span class="t" lang="ja">原文（英語）</span><span class="t" lang="en">Source (EN)</span></dt><dd><q lang="en">gender^Male</q></dd></div>
+          <div><dt><span class="t" lang="ja">訳文（日本語）</span><span class="t" lang="en">Target (JA)</span></dt><dd><q lang="ja">ランダム</q></dd></div>
+        </dl>
+        <p class="what"><span class="t" lang="ja">「男性」を選ぶ項目に、旧原文 “Random” の訳「ランダム」が残っています。印を外すだけだと誤訳が表示されます。（gender^ は文脈用の接頭辞で、画面には出ません。）</span><span class="t" lang="en">The “Male” option still carries 「ランダム」 (“Random”), the translation of an older string. Just clearing the fuzzy mark would ship a wrong label. (gender^ is a context prefix and is not displayed.)</span></p>
+        
+        <div class="fix">
+          <p class="fix-label"><span class="t" lang="ja">修正案（AIによる訳の提案。翻訳者の確認が必要です）</span><span class="t" lang="en">Suggested fix (an AI-drafted translation for your translator to review)</span></p>
+          <p class="fix-text" lang="ja">男性</p>
+        </div>
+      </article>
+    </li>
+    <li class="card sev-warning">
+      <article aria-labelledby="f5-h">
+        <header class="card-head">
+          <span class="num" aria-hidden="true">05</span>
+          <h3 id="f5-h"><span class="sev"><span class="t" lang="ja">警告</span><span class="t" lang="en">Warning</span></span> <span class="t" lang="ja">古い訳のまま（fuzzy）</span><span class="t" lang="en">Stale translation (fuzzy)</span></h3>
+          <a class="loc" href="https://github.com/wesnoth/wesnoth/blob/9ec35a2f4cbaf036dedf9e96272a03387d7bc03a/po/wesnoth-lib/ja.po#L2526"><span class="sr-only"><span class="t" lang="ja">GitHub で開く：</span><span class="t" lang="en">Open on GitHub: </span></span>wesnoth-lib/ja.po:2526</a>
+        </header>
+        <dl class="pair">
+          <div><dt><span class="t" lang="ja">原文（英語）</span><span class="t" lang="en">Source (EN)</span></dt><dd><q lang="en">Visit the in-game help</q></dd></div>
+          <div><dt><span class="t" lang="ja">訳文（日本語）</span><span class="t" lang="en">Target (JA)</span></dt><dd><q lang="ja">ゲームを終了します</q></dd></div>
+        </dl>
+        <p class="what"><span class="t" lang="ja">「ゲーム内ヘルプを開く」ボタンの説明に、旧原文 “Quit the game”（ゲームを終了します）の訳が残っています。意味が逆方向です。</span><span class="t" lang="en">The tooltip for opening the in-game help still says 「ゲームを終了します」 (“Quit the game”), left over from an older string.</span></p>
+        
+        <div class="fix">
+          <p class="fix-label"><span class="t" lang="ja">修正案（AIによる訳の提案。翻訳者の確認が必要です）</span><span class="t" lang="en">Suggested fix (an AI-drafted translation for your translator to review)</span></p>
+          <p class="fix-text" lang="ja">ゲーム内のヘルプを表示します</p>
+        </div>
+      </article>
+    </li>
+    <li class="card sev-warning">
+      <article aria-labelledby="f6-h">
+        <header class="card-head">
+          <span class="num" aria-hidden="true">06</span>
+          <h3 id="f6-h"><span class="sev"><span class="t" lang="ja">警告</span><span class="t" lang="en">Warning</span></span> <span class="t" lang="ja">古い訳のまま（fuzzy）</span><span class="t" lang="en">Stale translation (fuzzy)</span></h3>
+          <a class="loc" href="https://github.com/wesnoth/wesnoth/blob/9ec35a2f4cbaf036dedf9e96272a03387d7bc03a/po/wesnoth-lib/ja.po#L7938"><span class="sr-only"><span class="t" lang="ja">GitHub で開く：</span><span class="t" lang="en">Open on GitHub: </span></span>wesnoth-lib/ja.po:7938</a>
+        </header>
+        <dl class="pair">
+          <div><dt><span class="t" lang="ja">原文（英語）</span><span class="t" lang="en">Source (EN)</span></dt><dd><q lang="en">Unsaved changes will be lost. Do you want to leave?</q></dd></div>
+          <div><dt><span class="t" lang="ja">訳文（日本語）</span><span class="t" lang="en">Target (JA)</span></dt><dd><q lang="ja">同じ名前のセーブデータが既に存在しています。上書きしますか？</q></dd></div>
+        </dl>
+        <p class="what"><span class="t" lang="ja">「未保存の変更が失われます。終了しますか？」という確認に、上書き確認の旧訳が残っています。誤った選択につながる種類の誤訳です。</span><span class="t" lang="en">A “you will lose unsaved changes” prompt still carries the old “a save with this name exists; overwrite?” translation, which could lead players to the wrong choice.</span></p>
+        
+        <div class="fix">
+          <p class="fix-label"><span class="t" lang="ja">修正案（AIによる訳の提案。翻訳者の確認が必要です）</span><span class="t" lang="en">Suggested fix (an AI-drafted translation for your translator to review)</span></p>
+          <p class="fix-text" lang="ja">保存していない変更は失われます。終了しますか？</p>
+        </div>
+      </article>
+    </li>
+    <li class="card sev-warning">
+      <article aria-labelledby="f7-h">
+        <header class="card-head">
+          <span class="num" aria-hidden="true">07</span>
+          <h3 id="f7-h"><span class="sev"><span class="t" lang="ja">警告</span><span class="t" lang="en">Warning</span></span> <span class="t" lang="ja">古い訳のまま（fuzzy）</span><span class="t" lang="en">Stale translation (fuzzy)</span></h3>
+          <a class="loc" href="https://github.com/wesnoth/wesnoth/blob/9ec35a2f4cbaf036dedf9e96272a03387d7bc03a/po/wesnoth-lib/ja.po#L7760"><span class="sr-only"><span class="t" lang="ja">GitHub で開く：</span><span class="t" lang="en">Open on GitHub: </span></span>wesnoth-lib/ja.po:7760</a>
+        </header>
+        <dl class="pair">
+          <div><dt><span class="t" lang="ja">原文（英語）</span><span class="t" lang="en">Source (EN)</span></dt><dd><q lang="en">game^Get Add-ons</q></dd></div>
+          <div><dt><span class="t" lang="ja">訳文（日本語）</span><span class="t" lang="en">Target (JA)</span></dt><dd><q lang="ja">アドオンの削除</q></dd></div>
+        </dl>
+        <p class="what"><span class="t" lang="ja">「アドオンを入手」に、旧原文 “Remove Add-ons” の訳「アドオンの削除」が残っています。意味が逆です。</span><span class="t" lang="en">“Get Add-ons” still carries 「アドオンの削除」 (“Remove Add-ons”) from an older string: the opposite meaning.</span></p>
+        
+        <div class="fix">
+          <p class="fix-label"><span class="t" lang="ja">修正案（AIによる訳の提案。翻訳者の確認が必要です）</span><span class="t" lang="en">Suggested fix (an AI-drafted translation for your translator to review)</span></p>
+          <p class="fix-text" lang="ja">アドオンの入手</p>
+        </div>
+      </article>
+    </li>
+    <li class="card sev-warning">
+      <article aria-labelledby="f8-h">
+        <header class="card-head">
+          <span class="num" aria-hidden="true">08</span>
+          <h3 id="f8-h"><span class="sev"><span class="t" lang="ja">警告</span><span class="t" lang="en">Warning</span></span> <span class="t" lang="ja">古い訳のまま（fuzzy）</span><span class="t" lang="en">Stale translation (fuzzy)</span></h3>
+          <a class="loc" href="https://github.com/wesnoth/wesnoth/blob/9ec35a2f4cbaf036dedf9e96272a03387d7bc03a/po/wesnoth-lib/ja.po#L3226"><span class="sr-only"><span class="t" lang="ja">GitHub で開く：</span><span class="t" lang="en">Open on GitHub: </span></span>wesnoth-lib/ja.po:3226</a>
+        </header>
+        <dl class="pair">
+          <div><dt><span class="t" lang="ja">原文（英語）</span><span class="t" lang="en">Source (EN)</span></dt><dd><q lang="en">Not Completed</q></dd></div>
+          <div><dt><span class="t" lang="ja">訳文（日本語）</span><span class="t" lang="en">Target (JA)</span></dt><dd><q lang="ja">完了率</q></dd></div>
+        </dl>
+        <p class="what"><span class="t" lang="ja">キャンペーンの絞り込み「未クリア」に、旧原文 “Completed” の訳「完了率」が残っています。同じ旧訳が “Completed: Bronze / Silver / Gold / All” の4件（L3239・3251・3263・3275）にもあります。</span><span class="t" lang="en">The campaign filter “Not Completed” still carries 「完了率」 from the old “Completed”. The same leftover appears on “Completed: Bronze / Silver / Gold / All” (L3239, 3251, 3263, 3275).</span></p>
+        <p class="related"><span class="t" lang="ja">同じ問題の行：</span><span class="t" lang="en">Same issue:</span> <a href="https://github.com/wesnoth/wesnoth/blob/9ec35a2f4cbaf036dedf9e96272a03387d7bc03a/po/wesnoth-lib/ja.po#L3239">L3239</a> <a href="https://github.com/wesnoth/wesnoth/blob/9ec35a2f4cbaf036dedf9e96272a03387d7bc03a/po/wesnoth-lib/ja.po#L3251">L3251</a> <a href="https://github.com/wesnoth/wesnoth/blob/9ec35a2f4cbaf036dedf9e96272a03387d7bc03a/po/wesnoth-lib/ja.po#L3263">L3263</a> <a href="https://github.com/wesnoth/wesnoth/blob/9ec35a2f4cbaf036dedf9e96272a03387d7bc03a/po/wesnoth-lib/ja.po#L3275">L3275</a></p>
+        <div class="fix">
+          <p class="fix-label"><span class="t" lang="ja">修正案（AIによる訳の提案。翻訳者の確認が必要です）</span><span class="t" lang="en">Suggested fix (an AI-drafted translation for your translator to review)</span></p>
+          <p class="fix-text" lang="ja">未完了</p>
+        </div>
+      </article>
+    </li>
+    <li class="card sev-warning">
+      <article aria-labelledby="f9-h">
+        <header class="card-head">
+          <span class="num" aria-hidden="true">09</span>
+          <h3 id="f9-h"><span class="sev"><span class="t" lang="ja">警告</span><span class="t" lang="en">Warning</span></span> <span class="t" lang="ja">古い訳のまま（fuzzy）</span><span class="t" lang="en">Stale translation (fuzzy)</span></h3>
+          <a class="loc" href="https://github.com/wesnoth/wesnoth/blob/9ec35a2f4cbaf036dedf9e96272a03387d7bc03a/po/wesnoth-lib/ja.po#L2978"><span class="sr-only"><span class="t" lang="ja">GitHub で開く：</span><span class="t" lang="en">Open on GitHub: </span></span>wesnoth-lib/ja.po:2978</a>
+        </header>
+        <dl class="pair">
+          <div><dt><span class="t" lang="ja">原文（英語）</span><span class="t" lang="en">Source (EN)</span></dt><dd><q lang="en">Delete selected add-on (admin)</q></dd></div>
+          <div><dt><span class="t" lang="ja">訳文（日本語）</span><span class="t" lang="en">Target (JA)</span></dt><dd><q lang="ja">アドオンのバージョンを選択します</q></dd></div>
+        </dl>
+        <p class="what"><span class="t" lang="ja">管理者用の「削除」ボタンの説明が「バージョンを選択します」のままです。隣の “Hide selected add-on (admin)”（L2985）も同じ旧訳です。</span><span class="t" lang="en">The admin “delete add-on” button is described as “select the add-on version”. The neighbouring “Hide selected add-on (admin)” (L2985) has the same leftover.</span></p>
+        <p class="related"><span class="t" lang="ja">同じ問題の行：</span><span class="t" lang="en">Same issue:</span> <a href="https://github.com/wesnoth/wesnoth/blob/9ec35a2f4cbaf036dedf9e96272a03387d7bc03a/po/wesnoth-lib/ja.po#L2985">L2985</a></p>
+        <div class="fix">
+          <p class="fix-label"><span class="t" lang="ja">修正案（AIによる訳の提案。翻訳者の確認が必要です）</span><span class="t" lang="en">Suggested fix (an AI-drafted translation for your translator to review)</span></p>
+          <p class="fix-text" lang="ja">選択したアドオンを削除します（管理者）</p>
+        </div>
+      </article>
+    </li>
+    <li class="card sev-warning">
+      <article aria-labelledby="f10-h">
+        <header class="card-head">
+          <span class="num" aria-hidden="true">10</span>
+          <h3 id="f10-h"><span class="sev"><span class="t" lang="ja">警告</span><span class="t" lang="en">Warning</span></span> <span class="t" lang="ja">古い訳のまま（fuzzy）</span><span class="t" lang="en">Stale translation (fuzzy)</span></h3>
+          <a class="loc" href="https://github.com/wesnoth/wesnoth/blob/9ec35a2f4cbaf036dedf9e96272a03387d7bc03a/po/wesnoth-lib/ja.po#L8684"><span class="sr-only"><span class="t" lang="ja">GitHub で開く：</span><span class="t" lang="en">Open on GitHub: </span></span>wesnoth-lib/ja.po:8684</a>
+        </header>
+        <dl class="pair">
+          <div><dt><span class="t" lang="ja">原文（英語）</span><span class="t" lang="en">Source (EN)</span></dt><dd><q lang="en">This unit requires no upkeep.</q></dd></div>
+          <div><dt><span class="t" lang="ja">訳文（日本語）</span><span class="t" lang="en">Target (JA)</span></dt><dd><q lang="ja">忠義ユニットには維持費が必要ありません。</q></dd></div>
+        </dl>
+        <p class="what"><span class="t" lang="ja">原文から “loyal”（忠義）が外れ、忠義以外の理由で維持費が不要なユニットにも使われる文になりました。訳文は「忠義ユニット」と言い切ったままです。</span><span class="t" lang="en">The source dropped “loyal”, so the line now covers units that need no upkeep for other reasons too; the translation still says “loyal units”.</span></p>
+        
+        <div class="fix">
+          <p class="fix-label"><span class="t" lang="ja">修正案（AIによる訳の提案。翻訳者の確認が必要です）</span><span class="t" lang="en">Suggested fix (an AI-drafted translation for your translator to review)</span></p>
+          <p class="fix-text" lang="ja">このユニットには維持費がかかりません。</p>
+        </div>
+      </article>
+    </li>
+    <li class="card sev-warning">
+      <article aria-labelledby="f11-h">
+        <header class="card-head">
+          <span class="num" aria-hidden="true">11</span>
+          <h3 id="f11-h"><span class="sev"><span class="t" lang="ja">警告</span><span class="t" lang="en">Warning</span></span> <span class="t" lang="ja">古い訳のまま（fuzzy）</span><span class="t" lang="en">Stale translation (fuzzy)</span></h3>
+          <a class="loc" href="https://github.com/wesnoth/wesnoth/blob/9ec35a2f4cbaf036dedf9e96272a03387d7bc03a/po/wesnoth-lib/ja.po#L8446"><span class="sr-only"><span class="t" lang="ja">GitHub で開く：</span><span class="t" lang="en">Open on GitHub: </span></span>wesnoth-lib/ja.po:8446</a>
+        </header>
+        <dl class="pair">
+          <div><dt><span class="t" lang="ja">原文（英語）</span><span class="t" lang="en">Source (EN)</span></dt><dd><q lang="en">Scenario not found: </q></dd></div>
+          <div><dt><span class="t" lang="ja">訳文（日本語）</span><span class="t" lang="en">Target (JA)</span></dt><dd><q lang="ja">シナリオエディタ</q></dd></div>
+        </dl>
+        <p class="what"><span class="t" lang="ja">エラーメッセージ「シナリオが見つかりません」に、旧原文 “Scenario Editor” の訳が残っています。</span><span class="t" lang="en">The “Scenario not found” error still carries 「シナリオエディタ」 (“Scenario Editor”) from an older string.</span></p>
+        
+        <div class="fix">
+          <p class="fix-label"><span class="t" lang="ja">修正案（AIによる訳の提案。翻訳者の確認が必要です）</span><span class="t" lang="en">Suggested fix (an AI-drafted translation for your translator to review)</span></p>
+          <p class="fix-text" lang="ja">シナリオが見つかりません：</p>
+        </div>
+      </article>
+    </li>
+    <li class="card sev-warning">
+      <article aria-labelledby="f12-h">
+        <header class="card-head">
+          <span class="num" aria-hidden="true">12</span>
+          <h3 id="f12-h"><span class="sev"><span class="t" lang="ja">警告</span><span class="t" lang="en">Warning</span></span> <span class="t" lang="ja">古い訳のまま（fuzzy）</span><span class="t" lang="en">Stale translation (fuzzy)</span></h3>
+          <a class="loc" href="https://github.com/wesnoth/wesnoth/blob/9ec35a2f4cbaf036dedf9e96272a03387d7bc03a/po/wesnoth-httt/ja.po#L26"><span class="sr-only"><span class="t" lang="ja">GitHub で開く：</span><span class="t" lang="en">Open on GitHub: </span></span>wesnoth-httt/ja.po:26</a>
+        </header>
+        <dl class="pair">
+          <div><dt><span class="t" lang="ja">原文（英語）</span><span class="t" lang="en">Source (EN)</span></dt><dd><q lang="en">Heir to the Throne, Classic</q></dd></div>
+          <div><dt><span class="t" lang="ja">訳文（日本語）</span><span class="t" lang="en">Target (JA)</span></dt><dd><q lang="ja">王位継承者</q></dd></div>
+        </dl>
+        <p class="what"><span class="t" lang="ja">キャンペーン名に旧版を区別する “Classic” が加わりましたが、訳は「王位継承者」のままです。新しい「Heir to the Throne」と見分けがつかなくなります。</span><span class="t" lang="en">The campaign title gained “Classic” to tell it apart from the new “Heir to the Throne”, but the translation is still just 「王位継承者」.</span></p>
+        
+        <div class="fix">
+          <p class="fix-label"><span class="t" lang="ja">修正案（AIによる訳の提案。翻訳者の確認が必要です）</span><span class="t" lang="en">Suggested fix (an AI-drafted translation for your translator to review)</span></p>
+          <p class="fix-text" lang="ja">王位継承者（クラシック版）</p>
+        </div>
+      </article>
+    </li>
+    <li class="card sev-warning">
+      <article aria-labelledby="f13-h">
+        <header class="card-head">
+          <span class="num" aria-hidden="true">13</span>
+          <h3 id="f13-h"><span class="sev"><span class="t" lang="ja">警告</span><span class="t" lang="en">Warning</span></span> <span class="t" lang="ja">未翻訳</span><span class="t" lang="en">Untranslated</span></h3>
+          <a class="loc" href="https://github.com/wesnoth/wesnoth/blob/9ec35a2f4cbaf036dedf9e96272a03387d7bc03a/po/wesnoth-lib/ja.po#L3069"><span class="sr-only"><span class="t" lang="ja">GitHub で開く：</span><span class="t" lang="en">Open on GitHub: </span></span>wesnoth-lib/ja.po:3069</a>
+        </header>
+        <dl class="pair">
+          <div><dt><span class="t" lang="ja">原文（英語）</span><span class="t" lang="en">Source (EN)</span></dt><dd><q lang="en">campaign_landing^Welcome to Wesnoth v1.20</q></dd></div>
+          <div><dt><span class="t" lang="ja">訳文（日本語）</span><span class="t" lang="en">Target (JA)</span></dt><dd><span class="empty"><span class="t" lang="ja">（空欄：訳なし）</span><span class="t" lang="en">(empty: no translation)</span></span></dd></div>
+        </dl>
+        <p class="what"><span class="t" lang="ja">キャンペーン画面の右側に出る案内文（campaign_landing^ で始まる11件、L3069〜3157）がすべて未翻訳です。プレイヤーが最初に読む画面の一つです。</span><span class="t" lang="en">All 11 strings of the campaign-menu welcome panel (campaign_landing^…, L3069–3157) are untranslated. It is one of the first screens a player reads.</span></p>
+        
+        <div class="fix">
+          <p class="fix-label"><span class="t" lang="ja">修正案（AIによる訳の提案。翻訳者の確認が必要です）</span><span class="t" lang="en">Suggested fix (an AI-drafted translation for your translator to review)</span></p>
+          <p class="fix-text" lang="ja">Wesnoth v1.20 へようこそ</p>
+        </div>
+      </article>
+    </li>
+    <li class="card sev-warning">
+      <article aria-labelledby="f14-h">
+        <header class="card-head">
+          <span class="num" aria-hidden="true">14</span>
+          <h3 id="f14-h"><span class="sev"><span class="t" lang="ja">警告</span><span class="t" lang="en">Warning</span></span> <span class="t" lang="ja">未翻訳</span><span class="t" lang="en">Untranslated</span></h3>
+          <a class="loc" href="https://github.com/wesnoth/wesnoth/blob/9ec35a2f4cbaf036dedf9e96272a03387d7bc03a/po/wesnoth-httt/ja.po#L51"><span class="sr-only"><span class="t" lang="ja">GitHub で開く：</span><span class="t" lang="en">Open on GitHub: </span></span>wesnoth-httt/ja.po:51</a>
+        </header>
+        <dl class="pair">
+          <div><dt><span class="t" lang="ja">原文（英語）</span><span class="t" lang="en">Source (EN)</span></dt><dd><q lang="en">This is the original version of this classic campaign, preserved for historical reasons. Also optionally includes…</q></dd></div>
+          <div><dt><span class="t" lang="ja">訳文（日本語）</span><span class="t" lang="en">Target (JA)</span></dt><dd><span class="empty"><span class="t" lang="ja">（空欄：訳なし）</span><span class="t" lang="en">(empty: no translation)</span></span></dd></div>
+        </dl>
+        <p class="what"><span class="t" lang="ja">キャンペーン選択画面に出る説明文が未翻訳です。</span><span class="t" lang="en">The campaign description shown on the campaign selection screen is untranslated.</span></p>
+        
+        <div class="fix">
+          <p class="fix-label"><span class="t" lang="ja">修正案（AIによる訳の提案。翻訳者の確認が必要です）</span><span class="t" lang="en">Suggested fix (an AI-drafted translation for your translator to review)</span></p>
+          <p class="fix-text" lang="ja">この名作キャンペーンのオリジナル版で、記録のために残しています。旧チュートリアル &lt;i&gt;Battle Training&lt;/i&gt; も選んで遊べます。</p>
+        </div>
+      </article>
+    </li>
+    <li class="card sev-warning">
+      <article aria-labelledby="f15-h">
+        <header class="card-head">
+          <span class="num" aria-hidden="true">15</span>
+          <h3 id="f15-h"><span class="sev"><span class="t" lang="ja">警告</span><span class="t" lang="en">Warning</span></span> <span class="t" lang="ja">未翻訳</span><span class="t" lang="en">Untranslated</span></h3>
+          <a class="loc" href="https://github.com/wesnoth/wesnoth/blob/9ec35a2f4cbaf036dedf9e96272a03387d7bc03a/po/wesnoth-lib/ja.po#L7386"><span class="sr-only"><span class="t" lang="ja">GitHub で開く：</span><span class="t" lang="en">Open on GitHub: </span></span>wesnoth-lib/ja.po:7386</a>
+        </header>
+        <dl class="pair">
+          <div><dt><span class="t" lang="ja">原文（英語）</span><span class="t" lang="en">Source (EN)</span></dt><dd><q lang="en">Completed $count/$total</q></dd></div>
+          <div><dt><span class="t" lang="ja">訳文（日本語）</span><span class="t" lang="en">Target (JA)</span></dt><dd><span class="empty"><span class="t" lang="ja">（空欄：訳なし）</span><span class="t" lang="en">(empty: no translation)</span></span></dd></div>
+        </dl>
+        <p class="what"><span class="t" lang="ja">実績画面の進み具合の表示が未翻訳です。訳すときは $count と $total を残す必要があります。</span><span class="t" lang="en">The progress counter on the achievements screen is untranslated. A translation must keep $count and $total.</span></p>
+        
+        <div class="fix">
+          <p class="fix-label"><span class="t" lang="ja">修正案（AIによる訳の提案。翻訳者の確認が必要です）</span><span class="t" lang="en">Suggested fix (an AI-drafted translation for your translator to review)</span></p>
+          <p class="fix-text" lang="ja">達成 $count/$total</p>
+        </div>
+      </article>
+    </li>
+    <li class="card sev-warning">
+      <article aria-labelledby="f16-h">
+        <header class="card-head">
+          <span class="num" aria-hidden="true">16</span>
+          <h3 id="f16-h"><span class="sev"><span class="t" lang="ja">警告</span><span class="t" lang="en">Warning</span></span> <span class="t" lang="ja">カタカナの表記揺れ</span><span class="t" lang="en">Katakana notation drift</span></h3>
+          <a class="loc" href="https://github.com/wesnoth/wesnoth/blob/9ec35a2f4cbaf036dedf9e96272a03387d7bc03a/po/wesnoth-httt/ja.po#L1633"><span class="sr-only"><span class="t" lang="ja">GitHub で開く：</span><span class="t" lang="en">Open on GitHub: </span></span>wesnoth-httt/ja.po:1633</a>
+        </header>
+        <dl class="pair">
+          <div><dt><span class="t" lang="ja">原文（英語）</span><span class="t" lang="en">Source (EN)</span></dt><dd><q lang="en">Ahh, a party of elves approaches. Soon we shall have elven zombies serving us!</q></dd></div>
+          <div><dt><span class="t" lang="ja">訳文（日本語）</span><span class="t" lang="en">Target (JA)</span></dt><dd><q lang="ja">アアア、エルフのパーティーが近づいてきている。我々はすぐにエルフのゾンビを従える事ができるだろう！</q></dd></div>
+        </dl>
+        <p class="what"><span class="t" lang="ja">このファイルでは「パーティ」が13回、「パーティー」はこの1回だけです。</span><span class="t" lang="en">This file writes 「パーティ」 13 times and 「パーティー」 only here.</span></p>
+        
+        <div class="fix">
+          <p class="fix-label"><span class="t" lang="ja">修正案（AIの提案。表記ルールに合わせて確認してください）</span><span class="t" lang="en">Suggested fix (AI suggestion; check against your style rules)</span></p>
+          <p class="fix-text" lang="ja">パーティー → パーティ（多数派の表記）</p>
+        </div>
+      </article>
+    </li>
+    <li class="card sev-warning">
+      <article aria-labelledby="f17-h">
+        <header class="card-head">
+          <span class="num" aria-hidden="true">17</span>
+          <h3 id="f17-h"><span class="sev"><span class="t" lang="ja">警告</span><span class="t" lang="en">Warning</span></span> <span class="t" lang="ja">カタカナの表記揺れ</span><span class="t" lang="en">Katakana notation drift</span></h3>
+          <a class="loc" href="https://github.com/wesnoth/wesnoth/blob/9ec35a2f4cbaf036dedf9e96272a03387d7bc03a/po/wesnoth-lib/ja.po#L3631"><span class="sr-only"><span class="t" lang="ja">GitHub で開く：</span><span class="t" lang="en">Open on GitHub: </span></span>wesnoth-lib/ja.po:3631</a>
+        </header>
+        <dl class="pair">
+          <div><dt><span class="t" lang="ja">原文（英語）</span><span class="t" lang="en">Source (EN)</span></dt><dd><q lang="en">User Interaction Required</q></dd></div>
+          <div><dt><span class="t" lang="ja">訳文（日本語）</span><span class="t" lang="en">Target (JA)</span></dt><dd><q lang="ja">ユーザへの操作要求</q></dd></div>
+        </dl>
+        <p class="what"><span class="t" lang="ja">「ユーザー」8回に対し「ユーザ」が7回あり、ほぼ半々に揺れています。同じ「ユーザ」が L3636・5832・5920・6772・6781・8558 にもあります（「ユーザデータ」L4852 も同様）。</span><span class="t" lang="en">「ユーザー」 appears 8 times and 「ユーザ」 7 times: an almost even split. 「ユーザ」 also appears at L3636, 5832, 5920, 6772, 6781 and 8558 (and 「ユーザデータ」 at L4852).</span></p>
+        <p class="related"><span class="t" lang="ja">同じ問題の行：</span><span class="t" lang="en">Same issue:</span> <a href="https://github.com/wesnoth/wesnoth/blob/9ec35a2f4cbaf036dedf9e96272a03387d7bc03a/po/wesnoth-lib/ja.po#L3636">L3636</a> <a href="https://github.com/wesnoth/wesnoth/blob/9ec35a2f4cbaf036dedf9e96272a03387d7bc03a/po/wesnoth-lib/ja.po#L5832">L5832</a> <a href="https://github.com/wesnoth/wesnoth/blob/9ec35a2f4cbaf036dedf9e96272a03387d7bc03a/po/wesnoth-lib/ja.po#L5920">L5920</a> <a href="https://github.com/wesnoth/wesnoth/blob/9ec35a2f4cbaf036dedf9e96272a03387d7bc03a/po/wesnoth-lib/ja.po#L6772">L6772</a> <a href="https://github.com/wesnoth/wesnoth/blob/9ec35a2f4cbaf036dedf9e96272a03387d7bc03a/po/wesnoth-lib/ja.po#L6781">L6781</a> <a href="https://github.com/wesnoth/wesnoth/blob/9ec35a2f4cbaf036dedf9e96272a03387d7bc03a/po/wesnoth-lib/ja.po#L8558">L8558</a> <a href="https://github.com/wesnoth/wesnoth/blob/9ec35a2f4cbaf036dedf9e96272a03387d7bc03a/po/wesnoth-lib/ja.po#L4852">L4852</a></p>
+        <div class="fix">
+          <p class="fix-label"><span class="t" lang="ja">修正案（AIの提案。表記ルールに合わせて確認してください）</span><span class="t" lang="en">Suggested fix (AI suggestion; check against your style rules)</span></p>
+          <p class="fix-text" lang="ja">ユーザ → ユーザー（多数派の表記。チームの表記ルールがあればそれに合わせる）</p>
+        </div>
+      </article>
+    </li>
+    <li class="card sev-warning">
+      <article aria-labelledby="f18-h">
+        <header class="card-head">
+          <span class="num" aria-hidden="true">18</span>
+          <h3 id="f18-h"><span class="sev"><span class="t" lang="ja">警告</span><span class="t" lang="en">Warning</span></span> <span class="t" lang="ja">カタカナの表記揺れ</span><span class="t" lang="en">Katakana notation drift</span></h3>
+          <a class="loc" href="https://github.com/wesnoth/wesnoth/blob/9ec35a2f4cbaf036dedf9e96272a03387d7bc03a/po/wesnoth-lib/ja.po#L2486"><span class="sr-only"><span class="t" lang="ja">GitHub で開く：</span><span class="t" lang="en">Open on GitHub: </span></span>wesnoth-lib/ja.po:2486</a>
+        </header>
+        <dl class="pair">
+          <div><dt><span class="t" lang="ja">原文（英語）</span><span class="t" lang="en">Source (EN)</span></dt><dd><q lang="en">Community</q></dd></div>
+          <div><dt><span class="t" lang="ja">訳文（日本語）</span><span class="t" lang="en">Target (JA)</span></dt><dd><q lang="ja">コミュニティ</q></dd></div>
+        </dl>
+        <p class="what"><span class="t" lang="ja">タイトル画面のタブは「コミュニティ」、ほかの2か所は「コミュニティー」です。</span><span class="t" lang="en">The title-screen tab says 「コミュニティ」; the other two occurrences say 「コミュニティー」.</span></p>
+        
+        <div class="fix">
+          <p class="fix-label"><span class="t" lang="ja">修正案（AIの提案。表記ルールに合わせて確認してください）</span><span class="t" lang="en">Suggested fix (AI suggestion; check against your style rules)</span></p>
+          <p class="fix-text" lang="ja">コミュニティ → コミュニティー（多数派の表記）</p>
+        </div>
+      </article>
+    </li>
+    <li class="card sev-warning">
+      <article aria-labelledby="f19-h">
+        <header class="card-head">
+          <span class="num" aria-hidden="true">19</span>
+          <h3 id="f19-h"><span class="sev"><span class="t" lang="ja">警告</span><span class="t" lang="en">Warning</span></span> <span class="t" lang="ja">カタカナの表記揺れ</span><span class="t" lang="en">Katakana notation drift</span></h3>
+          <a class="loc" href="https://github.com/wesnoth/wesnoth/blob/9ec35a2f4cbaf036dedf9e96272a03387d7bc03a/po/wesnoth-lib/ja.po#L3778"><span class="sr-only"><span class="t" lang="ja">GitHub で開く：</span><span class="t" lang="en">Open on GitHub: </span></span>wesnoth-lib/ja.po:3778</a>
+        </header>
+        <dl class="pair">
+          <div><dt><span class="t" lang="ja">原文（英語）</span><span class="t" lang="en">Source (EN)</span></dt><dd><q lang="en">…The add-on ID is the folder name in your operating system’s file manager, not the add-on’s name.</q></dd></div>
+          <div><dt><span class="t" lang="ja">訳文（日本語）</span><span class="t" lang="en">Target (JA)</span></dt><dd><q lang="ja">…アドオンの ID とは、アドオンの名称ではなく OS のファイルマネージャーでのアドオンのフォルダ名です。</q></dd></div>
+        </dl>
+        <p class="what"><span class="t" lang="ja">ほかの2か所は「ファイルマネージャ」（長音なし）です。</span><span class="t" lang="en">The other two occurrences write 「ファイルマネージャ」 without the long-vowel mark.</span></p>
+        
+        <div class="fix">
+          <p class="fix-label"><span class="t" lang="ja">修正案（AIの提案。表記ルールに合わせて確認してください）</span><span class="t" lang="en">Suggested fix (AI suggestion; check against your style rules)</span></p>
+          <p class="fix-text" lang="ja">ファイルマネージャー → ファイルマネージャ（多数派の表記）</p>
+        </div>
+      </article>
+    </li>
+    <li class="card sev-info">
+      <article aria-labelledby="f20-h">
+        <header class="card-head">
+          <span class="num" aria-hidden="true">20</span>
+          <h3 id="f20-h"><span class="sev"><span class="t" lang="ja">参考</span><span class="t" lang="en">Info</span></span> <span class="t" lang="ja">一人称の揺れ</span><span class="t" lang="en">First-person pronoun drift</span></h3>
+          <a class="loc" href="https://github.com/wesnoth/wesnoth/blob/9ec35a2f4cbaf036dedf9e96272a03387d7bc03a/po/wesnoth-httt/ja.po#L505"><span class="sr-only"><span class="t" lang="ja">GitHub で開く：</span><span class="t" lang="en">Open on GitHub: </span></span>wesnoth-httt/ja.po:505</a>
+        </header>
+        <dl class="pair">
+          <div><dt><span class="t" lang="ja">原文（英語）</span><span class="t" lang="en">Source (EN)</span></dt><dd><q lang="en">I have... have failed in my duty to protect the Prince! I am defeated.</q></dd></div>
+          <div><dt><span class="t" lang="ja">訳文（日本語）</span><span class="t" lang="en">Target (JA)</span></dt><dd><q lang="ja">私は……私は王子を守るという義務を果たす事ができなかった！ 私は敗れてしまった。</q></dd></div>
+        </dl>
+        <p class="what"><span class="t" lang="ja">Delfador の一人称は、一人称のある67行のうち66行が「わし」で、この行だけ「私」です。</span><span class="t" lang="en">Delfador says 「わし」 in 66 of his 67 lines with a first-person pronoun; this line alone uses 「私」.</span></p>
+        
+        <div class="fix">
+          <p class="fix-label"><span class="t" lang="ja">修正案（AIによる訳の提案。翻訳者の確認が必要です）</span><span class="t" lang="en">Suggested fix (an AI-drafted translation for your translator to review)</span></p>
+          <p class="fix-text" lang="ja">わしは……わしは王子を守るという義務を果たす事ができなかった！ わしは敗れてしまった。</p>
+        </div>
+      </article>
+    </li>
+    </ol>
+  </div>
+</section>
+
+<section class="band alt method" aria-labelledby="method-title">
+  <div class="wrap">
+    <h2 id="method-title"><span class="t" lang="ja">方法と注意点</span><span class="t" lang="en">Method and caveats</span></h2>
+    <ul>
+      <li><span class="t" lang="ja">Kotomark のコマンドライン版を既定の設定・用語集なしで実行しました（<code>kotomark check httt/ja.po lib/ja.po --no-glossary</code>、2026-10-09）。用語集を使う検査（用語・敬称など）はこの結果に含まれません。</span><span class="t" lang="en">Kotomark's command-line tool was run with default settings and no glossary (<code>kotomark check httt/ja.po lib/ja.po --no-glossary</code>, 2026-10-09). Glossary-based checks (terms, honorifics, etc.) are not part of this result.</span></li>
+      <li><span class="t" lang="ja">掲載した20件は、Kotomark の社内の AI 評価者が原文と訳文を読んで選び、1件ずつ確認したものです。人による確認ではありません。判断に迷うものは外しました。</span><span class="t" lang="en">The 20 issues were picked and checked one by one by Kotomark's in-house AI evaluator, which read each source and target. They were not reviewed by a person. Anything doubtful was left out.</span></li>
+      <li><span class="t" lang="ja">修正案は AI の提案です。訳文の提案は、プロジェクトの用語・文体に合わせて翻訳者が確認してから使ってください。掲載していない残り198件は、この資料のためには確認していません。</span><span class="t" lang="en">Suggested fixes are AI suggestions. Have a translator check any suggested translation against the project's terminology and style before using it. The other 198 findings were not checked for this report.</span></li>
+      <li><span class="t" lang="ja">この結果はこの2ファイルについてのもので、他のプロジェクトでの精度を示すものではありません。なお、Battle for Wesnoth の翻訳ファイルは Kotomark の調整（誤検知の修正）に使ったことがあります。</span><span class="t" lang="en">These results are about these two files only and say nothing about accuracy on other projects. Note that Battle for Wesnoth's translation files have been used to tune Kotomark (to fix false positives).</span></li>
+      <li><span class="t" lang="ja">データの出典：<a href="https://github.com/wesnoth/wesnoth">Battle for Wesnoth</a>、コミット <a href="https://github.com/wesnoth/wesnoth/tree/9ec35a2f4cbaf036dedf9e96272a03387d7bc03a"><code>9ec35a2f4cbaf036dedf9e96272a03387d7bc03a</code></a>。ライセンスは GPL-2.0-or-later です。引用した原文・訳文の著作権は Battle for Wesnoth の作者・翻訳者にあり、同じライセンスで提供されています。Battle for Wesnoth プロジェクトが Kotomark を推奨・承認しているわけではありません。名前は出典を示すためにだけ使っています。</span><span class="t" lang="en">Data source: <a href="https://github.com/wesnoth/wesnoth">Battle for Wesnoth</a>, commit <a href="https://github.com/wesnoth/wesnoth/tree/9ec35a2f4cbaf036dedf9e96272a03387d7bc03a"><code>9ec35a2f4cbaf036dedf9e96272a03387d7bc03a</code></a>, licensed GPL-2.0-or-later. The quoted source and target excerpts are by the Battle for Wesnoth authors and translators and are available under that license. The Battle for Wesnoth project has not endorsed Kotomark; the name is used only to identify the source.</span></li>
+      <li><span class="t" lang="ja">Kotomark はソース公開のソフトウェアです（オープンソースではありません）。「Kotomark」は仮称で、名称は変わる可能性があります。</span><span class="t" lang="en">Kotomark is source-available software (it is not open source). “Kotomark” is a working name and may change.</span></li>
+    </ul>
+  </div>
+</section>
+
+<section class="band" aria-labelledby="cta-title">
+  <div class="wrap">
+    <h2 id="cta-title"><span class="t" lang="ja">お手元のファイルで試す</span><span class="t" lang="en">Try it on your own files</span></h2>
+    <p><span class="t" lang="ja">ブラウザのデモは、ファイルをどこにも送信せずにその場で検査します。実際の日英台本で試していただける試用協力者も募集しています。</span><span class="t" lang="en">The browser demo checks files right in the page without uploading them. We are also looking for pilot partners to try it on a real JA↔EN script.</span></p>
+    <div class="cta">
+      <a class="btn" href="../demo/"><span class="t" lang="ja">デモを試す</span><span class="t" lang="en">Try the demo</span></a>
+      <a class="btn ghost" href="../#pilot"><span class="t" lang="ja">試用協力について</span><span class="t" lang="en">About the pilot</span></a>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <p><span class="t" lang="ja">「Kotomark」は仮称です。商標の確認が済んでいないため、名称は変わる可能性があります。Kotomark は独立した製品で、Battle for Wesnoth プロジェクトやAI提供元とは提携していません。</span><span class="t" lang="en">“Kotomark” is a working name; the trademark check is not finished, so the name may change. Kotomark is an independent product, not affiliated with the Battle for Wesnoth project or any AI provider.</span></p>
+    <p><a href="../"><span class="t" lang="ja">Kotomark のトップページへ</span><span class="t" lang="en">Back to the Kotomark home page</span></a></p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var KEY = "kotomark-lp-lang";
+  var root = document.documentElement;
+  var TITLES = { ja: "サンプル監査レポート — Kotomark（仮称）", en: "Sample audit report — Kotomark (working name)" };
+  var DESCS = { ja: "Battle for Wesnoth の日本語訳（2,921件の文字列）を Kotomark で検査した結果のサンプル。直すべき問題20件を、原文・訳文・修正案付きで掲載。", en: "Sample: Kotomark run on the Japanese translation of Battle for Wesnoth (2,921 strings). 20 issues worth fixing, with source, target and a suggested fix." };
+  var buttons = document.querySelectorAll("[data-set-lang]");
+  var desc = document.querySelector('meta[name="description"]');
+  function apply(lang) {
+    root.classList.remove("l-ja", "l-en");
+    root.classList.add("l-" + lang);
+    root.lang = lang;
+    document.title = TITLES[lang];
+    if (desc) desc.setAttribute("content", DESCS[lang]);
+    for (var i = 0; i < buttons.length; i++) {
+      buttons[i].setAttribute("aria-pressed", buttons[i].getAttribute("data-set-lang") === lang ? "true" : "false");
+    }
+  }
+  apply(root.classList.contains("l-en") ? "en" : "ja");
+  for (var i = 0; i < buttons.length; i++) {
+    buttons[i].addEventListener("click", function () {
+      var lang = this.getAttribute("data-set-lang");
+      apply(lang);
+      try { localStorage.setItem(KEY, lang); } catch (e) { /* storage unavailable */ }
+    });
+  }
+})();
+</script>
+</body>
+</html>
