@@ -2,6 +2,7 @@
 <html lang="ja" class="l-ja">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-fghYVRDineIO9fZTi3CuyZ/A5e/0+pxnHu4q0MvM/IU=' 'sha256-KC0HApDjbH/wz2zm54lQOTozy5dHPkzU+/0dkGfNjUg='; style-src 'sha256-ROEs/5av16crvidn0+yzNuSzx/+aAnFQE+bB4MY1Ux4='; img-src data: blob:; connect-src 'none'; font-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Kotomark（仮称）— 日英ゲーム台本の一貫性チェック</title>
 <meta name="description" content="Kotomark（仮称）は日英ゲームローカライズ向けの台本全体の一貫性チェックです。用語・カタカナ表記・キャラ名・敬称・口調の揺れを、ファイル名と行番号付きで指摘します。">
@@ -139,7 +140,7 @@ code, .mono { font-family: var(--font-mono); font-size: .9em; }
 .cta-note { margin-top: 14px; font-size: 13px; color: var(--ink-3); }
 
 /* Proof sheet (hero visual): real output from samples/ja-en */
-.sheet { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+.sheet { margin: 0; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
 .sheet-head { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; padding: 10px 14px; border-bottom: 1px solid var(--rule); font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); }
 .sheet-rows { margin: 0; padding: 6px 0; list-style: none; font-size: 14px; }
 .sheet-rows li { display: grid; grid-template-columns: 3.2em minmax(0, 1fr); gap: 0 12px; padding: 7px 14px 7px 0; border-left: 3px solid transparent; }
@@ -157,6 +158,9 @@ code, .mono { font-family: var(--font-mono); font-size: .9em; }
 .tally .b { flex: 2; background: var(--mark); }
 .tally-key { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 8px; font-family: var(--font-mono); font-size: 12px; color: var(--ink-2); }
 .tally-key i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; vertical-align: -1px; margin-right: 6px; }
+.tally-key i.k-ok { background: var(--ok); }
+.tally-key i.k-mark { background: var(--mark); }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 .finding { margin-top: 12px; font-family: var(--font-mono); font-size: 12px; color: var(--ink-2); line-height: 1.6; }
 .finding strong { color: var(--mark); font-weight: 500; }
 
@@ -339,7 +343,7 @@ section { scroll-margin-top: 72px; }
       <p class="cta-note t" lang="en">The demo runs entirely in your browser. Your script files are not uploaded anywhere. Sample script included.</p>
     </div>
 
-    <figure class="sheet" style="margin:0" aria-labelledby="sheet-cap">
+    <figure class="sheet" aria-labelledby="sheet-cap">
       <div class="sheet-head"><span>samples/ja-en/script.csv</span><span>魔導石 → “Mana Stone”</span></div>
       <ol class="sheet-rows">
         <li class="hit"><span class="ln">:6</span><div><div class="src" lang="ja">俺は魔導石なんて信じねえぞ。</div><div class="tgt" lang="en">I don't believe in <mark>Magic Stones</mark>.</div></div></li>
@@ -348,10 +352,10 @@ section { scroll-margin-top: 72px; }
       <div class="sheet-foot">
         <div class="tally-label"><span class="t" lang="ja">この台本での訳し方の内訳</span><span class="t" lang="en">How this script renders it</span><span class="mono">8</span></div>
         <div class="tally" aria-hidden="true"><span class="a"></span><span class="b"></span></div>
-        <div class="tally-key"><span><i style="background:var(--ok)"></i>Mana Stone ×6</span><span><i style="background:var(--mark)"></i>Magic Stone ×2</span></div>
+        <div class="tally-key"><span><i class="k-ok"></i>Mana Stone ×6</span><span><i class="k-mark"></i>Magic Stone ×2</span></div>
         <p class="finding"><strong>error</strong> script.csv:6, :17 — <span class="t" lang="ja">用語集の禁止訳 “Magic Stone” が使われています。</span><span class="t" lang="en">forbidden variant “Magic Stone”; glossary says “Mana Stone”.</span></p>
       </div>
-      <figcaption id="sheet-cap" class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">
+      <figcaption id="sheet-cap" class="sr-only">
         <span class="t" lang="ja">サンプル台本 script.csv の6行目と17行目で、魔導石が “Magic Stone” と訳されている例。全8箇所のうち6箇所は “Mana Stone”。</span>
         <span class="t" lang="en">Example from the sample script: lines 6 and 17 render 魔導石 as “Magic Stone”; the other 6 of 8 occurrences use “Mana Stone”.</span>
       </figcaption>
@@ -487,6 +491,8 @@ section { scroll-margin-top: 72px; }
     </div>
     <p class="limits t" lang="ja">限界：判定は自社の評価者1名（AI）によるもので、人による確認はまだです。対象は主に英→日の UI・ゲーム文字列です。日→英は UI 文字列（Misskey）で確認済みで、ゲーム台本での検証は協力者の方と行う予定です。用語集を使う指摘の精度は、用語集の質に左右されます。</p>
     <p class="limits t" lang="en">Limits: one in-house evaluator (an AI) judged the findings; no human review yet. The files are mostly English→Japanese UI and game strings. Japanese→English was checked on UI strings (Misskey); evaluation on Japanese→English game scripts with pilot partners is still pending. Glossary-based term checks are only as good as the glossary.</p>
+    <p class="t" lang="ja"><a href="sample-report/">サンプル監査レポートを見る</a>（Battle for Wesnoth の日本語訳で見つかった問題20件。判定と修正案は AI によるもの）</p>
+    <p class="t" lang="en"><a href="sample-report/">See a sample audit report</a> (20 issues found in the Battle for Wesnoth Japanese translation; judged and annotated by an AI)</p>
   </div>
 </section>
 
@@ -621,6 +627,8 @@ section { scroll-margin-top: 72px; }
         <li><span class="t" lang="ja">通信しないローカル版で試せます。NDA の範囲内でお使いください。</span><span class="t" lang="en">You can use the local version, which makes no network calls. Please stay within your NDA.</span></li>
         <li><span class="t" lang="ja">お送りいただくのは、指摘ごとに当たり／外れの印を付けた表だけです。原文・訳文の列は消して構いません。</span><span class="t" lang="en">All you send back is a sheet marking each finding right or wrong. You can delete the source and target columns first.</span></li>
       </ol>
+      <p class="t" lang="ja"><a href="sample-report/">実際の検査結果の例（サンプル監査レポート）</a>（Battle for Wesnoth の日本語訳で見つかった問題20件。判定と修正案は AI によるもの）</p>
+      <p class="t" lang="en"><a href="sample-report/">Example of real results (sample audit report)</a> (20 issues found in the Battle for Wesnoth Japanese translation; judged and annotated by an AI)</p>
     </div>
     <div class="contact">
       <h3><span class="t" lang="ja">試用のご相談</span><span class="t" lang="en">Pilot sign-up</span></h3>
