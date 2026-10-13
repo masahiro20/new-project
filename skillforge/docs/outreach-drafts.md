@@ -6,6 +6,7 @@
 >
 > **変更履歴**
 > - 2026-10-09 Midas 案を統合（候補追加、"台本/script" を精度の文から切り離す（製品の説明では使用可）、英語署名の統一、8-4 英語版、団体への相談）
+> - 2026-10-13 日本語の5通（#1, #3-A, #6, #7, #8）に公開中のサンプル監査レポートへのリンクと一言の説明を追加（本文は500字台に。ルール14参照）。送信はしていません
 > - 2026-10-09 本部判断を反映（精度の数字を本文へ、米国宛て2通は保留、Shiravune は DM 短縮版）
 
 ---
@@ -14,14 +15,14 @@
 
 | # | 宛先 | 言語 | 経路（公開の業務窓口） | 文面で触れる事実（確認元） | 想定形式 | 主なリスク | 本文の長さ（精度の数字） | 承認 |
 |---|---|---|---|---|---|---|---|---|
-| 1 | Impetus（インピタス） | JA | 見積もり・問い合わせフォーム https://www.impetus.jp/for-clients-quotes | ENDER LILIES / ENDER MAGNOLIA などの実績、LQA（impetus.jp） | XLSX / CSV / XLIFF | 大手案件のNDA | 393字（数字あり） | [ ] |
+| 1 | Impetus（インピタス） | JA | 見積もり・問い合わせフォーム https://www.impetus.jp/for-clients-quotes | ENDER LILIES / ENDER MAGNOLIA などの実績、LQA（impetus.jp） | XLSX / CSV / XLIFF | 大手案件のNDA | 503字（数字・サンプルレポートあり） | [ ] |
 | 2 | Lemnisca LLC | EN | サイト内フォーム https://lemnisca.net/#contact | Raging Loop・Root Double の翻訳・編集・QA（lemnisca.net） | XLSX / CSV、KAG・Tyrano `.ks` | 依頼元とのNDA、成人向けの取引先、CAN-SPAM（住所） | 167語（数字なし） | [ ] **保留（米国の住所表記の問題が片付くまで）** |
-| 3 | 8-4, Ltd. | JA／EN（どちらか1通） | 一般窓口 info@8-4.jp（https://8-4.jp/about-us/ に掲載） | 2005年設立、Fire Emblem Warriors: Three Hopes 英語版（8-4.jp） | XLSX / CSV / XLIFF | 任天堂など大手のNDA、外部ツール方針 | 3-A 日本語版 395字／3-B 英語版 160語（どちらも数字あり） | [ ] |
+| 3 | 8-4, Ltd. | JA／EN（どちらか1通） | 一般窓口 info@8-4.jp（https://8-4.jp/about-us/ に掲載） | 2005年設立、Fire Emblem Warriors: Three Hopes 英語版（8-4.jp） | XLSX / CSV / XLIFF | 任天堂など大手のNDA、外部ツール方針 | 3-A 日本語版 502字（サンプルレポートあり）／3-B 英語版 160語（どちらも数字あり） | [ ] |
 | 4 | Fruitbat Factory | EN | 一般窓口 info@fruitbatfactory.com（about.html に掲載） | 2012年から日本のゲームに特化、Unity / KiriKiri / Tyrano（about.html） | KAG・Tyrano `.ks`、Unity CSV | GDPR（拠点未検証）、`.ks` の配置条件 | 171語（数字あり） | [ ] |
 | 5 | Shiravune | JA | 公式 X の DM（業務DMを受け付けている場合のみ） | 東京拠点、うたわれるもの PC版（shiravune.com/about） | XLSX / CSV、Ren'Py / `.ks` | 成人向けタイトルあり、窓口がSNSのみ | **DM短縮版 261字を送る**（数字あり）／長い版 391字は参考 | [ ] |
-| 6 | Active Gaming Media | JA | 問い合わせフォーム https://www.activegamingmedia.com/index.php/contact/ （区分「その他」） | 2026-10-06 告知「アナザーエデン ビギンズ」LQA担当（公式トップ） | XLSX / CSV / XLIFF、Unity / Unreal CSV | 社内ツール審査、クライアントNDA、自社ツールとの競合 | 396字（数字あり） | [ ] ※PLAYISM（同じ会社）とはどちらか1通 |
-| 7 | Chorus Worldwide | JA | 問い合わせフォーム https://chorusworldwide.com/jp-contact/ （区分「ビジネスに関するお問い合わせ」） | コーヒートーク の日本展開（フォームの作品一覧、about-us） | Unity CSV / XLSX / i18n JSON | 開発元との契約で台本を出せない | 396字（数字あり） | [ ] |
-| 8 | Kakehashi Games（架け橋ゲームズ） | JA | 会社案内の一般メール（https://www.kakehashigames.com/about-us.html。表示はブラウザで確認） | 海外インディーの日本語化・日本展開、Cairn の配信（公式トップ） | CSV / XLSX / i18n JSON / .po / Unity CSV | 翻訳が外注の可能性 | 399字（数字あり） | [ ] |
+| 6 | Active Gaming Media | JA | 問い合わせフォーム https://www.activegamingmedia.com/index.php/contact/ （区分「その他」） | 2026-10-06 告知「アナザーエデン ビギンズ」LQA担当（公式トップ） | XLSX / CSV / XLIFF、Unity / Unreal CSV | 社内ツール審査、クライアントNDA、自社ツールとの競合 | 507字（数字・サンプルレポートあり） | [ ] ※PLAYISM（同じ会社）とはどちらか1通 |
+| 7 | Chorus Worldwide | JA | 問い合わせフォーム https://chorusworldwide.com/jp-contact/ （区分「ビジネスに関するお問い合わせ」） | コーヒートーク の日本展開（フォームの作品一覧、about-us） | Unity CSV / XLSX / i18n JSON | 開発元との契約で台本を出せない | 507字（数字・サンプルレポートあり） | [ ] |
+| 8 | Kakehashi Games（架け橋ゲームズ） | JA | 会社案内の一般メール（https://www.kakehashigames.com/about-us.html。表示はブラウザで確認） | 海外インディーの日本語化・日本展開、Cairn の配信（公式トップ） | CSV / XLSX / i18n JSON / .po / Unity CSV | 翻訳が外注の可能性 | 511字（数字・サンプルレポートあり） | [ ] |
 | 9 | Shloc Ltd | EN | 一般窓口 mail@shloc.com（https://www.shloc.com/en/contact） | DEATH STRANDING 2 の JP > EN Localization、ロンドン・東京拠点（shloc.com） | XLSX / CSV / XLIFF | AAAの機密、GDPR / PECR（英国） | 176語（数字あり） | [ ] |
 | 10 | Middlebury Institute（MIIS） | EN | 大学の公開窓口（下記の注意。プログラム事務局の窓口を要確認） | 2024-05-09 記事：学生8名が LocJam 6 で英→日翻訳、用語と口調を統一 | CSV / XLSX / XLIFF / .po | 大学の承認、FERPA、授業日程、CAN-SPAM | 160語（数字なし） | [ ] **保留（米国の住所表記の問題が片付くまで）** |
 | 6' | PLAYISM（AGM のレーベル。**#6 と同じ会社**）— Midas 案 | （#6 の文面を書き換えて使う） | Developer/Business Contact Form https://playism.com/en/contact/ | — | — | #6 との二重連絡 | 下書きなし（#6 か PLAYISM のどちらか1通だけ） | — |
@@ -55,7 +56,8 @@
 10. **追いかけは1回まで：** 返信がなければ、**7〜10日後に1回だけ**、`outreach-templates.md` の 3-B（元のスレッドへの返信）を送ります。その後は連絡しません。（テンプレートの「1〜2週間」より短めの、この下書き用の取り決めです。）
 11. **同じ会社・グループには1通だけ：** Active Gaming Media（#6）と PLAYISM は同じ会社（PLAYISM は AGM のレーベル）なので、どちらか一方の窓口だけに送り、追いかけも合わせて1回です（既定は #6 の AGM フォーム）。
 12. **断られた・停止を求められたら：** すぐ `pilot-targets.md` の該当行に「連絡不要」と書き、二度と送りません。
-13. **文字数：** 各文面は英語180語以内、日本語400字以内（署名を含む本文。件名・改行は除き、差し込みは1字と数える）に収めています。Shiravune の DM 短縮版は280字以内です。現在の長さは「0. 一覧」の表にあります。書き換えたら数え直してください。
+13. **文字数：** 各文面は英語180語以内、日本語400字以内（ただしサンプルレポートのリンクを入れた日本語5通 #1, #3-A, #6, #7, #8 は URL を含めて520字以内。電話の一文は削った）（署名を含む本文。件名・改行は除き、差し込みは1字と数える）に収めています。Shiravune の DM 短縮版は280字以内です。現在の長さは「0. 一覧」の表にあります。書き換えたら数え直してください。
+14. **サンプル監査レポートのリンク（日本語5通 #1, #3-A, #6, #7, #8 に追加）：** https://masahiro20.github.io/new-project/kotomark/sample-report/ は公開済みの1枚のHTML（Battle for Wesnoth の日本語訳〔GPL-2.0+〕の検査結果から問題20件を、原文・訳文・修正案つきで載せた見本）。文面では「出力の見本」として紹介するだけにし、このレポートに精度の数字は添えません（精度は上のルール9の文言だけ）。修正案は AI の提案であることがレポート内に明記されています。送信直前にリンクが開くことを確認してください。#5（DM短縮版）と #11 は文字数の都合で今回は入れていません。英語版・団体向けにも入れるかはオーナー判断。
 
 ---
 
@@ -72,7 +74,9 @@
 
 Kotomark（仮称）は、台本全体の用語・表記・キャラ名・敬称・口調の揺れを「ファイル名:行番号」付きで示す試作品で、XLSX・CSV・XLIFFを読めます。調整に使っていないオープンソース6本（ゲーム3・アプリ3）の翻訳で、抜き取った警告・エラー297件中287件が実際の問題でした（約97%、自社のAI評価者による判定）。
 
-ブラウザ版デモ（{{demo_link}}）で付属サンプルかNDA外の抜粋を30分試し、「ラベルをコピー（CSV）」の内容をお送りいただけませんか。お電話でも結構です。台本はアップロードされず、無料です。
+出力の見本として、Battle for Wesnoth の日本語訳で見つかった問題20件（AI判定・修正案つき）を公開しています：https://masahiro20.github.io/new-project/kotomark/sample-report/
+
+ブラウザ版デモ（{{demo_link}}）で付属サンプルかNDA外の抜粋を30分試し、「ラベルをコピー（CSV）」の内容をお送りいただけませんか。台本はアップロードされず、無料です。
 
 今後のご連絡が不要でしたら「不要」とご返信ください。
 
@@ -131,7 +135,9 @@ If you'd rather not hear from us again, reply "no thanks" and we won't contact y
 
 Kotomark（仮称）は、台本全体の用語・表記・キャラ名・敬称・口調の揺れを「ファイル名:行番号」付きで示す試作品です。調整に使っていないオープンソース6本（ゲーム3・アプリ3、主に英→日）の翻訳で、抜き取った警告・エラー297件中287件が実際の問題でした（約97%、自社のAI評価者による判定）。
 
-ブラウザ版デモ（{{demo_link}}）で付属サンプルかNDA外の抜粋を30分試し、「ラベルをコピー（CSV）」の内容をお送りいただけませんか。お電話でも結構です。台本はアップロードされず、無料です。
+出力の見本として、Battle for Wesnoth の日本語訳で見つかった問題20件（AI判定・修正案つき）を公開しています：https://masahiro20.github.io/new-project/kotomark/sample-report/
+
+ブラウザ版デモ（{{demo_link}}）で付属サンプルかNDA外の抜粋を30分試し、「ラベルをコピー（CSV）」の内容をお送りいただけませんか。台本はアップロードされず、無料です。
 
 今後のご連絡が不要でしたら「不要」とご返信ください。
 
@@ -243,7 +249,9 @@ Kotomark 開発チーム {{sender_name}}
 
 Kotomark（仮称）は、台本の用語・表記・キャラ名・敬称・口調の揺れを行番号付きで示す試作品で、XLSX・CSV・XLIFF、Unity／Unrealの文字列表を読めます。調整に使っていないオープンソース6本（ゲーム3・アプリ3）の翻訳で、抜き取った警告・エラー297件中287件が実際の問題でした（約97%、自社のAI評価者による判定）。
 
-ブラウザ版デモ（{{demo_link}}）で付属サンプルかNDA外の抜粋を30分試し、「ラベルをコピー（CSV）」の内容をお送りいただけませんか。お電話でも結構です。台本はアップロードされず、無料です。
+出力の見本として、Battle for Wesnoth の日本語訳で見つかった問題20件（AI判定・修正案つき）を公開しています：https://masahiro20.github.io/new-project/kotomark/sample-report/
+
+ブラウザ版デモ（{{demo_link}}）で付属サンプルかNDA外の抜粋を30分試し、「ラベルをコピー（CSV）」の内容をお送りいただけませんか。台本はアップロードされず、無料です。
 
 今後のご連絡が不要でしたら「不要」とご返信ください。
 
@@ -272,7 +280,9 @@ Kotomark 開発チーム {{sender_name}}
 
 Kotomark（仮称）は、台本の用語・表記・キャラ名・敬称・口調の揺れを「ファイル名:行番号」付きで示す試作品で、Unityの文字列表CSV、XLSX、i18n JSONを読めます。調整に使っていないオープンソース6本（ゲーム3・アプリ3）の翻訳で、抜き取った警告・エラー297件中287件が実際の問題でした（約97%、自社のAI評価者による判定）。
 
-ブラウザ版デモ（{{demo_link}}）で付属サンプルか契約に触れない抜粋を30分試し、「ラベルをコピー（CSV）」の内容をお送りいただけませんか。お電話でも結構です。台本はアップロードされず、無料です。
+出力の見本として、Battle for Wesnoth の日本語訳で見つかった問題20件（AI判定・修正案つき）を公開しています：https://masahiro20.github.io/new-project/kotomark/sample-report/
+
+ブラウザ版デモ（{{demo_link}}）で付属サンプルか契約に触れない抜粋を30分試し、「ラベルをコピー（CSV）」の内容をお送りいただけませんか。台本はアップロードされず、無料です。
 
 今後のご連絡が不要でしたら「不要」とご返信ください。
 
@@ -300,7 +310,9 @@ Kotomark 開発チーム {{sender_name}}
 
 Kotomark（仮称）は、英日の翻訳ファイルの用語・表記・キャラ名・敬称・口調の揺れを「ファイル名:行番号」付きで示す試作品で、CSV・XLSX・JSON・.poなどを読めます。調整に使っていないオープンソース6本（ゲーム3・アプリ3）の翻訳で、抜き取った警告・エラー297件中287件が実際の問題でした（約97%、自社のAI評価者による判定）。外注翻訳の納品チェックに使えるかも伺いたいです。
 
-デモ（{{demo_link}}）で付属サンプルか抜粋を30分試し、「ラベルをコピー（CSV）」の内容をお送りいただけませんか。お電話でも結構です。台本はアップロードされず、無料です。
+出力の見本として、Battle for Wesnoth の日本語訳で見つかった問題20件（AI判定・修正案つき）を公開しています：https://masahiro20.github.io/new-project/kotomark/sample-report/
+
+デモ（{{demo_link}}）で付属サンプルか抜粋を30分試し、「ラベルをコピー（CSV）」の内容をお送りいただけませんか。台本はアップロードされず、無料です。
 
 今後のご連絡が不要でしたら「不要」とご返信ください。
 
