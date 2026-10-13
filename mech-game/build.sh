@@ -3,6 +3,7 @@
 # 出力:
 #   index.html                 単体で開けるページ（Three.js は cdnjs から読む）
 #   dist/artifact.html         アーティファクト公開用（外側の HTML 骨組みは公開時に付く）
+#   dist/grandstride-crazygames.zip  CrazyGames 用（itch 版 + SDK v3 + src/crazygames.js。SDK 以外の外部通信なし）
 #   dist/grandstride-itch.zip  itch.io 用。index.html がルートにあり、Three.js r128 とフォントを
 #                              vendor/ から同梱。外部の CDN には通信しない
 set -euo pipefail
@@ -31,8 +32,23 @@ fs.writeFileSync("dist/itch/index.html", wrap(itch));
 fs.copyFileSync("vendor/three.r128.min.js","dist/itch/three.r128.min.js");
 for(const f of fs.readdirSync("vendor/fonts")) fs.copyFileSync("vendor/fonts/"+f,"dist/itch/fonts/"+f);
 fs.writeFileSync("dist/itch/LICENSES.txt","Three.js r128 (MIT)\n\n"+fs.readFileSync("vendor/three.LICENSE.txt","utf8")+"\n\nFonts in fonts/ are licensed under the SIL Open Font License 1.1; see fonts/OFL-*.txt.\n");
+// CrazyGames build: same local Three.js/fonts as itch, plus the SDK v3 script and src/crazygames.js.
+// The game body is wrapped in window.__gsStart so it starts after SDK init (the save lives in the SDK Data module).
+const head0="(function(){\n\x27use strict\x27;\n\n/* ================= utilities";
+const tail0="requestAnimationFrame(frame);\n})();\n</script>";
+if(itch.split(head0).length!==2||itch.split(tail0).length!==2) throw new Error("game wrapper markers not found");
+let cgBody=itch.replace(head0,"window.__gsStart=function(){\n\x27use strict\x27;\n\n/* ================= utilities").replace(tail0,"requestAnimationFrame(frame);\n};\n</script>\n<script>\n"+fs.readFileSync("src/crazygames.js","utf8")+"\n</script>");
+const cgHead="<!doctype html>\n<html lang=\"ja\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\">\n<script src=\"https://sdk.crazygames.com/crazygames-sdk-v3.js\"></script>\n<style>body{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;-webkit-touch-callout:none}</style>\n</head>\n<body>\n";
+fs.rmSync("dist/crazygames",{recursive:true,force:true});
+fs.mkdirSync("dist/crazygames/fonts",{recursive:true});
+fs.writeFileSync("dist/crazygames/index.html", cgHead+cgBody+"\n</body>\n</html>\n");
+for(const f of ["three.r128.min.js","LICENSES.txt"]) fs.copyFileSync("dist/itch/"+f,"dist/crazygames/"+f);
+for(const f of fs.readdirSync("dist/itch/fonts")) fs.copyFileSync("dist/itch/fonts/"+f,"dist/crazygames/fonts/"+f);
 console.log("built index.html, dist/artifact.html, dist/itch/");
 '
 rm -f dist/grandstride-itch.zip
 (cd dist/itch && zip -qrX ../grandstride-itch.zip .)
 echo "built dist/grandstride-itch.zip ($(du -k dist/grandstride-itch.zip | cut -f1) KB)"
+rm -f dist/grandstride-crazygames.zip
+(cd dist/crazygames && zip -qrX ../grandstride-crazygames.zip .)
+echo "built dist/grandstride-crazygames.zip ($(du -k dist/grandstride-crazygames.zip | cut -f1) KB)"

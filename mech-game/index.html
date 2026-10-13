@@ -1601,6 +1601,12 @@ window.MechAudio = window.MechAudio || new Proxy({}, {get:()=>()=>{}});
 
 /* ================= utilities ================= */
 const MA = window.MechAudio;
+// Platform hooks: window.GSPlatform exists only in the CrazyGames build (release/crazygames). Everywhere else these are no-ops.
+function plat(name, arg){ try{ const p = window.GSPlatform; if (p && typeof p[name] === 'function') return p[name](arg); }catch(e){} }
+// A midgame ad slot between missions: runs fn right away unless the platform shows an ad first.
+function masterOf(v){ const r = plat('master', v); return typeof r === 'number' ? r : v; }
+function afterAd(fn){ const p = window.GSPlatform; if (p && typeof p.ad === 'function'){ try{ p.ad(fn); return; }catch(e){} } fn(); }
+window.__gsVol = () => (parseInt(store.get('grandstride_vol','80'),10) || 0) / 100;
 function snd(name){
   try{ const f = MA[name]; if (typeof f === 'function') return f.apply(MA, Array.prototype.slice.call(arguments, 1)); }catch(e){}
 }
@@ -3119,6 +3125,7 @@ function renderDaily(){
   el.innerHTML = h + tomorrowHtml();
 }
 function goTitle(){
+  plat('play', false);
   clearMission();
   G.state = 'title';
   showOnly(['title']);
@@ -3144,7 +3151,7 @@ function checkInterrupted(){
   return n;
 }
 let audioInited = false;
-function initAudio(){ if (!audioInited){ audioInited = true; snd('init'); weatherSnd.r = -1; snd('setMaster', (parseInt(store.get('grandstride_vol','80'),10) || 0) / 100); } }
+function initAudio(){ if (!audioInited){ audioInited = true; snd('init'); weatherSnd.r = -1; snd('setMaster', masterOf((parseInt(store.get('grandstride_vol','80'),10) || 0) / 100)); } }
 
 function clearMission(){
   for (const e of enemies) removeEnemy(e);
@@ -3218,6 +3225,7 @@ function beginPlay(){
   const fromLaunch = G.state === 'launch';
   if (fromLaunch && !SAVE.launched){ SAVE.launched = true; writeSave(); }
   G.state = 'play';
+  plat('play', true);
   showOnly([]);
   hudEl.hud.classList.remove('hidden', 'boot');
   hudEl.frame.classList.remove('hidden');
@@ -3290,8 +3298,9 @@ function updTutorial(dt){
   setText($('tutText'), (isTouch ? S.tc : S.pc)[1]);
   if ((ok && T.t > 0.6) || T.t > TUT_STEP_MAX){ snd('lockOn'); tutNext(); }
 }
-function pauseGame(){
+function pauseGame(focusLoss){
   if (G.state !== 'play' || G.ending > 0) return;
+  if (!focusLoss) plat('play', false); // tab switch / window blur: the portal reports that itself, so no gameplayStop
   G.state = 'paused'; showOnly(['pause']);
   snd('engine', 0, 0, false); snd('servo', 0); snd('weather', 0, 0); weatherSnd.r = weatherSnd.w = 0; setAlarm(false);
   if (P.overbeat) snd('overbeat', false);
@@ -3300,12 +3309,14 @@ function pauseGame(){
 function resumeGame(){
   if (G.state !== 'paused') return;
   G.state = 'play'; showOnly([]);
+  plat('play', true);
   if (P.overbeat) snd('overbeat', true);
   if (!isTouch) tryLock();
 }
 function endMission(win){
   if (G.ending > 0) return;
   G.win = win; G.ending = 2.4; G.endAt = performance.now() + 2400;
+  plat('play', false);
   input.fire = false;
   setAlarm(false);
   if (P.overbeat){ P.overbeat = false; snd('overbeat', false); }
@@ -3407,6 +3418,7 @@ function showResult(){
     kills:G.kills + (G.lordDead ? 1 : 0), accuracy:acc, maxResonance:P.maxRes, damageTaken:P.dmgTaken, time:used,
     hard:!!G.hard, assist:!!G.assist, medals:got, newMedals, hardFirst, next:nextId || null, assistOffered:offerAssist};
   showOnly(['result']);
+  plat('result', {win, mission:M.id, rank, debug, pct:Math.round([1, 2, 3].filter(i => SAVE.cleared[i]).length / 3 * 100), boss:win && !!G.lordDead});
   try { $(nextId ? 'btnNext' : 'btnRetry').focus({preventScroll:true}); } catch(e){}
 }
 const MEDAL_NAMES = ['クリア', 'ランクA以上', ''];
@@ -3471,8 +3483,8 @@ window.addEventListener('keyup', (e) => {
   if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') keys.delete('dash');
   if (e.code === 'KeyJ' || e.code === 'Enter') keys.delete('fire');
 });
-window.addEventListener('blur', () => { keys.clear(); input.fire = false; if (G.state === 'play') pauseGame(); });
-document.addEventListener('visibilitychange', () => { if (document.hidden && G.state === 'play') pauseGame(); });
+window.addEventListener('blur', () => { keys.clear(); input.fire = false; if (G.state === 'play') pauseGame(true); });
+document.addEventListener('visibilitychange', () => { if (document.hidden && G.state === 'play') pauseGame(true); });
 
 const glEl = renderer.domElement;
 let mouseDown = false;
@@ -3608,12 +3620,12 @@ function buyUpgrade(k){
 $('launch').addEventListener('pointerdown', (e) => { e.preventDefault(); skipLaunch(); });
 $('btnResume').addEventListener('click', () => { snd('uiClick'); resumeGame(); });
 $('btnPauseTitle').addEventListener('click', () => { snd('uiClick'); goTitle(); });
-$('btnRetry').addEventListener('click', () => { initAudio(); snd('uiClick'); startLaunch(M.id); });
+$('btnRetry').addEventListener('click', () => { initAudio(); snd('uiClick'); afterAd(() => startLaunch(M.id)); });
 $('btnNext').addEventListener('click', () => {
   const id = M.id + 1; if (!MISSIONS[id] || !mUnlocked(id)) return;
-  initAudio(); snd('uiClick'); selMission = id; store.set('grandstride_mission', id); startLaunch(id);
+  initAudio(); snd('uiClick'); selMission = id; store.set('grandstride_mission', id); afterAd(() => startLaunch(id));
 });
-$('btnAssist').addEventListener('click', () => { initAudio(); snd('uiClick'); setAssist(true); startLaunch(M.id); });
+$('btnAssist').addEventListener('click', () => { initAudio(); snd('uiClick'); setAssist(true); afterAd(() => startLaunch(M.id)); });
 $('tglHard').addEventListener('click', (e) => { e.stopPropagation(); initAudio(); snd('uiClick'); setHard(!SAVE.hard); });
 $('tglAssist').addEventListener('click', (e) => { e.stopPropagation(); initAudio(); snd('uiClick'); setAssist(!SAVE.assist); });
 function setHard(on){ SAVE.hard = !!on; writeSave(); if (G.state === 'title') refreshTitle(); return SAVE.hard; }
@@ -3621,7 +3633,7 @@ function setAssist(on){ SAVE.assist = !!on; writeSave(); if (G.state === 'title'
 $('btnToTitle').addEventListener('click', () => { snd('uiClick'); goTitle(); });
 (function(){
   const v = $('vol'); v.value = store.get('grandstride_vol', '80');
-  v.addEventListener('input', () => { snd('setMaster', v.value / 100); store.set('grandstride_vol', v.value); });
+  v.addEventListener('input', () => { snd('setMaster', masterOf(v.value / 100)); store.set('grandstride_vol', v.value); });
 })();
 function skipLaunch(){
   if (G.state !== 'launch') return;

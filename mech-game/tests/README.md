@@ -20,5 +20,6 @@ Playwright（Chromium）でゲームを実際に動かして確認するテス�
 | `t8_hangar.js` | 整備（購入、反映、保存、初期化） |
 | `t9_daily.js` | 今日の作戦目標と STREAK |
 | `t10_launch.js` | 出撃演出（初回フル、2回目以降の短縮版） |
+| `t11_crazygames.js` | CrazyGames 版（`GAME_DIR=dist/crazygames`）：SDK の代役で gameplayStart/Stop、広告のタイミング、ミュート、Data モジュールのセーブ |
 | `weakhit_fps.js` | 指定した fps で弱点に弾が当たるかの再現（例: `node weakhit_fps.js 60 2 1`） |
 | `smoke_*.js`, `dbg_*.js`, `scenehook.js` | 動作確認用の補助スクリプト |
