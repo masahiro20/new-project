@@ -31,7 +31,7 @@ export const GUIDE_CATEGORIES: { id: string; name: string; slugs: string[] }[] =
   {
     id: "shidou",
     name: "運営指導と減算への対応",
-    slugs: ["unei-shidou-junbi", "unei-shidou-tsuchi", "unei-shidou-shiteki-jidou", "gensan-kaizen-keikaku"],
+    slugs: ["unei-shidou-junbi", "unei-shidou-tsuchi", "unei-shidou-shiteki-jidou", "gensan-kaizen-keikaku", "kinmu-keitai-ichiran"],
   },
 ];
 
