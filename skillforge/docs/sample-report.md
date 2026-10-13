@@ -101,3 +101,10 @@ Usage: Lady Lisette ×3 · Lisette ×1 · Lisette-sama ×1
 
 4 packet(s) for the reviewer: voice — リゼット / Lisette (12 lines); voice — ミナ / Mina (10 lines); voice — トビアス / Tobias (8 lines); unglossaried-term — 封印術 (4 lines)
 
+
+## 公開サンプル監査レポート（2本）
+
+- 1本目：`site/sample-report/` — Battle for Wesnoth の日本語訳（.po、GPL-2.0+）。問題20件を選んで掲載。生成：`scripts/sample-report.mjs`
+- 2本目：`site/sample-report-2/` — Ren'Py 公式チュートリアルの日本語訳（`tutorial/game/tl/japanese/` の10ファイル・776件、MIT）。指摘は全11件（エラー0・警告10・参考1）をすべて掲載。生成：`scripts/sample-report-renpy.mjs`（`--verify` で件数と抜粋を原本と照合）。固定コミット `e58fd737`。調整にも精度の測定にも使っていない。
+- どちらも、一言の説明と修正案は AI によるもの（人の確認ではない）と明記。精度の数字は載せていない。
+- 再生成：`node scripts/sample-report-renpy.mjs && node web/build-site.mjs`

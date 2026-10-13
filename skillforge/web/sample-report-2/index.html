@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="ja" class="l-ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>サンプル監査レポート 2（Ren'Py） — Kotomark（仮称）</title>
+<meta name="description" content="Ren'Py 公式チュートリアルの日本語訳（776件の文字列）を Kotomark で検査した結果のサンプル。指摘11件のすべてを、原文・訳文・修正案付きで掲載。">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%231c4a86'/%3E%3Cpath d='M9 8v16M9 16l9-8M12.5 13l6 11' stroke='%23fff' stroke-width='3' fill='none' stroke-linecap='square'/%3E%3Ccircle cx='24' cy='23' r='2.6' fill='%23e0533d'/%3E%3C/svg%3E">
+<style>
+:root {
+  --bg: #f2f3f1; --bg-band: #e8eae7; --surface: #ffffff;
+  --ink: #14171c; --ink-2: #3f444d; --ink-3: #5d636d;
+  --rule: #d2d5d1; --rule-strong: #14171c;
+  --accent: #1c4a86; --accent-hover: #143a6c; --accent-ink: #ffffff; --accent-soft: #e1e8f3;
+  --mark: #b8321f; --mark-soft: #f8e3df; --warn: #8a5a00; --warn-soft: #f6ecd6;
+  --ok: #2c6a4a; --ok-soft: #dfeee5; --focus: #1c4a86;
+  --font-ui: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Meiryo", "Noto Sans JP", system-ui, sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --radius: 4px; --wrap: 960px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1217; --bg-band: #141820; --surface: #191e27;
+    --ink: #e7e9ed; --ink-2: #bcc2cc; --ink-3: #9aa1ad;
+    --rule: #2c323d; --rule-strong: #e7e9ed;
+    --accent: #8db3ec; --accent-hover: #b0cbf3; --accent-ink: #0f1217; --accent-soft: #1d2a3f;
+    --mark: #ff8f7a; --mark-soft: #3a1f1b; --warn: #f0c36a; --warn-soft: #33290f;
+    --ok: #82cfa3; --ok-soft: #17301f; --focus: #8db3ec;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1217; --bg-band: #141820; --surface: #191e27; --ink: #e7e9ed; --ink-2: #bcc2cc; --ink-3: #9aa1ad;
+  --rule: #2c323d; --rule-strong: #e7e9ed; --accent: #8db3ec; --accent-hover: #b0cbf3; --accent-ink: #0f1217;
+  --accent-soft: #1d2a3f; --mark: #ff8f7a; --mark-soft: #3a1f1b; --warn: #f0c36a; --warn-soft: #33290f;
+  --ok: #82cfa3; --ok-soft: #17301f; --focus: #8db3ec;
+}
+.l-ja .t[lang="en"], .l-en .t[lang="ja"] { display: none !important; }
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-ui); font-size: 16px; line-height: 1.75; overflow-wrap: anywhere; }
+:lang(en) { line-height: 1.6; }
+h1, h2, h3 { line-height: 1.35; margin: 0; }
+p, ul, ol, dl, dd { margin: 0; }
+a { color: var(--accent); text-underline-offset: 3px; }
+a:hover { color: var(--accent-hover); }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; border-radius: 2px; }
+code, .mono { font-family: var(--font-mono); font-size: .9em; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.skip { position: absolute; left: -9999px; top: 8px; z-index: 10; background: var(--surface); color: var(--ink); padding: 8px 12px; border: 2px solid var(--focus); }
+.skip:focus { left: 16px; }
+.wrap { max-width: var(--wrap); margin: 0 auto; padding-inline: 24px; }
+@media (max-width: 600px) { .wrap { padding-inline: 16px; } }
+
+.site-head { border-bottom: 1px solid var(--rule); background: var(--bg); }
+.site-head .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 60px; flex-wrap: wrap; }
+.brand { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; font-weight: 700; font-size: 17px; }
+.brand small { font-weight: 400; font-size: 12px; color: var(--ink-3); }
+@media (max-width: 420px) { .brand small { display: none; } }
+.lang { display: inline-flex; border: 1px solid var(--rule-strong); border-radius: var(--radius); overflow: hidden; }
+.lang button { font: inherit; font-size: 13px; line-height: 1; padding: 8px 10px; min-height: 36px; border: 0; cursor: pointer; background: transparent; color: var(--ink); white-space: nowrap; }
+.lang button + button { border-left: 1px solid var(--rule-strong); }
+.lang button[aria-pressed="true"] { background: var(--ink); color: var(--bg); font-weight: 700; }
+.lang button:focus-visible { outline-offset: -3px; }
+
+.intro { padding: 40px 0 32px; }
+.eyebrow { font-family: var(--font-mono); font-size: 13px; color: var(--ink-3); margin-bottom: 12px; }
+.intro h1 { font-size: clamp(24px, 4vw, 34px); }
+.lede { margin-top: 16px; font-size: 18px; color: var(--ink-2); max-width: 44em; }
+.lede strong { color: var(--ink); }
+.facts { margin-top: 20px; font-size: 14px; color: var(--ink-3); }
+.facts a { color: inherit; }
+
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); gap: 12px; margin-top: 28px; padding: 0; list-style: none; }
+.stat { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); padding: 14px 16px; }
+.stat .n { display: block; font-family: var(--font-mono); font-size: 28px; line-height: 1.2; font-weight: 500; }
+.stat .l { font-size: 13px; color: var(--ink-2); }
+.stat.s-error .n { color: var(--mark); }
+.stat.s-warning .n { color: var(--warn); }
+
+.band { padding: 40px 0; border-top: 1px solid var(--rule); }
+.band.alt { background: var(--bg-band); }
+.band h2 { font-size: clamp(20px, 3vw, 26px); margin-bottom: 14px; }
+.band > .wrap > p { color: var(--ink-2); max-width: 46em; }
+.table-scroll { overflow-x: auto; margin-top: 16px; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; background: var(--surface); border: 1px solid var(--rule); }
+th, td { padding: 8px 10px; border-bottom: 1px solid var(--rule); text-align: right; }
+thead th { font-size: 12px; color: var(--ink-3); font-weight: 500; }
+th[scope="row"], thead th:first-child { text-align: left; font-weight: 400; }
+td { font-family: var(--font-mono); }
+.zero { color: var(--ink-3); }
+tfoot td, tfoot th { font-weight: 700; border-bottom: 0; }
+.table-note { margin-top: 10px; font-size: 13px; color: var(--ink-3); }
+
+.cards { list-style: none; padding: 0; margin: 20px 0 0; display: grid; gap: 16px; }
+.card { background: var(--surface); border: 1px solid var(--rule); border-left: 4px solid var(--ink-3); border-radius: var(--radius); padding: 16px 18px 18px; }
+.card.sev-error { border-left-color: var(--mark); }
+.card.sev-warning { border-left-color: var(--warn); }
+.card-head { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 12px; align-items: baseline; }
+.card-head .num { font-family: var(--font-mono); font-size: 13px; color: var(--ink-3); }
+.card-head h3 { font-size: 17px; }
+.card-head .loc { grid-column: 2; font-family: var(--font-mono); font-size: 13px; }
+.sev { display: inline-block; font-size: 12px; font-weight: 700; padding: 0 8px; border-radius: 2px; margin-right: 6px; vertical-align: 2px; background: var(--bg-band); color: var(--ink-2); }
+.sev-error .sev { background: var(--mark-soft); color: var(--mark); }
+.sev-warning .sev { background: var(--warn-soft); color: var(--warn); }
+.pair { margin-top: 12px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px 16px; }
+@media (max-width: 640px) { .pair { grid-template-columns: minmax(0, 1fr); } }
+.pair > div { border-top: 1px dashed var(--rule); padding-top: 8px; }
+.pair dt { font-size: 12px; color: var(--ink-3); }
+.pair dd { font-size: 15px; }
+.pair q { quotes: "“" "”"; }
+.pair q:lang(ja) { quotes: "「" "」"; }
+.empty { color: var(--mark); font-size: 14px; }
+.what { margin-top: 12px; color: var(--ink-2); font-size: 15px; }
+.related { margin-top: 6px; font-size: 13px; color: var(--ink-3); }
+.related a { font-family: var(--font-mono); margin-right: 6px; }
+.fix { margin-top: 12px; background: var(--ok-soft); border-radius: var(--radius); padding: 10px 12px; }
+.fix-label { font-size: 12px; color: var(--ok); font-weight: 700; }
+.fix-text { font-size: 15px; }
+
+.method ul { padding-left: 1.2em; display: grid; gap: 8px; max-width: 48em; color: var(--ink-2); font-size: 15px; }
+.cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; font: inherit; font-weight: 700; font-size: 16px; text-decoration: none; padding: 12px 20px; min-height: 48px; border-radius: var(--radius); background: var(--accent); color: var(--accent-ink); border: 1px solid var(--accent); }
+.btn:hover { background: var(--accent-hover); border-color: var(--accent-hover); color: var(--accent-ink); }
+.btn.ghost { background: transparent; color: var(--ink); border-color: var(--rule-strong); }
+.btn.ghost:hover { background: var(--surface); color: var(--ink); }
+
+.site-foot { border-top: 1px solid var(--rule); padding: 28px 0 40px; font-size: 13px; color: var(--ink-3); }
+.site-foot .wrap { display: grid; gap: 8px; }
+@media print { .lang, .cta, .skip { display: none; } .card { break-inside: avoid; } body { background: #fff; } }
+</style>
+<script>
+(function () {
+  var saved = null;
+  try { saved = localStorage.getItem("kotomark-lp-lang"); } catch (e) { saved = null; }
+  var nav = "";
+  try { nav = (navigator.languages && navigator.languages[0]) || navigator.language || ""; } catch (e) { nav = ""; }
+  var lang = (saved === "ja" || saved === "en") ? saved : (/^ja\b/i.test(nav) ? "ja" : "en");
+  var root = document.documentElement;
+  root.classList.remove("l-ja", "l-en");
+  root.classList.add("l-" + lang);
+  root.lang = lang;
+})();
+</script>
+</head>
+<body>
+<a class="skip" href="#main"><span class="t" lang="ja">本文へ移動</span><span class="t" lang="en">Skip to content</span></a>
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="../">
+      <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><rect width="32" height="32" rx="4" fill="currentColor"/><path d="M9 8v16M9 16l9-8M12.5 13l6 11" stroke="var(--bg)" stroke-width="3" fill="none" stroke-linecap="square"/><circle cx="24" cy="23" r="2.6" fill="var(--mark)"/></svg>
+      <span>Kotomark <small><span class="t" lang="ja">（仮称）</span><span class="t" lang="en">(working name)</span></small></span>
+    </a>
+    <div class="lang" role="group" aria-label="Language / 言語">
+      <button type="button" data-set-lang="ja" lang="ja" aria-pressed="true">日本語</button>
+      <button type="button" data-set-lang="en" lang="en" aria-pressed="false">English</button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+<section class="intro" aria-labelledby="title">
+  <div class="wrap">
+    <p class="eyebrow"><span class="t" lang="ja">サンプル監査レポート 2</span><span class="t" lang="en">Sample audit report 2</span> · Ren'Py · EN → JA</p>
+    <h1 id="title"><span class="t" lang="ja">台本形式（Ren'Py）の翻訳ファイルで、直すべき箇所を見つける</span><span class="t" lang="en">Finding what to fix in a Ren'Py script translation</span></h1>
+    <p class="lede"><span class="t" lang="ja">Ren'Py 公式チュートリアル（ゲーム形式のデモ）の日本語訳（10ファイル・776件の文字列、台詞・選択肢・画面の文字列）を Kotomark で検査すると、<strong>11件の指摘</strong>（エラー0・警告10・参考1）が出ました。<strong>全11件</strong>を、原文・訳文・修正案付きで掲載します。</span><span class="t" lang="en">Kotomark run on the Japanese translation of the official Ren'Py tutorial (a game-style demo; 10 files, 776 strings of dialogue, menu choices and screen text) returned <strong>11 findings</strong> (0 errors, 10 warnings, 1 info). <strong>All 11</strong> are shown below, each with source, target and a suggested fix.</span></p>
+    <p class="facts"><span class="t" lang="ja">対象：<code>tutorial/game/tl/japanese/</code> の 10 ファイル（776件）。このページで行番号を示すのは <a href="https://github.com/renpy/renpy/blob/e58fd737ebcbcad20240d80cf821be5a0ffd2dc1/tutorial/game/tl/japanese/common.rpy">common.rpy</a>（Ren'Py 共通の画面・メッセージの文字列、358件）と <a href="https://github.com/renpy/renpy/blob/e58fd737ebcbcad20240d80cf821be5a0ffd2dc1/tutorial/game/tl/japanese/tutorial_screens.rpy">tutorial_screens.rpy</a>（チュートリアル（スクリーン編）の台詞・選択肢、113件）。コミット <code>e58fd73</code>。2026-10-13 実行、既定の設定・用語集なし。</span><span class="t" lang="en">Files: the 10 files in <code>tutorial/game/tl/japanese/</code> (776 strings). Findings fall in <a href="https://github.com/renpy/renpy/blob/e58fd737ebcbcad20240d80cf821be5a0ffd2dc1/tutorial/game/tl/japanese/common.rpy">common.rpy</a> (Ren'Py common UI and messages, 358 strings) and <a href="https://github.com/renpy/renpy/blob/e58fd737ebcbcad20240d80cf821be5a0ffd2dc1/tutorial/game/tl/japanese/tutorial_screens.rpy">tutorial_screens.rpy</a> (tutorial, screens chapter: dialogue and menu choices, 113 strings). Commit <code>e58fd73</code>. Run on 2026-10-13 with default settings and no glossary.</span></p>
+    <ul class="stats" aria-label="Summary / 概要">
+      <li class="stat"><span class="n">776</span><span class="l"><span class="t" lang="ja">検査した文字列</span><span class="t" lang="en">strings checked</span></span></li>
+      <li class="stat s-error"><span class="n">0</span><span class="l"><span class="t" lang="ja">エラー</span><span class="t" lang="en">errors</span></span></li>
+      <li class="stat s-warning"><span class="n">10</span><span class="l"><span class="t" lang="ja">警告</span><span class="t" lang="en">warnings</span></span></li>
+      <li class="stat"><span class="n">1</span><span class="l"><span class="t" lang="ja">参考</span><span class="t" lang="en">info</span></span></li>
+      <li class="stat"><span class="n">11</span><span class="l"><span class="t" lang="ja">このページに掲載（全件）</span><span class="t" lang="en">shown here (all)</span></span></li>
+    </ul>
+  </div>
+</section>
+
+<section class="band alt" aria-labelledby="counts-title">
+  <div class="wrap">
+    <h2 id="counts-title"><span class="t" lang="ja">指摘の内訳</span><span class="t" lang="en">Findings by check</span></h2>
+    <p><span class="t" lang="ja">公式の翻訳だけあって、エラーはありません。残った指摘の大半は、長音の有無による片仮名の表記揺れ（「プロパティ」と「プロパティー」など）です。画面の不具合にはなりませんが、用語集や表記ルールのあるプロジェクトでは、統一の対象になります。</span><span class="t" lang="en">As expected from an official translation, there are no errors. Most of what is left is katakana notation drift caused by the long-vowel mark (「プロパティ」 vs 「プロパティー」). It does not break the screen, but it is what a project with a glossary or style guide would want unified.</span></p>
+    <div class="table-scroll" tabindex="0" role="region" aria-labelledby="counts-title">
+      <table>
+        <thead>
+          <tr><th scope="col"><span class="t" lang="ja">検査</span><span class="t" lang="en">Check</span></th><th scope="col"><span class="t" lang="ja">エラー</span><span class="t" lang="en">Error</span></th><th scope="col"><span class="t" lang="ja">警告</span><span class="t" lang="en">Warning</span></th><th scope="col"><span class="t" lang="ja">参考</span><span class="t" lang="en">Info</span></th><th scope="col"><span class="t" lang="ja">計</span><span class="t" lang="en">Total</span></th><th scope="col"><span class="t" lang="ja">掲載</span><span class="t" lang="en">Shown</span></th></tr>
+        </thead>
+        <tbody>
+            <tr><th scope="row"><span class="t" lang="ja">カタカナの表記揺れ</span><span class="t" lang="en">Katakana notation drift</span></th><td><span class="zero">–</span></td><td>9</td><td><span class="zero">–</span></td><td><b>9</b></td><td>9</td></tr>
+            <tr><th scope="row"><span class="t" lang="ja">未翻訳（空欄）</span><span class="t" lang="en">Untranslated (empty)</span></th><td><span class="zero">–</span></td><td>1</td><td><span class="zero">–</span></td><td><b>1</b></td><td>1</td></tr>
+            <tr><th scope="row"><span class="t" lang="ja">原文と同じ訳文</span><span class="t" lang="en">Translation identical to source</span></th><td><span class="zero">–</span></td><td><span class="zero">–</span></td><td>1</td><td><b>1</b></td><td>1</td></tr>
+        </tbody>
+        <tfoot>
+          <tr><th scope="row"><span class="t" lang="ja">合計</span><span class="t" lang="en">Total</span></th><td>0</td><td>10</td><td>1</td><td>11</td><td>11</td></tr>
+        </tfoot>
+      </table>
+    </div>
+    <p class="table-note"><span class="t" lang="ja">重大度は Kotomark の既定の区分です。</span><span class="t" lang="en">Severities are Kotomark's defaults.</span></p>
+  </div>
+</section>
+
+<section class="band" aria-labelledby="top-title">
+  <div class="wrap">
+    <h2 id="top-title"><span class="t" lang="ja">指摘 全11件</span><span class="t" lang="en">All 11 findings</span></h2>
+    <p><span class="t" lang="ja">選別はせず、出た指摘をすべて載せています。行番号のリンクは固定コミットの GitHub 上の該当行を開きます。原文・訳文は Ren'Py の作者・翻訳者によるもので、短い抜粋として引用しています（MIT ライセンス）。</span><span class="t" lang="en">Nothing is cherry-picked: every finding is listed. Each line link opens that line on GitHub at the pinned commit. Source and target text is by the Ren'Py authors and translators, quoted as short excerpts (MIT license).</span></p>
+    <ol class="cards">
+    <li class="card sev-warning">
+      <article aria-labelledby="f1-h">
+        <header class="card-head">
+          <span class="num" aria-hidden="true">01</span>
+          <h3 id="f1-h"><span class="sev"><span class="t" lang="ja">警告</span><span class="t" lang="en">Warning</span></span> <span class="t" lang="ja">カタカナの表記揺れ</span><span class="t" lang="en">Katakana notation drift</span></h3>
+          <a class="loc" href="https://github.com/renpy/renpy/blob/e58fd737ebcbcad20240d80cf821be5a0ffd2dc1/tutorial/game/tl/japanese/common.rpy#L1198"><span class="sr-only"><span class="t" lang="ja">GitHub で開く：</span><span class="t" lang="en">Open on GitHub: </span></span>common.rpy:1198</a>
+        </header>
+        <dl class="pair">
+          <div><dt><span class="t" lang="ja">原文（英語）</span><span class="t" lang="en">Source (EN)</span></dt><dd><q lang="en">The {a=edit:1:log.txt}log.txt{/a} file may contain information to help you determine what is wrong with your computer.</q></dd></div>
+          <div><dt><span class="t" lang="ja">訳文（日本語）</span><span class="t" lang="en">Target (JA)</span></dt><dd><q lang="ja">{a=edit:1:log.txt}log.txt{/a} ファイルにある情報は何があなたのコンピュータで問題になっているか探る手助けになるでしょう</q></dd></div>
+        </dl>
+        <p class="what"><span class="t" lang="ja">同じファイルの別の5か所は「コンピューター」（長音あり）です。この行だけ「コンピュータ」です。</span><span class="t" lang="en">The other five places in these files write 「コンピューター」 with the long-vowel mark; only this line writes 「コンピュータ」.</span></p>
+        
+        <div class="fix">
+          <p class="fix-label"><span class="t" lang="ja">修正案（AIの提案。表記ルールに合わせて確認してください）</span><span class="t" lang="en">Suggested fix (AI suggestion; check against your style rules)</span></p>
+          <p class="fix-text" lang="ja">コンピュータ → コンピューター（多数派の表記）</p>
+        </div>
+      </article>
+    </li>
+    <li class="card sev-warning">
+      <article aria-labelledby="f2-h">
+        <header class="card-head">
+          <span class="num" aria-hidden="true">02</span>
+          <h3 id="f2-h"><span class="sev"><span class="t" lang="ja">警告</span><span class="t" lang="en">Warning</span></span> <span class="t" lang="ja">カタカナの表記揺れ</span><span class="t" lang="en">Katakana notation drift</span></h3>
+          <a class="loc" href="https://github.com/renpy/renpy/blob/e58fd737ebcbcad20240d80cf821be5a0ffd2dc1/tutorial/game/tl/japanese/tutorial_screens.rpy#L96"><span class="sr-only"><span class="t" lang="ja">GitHub で開く：</span><span class="t" lang="en">Open on GitHub: </span></span>tutorial_screens.rpy:96</a>
+        </header>
+        <dl class="pair">
+          <div><dt><span class="t" lang="ja">原文（英語）</span><span class="t" lang="en">Source (EN)</span></dt><dd><q lang="en">Inside the screen statement, lines introduces displayables such as frame, vbox, text, and textbutton;…</q></dd></div>
+          <div><dt><span class="t" lang="ja">訳文（日本語）</span><span class="t" lang="en">Target (JA)</span></dt><dd><q lang="ja">screenステートメント内にはframe、vbox、text、textbuttonといったdisplayablesやaction、xalign、yposのようなプロパティを導入する行があります。</q></dd></div>
+        </dl>
+        <p class="what"><span class="t" lang="ja">長音のない「プロパティ」です。同じ翻訳ファイル群では「プロパティー」が29か所で多数派です（tutorial_atl.rpy など）。</span><span class="t" lang="en">This line writes 「プロパティ」 without the long-vowel mark; 「プロパティー」 is the majority form (29 uses across these files, e.g. in tutorial_atl.rpy).</span></p>
+        
+        <div class="fix">
+          <p class="fix-label"><span class="t" lang="ja">修正案（AIの提案。表記ルールに合わせて確認してください）</span><span class="t" lang="en">Suggested fix (AI suggestion; check against your style rules)</span></p>
+          <p class="fix-text" lang="ja">プロパティ → プロパティー（多数派の表記）</p>
+        </div>
+      </article>
+    </li>
+    <li class="card sev-warning">
+      <article aria-labelledby="f3-h">
+        <header class="card-head">
+          <span class="num" aria-hidden="true">03</span>
+          <h3 id="f3-h"><span class="sev"><span class="t" lang="ja">警告</span><span class="t" lang="en">Warning</span></span> <span class="t" lang="ja">カタカナの表記揺れ</span><span class="t" lang="en">Katakana notation drift</span></h3>
+          <a class="loc" href="https://github.com/renpy/renpy/blob/e58fd737ebcbcad20240d80cf821be5a0ffd2dc1/tutorial/game/tl/japanese/tutorial_screens.rpy#L126"><span class="sr-only"><span class="t" lang="ja">GitHub で開く：</span><span class="t" lang="en">Open on GitHub: </span></span>tutorial_screens.rpy:126</a>
+        </header>
+        <dl class="pair">
+          <div><dt><span class="t" lang="ja">原文（英語）</span><span class="t" lang="en">Source (EN)</span></dt><dd><q lang="en">And that is inside a frame that provides the background and borders.…</q></dd></div>
+          <div><dt><span class="t" lang="ja">訳文（日本語）</span><span class="t" lang="en">Target (JA)</span></dt><dd><q lang="ja">また、これは背景や境界線を指定されたフレームの中にあります。このフレームは位置を与えるTransformを行うatプロパティを持ちます。</q></dd></div>
+        </dl>
+        <p class="what"><span class="t" lang="ja">長音のない「プロパティ」です。同じ翻訳ファイル群では「プロパティー」が29か所で多数派です（tutorial_atl.rpy など）。</span><span class="t" lang="en">This line writes 「プロパティ」 without the long-vowel mark; 「プロパティー」 is the majority form (29 uses across these files, e.g. in tutorial_atl.rpy).</span></p>
+        
+        <div class="fix">
+          <p class="fix-label"><span class="t" lang="ja">修正案（AIの提案。表記ルールに合わせて確認してください）</span><span class="t" lang="en">Suggested fix (AI suggestion; check against your style rules)</span></p>
+          <p class="fix-text" lang="ja">プロパティ → プロパティー（多数派の表記）</p>
+        </div>
+      </article>
+    </li>
+    <li class="card sev-warning">
+      <article aria-labelledby="f4-h">
+        <header class="card-head">
+          <span class="num" aria-hidden="true">04</span>
+          <h3 id="f4-h"><span class="sev"><span class="t" lang="ja">警告</span><span class="t" lang="en">Warning</span></span> <span class="t" lang="ja">カタカナの表記揺れ</span><span class="t" lang="en">Katakana notation drift</span></h3>
+          <a class="loc" href="https://github.com/renpy/renpy/blob/e58fd737ebcbcad20240d80cf821be5a0ffd2dc1/tutorial/game/tl/japanese/tutorial_screens.rpy#L216"><span class="sr-only"><span class="t" lang="ja">GitHub で開く：</span><span class="t" lang="en">Open on GitHub: </span></span>tutorial_screens.rpy:216</a>
+        </header>
+        <dl class="pair">
+          <div><dt><span class="t" lang="ja">原文（英語）</span><span class="t" lang="en">Source (EN)</span></dt><dd><q lang="en">There are a few properties that can be applied to a screen itself.</q></dd></div>
+          <div><dt><span class="t" lang="ja">訳文（日本語）</span><span class="t" lang="en">Target (JA)</span></dt><dd><q lang="ja">スクリーン自身にもいくつか適用されるプロパティがあります。</q></dd></div>
+        </dl>
+        <p class="what"><span class="t" lang="ja">長音のない「プロパティ」です。同じ翻訳ファイル群では「プロパティー」が29か所で多数派です（tutorial_atl.rpy など）。</span><span class="t" lang="en">This line writes 「プロパティ」 without the long-vowel mark; 「プロパティー」 is the majority form (29 uses across these files, e.g. in tutorial_atl.rpy).</span></p>
+        
+        <div class="fix">
+          <p class="fix-label"><span class="t" lang="ja">修正案（AIの提案。表記ルールに合わせて確認してください）</span><span class="t" lang="en">Suggested fix (AI suggestion; check against your style rules)</span></p>
+          <p class="fix-text" lang="ja">プロパティ → プロパティー（多数派の表記）</p>
+        </div>
+      </article>
+    </li>
+    <li class="card sev-warning">
+      <article aria-labelledby="f5-h">
+        <header class="card-head">
+          <span class="num" aria-hidden="true">05</span>
+          <h3 id="f5-h"><span class="sev"><span class="t" lang="ja">警告</span><span class="t" lang="en">Warning</span></span> <span class="t" lang="ja">カタカナの表記揺れ</span><span class="t" lang="en">Katakana notation drift</span></h3>
+          <a class="loc" href="https://github.com/renpy/renpy/blob/e58fd737ebcbcad20240d80cf821be5a0ffd2dc1/tutorial/game/tl/japanese/tutorial_screens.rpy#L222"><span class="sr-only"><span class="t" lang="ja">GitHub で開く：</span><span class="t" lang="en">Open on GitHub: </span></span>tutorial_screens.rpy:222</a>
+        </header>
+        <dl class="pair">
+          <div><dt><span class="t" lang="ja">原文（英語）</span><span class="t" lang="en">Source (EN)</span></dt><dd><q lang="en">When the modal property is true, you can't interact with things beneath the screen.…</q></dd></div>
+          <div><dt><span class="t" lang="ja">訳文（日本語）</span><span class="t" lang="en">Target (JA)</span></dt><dd><q lang="ja">modalプロパティがtrueのとき、このスクリーンの下にあるものには触れることができません。続けるには「このスクリーンを閉じる」をクリックしてください。</q></dd></div>
+        </dl>
+        <p class="what"><span class="t" lang="ja">長音のない「プロパティ」です。同じ翻訳ファイル群では「プロパティー」が29か所で多数派です（tutorial_atl.rpy など）。</span><span class="t" lang="en">This line writes 「プロパティ」 without the long-vowel mark; 「プロパティー」 is the majority form (29 uses across these files, e.g. in tutorial_atl.rpy).</span></p>
+        
+        <div class="fix">
+          <p class="fix-label"><span class="t" lang="ja">修正案（AIの提案。表記ルールに合わせて確認してください）</span><span class="t" lang="en">Suggested fix (AI suggestion; check against your style rules)</span></p>
+          <p class="fix-text" lang="ja">プロパティ → プロパティー（多数派の表記）</p>
+        </div>
+      </article>
+    </li>
+    <li class="card sev-warning">
+      <article aria-labelledby="f6-h">
+        <header class="card-head">
+          <span class="num" aria-hidden="true">06</span>
+          <h3 id="f6-h"><span class="sev"><span class="t" lang="ja">警告</span><span class="t" lang="en">Warning</span></span> <span class="t" lang="ja">カタカナの表記揺れ</span><span class="t" lang="en">Katakana notation drift</span></h3>
+          <a class="loc" href="https://github.com/renpy/renpy/blob/e58fd737ebcbcad20240d80cf821be5a0ffd2dc1/tutorial/game/tl/japanese/tutorial_screens.rpy#L228"><span class="sr-only"><span class="t" lang="ja">GitHub で開く：</span><span class="t" lang="en">Open on GitHub: </span></span>tutorial_screens.rpy:228</a>
+        </header>
+        <dl class="pair">
+          <div><dt><span class="t" lang="ja">原文（英語）</span><span class="t" lang="en">Source (EN)</span></dt><dd><q lang="en">When a screen has the tag property, it's treated like the tag part of an image name. Here, I'm showing a_tag_screen.</q></dd></div>
+          <div><dt><span class="t" lang="ja">訳文（日本語）</span><span class="t" lang="en">Target (JA)</span></dt><dd><q lang="ja">スクリーンがtagプロパティを持っていると、画像名のタグの部分のように扱われます。今、私はa_tag_screenを表示しています。</q></dd></div>
+        </dl>
+        <p class="what"><span class="t" lang="ja">長音のない「プロパティ」です。同じ翻訳ファイル群では「プロパティー」が29か所で多数派です（tutorial_atl.rpy など）。</span><span class="t" lang="en">This line writes 「プロパティ」 without the long-vowel mark; 「プロパティー」 is the majority form (29 uses across these files, e.g. in tutorial_atl.rpy).</span></p>
+        
+        <div class="fix">
+          <p class="fix-label"><span class="t" lang="ja">修正案（AIの提案。表記ルールに合わせて確認してください）</span><span class="t" lang="en">Suggested fix (AI suggestion; check against your style rules)</span></p>
+          <p class="fix-text" lang="ja">プロパティ → プロパティー（多数派の表記）</p>
+        </div>
+      </article>
+    </li>
+    <li class="card sev-warning">
+      <article aria-labelledby="f7-h">
+        <header class="card-head">
+          <span class="num" aria-hidden="true">07</span>
+          <h3 id="f7-h"><span class="sev"><span class="t" lang="ja">警告</span><span class="t" lang="en">Warning</span></span> <span class="t" lang="ja">カタカナの表記揺れ</span><span class="t" lang="en">Katakana notation drift</span></h3>
+          <a class="loc" href="https://github.com/renpy/renpy/blob/e58fd737ebcbcad20240d80cf821be5a0ffd2dc1/tutorial/game/tl/japanese/tutorial_screens.rpy#L252"><span class="sr-only"><span class="t" lang="ja">GitHub で開く：</span><span class="t" lang="en">Open on GitHub: </span></span>tutorial_screens.rpy:252</a>
+        </header>
+        <dl class="pair">
+          <div><dt><span class="t" lang="ja">原文（英語）</span><span class="t" lang="en">Source (EN)</span></dt><dd><q lang="en">The zorder property controls the order in which screens overlap each other.…</q></dd></div>
+          <div><dt><span class="t" lang="ja">訳文（日本語）</span><span class="t" lang="en">Target (JA)</span></dt><dd><q lang="ja">zorderプロパティは互いに重なるスクリーンの順序を制御します。zorderの数字が大きいほどプレイヤーに近いスクリーンとなります。</q></dd></div>
+        </dl>
+        <p class="what"><span class="t" lang="ja">長音のない「プロパティ」です。同じ翻訳ファイル群では「プロパティー」が29か所で多数派です（tutorial_atl.rpy など）。</span><span class="t" lang="en">This line writes 「プロパティ」 without the long-vowel mark; 「プロパティー」 is the majority form (29 uses across these files, e.g. in tutorial_atl.rpy).</span></p>
+        
+        <div class="fix">
+          <p class="fix-label"><span class="t" lang="ja">修正案（AIの提案。表記ルールに合わせて確認してください）</span><span class="t" lang="en">Suggested fix (AI suggestion; check against your style rules)</span></p>
+          <p class="fix-text" lang="ja">プロパティ → プロパティー（多数派の表記）</p>
+        </div>
+      </article>
+    </li>
+    <li class="card sev-warning">
+      <article aria-labelledby="f8-h">
+        <header class="card-head">
+          <span class="num" aria-hidden="true">08</span>
+          <h3 id="f8-h"><span class="sev"><span class="t" lang="ja">警告</span><span class="t" lang="en">Warning</span></span> <span class="t" lang="ja">カタカナの表記揺れ</span><span class="t" lang="en">Katakana notation drift</span></h3>
+          <a class="loc" href="https://github.com/renpy/renpy/blob/e58fd737ebcbcad20240d80cf821be5a0ffd2dc1/tutorial/game/tl/japanese/tutorial_screens.rpy#L264"><span class="sr-only"><span class="t" lang="ja">GitHub で開く：</span><span class="t" lang="en">Open on GitHub: </span></span>tutorial_screens.rpy:264</a>
+        </header>
+        <dl class="pair">
+          <div><dt><span class="t" lang="ja">原文（英語）</span><span class="t" lang="en">Source (EN)</span></dt><dd><q lang="en">The variant property selects a screen based on the properties of the device it's running on.</q></dd></div>
+          <div><dt><span class="t" lang="ja">訳文（日本語）</span><span class="t" lang="en">Target (JA)</span></dt><dd><q lang="ja">variantプロパティは起動しているデバイスに基づいて選択されます。</q></dd></div>
+        </dl>
+        <p class="what"><span class="t" lang="ja">長音のない「プロパティ」です。同じ翻訳ファイル群では「プロパティー」が29か所で多数派です（tutorial_atl.rpy など）。</span><span class="t" lang="en">This line writes 「プロパティ」 without the long-vowel mark; 「プロパティー」 is the majority form (29 uses across these files, e.g. in tutorial_atl.rpy).</span></p>
+        
+        <div class="fix">
+          <p class="fix-label"><span class="t" lang="ja">修正案（AIの提案。表記ルールに合わせて確認してください）</span><span class="t" lang="en">Suggested fix (AI suggestion; check against your style rules)</span></p>
+          <p class="fix-text" lang="ja">プロパティ → プロパティー（多数派の表記）</p>
+        </div>
+      </article>
+    </li>
+    <li class="card sev-warning">
+      <article aria-labelledby="f9-h">
+        <header class="card-head">
+          <span class="num" aria-hidden="true">09</span>
+          <h3 id="f9-h"><span class="sev"><span class="t" lang="ja">警告</span><span class="t" lang="en">Warning</span></span> <span class="t" lang="ja">カタカナの表記揺れ</span><span class="t" lang="en">Katakana notation drift</span></h3>
+          <a class="loc" href="https://github.com/renpy/renpy/blob/e58fd737ebcbcad20240d80cf821be5a0ffd2dc1/tutorial/game/tl/japanese/tutorial_screens.rpy#L276"><span class="sr-only"><span class="t" lang="ja">GitHub で開く：</span><span class="t" lang="en">Open on GitHub: </span></span>tutorial_screens.rpy:276</a>
+        </header>
+        <dl class="pair">
+          <div><dt><span class="t" lang="ja">原文（英語）</span><span class="t" lang="en">Source (EN)</span></dt><dd><q lang="en">Finally, the style_prefix property specifies a prefix that's applied to the styles in the screen.</q></dd></div>
+          <div><dt><span class="t" lang="ja">訳文（日本語）</span><span class="t" lang="en">Target (JA)</span></dt><dd><q lang="ja">最後に、style_prefixプロパティはスクリーン内で適用するスタイルの接頭辞を指定します。</q></dd></div>
+        </dl>
+        <p class="what"><span class="t" lang="ja">長音のない「プロパティ」です。同じ翻訳ファイル群では「プロパティー」が29か所で多数派です（tutorial_atl.rpy など）。</span><span class="t" lang="en">This line writes 「プロパティ」 without the long-vowel mark; 「プロパティー」 is the majority form (29 uses across these files, e.g. in tutorial_atl.rpy).</span></p>
+        
+        <div class="fix">
+          <p class="fix-label"><span class="t" lang="ja">修正案（AIの提案。表記ルールに合わせて確認してください）</span><span class="t" lang="en">Suggested fix (AI suggestion; check against your style rules)</span></p>
+          <p class="fix-text" lang="ja">プロパティ → プロパティー（多数派の表記）</p>
+        </div>
+      </article>
+    </li>
+    <li class="card sev-warning">
+      <article aria-labelledby="f10-h">
+        <header class="card-head">
+          <span class="num" aria-hidden="true">10</span>
+          <h3 id="f10-h"><span class="sev"><span class="t" lang="ja">警告</span><span class="t" lang="en">Warning</span></span> <span class="t" lang="ja">未翻訳（空欄）</span><span class="t" lang="en">Untranslated (empty)</span></h3>
+          <a class="loc" href="https://github.com/renpy/renpy/blob/e58fd737ebcbcad20240d80cf821be5a0ffd2dc1/tutorial/game/tl/japanese/tutorial_screens.rpy#L456"><span class="sr-only"><span class="t" lang="ja">GitHub で開く：</span><span class="t" lang="en">Open on GitHub: </span></span>tutorial_screens.rpy:456</a>
+        </header>
+        <dl class="pair">
+          <div><dt><span class="t" lang="ja">原文（英語）</span><span class="t" lang="en">Source (EN)</span></dt><dd><q lang="en">Be Merry</q></dd></div>
+          <div><dt><span class="t" lang="ja">訳文（日本語）</span><span class="t" lang="en">Target (JA)</span></dt><dd><span class="empty"><span class="t" lang="ja">（空欄：訳なし）</span><span class="t" lang="en">(empty: no translation)</span></span></dd></div>
+        </dl>
+        <p class="what"><span class="t" lang="ja">訳文が空です。メニューの選択肢（勉強・運動・食事・飲料・…）の最後の1つだけ、訳がありません。画面には英語の「Be Merry」が出ます。</span><span class="t" lang="en">The translation is empty. It is the last of five menu choices (study, exercise, eat, drink, …); the player sees the English “Be Merry”.</span></p>
+        
+        <div class="fix">
+          <p class="fix-label"><span class="t" lang="ja">修正案（AIによる訳の提案。翻訳者の確認が必要です）</span><span class="t" lang="en">Suggested fix (an AI-drafted translation for your translator to review)</span></p>
+          <p class="fix-text" lang="ja">楽しむ</p>
+        </div>
+      </article>
+    </li>
+    <li class="card sev-info">
+      <article aria-labelledby="f11-h">
+        <header class="card-head">
+          <span class="num" aria-hidden="true">11</span>
+          <h3 id="f11-h"><span class="sev"><span class="t" lang="ja">参考</span><span class="t" lang="en">Info</span></span> <span class="t" lang="ja">原文と同じ訳文</span><span class="t" lang="en">Translation identical to source</span></h3>
+          <a class="loc" href="https://github.com/renpy/renpy/blob/e58fd737ebcbcad20240d80cf821be5a0ffd2dc1/tutorial/game/tl/japanese/tutorial_screens.rpy#L508"><span class="sr-only"><span class="t" lang="ja">GitHub で開く：</span><span class="t" lang="en">Open on GitHub: </span></span>tutorial_screens.rpy:508</a>
+        </header>
+        <dl class="pair">
+          <div><dt><span class="t" lang="ja">原文（英語）</span><span class="t" lang="en">Source (EN)</span></dt><dd><q lang="en">Hello, world.</q></dd></div>
+          <div><dt><span class="t" lang="ja">訳文（日本語）</span><span class="t" lang="en">Target (JA)</span></dt><dd><q lang="ja">Hello, world.</q></dd></div>
+        </dl>
+        <p class="what"><span class="t" lang="ja">訳文が原文と同じです。コード例の画面に出す文字列なので、意図して訳していない可能性もあります（そのため重大度は「参考」です）。</span><span class="t" lang="en">The translation is identical to the source. It is a string in a code-example screen, so leaving it in English may be intentional (hence the “info” severity).</span></p>
+        
+        <div class="fix">
+          <p class="fix-label"><span class="t" lang="ja">修正案（AIによる訳の提案。翻訳者の確認が必要です）</span><span class="t" lang="en">Suggested fix (an AI-drafted translation for your translator to review)</span></p>
+          <p class="fix-text" lang="ja">意図どおりなら変更不要。訳す場合は「こんにちは、世界。」</p>
+        </div>
+      </article>
+    </li>
+    </ol>
+  </div>
+</section>
+
+<section class="band alt method" aria-labelledby="method-title">
+  <div class="wrap">
+    <h2 id="method-title"><span class="t" lang="ja">方法と注意点</span><span class="t" lang="en">Method and caveats</span></h2>
+    <ul>
+      <li><span class="t" lang="ja">Kotomark のコマンドライン版を既定の設定・用語集なしで実行しました（<code>kotomark check 10個の .rpy ファイル --no-glossary</code>、2026-10-13）。用語集を使う検査（用語・敬称など）はこの結果に含まれません。</span><span class="t" lang="en">Kotomark's command-line tool was run with default settings and no glossary (<code>kotomark check</code> on the 10 .rpy files with <code>--no-glossary</code>, 2026-10-13). Glossary-based checks (terms, honorifics, etc.) are not part of this result.</span></li>
+      <li><span class="t" lang="ja">指摘は Kotomark が出したすべてです。各指摘の一言の説明と修正案は、Kotomark の社内の AI 評価者が原文と訳文を読んで書いたもので、人による確認ではありません。修正案は AI の提案です。訳文の提案は、プロジェクトの用語・文体に合わせて翻訳者が確認してから使ってください。</span><span class="t" lang="en">The findings are everything Kotomark reported. The short explanation and suggested fix for each were written by Kotomark's in-house AI evaluator, which read each source and target; they were not reviewed by a person. Suggested fixes are AI suggestions: have a translator check any suggested translation against the project's terminology and style before using it.</span></li>
+      <li><span class="t" lang="ja">この結果はこの10ファイルについてのもので、他のプロジェクトでの精度を示すものではありません。数が少ないのは、翻訳が丁寧に作られているためで、見落としがないことを意味しません。このチュートリアルの翻訳ファイルは、Kotomark の調整には使っていません。</span><span class="t" lang="en">These results are about these ten files only and say nothing about accuracy on other projects. The count is small because the translation is carefully made; it does not prove nothing was missed. These tutorial translation files were not used to tune Kotomark.</span></li>
+      <li><span class="t" lang="ja">データの出典：<a href="https://github.com/renpy/renpy">Ren'Py</a>、コミット <a href="https://github.com/renpy/renpy/tree/e58fd737ebcbcad20240d80cf821be5a0ffd2dc1"><code>e58fd737ebcbcad20240d80cf821be5a0ffd2dc1</code></a>、<code>tutorial/game/tl/japanese/</code>。Ren'Py の大部分は MIT ライセンスで、デモの素材も同じ条件と同プロジェクトのライセンス文書に書かれています（<a href="https://github.com/renpy/renpy/blob/e58fd737ebcbcad20240d80cf821be5a0ffd2dc1/sphinx/source/license.rst">license.rst</a>）。引用した原文・訳文の著作権は Ren'Py の作者・翻訳者にあります。Ren'Py プロジェクトが Kotomark を推奨・承認しているわけではありません。名前は出典を示すためにだけ使っています。</span><span class="t" lang="en">Data source: <a href="https://github.com/renpy/renpy">Ren'Py</a>, commit <a href="https://github.com/renpy/renpy/tree/e58fd737ebcbcad20240d80cf821be5a0ffd2dc1"><code>e58fd737ebcbcad20240d80cf821be5a0ffd2dc1</code></a>, <code>tutorial/game/tl/japanese/</code>. Most of Ren'Py is under the MIT license, and the project's license document says the demo's assets carry the same terms (<a href="https://github.com/renpy/renpy/blob/e58fd737ebcbcad20240d80cf821be5a0ffd2dc1/sphinx/source/license.rst">license.rst</a>). The copyright in the quoted source and target excerpts belongs to the Ren'Py authors and translators. The Ren'Py project has not endorsed Kotomark; the name is used only to identify the source.</span></li>
+      <li><span class="t" lang="ja">Kotomark はソース公開のソフトウェアです（オープンソースではありません）。「Kotomark」は仮称で、名称は変わる可能性があります。</span><span class="t" lang="en">Kotomark is source-available software (it is not open source). “Kotomark” is a working name and may change.</span></li>
+    </ul>
+    <p><span class="t" lang="ja">もう1本のサンプル：<a href="../sample-report/">Battle for Wesnoth の日本語訳で見つかった問題20件</a>（.po 形式）。</span><span class="t" lang="en">Another sample: <a href="../sample-report/">20 issues found in the Battle for Wesnoth Japanese translation</a> (.po files).</span></p>
+  </div>
+</section>
+
+<section class="band" aria-labelledby="cta-title">
+  <div class="wrap">
+    <h2 id="cta-title"><span class="t" lang="ja">お手元のファイルで試す</span><span class="t" lang="en">Try it on your own files</span></h2>
+    <p><span class="t" lang="ja">ブラウザのデモは、ファイルをどこにも送信せずにその場で検査します。実際の日英台本で試していただける試用協力者も募集しています。</span><span class="t" lang="en">The browser demo checks files right in the page without uploading them. We are also looking for pilot partners to try it on a real JA↔EN script.</span></p>
+    <div class="cta">
+      <a class="btn" href="../demo/"><span class="t" lang="ja">デモを試す</span><span class="t" lang="en">Try the demo</span></a>
+      <a class="btn ghost" href="../#pilot"><span class="t" lang="ja">試用協力について</span><span class="t" lang="en">About the pilot</span></a>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <p><span class="t" lang="ja">「Kotomark」は仮称です。商標の確認が済んでいないため、名称は変わる可能性があります。Kotomark は独立した製品で、Ren'Py プロジェクトやAI提供元とは提携していません。</span><span class="t" lang="en">“Kotomark” is a working name; the trademark check is not finished, so the name may change. Kotomark is an independent product, not affiliated with the Ren'Py project or any AI provider.</span></p>
+    <p><a href="../"><span class="t" lang="ja">Kotomark のトップページへ</span><span class="t" lang="en">Back to the Kotomark home page</span></a></p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var KEY = "kotomark-lp-lang";
+  var root = document.documentElement;
+  var TITLES = { ja: "サンプル監査レポート 2（Ren'Py） — Kotomark（仮称）", en: "Sample audit report 2 (Ren'Py) — Kotomark (working name)" };
+  var DESCS = { ja: "Ren'Py 公式チュートリアルの日本語訳（776件の文字列）を Kotomark で検査した結果のサンプル。指摘11件のすべてを、原文・訳文・修正案付きで掲載。", en: "Sample: Kotomark run on the Japanese translation of the Ren'Py tutorial (776 strings). All 11 findings, each with source, target and a suggested fix." };
+  var buttons = document.querySelectorAll("[data-set-lang]");
+  var desc = document.querySelector('meta[name="description"]');
+  function apply(lang) {
+    root.classList.remove("l-ja", "l-en");
+    root.classList.add("l-" + lang);
+    root.lang = lang;
+    document.title = TITLES[lang];
+    if (desc) desc.setAttribute("content", DESCS[lang]);
+    for (var i = 0; i < buttons.length; i++) {
+      buttons[i].setAttribute("aria-pressed", buttons[i].getAttribute("data-set-lang") === lang ? "true" : "false");
+    }
+  }
+  apply(root.classList.contains("l-en") ? "en" : "ja");
+  for (var i = 0; i < buttons.length; i++) {
+    buttons[i].addEventListener("click", function () {
+      var lang = this.getAttribute("data-set-lang");
+      apply(lang);
+      try { localStorage.setItem(KEY, lang); } catch (e) { /* storage unavailable */ }
+    });
+  }
+})();
+</script>
+</body>
+</html>
