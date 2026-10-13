@@ -12,7 +12,7 @@
 </url>
 <url>
 <loc>https://masahiro20.github.io/new-project/guide/</loc>
-<lastmod>2026-10-13</lastmod>
+<lastmod>2026-10-14</lastmod>
 <changefreq>weekly</changefreq>
 <priority>0.7</priority>
 </url>
@@ -250,6 +250,18 @@
 <url>
 <loc>https://masahiro20.github.io/new-project/guide/jinin-ketsujo-gensan-jidou/</loc>
 <lastmod>2026-10-13</lastmod>
+<changefreq>monthly</changefreq>
+<priority>0.7</priority>
+</url>
+<url>
+<loc>https://masahiro20.github.io/new-project/guide/kobetsu-shien-kaigi-gijiroku/</loc>
+<lastmod>2026-10-14</lastmod>
+<changefreq>monthly</changefreq>
+<priority>0.7</priority>
+</url>
+<url>
+<loc>https://masahiro20.github.io/new-project/guide/kesseki-taiou-kasan-kiroku/</loc>
+<lastmod>2026-10-14</lastmod>
 <changefreq>monthly</changefreq>
 <priority>0.7</priority>
 </url>
