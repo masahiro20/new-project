@@ -24,7 +24,8 @@ const PACK = "減算ゼロ_書類一式パック_2026年10月版";
 const PACK_DIR = path.join(OUT, PACK);
 const SITE = "https://masahiro20.github.io/new-project";
 const EDITION = "2026年10月版";
-const SELLER = "{{表示名}}";
+const SELLER = "ヒルフェクリエイト";
+const COPYRIGHT = `© 2026 ${SELLER}`;
 
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 const inline = (t: string) =>
@@ -119,13 +120,13 @@ function coverHtml(type: ServiceType, partsLabel: string[]): string {
 <tr><th>使い方</th><td>① 記入例（A）を見て、書く内容をつかむ → ② 白紙様式（B）または Word 版に、実際に行ったことを記入 → ③ 運営指導チェックリストで、書類がそろっているか確認。<br>詳しくは「00_はじめに（使い方1枚）」をご覧ください。</td></tr>
 </table>
 <blockquote>${esc(NOTICE_PACK)}</blockquote>
-<p class="small">減算ゼロ 書類一式パック ${EDITION}　販売：${SELLER}　公開中の無料テンプレート・解説：${SITE}/</p>
+<p class="small">減算ゼロ 書類一式パック ${EDITION}　販売：${SELLER}　${COPYRIGHT}<br>公開中の無料テンプレート・解説：${SITE}/</p>
 </div>`;
 }
 
 const HOWTO_MD = `# 減算ゼロ 書類一式パック　はじめに（使い方1枚）
 
-${EDITION}　販売：${SELLER}
+${EDITION}　販売：${SELLER}　${COPYRIGHT}
 
 ## このパックでできること
 虐待防止委員会・研修・身体拘束等の適正化の書類（年間計画、議事次第、議事録様式、研修資料と理解度テスト、研修実施記録、指針、記録様式）を、**13のサービス種別ごと**に、**記入例つき**で、**すぐ印刷・すぐ編集**できる形でまとめています。運営指導の前に書類がそろっているかを確認するチェックリスト（放課後等デイサービス・児童発達支援向け）も入っています。
@@ -163,6 +164,8 @@ ${EDITION}　販売：${SELLER}
 
 ## お問い合わせ
 BOOTH のメッセージ機能からご連絡ください（販売者：${SELLER}）。制度の個別の判断や、法的な助言はできません。
+
+${COPYRIGHT}
 `;
 
 const ADDENDUM_MD = `# 運営指導チェックリスト　追加編：人員と記録の確認（放課後等デイサービス・児童発達支援）
@@ -246,13 +249,13 @@ async function main() {
   }
 
   // 00 使い方
-  await pdf(path.join(PACK_DIR, "00_はじめに（使い方1枚）.pdf"), htmlPage("はじめに", blocksToHtml(HOWTO_MD), true), `減算ゼロ 書類一式パック ${EDITION}　はじめに`);
+  await pdf(path.join(PACK_DIR, "00_はじめに（使い方1枚）.pdf"), htmlPage("はじめに", blocksToHtml(HOWTO_MD), true), `減算ゼロ 書類一式パック ${EDITION}　はじめに　${COPYRIGHT}`);
 
   // 01 チェックリスト：本編（公開済みの無料版を元に、scripts/booth-pack/checklist-main.md に起こしたもの）＋追加編
   const CHECKLIST_MAIN_MD = readFileSync("scripts/booth-pack/checklist-main.md", "utf8");
-  await pdf(path.join(PACK_DIR, "01_運営指導チェックリスト.pdf"), htmlPage("運営指導チェックリスト", blocksToHtml(CHECKLIST_MAIN_MD) + blocksToHtml(ADDENDUM_MD)), `運営指導チェックリスト ${EDITION}`);
-  writeFileSync(path.join(PACK_DIR, "01_運営指導チェックリスト（Word・本編）.docx"), await Packer.toBuffer(buildDocx(CHECKLIST_MAIN_MD)));
-  writeFileSync(path.join(PACK_DIR, "01_運営指導チェックリスト（Word・追加編）.docx"), await Packer.toBuffer(buildDocx(ADDENDUM_MD)));
+  await pdf(path.join(PACK_DIR, "01_運営指導チェックリスト.pdf"), htmlPage("運営指導チェックリスト", blocksToHtml(CHECKLIST_MAIN_MD) + blocksToHtml(ADDENDUM_MD)), `運営指導チェックリスト ${EDITION}　${COPYRIGHT}`);
+  writeFileSync(path.join(PACK_DIR, "01_運営指導チェックリスト（Word・本編）.docx"), await Packer.toBuffer(buildDocx(`${CHECKLIST_MAIN_MD}\n${COPYRIGHT}\n`)));
+  writeFileSync(path.join(PACK_DIR, "01_運営指導チェックリスト（Word・追加編）.docx"), await Packer.toBuffer(buildDocx(`${ADDENDUM_MD}\n${COPYRIGHT}\n`)));
 
   // 02 / 03 サービス種別ごと
   for (const [i, type] of SERVICE_TYPES.entries()) {
@@ -282,15 +285,15 @@ async function main() {
       blocksToHtml(example, "記入例（架空）") +
       `<div class="doc"><span class="tag">B　記入用の白紙様式</span><h1>B　記入用の白紙様式</h1><p>【要記入】を、実際に行ったことで埋めてください。印刷して手書きしても、Word 版（03_Word（記入用））に入力してもかまいません。</p></div>` +
       blocksToHtml(blank, "記入用");
-    await pdf(path.join(PACK_DIR, `02_書類まとめ_${no}_${type.replace(/[（）・]/g, "")}.pdf`), htmlPage(`${type} 書類まとめ`, body), `減算ゼロ 書類一式パック ${EDITION}　${type}`);
-    writeFileSync(path.join(PACK_DIR, "03_Word（記入用）", `${no}_${type.replace(/[（）・]/g, "")}_書類セット.docx`), await Packer.toBuffer(buildDocx(blank)));
+    await pdf(path.join(PACK_DIR, `02_書類まとめ_${no}_${type.replace(/[（）・]/g, "")}.pdf`), htmlPage(`${type} 書類まとめ`, body), `減算ゼロ 書類一式パック ${EDITION}　${type}　${COPYRIGHT}`);
+    writeFileSync(path.join(PACK_DIR, "03_Word（記入用）", `${no}_${type.replace(/[（）・]/g, "")}_書類セット.docx`), await Packer.toBuffer(buildDocx(`${blank}\n${COPYRIGHT}　減算ゼロ 書類一式パック\n`)));
     console.log(`done ${no} ${type}`);
   }
   await browser.close();
 
   writeFileSync(
     path.join(PACK_DIR, "README.txt"),
-    `減算ゼロ 書類一式パック ${EDITION}\n販売：${SELLER}\n\n00_はじめに（使い方1枚）.pdf から読んでください。\n書類は法的助言ではありません。記録は、実際に行ったことだけを書いてください。\nご利用条件は、BOOTH の商品ページに記載しています。\n`,
+    `減算ゼロ 書類一式パック ${EDITION}\n販売：${SELLER}\n\n00_はじめに（使い方1枚）.pdf から読んでください。\n書類は法的助言ではありません。記録は、実際に行ったことだけを書いてください。\nご利用条件は、BOOTH の商品ページに記載しています。\n${COPYRIGHT}\n`,
   );
   if (log.length) console.log("\n[確認が必要]\n" + log.join("\n"));
   else console.log("\n記入例に【要記入】の残りなし（白紙のままにする様式を除く）");
