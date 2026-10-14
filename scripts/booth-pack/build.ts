@@ -1,4 +1,4 @@
-// 「減算ゼロ 書類一式パック」（BOOTH 用）を作る。AI・Stripe は使わない。
+// 「減算ゼロ 虐待防止・身体拘束適正化 書類パック」（BOOTH 用）を作る。AI・Stripe は使わない。
 // 公開済みの無料テンプレート（lib/templates）と同じ文章を、全サービス種別ぶん、
 // ①記入例つき PDF（記入例＋記入用の白紙様式）②記入用 Word ③運営指導チェックリスト（本編＋追加編）④使い方1枚 にまとめ、zip にする。
 //
@@ -20,12 +20,15 @@ import type { ServiceType } from "../../lib/templates";
 import { exampleFacilityName, exampleInputs, makeExample } from "./example";
 
 const OUT = path.resolve(process.env.OUT_DIR ?? ".booth/out");
-const PACK = "減算ゼロ_書類一式パック_2026年10月版";
+const PACK = "減算ゼロ書類パック";
+const ZIP_NAME = "減算ゼロ_書類パック_2026年10月版.zip";
+const typeDir = (t: string) => t.replace(/[（）]/g, "");
 const PACK_DIR = path.join(OUT, PACK);
 const SITE = "https://masahiro20.github.io/new-project";
 const EDITION = "2026年10月版";
 const SELLER = "ヒルフェクリエイト";
 const COPYRIGHT = `© 2026 ${SELLER}`;
+const PACK_TITLE = "減算ゼロ 虐待防止・身体拘束適正化 書類パック";
 
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 const inline = (t: string) =>
@@ -54,7 +57,7 @@ blockquote { margin: 8px 0; padding: 6px 10px; background: #f4f7f6; border-left:
 .doc { break-before: page; }
 .doc:first-child { break-before: auto; }
 .cover { height: 250mm; display: flex; flex-direction: column; justify-content: center; }
-.cover h1 { font-size: 24pt; border-left-width: 10px; }
+.cover h1 { font-size: 19pt; border-left-width: 10px; }
 .cover .sub { font-size: 13pt; margin: 6px 0 20px 16px; }
 .cover table { font-size: 10pt; }
 .small { font-size: 8.5pt; color: #4b5d5a; }
@@ -112,37 +115,36 @@ const NOTICE_PACK =
 function coverHtml(type: ServiceType, partsLabel: string[]): string {
   return `<div class="cover">
 <span class="tag">${EDITION}</span>
-<h1>減算ゼロ 書類一式パック</h1>
+<h1>減算ゼロ 虐待防止・身体拘束適正化 書類パック</h1>
 <p class="sub">${esc(type)}　記入例つき・まとめて印刷</p>
 <table>
-<tr><th style="width:22%">この冊子の中身</th><td><strong>A　記入例（架空の事業所）</strong>：書き方の見本。氏名・日付・会議の内容はすべて架空です。<br><strong>B　記入用の白紙様式</strong>：そのまま印刷して手書きできます（Word 版は別ファイル）。</td></tr>
+<tr><th style="width:22%">この冊子の中身</th><td><strong>A　記入例（架空の事業所）</strong>：書き方の見本。氏名・日付・会議の内容はすべて架空です。<br><strong>B　記入用の白紙様式</strong>：そのまま印刷して手書きできます（Word 版は「記入用.docx」）。</td></tr>
 <tr><th>含まれる書類</th><td>${partsLabel.map((l) => esc(l)).join("<br>")}</td></tr>
-<tr><th>使い方</th><td>① 記入例（A）を見て、書く内容をつかむ → ② 白紙様式（B）または Word 版に、実際に行ったことを記入 → ③ 運営指導チェックリストで、書類がそろっているか確認。<br>詳しくは「00_はじめに（使い方1枚）」をご覧ください。</td></tr>
+<tr><th>使い方</th><td>① 記入例（A）を見て、書く内容をつかむ → ② 白紙様式（B）または Word 版に、実際に行ったことを記入 → ③ 運営指導チェックリストで、書類がそろっているか確認。<br>詳しくは「00_はじめに.pdf」をご覧ください。</td></tr>
 </table>
 <blockquote>${esc(NOTICE_PACK)}</blockquote>
-<p class="small">減算ゼロ 書類一式パック ${EDITION}　販売：${SELLER}　${COPYRIGHT}<br>公開中の無料テンプレート・解説：${SITE}/</p>
+<p class="small">減算ゼロ 虐待防止・身体拘束適正化 書類パック ${EDITION}　販売：${SELLER}　${COPYRIGHT}<br>公開中の無料テンプレート・解説：${SITE}/</p>
 </div>`;
 }
 
-const HOWTO_MD = `# 減算ゼロ 書類一式パック　はじめに（使い方1枚）
+const HOWTO_MD = `# 減算ゼロ 虐待防止・身体拘束適正化 書類パック　はじめに（使い方1枚）
 
 ${EDITION}　販売：${SELLER}　${COPYRIGHT}
 
 ## このパックでできること
-虐待防止委員会・研修・身体拘束等の適正化の書類（年間計画、議事次第、議事録様式、研修資料と理解度テスト、研修実施記録、指針、記録様式）を、**13のサービス種別ごと**に、**記入例つき**で、**すぐ印刷・すぐ編集**できる形でまとめています。運営指導の前に書類がそろっているかを確認するチェックリスト（放課後等デイサービス・児童発達支援向け）も入っています。
+虐待防止委員会・研修・身体拘束等の適正化の書類（年間計画、議事次第、議事録様式、研修資料と理解度テスト、研修実施記録、指針、記録様式）を、**13のサービス種別ごと**に、**記入例つき**で、**すぐ印刷・すぐ編集**できる形でまとめています。運営指導の前に書類がそろっているかを確認するチェックリスト（放課後等デイサービス・児童発達支援向け）も入っています。**運営指導で確認される書類のすべてが入っているわけではありません。**
 
 ## フォルダの中身
 | ファイル | 中身 |
 | --- | --- |
-| 00_はじめに（使い方1枚）.pdf | このページ |
-| 01_運営指導チェックリスト.pdf | 本編6章＋追加編（人員・個別支援会議・加算の記録）。記入式 |
-| 01_運営指導チェックリスト（Word・本編）.docx / 追加編.docx | チェックリストの編集用 |
-| 02_書類まとめ_（サービス種別）.pdf | **A 記入例**（架空）＋ **B 記入用の白紙様式**。13種別 |
-| 03_Word（記入用）フォルダ | 白紙様式の Word 版。【要記入】を埋めて使う。13種別 |
+| 00_はじめに.pdf | このページ |
+| 01_運営指導チェックリスト.pdf / .docx | 本編6章＋追加編（人員・個別支援会議・加算の記録）。PDF は記入式、Word は編集用 |
+| 02_サービス種別ごと / 自分の種別 / 書類まとめ.pdf | **A 記入例**（架空）＋ **B 記入用の白紙様式**。13種別 |
+| 02_サービス種別ごと / 自分の種別 / 記入用.docx | 白紙様式の Word 版。【要記入】を埋めて使う |
 
 ## 使い方（3ステップ）
-1. **自分のサービス種別のPDFを開く**。まず「A 記入例」で、書く内容と分量をつかむ。
-2. **実際にあったことを記入する**。Word 版の【要記入】を埋めるか、PDFの「B 記入用」を印刷して手書きする。記入例の文章は、そのまま写さない。
+1. **「02_サービス種別ごと」の中の、自分のサービス種別のフォルダを開く**。「書類まとめ.pdf」の「A 記入例」で、書く内容と分量をつかむ。
+2. **実際にあったことを記入する**。「記入用.docx」の【要記入】を埋めるか、PDFの「B 記入用」を印刷して手書きする。記入例の文章は、そのまま写さない。
 3. **チェックリストで確認する**。委員会・研修・指針・記録がそろっているか、保管場所を書き込む。
 
 ## 使うときの大切な約束
@@ -170,7 +172,7 @@ ${COPYRIGHT}
 
 const ADDENDUM_MD = `# 運営指導チェックリスト　追加編：人員と記録の確認（放課後等デイサービス・児童発達支援）
 
-減算ゼロ 書類一式パック ${EDITION} 限定
+減算ゼロ 虐待防止・身体拘束適正化 書類パック ${EDITION} 限定
 事業所名：＿＿＿＿＿＿＿＿＿＿　確認日：　　年　　月　　日　確認者：＿＿＿＿＿＿
 
 書類が見つかったら □ に印を付け、「保管場所」に書き込んでください。本編（1〜6章）に続く追加編です。条文は、児童発達支援は基準省令第5条、放課後等デイサービスは第66条です。
@@ -213,7 +215,7 @@ const RESTRAINT_NOTE =
 async function main() {
   if (!process.env.ONLY_FREE) {
     rmSync(OUT, { recursive: true, force: true });
-    mkdirSync(path.join(PACK_DIR, "03_Word（記入用）"), { recursive: true });
+    mkdirSync(path.join(PACK_DIR, "02_サービス種別ごと"), { recursive: true });
   }
   const pwPath = process.env.PLAYWRIGHT_MODULE ?? "playwright";
   // Playwright は package.json の依存に入れていない（ビルド時だけ使う）。型は最小限だけ書く。
@@ -249,16 +251,15 @@ async function main() {
   }
 
   // 00 使い方
-  await pdf(path.join(PACK_DIR, "00_はじめに（使い方1枚）.pdf"), htmlPage("はじめに", blocksToHtml(HOWTO_MD), true), `減算ゼロ 書類一式パック ${EDITION}　はじめに　${COPYRIGHT}`);
+  await pdf(path.join(PACK_DIR, "00_はじめに.pdf"), htmlPage("はじめに", blocksToHtml(HOWTO_MD), true), `減算ゼロ 虐待防止・身体拘束適正化 書類パック ${EDITION}　はじめに　${COPYRIGHT}`);
 
   // 01 チェックリスト：本編（公開済みの無料版を元に、scripts/booth-pack/checklist-main.md に起こしたもの）＋追加編
   const CHECKLIST_MAIN_MD = readFileSync("scripts/booth-pack/checklist-main.md", "utf8");
   await pdf(path.join(PACK_DIR, "01_運営指導チェックリスト.pdf"), htmlPage("運営指導チェックリスト", blocksToHtml(CHECKLIST_MAIN_MD) + blocksToHtml(ADDENDUM_MD)), `運営指導チェックリスト ${EDITION}　${COPYRIGHT}`);
-  writeFileSync(path.join(PACK_DIR, "01_運営指導チェックリスト（Word・本編）.docx"), await Packer.toBuffer(buildDocx(`${CHECKLIST_MAIN_MD}\n${COPYRIGHT}\n`)));
-  writeFileSync(path.join(PACK_DIR, "01_運営指導チェックリスト（Word・追加編）.docx"), await Packer.toBuffer(buildDocx(`${ADDENDUM_MD}\n${COPYRIGHT}\n`)));
+  writeFileSync(path.join(PACK_DIR, "01_運営指導チェックリスト.docx"), await Packer.toBuffer(buildDocx(`${CHECKLIST_MAIN_MD}\n${ADDENDUM_MD}\n${COPYRIGHT}\n`)));
 
   // 02 / 03 サービス種別ごと
-  for (const [i, type] of SERVICE_TYPES.entries()) {
+  for (const type of SERVICE_TYPES) {
     const ctxEx = templateContext(exampleInputs(type));
     const ctxBlank = templateContext({ serviceType: type, facilityName: "", staffCount: null, reiwaYear: 8, meetingDate: "", committeeMembers: "", officerRole: "" });
     const parts = templateParts(ctxEx);
@@ -278,26 +279,27 @@ async function main() {
     if (leftover.length) log.push(`${type}: 記入例に【要記入】が ${leftover.length} 行残っている\n  ` + leftover.slice(0, 4).join("\n  "));
 
     const partsLabel = parts.map((p) => ({ committee: "虐待防止委員会セット（年間実施計画表・議事次第・議事録様式）", training: "虐待防止研修セット（研修資料・理解度テスト・実施記録）", restraint: "身体拘束等適正化セット（指針・委員会確認チェックリスト・記録様式・ご説明書）" })[p]);
-    const no = String(i + 1).padStart(2, "0");
     const body =
       coverHtml(type, partsLabel) +
       `<div class="doc"><span class="tag">A　記入例（架空の事業所「${esc(exampleFacilityName(type))}」）</span><h1>A　記入例</h1><p>氏名・日付・会議の内容・事業所名はすべて架空です。書く内容と分量をつかむための見本で、公式の様式や記載例ではありません。そのまま写さず、実際に行ったことを書いてください。</p></div>` +
       blocksToHtml(example, "記入例（架空）") +
       `<div class="doc"><span class="tag">B　記入用の白紙様式</span><h1>B　記入用の白紙様式</h1><p>【要記入】を、実際に行ったことで埋めてください。印刷して手書きしても、Word 版（03_Word（記入用））に入力してもかまいません。</p></div>` +
       blocksToHtml(blank, "記入用");
-    await pdf(path.join(PACK_DIR, `02_書類まとめ_${no}_${type.replace(/[（）・]/g, "")}.pdf`), htmlPage(`${type} 書類まとめ`, body), `減算ゼロ 書類一式パック ${EDITION}　${type}　${COPYRIGHT}`);
-    writeFileSync(path.join(PACK_DIR, "03_Word（記入用）", `${no}_${type.replace(/[（）・]/g, "")}_書類セット.docx`), await Packer.toBuffer(buildDocx(`${blank}\n${COPYRIGHT}　減算ゼロ 書類一式パック\n`)));
-    console.log(`done ${no} ${type}`);
+    const dir = path.join(PACK_DIR, "02_サービス種別ごと", typeDir(type));
+    mkdirSync(dir, { recursive: true });
+    await pdf(path.join(dir, "書類まとめ.pdf"), htmlPage(`${type} 書類まとめ`, body), `${PACK_TITLE} ${EDITION}　${type}　${COPYRIGHT}`);
+    writeFileSync(path.join(dir, "記入用.docx"), await Packer.toBuffer(buildDocx(`${blank}\n${COPYRIGHT}　${PACK_TITLE}\n`)));
+    console.log(`done ${type}`);
   }
   await browser.close();
 
   writeFileSync(
     path.join(PACK_DIR, "README.txt"),
-    `減算ゼロ 書類一式パック ${EDITION}\n販売：${SELLER}\n\n00_はじめに（使い方1枚）.pdf から読んでください。\n書類は法的助言ではありません。記録は、実際に行ったことだけを書いてください。\nご利用条件は、BOOTH の商品ページに記載しています。\n${COPYRIGHT}\n`,
+    `減算ゼロ 虐待防止・身体拘束適正化 書類パック ${EDITION}\n販売：${SELLER}\n\n00_はじめに（使い方1枚）.pdf から読んでください。\n書類は法的助言ではありません。記録は、実際に行ったことだけを書いてください。\nご利用条件は、BOOTH の商品ページに記載しています。\n${COPYRIGHT}\n`,
   );
   if (log.length) console.log("\n[確認が必要]\n" + log.join("\n"));
   else console.log("\n記入例に【要記入】の残りなし（白紙のままにする様式を除く）");
-  execFileSync("zip", ["-r", "-q", `${PACK}.zip`, PACK], { cwd: OUT });
+  execFileSync("python3", ["-I", path.resolve("scripts/booth-pack/make-zip.py"), OUT, PACK, path.join(OUT, ZIP_NAME)], { stdio: "inherit" });
 }
 
 void main();
