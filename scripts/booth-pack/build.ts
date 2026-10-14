@@ -208,8 +208,10 @@ const RESTRAINT_NOTE =
 // ---- 実行 ---------------------------------------------------------------------------------------
 
 async function main() {
-  rmSync(OUT, { recursive: true, force: true });
-  mkdirSync(path.join(PACK_DIR, "03_Word（記入用）"), { recursive: true });
+  if (!process.env.ONLY_FREE) {
+    rmSync(OUT, { recursive: true, force: true });
+    mkdirSync(path.join(PACK_DIR, "03_Word（記入用）"), { recursive: true });
+  }
   const pwPath = process.env.PLAYWRIGHT_MODULE ?? "playwright";
   // Playwright は package.json の依存に入れていない（ビルド時だけ使う）。型は最小限だけ書く。
   type Page = { setContent(html: string, o: object): Promise<void>; pdf(o: object): Promise<unknown> };
@@ -231,6 +233,17 @@ async function main() {
   }
 
   const log: string[] = [];
+
+  // 公開中の無料版チェックリスト（public/downloads）を、パックの本編と同じ内容に作り直す（FREE_CHECKLIST=1 のとき。ONLY_FREE=1 ならこれだけ）
+  if (process.env.FREE_CHECKLIST || process.env.ONLY_FREE) {
+    const main = readFileSync("scripts/booth-pack/checklist-main.md", "utf8");
+    await pdf("public/downloads/unei-shidou-checklist-jidou.pdf", htmlPage("運営指導の前に見直す書類チェックリスト（放課後等デイサービス・児童発達支援版）", blocksToHtml(main)), `減算ゼロ運営事務局　運営指導チェックリスト ${EDITION}`);
+    writeFileSync("public/downloads/unei-shidou-checklist-jidou.docx", await Packer.toBuffer(buildDocx(main)));
+    if (process.env.ONLY_FREE) {
+      await browser.close();
+      return;
+    }
+  }
 
   // 00 使い方
   await pdf(path.join(PACK_DIR, "00_はじめに（使い方1枚）.pdf"), htmlPage("はじめに", blocksToHtml(HOWTO_MD), true), `減算ゼロ 書類一式パック ${EDITION}　はじめに`);
