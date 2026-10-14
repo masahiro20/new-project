@@ -4,7 +4,7 @@ export const GUIDE_CATEGORIES: { id: string; name: string; slugs: string[] }[] =
   {
     id: "seido",
     name: "減算の制度",
-    slugs: ["gyakutai-boushi-gensan", "shintai-kousoku-gensan", "bcp-gensan-jidou", "jidou-hyouka-kouhyou", "gensan-kasan-hayamihyo", "reiwa9-kaitei-jidou", "jinin-ketsujo-gensan-jidou"],
+    slugs: ["gyakutai-boushi-gensan", "shintai-kousoku-gensan", "bcp-gensan-jidou", "jidou-hyouka-kouhyou", "gensan-kasan-hayamihyo", "reiwa9-kaitei-jidou", "jinin-ketsujo-gensan-jidou", "shogu-kaizen-keikakusho"],
   },
   {
     id: "shorui",
