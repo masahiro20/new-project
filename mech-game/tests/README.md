@@ -21,5 +21,6 @@ Playwright（Chromium）でゲームを実際に動かして確認するテス�
 | `t9_daily.js` | 今日の作戦目標と STREAK |
 | `t10_launch.js` | 出撃演出（初回フル、2回目以降の短縮版） |
 | `t11_crazygames.js` | CrazyGames 版（`GAME_DIR=dist/crazygames`）：SDK の代役で gameplayStart/Stop、広告のタイミング、ミュート、Data モジュールのセーブ |
+| `t12_i18n.js` | 言語：英語の各画面に日本語が残っていない、画面からはみ出さない、切り替えボタン、日本語ブラウザでは日本語で開始（スクリーンショットは `tests/shots/`） |
 | `weakhit_fps.js` | 指定した fps で弱点に弾が当たるかの再現（例: `node weakhit_fps.js 60 2 1`） |
 | `smoke_*.js`, `dbg_*.js`, `scenehook.js` | 動作確認用の補助スクリプト |

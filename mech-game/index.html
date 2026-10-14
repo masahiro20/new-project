@@ -134,6 +134,8 @@ button{font-family:inherit;color:inherit}
 #stickBase{position:absolute;left:calc(var(--sl) + 30px);bottom:calc(var(--sb) + 30px);width:130px;height:130px;border-radius:50%;border:2px solid rgba(95,242,232,.45);background:radial-gradient(circle,rgba(95,242,232,.08),rgba(5,13,19,.35));transform:translate(0,0)}
 #stickBase::before{content:'前進 ▲';position:absolute;top:6px;left:50%;transform:translateX(-50%);font-size:9px;color:var(--dim)}
 #stickBase::after{content:'◀ 旋回 ▶';position:absolute;bottom:6px;left:50%;transform:translateX(-50%);font-size:9px;color:var(--dim);white-space:nowrap}
+html[lang=en] #stickBase::before{content:'MOVE ▲'}
+html[lang=en] #stickBase::after{content:'◀ TURN ▶'}
 #stickKnob{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;background:rgba(95,242,232,.3);border:2px solid var(--cy);box-shadow:0 0 14px rgba(95,242,232,.4)}
 .tbtn{position:absolute;pointer-events:auto;touch-action:none;border:2px solid var(--line);background:rgba(5,13,19,.55);color:var(--ink);border-radius:50%;
   width:72px;height:72px;font-size:13px;font-weight:700;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1;padding:0}
@@ -612,6 +614,7 @@ html.touch .spd small{font-size:12px}
     <div id="titleOpts" class="opts panel">
       <div class="opt"><span class="lbl">画質 QUALITY</span><div class="seg qseg" role="group" aria-label="画質 QUALITY"><button type="button" data-q="low">低<small>LOW</small></button><button type="button" data-q="mid">中<small>MID</small></button><button type="button" data-q="high">高<small>HIGH</small></button></div></div>
       <div class="opt"><span class="lbl">FPS表示 FPS</span><button type="button" class="tgl fpstgl" aria-pressed="false">OFF</button></div>
+      <div class="opt"><span class="lbl">LANGUAGE</span><button type="button" class="tgl" id="btnLang">日本語</button></div>
     </div>
     <div id="credit">© Team GRANDSTRIDE ／ Made with generative AI (Claude) ／ three.js (MIT) ・ Chakra Petch, Share Tech Mono (OFL)</div>
   </div>
@@ -1601,6 +1604,19 @@ window.MechAudio = window.MechAudio || new Proxy({}, {get:()=>()=>{}});
 
 /* ================= utilities ================= */
 const MA = window.MechAudio;
+// Language: English is the base. Order: this tab's choice (sessionStorage) > saved choice > the platform locale / browser language.
+const LANG = (function(){
+  let v = null;
+  try { v = sessionStorage.getItem('grandstride_lang'); } catch(e){}
+  if (v !== 'ja' && v !== 'en'){ try { v = localStorage.getItem('grandstride_lang'); } catch(e){} }
+  if (v === 'ja' || v === 'en') return v;
+  const l = String(window.__gsLocale || navigator.language || 'en').toLowerCase();
+  return l.indexOf('ja') === 0 ? 'ja' : 'en';
+})();
+const JA = LANG === 'ja';
+const T = (ja, en) => JA ? ja : en;
+const SEP = T('　／　', ' / ');
+document.documentElement.lang = LANG;
 // Platform hooks: window.GSPlatform exists only in the CrazyGames build (release/crazygames). Everywhere else these are no-ops.
 function plat(name, arg){ try{ const p = window.GSPlatform; if (p && typeof p[name] === 'function') return p[name](arg); }catch(e){} }
 // A midgame ad slot between missions: runs fn right away unless the platform shows an ad first.
@@ -1641,7 +1657,7 @@ try { isTouch = window.matchMedia('(pointer: coarse)').matches; } catch(e){}
 function setTouchMode(on){ isTouch = on; document.documentElement.classList.toggle('touch', on); if (typeof onResize === 'function') try { onResize(); } catch(e){} }
 setTouchMode(isTouch);
 
-if (typeof THREE === 'undefined'){ $('titleNote').textContent = '3Dエンジンを読み込めません / THREE.JS UNAVAILABLE'; return; }
+if (typeof THREE === 'undefined'){ $('titleNote').textContent = T('3Dエンジンを読み込めません / THREE.JS UNAVAILABLE', 'THREE.JS UNAVAILABLE'); return; }
 
 /* ================= quality presets ================= */
 // pr: pixel-ratio ceiling (the auto drop in adaptRes never goes above it), prMin: floor for that auto drop.
@@ -1667,7 +1683,7 @@ try{
   // antialias can only be chosen when the WebGL context is created. It follows the preset active at page load;
   // switching presets later changes everything else live but keeps this as-is (no renderer re-creation).
   renderer = new THREE.WebGLRenderer({antialias:qName !== 'low' && (window.devicePixelRatio || 1) < 1.5, powerPreference:'high-performance'});
-}catch(e){ $('titleNote').textContent = 'WebGL を初期化できません / WEBGL UNAVAILABLE'; return; }
+}catch(e){ $('titleNote').textContent = T('WebGL を初期化できません / WEBGL UNAVAILABLE', 'WEBGL UNAVAILABLE'); return; }
 let PR = Math.min(window.devicePixelRatio || 1, Q.pr);
 renderer.setPixelRatio(PR);
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -2687,8 +2703,8 @@ const ENEMY_DEF = {
 };
 const BOSS_TYPES = {lord:true, twin:true, mael:true};
 const GROUND_TYPES = {beetle:true, rammer:true, lord:true, twin:true, mael:true}; // picked up by the tremor scan (floaters / haze are not)
-const ENEMY_NAMES = {beetle:'甲虫型', floater:'浮遊型', rammer:'突進型', lord:'殻王', twin:'双殻王', haze:'霧殻', mael:'渦殻王'};
-const BOSS_LABEL = {lord:'殻王 SHELL LORD', twin:'双殻王 TWINSHELL', mael:'渦殻王 MAELSHELL'};
+const ENEMY_NAMES = JA ? {beetle:'甲虫型', floater:'浮遊型', rammer:'突進型', lord:'殻王', twin:'双殻王', haze:'霧殻', mael:'渦殻王'} : {beetle:'Beetle', floater:'Floater', rammer:'Ramshell', lord:'Shell Lord', twin:'Twinshell', haze:'Haze', mael:'Maelshell'};
+const BOSS_LABEL = JA ? {lord:'殻王 SHELL LORD', twin:'双殻王 TWINSHELL', mael:'渦殻王 MAELSHELL'} : {lord:'SHELL LORD', twin:'TWINSHELL', mael:'MAELSHELL'};
 const MAKERS = {beetle:makeBeetle, floater:makeFloater, rammer:makeRammer, twin:makeTwin, lord:makeLord, haze:makeHaze, mael:makeMael};
 const enemies = [];
 const WEAK_LOCAL = new THREE.Vector3(0,12,15.4);
@@ -2788,19 +2804,19 @@ const SPAWN_ORDER_2 = ['beetle','beetle','floater','rammer','beetle','floater','
 const DMG_SCALE_M1 = 0.3, DMG_SCALE_M2 = 0.36, DMG_SCALE_M3 = 0.3;
 // Missions. M01 numbers are the original tuning (do not change: MISSION 01 must stay clearable without upgrades).
 const MISSIONS = {
-  1: {id:1, tag:'MISSION 01', name:'汀都 第七区画 防衛', stage:'city', time:180, order:SPAWN_ORDER, boss:'lord', killPts:800, bossPts:6000,
+  1: {id:1, tag:'MISSION 01', name:T('汀都 第七区画 防衛', 'Sector 7 Defense'), stage:'city', time:180, order:SPAWN_ORDER, boss:'lord', killPts:800, bossPts:6000,
       ranks:[20000, 15000, 10000], partsMul:1, firstBonus:250, hiKey:'grandstride_hiscore', rankKey:'grandstride_hirank', maxAlive:[4,5],
       dmgScale:DMG_SCALE_M1, medalDmg:45,
-      brief:'3分以内に灰殻12体と殻王を撃破。<br>一定のリズムで歩くと共鳴率が上がる。<br>共鳴率100%で鼓動モード OVERBEAT。'},
-  2: {id:2, tag:'MISSION 02', name:'汀都 港湾区画 夜間掃討', stage:'port', time:240, order:SPAWN_ORDER_2, boss:'twin', killPts:850, bossPts:10000,
+      brief:T('3分以内に灰殻12体と殻王を撃破。<br>一定のリズムで歩くと共鳴率が上がる。<br>共鳴率100%で鼓動モード OVERBEAT。', 'Destroy 12 Ashshell and the Shell Lord within 3:00.<br>Walk at a steady rhythm to build resonance.<br>At 100% resonance you enter OVERBEAT.')},
+  2: {id:2, tag:'MISSION 02', name:T('汀都 港湾区画 夜間掃討', 'Harbor Night Sweep'), stage:'port', time:240, order:SPAWN_ORDER_2, boss:'twin', killPts:850, bossPts:10000,
       ranks:[30000, 23000, 15000], partsMul:1.3, firstBonus:400, hiKey:'grandstride_m2_hiscore', rankKey:'grandstride_m2_hirank', maxAlive:[4,6],
       dmgScale:DMG_SCALE_M2, medalDmg:55,
-      brief:'4分以内に灰殻16体と双殻王を撃破。<br>突進型は溜めの赤い光が合図──横跳びで躱す。<br>激突して止まった背面が弱点。'},
-  3: {id:3, tag:'MISSION 03', name:'汀都 第三防潮堤外縁 嵐中観測戦', stage:'storm', time:300, order:SPAWN_ORDER_3, boss:'mael', killPts:900, bossPts:14000,
+      brief:T('4分以内に灰殻16体と双殻王を撃破。<br>突進型は溜めの赤い光が合図──横跳びで躱す。<br>激突して止まった背面が弱点。', 'Destroy 16 Ashshell and the Twinshell within 4:00.<br>A Ramshell glows red before it charges. Sidestep it.<br>Its back is the weak point after it crashes.')},
+  3: {id:3, tag:'MISSION 03', name:T('汀都 第三防潮堤外縁 嵐中観測戦', 'Third Seawall: Storm Watch'), stage:'storm', time:300, order:SPAWN_ORDER_3, boss:'mael', killPts:900, bossPts:14000,
       towers:3, towerPts:1500,
       ranks:[42500, 33500, 23500], partsMul:1.6, firstBonus:550, hiKey:'grandstride_m3_hiscore', rankKey:'grandstride_m3_hirank', maxAlive:[4,5],
       dmgScale:DMG_SCALE_M3, medalDmg:65,
-      brief:'5分以内に灰殻14体を撃破し、観測塔3基を起動。最後に渦殻王。<br>止まって踏み据えると震動探知──レーダーが広がる。<br>塔のそばで4秒踏み据えると起動。'},
+      brief:T('5分以内に灰殻14体を撃破し、観測塔3基を起動。最後に渦殻王。<br>止まって踏み据えると震動探知──レーダーが広がる。<br>塔のそばで4秒踏み据えると起動。', 'Destroy 14 Ashshell, light 3 towers, then face the Maelshell (5:00).<br>Stand still and brace to Tremor Scan and widen the radar.<br>Brace near a tower for 4 seconds to activate it.')},
 };
 let M = MISSIONS[1];
 const RANK_NAMES = ['S','A','B','C'];
@@ -2816,11 +2832,12 @@ const HARD_HP = 1.5, HARD_DMG = 1.35, HARD_PARTS = 1.5, ASSIST_DMG = 0.75;
 const UP_COST = [120, 200, 320, 480, 700];
 const UP_MAX = 5;
 const UPG = {
-  legs:  {name:'脚', en:'LEGS',  stats:(l) => [['脚圧最大 GRIP MAX', 100 + 8*l, ''], ['脚圧回復 GRIP REGEN', 100 + 12*l, '%'], ['旋回 TURN', 100 + 5*l, '%']]},
-  core:  {name:'炉', en:'CORE',  stats:(l) => [['炉温上昇 HEAT GAIN', 100 - 7*l, '%'], ['冷却 COOLING', 100 + 10*l, '%'], ['疾走 DASH', Math.round((25 + 1.2*l) * 3.6), 'km/h']]},
-  armor: {name:'装甲', en:'ARMOR', stats:(l) => [['装甲最大 ARMOR MAX', 100 + 12*l, ''], ['被ダメ軽減 DMG CUT', 3*l, '%']]},
+  legs:  {name:'脚', en:'LEGS',  stats:(l) => [[T('脚圧最大 GRIP MAX', 'GRIP MAX'), 100 + 8*l, ''], [T('脚圧回復 GRIP REGEN', 'GRIP REGEN'), 100 + 12*l, '%'], [T('旋回 TURN', 'TURN'), 100 + 5*l, '%']]},
+  core:  {name:'炉', en:'CORE',  stats:(l) => [[T('炉温上昇 HEAT GAIN', 'HEAT GAIN'), 100 - 7*l, '%'], [T('冷却 COOLING', 'COOLING'), 100 + 10*l, '%'], [T('疾走 DASH', 'DASH'), Math.round((25 + 1.2*l) * 3.6), 'km/h']]},
+  armor: {name:'装甲', en:'ARMOR', stats:(l) => [[T('装甲最大 ARMOR MAX', 'ARMOR MAX'), 100 + 12*l, ''], [T('被ダメ軽減 DMG CUT', 'DMG CUT'), 3*l, '%']]},
 };
 const UP_KEYS = ['legs', 'core', 'armor'];
+const upName = (u) => JA ? u.name + ' ' + u.en : u.en;
 function defaultSave(){ return {v:SAVE_V, parts:0, up:{legs:0, core:0, armor:0}, cleared:{}, launched:false, daily:null, streak:{last:'', n:0},
   medals:{1:[false,false,false], 2:[false,false,false], 3:[false,false,false]}, hardClear:{}, hard:false, assist:false, loses:{}, tutorial:false, run:null}; }
 function loadSave(){
@@ -2899,23 +2916,23 @@ function calcReward(m, win, score, rank, first){
    goals must be met in one run. At most one mission-specific goal (field m) in total, and none for a mission that is
    still locked. Debug runs never count. */
 const DAILY_POOL = [
-  {id:'kills',   n:[20,30], r:80,  txt:(n) => '灰殻を合計' + n + '体撃破', val:(s) => s.killsTotal},
-  {id:'beetle',  n:[10,16], r:70,  txt:(n) => '甲虫型を' + n + '体撃破', val:(s) => s.kills.beetle},
-  {id:'floater', n:[6,10],  r:70,  txt:(n) => '浮遊型を' + n + '体撃破', val:(s) => s.kills.floater},
-  {id:'overbeat',n:[2,3],   r:90,  txt:(n) => '鼓動モードを' + n + '回発動', val:(s) => s.overbeats},
-  {id:'weak',    n:[15,30], r:80,  txt:(n) => '弱点に' + n + '回命中', val:(s) => s.weakHits},
-  {id:'boss',    n:[1,1],   r:100, txt:() => '殻王を撃破', val:(s) => s.bossKills},
-  {id:'wins',    n:[2,2],   r:100, txt:(n) => '作戦を' + n + '回成功', val:(s) => s.win ? 1 : 0},
-  {id:'lowdmg',  n:[30,30], r:110, once:true, txt:(n) => '被ダメージ' + n + '以下でクリア', val:(s, n) => s.win && s.dmg <= n ? 1 : 0},
-  {id:'rankA',   n:[1,1],   r:110, once:true, txt:() => 'ランクA以上でクリア', val:(s) => s.win && (s.rank === 'S' || s.rank === 'A') ? 1 : 0},
-  {id:'acc',     n:[55,65], r:90,  once:true, txt:(n) => '命中率' + n + '%以上でクリア', val:(s, n) => s.win && s.acc * 100 >= n ? 1 : 0},
-  {id:'time',    n:[45,60], r:90,  once:true, txt:(n) => '残り' + n + '秒以上でクリア', val:(s, n) => s.win && s.timeLeft >= n ? 1 : 0},
-  {id:'rammer',  n:[4,6],   r:100, m:2, txt:(n) => '突進型を' + n + '体撃破', val:(s) => s.kills.rammer},
-  {id:'crash',   n:[3,5],   r:100, m:2, txt:(n) => '突進型を' + n + '回 激突させる', val:(s) => s.rammerCrashes},
-  {id:'wave',    n:[2,3],   r:120, m:2, txt:(n) => '跳躍で衝撃波を' + n + '回回避', val:(s) => s.waveDodges},
-  {id:'haze',    n:[2,3],   r:110, m:3, txt:(n) => '霧殻を' + n + '体撃破', val:(s) => s.kills.haze},
-  {id:'scan',    n:[4,6],   r:90,  m:3, txt:(n) => '震動探知を' + n + '回成功', val:(s) => s.scans},
-  {id:'flash',   n:[5,10],  r:120, m:3, txt:(n) => '雷光中に弱点へ' + n + '回命中', val:(s) => s.flashHits},
+  {id:'kills',   n:[20,30], r:80,  txt:(n) => T('灰殻を合計' + n + '体撃破', 'Destroy ' + n + ' Ashshell in total'), val:(s) => s.killsTotal},
+  {id:'beetle',  n:[10,16], r:70,  txt:(n) => T('甲虫型を' + n + '体撃破', 'Destroy ' + n + ' Beetles'), val:(s) => s.kills.beetle},
+  {id:'floater', n:[6,10],  r:70,  txt:(n) => T('浮遊型を' + n + '体撃破', 'Destroy ' + n + ' Floaters'), val:(s) => s.kills.floater},
+  {id:'overbeat',n:[2,3],   r:90,  txt:(n) => T('鼓動モードを' + n + '回発動', 'Trigger OVERBEAT ' + n + ' times'), val:(s) => s.overbeats},
+  {id:'weak',    n:[15,30], r:80,  txt:(n) => T('弱点に' + n + '回命中', 'Hit weak points ' + n + ' times'), val:(s) => s.weakHits},
+  {id:'boss',    n:[1,1],   r:100, txt:() => T('殻王を撃破', 'Destroy the Shell Lord'), val:(s) => s.bossKills},
+  {id:'wins',    n:[2,2],   r:100, txt:(n) => T('作戦を' + n + '回成功', 'Win ' + n + ' missions'), val:(s) => s.win ? 1 : 0},
+  {id:'lowdmg',  n:[30,30], r:110, once:true, txt:(n) => T('被ダメージ' + n + '以下でクリア', 'Clear taking ' + n + ' damage or less'), val:(s, n) => s.win && s.dmg <= n ? 1 : 0},
+  {id:'rankA',   n:[1,1],   r:110, once:true, txt:() => T('ランクA以上でクリア', 'Clear with rank A or better'), val:(s) => s.win && (s.rank === 'S' || s.rank === 'A') ? 1 : 0},
+  {id:'acc',     n:[55,65], r:90,  once:true, txt:(n) => T('命中率' + n + '%以上でクリア', 'Clear with ' + n + '% accuracy or more'), val:(s, n) => s.win && s.acc * 100 >= n ? 1 : 0},
+  {id:'time',    n:[45,60], r:90,  once:true, txt:(n) => T('残り' + n + '秒以上でクリア', 'Clear with ' + n + ' s or more left'), val:(s, n) => s.win && s.timeLeft >= n ? 1 : 0},
+  {id:'rammer',  n:[4,6],   r:100, m:2, txt:(n) => T('突進型を' + n + '体撃破', 'Destroy ' + n + ' Ramshells'), val:(s) => s.kills.rammer},
+  {id:'crash',   n:[3,5],   r:100, m:2, txt:(n) => T('突進型を' + n + '回 激突させる', 'Make Ramshells crash ' + n + ' times'), val:(s) => s.rammerCrashes},
+  {id:'wave',    n:[2,3],   r:120, m:2, txt:(n) => T('跳躍で衝撃波を' + n + '回回避', 'Jump over shockwaves ' + n + ' times'), val:(s) => s.waveDodges},
+  {id:'haze',    n:[2,3],   r:110, m:3, txt:(n) => T('霧殻を' + n + '体撃破', 'Destroy ' + n + ' Haze'), val:(s) => s.kills.haze},
+  {id:'scan',    n:[4,6],   r:90,  m:3, txt:(n) => T('震動探知を' + n + '回成功', 'Succeed at Tremor Scan ' + n + ' times'), val:(s) => s.scans},
+  {id:'flash',   n:[5,10],  r:120, m:3, txt:(n) => T('雷光中に弱点へ' + n + '回命中', 'Hit weak points during lightning ' + n + ' times'), val:(s) => s.flashHits},
 ];
 const DAILY_ALL_BONUS = 100;
 let debugDate = null;
@@ -2950,7 +2967,7 @@ function ensureDaily(noWrite){
     SAVE.streak = {last:ds, n:cont ? SAVE.streak.n + 1 : 1};
     const bonus = 10 * Math.min(SAVE.streak.n, 7);
     SAVE.parts += bonus;
-    streakNote = '連続出撃 STREAK ' + SAVE.streak.n + '日目 ボーナス 資材 +' + bonus;
+    streakNote = T('連続出撃 STREAK ' + SAVE.streak.n + '日目 ボーナス 資材 +' + bonus, 'STREAK day ' + SAVE.streak.n + ' bonus: PARTS +' + bonus);
   }
   if (!noWrite) writeSave();
 }
@@ -2964,7 +2981,7 @@ function applyDaily(st){
     g.prog = dailyDef(g.id).once ? Math.max(g.prog, v) : g.prog + v;
     if (g.prog >= g.target){ g.prog = g.target; g.done = true; SAVE.parts += g.reward; out.push({text:goalText(g), reward:g.reward}); }
   }
-  if (!SAVE.daily.allDone && SAVE.daily.goals.every(g => g.done)){ SAVE.daily.allDone = true; SAVE.parts += DAILY_ALL_BONUS; out.push({text:'本日の目標 すべて達成', reward:DAILY_ALL_BONUS}); }
+  if (!SAVE.daily.allDone && SAVE.daily.goals.every(g => g.done)){ SAVE.daily.allDone = true; SAVE.parts += DAILY_ALL_BONUS; out.push({text:T('本日の目標 すべて達成', 'All of today’s goals done'), reward:DAILY_ALL_BONUS}); }
   return out;
 }
 function newRunStats(){ return {kills:{beetle:0, floater:0, rammer:0, haze:0}, killsTotal:0, overbeats:0, weakHits:0, bossKills:0, rammerCrashes:0, waveDodges:0,
@@ -3064,7 +3081,7 @@ let selMission = (function(){ const v = parseInt(store.get('grandstride_mission'
 function selectMission(id, quiet){
   if (!MISSIONS[id]) return false;
   if (!mUnlocked(id)){
-    if (!quiet){ setText($('titleNote'), 'MISSION 0' + id + ' は MISSION 0' + (id - 1) + ' をクリアすると解放されます。'); snd('uiClick'); }
+    if (!quiet){ setText($('titleNote'), T('MISSION 0' + id + ' は MISSION 0' + (id - 1) + ' をクリアすると解放されます。', 'MISSION 0' + id + ' unlocks when you clear MISSION 0' + (id - 1) + '.')); snd('uiClick'); }
     return false;
   }
   selMission = id; store.set('grandstride_mission', id);
@@ -3101,27 +3118,27 @@ function refreshTitle(){
   th.disabled = !canHard;
   th.classList.toggle('on', SAVE.hard && canHard); th.setAttribute('aria-pressed', SAVE.hard && canHard ? 'true' : 'false');
   ta.classList.toggle('on', SAVE.assist); ta.setAttribute('aria-pressed', SAVE.assist ? 'true' : 'false');
-  setText($('modeNote'), !canHard ? 'HARD はクリア済みの作戦で選べます' : SAVE.hard ? '敵の装甲と火力が上がる／資材 ×1.5' : SAVE.assist ? '被ダメージ −25%（勲章「ランクA以上」は無効）' : '');
+  setText($('modeNote'), !canHard ? T('HARD はクリア済みの作戦で選べます', 'HARD is available on cleared missions') : SAVE.hard ? T('敵の装甲と火力が上がる／資材 ×1.5', 'Tougher, harder-hitting enemies / PARTS ×1.5') : SAVE.assist ? T('被ダメージ −25%（勲章「ランクA以上」は無効）', '−25% damage taken (the rank A medal is disabled)') : '');
   // all three cleared: next goals (HARD clears, medals)
   const all = [1, 2, 3].every(id => SAVE.cleared[id]);
   const ac = $('allClear'); ac.classList.toggle('hidden', !all);
   if (all){
     const hc = [1, 2, 3].filter(id => SAVE.hardClear[id]).length, mc = medalCount();
-    ac.innerHTML = '<b>全作戦完了 ALL MISSIONS COMPLETE</b><br>次の目標：高難度 HARD クリア ' + hc + '/3 ・ 勲章 ★ ' + mc + '/9' +
-      (hc === 3 && mc === 9 ? ' ── 全勲章達成。汀都の灯りは、あなたが守りました' : '');
+    ac.innerHTML = '<b>' + T('全作戦完了 ALL MISSIONS COMPLETE', 'ALL MISSIONS COMPLETE') + '</b><br>' + T('次の目標：高難度 HARD クリア ' + hc + '/3 ・ 勲章 ★ ' + mc + '/9', 'Next goals: HARD clears ' + hc + '/3 · medals ★ ' + mc + '/9') +
+      (hc === 3 && mc === 9 ? T(' ── 全勲章達成。汀都の灯りは、あなたが守りました', ' — every medal earned. You kept the lights of Shore City on.') : '');
   }
   renderDaily();
 }
 function renderDaily(){
   ensureDaily();
   const d = SAVE.daily, el = $('daily');
-  let h = '<div class="dh">今日の作戦目標 DAILY<span>STREAK ' + SAVE.streak.n + '日</span></div>';
+  let h = '<div class="dh">' + T('今日の作戦目標 DAILY', 'DAILY GOALS') + '<span>STREAK ' + SAVE.streak.n + T('日', ' d') + '</span></div>';
   for (const g of d.goals){
     const gm = goalMission(g);
     h += '<div class="dg' + (g.done ? ' done' : '') + (gm ? ' m' + gm : '') + '"><span>' + (g.done ? '✓ ' : '') + goalText(g) + '</span><b>' +
-      (g.done ? '達成 +' + g.reward : g.prog + '/' + g.target + ' ◆' + g.reward) + '</b></div>';
+      (g.done ? T('達成', 'DONE') + ' +' + g.reward : g.prog + '/' + g.target + ' ◆' + g.reward) + '</b></div>';
   }
-  if (d.allDone) h += '<div class="dg done"><span>全目標達成ボーナス</span><b>+' + DAILY_ALL_BONUS + '</b></div>';
+  if (d.allDone) h += '<div class="dg done"><span>' + T('全目標達成ボーナス', 'All-goals bonus') + '</span><b>+' + DAILY_ALL_BONUS + '</b></div>';
   el.innerHTML = h + tomorrowHtml();
 }
 function goTitle(){
@@ -3147,7 +3164,7 @@ function checkInterrupted(){
   const m = MISSIONS[r.m] || MISSIONS[1];
   const n = Math.round(calcReward(m, false, 0, 'C', false).total * (r.hard ? HARD_PARTS : 1));
   SAVE.parts += n; SAVE.run = null; writeSave();
-  interruptNote = '前回の作戦は中断されました（' + m.tag + '）。最低報酬 資材 +' + n + ' を受け取りました。';
+  interruptNote = T('前回の作戦は中断されました（' + m.tag + '）。最低報酬 資材 +' + n + ' を受け取りました。', 'Your last mission (' + m.tag + ') was interrupted. You received the minimum reward: PARTS +' + n + '.');
   return n;
 }
 let audioInited = false;
@@ -3194,8 +3211,8 @@ function resetMission(id){
 }
 const launchSeq = {t:0, bootIdx:0, said:false, called:false, clunk:false, short:false};
 const BOOT_LINES = [
-  ['鞍座 接続 SADDLE LINK', 'OK'], ['動力炉 CORE', 'ONLINE'], ['脚部 GRIP FL/FR/RL/RR', 'OK'],
-  ['火器管制 FCS', 'OK'], ['索敵 RADAR', 'OK'], ['神経共鳴 NEURAL LINK', 'LINKED'],
+  [T('鞍座 接続 SADDLE LINK', 'SADDLE LINK'), 'OK'], [T('動力炉 CORE', 'CORE'), 'ONLINE'], [T('脚部 GRIP FL/FR/RL/RR', 'GRIP FL/FR/RL/RR'), 'OK'],
+  [T('火器管制 FCS', 'FCS'), 'OK'], [T('索敵 RADAR', 'RADAR'), 'OK'], [T('神経共鳴 NEURAL LINK', 'NEURAL LINK'), 'LINKED'],
 ];
 const BOOT_LIT = [['compass', 0.7], ['radarWrap', 1.0], ['gripPanel', 1.35], ['sysPanel', 1.7], ['topStats', 2.0], ['resPanel', 2.3], ['reticle', 2.7]];
 // The full launch sequence is the original 6.1s timeline played at 1/0.9 speed (done in 5.5s). After the first
@@ -3237,16 +3254,16 @@ function beginPlay(){
   P.resStep = Math.floor(P.res / 25);
   clearRadio();
   if (M.id === 3){
-    say('管制イツカより鞍士へ。第三防潮堤の外、干潟区画。制限時間5分、灰殻14体と観測塔3基。', {});
-    say('視界はほぼゼロ。目は当てにしないで。あなたには脚が四本あるでしょう', {});
+    say(T('管制イツカより鞍士へ。第三防潮堤の外、干潟区画。制限時間5分、灰殻14体と観測塔3基。', 'Control to Rider. Beyond the Third Seawall: the tidal flats. Five minutes, 14 Ashshell, 3 observation towers.'), {});
+    say(T('視界はほぼゼロ。目は当てにしないで。あなたには脚が四本あるでしょう', 'Visibility is near zero. Do not trust your eyes. You have four legs, remember.'), {});
   } else if (M.id === 2){
-    say('管制イツカより鞍士へ。汀都 港湾区画、夜間掃討を開始。制限時間4分、灰殻16体と大型反応1。', {});
-    say('霧が濃い。コンテナの陰に注意して。突進型は、溜めの赤い光が合図です。', {});
+    say(T('管制イツカより鞍士へ。汀都 港湾区画、夜間掃討を開始。制限時間4分、灰殻16体と大型反応1。', 'Control to Rider. Harbor night sweep begins. Four minutes, 16 Ashshell and one large signature.'), {});
+    say(T('霧が濃い。コンテナの陰に注意して。突進型は、溜めの赤い光が合図です。', 'Thick fog. Watch behind the containers. A Ramshell glows red before it charges.'), {});
   } else if (fromLaunch && !SAVE.tutorial){
     startTutorial();
   } else {
-    say('管制イツカより鞍士へ。汀都 第七区画に灰殻の群れ。制限時間3分、全機撃破してください。', {});
-    say('一定のリズムで歩けば共鳴率は上がります。焦らずに。', {});
+    say(T('管制イツカより鞍士へ。汀都 第七区画に灰殻の群れ。制限時間3分、全機撃破してください。', 'Control to Rider. Ashshell swarm in Sector 7. Three minutes. Destroy them all.'), {});
+    say(T('一定のリズムで歩けば共鳴率は上がります。焦らずに。', 'Walk at a steady rhythm and resonance will rise. Stay calm.'), {});
   }
   G.spawnT = G.rookie ? 3 : 1.5;
   // "mission in progress": if the page is closed before the result, the next visit reports it (see checkInterrupted)
@@ -3258,15 +3275,15 @@ function clearRunFlag(){ if (SAVE.run){ SAVE.run = null; writeSave(); } }
    Itsuka walks the rider through move -> turn -> fire -> dash -> boost; each step waits for the action (or 25s).
    The mission clock and the spawns hold until the dash step, so the first ASHSHELL arrives in the second half. */
 const TUT_STEPS = [
-  {id:'move',  pc:['まずは歩いてみて。W で前進、S で後退です。', 'W 前進 ／ S 後退'], tc:['まずは歩いてみて。左下のスティックを上に倒すと前進です。', 'スティック ▲ 前進']},
-  {id:'turn',  pc:['いい歩き方です。A／D で旋回、マウスで視点。照準は画面の中心です。', 'A / D 旋回 ・ マウス 視点'], tc:['いい歩き方です。スティックを左右で旋回、画面の右側をドラッグすると視点が動きます。', 'スティック ◀▶ 旋回 ・ 右側ドラッグ 視点']},
-  {id:'fire',  pc:['左クリックで射撃。照準の近くの敵は自動でロックします。3発、撃ってみて。', '左クリック 射撃 ×3'], tc:['射撃ボタンで撃てます。照準の近くの敵は自動でロックします。3発、撃ってみて。', '射撃ボタン FIRE ×3']},
-  {id:'dash',  pc:['Shift を押しながら前進で疾走。炉温が上がるので使いすぎに注意。……灰殻の反応、来ます。', 'Shift ＋ W 疾走'], tc:['疾走ボタンを押しながら前進で疾走。炉温が上がるので使いすぎに注意。……灰殻の反応、来ます。', '疾走ボタン ＋ スティック ▲']},
-  {id:'boost', pc:['Space で跳躍。甲虫型や殻王の体当たりは跳んで躱せます。', 'Space 跳躍'], tc:['跳躍ボタンで跳べます。甲虫型や殻王の体当たりは跳んで躱せます。', '跳躍ボタン BOOST']},
+  {id:'move',  pc:T(['まずは歩いてみて。W で前進、S で後退です。', 'W 前進 ／ S 後退'], ['Start by walking. W moves forward, S moves back.', 'W forward / S back']), tc:T(['まずは歩いてみて。左下のスティックを上に倒すと前進です。', 'スティック ▲ 前進'], ['Start by walking. Push the lower-left stick up to move forward.', 'STICK ▲ forward'])},
+  {id:'turn',  pc:T(['いい歩き方です。A／D で旋回、マウスで視点。照準は画面の中心です。', 'A / D 旋回 ・ マウス 視点'], ['Nice walking. A / D turn, the mouse looks around. The crosshair is the screen center.', 'A / D turn · MOUSE look']), tc:T(['いい歩き方です。スティックを左右で旋回、画面の右側をドラッグすると視点が動きます。', 'スティック ◀▶ 旋回 ・ 右側ドラッグ 視点'], ['Nice walking. Stick left / right to turn, drag the right side of the screen to look.', 'STICK ◀▶ turn · RIGHT DRAG look'])},
+  {id:'fire',  pc:T(['左クリックで射撃。照準の近くの敵は自動でロックします。3発、撃ってみて。', '左クリック 射撃 ×3'], ['Left click to fire. Enemies near the crosshair are locked automatically. Try three shots.', 'LEFT CLICK fire ×3']), tc:T(['射撃ボタンで撃てます。照準の近くの敵は自動でロックします。3発、撃ってみて。', '射撃ボタン FIRE ×3'], ['Tap FIRE to shoot. Enemies near the crosshair are locked automatically. Try three shots.', 'FIRE button ×3'])},
+  {id:'dash',  pc:T(['Shift を押しながら前進で疾走。炉温が上がるので使いすぎに注意。……灰殻の反応、来ます。', 'Shift ＋ W 疾走'], ['Hold Shift while moving to dash. It heats the core, so do not overuse it. ...Ashshell signatures incoming.', 'Shift + W dash']), tc:T(['疾走ボタンを押しながら前進で疾走。炉温が上がるので使いすぎに注意。……灰殻の反応、来ます。', '疾走ボタン ＋ スティック ▲'], ['Hold DASH while moving to dash. It heats the core, so do not overuse it. ...Ashshell signatures incoming.', 'DASH button + stick ▲'])},
+  {id:'boost', pc:T(['Space で跳躍。甲虫型や殻王の体当たりは跳んで躱せます。', 'Space 跳躍'], ['Space to boost-jump. You can jump over Beetle and Shell Lord charges.', 'Space boost']), tc:T(['跳躍ボタンで跳べます。甲虫型や殻王の体当たりは跳んで躱せます。', '跳躍ボタン BOOST'], ['Tap BOOST to jump. You can jump over Beetle and Shell Lord charges.', 'BOOST button'])},
 ];
 const TUT_SPAWN_STEP = 3, TUT_STEP_MAX = 25;
 function startTutorial(){
-  say('管制イツカより鞍士へ。初出撃ですね。灰殻が来る前に、操作を確かめましょう。', {});
+  say(T('管制イツカより鞍士へ。初出撃ですね。灰殻が来る前に、操作を確かめましょう。', 'Control to Rider. First sortie, I see. Let us check your controls before the Ashshell arrive.'), {});
   G.tut = {step:-1, t:0, acc:0, h:P.heading, shots:P.shots};
   hudEl.hud.classList.add('tut');
   tutNext();
@@ -3281,7 +3298,7 @@ function tutNext(){
 function endTutorial(done){
   if (!G.tut) return;
   G.tut = null; hudEl.hud.classList.remove('tut');
-  if (done) say('操作は以上です。一定のリズムで歩けば共鳴率が上がります。灰殻を全機撃破して。', {});
+  if (done) say(T('操作は以上です。一定のリズムで歩けば共鳴率が上がります。灰殻を全機撃破して。', 'That is everything. Walk at a steady rhythm to raise resonance. Destroy every Ashshell.'), {});
   if (!SAVE.tutorial){ SAVE.tutorial = true; writeSave(); }
 }
 function updTutorial(dt){
@@ -3322,10 +3339,10 @@ function endMission(win){
   if (P.overbeat){ P.overbeat = false; snd('overbeat', false); }
   if (win){
     snd('victory');
-    say(M.id === 3 ? '反応消失。防潮堤の灯りが戻りました。……帰投して。脈、まだ速いですよ' : M.id === 2 ? '双殻王の沈黙を確認。港湾区画、掃討完了。…よく帰ってきました、ヘカトン。' : '殻王の沈黙を確認。第七区画、防衛成功です。おかえりなさい、ヘカトン。', {urgent:true});
+    say(M.id === 3 ? T('反応消失。防潮堤の灯りが戻りました。……帰投して。脈、まだ速いですよ', 'Signature lost. The seawall lights are back on. ...Come home. Your pulse is still racing.') : M.id === 2 ? T('双殻王の沈黙を確認。港湾区画、掃討完了。…よく帰ってきました、ヘカトン。', 'Twinshell silenced. Harbor sector cleared. ...Welcome back, Hekaton.') : T('殻王の沈黙を確認。第七区画、防衛成功です。おかえりなさい、ヘカトン。', 'Shell Lord silenced. Sector 7 defended. Welcome back, Hekaton.'), {urgent:true});
   } else {
     snd('defeat');
-    say(P.armor <= 0 ? 'ヘカトン、応答を！ 装甲限界…鞍士、脱出を！' : (M.id === 3 ? '時間切れです。嵐が強すぎる──干潟から撤退してください。' : M.id === 2 ? '時間切れです。港湾区画から撤退してください。' : '時間切れです。第七区画、防衛線を放棄…撤退してください。'), {urgent:true});
+    say(P.armor <= 0 ? T('ヘカトン、応答を！ 装甲限界…鞍士、脱出を！', 'Hekaton, respond! Armor critical... Rider, eject!') : (M.id === 3 ? T('時間切れです。嵐が強すぎる──干潟から撤退してください。', 'Time is up. The storm is too strong. Withdraw from the flats.') : M.id === 2 ? T('時間切れです。港湾区画から撤退してください。', 'Time is up. Withdraw from the harbor sector.') : T('時間切れです。第七区画、防衛線を放棄…撤退してください。', 'Time is up. Sector 7 defense line abandoned... withdraw.')), {urgent:true});
   }
 }
 function showResult(){
@@ -3343,7 +3360,7 @@ function showResult(){
   let rank = score >= R[0] ? 'S' : score >= R[1] ? 'A' : score >= R[2] ? 'B' : 'C';
   if (!win && (rank === 'S' || rank === 'A')) rank = 'B';
   const rt = $('resTitle'); rt.textContent = win ? 'MISSION COMPLETE' : 'MISSION FAILED'; rt.className = win ? 'win' : 'lose';
-  $('resSub').textContent = M.tag + ' — ' + M.name + (G.hard ? ' ／ HARD' : '') + (G.assist ? ' ／ ASSIST' : '') + (win ? ' ／ 成功' : ' ／ 失敗');
+  $('resSub').textContent = M.tag + ' — ' + M.name + (G.hard ? ' / HARD' : '') + (G.assist ? ' / ASSIST' : '') + (win ? T(' ／ 成功', ' / SUCCESS') : T(' ／ 失敗', ' / FAILED'));
   $('rKills').textContent = (G.kills + (G.lordDead ? 1 : 0)) + ' / ' + (total + 1);
   $('rAcc').textContent = Math.round(acc * 100) + '%';
   $('rRes').textContent = Math.round(P.maxRes) + '%';
@@ -3354,7 +3371,7 @@ function showResult(){
   const prev = hiscoreOf(M);
   const debug = !!G.debugUsed;
   if (G.tut) endTutorial(false);
-  if (score > prev && !debug){ store.set(M.hiKey, score); store.set(M.rankKey, rank); $('newHi').textContent = '最高スコア更新 NEW RECORD'; }
+  if (score > prev && !debug){ store.set(M.hiKey, score); store.set(M.rankKey, rank); $('newHi').textContent = T('最高スコア更新 NEW RECORD', 'NEW RECORD'); }
   else $('newHi').textContent = '';
   // rewards / progress (never from debug runs)
   const first = win && !SAVE.cleared[M.id];
@@ -3382,20 +3399,20 @@ function showResult(){
   }
   SAVE.run = null;
   writeSave();
-  let h = '<div class="pp"><small>獲得資材 PARTS</small>+' + rew.total + (debug ? ' <small>(DEBUG — 未保存)</small>' : '') + '</div>';
-  h += '<div class="why">スコア ' + rew.base + (rew.rank ? ' ＋ ランク ' + rew.rank : '') + (rew.first ? ' ＋ 初回クリア ' + rew.first : '') +
-    (rew.hard ? ' ＋ HARD ' + rew.hard : '') + (rew.medal ? ' ＋ 勲章 ' + rew.medal : '') + '　／　所持 ◆' + SAVE.parts + '</div>';
-  for (const i of newMedals) h += '<div class="med">勲章獲得 MEDAL ★ ' + medalText(M, i) + '　資材 +' + Math.round(MEDAL_BONUS[i] * M.partsMul) + '</div>';
-  if (hardFirst) h += '<div class="med">HARD 初クリア ／ ' + M.tag + ' に HARD の印</div>';
-  if (unlocked) h += '<div class="unl">' + MISSIONS[unlocked].tag + '「' + MISSIONS[unlocked].name + '」解放 UNLOCKED</div>';
-  for (const d of daily) h += '<div class="dly">今日の作戦目標 達成：' + d.text + '　資材 +' + d.reward + '</div>';
+  let h = '<div class="pp"><small>' + T('獲得資材 PARTS', 'PARTS EARNED') + '</small>+' + rew.total + (debug ? ' <small>' + T('(DEBUG — 未保存)', '(DEBUG — not saved)') + '</small>' : '') + '</div>';
+  h += '<div class="why">' + T('スコア ', 'Score ') + rew.base + (rew.rank ? T(' ＋ ランク ', ' + Rank ') + rew.rank : '') + (rew.first ? T(' ＋ 初回クリア ', ' + First clear ') + rew.first : '') +
+    (rew.hard ? T(' ＋ HARD ', ' + HARD ') + rew.hard : '') + (rew.medal ? T(' ＋ 勲章 ', ' + Medals ') + rew.medal : '') + SEP + T('所持 ◆', 'Owned ◆') + SAVE.parts + '</div>';
+  for (const i of newMedals) h += '<div class="med">' + T('勲章獲得 MEDAL ★ ', 'MEDAL ★ ') + medalText(M, i) + T('　資材 +', '  PARTS +') + Math.round(MEDAL_BONUS[i] * M.partsMul) + '</div>';
+  if (hardFirst) h += '<div class="med">' + T('HARD 初クリア ／ ' + M.tag + ' に HARD の印', 'First HARD clear — HARD mark added to ' + M.tag) + '</div>';
+  if (unlocked) h += '<div class="unl">' + MISSIONS[unlocked].tag + T('「' + MISSIONS[unlocked].name + '」解放 UNLOCKED', ' “' + MISSIONS[unlocked].name + '” UNLOCKED') + '</div>';
+  for (const d of daily) h += '<div class="dly">' + T('今日の作戦目標 達成：', 'Daily goal complete: ') + d.text + T('　資材 +', '  PARTS +') + d.reward + '</div>';
   const nc = cheapestUp();
   const nxt = [];
-  if (nc != null) nxt.push(SAVE.parts >= nc ? '強化できます！ 整備へ' : '次の強化まで あと資材 ' + (nc - SAVE.parts));
+  if (nc != null) nxt.push(SAVE.parts >= nc ? T('強化できます！ 整備へ', 'Upgrade available! Go to the hangar') : T('次の強化まで あと資材 ' + (nc - SAVE.parts), 'PARTS to next upgrade: ' + (nc - SAVE.parts)));
   const ri = RANK_NAMES.indexOf(rank);
-  if (ri > 0){ const need = R[ri - 1] - score; nxt.push(win || ri > 2 ? '次のランク ' + RANK_NAMES[ri - 1] + ' まで あと ' + need + '点' : '成功でランク ' + RANK_NAMES[ri - 1] + ' 以上を狙える'); }
-  else nxt.push('最高ランク S');
-  h += '<div class="nxt">' + nxt.join('　／　') + '</div>';
+  if (ri > 0){ const need = R[ri - 1] - score; nxt.push(win || ri > 2 ? T('次のランク ' + RANK_NAMES[ri - 1] + ' まで あと ' + need + '点', 'Next rank ' + RANK_NAMES[ri - 1] + ': ' + need + ' pts to go') : T('成功でランク ' + RANK_NAMES[ri - 1] + ' 以上を狙える', 'Win to aim for rank ' + RANK_NAMES[ri - 1] + ' or better')); }
+  else nxt.push(T('最高ランク S', 'Top rank: S'));
+  h += '<div class="nxt">' + nxt.join(SEP) + '</div>';
   h += tomorrowHtml();
   $('rewards').innerHTML = h;
   // medal row (new ones pop in)
@@ -3404,7 +3421,7 @@ function showResult(){
     const on = !!(SAVE.medals[M.id] && SAVE.medals[M.id][i]) || (debug && got[i]);
     const off = i === 1 && G.assist;
     mh += '<span class="md' + (on ? ' on' : '') + (newMedals.indexOf(i) >= 0 ? ' new' : '') + (off ? ' off' : '') + '" style="animation-delay:' + (0.3 + 0.25 * newMedals.indexOf(i)) + 's"><i>' + (on ? '★' : '☆') + '</i>' +
-      medalText(M, i) + (off ? '（ASSIST中は無効）' : '') + '</span>';
+      medalText(M, i) + (off ? T('（ASSIST中は無効）', ' (disabled in ASSIST)') : '') + '</span>';
   }
   $('rMedals').innerHTML = mh;
   if (newMedals.length){ snd('upgrade', 3); snd('haptic', 60); }
@@ -3421,14 +3438,14 @@ function showResult(){
   plat('result', {win, mission:M.id, rank, debug, pct:Math.round([1, 2, 3].filter(i => SAVE.cleared[i]).length / 3 * 100), boss:win && !!G.lordDead});
   try { $(nextId ? 'btnNext' : 'btnRetry').focus({preventScroll:true}); } catch(e){}
 }
-const MEDAL_NAMES = ['クリア', 'ランクA以上', ''];
-function medalText(m, i){ return i === 2 ? '被ダメージ' + m.medalDmg + '以下' : MEDAL_NAMES[i]; }
+const MEDAL_NAMES = T(['クリア', 'ランクA以上', ''], ['Clear', 'Rank A or better', '']);
+function medalText(m, i){ return i === 2 ? T('被ダメージ' + m.medalDmg + '以下', 'Damage ' + m.medalDmg + ' or less') : MEDAL_NAMES[i]; }
 function medalsOf(m, win, rank, dmg, assist){ return [win, win && !assist && (rank === 'S' || rank === 'A'), win && dmg <= m.medalDmg]; }
 function medalCount(){ let n = 0; for (const id of [1, 2, 3]) n += (SAVE.medals[id] || []).filter(Boolean).length; return n; }
 // tomorrow's STREAK bonus (if the rider comes back tomorrow) + the daily goals refresh
 function tomorrowHtml(){
   const n = SAVE.streak.last === today() ? SAVE.streak.n + 1 : 1;
-  return '<div class="tmr">明日の報酬 TOMORROW：連続出撃 ' + n + '日目 資材 <b>+' + (10 * Math.min(n, 7)) + '</b> ／ 今日の作戦目標は明日 新しくなります</div>';
+  return '<div class="tmr">' + T('明日の報酬 TOMORROW：連続出撃 ' + n + '日目 資材 <b>+' + (10 * Math.min(n, 7)) + '</b> ／ 今日の作戦目標は明日 新しくなります', 'TOMORROW: STREAK day ' + n + ', PARTS <b>+' + (10 * Math.min(n, 7)) + '</b> / daily goals refresh tomorrow') + '</div>';
 }
 function fmtTime(s){ s = Math.max(0, Math.ceil(s)); return Math.floor(s/60) + ':' + String(s % 60).padStart(2, '0'); }
 
@@ -3564,7 +3581,7 @@ $('hYes').addEventListener('click', () => {
   writeSave(); snd('explosion', 0.3);
   $('hConfirm').classList.add('hidden'); $('hReset').classList.remove('hidden');
   if (selMission !== 1) selectMission(1, true);
-  renderHangar(); setText($('hMsg'), '整備データを初期化しました。');
+  renderHangar(); setText($('hMsg'), T('整備データを初期化しました。', 'Hangar data has been reset.'));
 });
 /* ---- hangar (整備) ---- */
 let hangarFrom = null;
@@ -3586,21 +3603,21 @@ function closeHangar(){
 function refreshResultNext(){
   // the "next upgrade" hint on the result card follows purchases made from the result screen
   const el = $('rewards').querySelector('.nxt'); if (!el) return;
-  const nc = cheapestUp(); const parts = el.textContent.split('　／　');
-  parts[0] = nc == null ? '強化はすべて最大' : SAVE.parts >= nc ? '強化できます！ 整備へ' : '次の強化まで あと資材 ' + (nc - SAVE.parts);
-  el.textContent = parts.join('　／　');
+  const nc = cheapestUp(); const parts = el.textContent.split(SEP);
+  parts[0] = nc == null ? T('強化はすべて最大', 'All upgrades maxed') : SAVE.parts >= nc ? T('強化できます！ 整備へ', 'Upgrade available! Go to the hangar') : T('次の強化まで あと資材 ' + (nc - SAVE.parts), 'PARTS to next upgrade: ' + (nc - SAVE.parts));
+  el.textContent = parts.join(SEP);
 }
 function renderHangar(){
   setText($('hPartsN'), String(SAVE.parts));
   let h = '';
   for (const k of UP_KEYS){
     const u = UPG[k], l = SAVE.up[k], cur = u.stats(l), nx = l < UP_MAX ? u.stats(l + 1) : null, cost = nextUpCost(k);
-    h += '<div class="hcol"><h3>' + u.name + ' ' + u.en + '<small>Lv ' + l + '/' + UP_MAX + '</small></h3><div class="pips">';
+    h += '<div class="hcol"><h3>' + upName(u) + '<small>Lv ' + l + '/' + UP_MAX + '</small></h3><div class="pips">';
     for (let i = 0; i < UP_MAX; i++) h += i < l ? '<i class="on"></i>' : '<i></i>';
     h += '</div>';
     for (let i = 0; i < cur.length; i++) h += '<div class="hrow"><span>' + cur[i][0] + '</span><b>' + cur[i][1] + cur[i][2] + (nx ? ' → <em>' + nx[i][1] + nx[i][2] + '</em>' : '') + '</b></div>';
     h += '<button type="button" class="btn hbuy" data-k="' + k + '"' + (cost == null ? ' disabled' : '') + (cost != null && SAVE.parts < cost ? ' style="opacity:.55"' : '') + '>' +
-      (cost == null ? '最大 MAX' : '強化 UPGRADE <span class="cost">◆' + cost + '</span>') + '</button></div>';
+      (cost == null ? T('最大 MAX', 'MAX') : T('強化 UPGRADE', 'UPGRADE') + ' <span class="cost">◆' + cost + '</span>') + '</button></div>';
   }
   $('hSys').innerHTML = h;
   $('hSys').querySelectorAll('.hbuy').forEach(b => b.addEventListener('click', () => buyUpgrade(b.dataset.k)));
@@ -3608,12 +3625,12 @@ function renderHangar(){
 function buyUpgrade(k){
   if (!UPG[k]) return false;
   const cost = nextUpCost(k);
-  if (cost == null){ setText($('hMsg'), UPG[k].name + ' ' + UPG[k].en + ' は最大です。'); return false; }
-  if (SAVE.parts < cost){ snd('uiClick'); setText($('hMsg'), '資材が足りません（あと ◆' + (cost - SAVE.parts) + '）。作戦で資材を回収してください。'); return false; }
+  if (cost == null){ setText($('hMsg'), T(UPG[k].name + ' ' + UPG[k].en + ' は最大です。', upName(UPG[k]) + ' is already at max.')); return false; }
+  if (SAVE.parts < cost){ snd('uiClick'); setText($('hMsg'), T('資材が足りません（あと ◆' + (cost - SAVE.parts) + '）。作戦で資材を回収してください。', 'Not enough PARTS (need ◆' + (cost - SAVE.parts) + ' more). Earn PARTS on missions.')); return false; }
   SAVE.parts -= cost; SAVE.up[k]++; writeSave();
   snd('upgrade', SAVE.up[k]); snd('haptic', 80);
   renderHangar();
-  setText($('hMsg'), UPG[k].name + ' ' + UPG[k].en + ' を Lv ' + SAVE.up[k] + ' に強化しました。');
+  setText($('hMsg'), T(UPG[k].name + ' ' + UPG[k].en + ' を Lv ' + SAVE.up[k] + ' に強化しました。', upName(UPG[k]) + ' upgraded to Lv ' + SAVE.up[k] + '.'));
   try { const b = $('hSys').querySelector('.hbuy[data-k="' + k + '"]'); if (b && !b.disabled) b.focus({preventScroll:true}); } catch(e){}
   return true;
 }
@@ -3737,8 +3754,8 @@ function damageEnemy(e, dmg, p, weak, mul){
   snd('hitEnemy');
   hitT = 0.15;
   P.res = Math.min(100, P.res + (weak ? 1.6 : armored ? 0.3 : 1.1));
-  if (weak){ popup('弱点命中 WEAK POINT ×' + (mul || 3)); G.st.weakHits++; if (M.stage === 'storm' && stormLit()) G.st.flashHits++; }
-  else if (armored && e.state !== 'transform' && G.t - armoredPopT > 2.5){ armoredPopT = G.t; popup(e.type === 'mael' ? (e.phase === 2 ? '装甲 ARMORED — 吸気口は雷光の間だけ見える' : '装甲 ARMORED — 浮上して開く吸気口を狙え') : '装甲 ARMORED — 殻が開くのを待て'); }
+  if (weak){ popup(T('弱点命中 WEAK POINT ×', 'WEAK POINT ×') + (mul || 3)); G.st.weakHits++; if (M.stage === 'storm' && stormLit()) G.st.flashHits++; }
+  else if (armored && e.state !== 'transform' && G.t - armoredPopT > 2.5){ armoredPopT = G.t; popup(e.type === 'mael' ? (e.phase === 2 ? T('装甲 ARMORED — 吸気口は雷光の間だけ見える', 'ARMORED — vents are visible only during lightning') : T('装甲 ARMORED — 浮上して開く吸気口を狙え', 'ARMORED — aim at the vents that open as it surfaces')) : T('装甲 ARMORED — 殻が開くのを待て', 'ARMORED — wait for the shell to open')); }
   if (e.type === 'twin' && e.phase === 1 && e.state !== 'transform' && e.hp <= e.maxHp / 2){ e.hp = e.maxHp / 2; twinTransform(e); return; }
   if (e.type === 'mael'){
     if (e.phase === 1 && e.state !== 'shift' && e.hp <= e.maxHp * 0.65){ e.hp = e.maxHp * 0.65; maelShift(e, 2); return; }
@@ -3760,31 +3777,31 @@ function killEnemy(e){
   P.res = Math.min(100, P.res + 6);
   if (big){
     G.lordDead = true; G.st.bossKills++;
-    popup(e.type === 'mael' ? '渦殻王 撃破 MAELSHELL DESTROYED +' + M.bossPts : e.type === 'twin' ? '双殻王 撃破 TWINSHELL DESTROYED +' + M.bossPts : '殻王 撃破 SHELL LORD DESTROYED +6000');
+    popup(e.type === 'mael' ? T('渦殻王 撃破 MAELSHELL DESTROYED +', 'MAELSHELL DESTROYED +') + M.bossPts : e.type === 'twin' ? T('双殻王 撃破 TWINSHELL DESTROYED +', 'TWINSHELL DESTROYED +') + M.bossPts : T('殻王 撃破 SHELL LORD DESTROYED +6000', 'SHELL LORD DESTROYED +6000'));
     if (e.type === 'mael'){ hideMaelFx(); SW.visT = 90 + 20 * SW.towersDone; }
     if (e.type === 'twin' || e.type === 'mael') setTimeout(() => { if (G.state === 'play' || G.state === 'result') explode(V1.copy(tmpC).add(V2.set(rnd(-10,10), rnd(2,12), rnd(-10,10))), 1); }, 750);
     endMission(true);
   } else if (e.summoned){
     // haze called in by MAELSHELL: not one of the mission's targets (no kill count / points), still counts for the daily goals
-    popup('霧殻 撃破 HAZE DOWN'); G.st.kills[e.type] = (G.st.kills[e.type] || 0) + 1; G.st.killsTotal++;
-    say('霧殻、撃破。霧が晴れます。', {key:'hazekill', cd:10});
+    popup(T('霧殻 撃破 HAZE DOWN', 'HAZE DOWN')); G.st.kills[e.type] = (G.st.kills[e.type] || 0) + 1; G.st.killsTotal++;
+    say(T('霧殻、撃破。霧が晴れます。', 'Haze down. The fog is clearing.'), {key:'hazekill', cd:10});
   } else {
-    G.kills++; popup('撃破 DESTROYED +' + (M.id === 1 ? ENEMY_DEF[e.type].score : M.killPts));
+    G.kills++; popup(T('撃破 DESTROYED +', 'DESTROYED +') + (M.id === 1 ? ENEMY_DEF[e.type].score : M.killPts));
     G.st.kills[e.type] = (G.st.kills[e.type] || 0) + 1; G.st.killsTotal++;
     const left = M.order.length - G.kills;
     if (M.id === 3){
-      if (e.type === 'haze') say('霧殻、撃破。霧が晴れます。', {key:'hazekill', cd:10});
-      if (left === 7) say('残り7体。観測塔の起動も忘れずに。', {});
-      else if (left === 1) say(SW.towersDone < 3 ? '残り1体。観測塔は、あと' + (3 - SW.towersDone) + '基。' : '残り1体。……干潟の下で、何かが動いています。', {});
+      if (e.type === 'haze') say(T('霧殻、撃破。霧が晴れます。', 'Haze down. The fog is clearing.'), {key:'hazekill', cd:10});
+      if (left === 7) say(T('残り7体。観測塔の起動も忘れずに。', '7 left. Do not forget the observation towers.'), {});
+      else if (left === 1) say(SW.towersDone < 3 ? T('残り1体。観測塔は、あと' + (3 - SW.towersDone) + '基。', '1 left. ' + (3 - SW.towersDone) + ' tower(s) still to go.') : T('残り1体。……干潟の下で、何かが動いています。', '1 left. ...Something is moving beneath the flats.'), {});
     } else if (M.id === 1){
-      if (left === 8) say('灰殻、残り8体。いいリズムです。', {});
-      else if (left === 4) say('残り4体！ このまま押し切って。', {});
-      else if (left === 1) say('残り1体。…待って、地下から大きな反応が。', {});
+      if (left === 8) say(T('灰殻、残り8体。いいリズムです。', '8 Ashshell left. Good rhythm.'), {});
+      else if (left === 4) say(T('残り4体！ このまま押し切って。', '4 left! Keep pushing.'), {});
+      else if (left === 1) say(T('残り1体。…待って、地下から大きな反応が。', '1 left. ...Wait, a large signature from underground.'), {});
     } else {
-      if (e.type === 'rammer' && G.st.kills.rammer === 1) say('突進型、撃破を確認。読み合いはあなたの勝ちです。', {});
-      if (left === 10) say('残り10体。霧の向こう、まだいます。', {});
-      else if (left === 5) say('残り5体！ 岸壁沿いに反応、気をつけて。', {});
-      else if (left === 1) say('残り1体。…海底から、巨大な反応が上がってくる！', {});
+      if (e.type === 'rammer' && G.st.kills.rammer === 1) say(T('突進型、撃破を確認。読み合いはあなたの勝ちです。', 'Ramshell down. You won that mind game.'), {});
+      if (left === 10) say(T('残り10体。霧の向こう、まだいます。', '10 left. More out there in the fog.'), {});
+      else if (left === 5) say(T('残り5体！ 岸壁沿いに反応、気をつけて。', '5 left! Signatures along the quay, be careful.'), {});
+      else if (left === 1) say(T('残り1体。…海底から、巨大な反応が上がってくる！', '1 left. ...A huge signature is rising from the seabed!'), {});
     }
   }
 }
@@ -3813,8 +3830,8 @@ function hurt(amount, src, extraGrip){
   const ang = Math.atan2(lx, lz);
   hudEl.dmgDir.style.transform = 'rotate(' + ang + 'rad)'; dmgDirT = 1;
   snd('damage', clamp(amount / 20, 0.1, 1)); snd('haptic', Math.round(60 + amount * 8));
-  if (P.armor < 30) say('装甲残り僅か！ 距離を取って！', {key:'armor', cd:15});
-  else if (SW.jam && M.stage === 'storm') say('計器が読めなくても、脚は嘘をつきません。揺れた側が敵の方角', {key:'jamhit', cd:25});
+  if (P.armor < 30) say(T('装甲残り僅か！ 距離を取って！', 'Armor almost gone! Back off!'), {key:'armor', cd:15});
+  else if (SW.jam && M.stage === 'storm') say(T('計器が読めなくても、脚は嘘をつきません。揺れた側が敵の方角', 'Even when the gauges fail, your legs never lie. The side that shakes is where the enemy is.'), {key:'jamhit', cd:25});
   if (P.armor <= 0) endMission(false);
 }
 
@@ -3991,7 +4008,7 @@ function spawnPos(dist){
 function bearingName(x, z){
   const ang = Math.atan2(x - P.pos.x, -(z - P.pos.z));
   const deg = ((ang * 180 / Math.PI) + 360) % 360;
-  return ['北','北東','東','南東','南','南西','西','北西'][Math.round(deg / 45) % 8];
+  return T(['北','北東','東','南東','南','南西','西','北西'], ['north','northeast','east','southeast','south','southwest','west','northwest'])[Math.round(deg / 45) % 8];
 }
 const ROOKIE = {maxAlive:[3,4], gapFirst:1.8, gap:3.0};
 function updSpawns(dt){
@@ -4007,17 +4024,17 @@ function updSpawns(dt){
     spawnEnemy(type, x, z);
     G.spawned++;
     G.spawnT = G.rookie ? (G.spawned < 4 ? ROOKIE.gapFirst : ROOKIE.gap) : (G.spawned < 4 ? 0.8 : 2.6);
-    if (G.spawned === 1 && M.id !== 3) say('灰殻の反応、' + bearingName(x, z) + 'から接近。甲虫型です。', {key:'spawn', cd:8});
-    else if (type === 'haze' && !SW.saidHaze){ SW.saidHaze = true; say('計器にノイズ──霧殻です。砂嵐の真ん中にいる。撃てば晴れます', {urgent:true}); }
+    if (G.spawned === 1 && M.id !== 3) say(T('灰殻の反応、' + bearingName(x, z) + 'から接近。甲虫型です。', 'Ashshell signature approaching from the ' + bearingName(x, z) + '. Beetles.'), {key:'spawn', cd:8});
+    else if (type === 'haze' && !SW.saidHaze){ SW.saidHaze = true; say(T('計器にノイズ──霧殻です。砂嵐の真ん中にいる。撃てば晴れます', 'Static on the gauges — it is a Haze, right in the middle of the storm. Shoot it and it clears.'), {urgent:true}); }
     else if (type === 'rammer' && M.order.indexOf('rammer') === G.spawned - 1){
-      say('新しい型──突進型（衝角殻）、' + bearingName(x, z) + '！ 止まって赤く光ったら突っ込んできます。溜めの光を見たら横へ！', {urgent:true});
-      say(isTouch ? '横跳びは 跳躍ボタン＋スティック左右。壁に激突させれば、背中の弱点が開きます。' : '横跳びは Space＋A/D。壁やコンテナに激突させれば、背中の弱点が開きます。', {});
+      say(T('新しい型──突進型（衝角殻）、' + bearingName(x, z) + '！ 止まって赤く光ったら突っ込んできます。溜めの光を見たら横へ！', 'New type — Ramshell, ' + bearingName(x, z) + '! When it stops and glows red, it charges. Sidestep at the glow!'), {urgent:true});
+      say(isTouch ? T('横跳びは 跳躍ボタン＋スティック左右。壁に激突させれば、背中の弱点が開きます。', 'Sidestep with BOOST + stick left / right. Make it hit a wall and the weak point on its back opens.') : T('横跳びは Space＋A/D。壁やコンテナに激突させれば、背中の弱点が開きます。', 'Sidestep with Space + A / D. Make it hit a wall or container and the weak point on its back opens.'), {});
     }
-    else if (type === 'rammer') say('突進型、' + bearingName(x, z) + '方向。溜めの光に注意。', {key:'ram', cd:14});
-    else if (type === 'floater') say('浮遊型、' + bearingName(x, z) + '方向。光弾に注意して。', {key:'float', cd:14});
+    else if (type === 'rammer') say(T('突進型、' + bearingName(x, z) + '方向。溜めの光に注意。', 'Ramshell, ' + bearingName(x, z) + '. Watch for the charge glow.'), {key:'ram', cd:14});
+    else if (type === 'floater') say(T('浮遊型、' + bearingName(x, z) + '方向。光弾に注意して。', 'Floater, ' + bearingName(x, z) + '. Watch for its light shots.'), {key:'float', cd:14});
   }
   const towersOk = !M.towers || SW.towersDone >= M.towers;
-  if (G.kills >= total && !G.lordSpawned && !towersOk && !SW.saidTowersLeft){ SW.saidTowersLeft = true; say('灰殻は全機撃破。残りの観測塔を起動して。大型反応はその後です。', {}); }
+  if (G.kills >= total && !G.lordSpawned && !towersOk && !SW.saidTowersLeft){ SW.saidTowersLeft = true; say(T('灰殻は全機撃破。残りの観測塔を起動して。大型反応はその後です。', 'All Ashshell down. Activate the remaining towers. The large signature comes after.'), {}); }
   if (G.kills >= total && !G.lordSpawned && towersOk){
     if (G.lordTimer < 0) G.lordTimer = 2.5;
     G.lordTimer -= dt;
@@ -4045,15 +4062,15 @@ function spawnBoss(){
   P.trauma = 0.7;
   if (M.boss === 'mael'){
     e.ang = Math.atan2(x - P.pos.x, z - P.pos.z); e.orbit = Math.random() < .5 ? -1 : 1;
-    say('干潟の下に超大型反応──渦殻王。泥の中を泳いでいます。脚圧計が震えたら跳んで', {urgent:true});
-    popup('警告 MAELSHELL APPROACHING');
+    say(T('干潟の下に超大型反応──渦殻王。泥の中を泳いでいます。脚圧計が震えたら跳んで', 'Huge signature beneath the flats — Maelshell. It swims through the mud. When the grip gauge shakes, jump.'), {urgent:true});
+    popup(T('警告 MAELSHELL APPROACHING', 'WARNING: MAELSHELL APPROACHING'));
   } else if (M.boss === 'twin'){
-    say('超大型反応──殻王「双殻王（ツインシェル）」！ 二枚の殻が開いた瞬間だけ、中の中枢を狙って！', {urgent:true});
-    say('殻は弾幕や突進のあと、排熱のために開きます。そこが勝負です。', {});
-    popup('警告 TWINSHELL APPROACHING');
+    say(T('超大型反応──殻王「双殻王（ツインシェル）」！ 二枚の殻が開いた瞬間だけ、中の中枢を狙って！', 'Huge signature — the Twinshell! Hit its core only in the moment the two shells open!'), {urgent:true});
+    say(T('殻は弾幕や突進のあと、排熱のために開きます。そこが勝負です。', 'The shells open to vent heat after a barrage or a charge. That is your chance.'), {});
+    popup(T('警告 TWINSHELL APPROACHING', 'WARNING: TWINSHELL APPROACHING'));
   } else {
-    say('大型反応──殻王（シェルロード）です！ 頭部の発光部が弱点、そこを狙って！', {urgent:true});
-    popup('警告 SHELL LORD APPROACHING');
+    say(T('大型反応──殻王（シェルロード）です！ 頭部の発光部が弱点、そこを狙って！', 'Large signature — the Shell Lord! The glowing part of its head is the weak point. Aim there!'), {urgent:true});
+    popup(T('警告 SHELL LORD APPROACHING', 'WARNING: SHELL LORD APPROACHING'));
   }
   return e;
 }
@@ -4090,7 +4107,7 @@ function updRammer(e, dt, d, nx, nz){
       if (d < 115 && d > 30 && losClear(p.x, p.z, P.pos.x, P.pos.z)){
         e.state = 'windup'; e.st = RAM.wind; e.dir.set(nx, 0, nz); e.len = d + 70;
         snd('ramCharge', RAM.wind);
-        say(isTouch ? '突進型、溜めに入った！ 溜めの光を見たら横へ！' : '突進型、溜めに入った！ 溜めの光を見たら横へ！ Space＋A/D！', {key:'ramwarn', cd:25});
+        say(isTouch ? T('突進型、溜めに入った！ 溜めの光を見たら横へ！', 'Ramshell is charging up! Sidestep at the glow!') : T('突進型、溜めに入った！ 溜めの光を見たら横へ！ Space＋A/D！', 'Ramshell is charging up! Sidestep at the glow! Space + A / D!'), {key:'ramwarn', cd:25});
       } else { e.cd = 0.4; if (Math.random() < 0.3) e.orbit *= -1; }
     }
   } else if (e.state === 'windup'){
@@ -4123,7 +4140,7 @@ function updRammer(e, dt, d, nx, nz){
           G.st.rammerCrashes++;
           snd('ramImpact', clamp(1 - hd / 250, 0.2, 1)); sparks(V1.set(fx, 4, fz), 26); dustBurst(fx, fz, 8, 1.6);
           P.trauma = Math.min(1, P.trauma + clamp(0.4 - hd / 400, 0.05, 0.35));
-          say('激突！ 背面の弱点が露出、今です！', {key:'ramstun', cd:18}); popup('突進型 激突 STUNNED — 背面が弱点');
+          say(T('激突！ 背面の弱点が露出、今です！', 'Crash! Its back weak point is exposed. Now!'), {key:'ramstun', cd:18}); popup(T('突進型 激突 STUNNED — 背面が弱点', 'STUNNED — back is the weak point'));
         }
       }
     }
@@ -4161,10 +4178,10 @@ function startTwinAttack(e, d, nx, nz){
   else if (a === 'charge'){
     e.state = 'windup'; e.st = TW[e.phase].wind; e.dir.set(nx, 0, nz); e.len = d + 80;
     snd('ramCharge', TW[e.phase].wind);
-    say('双殻王、突進の構え！ 横へ！', {key:'twcharge', cd:20});
+    say(T('双殻王、突進の構え！ 横へ！', 'Twinshell is about to charge! Sidestep!'), {key:'twcharge', cd:20});
   } else if (a === 'slam'){
     e.state = 'slam'; e.st = 0.9; snd('ramCharge', 0.9);
-    say('地面を這う衝撃波、来る！ 跳んで避けて！', {key:'wave', cd:16});
+    say(T('地面を這う衝撃波、来る！ 跳んで避けて！', 'Ground shockwave incoming! Jump over it!'), {key:'wave', cd:16});
   } else { e.state = 'homing'; e.st = 0.4; e.hn = 5; }
 }
 function twinTransform(e){
@@ -4172,9 +4189,9 @@ function twinTransform(e){
   e.model.shellMat.emissive.setRGB(0, 0, 0); e.model.body.position.x = 0; // a transform during a charge wind-up left the shells red
   snd('bossShift'); P.trauma = 0.8;
   for (const s2 of eShots){ if (s2.homing){ s2.alive = false; s2.m.visible = false; } }
-  say('殻が…剥がれていく！？ 反応増大、形態が変わります！', {urgent:true});
-  say('動きが速くなる。衝撃波は跳んで、追尾弾は横跳びで振り切って！', {});
-  popup('警告 形態変化 TRANSFORMING');
+  say(T('殻が…剥がれていく！？ 反応増大、形態が変わります！', 'Its shell is... peeling off?! Signature rising, it is changing form!'), {urgent:true});
+  say(T('動きが速くなる。衝撃波は跳んで、追尾弾は横跳びで振り切って！', 'It gets faster. Jump the shockwaves, sidestep the homing shots!'), {});
+  popup(T('警告 形態変化 TRANSFORMING', 'WARNING: TRANSFORMING'));
 }
 function updTwinTransform(e, dt){
   const m = e.model, p = e.g.position;
@@ -4200,7 +4217,7 @@ function updTwinTransform(e, dt){
   }
   if (e.st <= 0){
     e.phase = 2; e.state = 'walk'; e.atkCD = 1.2; e.atkN = 0; e.open = 0; m.body.position.x = 0;
-    say('中枢が剥き出しです。押し切って、ヘカトン！', {});
+    say(T('中枢が剥き出しです。押し切って、ヘカトン！', 'Its core is exposed. Finish it, Hekaton!'), {});
   }
 }
 function updDebris(dt){
@@ -4229,7 +4246,7 @@ function updTwin(e, dt, d, nx, nz, dx, dz){
         const from = V1.set(p.x + nx * 16, 16, p.z + nz * 16), base = Math.atan2(dx, dz), n = C.fan, off = (e.vol % 2) * 0.065;
         for (let k = 0; k < n; k++){ const a = base + (k - (n - 1) / 2) * 0.13 + off; fireEnemyShot(from, V2.set(p.x + Math.sin(a) * d, P.y + 12, p.z + Math.cos(a) * d), 55, 7); }
         sparks(from, 20, [1,.4,.2], 20); e.vol--; e.st = 0.5;
-      } else if (e.phase === 1){ e.state = 'vent'; e.st = C.ventT; say('殻が開いた！ 今、中枢を撃って！', {key:'twopen', cd:20}); }
+      } else if (e.phase === 1){ e.state = 'vent'; e.st = C.ventT; say(T('殻が開いた！ 今、中枢を撃って！', 'The shell is open! Hit the core now!'), {key:'twopen', cd:20}); }
       else { e.state = 'walk'; e.atkCD = 1.4; }
     }
   } else if (e.state === 'vent'){
@@ -4257,7 +4274,7 @@ function updTwin(e, dt, d, nx, nz, dx, dz){
       const wall = !!buildingAt(fx, 3, fz) || !stage.inBounds(fx, fz, 0);
       if (wall || e.trav >= e.len){
         pushOut(p, 13); hideLine(e);
-        if (wall){ e.state = 'stunned'; e.st = C.stunT; snd('ramImpact', 1); explode(V1.set(fx, 6, fz), 0.5); P.trauma = Math.min(1, P.trauma + 0.4); say('激突した！ 殻が開いてる、撃ち込んで！', {key:'twstun', cd:15}); }
+        if (wall){ e.state = 'stunned'; e.st = C.stunT; snd('ramImpact', 1); explode(V1.set(fx, 6, fz), 0.5); P.trauma = Math.min(1, P.trauma + 0.4); say(T('激突した！ 殻が開いてる、撃ち込んで！', 'It crashed! The shell is open, fire!'), {key:'twstun', cd:15}); }
         else { e.state = 'vent'; e.st = C.ventT * 0.7; }
       }
     }
@@ -4293,7 +4310,7 @@ function updTwin(e, dt, d, nx, nz, dx, dz){
     if (!w.done && Math.abs(pd - w.r) < 5){
       w.done = true;
       if (P.y < 2.2){ hurt(26, V1.set(w.x, 0, w.z), 12); P.trauma = 1; }
-      else { G.st.waveDodges++; popup('衝撃波 回避 DODGE'); P.res = Math.min(100, P.res + 5); }
+      else { G.st.waveDodges++; popup(T('衝撃波 回避 DODGE', 'DODGE')); P.res = Math.min(100, P.res + 5); }
     }
     if (w.r > 210){ scene.remove(w.m); w.m.material.dispose(); e.waves.splice(i, 1); }
   }
@@ -4406,7 +4423,7 @@ function maelRise(e, C){
   const hd = Math.hypot(P.pos.x - p.x, P.pos.z - p.z);
   if (hd < C.riseR && G.ending <= 0){
     if (P.y < 2.2){ hurt(C.riseDmg, V1.set(p.x, 0, p.z), C.riseGrip); P.trauma = 1; P.v *= 0.3; }
-    else { G.st.waveDodges++; popup('突き上げ 回避 DODGE'); P.res = Math.min(100, P.res + 5); }
+    else { G.st.waveDodges++; popup(T('突き上げ 回避 DODGE', 'DODGE')); P.res = Math.min(100, P.res + 5); }
   }
   maelKnock(p, MAEL_PUSH_R + 4);
   for (let k = 0; k < 40; k++){ const a = Math.random() * Math.PI * 2, s = rnd(4, 16); emit(SMOKE, p.x + Math.cos(a) * 6, 1, p.z + Math.sin(a) * 6, Math.cos(a) * s, rnd(10, 26), Math.sin(a) * s, .42,.47,.5, .6, rnd(3, 6), rnd(1, 1.8), 1.8, 14, 0.8); }
@@ -4420,11 +4437,11 @@ function maelShift(e, n){
   hideMaelFx(); e.strikes = null;
   snd('bossShift'); P.trauma = 0.8;
   if (n === 2){
-    say('嵐が濃くなる。吸気口は雷が鳴った瞬間だけ見えます。数えて、待って、撃つ', {urgent:true});
-    popup('警告 嵐の目 EYE OF THE STORM');
+    say(T('嵐が濃くなる。吸気口は雷が鳴った瞬間だけ見えます。数えて、待って、撃つ', 'The storm thickens. The vents are visible only as the thunder cracks. Count, wait, fire.'), {urgent:true});
+    popup(T('警告 嵐の目 EYE OF THE STORM', 'WARNING: EYE OF THE STORM'));
   } else {
-    say('霧殻を呼びました。先に落とすか、浮いてくる所で待つか。任せます', {urgent:true});
-    popup('警告 渦 MAELSTROM');
+    say(T('霧殻を呼びました。先に落とすか、浮いてくる所で待つか。任せます', 'It called in Haze. Shoot them first or wait where they surface. Your call.'), {urgent:true});
+    popup(T('警告 渦 MAELSTROM', 'WARNING: MAELSTROM'));
   }
 }
 function maelCall(e){
@@ -4434,7 +4451,7 @@ function maelCall(e){
   for (let k = 0; k < 2; k++){ const a = rnd(0, Math.PI * 2), r = rnd(14, 28); e.strikes.push([clamp(P.pos.x + Math.cos(a) * r, STORM.minX, STORM.maxX), clamp(P.pos.z + Math.sin(a) * r, STORM.minZ, STORM.maxZ)]); }
   if (st) e.strikes.forEach((q, i) => { const c = st.fx.circles[i]; c.visible = true; c.position.set(q[0], 0.18, q[1]); c.scale.set(MAEL[2].strikeR, 1, MAEL[2].strikeR); });
   snd('stormCall', MAEL[2].callT);
-  say('落雷、来ます！ 赤い円から出て！', {key:'mcall', cd:16});
+  say(T('落雷、来ます！ 赤い円から出て！', 'Lightning strike incoming! Get out of the red circle!'), {key:'mcall', cd:16});
 }
 function maelStrike(e){
   const st = STAGES.storm, C = MAEL[2];
@@ -4557,8 +4574,8 @@ function activateTower(t){
   if (t.done) return;
   t.done = true; t.prog = 1; SW.towersDone++; G.st.towers = SW.towersDone;
   const left = (M.towers || 3) - SW.towersDone;
-  say(left > 0 ? '観測塔、復旧。視界が少し戻ります。残り' + left + '基' : '観測塔、全基復旧。視界が戻ります。……大型反応に備えて', {});
-  popup('観測塔' + t.id + ' 起動 TOWER ONLINE +' + (M.towerPts || 0));
+  say(left > 0 ? T('観測塔、復旧。視界が少し戻ります。残り' + left + '基', 'Tower restored. Visibility returns a little. ' + left + ' to go.') : T('観測塔、全基復旧。視界が戻ります。……大型反応に備えて', 'All towers restored. Visibility is back. ...Prepare for the large signature.'), {});
+  popup(T('観測塔' + t.id + ' 起動 TOWER ONLINE +', 'TOWER ' + t.id + ' ONLINE +') + (M.towerPts || 0));
   snd('towerOnline'); snd('haptic', 90);
   P.res = Math.min(100, P.res + 8);
 }
@@ -4574,12 +4591,12 @@ function updStorm(dt){
     let n = 0;
     for (const e of enemies) if (e.alive && GROUND_TYPES[e.type] && Math.hypot(e.g.position.x - P.pos.x, e.g.position.z - P.pos.z) <= 300) n++;
     snd('tremorPing', n ? 1 : 0.4); snd('haptic', 30);
-    if (n){ G.st.scans++; popup('震動探知 TREMOR SCAN — ' + n + ' 反応'); if (!SW.saidPin){ SW.saidPin = true; say('拾えた。……その脈拍で落ち着いていられるなら、上出来です', {}); } }
+    if (n){ G.st.scans++; popup(T('震動探知 TREMOR SCAN — ' + n + ' 反応', 'TREMOR SCAN — ' + n + ' contacts')); if (!SW.saidPin){ SW.saidPin = true; say(T('拾えた。……その脈拍で落ち着いていられるなら、上出来です', 'Got it. ...If you can stay calm with that pulse, well done.'), {}); } }
   }
   // observation towers: within 25m, planted for 4s (progress pauses when you move away)
   let near = null, nd = 1e9;
   for (const t of SW.towers){ if (t.done) continue; const dd = Math.hypot(t.x - P.pos.x, t.z - P.pos.z); if (dd < nd){ nd = dd; near = t; } }
-  if (near && nd < 48 && !near.said){ near.said = true; say('観測塔です。そばで踏み据えて4秒、機体の電力を分けてあげて', {key:'tower', cd:20}); }
+  if (near && nd < 48 && !near.said){ near.said = true; say(T('観測塔です。そばで踏み据えて4秒、機体の電力を分けてあげて', 'Observation tower. Stand beside it and brace for 4 seconds to share the mech’s power.'), {key:'tower', cd:20}); }
   SW.nearTower = near && nd <= TOWER_R ? near : null;
   if (SW.nearTower && still){ near.prog = Math.min(1, near.prog + dt / TOWER_T); if (near.prog >= 1) activateTower(near); }
   // haze clouds: follow their haze, clear in 3s once it is shot down
@@ -4601,15 +4618,15 @@ function updStorm(dt){
   if (!bo || bo.state !== 'tell') SW.tremorK = Math.max(0, SW.tremorK - dt * 4);
   SW.hitLegT = Math.max(0, (SW.hitLegT || 0) - dt);
   // radio
-  if (!SW.saidBrace && G.t > 5){ SW.saidBrace = true; say('止まって、踏み据えて。脚が地面の震えを拾います。レーダーを見て', {}); }
-  if (SW.flashNew){ SW.flashNew = false; if (!SW.saidFlash && G.t > 6){ SW.saidFlash = true; say('今の光、見えましたね。次の雷で撃って', {}); } }
+  if (!SW.saidBrace && G.t > 5){ SW.saidBrace = true; say(T('止まって、踏み据えて。脚が地面の震えを拾います。レーダーを見て', 'Stop and brace. Your legs pick up the tremors in the ground. Watch the radar.'), {}); }
+  if (SW.flashNew){ SW.flashNew = false; if (!SW.saidFlash && G.t > 6){ SW.saidFlash = true; say(T('今の光、見えましたね。次の雷で撃って', 'You saw that flash. Fire on the next lightning.'), {}); } }
   // HUD lines
-  setText(stormEl.tow, '観測塔 TOWERS ' + SW.towersDone + '/' + (M.towers || 3) + '　視界 VIS ' + Math.round(lerp(SW.vis, 400, SW.flashK)) + 'm');
+  setText(stormEl.tow, T('観測塔 TOWERS ', 'TOWERS ') + SW.towersDone + '/' + (M.towers || 3) + T('　視界 VIS ', '  VIS ') + Math.round(lerp(SW.vis, 400, SW.flashK)) + 'm');
   let txt = '', cls = 'sc';
-  if (SW.nearTower){ txt = '観測塔' + SW.nearTower.id + ' 接続 LINK ' + Math.round(SW.nearTower.prog * 100) + '%' + (still ? '' : ' — 止まって踏み据え'); cls = 'sc tw'; }
-  else if (SW.jam){ txt = '計器異常 SENSOR JAM — 砂嵐の中心を撃て'; cls = 'sc jm'; }
-  else if (SW.scanT > 0){ txt = '震動探知 PING ' + SW.scanT.toFixed(1) + 's'; cls = 'sc on'; }
-  else if (SW.braceT > 0.15){ const n = Math.min(5, Math.floor(SW.braceT / 1.2 * 5)); txt = '震動探知 TREMOR SCAN ' + '■'.repeat(n) + '□'.repeat(5 - n); }
+  if (SW.nearTower){ txt = T('観測塔' + SW.nearTower.id + ' 接続 LINK ', 'TOWER ' + SW.nearTower.id + ' LINK ') + Math.round(SW.nearTower.prog * 100) + '%' + (still ? '' : T(' — 止まって踏み据え', ' — stop and brace')); cls = 'sc tw'; }
+  else if (SW.jam){ txt = T('計器異常 SENSOR JAM — 砂嵐の中心を撃て', 'SENSOR JAM — shoot the center of the static'); cls = 'sc jm'; }
+  else if (SW.scanT > 0){ txt = T('震動探知 PING ', 'TREMOR PING ') + SW.scanT.toFixed(1) + 's'; cls = 'sc on'; }
+  else if (SW.braceT > 0.15){ const n = Math.min(5, Math.floor(SW.braceT / 1.2 * 5)); txt = T('震動探知 TREMOR SCAN ', 'TREMOR SCAN ') + '■'.repeat(n) + '□'.repeat(5 - n); }
   setText(stormEl.scan, txt); setAttr(stormEl.scan, 'class', cls);
 }
 
@@ -4652,7 +4669,7 @@ function updPlayer(dt){
   if (P.sideV){ P.pos.x += Math.cos(P.heading) * P.sideV * dt; P.pos.z += -Math.sin(P.heading) * P.sideV * dt; P.sideV = approach(P.sideV, 0, 30 * dt); }
   pushOut(P.pos, 10);
   const bnd = stage.clampPlayer(P.pos);
-  if (bnd){ P.v *= 0.9; if (bnd === 'quay') say('岸壁です。その先は海、戻ってください。', {key:'bound', cd:10}); else say('作戦区域の境界です。戻ってください。', {key:'bound', cd:10}); }
+  if (bnd){ P.v *= 0.9; if (bnd === 'quay') say(T('岸壁です。その先は海、戻ってください。', 'The quay. The sea lies beyond, turn back.'), {key:'bound', cd:10}); else say(T('作戦区域の境界です。戻ってください。', 'Edge of the operation area. Turn back.'), {key:'bound', cd:10}); }
 
   // side-step: boost + turn input (A/D or stick sideways) = a short lateral hop instead of a jump
   if (input.boost && P.grounded && !P.overheated && P.heat < 92 && G.ending <= 0 && Math.abs(input.turn) > 0.5){
@@ -4690,10 +4707,10 @@ function updPlayer(dt){
   // heat
   if (P.dashing) P.heat += 14 * P.heatMul * dt;
   P.heat -= (P.overheated ? 22 : (Math.abs(P.v) > 2 ? 7 : 12)) * P.coolMul * dt;
-  if (P.heat >= 100 && !P.overheated){ P.overheated = true; P.heat = 100; say('炉温限界！ 強制冷却に入ります、射撃と疾走は一時停止！', {key:'oh', cd:6}); }
-  if (P.overheated && P.heat < 35) { P.overheated = false; say('冷却完了。火器、戻りました。', {key:'cool', cd:6}); }
+  if (P.heat >= 100 && !P.overheated){ P.overheated = true; P.heat = 100; say(T('炉温限界！ 強制冷却に入ります、射撃と疾走は一時停止！', 'Core temperature critical! Forced cooldown. Firing and dashing are disabled!'), {key:'oh', cd:6}); }
+  if (P.overheated && P.heat < 35) { P.overheated = false; say(T('冷却完了。火器、戻りました。', 'Cooldown complete. Weapons back online.'), {key:'cool', cd:6}); }
   P.heat = clamp(P.heat, 0, 100);
-  if (P.heat > 85 && !P.overheated) say('炉温が上がっています。撃ちすぎに注意。', {key:'heat', cd:14});
+  if (P.heat > 85 && !P.overheated) say(T('炉温が上がっています。撃ちすぎに注意。', 'Core temperature rising. Ease off the trigger.'), {key:'heat', cd:14});
 
   // grip
   const tr = Math.abs(P.effTurn);
@@ -4705,7 +4722,7 @@ function updPlayer(dt){
     if (P.dashing) drain += 9;
     if (!P.dashing && P.grounded){ regen = (isBracing() ? 13 : 2.5) * P.gripRegen; }
     P.grip[i] = clamp(P.grip[i] - drain * dt + regen * dt, 0, P.gripMax);
-    if (P.grip[i] <= 0 && !P.gripLock[i]){ P.gripLock[i] = true; P.trauma = Math.min(1, P.trauma + 0.25); snd('haptic', 80); say('脚圧ゼロ、' + LEG_NAMES[i] + '脚！ 転倒の危険、速度を落として！', {key:'grip', cd:8}); }
+    if (P.grip[i] <= 0 && !P.gripLock[i]){ P.gripLock[i] = true; P.trauma = Math.min(1, P.trauma + 0.25); snd('haptic', 80); say(T('脚圧ゼロ、' + LEG_NAMES[i] + '脚！ 転倒の危険、速度を落として！', 'Grip zero on the ' + LEG_NAMES[i] + ' leg! Risk of falling, slow down!'), {key:'grip', cd:8}); }
     if (P.gripLock[i] && P.grip[i] >= 30) P.gripLock[i] = false;
   }
   // tilt toward zero-grip legs
@@ -4727,7 +4744,7 @@ function updPlayer(dt){
   P.resStep = step;
   if (!P.overbeat && P.res >= 100){
     P.overbeat = true; P.obT = 8; G.st.overbeats++; snd('overbeat', true); snd('resonanceUp'); snd('haptic', 120);
-    say('共鳴率100%──鼓動モード（OVERBEAT）！ 今です！', {urgent:false, key:'ob', cd:4});
+    say(T('共鳴率100%──鼓動モード（OVERBEAT）！ 今です！', 'Resonance 100% — OVERBEAT! Now!'), {urgent:false, key:'ob', cd:4});
   }
   if (P.overbeat){
     P.res = 100; P.obT -= dt;
@@ -4923,13 +4940,13 @@ function updHUD(dt){
   if (popupT > 0) setSty(hudEl.popup, 'transform', 'translateX(-50%) translateY(' + (-(1.1 - popupT) * 20).toFixed(0) + 'px)');
   // warnings
   const w = [];
-  if (P.overheated) w.push('炉温 CORE TEMP 強制冷却'); else if (P.heat > 85) w.push('炉温 CORE TEMP 過熱');
-  if (P.armor < 30) w.push('装甲 ARMOR 低下');
+  if (P.overheated) w.push(T('炉温 CORE TEMP 強制冷却', 'CORE TEMP COOLDOWN')); else if (P.heat > 85) w.push(T('炉温 CORE TEMP 過熱', 'CORE TEMP HIGH'));
+  if (P.armor < 30) w.push(T('装甲 ARMOR 低下', 'ARMOR LOW'));
   const zl = []; for (let i = 0; i < 4; i++) if (P.gripLock[i]) zl.push(LEG_NAMES[i]);
-  if (zl.length) w.push('脚圧 GRIP ' + zl.join('/') + ' ZERO');
+  if (zl.length) w.push(T('脚圧 GRIP ', 'GRIP ') + zl.join('/') + ' ZERO');
   const warnOn = w.length > 0 && G.state === 'play' && G.ending <= 0;
   setAlarm(warnOn);
-  if (warnOn) setText(hudEl.warnDetail, w.join(' ／ '));
+  if (warnOn) setText(hudEl.warnDetail, w.join(' / '));
   // radar (20Hz is plenty; 10Hz on the low preset)
   radarAcc += dt; if (radarAcc >= Q.radarInt){ drawRadar(radarAcc); radarAcc = 0; }
 }
@@ -4942,12 +4959,12 @@ function updBossBar(){
   bossEl.bar.classList.toggle('p2', bo.phase === 2);
   bossEl.bar.classList.toggle('p3', bo.phase === 3);
   setText(bossEl.ph, bo.type === 'twin' ? (bo.state === 'transform' ? 'TRANSFORM' : 'PHASE ' + bo.phase) :
-    bo.type === 'mael' ? (bo.state === 'shift' || bo.state === 'shift3' ? 'SHIFT' : 'PHASE ' + bo.phase + (bo.sub ? ' 潜行' : '')) : '');
+    bo.type === 'mael' ? (bo.state === 'shift' || bo.state === 'shift3' ? 'SHIFT' : 'PHASE ' + bo.phase + (bo.sub ? T(' 潜行', ' SUBMERGED') : '')) : '');
 }
 function drawRadar(dt){
   const c = radarCtx, W = 160, R = 74, range = radarRange();
   const storm = M.stage === 'storm', baseR = storm ? 120 + 20 * SW.towersDone : range;
-  setText(stormEl.lbl, '索敵 RADAR ' + range + 'm' + (storm && SW.scanT > 0 ? ' PING' : ''));
+  setText(stormEl.lbl, T('索敵 RADAR ', 'RADAR ') + range + 'm' + (storm && SW.scanT > 0 ? ' PING' : ''));
   radarSweep = (radarSweep + dt * 2.2) % (Math.PI * 2);
   c.clearRect(0,0,W,W);
   c.save(); c.translate(W/2, W/2);
@@ -5040,7 +5057,7 @@ function updLaunch(dt){
   const bi = Math.floor((t - 0.3) / 0.32);
   for (let i = 0; i < log.length; i++) log[i].classList.toggle('on', i <= bi && t < 4.4);
   for (const [id, at] of BOOT_LIT) if (t >= at) $(id).classList.add('lit');
-  if (t > 1.4 && !L.said){ L.said = true; say('管制イツカより鞍士へ。ヘカトンとの接続を確認。共鳴率、上げていきます。', {}); }
+  if (t > 1.4 && !L.said){ L.said = true; say(T('管制イツカより鞍士へ。ヘカトンとの接続を確認。共鳴率、上げていきます。', 'Control to Rider. Link with Hekaton confirmed. Raising resonance.'), {}); }
   if (t > 2.4 && t < 4.4){ $('launchRes').classList.add('on'); P.res = clamp((t - 2.4) / 2 * 40 + Math.sin(t * 40) * 0.6, 0, 40); }
   if (t >= 4.4) { $('launchRes').classList.remove('on'); P.res = 40; }
   setText($('launchResNum'), P.res.toFixed(1));
@@ -5097,15 +5114,15 @@ function updPlay(dt){
   if (G.debugUsed && SAVE.run && !SAVE.run.sim) clearRunFlag(); // a debug run never pays out as an interrupted mission
   if (G.ending <= 0 && !(G.tut && G.tut.step < TUT_SPAWN_STEP)){
     G.timeLeft -= dt;
-    if (G.timeLeft <= 60 && G.timeLeft + dt > 60) say('残り時間1分。', {});
-    if (G.timeLeft <= 30 && G.timeLeft + dt > 30) say('残り30秒！ 急いで！', {});
+    if (G.timeLeft <= 60 && G.timeLeft + dt > 60) say(T('残り時間1分。', 'One minute left.'), {});
+    if (G.timeLeft <= 30 && G.timeLeft + dt > 30) say(T('残り30秒！ 急いで！', '30 seconds left! Hurry!'), {});
     if (G.timeLeft <= 0){ G.timeLeft = 0; endMission(false); }
   }
   updPlayer(dt);
   if (G.tut && G.ending <= 0) updTutorial(dt);
   if (G.ending <= 0) updSpawns(dt);
   const near = updEnemies(G.ending > 0 ? dt * 0.3 : dt);
-  if (near < 70 && lastNear >= 70) say('灰殻、至近距離！ 接近してきます！', {key:'near', cd:12});
+  if (near < 70 && lastNear >= 70) say(T('灰殻、至近距離！ 接近してきます！', 'Ashshell at close range! They are closing in!'), {key:'near', cd:12});
   lastNear = near;
   if (M.stage === 'storm' && stage === STAGES.storm) updStorm(dt);
   updBullets(dt); updEnemyShots(dt); updDebris(dt);
@@ -5410,6 +5427,67 @@ window.__GAME = {
     extra.forEach(m => m.mats.forEach(x => x.dispose()));
   }catch(e){}
 })();
+/* ---- English UI: the markup is Japanese + English labels; in English mode the Japanese part is dropped ---- */
+function applyStaticLang(){
+  const btn = $('btnLang');
+  btn.textContent = JA ? 'English' : '日本語';
+  btn.addEventListener('click', () => {
+    const next = JA ? 'en' : 'ja';
+    try { sessionStorage.setItem('grandstride_lang', next); } catch(e){}
+    store.set('grandstride_lang', next);
+    setTimeout(() => location.reload(), 150);
+  });
+  if (JA) return;
+  const HAS_JP = /[\u3000-\u30ff\u4e00-\u9fff\uff00-\uffef]/;
+  const DICT = {
+    '鋼脚戦機':'STEEL-LEG WAR MACHINE',
+    '管制 CONTROL ／ イツカ':'CONTROL / ITSUKA',
+    'OVERBEAT ／ 鼓動モード':'OVERBEAT',
+    'FPS表示 FPS':'FPS',
+    'タップ／クリック／キーでスキップ　SKIP ▸':'TAP / CLICK / KEY TO SKIP ▸',
+    '四脚機ヘカトン HEKATON TYPE-04 ／ 汀都 SHORE CITY 2091':'HEKATON TYPE-04 / SHORE CITY 2091',
+    '汀都 第七区画 防衛':'Sector 7 Defense',
+    '汀都 港湾区画 夜間掃討':'Harbor Night Sweep',
+    '汀都 第三防潮堤外縁 嵐中観測戦':'Third Seawall: Storm Watch',
+    '3分以内に灰殻12体と殻王を撃破。':'Destroy 12 Ashshell and the Shell Lord within 3:00.',
+    '整備':'HANGAR', '一時停止':'PAUSED',
+    'HANGAR ／ 四脚機ヘカトン TYPE-04':'HEKATON TYPE-04',
+    '横画面推奨 ／ LANDSCAPE RECOMMENDED':'LANDSCAPE RECOMMENDED',
+    '強化・資材・勲章・MISSION 02／03 の解放を初期化します（最高スコアは残ります）。よろしいですか？':'This resets upgrades, PARTS, medals and the MISSION 02 / 03 unlocks (high scores are kept). Are you sure?',
+    '初期化する':'RESET', 'やめる':'CANCEL',
+    'LOCKED ／ MISSION 01 クリアで解放':'LOCKED / CLEAR MISSION 01', 'LOCKED ／ MISSION 02 クリアで解放':'LOCKED / CLEAR MISSION 02',
+    '一時停止 PAUSE':'PAUSE', '作戦選択 MISSION SELECT':'MISSION SELECT', '画質 QUALITY':'QUALITY',
+    '高難度 HARD':'HARD', '支援 ASSIST':'ASSIST',
+    'MISSION 01 — 汀都 第七区画 防衛':'MISSION 01 — Sector 7 Defense',
+  };
+  const strip = (t) => {
+    if (DICT[t] !== undefined) return DICT[t];
+    return t.replace(/^[^\x00-\x7f]+[\s　]+(?=[A-Za-z])/, '').replace(/\s*[／・]\s*/g, ' / ').replace(/　/g, ' ');
+  };
+  const walk = document.createTreeWalker($('app'), NodeFilter.SHOW_TEXT);
+  const nodes = []; for (let n = walk.nextNode(); n; n = walk.nextNode()) if (HAS_JP.test(n.nodeValue)) nodes.push(n);
+  for (const n of nodes){
+    const raw = n.nodeValue, t = raw.trim(); if (!t) continue;
+    const el = n.parentNode;
+    // button label + <small>ENGLISH</small>: show the English label only
+    if (el.matches && el.matches('button') && el.querySelector(':scope > small')){
+      const sm = el.querySelector(':scope > small'); n.nodeValue = sm.textContent; sm.style.display = 'none'; continue;
+    }
+    n.nodeValue = raw.replace(t, strip(t));
+  }
+  document.querySelectorAll('[aria-label]').forEach(e => { const a = e.getAttribute('aria-label'); if (HAS_JP.test(a)) e.setAttribute('aria-label', strip(a)); });
+  document.title = 'GRANDSTRIDE';
+  const x = (id, v) => { const e = $(id); if (e) e.textContent = v; };
+  const kb = (k) => '<kbd>' + k + '</kbd>';
+  const pc = document.querySelector('#howto .pc'), tc = document.querySelector('#howto .tc');
+  pc.innerHTML = '<h4>CONTROLS — PC</h4>' + kb('W') + kb('S') + ' forward / back　' + kb('A') + kb('D') + ' turn<br>Mouse: look / aim　Left click: fire<br>' +
+    kb('Shift') + ' DASH　' + kb('Space') + ' BOOST　' + kb('Esc') + ' pause<br>' + kb('Space') + '+' + kb('A') + '/' + kb('D') + ' SIDESTEP　' + kb('←') + kb('→') + ' mission　' + kb('H') + ' hangar';
+  tc.innerHTML = '<h4>CONTROLS — TOUCH</h4>Left stick: move / turn<br>Drag right side: look　FIRE / BOOST / DASH buttons<br>BOOST + stick left / right: SIDESTEP';
+  const ps = document.querySelector('#pause .sub'); if (ps) ps.textContent = '';
+  x('btnAssist', 'RELAUNCH IN ASSIST'); const ba = $('btnAssist'); const sm = document.createElement('small'); sm.textContent = '−25% DAMAGE'; ba.appendChild(sm);
+  x('hReset', 'RESET DATA');
+}
+applyStaticLang();
 checkInterrupted();
 goTitle();
 requestAnimationFrame(frame);

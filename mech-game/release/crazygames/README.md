@@ -15,7 +15,9 @@
 
 - 作り直し: `cd mech-game && bash build.sh`（`dist/crazygames/` と zip を作る。itch 版・単体版は SDK なし）
 - SDK の組み込み: `src/crazygames.js`。CrazyGames 版のビルドにだけ入る。環境が `local` / `crazygames` のときだけ有効（それ以外のドメインでは SDK を使わず普通に動く）
-- 確認: `GAME_DIR=dist/crazygames node tests/t11_crazygames.js`（SDK の代役を差し込み、gameplayStart/Stop、広告のタイミング、ミュート、セーブを確認。17/17）
+- 言語: 英語が基準。`LANG` は「この タブでの選択 → 保存した選択 → SDK の locale / ブラウザの言語」の順で決まり、日本語のときだけ日本語。切り替えはタイトル画面の LANGUAGE ボタン（ページを読み込み直す）。itch 版・単体版も同じ。
+- 確認: `GAME_DIR=dist/crazygames node tests/t12_i18n.js`（各画面に日本語が残っていないこと、画面からのはみ出し、言語の切り替え）と
+  `GAME_DIR=dist/crazygames node tests/t11_crazygames.js`（SDK の代役を差し込み、gameplayStart/Stop、広告のタイミング、ミュート、セーブを確認。17/17）
 
 ## 広告の出し方（作戦の合間だけ）
 

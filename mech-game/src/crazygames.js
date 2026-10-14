@@ -114,6 +114,7 @@
       if (env !== 'local' && env !== 'crazygames') { startGame(); return; }
       SDK = cg;
       installStorage();
+      safe(function () { var l = SDK.user.systemInfo.locale; if (l) window.__gsLocale = l; });  // 言語の初期値（なければブラウザの言語、それも英語以外なら英語）
       window.GSPlatform = GSPlatform;
       safe(function () {
         muteBySdk = !!SDK.game.settings.muteAudio;

@@ -4,6 +4,7 @@
 
 | 日付 | 決定 | 理由 | 決めた人 |
 |---|---|---|---|
+| 2026-10-14 | ゲーム内の文を英訳し、英語を基準にした（約240行）。日英の切り替えをタイトル画面に付け、初期表示は SDK の locale／ブラウザの言語（日本語のときだけ日本語）。ミッション名は「Sector 7 Defense」「Harbor Night Sweep」「Third Seawall: Storm Watch」。訳語: 灰殻 Ashshell、殻王 Shell Lord、双殻王 Twinshell、渦殻王 Maelshell、霧殻 Haze、突進型 Ramshell、鞍士 Rider、管制 Control、資材 PARTS、共鳴率 Resonance、脚圧 Grip、炉温 Core temp、鼓動モード OVERBEAT、横跳び Sidestep、踏み据え brace、震動探知 Tremor Scan、観測塔 observation tower | CrazyGames は英語が必須で、itch の利用者も大半が英語圏（ピーター判断） | ピーター |
 | 2026-10-13 | CrazyGames 用の一式を `release/crazygames/` に用意。SDK は CrazyGames 版のビルドだけに入れ（`src/crazygames.js`）、itch 版は変えない。広告は midgame のみ、リザルト画面で「次の作戦へ／再出撃／支援モードで再出撃」を押した直後だけ（累計 60 秒未満は出さない）。リワード・バナーは使わない。セーブは Data モジュール。英語化が未対応で、提出前に必須（本部に上げた） | 公式要件（広告はナビゲーションでは出さない、プレイ中に割り込まない、英語必須）。d31・d34 | Rook |
 | 2026-10-09 | 収益化の順番（ピーター判断 d31）: ① itch.io に今週出す（P8 は文面・画像・zip を `release/itch/` に揃える。アカウントとアップロードはオーナー）② CrazyGames は初回の定着の手直し後 ③ Steam は週8の基準を満たすまで作らない | Midas の `peter-hq/revenue/p8-monetization-compare.md` | ピーター |
 | 2026-10-09 | 30秒トレーラーと縦型ショートは映像チーム（Hikaru、peter/p7-anime の promo/p8/）が作り、P8 は届いたら取り込むだけにする。P8 の撮影作業は中止 | 重複を避ける | ピーター |
