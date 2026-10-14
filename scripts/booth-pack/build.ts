@@ -8,7 +8,7 @@
 // PDF は Chromium（Playwright）で作る。日本語フォントは IPAGothic など、システムのものを使う。
 
 import { execFileSync } from "node:child_process";
-import { copyFileSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { Packer } from "docx";
@@ -235,11 +235,10 @@ async function main() {
   // 00 使い方
   await pdf(path.join(PACK_DIR, "00_はじめに（使い方1枚）.pdf"), htmlPage("はじめに", blocksToHtml(HOWTO_MD), true), `減算ゼロ 書類一式パック ${EDITION}　はじめに`);
 
-  // 01 チェックリスト（本編は公開済みの無料版をそのまま使い、追加編を足す）
-  const addendumPdf = path.join(OUT, "addendum.pdf");
-  await pdf(addendumPdf, htmlPage("追加編", blocksToHtml(ADDENDUM_MD)), `運営指導チェックリスト 追加編 ${EDITION}`);
-  execFileSync("pdfunite", ["public/downloads/unei-shidou-checklist-jidou.pdf", addendumPdf, path.join(PACK_DIR, "01_運営指導チェックリスト.pdf")]);
-  copyFileSync("public/downloads/unei-shidou-checklist-jidou.docx", path.join(PACK_DIR, "01_運営指導チェックリスト（Word・本編）.docx"));
+  // 01 チェックリスト：本編（公開済みの無料版を元に、scripts/booth-pack/checklist-main.md に起こしたもの）＋追加編
+  const CHECKLIST_MAIN_MD = readFileSync("scripts/booth-pack/checklist-main.md", "utf8");
+  await pdf(path.join(PACK_DIR, "01_運営指導チェックリスト.pdf"), htmlPage("運営指導チェックリスト", blocksToHtml(CHECKLIST_MAIN_MD) + blocksToHtml(ADDENDUM_MD)), `運営指導チェックリスト ${EDITION}`);
+  writeFileSync(path.join(PACK_DIR, "01_運営指導チェックリスト（Word・本編）.docx"), await Packer.toBuffer(buildDocx(CHECKLIST_MAIN_MD)));
   writeFileSync(path.join(PACK_DIR, "01_運営指導チェックリスト（Word・追加編）.docx"), await Packer.toBuffer(buildDocx(ADDENDUM_MD)));
 
   // 02 / 03 サービス種別ごと
