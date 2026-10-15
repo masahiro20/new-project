@@ -35,6 +35,8 @@ STATIC_EXPORT=1 LAUNCH_MODE="${LAUNCH_MODE-$default_launch}" \
   npx next build
 
 node scripts/csp-first.mjs out
+# BOOTH の案内：URL（lib/booth.ts）が決まるまで出さない。仮置き {{BOOTH_URL}} が出力に残っていたら失敗にする。
+node scripts/check-booth-placeholder.mjs out
 touch out/.nojekyll
 [ -f out/404.html ] || cp out/index.html out/404.html
 echo "static site ready in out/ (paid API: ${NEXT_PUBLIC_PAID_API_URL:-none}, payments: ${NEXT_PUBLIC_PAYMENTS_MODE:-demo})"

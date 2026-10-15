@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { breadcrumbList, jsonLdHtml } from "@/lib/jsonld";
 import { pageUrl } from "@/lib/site";
+import BoothPromo from "@/app/BoothPromo";
 import TemplateClient from "./TemplateClient";
 
 const TITLE = "虐待防止・身体拘束適正化の書類テンプレート（無料・Word）";
@@ -70,6 +71,7 @@ export default function TemplatesPage() {
             <Link href="/guide" className="btn secondary">解説を読む</Link>
           </div>
         </div>
+        <BoothPromo />
         <p className="hint" style={{ marginTop: 16 }}>
           このテンプレートは一般的な書類の雛形で、法的な助言ではありません。制度の取扱いは指定権者（都道府県・市町村）の通知を確認してください。
         </p>

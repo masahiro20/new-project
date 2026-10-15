@@ -20,6 +20,7 @@ export type AnalyticsEvent =
   | "cta-check"
   | "cta-templates"
   | "cta-samples"
+  | "cta-booth"
   | "preview-start"
   | "preview-complete"
   | "checkout-start"

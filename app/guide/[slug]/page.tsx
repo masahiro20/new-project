@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import BoothPromo from "@/app/BoothPromo";
 import ChecklistDownload from "@/app/ChecklistDownload";
 import { CHECKLIST, CHECKLIST_GUIDES } from "@/lib/checklist";
 import MarkdownView from "@/app/MarkdownView";
@@ -181,6 +182,8 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
             </li>
           ))}
         </ul>
+
+        <BoothPromo />
       </article>
     </section>
   );

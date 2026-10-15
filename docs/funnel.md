@@ -7,7 +7,7 @@
 | 段階 | 何を見るか | GoatCounter のパス（イベント名） | どこで送るか |
 |---|---|---|---|
 | ① 訪問 | 解説・トップを見た | 各ページのパス（`/guide/...`、`/`） | 画面遷移ごと（app/Analytics.tsx） |
-| ② 行動のきっかけ | 解説の「無料診断」「無料テンプレート」「サンプル」を押した | `cta-check`／`cta-templates`／`cta-samples` | 解説ページのボタン（app/TrackedLink.tsx） |
+| ② 行動のきっかけ | 解説の「無料診断」「無料テンプレート」「サンプル」を押した | `cta-check`／`cta-templates`／`cta-samples`（BOOTH の案内を出したあとは `cta-booth`） | 解説ページのボタン（app/TrackedLink.tsx） |
 | ③ 診断 | 診断を始めた・途中から再開した・結果を見た（1回の訪問で1回だけ数える） | `check-start`／`check-resume`／`check-complete` | app/check/CheckClient.tsx |
 | ③→④ | 診断結果から無料テンプレートへ進んだ | `check-to-template` | 診断結果の「無料で作る：…」「無料テンプレートの一覧」 |
 | ④ 無料で作る | テンプレート・サンプル・チェックリストを Word/PDF で保存した | `template-download-{committee,training,restraint}`、`sample-download-…`、`checklist-download-{pdf,docx}` | /templates、/samples、各所のチェックリスト |

@@ -113,3 +113,12 @@ OUT_DIR=/tmp/booth PLAYWRIGHT_MODULE=<playwright の index.mjs> CHROMIUM_PATH=<c
 3. `product-description.md` の「商品名」「商品説明」を貼り付ける。画像は `images/` の4枚を使う。
 4. 「特定商取引法に基づく表記」に、`product-description.md` の末尾の文面を設定する。
 5. 公開前に、自分で購入（または自分用の確認）して、zip を開けること、PDF と Word が開けることを確認する。
+
+## 7. サイトの案内（BOOTH のパックへのリンク）
+
+- 全解説記事の末尾（関連する解説の下）と、無料テンプレートのページ（/templates）に、小さな案内を出す（`app/BoothPromo.tsx`）。中身は「サービス種別ごとの記入例つき書類パックはこちら」、要点3つ、価格と販売者、BOOTH への1ボタン。煽る表現は使わない。
+- **商品ページの URL は `lib/booth.ts` の `BOOTH_URL_SETTING` の1か所だけ**で決める（ビルド時に `NEXT_PUBLIC_BOOTH_URL` で上書きもできる）。
+- **URL が決まるまで、案内はサイトに出ない**。仮置き `{{BOOTH_URL}}` のままか、`booth.pm` の https の URL でなければ、何も描画しない。
+- `npm run export:pages` の最後に `scripts/check-booth-placeholder.mjs` が出力を点検し、`{{BOOTH_URL}}` が残っていたら失敗にする。案内を出す公開では `BOOTH_REQUIRED=1` を付けると、リンクが1つも無い場合も失敗にする。テストは `tests/booth.test.mjs`。
+- 公開の手順：`lib/booth.ts` の `BOOTH_URL_SETTING` に URL を入れる → `BOOTH_REQUIRED=1 npm run export:pages` → gh-pages に公開。クリックは、分析が有効なとき `cta-booth` として数える。
+- note の下書き（`docs/note-drafts.md`）の記事4〜6の末尾にも、同じ案内文を入れた。URL は `{{BOOTH_URL}}` の仮置きで、投稿前に置き換える。
