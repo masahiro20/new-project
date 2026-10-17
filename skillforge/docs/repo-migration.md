@@ -55,12 +55,9 @@
    公開後に変えにくいので、先に決めてください。
 2. **空の公開リポジトリを作る。** 例：`masahiro20/kotomark-action`（または組織を作ってその下に）。
    README・`.gitignore`・ライセンスは**付けずに**作成（最初のコミットはこちらから入れます）。
-3. **ライセンスを決める（法的判断。Claude は決めません）。**
-   - ライセンスが無い公開リポジトリは、閲覧と fork はできても、第三者に利用・改変の権利がありません。Action として使ってもらうには何らかの許諾が要ります。
-   - 候補：MIT / Apache-2.0（許諾的、利用が最も広がる）、または「Action としての利用のみ許可」のような独自ライセンス。
-     `dist/kotomark.mjs` には検査エンジン全体が入っている点を踏まえて判断してください。
-   - バンドルに含まれる依存（fflate: MIT、zod: MIT）の著作権表示の扱いも合わせて確認。
-   - 決まるまで、公開フォルダには `LICENSE.TODO`（説明のみ）が入ります。`release-action.mjs` は `LICENSE` を作りません。
+3. **ライセンスは決定済み（本部決定 d29）。** Action の包み（`dist/` 以外）は MIT、`dist/kotomark.mjs` は Elastic License 2.0。`npm run release:action` が `LICENSE`・`dist/LICENSE`・
+   `USAGE-TERMS.md`・`THIRD_PARTY_NOTICES.md` を作ります（`LICENSE.TODO` はもう作りません）。オーナーが決めるのは、著作権者の表記（法人名）を販売前に差し替えることです。
+   詳しい手順は [`owner-steps-sales.md`](owner-steps-sales.md)。
 4. **2要素認証（2FA）を有効にする。** Marketplace に公開するアカウントには 2FA が必要です。
 5. **Marketplace の開発者向け規約（GitHub Marketplace Developer Agreement）に同意する。** 最初のリリースを「Publish this Action to the
    GitHub Marketplace」付きで作るときに求められます。規約への同意は代理できません。

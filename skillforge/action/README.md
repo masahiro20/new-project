@@ -101,6 +101,56 @@ JUnit ファイルをテストレポートとして表示するには、後ろ�
 PR の差分に出る注釈は、1ステップあたり各レベル最大10件、1ジョブあたり最大50件です。全件は
 ジョブサマリーと JUnit/JSON レポートにあります。
 
+## 出力のサンプル
+
+同梱の見本（`samples/ja-en/script.csv` と `samples/ja-en/glossary.json`、日→英、30行）で実際に動かした結果です
+（`fail-on: error` の既定のため、このステップは終了コード 1 で失敗します）。
+
+PR の差分とジョブのログに出る注釈（抜粋）：
+
+```text
+::error file=samples/ja-en/script.csv,line=6,title=Kotomark term.forbidden — Glossary term drift / 用語の訳揺れ::[ch1_005] "魔導石" is rendered as forbidden variant "Magic Stone"; glossary says "Mana Stone".
+::error file=samples/ja-en/script.csv,line=23,title=Kotomark name.forbidden — Character name drift / キャラ名の揺れ::[ch1_020] Character name written as "Lizette"; the approved spelling is "Lisette".
+::warning file=samples/ja-en/script.csv,line=21,title=Kotomark notation.katakana — Katakana notation drift / 表記揺れ::[ch1_018] Katakana spelling "ルーン・ゲート" differs from the glossary spelling "ルーンゲート".
+```
+
+ジョブサマリーの Markdown レポート（抜粋）：
+
+```markdown
+# Script consistency report
+
+- **samples/ja-en/script.csv** — CSV, 30 rows, ja → en
+- Glossary: 5 terms, 3 characters
+
+| Check | ❌ error | ⚠️ warning | ℹ️ info |
+|---|---:|---:|---:|
+| Glossary term drift / 用語の訳揺れ | 2 | 2 | 0 |
+| Katakana notation drift / 表記揺れ | 0 | 1 | 0 |
+| Character name drift / キャラ名の揺れ | 1 | 2 | 1 |
+| Honorific drift / 敬称の揺れ | 1 | 2 | 1 |
+| Voice drift / 口調の揺れ | 0 | 5 | 0 |
+| Placeholders (bonus) | 1 | 0 | 0 |
+| Tags (bonus) | 2 | 0 | 0 |
+| Ruby (bonus) | 1 | 0 | 0 |
+| Length limits (bonus) | 1 | 0 | 0 |
+
+### 魔導石 → Mana Stone
+Usage: Mana Stone ×5 · Magic Stone ×2
+
+- ❌ `samples/ja-en/script.csv:6` `ch1_005` (target) — "魔導石" is rendered as forbidden variant "Magic Stone"; glossary says "Mana Stone".
+```
+
+出力の `errors=9`、`warnings=12`、`infos=2`、`exit-code=1`。
+
+実際のゲーム翻訳ファイルでの検査例は、[サンプル監査レポート](https://masahiro20.github.io/new-project/kotomark/sample-report/)（Battle for Wesnoth の日本語訳）と
+[2本目](https://masahiro20.github.io/new-project/kotomark/sample-report-2/)（Ren'Py の台本形式）にあります。判定と修正案は AI によるもので、人の確認ではありません。
+
+## 価格とライセンス
+
+**現在はプレビュー期間で、全機能が無料です。** 有料プランは販売前で、価格は予定です：個人・OSS プロジェクト・従業員3名以下の団体は無料、
+それ以外の団体向けの Studio は月額 US$49（5席まで）の予定です。詳しくは [Kotomark のページ](https://masahiro20.github.io/new-project/kotomark/)の「価格は？」を見てください。
+Action の包み（`action.yml`・`run.sh`・この README）は MIT、検査エンジン（`dist/kotomark.mjs`）は Elastic License 2.0 です。
+
 ## 開発
 
 - ステップの処理は `run.sh` にあります。`action.yml` は入力を `INPUT_*` 環境変数に渡すだけです（入力をスクリプトに
@@ -215,6 +265,31 @@ A copyable workflow is in [`../.github-example/kotomark.yml`](../.github-example
 
 GitHub shows at most 10 annotations of each level per step and 50 per job in the PR diff; the full list is in
 the job summary and the JUnit/JSON reports.
+
+## Sample output
+
+Real output from the bundled sample (`samples/ja-en/script.csv` with `samples/ja-en/glossary.json`, JA→EN, 30 rows).
+With the default `fail-on: error` this step fails with exit code 1.
+
+Annotations on the PR diff and in the job log (excerpt):
+
+```text
+::error file=samples/ja-en/script.csv,line=6,title=Kotomark term.forbidden — Glossary term drift / 用語の訳揺れ::[ch1_005] "魔導石" is rendered as forbidden variant "Magic Stone"; glossary says "Mana Stone".
+::error file=samples/ja-en/script.csv,line=23,title=Kotomark name.forbidden — Character name drift / キャラ名の揺れ::[ch1_020] Character name written as "Lizette"; the approved spelling is "Lisette".
+::warning file=samples/ja-en/script.csv,line=21,title=Kotomark notation.katakana — Katakana notation drift / 表記揺れ::[ch1_018] Katakana spelling "ルーン・ゲート" differs from the glossary spelling "ルーンゲート".
+```
+
+Job summary (excerpt): the same Markdown report shown in the Japanese section above (a table of checks by severity, then findings grouped by glossary term or character).
+Outputs: `errors=9`, `warnings=12`, `infos=2`, `exit-code=1`.
+
+For results on real game translation files see the
+[sample audit report](https://masahiro20.github.io/new-project/kotomark/sample-report/) (Battle for Wesnoth, Japanese translation) and the
+[second one](https://masahiro20.github.io/new-project/kotomark/sample-report-2/) (Ren'Py script format). Judgments and suggested fixes there are by an AI, not reviewed by a person.
+
+## Pricing and license
+
+**Kotomark is in a free preview: every feature is free.** Paid plans are not on sale yet, and prices are planned: free for individuals, open-source projects and
+organizations of up to 3 employees; the Studio plan for other organizations is planned at US$49/month for up to 5 seats. See "How much does it cost?" on the [Kotomark page](https://masahiro20.github.io/new-project/kotomark/). The action wrapper (`action.yml`, `run.sh`, this README) is MIT; the check engine (`dist/kotomark.mjs`) is under the Elastic License 2.0.
 
 ## Development
 
