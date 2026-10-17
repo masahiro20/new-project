@@ -25,6 +25,9 @@ Mobile: left stick to move and turn, drag on the right side to look, FIRE / BOOS
 ## Tags / category
 Action, Shooter, Mech, Robot, First person, 3D, Sci-fi, Singleplayer, Boss fight, Upgrades
 
+## Languages
+English, Japanese (switch on the title screen; the game opens in your browser language).
+
 ## Orientation / devices
 Landscape. Desktop and mobile (touch).
 

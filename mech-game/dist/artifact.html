@@ -3000,6 +3000,8 @@ const input = {fwd:0, turn:0, dash:false, fire:false, boost:false, stickX:0, sti
 const keys = new Set();
 
 /* ================= radio ================= */
+// English lines are about twice as long as the Japanese ones: type faster and keep them up a little longer
+const RADIO_CPS = T(30, 80), RADIO_HOLD = T(2.6, 3.4);
 const radio = {queue:[], cur:null, shown:0, hold:0, cds:{}};
 function say(text, opts){
   opts = opts || {};
@@ -3014,8 +3016,8 @@ function updRadio(dt){
     if (radio.queue.length){ radio.cur = radio.queue.shift(); radio.shown = 0; radio.hold = 0; box.classList.add('on'); }
     else { if (radio.hold > -1){ radio.hold -= dt; if (radio.hold < -1.5){ box.classList.remove('on'); radio.hold = -99; } } return; }
   }
-  if (radio.shown < radio.cur.length){ radio.shown = Math.min(radio.cur.length, radio.shown + dt * 30); setText(el, radio.cur.slice(0, Math.floor(radio.shown))); }
-  else { radio.hold += dt; if (radio.hold > 2.6 || (radio.queue.length && radio.hold > 1.2)){ radio.cur = null; radio.hold = 0; } }
+  if (radio.shown < radio.cur.length){ radio.shown = Math.min(radio.cur.length, radio.shown + dt * RADIO_CPS); setText(el, radio.cur.slice(0, Math.floor(radio.shown))); }
+  else { radio.hold += dt; if (radio.hold > RADIO_HOLD || (radio.queue.length && radio.hold > 1.2)){ radio.cur = null; radio.hold = 0; } }
 }
 function clearRadio(){ radio.queue.length = 0; radio.cur = null; radio.cds = {}; radio.hold = -99; setText($('radioText'), ''); $('radio').classList.remove('on'); }
 

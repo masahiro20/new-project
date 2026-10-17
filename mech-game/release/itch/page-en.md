@@ -26,6 +26,7 @@ GRANDSTRIDE is a first-person cockpit mech action game that runs in your browser
 - **Radio from Control.** Itsuka, your mission controller, keeps you alive over the radio with warnings, callouts and the occasional dry remark.
 - **Score and rank (S / A / B / C)** at the end of each mission. High scores are saved per mission in your browser.
 - **Every sound is synthesized live.** Footsteps, cannon fire, alarms and engine hum are generated in real time with the Web Audio API. No audio files.
+- **English and Japanese.** Everything is translated, including Itsuka's radio. The game opens in your browser's language; switch any time on the title screen.
 - **Plays on PC and phone.** Keyboard and mouse on desktop, virtual stick and buttons on touch screens.
 - **Quality settings (Low / Mid / High) and an FPS display** (toggle with `F`), so you can tune it to your machine.
 
@@ -56,7 +57,7 @@ Tip: click the game screen once to capture the mouse. Press `Esc` to release it.
 - On phones, play in **landscape** and use the fullscreen button. Older phones may run hot.
 - On iPhone / iPad, sound starts after your first tap (browser rule).
 - The game pauses automatically if you switch tabs or the window loses focus.
-- Gauges, buttons and the results screen are labelled in English and Japanese, but Itsuka's radio messages and the mission briefing are currently in Japanese only.
+- The game starts in English, or in Japanese if your browser is set to Japanese. Switch language with the LANGUAGE button on the title screen.
 
 ### Development status and roadmap
 

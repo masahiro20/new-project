@@ -11,6 +11,6 @@
 | `ai-disclosure-en.txt` | itch の AI 開示欄の説明に貼る英文 |
 | `cover-630x500.png` | カバー画像 |
 | `banner-960x300.png` | ページ上部のバナー（任意） |
-| `screenshots/01〜09` | スクリーンショット（タイトル、出撃、戦闘、殻王、港湾、双殻王、嵐、渦殻王、整備） |
+| `screenshots/01〜09` | スクリーンショット（英語 UI。タイトル、整備、戦闘、殻王、港湾、双殻王、嵐、渦殻王、リザルト）。作り直しは `../crazygames/make-screenshots.js` |
 
 元の原稿は `mech-game/store/store-page.md`、素材の元は `mech-game/store/media/` と `mech-game/store/promo/` です。
