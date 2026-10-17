@@ -24,6 +24,14 @@
     "title": "業務継続計画未策定減算｜放課後等デイサービスの経過措置・BCPひな形・研修訓練の記録"
   },
   {
+    "slug": "encho-shien-kasan",
+    "title": "延長支援加算とは？放課後等デイサービス・児童発達支援の算定要件、延長支援時間、職員配置と記録"
+  },
+  {
+    "slug": "fukushi-senmonshoku-kasan",
+    "title": "福祉専門職員配置等加算とは？放課後等デイサービス・児童発達支援の（Ⅰ）（Ⅱ）（Ⅲ）の要件と割合の計算"
+  },
+  {
     "slug": "gensan-kasan-hayamihyo",
     "title": "障害福祉の減算早見表【令和6年度改定】サービス種別ごとの減算率一覧"
   },
@@ -74,6 +82,10 @@
     "title": "虐待防止委員会と身体拘束適正化委員会は一体で開ける？通知と議事録の分け方"
   },
   {
+    "slug": "jido-shidoin-kahai-kasan",
+    "title": "児童指導員等加配加算とは？放課後等デイサービス・児童発達支援の算定要件と配置の数え方"
+  },
+  {
     "slug": "jidou-hattatsu-gensan",
     "title": "児童発達支援の減算対策｜未就学児の身体拘束・虐待防止と書類のポイント",
     "serviceType": "児童発達支援"
@@ -91,12 +103,20 @@
     "title": "人員欠如減算とは？放課後等デイサービス・児童発達支援の減算率（70%・50%）と令和8年6月の特例"
   },
   {
+    "slug": "kankei-kikan-renkei-kasan",
+    "title": "関係機関連携加算とは？放課後等デイサービス・児童発達支援の（Ⅰ）〜（Ⅳ）の要件と会議の記録"
+  },
+  {
     "slug": "kansen-taisaku-iinkai",
     "title": "感染対策委員会の開催頻度と議事録｜障害福祉・放デイは3月に1回？研修・訓練も"
   },
   {
     "slug": "kasuhara-taisaku",
     "title": "カスハラ対策の方針の例｜障害福祉・放デイの事業主の義務（2026年10月施行）と相談体制"
+  },
+  {
+    "slug": "kazoku-shien-kasan",
+    "title": "家族支援加算・子育てサポート加算とは？放課後等デイサービス・児童発達支援の算定要件と記録"
   },
   {
     "slug": "kenshu-rikaido-test",
@@ -119,8 +139,16 @@
     "title": "個別支援計画の書き方と例文｜放課後等デイサービスの5領域・作成手順・未作成減算"
   },
   {
+    "slug": "kobetsu-support-kasan",
+    "title": "個別サポート加算とは？放課後等デイサービス・児童発達支援の（Ⅰ）（Ⅱ）（Ⅲ）の対象と記録"
+  },
+  {
     "slug": "kujou-kaiketsu",
     "title": "苦情解決の体制と掲示｜障害福祉・放デイの苦情解決責任者・受付担当者・第三者委員"
+  },
+  {
+    "slug": "kyodo-kodo-shougai-kasan",
+    "title": "強度行動障害児支援加算とは？放課後等デイサービス・児童発達支援の算定要件と支援計画シート"
   },
   {
     "slug": "kyotaku-kaigo-gensan",
@@ -143,6 +171,10 @@
     "slug": "seikatsu-kaigo-gensan",
     "title": "生活介護の減算対策｜身体拘束・虐待防止・BCPの要件と必要な書類",
     "serviceType": "生活介護"
+  },
+  {
+    "slug": "senmonteki-shien-jisshi-kasan",
+    "title": "専門的支援実施加算とは？放課後等デイサービス・児童発達支援の算定要件、専門的支援実施計画と記録"
   },
   {
     "slug": "gyakutai-boushi-self-check",
@@ -198,9 +230,17 @@
     "title": "送迎の置き去り防止と安全装置｜放課後等デイサービスの対象車両・所在確認の手順・送迎記録"
   },
   {
+    "slug": "sougei-kasan",
+    "title": "送迎加算とは？放課後等デイサービス・児童発達支援の算定要件、特定の場所への送迎、同一敷地内の扱い"
+  },
+  {
     "slug": "tanki-nyusho-gensan",
     "title": "短期入所（ショートステイ）の減算対策｜虐待防止・身体拘束・BCPと書類",
     "serviceType": "短期入所"
+  },
+  {
+    "slug": "teiin-chouka-gensan",
+    "title": "定員超過利用減算とは？放課後等デイサービス・児童発達支援の減算率（70%）と1日・過去3月の計算例"
   },
   {
     "slug": "unei-kitei-gyakutai",

@@ -4,7 +4,7 @@ export const GUIDE_CATEGORIES: { id: string; name: string; slugs: string[] }[] =
   {
     id: "seido",
     name: "減算の制度",
-    slugs: ["gyakutai-boushi-gensan", "shintai-kousoku-gensan", "bcp-gensan-jidou", "jidou-hyouka-kouhyou", "gensan-kasan-hayamihyo", "reiwa9-kaitei-jidou", "jinin-ketsujo-gensan-jidou", "shogu-kaizen-keikakusho"],
+    slugs: ["gyakutai-boushi-gensan", "shintai-kousoku-gensan", "bcp-gensan-jidou", "jidou-hyouka-kouhyou", "gensan-kasan-hayamihyo", "reiwa9-kaitei-jidou", "jinin-ketsujo-gensan-jidou", "teiin-chouka-gensan", "shogu-kaizen-keikakusho"],
   },
   {
     id: "shorui",
@@ -26,7 +26,12 @@ export const GUIDE_CATEGORIES: { id: string; name: string; slugs: string[] }[] =
   {
     id: "unei",
     name: "支援と安全の運営（計画・記録・委員会）",
-    slugs: ["kobetsu-shien-keikaku-kakikata", "assessment-kakikata", "monitoring-kakikata", "shien-kiroku-kakikata", "kobetsu-shien-kaigi-gijiroku", "kesseki-taiou-kasan-kiroku", "shien-program-rei", "anzen-keikaku-jidou", "hiyari-hatto-houkokusho", "jiko-houkoku", "sougei-anzen-souchi", "hijou-saigai-keikaku", "kansen-taisaku-iinkai", "kujou-kaiketsu", "kasuhara-taisaku"],
+    slugs: ["kobetsu-shien-keikaku-kakikata", "assessment-kakikata", "monitoring-kakikata", "shien-kiroku-kakikata", "kobetsu-shien-kaigi-gijiroku", "shien-program-rei", "anzen-keikaku-jidou", "hiyari-hatto-houkokusho", "jiko-houkoku", "sougei-anzen-souchi", "hijou-saigai-keikaku", "kansen-taisaku-iinkai", "kujou-kaiketsu", "kasuhara-taisaku"],
+  },
+  {
+    id: "kasan",
+    name: "加算の算定要件と記録（放課後等デイサービス・児童発達支援）",
+    slugs: ["jido-shidoin-kahai-kasan", "sougei-kasan", "encho-shien-kasan", "kobetsu-support-kasan", "kazoku-shien-kasan", "kankei-kikan-renkei-kasan", "senmonteki-shien-jisshi-kasan", "fukushi-senmonshoku-kasan", "kyodo-kodo-shougai-kasan", "kesseki-taiou-kasan-kiroku"],
   },
   {
     id: "shidou",

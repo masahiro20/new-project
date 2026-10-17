@@ -46,6 +46,16 @@ import { guide as jininKetsujoGensanJidou } from "./jinin-ketsujo-gensan-jidou";
 import { guide as kobetsuShienKaigiGijiroku } from "./kobetsu-shien-kaigi-gijiroku";
 import { guide as kessekiTaiouKasanKiroku } from "./kesseki-taiou-kasan-kiroku";
 import { guide as shoguKaizenKeikakusho } from "./shogu-kaizen-keikakusho";
+import { guide as jidoShidoinKahaiKasan } from "./jido-shidoin-kahai-kasan";
+import { guide as sougeiKasan } from "./sougei-kasan";
+import { guide as enchoShienKasan } from "./encho-shien-kasan";
+import { guide as kobetsuSupportKasan } from "./kobetsu-support-kasan";
+import { guide as kankeiKikanRenkeiKasan } from "./kankei-kikan-renkei-kasan";
+import { guide as kazokuShienKasan } from "./kazoku-shien-kasan";
+import { guide as teiinChoukaGensan } from "./teiin-chouka-gensan";
+import { guide as senmontekiShienJisshiKasan } from "./senmonteki-shien-jisshi-kasan";
+import { guide as fukushiSenmonshokuKasan } from "./fukushi-senmonshoku-kasan";
+import { guide as kyodoKodoShougaiKasan } from "./kyodo-kodo-shougai-kasan";
 
 /** One guide per service type, in the same order as SERVICE_TYPES in lib/form.ts. */
 export const SERVICE_GUIDES: Guide[] = [
@@ -100,4 +110,14 @@ export const EXTRA_TOPIC_GUIDES: Guide[] = [
   kobetsuShienKaigiGijiroku,
   kessekiTaiouKasanKiroku,
   shoguKaizenKeikakusho,
+  jidoShidoinKahaiKasan,
+  sougeiKasan,
+  enchoShienKasan,
+  kobetsuSupportKasan,
+  kankeiKikanRenkeiKasan,
+  kazokuShienKasan,
+  teiinChoukaGensan,
+  senmontekiShienJisshiKasan,
+  fukushiSenmonshokuKasan,
+  kyodoKodoShougaiKasan,
 ];
