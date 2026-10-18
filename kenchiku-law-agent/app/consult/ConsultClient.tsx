@@ -214,6 +214,14 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
         <form onSubmit={(e) => e.preventDefault()} className="no-print">
           <fieldset>
             <legend>1. 住所と計画</legend>
+            {accessRequired && (
+              <div className="field">
+                <label htmlFor="accessKey">
+                  アクセスキー <span className="hint">共有されたキーを最初に入力してください（この端末に保存されます）。未入力だと住所の自動取得も実行も「アクセスキーが違います」になります</span>
+                </label>
+                <input id="accessKey" type="password" value={accessKey} onChange={(e) => setAccessKey(e.target.value)} autoComplete="off" placeholder="アクセスキー" />
+              </div>
+            )}
             <div className="field">
               <label htmlFor="address">
                 敷地の住所 <span className="hint">番地まで。入力を終えると用途地域・区域区分・防火指定・災害区域を自動で調べます</span>
@@ -380,13 +388,6 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
               </div>
             </div>
           </details>
-
-          {accessRequired && (
-            <div className="field" style={{ marginTop: 16 }}>
-              <label htmlFor="accessKey">アクセスキー</label>
-              <input id="accessKey" type="password" value={accessKey} onChange={(e) => setAccessKey(e.target.value)} autoComplete="off" />
-            </div>
-          )}
 
           {!siteLookupAvailable && (
             <p className="notice" style={{ marginTop: 16 }}>
