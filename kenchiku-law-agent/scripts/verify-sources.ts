@@ -1,10 +1,12 @@
 // Re-fetches every article the knowledge base cites from the e-Gov 法令API,
 // checks the article caption against what the rule expects, and writes
-// data/law-snapshot.json (text + revision id) so changes between runs are visible.
+// data/law-snapshot.json (caption, revision id and a hash of the text) so changes
+// between runs are visible without mirroring the full text into the repository.
 //
 //   npm run verify-sources            # verify and update the snapshot
 //   npm run verify-sources -- --check # verify only, exit 1 on any mismatch
 
+import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
 import { RULES } from "../lib/knowledge";
 import { LAWS, articleLabel, type LawKey } from "../lib/laws";
@@ -12,7 +14,7 @@ import { fetchArticle, type Article } from "../lib/egov";
 
 type Snapshot = {
   verifiedAt: string;
-  articles: Record<string, { law: string; lawId: string; article: string; label: string; caption: string; revisionId: string; enforcementDate: string | null; url: string; text: string }>;
+  articles: Record<string, { law: string; lawId: string; article: string; label: string; caption: string; revisionId: string; enforcementDate: string | null; url: string; textHash: string }>;
 };
 
 const checkOnly = process.argv.includes("--check");
@@ -61,7 +63,8 @@ async function main() {
     const captionOk = w.expect.size === 0 || w.expect.has(art.caption);
     const prev = previous?.articles[key];
     const revisionChanged = prev && prev.revisionId !== art.revisionId;
-    const textChanged = prev && prev.text !== art.text;
+    const textHash = createHash("sha256").update(art.text).digest("hex");
+    const textChanged = prev && prev.textHash !== textHash;
     if (!captionOk) {
       failures++;
       console.log(`FAIL ${art.lawTitle} ${art.label} 見出し不一致: 期待 ${[...w.expect].join("|")} / 実際 ${art.caption || "（見出しなし）"}（rules: ${w.rules.join(", ")}）`);
@@ -80,7 +83,7 @@ async function main() {
       revisionId: art.revisionId,
       enforcementDate: art.enforcementDate,
       url: art.url,
-      text: art.text,
+      textHash,
     };
     await sleep(120);
   }
