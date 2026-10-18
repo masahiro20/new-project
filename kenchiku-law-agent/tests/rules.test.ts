@@ -6,6 +6,7 @@ import { EMPTY_PLAN, planSchema, type PlanInput } from "../lib/plan";
 import { runRules } from "../lib/rules";
 import { inlineRuns, parseBlocks } from "../lib/markdown";
 import { sourceTier } from "../lib/agent";
+import { distanceToLine, mergeSiteIntoPlan, pointInGeometry, tileFor, type SiteContext } from "../lib/site";
 
 const plan = (over: Partial<PlanInput>): PlanInput => ({ ...EMPTY_PLAN, description: "テスト計画です。", ...over });
 const ids = (p: PlanInput) => new Map(runRules(p).map((f) => [f.rule.id, f.severity]));
@@ -120,4 +121,40 @@ test("source tiers", () => {
   assert.equal(sourceTier("https://www.city.hamamatsu.shizuoka.jp/"), "公的");
   assert.equal(sourceTier("https://www.pref.shizuoka.jp/"), "公的");
   assert.equal(sourceTier("https://example.com/blog"), "参考");
+});
+
+test("tile math matches the GSI XYZ scheme", () => {
+  // 浜松市中央区元城町 (34.710941N, 137.726532E) at z15
+  const t = tileFor(34.710941, 137.726532, 15);
+  assert.equal(t.z, 15);
+  assert.equal(t.x, Math.floor(((137.726532 + 180) / 360) * 2 ** 15));
+  assert.ok(t.y > 0 && t.y < 2 ** 15);
+});
+
+test("point in polygon with a hole and multipolygon", () => {
+  const square = { type: "Polygon", coordinates: [[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]], [[4, 4], [6, 4], [6, 6], [4, 6], [4, 4]]] };
+  assert.equal(pointInGeometry(1, 1, square), true);
+  assert.equal(pointInGeometry(5, 5, square), false);
+  assert.equal(pointInGeometry(11, 5, square), false);
+  const multi = { type: "MultiPolygon", coordinates: [[[[20, 20], [30, 20], [30, 30], [20, 30], [20, 20]]]] };
+  assert.equal(pointInGeometry(25, 25, multi), true);
+  assert.equal(pointInGeometry(25, 25, null), false);
+});
+
+test("distance to line is in metres", () => {
+  const line = { type: "LineString", coordinates: [[137.72, 34.71], [137.73, 34.71]] };
+  const d = distanceToLine(137.725, 34.7101, line); // ~0.0001 deg north of the line ≈ 11m
+  assert.ok(d > 9 && d < 13, `distance ${d}`);
+});
+
+test("site lookup fills blanks without overriding explicit choices", () => {
+  const site = {
+    address: "x", matched: "x", lat: 0, lon: 0, tile: null, apiAvailable: true, fetchedAt: "", layers: [],
+    derived: { areaDivision: "市街化区域", zoning: "第一種低層住居専用地域", fireZone: "指定なし", hazards: ["浸水想定区域"], notes: [] },
+  } as unknown as SiteContext;
+  const merged = mergeSiteIntoPlan(plan({ fireZone: "準防火地域", hazards: ["地区計画の区域"] }), site);
+  assert.equal(merged.areaDivision, "市街化区域");
+  assert.equal(merged.zoning, "第一種低層住居専用地域");
+  assert.equal(merged.fireZone, "準防火地域");
+  assert.deepEqual(merged.hazards.sort(), ["地区計画の区域", "浸水想定区域"].sort());
 });

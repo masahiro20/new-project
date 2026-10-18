@@ -10,6 +10,7 @@ import { LAWS, lawByTitle, normalizeArticle, type LawKey } from "./laws";
 import { planToText, type PlanInput } from "./plan";
 import { SYSTEM_PROMPT, USER_INSTRUCTION } from "./prompts";
 import { findingsToMarkdown, runRules } from "./rules";
+import { lookupSite, mergeSiteIntoPlan, siteToText, type SiteContext } from "./site";
 
 const MODEL = process.env.LAW_AGENT_MODEL ?? "claude-opus-5-5";
 const MAX_ITERATIONS = 12;
@@ -168,9 +169,20 @@ function emitWebSources(content: Anthropic.Beta.BetaContentBlock[], emit: (e: Ag
   }
 }
 
-export function buildUserMessage(plan: PlanInput): string {
-  const findings = runRules(plan);
-  return [planToText(plan), "", "# 事前チェック（ルールベース・条文照合済み）", findingsToMarkdown(findings), "", USER_INSTRUCTION].join("\n");
+export function buildUserMessage(plan: PlanInput, site: SiteContext | null): string {
+  const merged = mergeSiteIntoPlan(plan, site);
+  const findings = runRules(merged);
+  return [
+    planToText(merged),
+    "",
+    "# 住所から自動取得した土地の環境情報（【公的】国土地理院・国土交通省 不動産情報ライブラリ）",
+    siteToText(site),
+    "",
+    "# 事前チェック（ルールベース・条文照合済み。上記の自動取得結果を反映）",
+    findingsToMarkdown(findings),
+    "",
+    USER_INSTRUCTION,
+  ].join("\n");
 }
 
 /** Runs the agent and streams newline-delimited JSON events. */
@@ -180,9 +192,25 @@ export function consultStream(plan: PlanInput): ReadableStream<Uint8Array> {
     async start(controller) {
       const emit = (e: AgentEvent) => controller.enqueue(encoder.encode(JSON.stringify(e) + "\n"));
       const client = new Anthropic();
-      const messages: Anthropic.Beta.BetaMessageParam[] = [{ role: "user", content: buildUserMessage(plan) }];
       const seen = new Set<string>();
-      emit({ type: "status", text: "計画を読み、事前チェックを作成しました。条文と公的資料を確認しています…" });
+      let site: SiteContext | null = null;
+      if (plan.address.trim()) {
+        emit({ type: "status", text: `住所「${plan.address}」の位置・都市計画・災害区域を取得しています…` });
+        try {
+          site = await lookupSite(plan.address);
+          for (const l of site.layers) {
+            if (l.status === "hit" && !seen.has(l.source.url)) {
+              seen.add(l.source.url);
+              emit({ type: "source", tier: "公的", title: `${l.source.label}${l.source.year ? `（${l.source.year}）` : ""}`, url: l.source.url });
+            }
+          }
+          emit({ type: "status", text: site.matched ? `位置を特定：${site.matched}` : "住所から位置を特定できませんでした（手入力の値で続行）" });
+        } catch (e) {
+          emit({ type: "status", text: `土地情報の自動取得に失敗しました（${e instanceof Error ? e.message : "不明なエラー"}）。手入力の値で続行します。` });
+        }
+      }
+      const messages: Anthropic.Beta.BetaMessageParam[] = [{ role: "user", content: buildUserMessage(plan, site) }];
+      emit({ type: "status", text: "事前チェックを作成しました。条文と公的資料を確認しています…" });
 
       try {
         for (let i = 0; i < MAX_ITERATIONS; i++) {

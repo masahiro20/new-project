@@ -57,6 +57,9 @@ export const HAZARDS = [
   "高度地区",
   "密集市街地（防災街区整備地区計画）",
   "都市計画道路・都市計画施設の区域",
+  "災害危険区域（条例）",
+  "大規模盛土造成地",
+  "立地適正化計画区域（居住誘導区域外の可能性）",
 ] as const;
 
 export const BUILDING_USES = [
@@ -101,7 +104,7 @@ const text = (max: number) => z.string().trim().max(max);
 export const planSchema = z.object({
   description: text(4000).min(5, "計画の概要を入力してください"),
   landInfo: text(6000).default(""),
-  location: text(120).default(""),
+  address: text(200).default(""),
   workType: z.enum(WORK_TYPES).default("新築"),
   areaDivision: z.enum(AREA_DIVISIONS).default("不明"),
   zoning: z.enum(ZONINGS).default("不明"),
@@ -133,7 +136,7 @@ export type PlanFormInput = z.input<typeof planSchema>;
 export const EMPTY_PLAN: PlanInput = {
   description: "",
   landInfo: "",
-  location: "",
+  address: "",
   workType: "新築",
   areaDivision: "不明",
   zoning: "不明",
@@ -170,7 +173,7 @@ export function planToText(p: PlanInput): string {
     p.landInfo || "（未入力）",
     ``,
     `# 構造化入力`,
-    `- 所在地：${p.location || "未入力"}`,
+    `- 所在地：${p.address || "未入力"}`,
     `- 工事種別：${p.workType}`,
     `- 区域区分：${p.areaDivision}`,
     `- 用途地域：${p.zoning}`,

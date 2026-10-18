@@ -58,6 +58,7 @@ export const LAWS = {
   taishinho: { id: "407AC0000000123", title: "建築物の耐震改修の促進に関する法律", short: "耐震改修促進法" },
   okugaikokokuho: { id: "324AC0000000189", title: "屋外広告物法", short: "屋外広告物法" },
   missyuho: { id: "409AC0000000049", title: "密集市街地における防災街区の整備の促進に関する法律", short: "密集市街地整備法" },
+  toshisaiseiho: { id: "414AC0000000022", title: "都市再生特別措置法", short: "都市再生特措法" },
 } as const;
 
 export type LawKey = keyof typeof LAWS;

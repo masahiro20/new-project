@@ -1,5 +1,5 @@
 {
- "verifiedAt": "2026-10-18T04:48:39.453Z",
+ "verifiedAt": "2026-10-18T06:57:29.519Z",
  "articles": {
   "343AC0000000100:7": {
    "law": "都市計画法",
@@ -1133,6 +1133,39 @@
    "enforcementDate": "2026-05-27",
    "url": "https://laws.e-gov.go.jp/law/343AC0000000100#Mp-At_65",
    "textHash": "e04a786b4900c34d77d132308bb206d5c7a3958baef82273fb6c0a46ce908fc5"
+  },
+  "325AC0000000201:39": {
+   "law": "建築基準法",
+   "lawId": "325AC0000000201",
+   "article": "39",
+   "label": "第39条",
+   "caption": "（災害危険区域）",
+   "revisionId": "325AC0000000201_20260527_508AC0000000023",
+   "enforcementDate": "2026-05-27",
+   "url": "https://laws.e-gov.go.jp/law/325AC0000000201#Mp-At_39",
+   "textHash": "a3bfdbcac925971ceb1fefce1b54ccdee3133f1753add7cde8ef3126ecdf7cdc"
+  },
+  "325CO0000000338:38": {
+   "law": "建築基準法施行令",
+   "lawId": "325CO0000000338",
+   "article": "38",
+   "label": "第38条",
+   "caption": "（基礎）",
+   "revisionId": "325CO0000000338_20251201_507CO0000000377",
+   "enforcementDate": "2025-12-01",
+   "url": "https://laws.e-gov.go.jp/law/325CO0000000338#Mp-At_38",
+   "textHash": "7b7c20623a5e48819f5478e2f487de4e8cea65d3cd872f69ff0c7ea55cb3203d"
+  },
+  "414AC0000000022:88": {
+   "law": "都市再生特別措置法",
+   "lawId": "414AC0000000022",
+   "article": "88",
+   "label": "第88条",
+   "caption": "",
+   "revisionId": "414AC0000000022_20260527_508AC0000000023",
+   "enforcementDate": "2026-05-27",
+   "url": "https://laws.e-gov.go.jp/law/414AC0000000022#Mp-At_88",
+   "textHash": "532c07f2a764ee11cce84444888e07045564ca034676a6ae338187a033130f6d"
   },
   "325AC0000000201:58": {
    "law": "建築基準法",
