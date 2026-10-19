@@ -10,16 +10,27 @@ import { LAWS, articleLabel, lawByTitle, normalizeArticle, type LawKey } from ".
 import { planToText, type PlanInput } from "./plan";
 import { SYSTEM_PROMPT, USER_INSTRUCTION } from "./prompts";
 import { findingsToMarkdown, runRules } from "./rules";
-import { lookupSite, mergeSiteIntoPlan, siteToText, type SiteContext } from "./site";
+import { sourceTier } from "./tier";
+import { REPORT_INPUT_SCHEMA, reportSchema, type PartialReport, type Report } from "./report";
+import { FUDE_SOURCE, GSI_VT_SOURCE, lookupSite, mergeSiteIntoPlan, siteToText, type SiteContext } from "./site";
 
 const MODEL = process.env.LAW_AGENT_MODEL ?? "claude-opus-5-5";
-const MAX_ITERATIONS = 12;
+const MAX_ITERATIONS = 14;
+// Vercel functions stop at 300 s on this plan. Writing the report takes ~1.5 min,
+// so research gets a soft budget, after which a mid-conversation system message tells
+// the agent to submit with what it has (forced tool_choice is not available on this model).
+const WRAP_UP_MS = Number(process.env.CONSULT_WRAPUP_SECONDS ?? 110) * 1000;
+const HARD_STOP_MS = Number(process.env.CONSULT_HARDSTOP_SECONDS ?? 150) * 1000;
+const WRAP_UP_NOTE =
+  "残り時間が少なくなりました。追加の Web 検索・取得はせず、ここまでに取得した条文・資料を根拠に、今すぐ submit_report で回答を提出してください。確認できなかった点は「窓口で確認」として consultations と assumptions に書いてください。";
 
 export type AgentEvent =
   | { type: "status"; text: string }
   | { type: "text"; delta: string }
   | { type: "tool"; name: string; summary: string }
   | { type: "source"; tier: "条文" | "公的" | "参考"; title: string; url: string }
+  | { type: "report_partial"; report: PartialReport }
+  | { type: "report"; report: Report }
   | { type: "done"; stopReason: string | null }
   | { type: "error"; message: string };
 
@@ -71,20 +82,18 @@ const TOOLS: Anthropic.Beta.BetaToolUnion[] = [
     },
     strict: true,
   },
-  { type: "web_search_20260209", name: "web_search", max_uses: 8 },
-  { type: "web_fetch_20260209", name: "web_fetch", max_uses: 6, max_content_tokens: 30000 },
+  {
+    name: "submit_report",
+    description:
+      "調査が終わったら最後に1回だけ呼び、回答の全文をこの形式で提出します。本文を通常のテキストで書かず、必ずこのツールで提出してください。各項目の根拠には、取得した条文の e-Gov URL・公的資料の URL を入れます。",
+    input_schema: REPORT_INPUT_SCHEMA as Anthropic.Beta.BetaTool.InputSchema,
+    strict: true,
+  },
+  { type: "web_search_20260209", name: "web_search", max_uses: 6 },
+  { type: "web_fetch_20260209", name: "web_fetch", max_uses: 4, max_content_tokens: 30000 },
 ];
 
-export function sourceTier(url: string): "条文" | "公的" | "参考" {
-  try {
-    const host = new URL(url).hostname;
-    if (host === "laws.e-gov.go.jp") return "条文";
-    if (/\.(go|lg)\.jp$/.test(host) || /(^|\.)(pref|city|town|vill|metro)\.[a-z0-9-]+(\.[a-z0-9-]+)?\.jp$/.test(host) || host.endsWith("shoenehou-online.jp")) return "公的";
-  } catch {
-    // not a URL
-  }
-  return "参考";
-}
+export { sourceTier };
 
 function resolveLaw(input: string): string | null {
   const key = lawByTitle(input);
@@ -162,7 +171,7 @@ function emitWebSources(content: Anthropic.Beta.BetaContentBlock[], emit: (e: Ag
         const title = doc.type === "document" && "title" in doc && doc.title ? doc.title : url;
         emit({ type: "source", tier: sourceTier(url), title, url });
       }
-    } else if (block.type === "server_tool_use") {
+    } else if (block.type === "server_tool_use" && (block.name === "web_search" || block.name === "web_fetch")) {
       const q = (block.input as { query?: string; url?: string }) ?? {};
       emit({ type: "tool", name: block.name, summary: block.name === "web_search" ? `Web検索：${q.query ?? ""}` : `Web取得：${q.url ?? ""}` });
     }
@@ -175,7 +184,7 @@ export function buildUserMessage(plan: PlanInput, site: SiteContext | null): str
   return [
     planToText(merged),
     "",
-    "# 住所から自動取得した土地の環境情報（【公的】国土地理院・国土交通省 不動産情報ライブラリ）",
+    "# 住所から自動取得した土地の環境情報（【公的】国土地理院・国土交通省 不動産情報ライブラリ・農林水産省 筆ポリゴン）",
     siteToText(site),
     "",
     "# 事前チェック（ルールベース・条文照合済み。上記の自動取得結果を反映）",
@@ -204,6 +213,12 @@ export function consultStream(plan: PlanInput): ReadableStream<Uint8Array> {
               emit({ type: "source", tier: "公的", title: `${l.source.label}${l.source.year ? `（${l.source.year}）` : ""}`, url: l.source.url });
             }
           }
+          for (const src of [site.farmland?.status === "ok" ? FUDE_SOURCE : null, site.water?.status === "ok" ? GSI_VT_SOURCE : null]) {
+            if (src && !seen.has(src.url)) {
+              seen.add(src.url);
+              emit({ type: "source", tier: "公的", title: src.label, url: src.url });
+            }
+          }
           emit({ type: "status", text: site.matched ? `位置を特定：${site.matched}` : "住所から位置を特定できませんでした（手入力の値で続行）" });
         } catch (e) {
           emit({ type: "status", text: `土地情報の自動取得に失敗しました（${e instanceof Error ? e.message : "不明なエラー"}）。手入力の値で続行します。` });
@@ -212,8 +227,22 @@ export function consultStream(plan: PlanInput): ReadableStream<Uint8Array> {
       const messages: Anthropic.Beta.BetaMessageParam[] = [{ role: "user", content: buildUserMessage(plan, site) }];
       emit({ type: "status", text: "事前チェックを作成しました。条文と公的資料を確認しています…" });
 
+      const started = Date.now();
+      let wrapSent = false;
+      let hardSent = false;
       try {
         for (let i = 0; i < MAX_ITERATIONS; i++) {
+          const elapsed = Date.now() - started;
+          const last = messages[messages.length - 1];
+          if (!wrapSent && elapsed > WRAP_UP_MS && last.role === "user") {
+            messages.push({ role: "system", content: WRAP_UP_NOTE });
+            wrapSent = true;
+            emit({ type: "status", text: "調査を切り上げて、回答をまとめています…" });
+          }
+          if (wrapSent && !hardSent && elapsed > HARD_STOP_MS && last.role === "user") {
+            messages.push({ role: "system", content: `時間の上限です。ツールは submit_report 以外使わず、直ちに提出してください。${WRAP_UP_NOTE}` });
+            hardSent = true;
+          }
           const stream = client.beta.messages.stream({
             model: MODEL,
             max_tokens: 32000,
@@ -225,9 +254,36 @@ export function consultStream(plan: PlanInput): ReadableStream<Uint8Array> {
             messages,
           });
           stream.on("text", (delta) => emit({ type: "text", delta }));
+          let lastPartial = 0;
+          let announced = false;
+          stream.on("inputJson", (_delta, snapshot) => {
+            const block = stream.currentMessage?.content.at(-1);
+            if (block?.type !== "tool_use" || block.name !== "submit_report") return;
+            if (!announced) {
+              announced = true;
+              emit({ type: "status", text: "根拠が揃いました。回答をまとめています…" });
+            }
+            const now = Date.now();
+            if (now - lastPartial < 700 || !snapshot || typeof snapshot !== "object") return;
+            lastPartial = now;
+            emit({ type: "report_partial", report: snapshot as PartialReport });
+          });
           const message = await stream.finalMessage();
 
           emitWebSources(message.content, emit, seen);
+
+          const submitted = message.content.find((b): b is Anthropic.Beta.BetaToolUseBlock => b.type === "tool_use" && b.name === "submit_report");
+          if (submitted) {
+            const parsed = reportSchema.safeParse(submitted.input);
+            if (parsed.success) emit({ type: "report", report: parsed.data });
+            else {
+              console.error("report schema mismatch", parsed.error.issues.slice(0, 5));
+              emit({ type: "report_partial", report: submitted.input as PartialReport });
+            }
+            emit({ type: "done", stopReason: message.stop_reason });
+            controller.close();
+            return;
+          }
 
           if (message.stop_reason === "pause_turn") {
             messages.push({ role: "assistant", content: message.content });

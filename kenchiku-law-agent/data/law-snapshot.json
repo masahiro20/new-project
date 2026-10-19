@@ -1,5 +1,5 @@
 {
- "verifiedAt": "2026-10-18T06:57:29.519Z",
+ "verifiedAt": "2026-10-19T07:08:55.310Z",
  "articles": {
   "343AC0000000100:7": {
    "law": "都市計画法",
@@ -1277,6 +1277,17 @@
    "url": "https://laws.e-gov.go.jp/law/344AC0000000058#Mp-At_15_2",
    "textHash": "ec74350e57b95954e99eb14c56c4781384c9f471ccb9d92ae509dde10a13e84a"
   },
+  "344AC0000000058:6": {
+   "law": "農業振興地域の整備に関する法律",
+   "lawId": "344AC0000000058",
+   "article": "6",
+   "label": "第6条",
+   "caption": "（農業振興地域の指定）",
+   "revisionId": "344AC0000000058_20250601_504AC0000000068",
+   "enforcementDate": "2025-06-01",
+   "url": "https://laws.e-gov.go.jp/law/344AC0000000058#Mp-At_6",
+   "textHash": "7ee49a246d8761325ba34927bb0d18bb1dd26c994f3f4363642693ac835627ae"
+  },
   "344AC0000000058:17": {
    "law": "農業振興地域の整備に関する法律",
    "lawId": "344AC0000000058",
@@ -1287,6 +1298,72 @@
    "enforcementDate": "2025-06-01",
    "url": "https://laws.e-gov.go.jp/law/344AC0000000058#Mp-At_17",
    "textHash": "904876b34ce6e7e0658ca6147819408f3bdccc3e2f847841e1d66ac9e7c0ecc8"
+  },
+  "327AC0000000229:2": {
+   "law": "農地法",
+   "lawId": "327AC0000000229",
+   "article": "2",
+   "label": "第2条",
+   "caption": "（定義）",
+   "revisionId": "327AC0000000229_20250601_504AC0000000068",
+   "enforcementDate": "2025-06-01",
+   "url": "https://laws.e-gov.go.jp/law/327AC0000000229#Mp-At_2",
+   "textHash": "4658e10770f16cb2a6490c34dc227e247f550e0289b5f27afdfd8a6b87e3b385"
+  },
+  "416AC0000000123:37": {
+   "law": "不動産登記法",
+   "lawId": "416AC0000000123",
+   "article": "37",
+   "label": "第37条",
+   "caption": "（地目又は地積の変更の登記の申請）",
+   "revisionId": "416AC0000000123_20260624_508AC0000000046",
+   "enforcementDate": "2026-06-24",
+   "url": "https://laws.e-gov.go.jp/law/416AC0000000123#Mp-At_37",
+   "textHash": "eb1f2b99ad7d4ef29e057f777e7f21c03f3fbf7ac7f55186a0f8f459d631ae15"
+  },
+  "327M50010000079:30": {
+   "law": "農地法施行規則",
+   "lawId": "327M50010000079",
+   "article": "30",
+   "label": "第30条",
+   "caption": "（農地を転用するための許可申請）",
+   "revisionId": "327M50010000079_20260527_508M60000200041",
+   "enforcementDate": "2026-05-27",
+   "url": "https://laws.e-gov.go.jp/law/327M50010000079#Mp-At_30",
+   "textHash": "52f0cb1ef0b1c5a9ee63dcd30c764b09960f7dc725b411c515493416e13cbc9b"
+  },
+  "327M50010000079:57_4": {
+   "law": "農地法施行規則",
+   "lawId": "327M50010000079",
+   "article": "57_4",
+   "label": "第57条の4",
+   "caption": "（農地又は採草放牧地の転用のための権利移動についての許可申請）",
+   "revisionId": "327M50010000079_20260527_508M60000200041",
+   "enforcementDate": "2026-05-27",
+   "url": "https://laws.e-gov.go.jp/law/327M50010000079#Mp-At_57_4",
+   "textHash": "306ecd397e2eb37996bb241e1f975b7126710a3521366bd3a0954a3c368e083b"
+  },
+  "324AC0000000195:36": {
+   "law": "土地改良法",
+   "lawId": "324AC0000000195",
+   "article": "36",
+   "label": "第36条",
+   "caption": "（経費の賦課）",
+   "revisionId": "324AC0000000195_20250601_504AC0000000068",
+   "enforcementDate": "2025-06-01",
+   "url": "https://laws.e-gov.go.jp/law/324AC0000000195#Mp-At_36",
+   "textHash": "198bcaf6c1c0ab4968ae64db9572951d622735eed4067897fda5656f31aa9dc7"
+  },
+  "324AC0000000195:66": {
+   "law": "土地改良法",
+   "lawId": "324AC0000000195",
+   "article": "66",
+   "label": "第66条",
+   "caption": "（地区変更）",
+   "revisionId": "324AC0000000195_20250601_504AC0000000068",
+   "enforcementDate": "2025-06-01",
+   "url": "https://laws.e-gov.go.jp/law/324AC0000000195#Mp-At_66",
+   "textHash": "edceaac382c69836d261beb55da74956860def2275b5a8d0897fc0aefd3b33c2"
   },
   "326AC1000000249:10_2": {
    "law": "森林法",
@@ -1442,6 +1519,28 @@
    "url": "https://laws.e-gov.go.jp/law/333AC0000000030#Mp-At_18",
    "textHash": "42aeb435a9d0a235a1c7ca509437307120256ebe6ce095e9f3dbfc562d9ec15d"
   },
+  "339AC0000000167:6": {
+   "law": "河川法",
+   "lawId": "339AC0000000167",
+   "article": "6",
+   "label": "第6条",
+   "caption": "（河川区域）",
+   "revisionId": "339AC0000000167_20250601_504AC0000000068",
+   "enforcementDate": "2025-06-01",
+   "url": "https://laws.e-gov.go.jp/law/339AC0000000167#Mp-At_6",
+   "textHash": "e095c4557f039d2c34b0ce397cb4755a941539b789439e076e442d02f34caf1d"
+  },
+  "339AC0000000167:24": {
+   "law": "河川法",
+   "lawId": "339AC0000000167",
+   "article": "24",
+   "label": "第24条",
+   "caption": "（土地の占用の許可）",
+   "revisionId": "339AC0000000167_20250601_504AC0000000068",
+   "enforcementDate": "2025-06-01",
+   "url": "https://laws.e-gov.go.jp/law/339AC0000000167#Mp-At_24",
+   "textHash": "49531d61b767d5e997ace7ef2b099ae6d0f8f62a234a9bbd74475a8874b505be"
+  },
   "339AC0000000167:26": {
    "law": "河川法",
    "lawId": "339AC0000000167",
@@ -1464,6 +1563,17 @@
    "url": "https://laws.e-gov.go.jp/law/339AC0000000167#Mp-At_27",
    "textHash": "f344d96b4bbdf45b524675bc863551e9321cc9f87a5a57a66bb14cda52a24095"
   },
+  "339AC0000000167:54": {
+   "law": "河川法",
+   "lawId": "339AC0000000167",
+   "article": "54",
+   "label": "第54条",
+   "caption": "（河川保全区域）",
+   "revisionId": "339AC0000000167_20250601_504AC0000000068",
+   "enforcementDate": "2025-06-01",
+   "url": "https://laws.e-gov.go.jp/law/339AC0000000167#Mp-At_54",
+   "textHash": "9a421a13bccaa2e789bc53d680ccffcb3c42dc62897667348dabdef6fd70b18c"
+  },
   "339AC0000000167:55": {
    "law": "河川法",
    "lawId": "339AC0000000167",
@@ -1474,6 +1584,17 @@
    "enforcementDate": "2025-06-01",
    "url": "https://laws.e-gov.go.jp/law/339AC0000000167#Mp-At_55",
    "textHash": "9fe42b8d3bd5860a9c4169ede318749293a3ff36e002baa45fb62b6a82894876"
+  },
+  "339AC0000000167:100": {
+   "law": "河川法",
+   "lawId": "339AC0000000167",
+   "article": "100",
+   "label": "第100条",
+   "caption": "（この法律の規定を準用する河川）",
+   "revisionId": "339AC0000000167_20250601_504AC0000000068",
+   "enforcementDate": "2025-06-01",
+   "url": "https://laws.e-gov.go.jp/law/339AC0000000167#Mp-At_100",
+   "textHash": "f2b2552a21163c83e230722bdf94c2284d3d1832b7871be5b0a12b15908d1ea1"
   },
   "332AC0000000161:20": {
    "law": "自然公園法",

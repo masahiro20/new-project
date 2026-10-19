@@ -1,9 +1,9 @@
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
-import { RULES } from "../lib/knowledge";
+import { MISSING_META, RULES } from "../lib/knowledge";
 import { normalizeArticle, articleLabel, lawByTitle } from "../lib/laws";
-import { EMPTY_PLAN, planSchema, type PlanInput } from "../lib/plan";
-import { runRules } from "../lib/rules";
+import { EMPTY_PLAN, EMPTY_SIGNALS, planSchema, type PlanInput } from "../lib/plan";
+import { runRules, splitFindings, groupByAgency } from "../lib/rules";
 import { inlineRuns, parseBlocks } from "../lib/markdown";
 import { sourceTier } from "../lib/agent";
 import { distanceToLine, mergeSiteIntoPlan, pointInGeometry, tileFor, type SiteContext } from "../lib/site";
@@ -24,7 +24,8 @@ test("rule ids are unique and every rule has a citation", () => {
 test("農地 in 市街化区域 triggers 農地転用 and development checks", () => {
   const f = ids(plan({ areaDivision: "市街化区域", zoning: "第一種低層住居専用地域", fireZone: "指定なし", landCategory: "田・畑（農地）", siteArea: 250, floors: 2, totalFloorArea: 110, roadType: "建築基準法上の道路（42条1項）", roadWidth: 4, frontage: 6, hazards: ["浸水想定区域"] }));
   assert.equal(f.get("nochi-tenyo"), "required");
-  assert.equal(f.get("noshin"), "check");
+  // 農振法6条3項: 市街化区域は農業振興地域に指定されないので青地の論点は出さない
+  assert.equal(f.get("noshin"), undefined);
   assert.equal(f.get("kakunin-shinsei"), "required");
   assert.equal(f.get("shoene"), "required");
   assert.equal(f.get("low-rise-form"), "required");
@@ -150,11 +151,135 @@ test("distance to line is in metres", () => {
 test("site lookup fills blanks without overriding explicit choices", () => {
   const site = {
     address: "x", matched: "x", lat: 0, lon: 0, tile: null, apiAvailable: true, fetchedAt: "", layers: [],
-    derived: { areaDivision: "市街化区域", zoning: "第一種低層住居専用地域", fireZone: "指定なし", hazards: ["浸水想定区域"], notes: [] },
+    derived: { areaDivision: "市街化区域", zoning: "第一種低層住居専用地域", fireZone: "指定なし", hazards: ["浸水想定区域"], notes: [], signals: EMPTY_SIGNALS },
   } as unknown as SiteContext;
   const merged = mergeSiteIntoPlan(plan({ fireZone: "準防火地域", hazards: ["地区計画の区域"] }), site);
   assert.equal(merged.areaDivision, "市街化区域");
   assert.equal(merged.zoning, "第一種低層住居専用地域");
   assert.equal(merged.fireZone, "準防火地域");
   assert.deepEqual(merged.hazards.sort(), ["地区計画の区域", "浸水想定区域"].sort());
+});
+
+// ---------------------------------------------------------------- farmland / water / report
+
+import { distanceToPolygon, nearestWater, summarizeFarmland, tilesAround } from "../lib/nearby";
+import { deriveSignals, normalizeZoningName } from "../lib/site";
+import { CHECKLIST_ITEMS, REPORT_INPUT_SCHEMA, reportSchema, reportToMarkdown } from "../lib/report";
+
+const square = (lon: number, lat: number, d: number) => [[[lon - d, lat - d], [lon + d, lat - d], [lon + d, lat + d], [lon - d, lat + d], [lon - d, lat - d]]];
+
+test("every rule has a stage and an agency", () => {
+  assert.deepEqual(MISSING_META, []);
+  for (const r of RULES) {
+    assert.ok(r.stage, `${r.id} has no stage`);
+    assert.ok(r.agency, `${r.id} has no agency`);
+  }
+});
+
+test("distance to polygon is 0 inside and metres outside", () => {
+  const rings = square(137.7, 34.8, 0.0001);
+  assert.equal(distanceToPolygon(137.7, 34.8, rings), 0);
+  const d = distanceToPolygon(137.7 + 0.0003, 34.8, rings);
+  assert.ok(d > 15 && d < 22, `got ${d}`);
+});
+
+test("farmland summary: on a 田 parcel vs. a nearby 畑", () => {
+  const on = summarizeFarmland(137.7, 34.8, [{ geometry: { type: "Polygon", coordinates: square(137.7, 34.8, 0.0002) }, properties: { land_type: 100 } }]);
+  assert.equal(on.onSite, "田");
+  assert.equal(on.nearestMeters, 0);
+  const near = summarizeFarmland(137.7, 34.8, [{ geometry: { type: "Polygon", coordinates: square(137.7004, 34.8, 0.0001) }, properties: { land_type: 200 } }]);
+  assert.equal(near.onSite, null);
+  assert.ok(near.nearestMeters !== null && near.nearestMeters > 20 && near.nearestMeters < 35);
+  assert.equal(near.nearby.畑, 1);
+});
+
+test("nearest water picks the closest line and labels it", () => {
+  const w = nearestWater(137.7, 34.8, [
+    { geometry: { type: "LineString", coordinates: [[137.7001, 34.799], [137.7001, 34.801]] }, properties: { ftCode: 5301 } },
+    { geometry: { type: "LineString", coordinates: [[137.701, 34.799], [137.701, 34.801]] }, properties: { ftCode: 5201 } },
+  ]);
+  assert.ok(w.nearestMeters !== null && w.nearestMeters >= 8 && w.nearestMeters <= 11);
+  assert.match(w.nearestKind ?? "", /水路/);
+  assert.equal(w.insideWater, false);
+});
+
+test("tilesAround includes neighbours only near tile edges", () => {
+  assert.ok(tilesAround(34.8, 137.7, 16, 10).length <= 4);
+  assert.ok(tilesAround(34.8, 137.7, 16, 10).length >= 1);
+});
+
+test("signals: parcel under the point means farmland on site; flood layer gives river names", () => {
+  const sg = deriveSignals(
+    { status: "ok", onSite: "田", nearestMeters: 0, nearby: { 田: 3, 畑: 0 }, radius: 60 },
+    { status: "ok", nearestMeters: 12, nearestKind: "細い川・水路（河川中心線）", insideWater: false, radius: 150 },
+    { id: "XKT026", label: "", status: "hit", summary: [], features: [{ A31a_202: "安間川", A31a_204: "静岡県" }], source: { label: "", url: "", year: "" } },
+  );
+  assert.equal(sg.farmland, "敷地が農地の可能性");
+  assert.equal(sg.farmlandType, "田");
+  assert.equal(sg.waterMeters, 12);
+  assert.deepEqual(sg.floodRivers, ["安間川（静岡県指定）"]);
+  const none = deriveSignals({ status: "ok", onSite: null, nearestMeters: null, nearby: { 田: 0, 畑: 0 }, radius: 60 }, { status: "ok", nearestMeters: null, nearestKind: null, insideWater: false, radius: 150 }, undefined);
+  assert.equal(none.farmland, "なし");
+  assert.equal(none.waterKind, "なし");
+});
+
+test("farmland + waterway signals raise the rules people miss", () => {
+  const p = plan({
+    areaDivision: "市街化調整区域",
+    signals: { farmland: "敷地が農地の可能性", farmlandType: "田", farmlandMeters: 0, waterMeters: 12, waterKind: "細い川・水路（河川中心線）", floodRivers: [] },
+  });
+  const site = { derived: { hazards: [], notes: [], signals: p.signals } } as unknown as SiteContext;
+  const f = ids(mergeSiteIntoPlan(p, site));
+  assert.equal(f.get("nochi-genkyo"), "required");
+  assert.equal(f.get("nochi-tenyo"), "required");
+  assert.equal(f.get("tochikairyo"), "likely");
+  assert.equal(f.get("noshin"), "likely");
+  assert.equal(f.get("kasen"), "likely");
+  assert.equal(f.get("suiro-setsudo"), "likely");
+  assert.equal(f.get("horyusaki"), "likely");
+  const far = ids(plan({ signals: { ...EMPTY_SIGNALS, farmland: "周辺に農地", farmlandMeters: 30, waterMeters: 45, waterKind: "川" } }));
+  assert.equal(far.get("rinsetsu-nochi"), "check");
+  assert.equal(far.get("kasen"), "check");
+  assert.equal(far.get("nochi-genkyo"), undefined);
+});
+
+test("findings split into specific / checks / routine and group by agency", () => {
+  const f = runRules(plan({ areaDivision: "市街化調整区域", zoning: "用途地域の指定なし", fireZone: "指定なし" }));
+  const s = splitFindings(f);
+  assert.ok(s.routine.some((x) => x.rule.id === "kakunin-shinsei"));
+  assert.ok(s.specific.some((x) => x.rule.id === "chosei-kuiki"));
+  assert.ok(!s.specific.some((x) => x.rule.routine));
+  const agencies = groupByAgency([...s.specific, ...s.checks]);
+  assert.equal(agencies[0].items[0].severity, "required");
+});
+
+test("report schema: tool schema requires every key and markdown export renders sections", () => {
+  const schema = REPORT_INPUT_SCHEMA as { required: string[]; properties: Record<string, unknown> };
+  assert.deepEqual(schema.required.sort(), Object.keys(schema.properties).sort());
+  const r = reportSchema.parse({
+    summary: { verdict: "許可・協議が前提", headline: "農地転用が前提です。", topRisks: ["農地"], schedule: "+3か月" },
+    design: [{ title: "床高さ", detail: "浸水深0.5m", priority: "高", evidence: [{ label: "建築基準法第19条", url: "https://laws.e-gov.go.jp/law/325AC0000000201#Mp-At_19" }] }],
+    consultations: [{ agency: "農業委員会", purpose: "転用可否", items: ["農地区分"], bring: "公図", timing: "契約前", evidence: [] }],
+    procedures: [{ step: "農地法5条許可", timing: "毎月締切", duration: "窓口で確認", agency: "農業委員会", evidence: [] }],
+    checklist: CHECKLIST_ITEMS.map((item) => ({ item, status: "要確認", note: "" })),
+    questions: [{ to: "施主", question: "登記の地目は確認済みですか？" }],
+    actions: [{ role: "営業", items: ["公図取得"] }],
+    assumptions: [],
+  });
+  const md = reportToMarkdown(r);
+  assert.match(md, /## 結論：許可・協議が前提/);
+  assert.match(md, /## 役所への事前協議リスト/);
+  assert.match(md, /\[建築基準法第19条\]\(https:\/\/laws\.e-gov\.go\.jp/);
+});
+
+test("zoning names from GIS data (full-width digits) map to the schema names", () => {
+  assert.equal(normalizeZoningName("第２種中高層住居専用地域"), "第二種中高層住居専用地域");
+  assert.equal(normalizeZoningName("第1種低層住居専用地域"), "第一種低層住居専用地域");
+  assert.equal(normalizeZoningName("近隣商業地域"), "近隣商業地域");
+});
+
+test("municipal ordinance databases count as official sources", async () => {
+  const { sourceTier } = await import("../lib/tier");
+  assert.equal(sourceTier("https://www1.g-reiki.net/hamamatsu/reiki/youkou/pdf/x.pdf"), "公的");
+  assert.equal(sourceTier("https://example.com/"), "参考");
 });

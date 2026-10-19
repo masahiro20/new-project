@@ -98,6 +98,23 @@ export const EXTRAS = [
   "工事車両の道路使用・乗入れ新設",
 ] as const;
 
+export const FARMLAND_SIGNALS = ["敷地が農地の可能性", "周辺に農地", "なし", "不明"] as const;
+
+/**
+ * Facts read from public map data for the address (not typed by the user).
+ * The server recomputes these from the address on every consult.
+ */
+export const signalsSchema = z.object({
+  farmland: z.enum(FARMLAND_SIGNALS).default("不明"),
+  farmlandType: z.enum(["田", "畑", ""]).default(""),
+  farmlandMeters: z.number().nullable().default(null),
+  waterMeters: z.number().nullable().default(null),
+  waterKind: z.string().max(60).default(""),
+  floodRivers: z.array(z.string().max(80)).max(10).default([]),
+});
+export type Signals = z.infer<typeof signalsSchema>;
+export const EMPTY_SIGNALS: Signals = { farmland: "不明", farmlandType: "", farmlandMeters: null, waterMeters: null, waterKind: "", floodRivers: [] };
+
 const num = z.coerce.number().nonnegative().max(1_000_000).nullable();
 const text = (max: number) => z.string().trim().max(max);
 
@@ -128,6 +145,7 @@ export const planSchema = z.object({
   demolitionArea: num.default(null),
   contractAmountMan: num.default(null),
   extras: z.array(z.enum(EXTRAS)).default([]),
+  signals: signalsSchema.default(EMPTY_SIGNALS),
 });
 
 export type PlanInput = z.infer<typeof planSchema>;
@@ -160,6 +178,7 @@ export const EMPTY_PLAN: PlanInput = {
   demolitionArea: null,
   contractAmountMan: null,
   extras: [],
+  signals: EMPTY_SIGNALS,
 };
 
 /** Renders the structured plan as a compact, stable block for the model. */
@@ -188,5 +207,24 @@ export function planToText(p: PlanInput): string {
     `- 解体する既存建物の床面積：${n(p.demolitionArea, "㎡")}`,
     `- 請負金額（万円）：${n(p.contractAmountMan, "万円")}`,
     `- その他該当事項：${p.extras.length ? p.extras.join("、") : "なし"}`,
+    `- 住所から自動判定（地図データ）：農地＝${signalText(p.signals).farmland}／川・水路＝${signalText(p.signals).water}`,
   ].join("\n");
+}
+
+export function signalText(sg: Signals): { farmland: string; water: string } {
+  const farmland =
+    sg.farmland === "敷地が農地の可能性"
+      ? `地点が${sg.farmlandType || "農地"}の区画上またはすぐ脇（${sg.farmlandMeters ?? 0}m）＝現況農地の可能性が高い`
+      : sg.farmland === "周辺に農地"
+        ? `約${sg.farmlandMeters}m先に農地の区画（周辺に田畑）`
+        : sg.farmland === "なし"
+          ? "周辺60m以内に農地の区画なし"
+          : "未判定";
+  const water =
+    sg.waterMeters === null
+      ? sg.waterKind === "なし"
+        ? "150m以内に川・水路の表示なし"
+        : "未判定"
+      : `約${sg.waterMeters}m先に${sg.waterKind || "川・水路"}${sg.floodRivers.length ? `（浸水想定の対象河川：${sg.floodRivers.join("、")}）` : ""}`;
+  return { farmland, water };
 }

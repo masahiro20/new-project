@@ -2,6 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import MarkdownView from "@/app/MarkdownView";
+import ReportView from "./ReportView";
+import { reportToMarkdown, type PartialReport } from "@/lib/report";
+import { STAGE_HINT } from "@/lib/knowledge";
 import type { AgentEvent } from "@/lib/agent";
 import {
   AREA_DIVISIONS,
@@ -16,9 +19,10 @@ import {
   WORK_TYPES,
   YES_NO_UNKNOWN,
   ZONINGS,
+  signalText,
   type PlanInput,
 } from "@/lib/plan";
-import { SEVERITY_LABEL, citeLabel, citeUrl, groupByCategory, runRules } from "@/lib/rules";
+import { SEVERITY_SHORT, citeLabel, citeUrl, groupByAgency, groupByStage, runRules, splitFindings, type Finding } from "@/lib/rules";
 import type { SiteContext } from "@/lib/site";
 import { mergeSiteIntoPlan } from "@/lib/site";
 
@@ -60,6 +64,44 @@ function SelectField<T extends string>({ id, label, value, options, onChange, hi
   );
 }
 
+function FindingItem({ f, showAgency = true }: { f: Finding; showAgency?: boolean }) {
+  const { rule, severity } = f;
+  return (
+    <details className="fitem">
+      <summary>
+        <span className={`badge ${severity}`}>{SEVERITY_SHORT[severity]}</span>
+        <span className="ftitle">{rule.title}</span>
+        {showAgency && <span className="agency">{rule.agency}</span>}
+      </summary>
+      <div className="fbody">
+        <p>{rule.summary}</p>
+        <p>
+          <strong>やること：</strong>
+          {rule.action}
+        </p>
+        <p className="cites">
+          {rule.cites.map((c) => (
+            <a key={`${c.law}:${c.article}`} href={citeUrl(c)} target="_blank" rel="noopener noreferrer">{citeLabel(c)}</a>
+          ))}
+          {rule.refs?.map((r) => (
+            <a key={r.url} href={r.url} target="_blank" rel="noopener noreferrer">{r.publisher}：{r.label}</a>
+          ))}
+        </p>
+        <p className="roles">担当：{rule.roles.join("・")}</p>
+      </div>
+    </details>
+  );
+}
+
+function Alert({ tone, title, children }: { tone: "danger" | "warn" | "info"; title: string; children: React.ReactNode }) {
+  return (
+    <div className={`alert tone-${tone}`}>
+      <strong>{title}</strong>
+      <span>{children}</span>
+    </div>
+  );
+}
+
 export default function ConsultClient({ accessRequired, siteLookupAvailable }: { accessRequired: boolean; siteLookupAvailable: boolean }) {
   const [plan, setPlan] = useState<PlanInput>(EMPTY_PLAN);
   const [site, setSite] = useState<SiteContext | null>(null);
@@ -68,6 +110,8 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
   const [accessKey, setAccessKey] = useState("");
   const [busy, setBusy] = useState(false);
   const [text, setText] = useState("");
+  const [report, setReport] = useState<PartialReport | null>(null);
+  const [reportFinal, setReportFinal] = useState(false);
   const [log, setLog] = useState<string[]>([]);
   const [sources, setSources] = useState<Source[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -133,7 +177,8 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
   // The plan the rules and the agent actually see: user choices win, lookup fills the blanks.
   const effective = useMemo(() => mergeSiteIntoPlan(plan, site), [plan, site]);
   const findings = useMemo(() => (plan.description.trim().length >= 5 ? runRules(effective) : []), [plan.description, effective]);
-  const grouped = useMemo(() => groupByCategory(findings), [findings]);
+  const split = useMemo(() => splitFindings(findings), [findings]);
+  const agencies = useMemo(() => groupByAgency([...split.specific, ...split.checks]), [split]);
 
   async function consult() {
     if (plan.description.trim().length < 5) {
@@ -142,6 +187,8 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
     }
     setError(null);
     setText("");
+    setReport(null);
+    setReportFinal(false);
     setLog([]);
     setSources([]);
     setDone(false);
@@ -164,6 +211,8 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
       const decoder = new TextDecoder();
       let buffer = "";
       let acc = "";
+      let sawDone = false;
+      let sawReport = false;
       for (;;) {
         const { done: finished, value } = await reader.read();
         if (finished) break;
@@ -178,7 +227,14 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
           } catch {
             continue;
           }
-          if (ev.type === "text") {
+          if (ev.type === "report_partial") {
+            sawReport = true;
+            setReport(ev.report);
+          } else if (ev.type === "report") {
+            sawReport = true;
+            setReport(ev.report);
+            setReportFinal(true);
+          } else if (ev.type === "text") {
             acc += ev.delta;
             setText(acc);
           } else if (ev.type === "status" || ev.type === "tool") {
@@ -186,12 +242,15 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
           } else if (ev.type === "source") {
             setSources((s) => (s.some((x) => x.url === ev.url) ? s : [...s, { tier: ev.tier, title: ev.title, url: ev.url }]));
           } else if (ev.type === "error") {
+            sawDone = true;
             setError(ev.message);
           } else if (ev.type === "done") {
+            sawDone = true;
             setDone(true);
           }
         }
       }
+      if (!sawDone) setError(sawReport ? "時間の上限で回答が途中で切れました。表示されている部分は有効です。続きが必要なら「法令チェックを実行」をもう一度押してください。" : "回答が完了しませんでした（時間の上限の可能性）。もう一度お試しください。");
     } catch (e) {
       if ((e as Error).name !== "AbortError") setError("通信エラーが発生しました。");
     } finally {
@@ -202,7 +261,8 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
 
   async function copyResult() {
     const src = sources.map((s) => `- 【${s.tier}】${s.title} ${s.url}`).join("\n");
-    await navigator.clipboard.writeText(`${text}\n\n---\n参照した根拠\n${src}`);
+    const body = report ? reportToMarkdown(report) : text;
+    await navigator.clipboard.writeText(`${body}\n\n---\n参照した根拠\n${src}`);
   }
 
   const hitLayers = site?.layers.filter((l) => l.status === "hit") ?? [];
@@ -271,6 +331,40 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
                       不動産情報ライブラリの API キーが未設定のため、用途地域などは取得できていません。下の「詳しい条件」で手入力してください。
                     </p>
                   )}
+                  {(() => {
+                    const sg = site.derived.signals;
+                    const st = signalText(sg);
+                    const red = hitLayers.filter((l) => ["XKT029", "XKT016", "XKT021", "XKT022"].includes(l.id));
+                    return (
+                      <div className="alerts">
+                        {sg.farmland === "敷地が農地の可能性" && (
+                          <Alert tone="danger" title="現況が農地の可能性">
+                            {st.farmland}。登記が宅地でも農地転用（農地法）の手続きが必要になることがあります。農業委員会で確認してください。
+                          </Alert>
+                        )}
+                        {sg.farmland === "周辺に農地" && (
+                          <Alert tone="warn" title="周りに田畑">
+                            {st.farmland}。前面の道が農道でないか、水路が敷地にかかっていないか確認してください。
+                          </Alert>
+                        )}
+                        {sg.waterMeters !== null && sg.waterMeters <= 60 && (
+                          <Alert tone={sg.waterMeters <= 20 ? "danger" : "warn"} title="川・水路が近い">
+                            {st.water}。河川区域・河川保全区域・水路の管理者と境界を確認してください。
+                          </Alert>
+                        )}
+                        {red.map((l) => (
+                          <Alert key={l.id} tone="danger" title={l.label}>
+                            {l.summary.join("／")}
+                          </Alert>
+                        ))}
+                        {site.derived.areaDivision === "市街化調整区域" && (
+                          <Alert tone="danger" title="市街化調整区域">
+                            原則として建築できない区域です。開発許可・建築許可の立地基準に当てはまるかを都市計画課（開発指導）で確認してください。
+                          </Alert>
+                        )}
+                      </div>
+                    );
+                  })()}
                   {site.apiAvailable && (
                     <table style={{ width: "100%", fontSize: ".92rem", borderCollapse: "collapse" }}>
                       <tbody>
@@ -288,6 +382,20 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
                         <tr>
                           <th style={{ textAlign: "left", padding: "4px 6px", borderBottom: "1px solid var(--line)" }}>防火指定</th>
                           <td style={{ padding: "4px 6px", borderBottom: "1px solid var(--line)" }}>{site.derived.fireZone ?? "データなし（要確認）"}</td>
+                        </tr>
+                        <tr>
+                          <th style={{ textAlign: "left", padding: "4px 6px", borderBottom: "1px solid var(--line)" }}>農地</th>
+                          <td style={{ padding: "4px 6px", borderBottom: "1px solid var(--line)" }}>
+                            {signalText(site.derived.signals).farmland}
+                            <span className="hint">（農水省 筆ポリゴン）</span>
+                          </td>
+                        </tr>
+                        <tr>
+                          <th style={{ textAlign: "left", padding: "4px 6px", borderBottom: "1px solid var(--line)" }}>川・水路</th>
+                          <td style={{ padding: "4px 6px", borderBottom: "1px solid var(--line)" }}>
+                            {signalText(site.derived.signals).water}
+                            <span className="hint">（国土地理院 地図）</span>
+                          </td>
                         </tr>
                         <tr>
                           <th style={{ textAlign: "left", padding: "4px 6px", verticalAlign: "top" }}>該当区域</th>
@@ -410,6 +518,7 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
                 setSite(null);
                 lookedUp.current = "";
                 setText("");
+                setReport(null);
                 setSources([]);
                 setLog([]);
               }}
@@ -420,7 +529,7 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
           </div>
         </form>
 
-        {(text || busy) && (
+        {(text || report || busy) && (
           <div style={{ marginTop: 32 }}>
             <div className="result-head">
               <h2 style={{ margin: 0 }}>エージェントの回答</h2>
@@ -436,8 +545,8 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
                 {log.map((l, i) => <li key={i}>{l}</li>)}
               </ul>
             )}
-            {busy && !text && <p className="spinner">条文・資料を確認中です。1〜3分かかることがあります…</p>}
-            {text && <MarkdownView markdown={text} />}
+            {busy && !text && !report && <p className="spinner">条文・資料を確認中です。2〜4分かかります…</p>}
+            {report ? <ReportView report={report} streaming={busy && !reportFinal} /> : text && <MarkdownView markdown={text} />}
             {sources.length > 0 && (
               <div className="card" style={{ marginTop: 16 }}>
                 <h3>参照した根拠（取得順）</h3>
@@ -455,38 +564,65 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
         )}
       </div>
 
-      <aside className="sticky">
+      <aside className="sticky side">
         <div className="card">
-          <h3>即時ルールチェック {findings.length > 0 && <span className="hint">（{findings.length}件）</span>}</h3>
+          <h3 style={{ marginBottom: 2 }}>自動チェック（AI回答の前の下書き）</h3>
+          <p className="hint" style={{ margin: "0 0 10px" }}>
+            住所から取った地図データと入力内容を、条文照合済みのルールに当てはめた結果です。AI の回答はこれを土台に詳しく書きます。
+          </p>
           {findings.length === 0 ? (
-            <p>住所と計画を入力すると、該当しうる法令・手続きがここに表示されます。</p>
+            <p>住所と「何を建てたいか」を入れると、ここに論点が出ます。</p>
           ) : (
-            grouped.map(({ category, items }) => (
-              <details key={category} open={category === "まず確認すること" || items.some((f) => f.severity === "required")}>
-                <summary>
-                  {category} <span className="hint">（{items.length}）</span>
-                </summary>
-                {items.map(({ rule, severity }) => (
-                  <div className="finding" key={rule.id}>
-                    <h4>
-                      <span className={`badge ${severity}`}>{SEVERITY_LABEL[severity].split("（")[0]}</span>
-                      {rule.title}
-                    </h4>
-                    <p>{rule.summary}</p>
-                    <p><strong>対応：</strong>{rule.action}</p>
-                    <p className="cites">
-                      {rule.cites.map((c) => (
-                        <a key={`${c.law}:${c.article}`} href={citeUrl(c)} target="_blank" rel="noopener noreferrer">{citeLabel(c)}</a>
-                      ))}
-                      {rule.refs?.map((r) => (
-                        <a key={r.url} href={r.url} target="_blank" rel="noopener noreferrer">{r.publisher}：{r.label}</a>
-                      ))}
-                    </p>
-                    <p className="roles">担当：{rule.roles.join("・")}</p>
-                  </div>
-                ))}
-              </details>
-            ))
+            <>
+              <div className="counts">
+                <span><strong>{split.specific.length}</strong>この敷地・計画に固有</span>
+                <span><strong>{split.checks.length}</strong>窓口で確認</span>
+                <span><strong>{split.routine.length}</strong>毎回の手続き</span>
+              </div>
+
+              {agencies.length > 0 && (
+                <div className="side-sec">
+                  <h4>先に聞きに行く窓口</h4>
+                  <ul className="agency-list">
+                    {agencies.slice(0, 8).map(({ agency, items }) => (
+                      <li key={agency}>
+                        <strong>{agency}</strong>
+                        <span>{items.map((f) => f.rule.title.split("（")[0]).join("／")}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {split.specific.length > 0 && (
+                <div className="side-sec">
+                  <h4>この敷地・計画ならではの論点</h4>
+                  {groupByStage(split.specific).map(({ stage, items }) => (
+                    <div key={stage} className="stage">
+                      <p className="stage-name">
+                        {stage}
+                        <span className="hint">　{STAGE_HINT[stage]}</span>
+                      </p>
+                      {items.map((f) => <FindingItem key={f.rule.id} f={f} />)}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {split.checks.length > 0 && (
+                <div className="side-sec">
+                  <h4>窓口で確認すること（入力不足・条例次第）</h4>
+                  {split.checks.map((f) => <FindingItem key={f.rule.id} f={f} />)}
+                </div>
+              )}
+
+              {split.routine.length > 0 && (
+                <details className="routine">
+                  <summary>通常の新築で毎回必要な手続き（{split.routine.length}件）</summary>
+                  {split.routine.map((f) => <FindingItem key={f.rule.id} f={f} />)}
+                </details>
+              )}
+            </>
           )}
         </div>
       </aside>

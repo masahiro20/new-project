@@ -1,0 +1,194 @@
+// The agent's final answer as structured data. The model hands it over through
+// the `submit_report` tool (strict JSON schema), so the UI can lay it out as
+// "結論 → 設計で注意すること → 役所への事前協議 → 見落としチェック → 質問 → 担当別"
+// instead of one long Markdown page.
+
+import { z } from "zod";
+
+export const VERDICTS = ["通常の手続きで建築可能", "条件付きで建築可能", "許可・協議が前提", "建築が難しい可能性", "情報不足で判断保留"] as const;
+export const PRIORITIES = ["高", "中", "低"] as const;
+export const CHECK_STATUS = ["該当", "可能性あり", "要確認", "該当なし"] as const;
+export const ASK_TO = ["施主", "土地の売主・仲介", "社内", "役所"] as const;
+export const ROLES = ["設計", "コーディネーター", "施工", "営業"] as const;
+
+/** The fixed list the model must walk through, so nothing silently drops out. */
+export const CHECKLIST_ITEMS = [
+  "現況が農地か（農地転用・農振・土地改良区・地目変更）",
+  "川・水路との関係（河川区域・河川保全区域・水路の占用・境界）",
+  "前面道路が建築基準法上の道路か（農道・里道・水路を挟む・2項道路）",
+  "市街化調整区域等での建築可否（開発許可・建築許可の立地基準）",
+  "がけ・高低差・擁壁（がけ条例・盛土規制法）",
+  "浸水・土砂災害・地盤（床高さ・構造・盛土造成地）",
+  "埋蔵文化財包蔵地",
+  "上下水道・浄化槽と放流先",
+  "境界・越境・私道の承諾",
+  "都市計画道路・地区計画・景観・高度地区",
+  "防火・準防火・法22条区域と外壁・開口部",
+  "高さ・斜線・日影・建蔽率・容積率",
+] as const;
+
+const evidence = z.object({ label: z.string(), url: z.string() });
+export type Evidence = z.infer<typeof evidence>;
+
+export const reportSchema = z.object({
+  summary: z.object({
+    verdict: z.enum(VERDICTS),
+    headline: z.string(),
+    topRisks: z.array(z.string()),
+    schedule: z.string(),
+  }),
+  design: z.array(z.object({ title: z.string(), detail: z.string(), priority: z.enum(PRIORITIES), evidence: z.array(evidence) })),
+  consultations: z.array(
+    z.object({
+      agency: z.string(),
+      purpose: z.string(),
+      items: z.array(z.string()),
+      bring: z.string(),
+      timing: z.string(),
+      evidence: z.array(evidence),
+    }),
+  ),
+  procedures: z.array(z.object({ step: z.string(), timing: z.string(), duration: z.string(), agency: z.string(), evidence: z.array(evidence) })),
+  checklist: z.array(z.object({ item: z.string(), status: z.enum(CHECK_STATUS), note: z.string() })),
+  questions: z.array(z.object({ to: z.enum(ASK_TO), question: z.string() })),
+  actions: z.array(z.object({ role: z.enum(ROLES), items: z.array(z.string()) })),
+  assumptions: z.array(z.string()),
+});
+
+export type Report = z.infer<typeof reportSchema>;
+
+/** Same shape, every field optional — what the UI receives while the tool input is still streaming. */
+export type PartialReport = {
+  summary?: Partial<Report["summary"]>;
+  design?: Partial<Report["design"][number]>[];
+  consultations?: Partial<Report["consultations"][number]>[];
+  procedures?: Partial<Report["procedures"][number]>[];
+  checklist?: Partial<Report["checklist"][number]>[];
+  questions?: Partial<Report["questions"][number]>[];
+  actions?: Partial<Report["actions"][number]>[];
+  assumptions?: string[];
+};
+
+const str = (description: string) => ({ type: "string", description });
+const strArr = (description: string) => ({ type: "array", items: { type: "string" }, description });
+const obj = (properties: Record<string, unknown>, description?: string) => ({
+  type: "object",
+  properties,
+  required: Object.keys(properties),
+  additionalProperties: false,
+  ...(description ? { description } : {}),
+});
+const evidenceArr = {
+  type: "array",
+  description: "根拠。条文は e-Gov の URL（https://laws.e-gov.go.jp/law/法令ID#Mp-At_条番号）、公的資料はその URL。label は「建築基準法第43条」「浜松市 がけ条例の解説」など短く。",
+  items: obj({ label: str("根拠の名前"), url: str("URL。なければ空文字") }),
+};
+
+export const REPORT_INPUT_SCHEMA = obj({
+  summary: obj(
+    {
+      verdict: { type: "string", enum: [...VERDICTS], description: "この計画が建てられる見込みの一言判定" },
+      headline: str("結論を2文以内で。何がこの計画の成否・工程を決めるかを書く"),
+      topRisks: strArr("いちばん効く論点を最大3つ。各1文・80字以内"),
+      schedule: str("工程への影響の見込み（例：農地転用と開発許可で着工まで通常より3〜6か月長い）。不明なら何が決まれば分かるか"),
+    },
+    "冒頭に出す結論",
+  ),
+  design: {
+    type: "array",
+    description: "この家の設計で注意すること（配置・高さ・構造・防火仕様・床高さ・外構・設備ルートなど設計図に反映すべき事項）。優先度の高い順に最大6件。通常の新築で毎回やること（確認申請そのもの等）は書かない",
+    items: obj({
+      title: str("設計上の注意点の見出し（例：北側斜線で2階北側の屋根勾配が制限される）"),
+      detail: str("何をどう設計に反映するか。200字以内。数値は条文・公的資料で確認したものだけ"),
+      priority: { type: "string", enum: [...PRIORITIES] },
+      evidence: evidenceArr,
+    }),
+  },
+  consultations: {
+    type: "array",
+    description: "設計・契約の前に役所・関係機関へ事前協議・確認すべきこと。窓口ごとに1件、協議の優先順に最大6件",
+    items: obj({
+      agency: str("窓口（例：浜松市 農業委員会、静岡県 浜松土木事務所 河川課）。自治体名が分かれば入れる"),
+      purpose: str("何を決めるための協議か（1文）"),
+      items: strArr("確認・協議する具体的な項目。最大6項目、各60字以内"),
+      bring: str("持参する資料（公図・登記事項証明書・配置図案など）"),
+      timing: str("いつまでに（例：土地契約前、設計着手前、確認申請の1か月前）"),
+      evidence: evidenceArr,
+    }),
+  },
+  procedures: {
+    type: "array",
+    description: "必要な許可・届出・申請を実施順に並べた手続きの流れ。最大10件",
+    items: obj({
+      step: str("手続き名（例：農地法5条許可申請）"),
+      timing: str("時期（例：毎月締切→翌月許可、着工21日前まで）"),
+      duration: str("標準的な期間。条文・公的資料で確認できない場合は「窓口で確認」"),
+      agency: str("提出先"),
+      evidence: evidenceArr,
+    }),
+  },
+  checklist: {
+    type: "array",
+    description: `見落としチェック表。次の項目をこの順にすべて評価する：${CHECKLIST_ITEMS.join("／")}`,
+    items: obj({
+      item: str("チェック項目（指定の文言のまま）"),
+      status: { type: "string", enum: [...CHECK_STATUS] },
+      note: str("判定の理由と、要確認ならどこで何を見るか。80字以内"),
+    }),
+  },
+  questions: {
+    type: "array",
+    description: "計画を確定するために確認したい質問。非設計職でも答えられる言葉で最大8件",
+    items: obj({ to: { type: "string", enum: [...ASK_TO] }, question: str("「○○は確認済みですか？」の形") }),
+  },
+  actions: {
+    type: "array",
+    description: "担当別の次のアクション（今週やること）",
+    items: obj({ role: { type: "string", enum: [...ROLES] }, items: strArr("1〜3項目") }),
+  },
+  assumptions: strArr("前提にしたこと・未確認のまま置いた仮定。最大5件"),
+});
+
+export function evidenceMd(list: Evidence[] | undefined): string {
+  if (!list?.length) return "";
+  return list.map((e) => (e.url ? `[${e.label}](${e.url})` : e.label)).join("、");
+}
+
+/** Markdown version for copy / print / sharing in chat tools. */
+export function reportToMarkdown(r: PartialReport): string {
+  const out: string[] = [];
+  if (r.summary) {
+    out.push(`## 結論：${r.summary.verdict ?? ""}`, r.summary.headline ?? "");
+    if (r.summary.topRisks?.length) out.push("", ...r.summary.topRisks.map((t) => `- ${t}`));
+    if (r.summary.schedule) out.push("", `**工程への影響**：${r.summary.schedule}`);
+  }
+  if (r.design?.length) {
+    out.push("", "## 設計で注意すること");
+    for (const d of r.design) out.push(`- 【${d.priority ?? ""}】**${d.title ?? ""}** — ${d.detail ?? ""}${d.evidence?.length ? `（根拠：${evidenceMd(d.evidence)}）` : ""}`);
+  }
+  if (r.consultations?.length) {
+    out.push("", "## 役所への事前協議リスト", "| 窓口 | 協議すること | 持参資料 | 時期 | 根拠 |", "|---|---|---|---|---|");
+    for (const c of r.consultations) out.push(`| ${c.agency ?? ""} | ${c.purpose ?? ""}<br>${(c.items ?? []).map((i) => `・${i}`).join("<br>")} | ${c.bring ?? ""} | ${c.timing ?? ""} | ${evidenceMd(c.evidence)} |`);
+  }
+  if (r.procedures?.length) {
+    out.push("", "## 手続きの流れ", "| # | 手続き | 時期 | 期間 | 提出先 | 根拠 |", "|---|---|---|---|---|---|");
+    r.procedures.forEach((p, i) => out.push(`| ${i + 1} | ${p.step ?? ""} | ${p.timing ?? ""} | ${p.duration ?? ""} | ${p.agency ?? ""} | ${evidenceMd(p.evidence)} |`));
+  }
+  if (r.checklist?.length) {
+    out.push("", "## 見落としチェック", "| 項目 | 判定 | メモ |", "|---|---|---|");
+    for (const c of r.checklist) out.push(`| ${c.item ?? ""} | ${c.status ?? ""} | ${c.note ?? ""} |`);
+  }
+  if (r.questions?.length) {
+    out.push("", "## 確認したい質問");
+    for (const q of r.questions) out.push(`- （${q.to ?? ""}へ）${q.question ?? ""}`);
+  }
+  if (r.actions?.length) {
+    out.push("", "## 担当別の次のアクション");
+    for (const a of r.actions) out.push(`- **${a.role ?? ""}**：${(a.items ?? []).join("／")}`);
+  }
+  if (r.assumptions?.length) {
+    out.push("", "## 前提・未確認");
+    for (const a of r.assumptions) out.push(`- ${a}`);
+  }
+  return out.join("\n");
+}

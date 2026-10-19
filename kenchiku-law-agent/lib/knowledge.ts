@@ -28,7 +28,25 @@ export type Category =
 export type Cite = { law: LawKey; article: string; expectCaption?: string; note?: string };
 export type Ref = { label: string; url: string; publisher: string };
 
-export type Rule = {
+/** When in the project the item bites. */
+export type Stage = "計画段階" | "設計" | "申請・届出" | "工事・引渡し";
+export const STAGE_ORDER: Stage[] = ["計画段階", "設計", "申請・届出", "工事・引渡し"];
+export const STAGE_HINT: Record<Stage, string> = {
+  計画段階: "建てられるか・規模・工程が決まる。土地契約や設計の前に役所へ確認する",
+  設計: "配置・構造・仕様に効く。設計図に反映する",
+  "申請・届出": "着工前後の申請・届出。時期を工程表に入れる",
+  "工事・引渡し": "工事段階の届出・現場管理",
+};
+
+export type RuleMeta = {
+  stage: Stage;
+  /** Counter to consult (事前協議・確認先). */
+  agency: string;
+  /** True for obligations that apply to virtually every new house; shown folded. */
+  routine?: boolean;
+};
+
+export type Rule = RuleMeta & {
   id: string;
   category: Category;
   title: string;
@@ -62,6 +80,9 @@ const residentialOnly = (p: PlanInput) =>
 const mentions = (p: PlanInput, re: RegExp) => re.test(`${p.description}\n${p.landInfo}`);
 const has = (p: PlanInput, h: PlanInput["hazards"][number]) => p.hazards.includes(h);
 const extra = (p: PlanInput, e: PlanInput["extras"][number]) => p.extras.includes(e);
+const farmOnSite = (p: PlanInput) => p.signals.farmland === "敷地が農地の可能性" || p.landCategory === "田・畑（農地）";
+const waterWithin = (p: PlanInput, m: number) => p.signals.waterMeters !== null && p.signals.waterMeters <= m;
+const ruralArea = (p: PlanInput) => ["市街化調整区域", "非線引き都市計画区域", "準都市計画区域", "都市計画区域外"].includes(p.areaDivision);
 
 const MLIT_KAISEI: Ref = {
   label: "国土交通省「2025年4月からルールを改正します」（省エネ基準適合義務化・4号特例見直し・壁量計算見直し）",
@@ -119,7 +140,7 @@ const SHOENE_FAQ: Ref = {
   publisher: "国土交通省",
 };
 
-export const RULES: Rule[] = [
+const RULE_DEFS: Omit<Rule, keyof RuleMeta>[] = [
   // ---------------------------------------------------------------- まず確認
   {
     id: "zoning-unknown",
@@ -839,7 +860,7 @@ export const RULES: Rule[] = [
     action: "指定からの経過年数、買取り申出の可否・時期、解除後の農地転用手続きを市の都市計画課・農業委員会で確認。",
     roles: ["営業", "コーディネーター"],
     cites: [{ law: "seisanryokuchiho", article: "8", expectCaption: "（生産緑地地区内における行為の制限）" }],
-    when: (p) => (has(p, "生産緑地地区") ? "required" : null),
+    when: (p) => (has(p, "生産緑地地区") ? "required" : farmOnSite(p) && p.areaDivision === "市街化区域" ? "check" : null),
   },
   {
     id: "toshi-keikaku-doro",
@@ -969,10 +990,67 @@ export const RULES: Rule[] = [
     cites: [
       { law: "noshinho", article: "13", expectCaption: "（農業振興地域整備計画の変更）" },
       { law: "noshinho", article: "15_2", expectCaption: "（農用地区域内における開発行為の制限）" },
+      { law: "noshinho", article: "6", expectCaption: "（農業振興地域の指定）", note: "3項：市街化区域には指定しない" },
       { law: "noshinho", article: "17", expectCaption: "（農地等の転用の制限）" },
     ],
     refs: [MAFF_TENYO],
-    when: (p) => (p.farmlandBlue === "はい" ? "required" : p.landCategory === "田・畑（農地）" && p.farmlandBlue === "不明" ? "check" : null),
+    when: (p) =>
+      p.farmlandBlue === "はい"
+        ? "required"
+        : farmOnSite(p) && p.farmlandBlue === "不明" && p.areaDivision !== "市街化区域"
+          ? ruralArea(p)
+            ? "likely"
+            : "check"
+          : null,
+  },
+  {
+    id: "nochi-genkyo",
+    category: "農地・山林",
+    title: "地図上は現況が田・畑（登記の地目と違う可能性）",
+    summary:
+      "農地法の「農地」は耕作の目的に供される土地で（農地法2条）、登記の地目ではなく現況で判断されます。地目が宅地・雑種地でも、現況が田畑なら転用の許可・届出が必要です。逆に転用後は、地目の変更があった日から1か月以内に地目変更登記を申請する義務があります（不動産登記法37条）。住宅ローンの融資実行や分筆も地目変更登記が前提になることが多く、工程に入れておく必要があります。",
+    action:
+      "法務局で登記事項証明書（地目）を、農業委員会で農地台帳（農地か・農振区域か・転用許可の履歴）を確認。現況農地なら、許可・届出の受理前に造成・建築・売買代金の決済をしないこと。引渡し前に土地家屋調査士へ地目変更登記を依頼してください。",
+    roles: ["営業", "コーディネーター", "設計"],
+    cites: [
+      { law: "nochiho", article: "2", expectCaption: "（定義）" },
+      { law: "fudosantokiho", article: "37", expectCaption: "（地目又は地積の変更の登記の申請）" },
+    ],
+    refs: [MAFF_IHAN],
+    when: (p) => (p.signals.farmland === "敷地が農地の可能性" ? "required" : null),
+  },
+  {
+    id: "tochikairyo",
+    category: "農地・山林",
+    title: "土地改良区の地区内の農地（意見書・地区除外・決済金）",
+    summary:
+      "転用する農地が土地改良区の地区内にあると、農地転用許可の申請書に土地改良区の意見書を添付する必要があります（農地法施行規則30条1項6号、5条許可は57条の4第2項3号）。土地改良区は地区内の土地に経費（賦課金）を課しており（土地改良法36条）、地区から外す手続き（66条など）と、定款・規程に基づく地区除外決済金の支払いを求められるのが一般的です。金額・手続き期間は土地改良区ごとに異なり、施主の想定外の費用になりやすい項目です。",
+    action:
+      "農業委員会または市町村の農政課で、敷地が土地改良区の地区内か・どの土地改良区かを確認し、土地改良区に意見書の手続き、地区除外決済金の額、賦課金の清算、用排水路への放流の可否を問い合わせ、資金計画に入れてください。",
+    roles: ["営業", "コーディネーター"],
+    cites: [
+      { law: "nochikisoku", article: "30", expectCaption: "（農地を転用するための許可申請）" },
+      { law: "nochikisoku", article: "57_4", expectCaption: "（農地又は採草放牧地の転用のための権利移動についての許可申請）" },
+      { law: "tochikairyoho", article: "36", expectCaption: "（経費の賦課）" },
+      { law: "tochikairyoho", article: "66", expectCaption: "（地区変更）" },
+    ],
+    when: (p) => (farmOnSite(p) ? "likely" : null),
+  },
+  {
+    id: "rinsetsu-nochi",
+    category: "農地・山林",
+    title: "周りが田畑の土地（農道・水路・過去の転用許可）",
+    summary:
+      "周辺に田畑がある土地では、見落としが3つ起きやすくなります。①前面の道が農道・里道で、建築基準法上の道路（法42条）でないことがある（接道義務は法43条）。②用排水路が敷地の中や境界を通っていて、管理者との境界確定や付替えが必要になる。③過去に農地転用許可を受けて宅地になった土地で、許可時の事業計画（用途・建築主）と違う使い方をすると違反転用として是正の対象になりうる（農地法51条）。",
+    action:
+      "建築指導課で前面道路の種別を、公図で水路の有無を、農業委員会で過去の転用許可の有無と条件を確認してください。周辺の農地への雨水・土砂の流出や日照への配慮も、近隣説明の論点になります。",
+    roles: ["営業", "設計", "コーディネーター"],
+    cites: [
+      { law: "kenkiho", article: "42", expectCaption: "（道路の定義）" },
+      { law: "kenkiho", article: "43", expectCaption: "（敷地等と道路との関係）" },
+      { law: "nochiho", article: "51", expectCaption: "（違反転用に対する処分）" },
+    ],
+    when: (p) => (isBuild(p) && p.signals.farmland === "周辺に農地" && p.landCategory !== "田・畑（農地）" ? "check" : null),
   },
   {
     id: "shinrin",
@@ -1080,16 +1158,53 @@ export const RULES: Rule[] = [
   {
     id: "kasen",
     category: "造成・災害リスク",
-    title: "河川区域・河川保全区域内の行為",
-    summary: "河川区域内の土地の占用（河川法24条）、工作物の新築・改築（26条）、土地の掘削・盛土（27条）には河川管理者の許可が必要です。河川保全区域内でも土地の形状変更や工作物の新築等に許可が必要です（55条）。",
-    action: "河川管理者（国・都道府県の河川事務所）に区域界と許可要件を確認。",
-    roles: ["設計", "コーディネーター"],
+    title: "川・水路に近い敷地（河川区域・河川保全区域・水路の管理者）",
+    summary:
+      "河川区域内の土地の占用（河川法24条）、工作物の新築・改築（26条）、掘削・盛土（27条）は河川管理者の許可が必要です。河川区域の外でも、河川管理者は河岸・堤防を守るため河川区域の境界から50m以内に河川保全区域を指定でき（54条）、その中では土地の形状変更や工作物の新築に許可が要ります（55条）。一級・二級河川以外でも市町村長が指定した準用河川には河川法が準用され（100条）、それ以外の普通河川・農業用水路（法定外公共物など）は市町村の条例や土地改良区が管理します。区域界は現地の見た目では分からず、管理者の図面と立会いで決まります。",
+    action:
+      "河川管理者（一級河川の直轄区間は国の河川事務所、それ以外は都道府県の土木事務所、準用・普通河川は市町村の河川・土木課）で、①河川の種別と管理者、②河川区域・河川保全区域の境界と敷地との位置関係、③水路の官民境界（境界確定の要否）、④橋・排水管・擁壁など水路にかかる工作物の許可、を確認。建物配置・基礎・外構の掘削位置はその結果で決めてください。",
+    roles: ["設計", "コーディネーター", "営業"],
     cites: [
+      { law: "kasenho", article: "6", expectCaption: "（河川区域）" },
+      { law: "kasenho", article: "24", expectCaption: "（土地の占用の許可）" },
       { law: "kasenho", article: "26", expectCaption: "（工作物の新築等の許可）" },
       { law: "kasenho", article: "27", expectCaption: "（土地の掘削等の許可）" },
+      { law: "kasenho", article: "54", expectCaption: "（河川保全区域）" },
       { law: "kasenho", article: "55", expectCaption: "（河川保全区域における行為の制限）" },
+      { law: "kasenho", article: "100", expectCaption: "（この法律の規定を準用する河川）" },
     ],
-    when: (p) => (has(p, "河川区域・河川保全区域") ? "required" : null),
+    when: (p) => (has(p, "河川区域・河川保全区域") ? "required" : waterWithin(p, 20) ? "likely" : waterWithin(p, 60) ? "check" : null),
+  },
+  {
+    id: "suiro-setsudo",
+    category: "敷地・道路",
+    title: "水路・川を挟んで道路に接する敷地（橋・暗渠と接道）",
+    summary:
+      "敷地と道路の間に水路があると、敷地は道路に直接接していません。接道義務（法43条1項）を満たすには、水路に橋や暗渠を設けて管理者の占用・工作物の許可を受けたうえで、特定行政庁がそれを接道として扱うかの確認が必要です（扱いは自治体の運用によります）。認められない場合は43条2項の認定・許可が必要になり、建てられない、または工程が数か月延びることがあります。",
+    action:
+      "公図で敷地と道路の間に水路（青線・地番のない細長い土地）がないかを確認。あれば、建築指導課で接道の扱いを、水路管理者（市町村の土木課・土地改良区）で橋・乗入れの占用許可の要件と期間を、契約前に確認してください。",
+    roles: ["設計", "営業", "コーディネーター"],
+    cites: [
+      { law: "kenkiho", article: "43", expectCaption: "（敷地等と道路との関係）" },
+      { law: "kasenho", article: "24", expectCaption: "（土地の占用の許可）" },
+    ],
+    when: (p) => (isBuild(p) && waterWithin(p, 20) ? "likely" : isBuild(p) && waterWithin(p, 60) && p.roadType === "不明" ? "check" : null),
+  },
+  {
+    id: "horyusaki",
+    category: "敷地・道路",
+    title: "雨水・生活排水の放流先（側溝・水路・用排水路）",
+    summary:
+      "敷地の雨水・汚水は下水道・側溝などへ排出する施設を設ける必要があります（法19条2項）。下水道の処理区域外では浄化槽で処理した水と雨水を側溝や水路へ放流しますが、浄化槽の設置届（浄化槽法5条）では放流先を示す必要があり、放流先が農業用排水路・普通河川の場合は管理者（土地改良区・水利組合・市町村）の同意書を求める自治体が多くあります。同意が得られないと浸透処理などの設計変更が必要になります。",
+    action:
+      "上下水道課で下水道の処理区域か（供用開始時期を含む）を確認。区域外なら、放流先の側溝・水路の管理者と同意の要否・様式を確認し、浄化槽の位置・放流管のルート・高さ（放流先の水位より高いか）を配置計画の段階で決めてください。",
+    roles: ["設計", "コーディネーター", "施工"],
+    cites: [
+      { law: "kenkiho", article: "19", expectCaption: "（敷地の衛生及び安全）" },
+      { law: "jokasoho", article: "5", expectCaption: "（設置等の届出、勧告及び変更命令）" },
+      { law: "gesuidoho", article: "10", expectCaption: "（排水設備の設置等）" },
+    ],
+    when: (p) => (isNew(p) && (extra(p, "浄化槽（下水道なし）") || waterWithin(p, 60) || farmOnSite(p) || p.signals.farmland === "周辺に農地" || ruralArea(p)) ? "likely" : null),
   },
   {
     id: "shizen-koen",
@@ -1328,6 +1443,115 @@ export const RULES: Rule[] = [
     when: (p) => (isBuild(p) && (extra(p, "境界未確定・越境あり") || p.roadType === "道路に該当しない・不明（通路・農道・水路等）" || (p.frontage !== null && p.frontage < 2)) ? "likely" : null),
   },
 ];
+
+// Where each rule bites and whom to ask. Agency names are generic (the actual
+// section name differs by municipality); the agent names the real counter.
+const KENCHIKU = "建築指導課（特定行政庁）・確認検査機関";
+const TOSHI = "都市計画課・開発指導課";
+const NOGYO = "農業委員会";
+const KASEN = "河川管理者（国・県の河川／土木事務所、市町村の河川・土木課）";
+const KAIRYO = "土地改良区";
+const SUIDO = "上下水道課";
+const SHOBO = "消防本部（予防課）";
+const BUNKAZAI = "教育委員会（文化財担当）";
+const DORO = "道路管理者・警察署";
+const KEN_SABO = "都道府県（砂防・治山・林務の担当課）";
+const KANKYO = "環境部局（騒音・振動・石綿・建設リサイクル）";
+const KEIKAN = "景観・まちづくり担当課";
+const FUKUSHI = "保健所・福祉部局・観光部局";
+const SHANAI = "社内（契約・書面・保険）";
+
+const META: Record<string, RuleMeta> = {
+  "zoning-unknown": { stage: "計画段階", agency: TOSHI },
+  "road-unknown": { stage: "計画段階", agency: KENCHIKU },
+  "hazard-unknown": { stage: "計画段階", agency: TOSHI },
+  "kakunin-shinsei": { stage: "申請・届出", agency: KENCHIKU, routine: true },
+  "shinsa-shoryaku": { stage: "申請・届出", agency: KENCHIKU, routine: true },
+  "kozo-keisan": { stage: "設計", agency: KENCHIKU, routine: true },
+  shoene: { stage: "設計", agency: KENCHIKU, routine: true },
+  "kanryo-kensa": { stage: "申請・届出", agency: KENCHIKU, routine: true },
+  "koji-todoke": { stage: "申請・届出", agency: KENCHIKU, routine: true },
+  "shobo-doi": { stage: "申請・届出", agency: SHOBO, routine: true },
+  "yoto-henko": { stage: "申請・届出", agency: KENCHIKU },
+  setsudo: { stage: "計画段階", agency: KENCHIKU },
+  setback: { stage: "計画段階", agency: KENCHIKU },
+  shido: { stage: "計画段階", agency: KENCHIKU },
+  "suiro-setsudo": { stage: "計画段階", agency: KENCHIKU },
+  "kenpei-yoseki": { stage: "設計", agency: KENCHIKU, routine: true },
+  "low-rise-form": { stage: "設計", agency: KENCHIKU },
+  shasen: { stage: "設計", agency: KENCHIKU, routine: true },
+  nichiei: { stage: "設計", agency: KENCHIKU },
+  "shikichi-eisei": { stage: "設計", agency: KENCHIKU },
+  "saitei-shikichi": { stage: "計画段階", agency: TOSHI },
+  lifeline: { stage: "計画段階", agency: SUIDO, routine: true },
+  horyusaki: { stage: "計画段階", agency: SUIDO },
+  "yoto-seigen": { stage: "計画段階", agency: KENCHIKU },
+  tokushu: { stage: "設計", agency: KENCHIKU },
+  kaihekiheki: { stage: "設計", agency: KENCHIKU },
+  "barrier-free": { stage: "設計", agency: KENCHIKU },
+  chusha: { stage: "設計", agency: TOSHI },
+  minpaku: { stage: "計画段階", agency: FUKUSHI },
+  daiten: { stage: "計画段階", agency: "都道府県（商工担当）" },
+  "kojo-richi": { stage: "計画段階", agency: "市町村（工場立地担当）" },
+  fukushi: { stage: "計画段階", agency: FUKUSHI },
+  "boka-chiiki": { stage: "設計", agency: KENCHIKU },
+  ho22: { stage: "設計", agency: KENCHIKU },
+  jukeiki: { stage: "設計", agency: SHOBO, routine: true },
+  "shobo-setsubi": { stage: "設計", agency: SHOBO },
+  "saiko-kanki": { stage: "設計", agency: KENCHIKU, routine: true },
+  kaidan: { stage: "設計", agency: KENCHIKU, routine: true },
+  elevator: { stage: "設計", agency: KENCHIKU },
+  "kizon-futekikaku": { stage: "設計", agency: KENCHIKU },
+  taishin: { stage: "設計", agency: KENCHIKU },
+  "chosei-kuiki": { stage: "計画段階", agency: TOSHI },
+  "kaihatsu-kyoka": { stage: "計画段階", agency: TOSHI },
+  "chiku-keikaku": { stage: "申請・届出", agency: TOSHI },
+  keikan: { stage: "申請・届出", agency: KEIKAN },
+  maizo: { stage: "計画段階", agency: BUNKAZAI },
+  "kukaku-seiri": { stage: "計画段階", agency: "区画整理事務所・都市計画課" },
+  "seisan-ryokuchi": { stage: "計画段階", agency: TOSHI },
+  "toshi-keikaku-doro": { stage: "計画段階", agency: TOSHI },
+  "saigai-kiken": { stage: "計画段階", agency: KENCHIKU },
+  "omori-zosei": { stage: "設計", agency: TOSHI },
+  ritteki: { stage: "申請・届出", agency: TOSHI },
+  "kodo-chiku": { stage: "設計", agency: TOSHI },
+  missyu: { stage: "申請・届出", agency: TOSHI },
+  "kokudo-riyo": { stage: "計画段階", agency: "市町村（国土利用計画法担当）" },
+  kouyuchi: { stage: "計画段階", agency: TOSHI },
+  "nochi-tenyo": { stage: "計画段階", agency: NOGYO },
+  noshin: { stage: "計画段階", agency: "市町村の農政課（農振担当）" },
+  "nochi-genkyo": { stage: "計画段階", agency: NOGYO },
+  tochikairyo: { stage: "計画段階", agency: KAIRYO },
+  "rinsetsu-nochi": { stage: "計画段階", agency: NOGYO },
+  shinrin: { stage: "計画段階", agency: KEN_SABO },
+  morido: { stage: "計画段階", agency: TOSHI },
+  "dosha-red": { stage: "計画段階", agency: KEN_SABO },
+  "dosha-yellow": { stage: "設計", agency: KEN_SABO },
+  kyukeisha: { stage: "計画段階", agency: KEN_SABO },
+  jisuberi: { stage: "計画段階", agency: KEN_SABO },
+  shinsui: { stage: "設計", agency: "防災・河川担当課" },
+  kasen: { stage: "計画段階", agency: KASEN },
+  "shizen-koen": { stage: "計画段階", agency: "環境省自然保護官事務所・都道府県（自然公園担当）" },
+  kenchikushi: { stage: "申請・届出", agency: SHANAI, routine: true },
+  "juyo-jiko": { stage: "申請・届出", agency: SHANAI, routine: true },
+  kensetsugyo: { stage: "申請・届出", agency: SHANAI, routine: true },
+  kashitanpo: { stage: "申請・届出", agency: SHANAI, routine: true },
+  "takken-juyo": { stage: "計画段階", agency: SHANAI },
+  recycle: { stage: "工事・引渡し", agency: KANKYO, routine: true },
+  asbestos: { stage: "工事・引渡し", agency: KANKYO },
+  "soon-shindo": { stage: "工事・引渡し", agency: KANKYO, routine: true },
+  "doro-shiyo": { stage: "工事・引渡し", agency: DORO, routine: true },
+  anzen: { stage: "工事・引渡し", agency: "労働基準監督署", routine: true },
+  kasetsu: { stage: "工事・引渡し", agency: KENCHIKU, routine: true },
+  kokuho: { stage: "設計", agency: "空港事務所・総務省総合通信局" },
+  koukoku: { stage: "申請・届出", agency: KEIKAN },
+  "minpo-kyokai": { stage: "設計", agency: "近隣（民事）", routine: true },
+  "rinchi-shiyo": { stage: "工事・引渡し", agency: "近隣（民事）" },
+};
+
+export const MISSING_META = RULE_DEFS.filter((r) => !META[r.id]).map((r) => r.id);
+
+export const RULES: Rule[] = RULE_DEFS.map((r) => ({ ...r, ...(META[r.id] ?? { stage: "設計", agency: KENCHIKU }) }));
 
 export const RULE_BY_ID = new Map(RULES.map((r) => [r.id, r]));
 
