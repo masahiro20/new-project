@@ -262,6 +262,7 @@ test("report schema: tool schema requires every key and markdown export renders 
     consultations: [{ agency: "農業委員会", purpose: "転用可否", items: ["農地区分"], bring: "公図", timing: "契約前", evidence: [] }],
     procedures: [{ step: "農地法5条許可", timing: "毎月締切", duration: "窓口で確認", agency: "農業委員会", evidence: [] }],
     checklist: CHECKLIST_ITEMS.map((item) => ({ item, status: "要確認", note: "" })),
+    documents: [{ name: "登記簿.pdf", kind: "登記事項証明書", facts: ["地目 畑"], concerns: ["現況も畑の可能性"] }],
     questions: [{ to: "施主", question: "登記の地目は確認済みですか？" }],
     actions: [{ role: "営業", items: ["公図取得"] }],
     assumptions: [],
@@ -269,6 +270,7 @@ test("report schema: tool schema requires every key and markdown export renders 
   const md = reportToMarkdown(r);
   assert.match(md, /## 結論：許可・協議が前提/);
   assert.match(md, /## 役所への事前協議リスト/);
+  assert.match(md, /## 資料から読み取ったこと/);
   assert.match(md, /\[建築基準法第19条\]\(https:\/\/laws\.e-gov\.go\.jp/);
 });
 
@@ -307,4 +309,74 @@ test("land sheet: farmland on site is flagged red and area limits are computed f
   assert.equal(f.get("ratio")?.value, "50%／100%");
   assert.match(f.get("ratio")?.sub ?? "", /建築面積100㎡・延べ200㎡/);
   assert.equal(f.get("fire")?.tone, "warn");
+});
+
+// ---------------------------------------------------------------- MCP
+
+test("mcp: initialize negotiates the version and lists tools and prompts", async () => {
+  const { handleRpc, TOOLS } = await import("../lib/mcp");
+  const init = (await handleRpc({ jsonrpc: "2.0", id: 1, method: "initialize", params: { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "t", version: "1" } } })) as { result: { protocolVersion: string; instructions: string; capabilities: Record<string, unknown> } };
+  assert.equal(init.result.protocolVersion, "2025-06-18");
+  assert.ok(init.result.capabilities.tools);
+  assert.match(init.result.instructions, /document_reading_guide/);
+  const old = (await handleRpc({ jsonrpc: "2.0", id: 2, method: "initialize", params: { protocolVersion: "1999-01-01" } })) as { result: { protocolVersion: string } };
+  assert.equal(old.result.protocolVersion, "2025-11-25");
+  assert.equal(await handleRpc({ jsonrpc: "2.0", method: "notifications/initialized" }), null);
+  const list = (await handleRpc({ jsonrpc: "2.0", id: 3, method: "tools/list" })) as { result: { tools: { name: string }[] } };
+  assert.deepEqual(list.result.tools.map((t) => t.name), TOOLS.map((t) => t.name));
+  const prompt = (await handleRpc({ jsonrpc: "2.0", id: 4, method: "prompts/get", params: { name: "land_law_check", arguments: { customer: "伊藤様" } } })) as { result: { messages: { content: { text: string } }[] } };
+  assert.match(prompt.result.messages[0].content.text, /伊藤様/);
+  const bad = (await handleRpc({ jsonrpc: "2.0", id: 5, method: "nope" })) as { error: { code: number } };
+  assert.equal(bad.error.code, -32601);
+});
+
+test("mcp: reading guide and a land check from document facts (no address, no network)", async () => {
+  const { callTool } = await import("../lib/mcp");
+  const guide = await callTool("document_reading_guide", { kind: "公図" });
+  assert.equal(guide.isError, false);
+  assert.match(guide.text, /水路（青線）/);
+  const check = await callTool("land_law_check", {
+    plan: "木造2階建ての自宅（延べ110㎡）",
+    document_facts: "登記簿：地目 畑、地積 412㎡。公図：道路との間に水路。",
+    registered_land_category: "田・畑（農地）",
+    site_area: 412,
+    frontage: 1.8,
+    road_width: 3.5,
+  });
+  assert.equal(check.isError, false);
+  assert.match(check.text, /農地転用/);
+  assert.match(check.text, /接道義務/);
+  assert.match(check.text, /laws\.e-gov\.go\.jp/);
+  assert.match(check.text, /\/consult\?/);
+  const badEnum = await callTool("land_law_check", { plan: "木造2階建ての自宅", structure: "わら" });
+  assert.equal(badEnum.isError, true);
+});
+
+test("consult page link round-trips the plan", async () => {
+  const { appLink } = await import("../lib/mcp");
+  const { planFromQuery } = await import("../lib/plan");
+  const p = plan({ address: "静岡県浜松市中央区元城町103-2", description: "木造2階建ての自宅", siteArea: 200, roadWidth: 4, landInfo: "登記簿：地目 宅地", extras: ["浄化槽（下水道なし）"] });
+  const back = planFromQuery(new URL(appLink(p)).searchParams)!;
+  assert.equal(back.address, p.address);
+  assert.equal(back.siteArea, 200);
+  assert.equal(back.roadWidth, 4);
+  assert.equal(back.landInfo, "登記簿：地目 宅地");
+  assert.deepEqual(back.extras, ["浄化槽（下水道なし）"]);
+  assert.equal(planFromQuery(new URLSearchParams("")), null);
+});
+
+test("use restriction only flags non-dwelling uses (or 工業専用地域); 水路 in document notes raises the waterway access rule", () => {
+  assert.equal(ids(plan({ zoning: "第一種低層住居専用地域", buildingUse: "専用住宅" })).get("yoto-seigen"), undefined);
+  assert.equal(ids(plan({ zoning: "工業専用地域", buildingUse: "専用住宅" })).get("yoto-seigen"), "required");
+  assert.equal(ids(plan({ zoning: "第一種低層住居専用地域", buildingUse: "店舗・飲食店" })).get("yoto-seigen"), "required");
+  assert.equal(ids(plan({ landInfo: "公図：道路との間に水路（青線）" })).get("suiro-setsudo"), "likely");
+});
+
+test("coerceReport fills missing sections and rejects junk", async () => {
+  const { coerceReport } = await import("../lib/report");
+  const r = coerceReport({ summary: { verdict: "条件付きで建築可能", headline: "x", topRisks: [], schedule: "" } });
+  assert.ok(r);
+  assert.deepEqual(r!.documents, []);
+  assert.equal(coerceReport({ summary: { verdict: "OK" } }), null);
+  assert.equal(coerceReport("x"), null);
 });

@@ -488,7 +488,14 @@ const RULE_DEFS: Omit<Rule, keyof RuleMeta>[] = [
       { law: "kenkiho", article: "48", expectCaption: "（用途地域等）" },
       { law: "kenkirei", article: "130_3", expectCaption: "（第一種低層住居専用地域内に建築することができる兼用住宅）" },
     ],
-    when: (p) => (isBuild(p) || p.workType === "用途変更" ? (p.zoning === "不明" ? "check" : "required") : null),
+    when: (p) => {
+      if (!(isBuild(p) || p.workType === "用途変更")) return null;
+      if (p.zoning === "不明") return "check";
+      // 専用住宅・長屋・共同住宅は工業専用地域以外ではどの用途地域でも建てられる（別表第二）。それ以外の用途だけ確認対象にする。
+      const dwelling = ["専用住宅", "長屋", "共同住宅・寄宿舎"].includes(p.buildingUse);
+      if (dwelling && p.zoning !== "工業専用地域") return null;
+      return "required";
+    },
   },
   {
     id: "tokushu",
@@ -1188,7 +1195,12 @@ const RULE_DEFS: Omit<Rule, keyof RuleMeta>[] = [
       { law: "kenkiho", article: "43", expectCaption: "（敷地等と道路との関係）" },
       { law: "kasenho", article: "24", expectCaption: "（土地の占用の許可）" },
     ],
-    when: (p) => (isBuild(p) && waterWithin(p, 20) ? "likely" : isBuild(p) && waterWithin(p, 60) && p.roadType === "不明" ? "check" : null),
+    when: (p) =>
+      isBuild(p) && (waterWithin(p, 20) || /水路|青線|用水|暗渠/.test(p.landInfo))
+        ? "likely"
+        : isBuild(p) && waterWithin(p, 60) && p.roadType === "不明"
+          ? "check"
+          : null,
   },
   {
     id: "horyusaki",

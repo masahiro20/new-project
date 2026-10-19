@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import MarkdownView from "@/app/MarkdownView";
 import ReportView from "./ReportView";
+import Attachments, { type Attachment } from "./Attachments";
 import LandSheet from "./LandSheet";
 import { landFacts } from "@/lib/landsummary";
 import { reportToMarkdown, type PartialReport } from "@/lib/report";
@@ -21,6 +22,7 @@ import {
   WORK_TYPES,
   YES_NO_UNKNOWN,
   ZONINGS,
+  planFromQuery,
   type PlanInput,
 } from "@/lib/plan";
 import { SEVERITY_SHORT, citeLabel, citeUrl, groupByAgency, groupByStage, runRules, splitFindings, type Finding } from "@/lib/rules";
@@ -103,6 +105,7 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
   const [busy, setBusy] = useState(false);
   const [text, setText] = useState("");
   const [report, setReport] = useState<PartialReport | null>(null);
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [reportFinal, setReportFinal] = useState(false);
   const [log, setLog] = useState<string[]>([]);
   const [sources, setSources] = useState<Source[]>([]);
@@ -112,8 +115,20 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
   const abortRef = useRef<AbortController | null>(null);
   const lookedUp = useRef<string>("");
 
+  const pendingLookup = useRef(false);
+  const [fromClaude, setFromClaude] = useState(false);
+
   useEffect(() => {
-    setPlan(load(STORAGE_KEY, EMPTY_PLAN));
+    const fromUrl = planFromQuery(new URLSearchParams(window.location.search));
+    if (fromUrl) {
+      setPlan(fromUrl);
+      setFromClaude(true);
+      if (fromUrl.landInfo || fromUrl.extras.length) setShowDetails(true);
+      pendingLookup.current = Boolean(fromUrl.address);
+      window.history.replaceState(null, "", "/consult");
+    } else {
+      setPlan(load(STORAGE_KEY, EMPTY_PLAN));
+    }
     try {
       setAccessKey(localStorage.getItem(ACCESS_KEY) ?? "");
     } catch {
@@ -166,6 +181,14 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
     }
   }
 
+  useEffect(() => {
+    if (pendingLookup.current && plan.address.trim().length >= 3) {
+      pendingLookup.current = false;
+      lookup(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [plan.address]);
+
   // The plan the rules and the agent actually see: user choices win, lookup fills the blanks.
   const effective = useMemo(() => mergeSiteIntoPlan(plan, site), [plan, site]);
   const findings = useMemo(() => (plan.description.trim().length >= 5 ? runRules(effective) : []), [plan.description, effective]);
@@ -193,7 +216,7 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
     const controller = new AbortController();
     abortRef.current = controller;
     try {
-      const res = await fetch("/api/consult", { method: "POST", headers: headers(), body: JSON.stringify(plan), signal: controller.signal });
+      const res = await fetch("/api/consult", { method: "POST", headers: headers(), body: JSON.stringify({ ...plan, documents: attachments.map(({ name, mediaType, data }) => ({ name, mediaType, data })) }), signal: controller.signal });
       if (!res.ok || !res.body) {
         const data = await res.json().catch(() => ({}));
         setError(data.error ?? `エラーが発生しました（${res.status}）。`);
@@ -264,6 +287,11 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
     <div className={`layout ${report ? "has-report" : ""}`}>
       <div>
         <form onSubmit={(e) => e.preventDefault()} className="no-print">
+          {fromClaude && (
+            <p className="ok" style={{ marginTop: 0 }}>
+              Claude から開きました。住所・計画・資料から読み取った内容を入れてあります（資料のメモは「詳しい条件」の一番下）。内容を確かめて「法令チェックを実行」を押してください。
+            </p>
+          )}
           <fieldset>
             <legend>1. 住所と計画</legend>
             {accessRequired && (
@@ -305,6 +333,7 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
               </label>
               <textarea id="description" maxLength={4000} value={plan.description} onChange={(e) => set("description", e.target.value)} style={{ minHeight: 80 }} />
             </div>
+            <Attachments files={attachments} onChange={setAttachments} />
           </fieldset>
 
           {(site || siteBusy || siteError) && (
@@ -417,6 +446,7 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
                 lookedUp.current = "";
                 setText("");
                 setReport(null);
+                setAttachments([]);
                 setSources([]);
                 setLog([]);
               }}

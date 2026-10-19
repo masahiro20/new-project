@@ -45,6 +45,25 @@ API: `GET /api/site?address=`（環境の自動取得）、`POST /api/consult`�
 
 2025年4月施行の建築基準法・建築物省エネ法改正（新2号・新3号建築物、省エネ基準適合義務化、壁量計算の見直し）を前提にしています。
 
+## Claude から使う（MCP）
+
+`/api/mcp` は MCP サーバー（Streamable HTTP）です。claude.ai・Claude デスクトップでは「コネクタ」→「カスタムコネクタを追加」で `https://<ホスト>/api/mcp?key=<ACCESS_PASSWORD>` を登録します。Claude Code では次のとおりです。
+
+```bash
+claude mcp add --transport http kenchiku-law https://<ホスト>/api/mcp --header "Authorization: Bearer <ACCESS_PASSWORD>"
+```
+
+| ツール | 役割 |
+|---|---|
+| `land_law_check` | 住所・計画・資料から読み取った事実（地目・地積・幅員・接道・水路など）→ 土地のまとめ、この敷地ならではの論点（条文リンク）、先に聞く窓口、見落としチェック項目、画面で開くリンク |
+| `land_summary` | 住所だけで土地のまとめ |
+| `document_reading_guide` | 登記簿・公図・地積測量図・現況測量図・現地写真・重要事項説明書から何を読むか |
+| `get_law_article` / `search_law_text` | e-Gov の現行条文・全文検索 |
+
+プロンプト `land_law_check`（お客様名・住所・計画）も用意しています。資料を読むのは Claude（Google ドライブのコネクタや添付）、国のデータ取得と条文で裏付けたチェックはこのサーバーが受け持つ分担です。使い方の画面は `/claude`。
+
+画面（`/consult`）でも、登記簿・公図・測量図・重要事項説明書の PDF と現地写真を添付できます（8件・合計約3MBまで。写真はブラウザで縮小）。回答に「資料の読み取り」タブが加わります。
+
 ## ローカルで動かす
 
 ```bash

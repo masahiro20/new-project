@@ -50,6 +50,7 @@ export const reportSchema = z.object({
   ),
   procedures: z.array(z.object({ step: z.string(), timing: z.string(), duration: z.string(), agency: z.string(), evidence: z.array(evidence) })),
   checklist: z.array(z.object({ item: z.string(), status: z.enum(CHECK_STATUS), note: z.string() })),
+  documents: z.array(z.object({ name: z.string(), kind: z.string(), facts: z.array(z.string()), concerns: z.array(z.string()) })),
   questions: z.array(z.object({ to: z.enum(ASK_TO), question: z.string() })),
   actions: z.array(z.object({ role: z.enum(ROLES), items: z.array(z.string()) })),
   assumptions: z.array(z.string()),
@@ -64,6 +65,7 @@ export type PartialReport = {
   consultations?: Partial<Report["consultations"][number]>[];
   procedures?: Partial<Report["procedures"][number]>[];
   checklist?: Partial<Report["checklist"][number]>[];
+  documents?: Partial<Report["documents"][number]>[];
   questions?: Partial<Report["questions"][number]>[];
   actions?: Partial<Report["actions"][number]>[];
   assumptions?: string[];
@@ -101,6 +103,16 @@ export const REPORT_INPUT_SCHEMA = obj({
       item: str("チェック項目（指定の文言のまま）"),
       status: { type: "string", enum: [...CHECK_STATUS] },
       note: str("判定の理由と、要確認ならどこで何を見るか。80字以内"),
+    }),
+  },
+  documents: {
+    type: "array",
+    description: "添付資料ごとに、読み取った事実と、自動取得データ・入力・ほかの資料との食い違いや気になる点。添付がなければ空配列",
+    items: obj({
+      name: str("資料名（ファイル名）"),
+      kind: str("資料の種類（登記事項証明書／公図／地積測量図／現況測量図／現地写真／重要事項説明書・物件資料／その他）"),
+      facts: strArr("読み取った事実（数値・地目・地番・幅員・高低差など）。最大8項目、各60字以内。読めない箇所は『判読できず』"),
+      concerns: strArr("法令上気になる点・食い違い（例：登記は宅地だが写真は耕作地）。最大5項目、各80字以内。推測は推測と明記"),
     }),
   },
   design: {
@@ -162,6 +174,14 @@ export function reportToMarkdown(r: PartialReport): string {
     if (r.summary.topRisks?.length) out.push("", ...r.summary.topRisks.map((t) => `- ${t}`));
     if (r.summary.schedule) out.push("", `**工程への影響**：${r.summary.schedule}`);
   }
+  if (r.documents?.length) {
+    out.push("", "## 資料から読み取ったこと");
+    for (const d of r.documents) {
+      out.push(`- **${d.name ?? ""}**（${d.kind ?? ""}）`);
+      for (const f of d.facts ?? []) out.push(`  - ${f}`);
+      for (const c of d.concerns ?? []) out.push(`  - ⚠ ${c}`);
+    }
+  }
   if (r.design?.length) {
     out.push("", "## 設計で注意すること");
     for (const d of r.design) out.push(`- 【${d.priority ?? ""}】**${d.title ?? ""}** — ${d.detail ?? ""}${d.evidence?.length ? `（根拠：${evidenceMd(d.evidence)}）` : ""}`);
@@ -191,4 +211,13 @@ export function reportToMarkdown(r: PartialReport): string {
     for (const a of r.assumptions) out.push(`- ${a}`);
   }
   return out.join("\n");
+}
+
+/** Fills absent sections with empty arrays (the tool is not strict) and validates. */
+export function coerceReport(input: unknown): Report | null {
+  if (!input || typeof input !== "object") return null;
+  const x = { ...(input as Record<string, unknown>) };
+  for (const k of ["checklist", "documents", "design", "consultations", "procedures", "questions", "actions", "assumptions"]) if (!Array.isArray(x[k])) x[k] = [];
+  const parsed = reportSchema.safeParse(x);
+  return parsed.success ? parsed.data : null;
 }

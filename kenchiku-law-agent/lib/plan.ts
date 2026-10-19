@@ -228,3 +228,23 @@ export function signalText(sg: Signals): { farmland: string; water: string } {
       : `約${sg.waterMeters}m先に${sg.waterKind || "川・水路"}${sg.floodRivers.length ? `（浸水想定の対象河川：${sg.floodRivers.join("、")}）` : ""}`;
   return { farmland, water };
 }
+
+/** Builds a plan from /consult?address=…&description=… (links handed out by the MCP tools). */
+export function planFromQuery(q: URLSearchParams): PlanInput | null {
+  if (!q.get("address") && !q.get("description")) return null;
+  const raw: Record<string, unknown> = {};
+  for (const k of ["description", "landInfo", "address", "workType", "buildingUse", "structure", "roadType", "landCategory", "farmlandBlue", "areaDivision", "zoning", "fireZone"]) {
+    const v = q.get(k);
+    if (v) raw[k] = v;
+  }
+  for (const k of ["floors", "totalFloorArea", "siteArea", "roadWidth", "frontage", "buildingArea", "height"]) {
+    const v = q.get(k);
+    if (v && !Number.isNaN(Number(v))) raw[k] = Number(v);
+  }
+  const extras = q.get("extras");
+  if (extras) raw.extras = extras.split(",").filter((e) => (EXTRAS as readonly string[]).includes(e));
+  if (!raw.description || String(raw.description).length < 5) raw.description = `${String(raw.description ?? "")}（計画内容を入力してください）`;
+  const parsed = planSchema.safeParse(raw);
+  if (parsed.success) return parsed.data;
+  return { ...EMPTY_PLAN, address: String(raw.address ?? ""), description: String(raw.description ?? ""), landInfo: String(raw.landInfo ?? "") };
+}

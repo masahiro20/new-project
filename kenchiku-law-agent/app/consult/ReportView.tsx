@@ -53,7 +53,7 @@ function Fold({ head, children, defaultOpen = false, className = "" }: { head: R
   );
 }
 
-type TabKey = "check" | "design" | "consult" | "steps" | "questions" | "actions";
+type TabKey = "check" | "docs" | "design" | "consult" | "steps" | "questions" | "actions";
 
 export default function ReportView({ report, streaming, sourceCounts }: { report: PartialReport; streaming: boolean; sourceCounts?: Record<string, number> }) {
   const [tab, setTab] = useState<TabKey | null>(null);
@@ -67,6 +67,7 @@ export default function ReportView({ report, streaming, sourceCounts }: { report
   const noneChecks = checklist.filter((c) => c.status === "該当なし");
   const counts = {
     check: checklist.length,
+    docs: report.documents?.length ?? 0,
     design: report.design?.length ?? 0,
     consult: report.consultations?.length ?? 0,
     steps: report.procedures?.length ?? 0,
@@ -75,6 +76,7 @@ export default function ReportView({ report, streaming, sourceCounts }: { report
   };
   const tabs: { key: TabKey; label: string; n: number }[] = [
     { key: "check", label: "見落としチェック", n: counts.check },
+    ...(counts.docs > 0 ? [{ key: "docs" as TabKey, label: "資料の読み取り", n: counts.docs }] : []),
     { key: "design", label: "設計の注意", n: counts.design },
     { key: "consult", label: "役所への事前協議", n: counts.consult },
     { key: "steps", label: "手続きの流れ", n: counts.steps },
@@ -165,6 +167,33 @@ export default function ReportView({ report, streaming, sourceCounts }: { report
           </p>
         )}
       </section>
+
+      {/* 資料の読み取り */}
+      {counts.docs > 0 && (
+        <section className={panel("docs")}>
+          <h3 className="print-only">資料から読み取ったこと</h3>
+          <div className="docgrid">
+            {report.documents?.map((d, i) => (
+              <article key={i} className="doccard">
+                <header>
+                  <span className="pill tone-info">{d.kind ?? "資料"}</span>
+                  <strong title={d.name}>{d.name}</strong>
+                </header>
+                {d.facts && d.facts.length > 0 && (
+                  <ul className="docfacts">
+                    {d.facts.map((f, j) => <li key={j}>{f}</li>)}
+                  </ul>
+                )}
+                {d.concerns && d.concerns.length > 0 && (
+                  <ul className="docconcerns">
+                    {d.concerns.map((c, j) => <li key={j}>{c}</li>)}
+                  </ul>
+                )}
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* 設計の注意 */}
       <section className={panel("design")}>

@@ -12,7 +12,8 @@ import { SYSTEM_PROMPT, USER_INSTRUCTION } from "./prompts";
 import { findingsToMarkdown, runRules } from "./rules";
 import { sourceTier } from "./tier";
 import { landFacts } from "./landsummary";
-import { REPORT_INPUT_SCHEMA, reportSchema, type PartialReport, type Report } from "./report";
+import type { Upload } from "./documents";
+import { REPORT_INPUT_SCHEMA, coerceReport, type PartialReport, type Report } from "./report";
 import { FUDE_SOURCE, GSI_VT_SOURCE, lookupSite, mergeSiteIntoPlan, siteToText, type SiteContext } from "./site";
 
 const MODEL = process.env.LAW_AGENT_MODEL ?? "claude-opus-5-5";
@@ -88,7 +89,8 @@ const TOOLS: Anthropic.Beta.BetaToolUnion[] = [
     description:
       "調査が終わったら最後に1回だけ呼び、回答の全文をこの形式で提出します。本文を通常のテキストで書かず、必ずこのツールで提出してください。各項目の根拠には、取得した条文の e-Gov URL・公的資料の URL を入れます。",
     input_schema: REPORT_INPUT_SCHEMA as Anthropic.Beta.BetaTool.InputSchema,
-    strict: true,
+    // Not strict: the full report schema compiles to a grammar larger than the API allows.
+    // The input is validated with reportSchema (coerceReport) when it arrives.
   },
   { type: "web_search_20260209", name: "web_search", max_uses: 6 },
   { type: "web_fetch_20260209", name: "web_fetch", max_uses: 4, max_content_tokens: 30000 },
@@ -96,14 +98,14 @@ const TOOLS: Anthropic.Beta.BetaToolUnion[] = [
 
 export { sourceTier };
 
-function resolveLaw(input: string): string | null {
+export function resolveLaw(input: string): string | null {
   const key = lawByTitle(input);
   if (key) return LAWS[key as LawKey].id;
   if (/^\d{3}[A-Z]{2}\d{10}$/.test(input.trim())) return input.trim();
   return null;
 }
 
-function articleToText(a: Article): string {
+export function articleToText(a: Article): string {
   return [`${a.lawTitle}（${a.lawNum}）${a.label}${a.caption}`, `現行版：${a.revisionId}（施行日 ${a.enforcementDate ?? "不明"}）`, `URL：${a.url}`, "", a.text].join("\n");
 }
 
@@ -198,8 +200,24 @@ export function buildUserMessage(plan: PlanInput, site: SiteContext | null): str
   ].join("\n");
 }
 
+/** First user turn: the attached documents (PDF / images) followed by the text brief; cached as one prefix. */
+function userContent(plan: PlanInput, site: SiteContext | null, documents: Upload[]): Anthropic.Beta.BetaContentBlockParam[] {
+  const blocks: Anthropic.Beta.BetaContentBlockParam[] = [];
+  for (const d of documents) {
+    if (d.mediaType === "application/pdf") {
+      blocks.push({ type: "document", source: { type: "base64", media_type: "application/pdf", data: d.data }, title: d.name });
+    } else {
+      blocks.push({ type: "text", text: `添付資料（画像）：${d.name}` });
+      blocks.push({ type: "image", source: { type: "base64", media_type: d.mediaType, data: d.data } });
+    }
+  }
+  const list = documents.length ? `\n\n# 添付資料\n${documents.map((d, i) => `${i + 1}. ${d.name}`).join("\n")}\n上の資料を読み、システムプロンプトの「添付資料の読み方」に従って事実を拾い、report の documents に資料ごとにまとめてください。` : "\n\n# 添付資料\nなし（report の documents は空配列）";
+  blocks.push({ type: "text", text: buildUserMessage(plan, site) + list, cache_control: { type: "ephemeral" } });
+  return blocks;
+}
+
 /** Runs the agent and streams newline-delimited JSON events. */
-export function consultStream(plan: PlanInput): ReadableStream<Uint8Array> {
+export function consultStream(plan: PlanInput, documents: Upload[] = []): ReadableStream<Uint8Array> {
   const encoder = new TextEncoder();
   return new ReadableStream({
     async start(controller) {
@@ -228,7 +246,8 @@ export function consultStream(plan: PlanInput): ReadableStream<Uint8Array> {
           emit({ type: "status", text: `土地情報の自動取得に失敗しました（${e instanceof Error ? e.message : "不明なエラー"}）。手入力の値で続行します。` });
         }
       }
-      const messages: Anthropic.Beta.BetaMessageParam[] = [{ role: "user", content: buildUserMessage(plan, site) }];
+      const messages: Anthropic.Beta.BetaMessageParam[] = [{ role: "user", content: userContent(plan, site, documents) }];
+      if (documents.length) emit({ type: "status", text: `添付資料 ${documents.length} 件（${documents.map((d) => d.name).join("、")}）を読み込みます…` });
       emit({ type: "status", text: "事前チェックを作成しました。条文と公的資料を確認しています…" });
 
       const started = Date.now();
@@ -238,12 +257,14 @@ export function consultStream(plan: PlanInput): ReadableStream<Uint8Array> {
         for (let i = 0; i < MAX_ITERATIONS; i++) {
           const elapsed = Date.now() - started;
           const last = messages[messages.length - 1];
-          if (!wrapSent && elapsed > WRAP_UP_MS && last.role === "user") {
+          // Reading attachments makes the final report longer, so start wrapping up earlier.
+          const wrapAt = WRAP_UP_MS - (documents.length ? 20_000 : 0);
+          if (!wrapSent && elapsed > wrapAt && last.role === "user") {
             messages.push({ role: "system", content: WRAP_UP_NOTE });
             wrapSent = true;
             emit({ type: "status", text: "調査を切り上げて、回答をまとめています…" });
           }
-          if (wrapSent && !hardSent && elapsed > HARD_STOP_MS && last.role === "user") {
+          if (wrapSent && !hardSent && elapsed > HARD_STOP_MS - (documents.length ? 20_000 : 0) && last.role === "user") {
             messages.push({ role: "system", content: `時間の上限です。ツールは submit_report 以外使わず、直ちに提出してください。${WRAP_UP_NOTE}` });
             hardSent = true;
           }
@@ -278,10 +299,10 @@ export function consultStream(plan: PlanInput): ReadableStream<Uint8Array> {
 
           const submitted = message.content.find((b): b is Anthropic.Beta.BetaToolUseBlock => b.type === "tool_use" && b.name === "submit_report");
           if (submitted) {
-            const parsed = reportSchema.safeParse(submitted.input);
-            if (parsed.success) emit({ type: "report", report: parsed.data });
+            const report = coerceReport(submitted.input);
+            if (report) emit({ type: "report", report });
             else {
-              console.error("report schema mismatch", parsed.error.issues.slice(0, 5));
+              console.error("report schema mismatch");
               emit({ type: "report_partial", report: submitted.input as PartialReport });
             }
             emit({ type: "done", stopReason: message.stop_reason });
