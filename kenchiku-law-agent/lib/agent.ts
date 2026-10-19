@@ -6,7 +6,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 import { fetchArticle, keywordSearch, searchLaws, type Article } from "./egov";
-import { LAWS, lawByTitle, normalizeArticle, type LawKey } from "./laws";
+import { LAWS, articleLabel, lawByTitle, normalizeArticle, type LawKey } from "./laws";
 import { planToText, type PlanInput } from "./plan";
 import { SYSTEM_PROMPT, USER_INSTRUCTION } from "./prompts";
 import { findingsToMarkdown, runRules } from "./rules";
@@ -105,7 +105,7 @@ async function runTool(name: string, input: unknown, emit: (e: AgentEvent) => vo
     if (!lawId) return { content: `法令「${parsed.data.law}」は未登録です。search_laws で法令IDを調べ、law に法令IDを渡してください。`, isError: true };
     const article = normalizeArticle(parsed.data.article);
     if (!article) return { content: `条番号「${parsed.data.article}」の形式が不正です。例：43、6_4`, isError: true };
-    emit({ type: "tool", name, summary: `e-Gov 条文取得：${parsed.data.law} 第${article.replace(/_/g, "条の")}条` });
+    emit({ type: "tool", name, summary: `e-Gov 条文取得：${parsed.data.law} ${articleLabel(article)}` });
     try {
       const a = await fetchArticle(lawId, article);
       if (!a) return { content: `${parsed.data.law} に第${article}条（${article}）は見つかりませんでした。条番号を確認してください。`, isError: true };
