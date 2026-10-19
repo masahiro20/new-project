@@ -111,6 +111,13 @@ export const LAYERS: LayerDef[] = [
   { id: "XKT020", label: "大規模盛土造成地", source: ksj("A54", "2023"), kind: "polygon", describe: (p) => `${s(p.embankment_classification)}（${s(p.city_name)} ${s(p.embankment_number)}）` },
   { id: "XKT021", label: "地すべり防止区域", source: ksj("A46", "2021"), kind: "polygon", describe: (p) => `${s(p.region_name)}（${s(p.address)}、告示 ${s(p.notice_date) || "不明"}、所管 ${s(p.charge_ministry_name)}）` },
   { id: "XKT022", label: "急傾斜地崩壊危険区域", source: ksj("A47", "2021"), kind: "polygon", describe: (p) => `${s(p.region_name)}（${s(p.address)}、公示 ${s(p.public_notice_date) || "不明"}）` },
+  {
+    id: "XKT025",
+    label: "液状化の発生傾向（地形区分）",
+    source: { label: "国土交通省 地形区分に基づく液状化の発生傾向図（約250mメッシュ・相対評価）", url: "https://www.mlit.go.jp/toshi/toshi_tobou_tk_000038.html", year: "" },
+    kind: "polygon",
+    describe: (p) => `${s(p.topographic_classification_name_ja)}：${s(p.note)}`,
+  },
   { id: "XKT019", label: "自然公園地域", source: { label: "国土数値情報 自然公園地域", url: "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-A10-v3_1.html", year: "" }, kind: "polygon", describe: (p) => Object.entries(p).filter(([, v]) => v !== null && v !== "").slice(0, 4).map(([k, v]) => `${k}=${s(v)}`).join("、") },
   { id: "XKT028", label: "津波浸水想定", source: { label: "国土数値情報 津波浸水想定", url: "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-A40-v1_2.html", year: "" }, kind: "polygon", describe: (p) => Object.entries(p).filter(([, v]) => v !== null && v !== "").slice(0, 4).map(([k, v]) => `${k}=${s(v)}`).join("、") },
   { id: "XKT027", label: "高潮浸水想定区域", source: { label: "国土数値情報 高潮浸水想定区域", url: "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-A49-v1_0.html", year: "" }, kind: "polygon", describe: (p) => Object.entries(p).filter(([, v]) => v !== null && v !== "").slice(0, 4).map(([k, v]) => `${k}=${s(v)}`).join("、") },

@@ -11,6 +11,7 @@ import { planToText, type PlanInput } from "./plan";
 import { SYSTEM_PROMPT, USER_INSTRUCTION } from "./prompts";
 import { findingsToMarkdown, runRules } from "./rules";
 import { sourceTier } from "./tier";
+import { landFacts } from "./landsummary";
 import { REPORT_INPUT_SCHEMA, reportSchema, type PartialReport, type Report } from "./report";
 import { FUDE_SOURCE, GSI_VT_SOURCE, lookupSite, mergeSiteIntoPlan, siteToText, type SiteContext } from "./site";
 
@@ -186,6 +187,9 @@ export function buildUserMessage(plan: PlanInput, site: SiteContext | null): str
     "",
     "# 住所から自動取得した土地の環境情報（【公的】国土地理院・国土交通省 不動産情報ライブラリ・農林水産省 筆ポリゴン）",
     siteToText(site),
+    "",
+    "# 土地のまとめ（画面に表示済み。データと条文の数値から自動算出）",
+    site ? landFacts(merged, site).map((f) => `- ${f.label}：${f.value}${f.sub ? `（${f.sub}）` : ""}［${f.source}］`).join("\n") : "（住所未入力）",
     "",
     "# 事前チェック（ルールベース・条文照合済み。上記の自動取得結果を反映）",
     findingsToMarkdown(findings),

@@ -88,17 +88,26 @@ export const REPORT_INPUT_SCHEMA = obj({
   summary: obj(
     {
       verdict: { type: "string", enum: [...VERDICTS], description: "この計画が建てられる見込みの一言判定" },
-      headline: str("結論を2文以内で。何がこの計画の成否・工程を決めるかを書く"),
+      headline: str("結論を1〜2文・120字以内で。何がこの計画の成否・工程を決めるかだけを書く（詳細は topRisks 以降に回す）"),
       topRisks: strArr("いちばん効く論点を最大3つ。各1文・80字以内"),
-      schedule: str("工程への影響の見込み（例：農地転用と開発許可で着工まで通常より3〜6か月長い）。不明なら何が決まれば分かるか"),
+      schedule: str("工程への影響の見込みを100字以内で（例：農地転用と開発許可で着工まで通常より3〜6か月長い）。不明なら何が決まれば分かるか"),
     },
     "冒頭に出す結論",
   ),
+  checklist: {
+    type: "array",
+    description: `見落としチェック表。次の項目をこの順にすべて評価する：${CHECKLIST_ITEMS.join("／")}`,
+    items: obj({
+      item: str("チェック項目（指定の文言のまま）"),
+      status: { type: "string", enum: [...CHECK_STATUS] },
+      note: str("判定の理由と、要確認ならどこで何を見るか。80字以内"),
+    }),
+  },
   design: {
     type: "array",
     description: "この家の設計で注意すること（配置・高さ・構造・防火仕様・床高さ・外構・設備ルートなど設計図に反映すべき事項）。優先度の高い順に最大6件。通常の新築で毎回やること（確認申請そのもの等）は書かない",
     items: obj({
-      title: str("設計上の注意点の見出し（例：北側斜線で2階北側の屋根勾配が制限される）"),
+      title: str("設計上の注意点の見出し。40字以内（例：北側斜線で2階北側の屋根勾配が制限される）"),
       detail: str("何をどう設計に反映するか。200字以内。数値は条文・公的資料で確認したものだけ"),
       priority: { type: "string", enum: [...PRIORITIES] },
       evidence: evidenceArr,
@@ -109,10 +118,10 @@ export const REPORT_INPUT_SCHEMA = obj({
     description: "設計・契約の前に役所・関係機関へ事前協議・確認すべきこと。窓口ごとに1件、協議の優先順に最大6件",
     items: obj({
       agency: str("窓口（例：浜松市 農業委員会、静岡県 浜松土木事務所 河川課）。自治体名が分かれば入れる"),
-      purpose: str("何を決めるための協議か（1文）"),
+      purpose: str("何を決めるための協議か（1文・60字以内）"),
       items: strArr("確認・協議する具体的な項目。最大6項目、各60字以内"),
       bring: str("持参する資料（公図・登記事項証明書・配置図案など）"),
-      timing: str("いつまでに（例：土地契約前、設計着手前、確認申請の1か月前）"),
+      timing: str("いつまでに。15字以内（例：土地契約前、設計着手前、確認申請の1か月前）"),
       evidence: evidenceArr,
     }),
   },
@@ -125,15 +134,6 @@ export const REPORT_INPUT_SCHEMA = obj({
       duration: str("標準的な期間。条文・公的資料で確認できない場合は「窓口で確認」"),
       agency: str("提出先"),
       evidence: evidenceArr,
-    }),
-  },
-  checklist: {
-    type: "array",
-    description: `見落としチェック表。次の項目をこの順にすべて評価する：${CHECKLIST_ITEMS.join("／")}`,
-    items: obj({
-      item: str("チェック項目（指定の文言のまま）"),
-      status: { type: "string", enum: [...CHECK_STATUS] },
-      note: str("判定の理由と、要確認ならどこで何を見るか。80字以内"),
     }),
   },
   questions: {

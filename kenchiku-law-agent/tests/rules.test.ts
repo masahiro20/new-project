@@ -283,3 +283,28 @@ test("municipal ordinance databases count as official sources", async () => {
   assert.equal(sourceTier("https://www1.g-reiki.net/hamamatsu/reiki/youkou/pdf/x.pdf"), "公的");
   assert.equal(sourceTier("https://example.com/"), "参考");
 });
+
+test("land sheet: road-width FAR limit (法52条2項) and height rules (法55・56条, 別表第三)", async () => {
+  const { roadFarLimit, heightRules, parsePercent } = await import("../lib/landsummary");
+  assert.equal(roadFarLimit("第一種低層住居専用地域", 4), 160);
+  assert.equal(roadFarLimit("近隣商業地域", 4), 240);
+  assert.equal(roadFarLimit("第一種住居地域", 12), null);
+  assert.equal(roadFarLimit("不明", 4), null);
+  assert.match(heightRules("第一種低層住居専用地域")!.value, /10m.*12m/);
+  assert.match(heightRules("第二種中高層住居専用地域")!.value, /北側斜線 10m＋1.25/);
+  assert.match(heightRules("商業地域")!.value, /道路斜線 1.5/);
+  assert.match(heightRules("第一種住居地域")!.sub, /隣地斜線 20m＋1.25/);
+  assert.equal(parsePercent("６０％"), 60);
+  assert.equal(parsePercent(undefined), null);
+});
+
+test("land sheet: farmland on site is flagged red and area limits are computed from inputs", async () => {
+  const { landFacts } = await import("../lib/landsummary");
+  const p = plan({ areaDivision: "市街化区域", zoning: "第一種低層住居専用地域", fireZone: "準防火地域", roadWidth: 4, frontage: 6, siteArea: 200, signals: { ...EMPTY_SIGNALS, farmland: "敷地が農地の可能性", farmlandType: "田", farmlandMeters: 0 } });
+  const site = { apiAvailable: true, layers: [], derived: { kenpei: "50%", yoseki: "100%", hazards: [], notes: [], signals: p.signals } } as unknown as SiteContext;
+  const f = new Map(landFacts(p, site).map((x) => [x.key, x]));
+  assert.equal(f.get("farm")?.tone, "danger");
+  assert.equal(f.get("ratio")?.value, "50%／100%");
+  assert.match(f.get("ratio")?.sub ?? "", /建築面積100㎡・延べ200㎡/);
+  assert.equal(f.get("fire")?.tone, "warn");
+});

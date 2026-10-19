@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import MarkdownView from "@/app/MarkdownView";
 import ReportView from "./ReportView";
+import LandSheet from "./LandSheet";
+import { landFacts } from "@/lib/landsummary";
 import { reportToMarkdown, type PartialReport } from "@/lib/report";
 import { STAGE_HINT } from "@/lib/knowledge";
 import type { AgentEvent } from "@/lib/agent";
@@ -19,7 +21,6 @@ import {
   WORK_TYPES,
   YES_NO_UNKNOWN,
   ZONINGS,
-  signalText,
   type PlanInput,
 } from "@/lib/plan";
 import { SEVERITY_SHORT, citeLabel, citeUrl, groupByAgency, groupByStage, runRules, splitFindings, type Finding } from "@/lib/rules";
@@ -90,15 +91,6 @@ function FindingItem({ f, showAgency = true }: { f: Finding; showAgency?: boolea
         <p className="roles">担当：{rule.roles.join("・")}</p>
       </div>
     </details>
-  );
-}
-
-function Alert({ tone, title, children }: { tone: "danger" | "warn" | "info"; title: string; children: React.ReactNode }) {
-  return (
-    <div className={`alert tone-${tone}`}>
-      <strong>{title}</strong>
-      <span>{children}</span>
-    </div>
   );
 }
 
@@ -265,11 +257,11 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
     await navigator.clipboard.writeText(`${body}\n\n---\n参照した根拠\n${src}`);
   }
 
-  const hitLayers = site?.layers.filter((l) => l.status === "hit") ?? [];
-  const noneLayers = site?.layers.filter((l) => l.status === "none") ?? [];
+  const facts = useMemo(() => (site ? landFacts(effective, site) : []), [effective, site]);
+  const sourceCounts = useMemo(() => sources.reduce<Record<string, number>>((acc, x) => ({ ...acc, [x.tier]: (acc[x.tier] ?? 0) + 1 }), {}), [sources]);
 
   return (
-    <div className="layout">
+    <div className={`layout ${report ? "has-report" : ""}`}>
       <div>
         <form onSubmit={(e) => e.preventDefault()} className="no-print">
           <fieldset>
@@ -316,111 +308,17 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
           </fieldset>
 
           {(site || siteBusy || siteError) && (
-            <div className={site && !siteError ? "card" : "notice"} style={{ marginBottom: 20 }}>
-              <h3 style={{ marginTop: 0 }}>土地の環境（自動取得）</h3>
-              {siteBusy && <p className="spinner">国土地理院で位置を特定し、国交省の都市計画・災害データを照合しています…</p>}
+            <div className={site && !siteError ? "card envcard" : "notice"} style={{ marginBottom: 20 }}>
+              {siteBusy && <p className="spinner">住所の位置を特定し、都市計画・災害・農地・川のデータを照合しています…</p>}
               {siteError && <p>{siteError}</p>}
               {site && !siteBusy && (
                 <>
-                  <p style={{ margin: "0 0 8px" }}>
-                    位置：{site.matched ?? "特定できず"}
-                    {site.lat !== null && <span className="hint">（北緯 {site.lat.toFixed(5)}、東経 {site.lon?.toFixed(5)}）</span>}
-                  </p>
                   {!site.apiAvailable && (
-                    <p className="notice" style={{ margin: "8px 0" }}>
+                    <p className="notice" style={{ margin: "0 0 12px" }}>
                       不動産情報ライブラリの API キーが未設定のため、用途地域などは取得できていません。下の「詳しい条件」で手入力してください。
                     </p>
                   )}
-                  {(() => {
-                    const sg = site.derived.signals;
-                    const st = signalText(sg);
-                    const red = hitLayers.filter((l) => ["XKT029", "XKT016", "XKT021", "XKT022"].includes(l.id));
-                    return (
-                      <div className="alerts">
-                        {sg.farmland === "敷地が農地の可能性" && (
-                          <Alert tone="danger" title="現況が農地の可能性">
-                            {st.farmland}。登記が宅地でも農地転用（農地法）の手続きが必要になることがあります。農業委員会で確認してください。
-                          </Alert>
-                        )}
-                        {sg.farmland === "周辺に農地" && (
-                          <Alert tone="warn" title="周りに田畑">
-                            {st.farmland}。前面の道が農道でないか、水路が敷地にかかっていないか確認してください。
-                          </Alert>
-                        )}
-                        {sg.waterMeters !== null && sg.waterMeters <= 60 && (
-                          <Alert tone={sg.waterMeters <= 20 ? "danger" : "warn"} title="川・水路が近い">
-                            {st.water}。河川区域・河川保全区域・水路の管理者と境界を確認してください。
-                          </Alert>
-                        )}
-                        {red.map((l) => (
-                          <Alert key={l.id} tone="danger" title={l.label}>
-                            {l.summary.join("／")}
-                          </Alert>
-                        ))}
-                        {site.derived.areaDivision === "市街化調整区域" && (
-                          <Alert tone="danger" title="市街化調整区域">
-                            原則として建築できない区域です。開発許可・建築許可の立地基準に当てはまるかを都市計画課（開発指導）で確認してください。
-                          </Alert>
-                        )}
-                      </div>
-                    );
-                  })()}
-                  {site.apiAvailable && (
-                    <table style={{ width: "100%", fontSize: ".92rem", borderCollapse: "collapse" }}>
-                      <tbody>
-                        <tr>
-                          <th style={{ textAlign: "left", width: "9em", padding: "4px 6px", borderBottom: "1px solid var(--line)" }}>区域区分</th>
-                          <td style={{ padding: "4px 6px", borderBottom: "1px solid var(--line)" }}>{site.derived.areaDivision ?? "データなし（要確認）"}</td>
-                        </tr>
-                        <tr>
-                          <th style={{ textAlign: "left", padding: "4px 6px", borderBottom: "1px solid var(--line)" }}>用途地域</th>
-                          <td style={{ padding: "4px 6px", borderBottom: "1px solid var(--line)" }}>
-                            {site.derived.zoning ?? "データなし（要確認）"}
-                            {(site.derived.kenpei || site.derived.yoseki) && <span className="hint">　建蔽率 {site.derived.kenpei ?? "—"}／容積率 {site.derived.yoseki ?? "—"}</span>}
-                          </td>
-                        </tr>
-                        <tr>
-                          <th style={{ textAlign: "left", padding: "4px 6px", borderBottom: "1px solid var(--line)" }}>防火指定</th>
-                          <td style={{ padding: "4px 6px", borderBottom: "1px solid var(--line)" }}>{site.derived.fireZone ?? "データなし（要確認）"}</td>
-                        </tr>
-                        <tr>
-                          <th style={{ textAlign: "left", padding: "4px 6px", borderBottom: "1px solid var(--line)" }}>農地</th>
-                          <td style={{ padding: "4px 6px", borderBottom: "1px solid var(--line)" }}>
-                            {signalText(site.derived.signals).farmland}
-                            <span className="hint">（農水省 筆ポリゴン）</span>
-                          </td>
-                        </tr>
-                        <tr>
-                          <th style={{ textAlign: "left", padding: "4px 6px", borderBottom: "1px solid var(--line)" }}>川・水路</th>
-                          <td style={{ padding: "4px 6px", borderBottom: "1px solid var(--line)" }}>
-                            {signalText(site.derived.signals).water}
-                            <span className="hint">（国土地理院 地図）</span>
-                          </td>
-                        </tr>
-                        <tr>
-                          <th style={{ textAlign: "left", padding: "4px 6px", verticalAlign: "top" }}>該当区域</th>
-                          <td style={{ padding: "4px 6px" }}>
-                            {hitLayers.length === 0 && "該当なし（下記レイヤで確認）"}
-                            {hitLayers.map((l) => (
-                              <div key={l.id}>
-                                <strong>{l.label}</strong>：{l.summary.join("／")}
-                              </div>
-                            ))}
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  )}
-                  {site.derived.notes.length > 0 && (
-                    <ul style={{ margin: "8px 0 0", paddingLeft: "1.2em", fontSize: ".9rem" }}>
-                      {site.derived.notes.map((n, i) => <li key={i}>{n}</li>)}
-                    </ul>
-                  )}
-                  {site.apiAvailable && noneLayers.length > 0 && (
-                    <p className="hint" style={{ marginTop: 8 }}>
-                      該当なしと判定：{noneLayers.map((l) => l.label).join("、")}（出典：国土交通省 不動産情報ライブラリ。公表済みデータに限る）
-                    </p>
-                  )}
+                  <LandSheet facts={facts} location={site.matched ? `${site.matched}（地図上の代表点で判定）` : "位置を特定できませんでした"} notes={site.derived.notes} />
                 </>
               )}
             </div>
@@ -541,15 +439,21 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
               )}
             </div>
             {log.length > 0 && (
-              <ul className="log no-print">
-                {log.map((l, i) => <li key={i}>{l}</li>)}
-              </ul>
+              <details className="progress no-print" open={busy && !report}>
+                <summary>
+                  {busy && !reportFinal ? <span className="dot-live" aria-hidden /> : null}
+                  {busy && !reportFinal ? log[log.length - 1] : `調べた内容（${log.length}件）`}
+                </summary>
+                <ul className="log">
+                  {log.map((l, i) => <li key={i}>{l}</li>)}
+                </ul>
+              </details>
             )}
-            {busy && !text && !report && <p className="spinner">条文・資料を確認中です。2〜4分かかります…</p>}
-            {report ? <ReportView report={report} streaming={busy && !reportFinal} /> : text && <MarkdownView markdown={text} />}
+            {busy && !text && !report && <p className="spinner">条文・資料を確認中です。3〜4分かかります（画面はそのままでお待ちください）。</p>}
+            {report ? <ReportView report={report} streaming={busy && !reportFinal} sourceCounts={reportFinal ? sourceCounts : undefined} /> : text && <MarkdownView markdown={text} />}
             {sources.length > 0 && (
-              <div className="card" style={{ marginTop: 16 }}>
-                <h3>参照した根拠（取得順）</h3>
+              <details className="card sources-card" style={{ marginTop: 16 }}>
+                <summary>参照した根拠の一覧（{sources.length}件）</summary>
                 <ul className="sources">
                   {sources.map((s) => (
                     <li key={s.url}>
@@ -558,7 +462,7 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
                     </li>
                   ))}
                 </ul>
-              </div>
+              </details>
             )}
           </div>
         )}
@@ -568,7 +472,7 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
         <div className="card">
           <h3 style={{ marginBottom: 2 }}>自動チェック（AI回答の前の下書き）</h3>
           <p className="hint" style={{ margin: "0 0 10px" }}>
-            住所から取った地図データと入力内容を、条文照合済みのルールに当てはめた結果です。AI の回答はこれを土台に詳しく書きます。
+            地図データと入力を、条文照合済みのルールに当てはめた結果です。
           </p>
           {findings.length === 0 ? (
             <p>住所と「何を建てたいか」を入れると、ここに論点が出ます。</p>
@@ -583,14 +487,17 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
               {agencies.length > 0 && (
                 <div className="side-sec">
                   <h4>先に聞きに行く窓口</h4>
-                  <ul className="agency-list">
-                    {agencies.slice(0, 8).map(({ agency, items }) => (
-                      <li key={agency}>
+                  {agencies.slice(0, 8).map(({ agency, items }) => (
+                    <details key={agency} className="agency-fold">
+                      <summary>
                         <strong>{agency}</strong>
-                        <span>{items.map((f) => f.rule.title.split("（")[0]).join("／")}</span>
-                      </li>
-                    ))}
-                  </ul>
+                        <span className="pill tone-info">{items.length}件</span>
+                      </summary>
+                      <ul>
+                        {items.map((f) => <li key={f.rule.id}>{f.rule.title}</li>)}
+                      </ul>
+                    </details>
+                  ))}
                 </div>
               )}
 
