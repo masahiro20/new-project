@@ -47,7 +47,7 @@ API: `GET /api/site?address=`（環境の自動取得）、`POST /api/consult`�
 
 ## Claude から使う（MCP）
 
-`/api/mcp` は MCP サーバー（Streamable HTTP）です。claude.ai・Claude デスクトップでは「コネクタ」→「カスタムコネクタを追加」で `https://<ホスト>/api/mcp?key=<ACCESS_PASSWORD>` を登録します。Claude Code では次のとおりです。
+`/api/mcp` は MCP サーバー（Streamable HTTP）です。claude.ai・Claude デスクトップでは「コネクタ」→「カスタムコネクタを追加」で `https://<ホスト>/api/mcp` を登録し、「接続」で開くサインイン画面（`/oauth/authorize`）にアクセスキーを入れます。OAuth 2.1（動的クライアント登録・PKCE S256）に対応し、トークンは `ACCESS_PASSWORD` から導いた鍵で署名するだけでサーバー側に保存しません（パスワードを変えると全トークンが無効になります）。スクリプトからは `?key=` やヘッダーでキーを直接渡すこともできます。Claude Code では次のとおりです。
 
 ```bash
 claude mcp add --transport http kenchiku-law https://<ホスト>/api/mcp --header "Authorization: Bearer <ACCESS_PASSWORD>"

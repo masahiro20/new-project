@@ -380,3 +380,31 @@ test("coerceReport fills missing sections and rejects junk", async () => {
   assert.equal(coerceReport({ summary: { verdict: "OK" } }), null);
   assert.equal(coerceReport("x"), null);
 });
+
+// ---------------------------------------------------------------- OAuth for the Claude connector
+
+test("oauth: signed codes/tokens, PKCE and redirect allowlist", async () => {
+  process.env.ACCESS_PASSWORD = "unit-test-key";
+  const { sign, verify, pkceOk, redirectAllowed, newCode, issueTokens } = await import("../lib/oauth");
+  const { createHash } = await import("node:crypto");
+  const verifier = "abcdefghijklmnopqrstuvwxyz0123456789-._~ABCDEFG";
+  const challenge = createHash("sha256").update(verifier).digest("base64url");
+  const code = newCode("kla_x", "https://claude.ai/api/mcp/auth_callback", challenge);
+  const claims = verify(code, "code");
+  assert.equal(claims?.ru, "https://claude.ai/api/mcp/auth_callback");
+  assert.equal(verify(code, "at"), null);
+  assert.ok(pkceOk(verifier, claims!.cc!));
+  assert.equal(pkceOk("wrong", claims!.cc!), false);
+  const t = issueTokens("kla_x");
+  assert.ok(verify(t.access_token, "at"));
+  assert.equal(verify(t.refresh_token, "at"), null);
+  assert.equal(verify(t.access_token.slice(0, -2) + "xx", "at"), null);
+  assert.equal(verify(sign({ t: "at", exp: 1 }), "at"), null);
+  process.env.ACCESS_PASSWORD = "rotated";
+  assert.equal(verify(t.access_token, "at"), null);
+  delete process.env.ACCESS_PASSWORD;
+  assert.ok(redirectAllowed("https://claude.ai/api/mcp/auth_callback"));
+  assert.ok(redirectAllowed("http://localhost:53123/callback"));
+  assert.equal(redirectAllowed("https://evil.example/cb"), false);
+  assert.equal(redirectAllowed("http://claude.ai/x"), false);
+});

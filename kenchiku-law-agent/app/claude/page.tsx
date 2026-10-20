@@ -59,11 +59,15 @@ export default function ClaudePage() {
         <ol>
           <li>Claude の設定から「コネクタ」を開き、「カスタムコネクタを追加」を選びます。</li>
           <li>
-            名前に「建築法令エージェント」、URL に次を入れます（<code>アクセスキー</code> の部分は、この画面で使っているキーに置き換え）。
-            <pre className="law">{`${endpoint}?key=アクセスキー`}</pre>
+            名前に「建築法令エージェント」、URL に次を入れて追加します（キーは入れません）。
+            <pre className="law">{endpoint}</pre>
           </li>
+          <li>「接続」を押すと、このツールのサインイン画面が開きます。社内で共有しているアクセスキーを入れて「接続する」を押します。接続は約30日ごとに自動で更新されます。</li>
           <li>ドライブの資料を読ませるときは、同じ画面で Google ドライブのコネクタもオンにします。</li>
         </ol>
+        <p className="hint">
+          「サインインサービスに登録できませんでした」と出た場合は、そのコネクタを一度削除し、上のURL（キーなし）で追加し直してください。
+        </p>
         <h3>Claude Code</h3>
         <pre className="law">{`claude mcp add --transport http kenchiku-law ${endpoint} --header "Authorization: Bearer アクセスキー"`}</pre>
 
