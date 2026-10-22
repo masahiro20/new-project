@@ -3,6 +3,7 @@
 import { useState, type ReactNode } from "react";
 import { ROLES, TASK_WHEN, whenIndex, type PartialReport } from "@/lib/report";
 import { CertaintyBadge, CertaintyLegend, Sources } from "./Certainty";
+import CountUp from "../components/CountUp";
 
 const VERDICT_TONE: Record<string, string> = {
   通常の手続きで建築可能: "ok",
@@ -92,8 +93,10 @@ export default function ReportView({
       {s && (
         <section className={`hero tone-${tone}`}>
           <div className="hero-top">
-            <span className="hero-label">結論</span>
-            <h2>{s.verdict ?? "…"}</h2>
+            <span className="hero-label">VERDICT／結論</span>
+            <h2 className="stamp" key={s.verdict ?? ""}>
+              {s.verdict ?? "…"}
+            </h2>
           </div>
           {s.headline && <p className="hero-headline">{s.headline}</p>}
           {s.topRisks && s.topRisks.length > 0 && (
@@ -118,15 +121,15 @@ export default function ReportView({
       {(checklist.length > 0 || counts.consult > 0) && (
         <div className="kpis">
           <button type="button" className="kpi tone-danger" onClick={() => setTab("check")}>
-            <strong>{hits}</strong>
+            <strong>{streaming ? hits : <CountUp to={hits} />}</strong>
             <span>該当する論点</span>
           </button>
           <button type="button" className="kpi tone-warn" onClick={() => setTab("check")}>
-            <strong>{maybe}</strong>
+            <strong>{streaming ? maybe : <CountUp to={maybe} />}</strong>
             <span>可能性あり</span>
           </button>
           <button type="button" className="kpi tone-info" onClick={() => setTab("consult")}>
-            <strong>{counts.consult}</strong>
+            <strong>{streaming ? counts.consult : <CountUp to={counts.consult} />}</strong>
             <span>事前協議の窓口</span>
           </button>
           <button type="button" className="kpi tone-ok" onClick={() => setTab("tasks")}>

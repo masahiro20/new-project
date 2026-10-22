@@ -11,11 +11,17 @@ export const metadata: Metadata = {
 export default function ConsultPage() {
   return (
     <section className="consult-page">
-      <div className="wrap">
-        <div className="no-print">
-          <p className="eyebrow">法令チェック</p>
-          <h1 className="page-title">住所と「何を建てたいか」だけで始められます</h1>
+      <div className="consult-hero no-print">
+        <div className="wrap">
+          <p className="kicker">
+            <span className="kicker-dot" aria-hidden />
+            LAND SCAN
+          </p>
+          <h1 className="page-title">土地を調べる</h1>
+          <p className="consult-sub">住所と「何を建てたいか」だけ。土地のまとめ・案内図・法令制限確認書はその場で、AIの詳しいチェックは約3〜4分。</p>
         </div>
+      </div>
+      <div className="wrap">
         <ConsultClient accessRequired={accessRequired()} siteLookupAvailable={reinfolibAvailable()} />
       </div>
     </section>

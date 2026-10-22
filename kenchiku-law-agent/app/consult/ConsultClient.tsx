@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import MarkdownView from "@/app/MarkdownView";
 import ReportView from "./ReportView";
 import PrintSheet from "./PrintSheet";
+import SiteMap from "./SiteMap";
+import SurveyPanel from "./SurveyPanel";
 import Attachments, { type Attachment } from "./Attachments";
 import LandSheet from "./LandSheet";
 import { landFacts } from "@/lib/landsummary";
@@ -74,7 +76,9 @@ function download(name: string, body: string, type: string) {
   const a = document.createElement("a");
   a.href = url;
   a.download = name;
+  document.body.appendChild(a);
   a.click();
+  a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
@@ -470,19 +474,35 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
   const collapsed = Boolean(report) && !busy && !editing;
 
   const landBlock = (site || siteBusy || siteError) && (
-    <div className={site && !siteError ? "card envcard" : "notice"} style={{ marginBottom: 20 }}>
-      {siteBusy && <p className="spinner">住所の位置を特定し、都市計画・災害・農地・川のデータを照合しています…</p>}
-      {siteError && <p>{siteError}</p>}
-      {site && !siteBusy && (
-        <>
-          {!site.apiAvailable && (
-            <p className="notice" style={{ margin: "0 0 12px" }}>
-              不動産情報ライブラリの API キーが未設定のため、用途地域などは取得できていません。下の「詳しい条件」で手入力してください。
-            </p>
-          )}
-          <LandSheet facts={facts} location={location ?? ""} notes={site.derived.notes} />
-        </>
-      )}
+    <>
+      <div className={site && !siteError ? "card envcard" : "notice"} style={{ marginBottom: 20 }}>
+        {siteBusy && (
+          <div className="scanning" role="status">
+            <span className="radar" aria-hidden />
+            <p>住所の位置を特定し、都市計画・災害・農地・川のデータを照合しています…</p>
+          </div>
+        )}
+        {siteError && <p>{siteError}</p>}
+        {site && !siteBusy && (
+          <>
+            {!site.apiAvailable && (
+              <p className="notice" style={{ margin: "0 0 12px" }}>
+                不動産情報ライブラリの API キーが未設定のため、用途地域などは取得できていません。下の「詳しい条件」で手入力してください。
+              </p>
+            )}
+            <LandSheet facts={facts} location={location ?? ""} notes={site.derived.notes} />
+          </>
+        )}
+      </div>
+    </>
+  );
+
+  const toolsBlock = site && !siteBusy && (
+    <div className="tools">
+      {site.lat !== null && site.lon !== null && <SiteMap lat={site.lat} lon={site.lon} label={plan.address} />}
+      <div id="survey">
+        <SurveyPanel plan={plan} report={report} accessKey={accessKey} />
+      </div>
     </div>
   );
 
@@ -725,15 +745,23 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
             )}
           </form>
 
+          {!report && toolsBlock}
+
           <div ref={resultRef} style={{ scrollMarginTop: 80 }}>
             {(text || report || busy) && (
               <div style={{ marginTop: 28 }}>
                 <div className="result-head">
-                  <h2 style={{ margin: 0 }}>チェック結果</h2>
+                  <div>
+                    <p className="card-kicker">RESULT</p>
+                    <h2 style={{ margin: 0 }}>チェック結果</h2>
+                  </div>
                   {(done || (report && !busy)) && (
                     <div className="toolbar">
                       <button type="button" className="btn small" onClick={() => window.print()}>
                         PDFで保存
+                      </button>
+                      <button type="button" className="btn small btn-signal" onClick={() => document.getElementById("survey")?.scrollIntoView({ behavior: "smooth", block: "start" })}>
+                        法令制限確認書（Excel）
                       </button>
                       {report?.tasks && report.tasks.length > 0 && (
                         <button
@@ -752,29 +780,40 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
                 </div>
                 {busy && !reportFinal && (
                   <div className="runprogress" role="status">
-                    <div className="runprogress-top">
-                      <span className="dot-live" aria-hidden />
-                      <strong>{PHASES[phase]}…</strong>
-                      <span className="hint">
-                        {Math.floor(elapsed / 60)}分{String(elapsed % 60).padStart(2, "0")}秒 経過（目安3〜4分）
-                      </span>
+                    <div className="radar big" aria-hidden>
+                      <span className="sweep" />
+                      <span className="blip b1" />
+                      <span className="blip b2" />
+                      <span className="blip b3" />
+                      <strong className="radar-time">
+                        {Math.floor(elapsed / 60)}:{String(elapsed % 60).padStart(2, "0")}
+                      </strong>
                     </div>
-                    <div className="bar">
-                      <span
-                        style={{
-                          width: `${Math.min(97, Math.max((phase / PHASES.length) * 100, (elapsed / EXPECTED_SECONDS) * 100))}%`,
-                        }}
-                      />
+                    <div className="runprogress-body">
+                      <div className="runprogress-top">
+                        <span className="dot-live" aria-hidden />
+                        <strong>{PHASES[phase]}…</strong>
+                        <span className="hint">
+                          {Math.floor(elapsed / 60)}分{String(elapsed % 60).padStart(2, "0")}秒 経過（目安3〜4分）
+                        </span>
+                      </div>
+                      <div className="bar">
+                        <span
+                          style={{
+                            width: `${Math.min(97, Math.max((phase / PHASES.length) * 100, (elapsed / EXPECTED_SECONDS) * 100))}%`,
+                          }}
+                        />
+                      </div>
+                      <ol className="phases">
+                        {PHASES.map((p, i) => (
+                          <li key={p} className={i < phase ? "is-done" : i === phase ? "is-current" : ""}>
+                            {p}
+                          </li>
+                        ))}
+                      </ol>
+                      {log.length > 0 && <p className="hint runlog">{log[log.length - 1]}</p>}
+                      <p className="hint">画面はこのままでお待ちください。結論から順に表示されます。</p>
                     </div>
-                    <ol className="phases">
-                      {PHASES.map((p, i) => (
-                        <li key={p} className={i < phase ? "is-done" : i === phase ? "is-current" : ""}>
-                          {p}
-                        </li>
-                      ))}
-                    </ol>
-                    {log.length > 0 && <p className="hint runlog">{log[log.length - 1]}</p>}
-                    <p className="hint">画面はこのままでお待ちください。結論から順に表示されます。</p>
                   </div>
                 )}
                 {report ? (
@@ -809,7 +848,12 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
                 )}
               </div>
             )}
-            {report && <div style={{ marginTop: 20 }}>{landBlock}</div>}
+            {report && (
+              <div style={{ marginTop: 20 }}>
+                {landBlock}
+                {toolsBlock}
+              </div>
+            )}
           </div>
         </div>
 
@@ -903,7 +947,16 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
         </aside>
       </div>
 
-      <PrintSheet plan={effective} location={location} facts={facts} report={report} findings={findings} sources={sources} taskDone={taskDone} />
+      <PrintSheet
+        plan={effective}
+        location={location}
+        facts={facts}
+        report={report}
+        findings={findings}
+        sources={sources}
+        taskDone={taskDone}
+        map={site && site.lat !== null && site.lon !== null ? { lat: site.lat, lon: site.lon } : null}
+      />
     </>
   );
 }

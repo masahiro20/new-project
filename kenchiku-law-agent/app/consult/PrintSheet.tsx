@@ -9,6 +9,7 @@ import type { PlanInput } from "@/lib/plan";
 import { CERTAINTY, CERTAINTY_HELP, type PartialReport } from "@/lib/report";
 import { SEVERITY_SHORT, citeLabel, citeUrl, type Finding } from "@/lib/rules";
 import { short, sortedTasks } from "./ReportView";
+import { annaiUrl } from "./SiteMap";
 
 type Cite = { label?: string; url?: string };
 type Source = { tier: string; title: string; url: string };
@@ -21,6 +22,7 @@ export default function PrintSheet({
   findings,
   sources,
   taskDone,
+  map,
 }: {
   plan: PlanInput;
   location: string | null;
@@ -29,6 +31,7 @@ export default function PrintSheet({
   findings: Finding[];
   sources: Source[];
   taskDone: Record<number, boolean>;
+  map?: { lat: number; lon: number } | null;
 }) {
   // Numbered source registry, filled in render order.
   const registry: { label: string; url: string }[] = [];
@@ -79,6 +82,17 @@ export default function PrintSheet({
           <b className="ps-cert ps-cert-入力">入力</b>入力どおりの値（原本で確認）
         </span>
       </p>
+
+      {map && (
+        <section className="ps-sec ps-map">
+          <h2>案内図</h2>
+          <div className="ps-maps">
+            <img src={annaiUrl(map.lat, map.lon, 15, "std", 1000, 700)} alt="案内図（広域）" />
+            <img src={annaiUrl(map.lat, map.lon, 18, "photo", 1000, 700)} alt="航空写真" />
+          </div>
+          <p className="ps-sub">左：広域（標準地図）　右：航空写真。出典：国土地理院（地理院タイル）。ピンは住所の代表点。</p>
+        </section>
+      )}
 
       {report?.summary && (
         <section className="ps-sec ps-verdict">

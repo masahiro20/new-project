@@ -1,0 +1,242 @@
+// 「敷地調査　建築法令制限確認書　Ver1-2」（社内の Excel 書式）を埋める。
+//
+// 原本の xlsx をそのまま開き、決まったセルに値を書き、チェックボックス（フォーム
+// コントロール）に印を付けるだけにしている。書式・罫線・結合セル・2枚目の
+// 「申請スケジュール」・TODAY() の作成日は原本のまま残る。
+//
+// 書き込むのは確かめられる項目だけ：顧客情報（入力どおり。不明なら空欄）、建築地、
+// 都市計画区域・用途地域・建蔽率／容積率・防火（国のデータ、または入力で上書き）、
+// 接道（入力）、その他地区と備考（データと確認結果の要約）。設備・仕様の欄は触らない。
+
+import { strFromU8, strToU8, unzipSync, zipSync } from "fflate";
+import { landFacts, parsePercent } from "./landsummary";
+import type { PlanInput } from "./plan";
+import type { PartialReport } from "./report";
+import { runRules, splitFindings } from "./rules";
+import type { SiteContext } from "./site";
+import { KAKUNINSHO_TEMPLATE_B64 } from "./templates/kakuninsho-v1-2";
+
+import { surveySchema, type Survey } from "./survey";
+
+export { EMPTY_SURVEY, surveySchema, type Survey } from "./survey";
+
+// Form-control checkboxes in the template, by the ctrlProp file they live in.
+const BOX = {
+  cityPlanIn: 1,
+  cityPlanOut: 2,
+  urbanization: 3,
+  controlled: 4,
+  unzoned: 5,
+  fire: 6,
+  quasiFire: 7,
+  art22: 8,
+  heightYes: 9,
+  heightNo: 10,
+  setbackYes: 11,
+  setbackNo: 12,
+  agreementYes: 13,
+  agreementNo: 14,
+  road1National: 16,
+  road1Pref: 55,
+  road1City: 17,
+  road2National: 18,
+  road2Pref: 19,
+  road2City: 20,
+  waterYes: 32,
+  waterNo: 33,
+  waterCheck: 34,
+  sewer: 35,
+  shared: 36,
+  septic: 59,
+} as const;
+
+const esc = (v: string) => v.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+/** Replaces the cell's content, keeping its style. Cells must already exist in the template. */
+function setCell(xml: string, ref: string, value: string | number | null): string {
+  const re = new RegExp(`<c r="${ref}"( s="\\d+")?[^>]*?(?:/>|>.*?</c>)`, "s");
+  const m = xml.match(re);
+  if (!m) throw new Error(`template cell ${ref} not found`);
+  const style = m[1] ?? "";
+  let cell: string;
+  if (value === null || value === "") cell = `<c r="${ref}"${style}/>`;
+  else if (typeof value === "number") cell = `<c r="${ref}"${style}><v>${value}</v></c>`;
+  else cell = `<c r="${ref}"${style} t="inlineStr"><is><t xml:space="preserve">${esc(value)}</t></is></c>`;
+  return xml.replace(re, cell);
+}
+
+const ZONE_SHORT = (z: PlanInput["zoning"]) => (z === "不明" ? "" : z === "用途地域の指定なし" ? "無指定" : z.replace(/地域$/, ""));
+
+function roadArticle(plan: PlanInput): { kou: string; gou: string } {
+  if (plan.roadType === "建築基準法上の道路（42条1項）") return { kou: "1", gou: "" };
+  if (plan.roadType === "位置指定道路（42条1項5号）") return { kou: "1", gou: "5" };
+  if (plan.roadType === "2項道路（幅員4m未満の既存道）") return { kou: "2", gou: "" };
+  return { kou: "", gou: "" };
+}
+
+/** その他地区: 地区計画・誘導区域・災害区域を短く。データ由来は「データ上」と書く。 */
+export function otherDistricts(plan: PlanInput, site: SiteContext | null): string {
+  if (!site) return "";
+  const facts = landFacts(plan, site);
+  const get = (k: string) => facts.find((f) => f.key === k);
+  const parts: string[] = [];
+  const pl = get("plan");
+  if (pl) parts.push(pl.value === "データ上なし" ? "地区計画なし（データ上）" : `${pl.value}${pl.certainty === "確定" ? "" : "（要確認）"}`);
+  const flood = get("flood");
+  if (flood && flood.value !== "区域外") parts.push(`洪水浸水想定 ${flood.value}`);
+  const dosha = get("dosha");
+  if (dosha && dosha.value !== "区域外") parts.push(`土砂災害 ${dosha.value}`);
+  return parts.join("／");
+}
+
+/** 備考: 結論と、見落とすと困る論点。AIの回答があればそれを、なければ自動判定を使う。 */
+export function remarks(plan: PlanInput, report: PartialReport | null | undefined, date: string): string {
+  const head = `【建築法令エージェント ${date}】`;
+  const tail = "用途地域等は国のデータ（住所の代表点）による。都市計画図・窓口で確認のこと。詳細は法令チェック表（PDF）。";
+  if (report?.summary?.verdict) {
+    const risks = (report.summary.topRisks ?? []).slice(0, 3).map((r, i) => `${"①②③"[i]}${r}`);
+    return [`${head}${report.summary.verdict}。`, ...risks, tail].join("\n");
+  }
+  const { specific } = splitFindings(runRules(plan));
+  const titles = specific.slice(0, 5).map((f) => f.rule.title.replace(/（.*?）/g, ""));
+  return [`${head}自動判定（AIの詳しいチェック前）`, titles.length ? `要注意：${titles.join("／")}` : "敷地固有の論点はデータ上なし", tail].join("\n");
+}
+
+export type KakuninshoInput = { survey: Survey; plan: PlanInput; site: SiteContext | null; report?: PartialReport | null; today?: Date };
+
+export function buildKakuninsho({ survey, plan, site, report, today = new Date() }: KakuninshoInput): Uint8Array {
+  const files = unzipSync(Buffer.from(KAKUNINSHO_TEMPLATE_B64, "base64"));
+  let sheet = strFromU8(files["xl/worksheets/sheet1.xml"]);
+  const date = today.toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo", year: "numeric", month: "2-digit", day: "2-digit" });
+
+  const zip = (v: string) => (v ? `〒${v.replace(/^〒/, "")}` : "〒");
+  const lotFacts = [plan.siteArea !== null ? `地積${plan.siteArea}㎡` : "", plan.landCategory !== "不明" ? `地目 ${plan.landCategory.replace("（農地）", "")}` : ""].filter(Boolean);
+  const lot = survey.lot || (plan.address ? `${plan.address}${lotFacts.length ? `（${lotFacts.join("・")}）` : ""}` : "");
+  const kenpei = parsePercent(site?.derived.kenpei);
+  const yoseki = parsePercent(site?.derived.yoseki);
+  const road1 = roadArticle(plan);
+
+  const values: Record<string, string | number | null> = {
+    B2: survey.salesRep,
+    B3: survey.kana1,
+    F3: survey.kana2,
+    B4: survey.name1,
+    F4: survey.name2,
+    B5: survey.phone1,
+    F5: survey.phone2,
+    B6: zip(survey.currentZip),
+    D6: survey.currentAddress,
+    B7: zip(survey.siteZip),
+    D7: plan.address,
+    B8: survey.juzenchi,
+    B9: survey.karikanchi,
+    B10: lot,
+    B12: ZONE_SHORT(plan.zoning),
+    B13: kenpei,
+    E13: "容積率",
+    G13: yoseki,
+    D15: survey.heightDistrict && survey.heightDistrict !== "無" ? survey.heightDistrict.replace(/高度地区$/, "") : "",
+    D16: survey.wallSetback && survey.wallSetback !== "無" ? survey.wallSetback.replace(/m$/, "") : "",
+    D17: survey.buildingAgreement && survey.buildingAgreement !== "無" ? survey.buildingAgreement : "",
+    B18: otherDistricts(plan, site),
+    D20: road1.kou,
+    G20: road1.gou,
+    D21: survey.road1Direction,
+    H21: plan.roadWidth,
+    D23: survey.road2Kou,
+    G23: survey.road2Gou,
+    D24: survey.road2Direction,
+    H24: survey.road2Width ? Number(survey.road2Width) || survey.road2Width : null,
+    B50: remarks(plan, report, date),
+  };
+  for (const [ref, v] of Object.entries(values)) sheet = setCell(sheet, ref, v);
+  // 備考 holds several lines: wrap it top-left and give its two rows room.
+  const wrap = addWrapStyle(files, 67);
+  sheet = sheet.replace(/<c r="B50" s="\d+"/, `<c r="B50" s="${wrap}"`);
+  for (const r of [50, 51]) sheet = sheet.replace(new RegExp(`(<row r="${r}"[^>]*?) ht="[\\d.]+"`), `$1 ht="45"`);
+  files["xl/worksheets/sheet1.xml"] = strToU8(sheet);
+
+  // Checkboxes
+  const on: number[] = [];
+  const area = plan.areaDivision;
+  if (area === "市街化区域") on.push(BOX.cityPlanIn, BOX.urbanization);
+  else if (area === "市街化調整区域") on.push(BOX.cityPlanIn, BOX.controlled);
+  else if (area === "非線引き都市計画区域") on.push(BOX.cityPlanIn, BOX.unzoned);
+  else if (area === "準都市計画区域" || area === "都市計画区域外") on.push(BOX.cityPlanOut);
+  if (plan.fireZone === "防火地域") on.push(BOX.fire);
+  if (plan.fireZone === "準防火地域") on.push(BOX.quasiFire);
+  if (plan.fireZone === "法22条区域") on.push(BOX.art22);
+  const yesNo = (v: string, yes: number, no: number) => {
+    if (v === "無") on.push(no);
+    else if (v) on.push(yes);
+  };
+  yesNo(survey.heightDistrict, BOX.heightYes, BOX.heightNo);
+  yesNo(survey.wallSetback, BOX.setbackYes, BOX.setbackNo);
+  yesNo(survey.buildingAgreement, BOX.agreementYes, BOX.agreementNo);
+  const owner = { 国道: [BOX.road1National, BOX.road2National], 県道: [BOX.road1Pref, BOX.road2Pref], 市道: [BOX.road1City, BOX.road2City] } as const;
+  if (survey.road1Owner) on.push(owner[survey.road1Owner][0]);
+  if (survey.road2Owner) on.push(owner[survey.road2Owner][1]);
+  if (survey.water) on.push({ 引込有: BOX.waterYes, 引込無: BOX.waterNo, 要確認: BOX.waterCheck }[survey.water]);
+  if (survey.sewage) on.push({ 下水道: BOX.sewer, 集中浄化槽: BOX.shared, 個別浄化槽: BOX.septic }[survey.sewage]);
+  checkBoxes(files, on);
+
+  // Recalculate on open so the second sheet picks up the new values.
+  const wb = strFromU8(files["xl/workbook.xml"]);
+  files["xl/workbook.xml"] = strToU8(/<calcPr[^>]*fullCalcOnLoad/.test(wb) ? wb : wb.replace(/<calcPr([^>]*?)\/>/, '<calcPr$1 fullCalcOnLoad="1"/>'));
+  return zipSync(files, { level: 6 });
+}
+
+/** Appends a copy of cell style `base` that wraps text from the top left; returns its index. */
+function addWrapStyle(files: Record<string, Uint8Array>, base: number): number {
+  const styles = strFromU8(files["xl/styles.xml"]);
+  const block = styles.match(/<cellXfs count="(\d+)">([\s\S]*?)<\/cellXfs>/);
+  if (!block) return base;
+  const xfs = block[2].match(/<xf [^>]*?(?:\/>|>[\s\S]*?<\/xf>)/g) ?? [];
+  const src = xfs[base];
+  if (!src) return base;
+  const alignment = '<alignment horizontal="left" vertical="top" wrapText="1"/>';
+  const copy = /<alignment[^>]*\/>/.test(src)
+    ? src.replace(/<alignment[^>]*\/>/, alignment)
+    : src.replace(/\/>$/, ` applyAlignment="1">${alignment}</xf>`);
+  const index = xfs.length;
+  files["xl/styles.xml"] = strToU8(styles.replace(block[0], `<cellXfs count="${index + 1}">${block[2]}${copy}</cellXfs>`));
+  return index;
+}
+
+/** Ticks form-control checkboxes: the 2010+ control properties and the legacy VML shape. */
+function checkBoxes(files: Record<string, Uint8Array>, ctrlPropNumbers: number[]) {
+  if (ctrlPropNumbers.length === 0) return;
+  const sheet = strFromU8(files["xl/worksheets/sheet1.xml"]);
+  const rels = strFromU8(files["xl/worksheets/_rels/sheet1.xml.rels"]);
+  const relTarget = new Map<string, string>();
+  for (const m of rels.matchAll(/<Relationship ([^>]*)\/>/g)) {
+    const id = m[1].match(/Id="([^"]+)"/)?.[1];
+    const target = m[1].match(/Target="([^"]+)"/)?.[1];
+    if (id && target) relTarget.set(id, target);
+  }
+  const shapeOf = new Map<number, string>();
+  for (const m of sheet.matchAll(/<control shapeId="(\d+)" r:id="(rId\d+)"/g)) {
+    const n = Number(relTarget.get(m[2])?.match(/ctrlProp(\d+)\.xml$/)?.[1]);
+    if (n) shapeOf.set(n, m[1]);
+  }
+  const vmlPath = "xl/drawings/vmlDrawing1.vml";
+  let vml = strFromU8(files[vmlPath]);
+  for (const n of ctrlPropNumbers) {
+    const path = `xl/ctrlProps/ctrlProp${n}.xml`;
+    const prop = strFromU8(files[path]);
+    if (!/checked=/.test(prop)) files[path] = strToU8(prop.replace("<formControlPr ", '<formControlPr checked="Checked" '));
+    const shapeId = shapeOf.get(n);
+    if (!shapeId) continue;
+    vml = vml.replace(new RegExp(`(<v:shape id="_x0000_s${shapeId}"[\\s\\S]*?<x:ClientData ObjectType="Checkbox">)([\\s\\S]*?)(</x:ClientData>)`), (_all, a, body, c) =>
+      /<x:Checked>/.test(body) ? `${a}${body}${c}` : `${a}${body}<x:Checked>1</x:Checked>${c}`,
+    );
+  }
+  files[vmlPath] = strToU8(vml);
+}
+
+export function kakuninshoFileName(plan: PlanInput, survey: Survey, today = new Date()): string {
+  const ymd = today.toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo", year: "numeric", month: "2-digit", day: "2-digit" }).replace(/\//g, "");
+  const who = survey.name1 ? `_${survey.name1.split(/\s/)[0]}様` : "";
+  const where = (plan.address || "建築地").replace(/[\\/:*?"<>|]/g, "").slice(0, 40);
+  return `法令制限確認書${who}_${where}_${ymd}.xlsx`;
+}

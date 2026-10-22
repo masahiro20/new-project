@@ -465,3 +465,51 @@ test("oauth: signed codes/tokens, PKCE and redirect allowlist", async () => {
   assert.equal(redirectAllowed("https://evil.example/cb"), false);
   assert.equal(redirectAllowed("http://claude.ai/x"), false);
 });
+
+test("法令制限確認書: values land in the template cells, checkboxes tick, styles and other sheets survive", async () => {
+  const { unzipSync, strFromU8 } = await import("fflate");
+  const { buildKakuninsho, surveySchema, kakuninshoFileName } = await import("../lib/kakuninsho");
+  const p = plan({ address: "岐阜県岐阜市水海道一丁目12番7", areaDivision: "市街化区域", zoning: "第一種住居地域", fireZone: "法22条区域", roadType: "建築基準法上の道路（42条1項）", roadWidth: 5.55, siteArea: 259.91 });
+  const site = { apiAvailable: true, precise: true, layers: [], derived: { kenpei: "60%", yoseki: "200%", hazards: [], notes: [], signals: p.signals } } as unknown as SiteContext;
+  const survey = surveySchema.parse({ salesRep: "中谷", name1: "山田 太郎", kana1: "ヤマダ タロウ", road1Direction: "南", road1Owner: "市道", sewage: "下水道", phone1: 12345 });
+  const files = unzipSync(buildKakuninsho({ survey, plan: p, site, report: { summary: { verdict: "条件付きで建築可能", topRisks: ["農地転用の届出"] } } }));
+  const sheet = strFromU8(files["xl/worksheets/sheet1.xml"]);
+  const cell = (ref: string) => sheet.match(new RegExp(`<c r="${ref}"[^>]*?(?:/>|>(.*?)</c>)`, "s"))?.[1] ?? "";
+  assert.match(cell("B2"), /中谷/);
+  assert.match(cell("B4"), /山田 太郎/);
+  assert.match(cell("D7"), /水海道一丁目12番7/);
+  assert.match(cell("B12"), /<t[^>]*>第一種住居<\/t>/);
+  assert.match(cell("B13"), /<v>60<\/v>/);
+  assert.match(cell("G13"), /<v>200<\/v>/);
+  assert.match(cell("D20"), />1</);
+  assert.match(cell("D21"), />南</);
+  assert.match(cell("H21"), /<v>5.55<\/v>/);
+  assert.equal(cell("D24"), ""); // template placeholder 南 cleared
+  assert.match(cell("B50"), /条件付きで建築可能/);
+  assert.equal(cell("B5"), ""); // non-string phone is dropped, not guessed
+  assert.match(cell("H2"), /TODAY\(\)/); // 作成日 formula kept
+  const checked = Object.keys(files).filter((f) => f.startsWith("xl/ctrlProps/") && strFromU8(files[f]).includes('checked="Checked"')).map((f) => Number(f.match(/(\d+)\.xml$/)![1])).sort((a, b) => a - b);
+  assert.deepEqual(checked, [1, 3, 8, 17, 35]); // 都市計画区域内・市街化区域・22条・市道・下水道
+  assert.equal((strFromU8(files["xl/drawings/vmlDrawing1.vml"]).match(/<x:Checked>1<\/x:Checked>/g) ?? []).length, 5);
+  assert.ok(files["xl/worksheets/sheet2.xml"]);
+  assert.match(strFromU8(files["xl/workbook.xml"]), /fullCalcOnLoad="1"/);
+  assert.match(kakuninshoFileName(p, survey, new Date("2026-10-22T03:00:00Z")), /^法令制限確認書_山田様_岐阜県岐阜市水海道一丁目12番7_20261022\.xlsx$/);
+});
+
+test("sealed links round-trip, expire, and reject tampering", async () => {
+  const { seal, unseal } = await import("../lib/sealed");
+  process.env.ACCESS_PASSWORD = "test-password";
+  const t = seal({ a: 1, name: "山田" });
+  assert.ok(t.startsWith("s."));
+  assert.deepEqual(unseal(t), { a: 1, name: "山田" });
+  assert.equal(unseal(t.slice(0, -2) + (t.endsWith("A") ? "BB" : "AA")), null);
+  assert.equal(unseal(seal({ a: 1 }, -10)), null);
+  delete process.env.ACCESS_PASSWORD;
+});
+
+test("MCP lists the 法令制限確認書 tool", async () => {
+  const { TOOLS } = await import("../lib/mcp");
+  const t = TOOLS.find((x) => x.name === "make_kakuninsho");
+  assert.ok(t);
+  assert.deepEqual((t!.inputSchema as { required: string[] }).required, ["address"]);
+});

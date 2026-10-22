@@ -16,6 +16,8 @@ import { landFacts } from "./landsummary";
 import { articleLabel, normalizeArticle } from "./laws";
 import { BUILDING_USES, EXTRAS, LAND_CATEGORIES, ROAD_TYPES, STRUCTURES, WORK_TYPES, YES_NO_UNKNOWN, planSchema, type PlanInput } from "./plan";
 import { CERTAINTY, CERTAINTY_HELP, CHECKLIST_ITEMS } from "./report";
+import { surveySchema } from "./kakuninsho";
+import { seal } from "./sealed";
 import { SEVERITY_SHORT, citeLabel, citeUrl, groupByAgency, groupByStage, runRules, splitFindings } from "./rules";
 import { FUDE_SOURCE, GSI_VT_SOURCE, lookupSite, mergeSiteIntoPlan, type SiteContext } from "./site";
 
@@ -29,8 +31,9 @@ export const SERVER_INSTRUCTIONS = `建築・土地の法令チェック用の�
 2. 住所（地番しか分からない場合は所在の町名まで）と計画内容、資料から読み取った事実を land_law_check に渡す。住所だけで土地の環境を見たいときは land_summary。
 3. 返ってきた「土地のまとめ」「この敷地ならではの論点」「先に聞きに行く窓口」をもとに回答する。条文の数値を書くときは get_law_article で本文を確認する。条例・自治体の運用は自治体の公式ページで確認し、確認できなければ窓口名を示す。
 4. 回答は短く：結論（建てられる見込みと最大の論点）→ 見落としチェック（指定12項目を 該当／可能性あり／要確認／該当なし）→ 設計で注意すること → 役所への事前協議（窓口ごと）→ タスク一覧（誰が・いつまでに・何を）→ 資料から読み取ったことと食い違い。最後に結果の app_link を案内し、画面でAIの詳しいチェック・タスク管理・PDF保存ができることを伝える。
-5. 各項目に確実性と出典を必ず付ける。確定＝${CERTAINTY_HELP.確定}（出典が必須）／要確認＝${CERTAINTY_HELP.要確認}／推測＝${CERTAINTY_HELP.推測}。地図データの農地・川までの距離は推測。推測を事実のように書かない。
-6. 最終判断は所管窓口と建築士が行う前提で書く。`;
+5. 法令制限確認書（社内の Excel 書式）や案内図が要るときは make_kakuninsho を呼ぶ。顧客情報はこの会話・ドライブの資料で確かめられたものだけ渡し、分からない項目は省略する（空欄で出る）。
+6. 各項目に確実性と出典を必ず付ける。確定＝${CERTAINTY_HELP.確定}（出典が必須）／要確認＝${CERTAINTY_HELP.要確認}／推測＝${CERTAINTY_HELP.推測}。地図データの農地・川までの距離は推測。推測を事実のように書かない。
+7. 最終判断は所管窓口と建築士が行う前提で書く。`;
 
 type Json = Record<string, unknown>;
 type ToolDef = { name: string; title: string; description: string; inputSchema: Json; annotations?: Json };
@@ -77,6 +80,45 @@ export const TOOLS: ToolDef[] = [
     annotations: { readOnlyHint: true, openWorldHint: true },
   },
   {
+    name: "make_kakuninsho",
+    title: "法令制限確認書（Excel）を作る",
+    description:
+      "社内書式「敷地調査　建築法令制限確認書　Ver1-2」の Excel を作り、ダウンロードリンク（14日有効）と案内図（地図・航空写真）のリンクを返します。都市計画区域・用途地域・建蔽率／容積率・防火・その他地区は住所から自動で入ります。顧客情報（施主名・フリガナ・電話・現住所・担当営業）や接道・地番は、会話やドライブの資料で分かるものだけ入れ、分からなければ省略してください（空欄で出ます）。推測で埋めないでください。",
+    inputSchema: {
+      type: "object",
+      properties: {
+        address: str("建築地の住所（番地まで）"),
+        plan: str("計画の概要（例：木造2階建ての自宅）。分からなければ省略"),
+        sales_rep: str("担当営業の名前"),
+        customer_name: str("お施主様名（1人目）"),
+        customer_kana: str("フリガナ（1人目）"),
+        customer_name2: str("お施主様名（2人目・ご夫婦など）"),
+        customer_kana2: str("フリガナ（2人目）"),
+        phone: str("電話番号（1人目）"),
+        phone2: str("電話番号（2人目）"),
+        current_zip: str("現住所の郵便番号"),
+        current_address: str("現住所"),
+        site_zip: str("建築地の郵便番号"),
+        lot: str("該当地（地番・地積・地目）。登記簿から。例：水海道一丁目12番7（地積260㎡・地目 畑）"),
+        site_area: num("敷地面積（㎡）"),
+        registered_land_category: enumOf(LAND_CATEGORIES, "登記簿の地目"),
+        road_type: enumOf(ROAD_TYPES, "前面道路の法上の種別"),
+        road_width: num("前面道路の幅員（m）"),
+        road_direction: str("接道の方位（例：南）"),
+        road_owner: enumOf(["国道", "県道", "市道"], "道路の管理者の種類"),
+        second_road_direction: str("2本目の接道の方位（角地など）"),
+        second_road_width: str("2本目の道路幅員（m）"),
+        height_district: str("高度地区。なければ『無』、分からなければ省略"),
+        wall_setback: str("壁面後退（m）。なければ『無』"),
+        building_agreement: str("建築協定の名称。なければ『無』"),
+        water: enumOf(["引込有", "引込無", "要確認"], "給水の引込み"),
+        sewage: enumOf(["下水道", "集中浄化槽", "個別浄化槽"], "排水"),
+      },
+      required: ["address"],
+    },
+    annotations: { readOnlyHint: true, openWorldHint: true },
+  },
+  {
     name: "document_reading_guide",
     title: "資料の読み取りガイド",
     description:
@@ -104,7 +146,7 @@ export const PROMPTS = [
   {
     name: "land_law_check",
     title: "土地資料から法令チェック",
-    description: "ドライブ等にある土地資料（登記簿・公図・測量図・写真）と住所から、法令制限・事前協議先・見落としをまとめます。",
+    description: "ドライブ等にある土地資料（登記簿・公図・測量図・写真）と住所から、法令制限・事前協議先・見落としをまとめ、法令制限確認書（Excel）と案内図も作ります。",
     arguments: [
       { name: "customer", description: "お客様名・案件名（例：山田様）", required: false },
       { name: "address", description: "敷地の住所（分かれば）", required: false },
@@ -124,7 +166,8 @@ function promptText(args: Record<string, string | undefined>): string {
     `1. ドライブ（またはこの会話の添付）から${args.customer ? `「${args.customer}」に関係する` : "この案件の"}土地資料を探して開く（登記事項証明書、公図、地積測量図、現況測量図、現地写真、重要事項説明書など）。`,
     "2. document_reading_guide（kind: all）で読み取る項目を確認し、資料ごとに事実を拾う。資料に書いてあることと推測は分ける。",
     "3. land_law_check に住所・計画・読み取った数値（地積、地目、道路幅員、接道長さなど）と document_facts を渡す。",
-    "4. 結論 → 見落としチェック12項目 → 設計で注意すること → 役所への事前協議（窓口ごと） → タスク一覧 → 資料同士や自動取得データとの食い違い、の順で短くまとめる。各項目に［確定／要確認／推測］と出典を付ける。最後に app_link を案内する。",
+    "4. make_kakuninsho で法令制限確認書（Excel）と案内図を作る。顧客情報（施主名・フリガナ・電話・現住所・担当営業）は、この会話やドライブの資料で確かめられたものだけ渡し、分からないものは省略する。",
+    "5. 結論 → 見落としチェック12項目 → 設計で注意すること → 役所への事前協議（窓口ごと） → タスク一覧 → 資料同士や自動取得データとの食い違い、の順で短くまとめる。各項目に［確定／要確認／推測］と出典を付ける。最後に確認書のダウンロードリンク・案内図・app_link を案内する。",
   ].join("\n");
 }
 
@@ -248,8 +291,65 @@ export async function landLawCheckTool(args: Json, ctx: Ctx = {}): Promise<strin
     ...CHECKLIST_ITEMS.map((c, i) => `${i + 1}. ${c}`),
     "",
     `画面で開く（AIの詳しいチェックも実行できます）：${appLink(plan, ctx.baseUrl)}`,
+    "法令制限確認書（Excel）と案内図が要るときは make_kakuninsho を呼んでください。",
   );
   return out.join("\n");
+}
+
+
+export async function makeKakuninshoTool(args: Json, ctx: Ctx = {}): Promise<string> {
+  const address = String(args.address ?? "").trim();
+  if (address.length < 3) throw new ToolInputError("address（建築地の住所）を入れてください。");
+  const plan = planFromArgs({
+    plan: args.plan || "（計画内容の指定なし）",
+    address,
+    site_area: args.site_area,
+    road_width: args.road_width,
+    road_type: args.road_type,
+    registered_land_category: args.registered_land_category,
+  });
+  const survey = surveySchema.parse({
+    salesRep: args.sales_rep,
+    name1: args.customer_name,
+    kana1: args.customer_kana,
+    name2: args.customer_name2,
+    kana2: args.customer_kana2,
+    phone1: args.phone,
+    phone2: args.phone2,
+    currentZip: args.current_zip,
+    currentAddress: args.current_address,
+    siteZip: args.site_zip,
+    lot: args.lot,
+    road1Direction: args.road_direction,
+    road1Owner: args.road_owner,
+    road2Direction: args.second_road_direction,
+    road2Width: args.second_road_width,
+    heightDistrict: args.height_district,
+    wallSetback: args.wall_setback,
+    buildingAgreement: args.building_agreement,
+    water: args.water,
+    sewage: args.sewage,
+  });
+  const site = await lookupSite(address);
+  const merged = mergeSiteIntoPlan(plan, site);
+  const base = (ctx.baseUrl ?? siteUrl()).replace(/\/$/, "");
+  const token = seal({ plan, survey });
+  const filled = Object.entries({ 担当営業: survey.salesRep, お施主様名: survey.name1, フリガナ: survey.kana1, 電話番号: survey.phone1, 現住所: survey.currentAddress, 該当地: survey.lot })
+    .map(([k, v]) => `${k}：${v || "（空欄）"}`)
+    .join("／");
+  const lines = [
+    "## 法令制限確認書（Excel）",
+    `ダウンロード（14日間有効）：${base}/api/kakuninsho?t=${token}`,
+    `入れた顧客情報：${filled}`,
+    `自動で入れた項目：都市計画区域（${merged.areaDivision}）・用途地域（${merged.zoning}）・建蔽率／容積率（${site.derived.kenpei ?? "不明"}／${site.derived.yoseki ?? "不明"}）・防火（${merged.fireZone}）・その他地区・備考。国のデータ（住所の代表点）なので、都市計画図・窓口で確認してください。設備・仕様の欄は空のままです。`,
+  ];
+  if (site.lat !== null && site.lon !== null) {
+    const q = (z: number, style: string) => `${base}/api/annai?lat=${site.lat!.toFixed(6)}&lon=${site.lon!.toFixed(6)}&z=${z}&style=${style}&w=1200&h=850`;
+    lines.push("", "## 案内図（出典：国土地理院 地理院タイル）", `- 広域（標準地図）：${q(15, "std")}`, `- 周辺（標準地図）：${q(17, "std")}`, `- 航空写真：${q(18, "photo")}`);
+  }
+  lines.push("", `画面で開く（土地のまとめ・AIの詳しいチェック・PDF）：${appLink(merged, ctx.baseUrl)}`);
+  lines.push("", "公図・登記事項証明書（謄本）は法務局の登記情報提供サービス（https://www1.touki.or.jp/）で取得してください。このツールでは取得できません。手元の資料があれば読んで lot・site_area などに反映できます。");
+  return lines.join("\n");
 }
 
 async function getLawArticleTool(args: Json): Promise<string> {
@@ -277,6 +377,8 @@ export async function callTool(name: string, args: Json, ctx: Ctx = {}): Promise
         return { text: await landLawCheckTool(args, ctx), isError: false };
       case "land_summary":
         return { text: await landSummaryTool(args, ctx), isError: false };
+      case "make_kakuninsho":
+        return { text: await makeKakuninshoTool(args, ctx), isError: false };
       case "document_reading_guide": {
         const kind = String(args.kind ?? "all");
         if (kind !== "all" && !(DOCUMENT_KINDS as readonly string[]).includes(kind)) throw new ToolInputError(`kind は ${DOCUMENT_KINDS.join("・")}・all のいずれかです。`);

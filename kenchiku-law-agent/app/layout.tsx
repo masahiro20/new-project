@@ -1,42 +1,64 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { SITE_NAME, siteUrl } from "@/lib/config";
+import { JetBrains_Mono, Space_Grotesk, Zen_Kaku_Gothic_New } from "next/font/google";
+import { SITE_NAME, SITE_SUBTITLE, siteUrl } from "@/lib/config";
+import MotionRoot from "./components/MotionRoot";
+import { LogoMark } from "./components/Logo";
 import "./globals.css";
+
+const jp = Zen_Kaku_Gothic_New({ weight: ["400", "500", "700", "900"], subsets: ["latin"], variable: "--font-jp", display: "swap", preload: false });
+const display = Space_Grotesk({ subsets: ["latin"], variable: "--font-display", display: "swap" });
+const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono", display: "swap" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl()),
   title: {
-    default: `${SITE_NAME}｜建築・土地の法令チェック（社内用）`,
+    default: `${SITE_NAME}｜${SITE_SUBTITLE}`,
     template: `%s｜${SITE_NAME}`,
   },
-  description:
-    "建築基準法・都市計画法・農地法・消防法・盛土規制法などの現行条文（e-Gov）と国・自治体の公的資料を根拠に、計画の注意点・必要な手続き・確認事項を整理する社内向けエージェントです。",
+  description: "住所を入れるだけで、用途地域・法令制限・役所への事前協議・案内図・法令制限確認書まで。条文と公的資料を出典に、確定／要確認／推測を分けて示す社内ツールです。",
   robots: { index: false, follow: false },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ja">
+    <html lang="ja" className={`${jp.variable} ${display.variable} ${mono.variable}`}>
       <body>
         <header className="site-header">
           <div className="wrap header-inner">
-            <Link href="/" className="logo">{SITE_NAME}</Link>
+            <Link href="/" className="logo" aria-label={`${SITE_NAME} ホーム`}>
+              <LogoMark />
+              <span className="logo-text">
+                <strong>{SITE_NAME}</strong>
+                <small>{SITE_SUBTITLE}</small>
+              </span>
+            </Link>
             <nav>
+              <Link href="/claude">Claude連携</Link>
               <Link href="/rules">知識ベース</Link>
               <Link href="/sources">根拠と更新</Link>
-              <Link href="/claude">Claude連携</Link>
-              <Link href="/consult" className="nav-cta">計画をチェック</Link>
+              <Link href="/consult" className="nav-cta">
+                <span className="dot" aria-hidden />
+                土地を調べる
+              </Link>
             </nav>
           </div>
         </header>
         <main>{children}</main>
         <footer className="site-footer">
-          <div className="wrap">
+          <div className="wrap footer-inner">
+            <div className="footer-brand">
+              <LogoMark size={24} />
+              <span>
+                {SITE_NAME} — {SITE_SUBTITLE}
+              </span>
+            </div>
             <p>
-              本ツールは法令の現行条文（e-Gov法令検索）と公的資料をもとに検討の出発点を示すものです。最終判断は特定行政庁・消防本部・農業委員会など所管の窓口への確認と、建築士の判断で行ってください。
+              法令の現行条文（e-Gov法令検索）と国・自治体の公的資料をもとにした検討の出発点です。地図・航空写真は国土地理院の地理院タイル、都市計画・災害は国土交通省、農地は農林水産省の公開データを使っています。最終判断は所管の窓口への確認と建築士の判断で行ってください。
             </p>
           </div>
         </footer>
+        <MotionRoot />
       </body>
     </html>
   );
