@@ -378,6 +378,9 @@ test("use restriction only flags non-dwelling uses (or 工業専用地域); 水�
   // 伊藤様のケース：東側が水路、南側の道路（42条1項）に直接接する → 水路を挟む接道ではない
   const ito = plan({ roadType: "建築基準法上の道路（42条1項）", landInfo: "現況測量図：東側は擁壁付き水路に接する。南側道路 幅員5.55m", signals: { ...EMPTY_SIGNALS, waterMeters: 5, waterKind: "川" } });
   assert.equal(ids(ito).get("suiro-setsudo"), undefined);
+  // 42条1項・幅員5.55m・接道13.669m → 接道義務は満たしている
+  assert.equal(ids({ ...ito, roadWidth: 5.55, frontage: 13.669 }).get("setsudo"), undefined);
+  assert.equal(ids(plan({})).get("setsudo"), "likely");
 });
 
 test("certainty is never 確定 without a source; old role actions become tasks; tasks export to CSV", async () => {
@@ -414,6 +417,16 @@ test("land facts carry a certainty and a source; map distances are estimates", a
   for (const x of f.values()) if (x.certainty === "確定") assert.ok(x.cites.length > 0, x.key);
   const rough = new Map(landFacts(p, { ...site, precise: false } as SiteContext).map((x) => [x.key, x]));
   assert.equal(rough.get("zoning")!.certainty, "推測");
+  // several flood rivers are not a boundary; two different zonings are
+  const layers = [
+    { id: "XKT001", status: "hit", features: [{ area_classification_ja: "市街化区域" }, { area_classification_ja: "市街化区域" }], summary: [], source: src, label: "" },
+    { id: "XKT002", status: "hit", features: [{ use_area_ja: "第一種住居地域" }, { use_area_ja: "準工業地域" }], summary: [], source: src, label: "" },
+    { id: "XKT026", status: "hit", features: [{}, {}, {}], summary: ["境川 浸水深 0.5m以上3.0m未満"], source: src, label: "" },
+  ];
+  const multi = new Map(landFacts(p, { ...site, layers } as unknown as SiteContext).map((x) => [x.key, x]));
+  assert.equal(multi.get("area")!.certainty, "確定");
+  assert.equal(multi.get("zoning")!.certainty, "要確認");
+  assert.equal(multi.get("flood")!.certainty, "確定");
 });
 
 test("coerceReport fills missing sections and rejects junk", async () => {

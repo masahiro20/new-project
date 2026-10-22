@@ -347,6 +347,9 @@ const RULE_DEFS: Omit<Rule, keyof RuleMeta>[] = [
       if (p.roadType === "道路に該当しない・不明（通路・農道・水路等）") return "required";
       if (p.frontage !== null && p.frontage < 2) return "required";
       if (p.roadWidth !== null && p.roadWidth < 4 && p.roadType !== "2項道路（幅員4m未満の既存道）") return "required";
+      // Road type, width and frontage all known and sufficient: nothing left to check.
+      const lawfulRoad = p.roadType === "建築基準法上の道路（42条1項）" || p.roadType === "位置指定道路（42条1項5号）";
+      if (lawfulRoad && p.frontage !== null && p.frontage >= 2 && (p.roadWidth === null || p.roadWidth >= 4)) return null;
       return "likely";
     },
   },

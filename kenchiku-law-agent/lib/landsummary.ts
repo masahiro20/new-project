@@ -70,6 +70,8 @@ export function landFacts(plan: PlanInput, site: SiteContext | null): LandFact[]
   return draftFacts(plan, site).map((f) => annotate(f, site));
 }
 
+const BOUNDARY_KEY: Record<string, string> = { XKT001: "area_classification_ja", XKT002: "use_area_ja", XKT014: "fire_prevention_ja" };
+
 const srcCite = (src?: { label: string; url: string; year: string }): Cite[] => (src ? [{ label: `${src.label}${src.year ? `（${src.year}）` : ""}`, url: src.url }] : []);
 const law = (article: string, label: string): Cite => ({ label: `建築基準法${label}`, url: lawUrl(KENKIHO, article) });
 
@@ -80,7 +82,14 @@ const law = (article: string, label: string): Cite => ({ label: `建築基準法
  */
 function annotate(f: Draft, site: SiteContext | null): LandFact {
   const precise = site?.precise !== false;
-  const boundary = (id: string) => (layer(site, id)?.features.length ?? 0) > 1;
+  // Near a boundary when the point falls in more than one *different* designation
+  // (several flood rivers or overlapping planning polygons with the same value are not a boundary).
+  const boundary = (id: string) => {
+    const key = BOUNDARY_KEY[id];
+    if (!key) return false;
+    const values = new Set((layer(site, id)?.features ?? []).map((x) => String(x[key] ?? "")).filter((v) => !id.startsWith("XKT001") || v.includes("市街化")));
+    return values.size > 1;
+  };
   const data = (id: string): Pick<LandFact, "certainty" | "cites"> => ({
     certainty: !precise ? "推測" : boundary(id) ? "要確認" : "確定",
     cites: srcCite(layer(site, id)?.source),
