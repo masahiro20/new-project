@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { JetBrains_Mono, Space_Grotesk, Zen_Kaku_Gothic_New } from "next/font/google";
+import { Inter, JetBrains_Mono, Noto_Sans_JP, Shippori_Mincho_B1 } from "next/font/google";
 import { SITE_NAME, SITE_SUBTITLE, siteUrl } from "@/lib/config";
 import MotionRoot from "./components/MotionRoot";
 import { LogoMark } from "./components/Logo";
 import "./globals.css";
 
-const jp = Zen_Kaku_Gothic_New({ weight: ["400", "500", "700", "900"], subsets: ["latin"], variable: "--font-jp", display: "swap", preload: false });
-const display = Space_Grotesk({ subsets: ["latin"], variable: "--font-display", display: "swap" });
+// 本文は Noto Sans JP、大きな見出しは明朝（Shippori Mincho B1）、数字と英字は Inter。
+// 等幅は地図の座標表示だけに使う。
+const jp = Noto_Sans_JP({ subsets: ["latin"], variable: "--font-jp", display: "swap", preload: false });
+const serif = Shippori_Mincho_B1({ weight: ["600", "700", "800"], subsets: ["latin"], variable: "--font-serif", display: "swap", preload: false });
+const display = Inter({ subsets: ["latin"], variable: "--font-display", display: "swap" });
 const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono", display: "swap" });
 
 export const metadata: Metadata = {
@@ -22,7 +25,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ja" className={`${jp.variable} ${display.variable} ${mono.variable}`}>
+    <html lang="ja" className={`${jp.variable} ${serif.variable} ${display.variable} ${mono.variable}`}>
       <body>
         <header className="site-header">
           <div className="wrap header-inner">

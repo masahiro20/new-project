@@ -30,7 +30,7 @@ const SITE: Field[] = [
 ];
 
 /** 法令制限確認書（Excel）: customer details are optional — blanks stay blank in the sheet. */
-export default function SurveyPanel({ plan, report, accessKey }: { plan: PlanInput; report: PartialReport | null; accessKey: string }) {
+export default function SurveyPanel({ plan, report, accessKey, suggestedLot }: { plan: PlanInput; report: PartialReport | null; accessKey: string; suggestedLot?: string | null }) {
   const storageKey = `${KEY}${plan.address.trim()}`;
   const [survey, setSurvey] = useState<Survey>(EMPTY_SURVEY);
   const [busy, setBusy] = useState(false);
@@ -127,6 +127,11 @@ export default function SurveyPanel({ plan, report, accessKey }: { plan: PlanInp
       {done && <p className="ok">「{done}」を保存しました。設備・仕様の欄は空のままです。</p>}
       <details className="survey-more">
         <summary>顧客情報・接道などを入れる（任意）</summary>
+        {suggestedLot && !survey.lot && (
+          <button type="button" className="chip-btn lot-suggest" onClick={() => set("lot", `${suggestedLot}（地番図より推定・登記簿で要確認）`)}>
+            地番図の推定「{suggestedLot}」を該当地に入れる
+          </button>
+        )}
         <div className="sgrid">
           <p className="sgroup">お客様</p>
           {CUSTOMER.map(input)}

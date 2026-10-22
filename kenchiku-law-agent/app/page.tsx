@@ -51,14 +51,6 @@ export default function HomePage() {
           <div data-reveal style={{ ["--d" as string]: "0.42s" }}>
             <HomeStart />
           </div>
-          <ul className="hero-outputs" data-reveal style={{ ["--d" as string]: "0.55s" }}>
-            <li>土地のまとめ</li>
-            <li>見落とし12項目</li>
-            <li>役所協議リスト</li>
-            <li>案内図</li>
-            <li>法令制限確認書 Excel</li>
-            <li>PDF・タスク</li>
-          </ul>
         </div>
         <a href="#outputs" className="scroll-cue" aria-label="下へ">
           <span />
@@ -70,7 +62,7 @@ export default function HomePage() {
       <section className="section-dark" id="outputs">
         <div className="wrap">
           <header className="sec-head" data-reveal>
-            <p className="sec-no">01 — OUTPUT</p>
+            <p className="sec-no">OUTPUT</p>
             <h2>1回のスキャンで、ぜんぶ出る。</h2>
           </header>
           <div className="bento">
@@ -154,7 +146,7 @@ export default function HomePage() {
       <section className="section-paper">
         <div className="wrap">
           <header className="sec-head" data-reveal>
-            <p className="sec-no">02 — FLOW</p>
+            <p className="sec-no">HOW IT WORKS</p>
             <h2>使い方は3ステップ。</h2>
           </header>
           <ol className="flow">
@@ -206,7 +198,7 @@ export default function HomePage() {
       <section className="section-dark honesty">
         <div className="wrap narrow">
           <header className="sec-head center" data-reveal>
-            <p className="sec-no">03 — HONESTY</p>
+            <p className="sec-no">HONESTY</p>
             <h2>分からないことは、分からないと書く。</h2>
             <p className="sec-lead">すべての項目に「どれだけ確かか」と「出典」。推測を事実のようには書きません。</p>
           </header>
@@ -230,7 +222,7 @@ export default function HomePage() {
       <section className="section-signal">
         <div className="wrap claude-band" data-reveal>
           <div>
-            <p className="sec-no dark">04 — CLAUDE</p>
+            <p className="sec-no dark">WITH CLAUDE</p>
             <h2>Claude の会話からも。</h2>
             <p>「ドライブの○○様フォルダの資料で法令チェックして、確認書も作って」と頼むと、登記簿・公図・測量図を読んで、このツールで調べて、Excelまで作ります。</p>
           </div>

@@ -513,3 +513,19 @@ test("MCP lists the 法令制限確認書 tool", async () => {
   assert.ok(t);
   assert.deepEqual((t!.inputSchema as { required: string[] }).required, ["address"]);
 });
+
+test("地番図: finds the lot under the point and its neighbours from a line-per-feature GeoJSON", async () => {
+  const { writeFileSync, mkdtempSync } = await import("node:fs");
+  const { join } = await import("node:path");
+  const { tmpdir } = await import("node:os");
+  const { scan } = await import("../lib/chiban");
+  const sq = (x: number, y: number, d: number) => [[x, y], [x + d, y], [x + d, y + d], [x, y + d], [x, y]];
+  const f = (chiban: string, ring: number[][]) => JSON.stringify({ type: "Feature", properties: { 大字名: "竜田町", 地番: chiban, 座標値種別: "測量成果" }, geometry: { type: "Polygon", coordinates: [ring] } });
+  const lines = ['{"type":"FeatureCollection","features":[', `${f("27", sq(136.767, 35.414, 0.0002))},`, `${f("28", sq(136.7672, 35.414, 0.0002))},`, `${f("99", sq(136.80, 35.45, 0.0002))}`, "]}"];
+  const path = join(mkdtempSync(join(tmpdir(), "chiban-")), "t.geojson");
+  writeFileSync(path, lines.join("\n"));
+  const lots = await scan(path, 35.4141, 136.7671);
+  assert.equal(lots[0].chiban, "27");
+  assert.equal(lots[0].contains, true);
+  assert.deepEqual(lots.map((l) => l.chiban), ["27", "28"]); // far lot skipped
+});
