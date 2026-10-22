@@ -38,7 +38,7 @@ export function LotDrawing({ shapes, pin = false, className = "lotsvg" }: { shap
       </defs>
       <g clipPath="url(#lotclip)">
         {shapes.map((s, i) => (
-          <polygon key={i} className={s.main ? "lot is-main" : /^(道|水|里|堤|溝)/.test(s.chiban) ? "lot is-public" : "lot"} points={s.ring.map(([x, y]) => `${x},${y}`).join(" ")} style={{ animationDelay: `${Math.min(i, 40) * 18}ms` }} />
+          <polygon key={i} pathLength={1} className={s.main ? "lot is-main" : /^(道|水|里|堤|溝)/.test(s.chiban) ? "lot is-public" : "lot"} points={s.ring.map(([x, y]) => `${x},${y}`).join(" ")} style={{ animationDelay: `${Math.min(i, 40) * 18}ms` }} />
         ))}
         {shapes.map((s, i) => {
           const xs = s.ring.map((p) => p[0]);
@@ -110,91 +110,78 @@ export default function LotCard({ address, lat, lon, accessKey, onInfo }: { addr
   const messages = [info?.kozu && info.kozu.status !== "ok" ? info.kozu.message : "", info?.chiban && info.chiban.status !== "ok" ? info.chiban.message : ""].filter(Boolean);
 
   return (
-    <section className="lotcard">
-      <header className="lotcard-head">
-        <div>
-          <p className="card-kicker">登記・公図</p>
-          <h3>公図（登記所備付地図）</h3>
-        </div>
+    <figure className="plate plate-lot">
+      <div className="plate-head">
+        <span className="plate-no">Fig. 2</span>
+        <h3>公図</h3>
         {mainLot && (
-          <div className="lot-main">
-            <span className={`cert ${kozu ? "cert-確定" : "cert-推測"}`}>
-              <span aria-hidden>{kozu ? "✓" : "?"}</span>
-              {kozu ? "地番で照合" : "推測"}
-            </span>
-            <strong>{mainLot}</strong>
-            <small>{kozu ? "住所の地番で法務省の地図データを照合" : chiban?.lots[0].contains ? "住所の代表点が入る筆" : "代表点の近くの筆"}</small>
+          <span className={`cert ${kozu ? "cert-確定" : "cert-推測"}`}>
+            <span aria-hidden>{kozu ? "✓" : "?"}</span>
+            {kozu ? "地番で照合" : "推測"}
+          </span>
+        )}
+      </div>
+      <div className="lot-figure">
+        {busy && (
+          <div className="scanning">
+            <span className="radar" aria-hidden />
+            <p>法務省の登記所備付地図データを照合しています…</p>
           </div>
         )}
-      </header>
-
-      <div className="lot-body">
-        <div className="lot-figure">
-          {busy && (
-            <div className="scanning">
-              <span className="radar" aria-hidden />
-              <p>法務省の登記所備付地図データを照合しています…</p>
-            </div>
-          )}
-          {!busy && shapes.length > 0 && <LotDrawing shapes={shapes} pin={!kozu} />}
-          {!busy && shapes.length === 0 && <p className="lot-empty">{error ?? (messages.join(" ") || "データがありません。")}</p>}
-        </div>
-
-        <div className="lot-side">
-          <dl className="lot-facts">
-            {kozu?.map && (
-              <>
-                <dt>図面</dt>
-                <dd>
-                  {kozu.map.category}（{kozu.map.kind}）
-                </dd>
-                <dt>縮尺・座標</dt>
-                <dd>
-                  {kozu.map.scale ? `1/${kozu.map.scale}・` : ""}
-                  {kozu.map.coord}
-                  {kozu.map.precision ? `・精度区分 ${kozu.map.precision}` : ""}
-                </dd>
-                <dt>図上の面積</dt>
-                <dd>
-                  約{kozu.area}㎡<small>（参考。登記の地積ではありません）</small>
-                </dd>
-                {publicLots.length > 0 && (
-                  <>
-                    <dt>隣の道・水路</dt>
-                    <dd>{publicLots.join("、")}（公図上の地番）</dd>
-                  </>
-                )}
-              </>
-            )}
-            {chiban && (
-              <>
-                <dt>地番・筆の形</dt>
-                <dd>公共座標の地図から代表点で表示</dd>
-              </>
-            )}
-            <dt>地目・地積</dt>
-            <dd>登記簿で確認（農地は農地ナビでも可）</dd>
-            <dt>所有者</dt>
-            <dd>登記簿（全部事項・所有者事項）で確認</dd>
-          </dl>
-          <ul className="lot-links">
-            {LINKS.map((l) => (
-              <li key={l.url}>
-                <a href={l.url} target="_blank" rel="noopener noreferrer">
-                  {l.label}
-                  <small>{l.sub}</small>
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
+        {!busy && shapes.length > 0 && <LotDrawing shapes={shapes} pin={!kozu} />}
+        {!busy && shapes.length === 0 && <p className="lot-empty">{error ?? (messages.join(" ") || "データがありません。")}</p>}
+        {mainLot && <span className="lot-tag">{mainLot}</span>}
       </div>
-
-      <p className="hint lot-note">
-        出典：法務省 登記所備付地図データ（G空間情報センター{kozu?.dataset?.year ? `・${kozu.dataset.year}年版` : info?.chiban?.dataset?.year ? `・${info.chiban.dataset.year}年版、(一社)社会基盤情報流通推進協議会の変換` : ""}）。
-        {kozu ? (kozu.map?.coord === "任意座標系" ? "任意座標の図面のため、位置・方位・寸法は目安です。" : "") : "地図上の代表点での判定です。"}
-        公図の写しではなく、境界・地積の証明には使えません。登記事項証明書と公図（登記情報提供サービス）で確かめてください。
-      </p>
-    </section>
+      <dl className="lot-facts">
+        {kozu?.map && (
+          <>
+            <dt>図面</dt>
+            <dd>
+              {kozu.map.category}（{kozu.map.kind}）{kozu.map.scale ? `・1/${kozu.map.scale}` : ""}
+            </dd>
+            <dt>座標</dt>
+            <dd>
+              {kozu.map.coord}
+              {kozu.map.precision ? `・精度区分 ${kozu.map.precision}` : ""}
+            </dd>
+            <dt>図上の面積</dt>
+            <dd>
+              約{kozu.area}㎡ <small>参考（登記の地積ではない）</small>
+            </dd>
+            {publicLots.length > 0 && (
+              <>
+                <dt>道・水路</dt>
+                <dd>{publicLots.join("、")}</dd>
+              </>
+            )}
+          </>
+        )}
+        {chiban && (
+          <>
+            <dt>地番</dt>
+            <dd>公共座標の地図から代表点で推定</dd>
+          </>
+        )}
+        <dt>地目・地積・所有者</dt>
+        <dd>
+          登記簿で確認 —{" "}
+          {LINKS.map((l, i) => (
+            <span key={l.url}>
+              {i > 0 && "・"}
+              <a href={l.url} target="_blank" rel="noopener noreferrer" title={l.sub}>
+                {l.label}
+              </a>
+            </span>
+          ))}
+        </dd>
+      </dl>
+      <figcaption>
+        <span>
+          出典：法務省 登記所備付地図データ（G空間情報センター{kozu?.dataset?.year ? `・${kozu.dataset.year}年版` : info?.chiban?.dataset?.year ? `・${info.chiban.dataset.year}年版` : ""}）。
+          {kozu ? (kozu.map?.coord === "任意座標系" ? "任意座標の図面のため位置・方位・寸法は目安。" : "") : "代表点での判定。"}
+          境界・地積の証明には使えません。
+        </span>
+      </figcaption>
+    </figure>
   );
 }

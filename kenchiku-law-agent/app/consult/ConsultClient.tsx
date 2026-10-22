@@ -7,6 +7,8 @@ import PrintSheet from "./PrintSheet";
 import SiteMap from "./SiteMap";
 import LotCard, { type LotInfo } from "./LotCard";
 import SurveyPanel from "./SurveyPanel";
+import Rail, { type RailItem } from "./Rail";
+import Section from "../components/Section";
 import Attachments, { type Attachment } from "./Attachments";
 import LandSheet from "./LandSheet";
 import { landFacts } from "@/lib/landsummary";
@@ -482,258 +484,208 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
   const canRun = plan.description.trim().length >= 5 && !busy;
   const collapsed = Boolean(report) && !busy && !editing;
 
-  const landBlock = (site || siteBusy || siteError) && (
-    <>
-      <div className={site && !siteError ? "card envcard" : "notice"} style={{ marginBottom: 20 }}>
-        {siteBusy && (
-          <div className="scanning" role="status">
-            <span className="radar" aria-hidden />
-            <p>住所の位置を特定し、都市計画・災害・農地・川のデータを照合しています…</p>
-          </div>
-        )}
-        {siteError && <p>{siteError}</p>}
-        {site && !siteBusy && (
-          <>
-            {!site.apiAvailable && (
-              <p className="notice" style={{ margin: "0 0 12px" }}>
-                不動産情報ライブラリの API キーが未設定のため、用途地域などは取得できていません。下の「詳しい条件」で手入力してください。
-              </p>
-            )}
-            <LandSheet facts={facts} location={location ?? ""} notes={site.derived.notes} />
-          </>
-        )}
-      </div>
-    </>
-  );
+  const hasSite = Boolean(site && !siteBusy);
+  const hasMap = Boolean(hasSite && site && site.lat !== null && site.lon !== null);
+  const resultVisible = Boolean(text || report || busy);
+  const rail: RailItem[] = [
+    { id: "s-input", no: "01", label: "計画を入れる", ready: true },
+    { id: "s-land", no: "02", label: "土地のまとめ", ready: Boolean(site || siteBusy || siteError) },
+    { id: "s-maps", no: "03", label: "案内図・公図", ready: hasMap },
+    { id: "s-issues", no: "04", label: "自動判定の論点", ready: findings.length > 0, note: findings.length ? String(split.specific.length + split.checks.length) : undefined },
+    { id: "s-result", no: "05", label: "AIの詳しいチェック", ready: true, note: busy ? "実行中" : report ? "済" : undefined },
+    { id: "s-docs", no: "06", label: "書類を作る", ready: hasSite },
+  ];
 
-  const toolsBlock = site && !siteBusy && (
-    <div className="tools">
-      {site.lat !== null && site.lon !== null && <SiteMap lat={site.lat} lon={site.lon} label={plan.address} />}
-      {site.lat !== null && site.lon !== null && <LotCard address={plan.address} lat={site.lat} lon={site.lon} accessKey={accessKey} onInfo={setLotInfo} />}
-      <div id="survey">
-        <SurveyPanel plan={plan} report={report} accessKey={accessKey} suggestedLot={suggestedLot} />
-      </div>
+  const runControls = (
+    <div className="runbar">
+      <button type="button" className="btn btn-run" onClick={consult} disabled={!canRun}>
+        {busy ? "チェック中…" : report ? "もう一度AIでチェック" : "AIで詳しくチェック"}
+      </button>
+      {busy ? (
+        <button type="button" className="btn secondary" onClick={() => abortRef.current?.abort()}>
+          中止
+        </button>
+      ) : (
+        <span className="hint">約3〜4分。条文と自治体の公式資料を確認し、出典付きでまとめます。</span>
+      )}
     </div>
   );
 
   return (
     <>
-      <ol className="steps no-print" aria-label="進め方">
-        {["住所を入れる", "何を建てるか", "AIでチェック", "結果を使う"].map((label, i) => (
-          <li key={label} className={step > i + 1 ? "is-done" : step === i + 1 ? "is-current" : ""}>
-            <span className="steps-n">{step > i + 1 ? "✓" : i + 1}</span>
-            {label}
-          </li>
-        ))}
-      </ol>
-
-      {saved && !report && !busy && (
-        <div className="resume no-print">
-          <span>
-            前回の結果：<strong>{saved.address || "住所なし"}</strong>
-            <span className="hint">
-              （
-              {new Date(saved.savedAt).toLocaleString("ja-JP", {
-                month: "numeric",
-                day: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-              ）
-            </span>
-          </span>
-          <button type="button" className="btn small secondary" onClick={openSaved}>
-            開く
-          </button>
+      <header className="ws-hero no-print">
+        <div className="wrap ws-hero-inner">
+          <p className="kicker">
+            <span className="kicker-dot" aria-hidden />
+            LAND SCAN／土地・法令調査
+          </p>
+          <h1 className="ws-title">{plan.address.trim() || "土地を調べる"}</h1>
+          <p className="ws-sub">{plan.description.trim() || "住所と「何を建てたいか」を入れると、土地のまとめ・図面・論点がその場で、AIの詳しいチェックは約3〜4分で出ます。"}</p>
+          <ol className="ws-progress" aria-label="進み具合">
+            {["住所", "計画", "AIチェック", "書類"].map((label, i) => (
+              <li key={label} className={step > i + 1 ? "is-done" : step === i + 1 ? "is-current" : ""}>
+                <span>{label}</span>
+              </li>
+            ))}
+          </ol>
         </div>
-      )}
+      </header>
 
-      <div className={`layout no-print ${report ? "has-report" : ""}`}>
-        <div>
-          <form onSubmit={(e) => e.preventDefault()}>
-            {arrival === "claude" && (
-              <p className="ok" style={{ marginTop: 0 }}>
-                Claude から開きました。住所・計画・資料から読み取った内容を入れてあります（資料のメモは「詳しい条件」の一番下）。内容を確かめて「AIで詳しくチェック」を押してください。
-              </p>
-            )}
-            {collapsed ? (
-              <div className="formsum">
-                <dl>
-                  <dt>住所</dt>
-                  <dd>{plan.address || "—"}</dd>
-                  <dt>計画</dt>
-                  <dd>{plan.description || "—"}</dd>
-                </dl>
-                <button type="button" className="btn small secondary" onClick={() => setEditing(true)}>
-                  入力を変える
-                </button>
-              </div>
-            ) : (
-              <div className="panel">
-                {accessRequired && (
-                  <div className="field">
-                    <label htmlFor="accessKey">
-                      アクセスキー <span className="hint">社内で共有しているキー。最初の1回だけ（この端末に保存されます）</span>
-                    </label>
-                    <input id="accessKey" type="password" value={accessKey} onChange={(e) => setAccessKey(e.target.value)} autoComplete="off" placeholder="アクセスキー" />
-                  </div>
-                )}
-                <div className="field">
-                  <label htmlFor="address" className="big-label">
-                    <span className="label-n">1</span>敷地の住所
-                  </label>
-                  <div className="address-row">
-                    <input
-                      id="address"
-                      type="text"
-                      maxLength={200}
-                      value={plan.address}
-                      placeholder="例：静岡県浜松市中央区元城町103-2"
-                      onChange={(e) => set("address", e.target.value)}
-                      onBlur={() => lookup()}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          lookup(true);
-                        }
-                      }}
-                    />
-                    <button type="button" className="btn" onClick={() => lookup(true)} disabled={siteBusy || plan.address.trim().length < 3}>
-                      {siteBusy ? "調べています…" : "土地を調べる"}
-                    </button>
-                  </div>
-                  <p className="hint" style={{ margin: "4px 0 0" }}>
-                    番地まで入れると、用途地域・農地・川・浸水などを国のデータで数秒で調べます。
-                  </p>
-                </div>
-                <div className="field">
-                  <label htmlFor="description" className="big-label">
-                    <span className="label-n">2</span>何を建てたいか
-                  </label>
-                  <textarea
-                    id="description"
-                    maxLength={4000}
-                    value={plan.description}
-                    onChange={(e) => set("description", e.target.value)}
-                    placeholder="一文で十分です。例：木造2階建ての自宅（延べ面積110㎡）"
-                    style={{ minHeight: 72 }}
-                  />
-                  <div className="chips" aria-label="入力例">
-                    {PLAN_EXAMPLES.map((ex) => (
-                      <button key={ex} type="button" className="chip-btn" onClick={() => set("description", ex)}>
-                        {ex}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <Attachments files={attachments} onChange={setAttachments} />
-              </div>
-            )}
+      <div className="wrap ws no-print">
+        <Rail items={rail} title={plan.address.trim() || "新しい案件"} />
 
-            {!report && landBlock}
+        <div className="ws-main">
+          {saved && !report && !busy && (
+            <div className="resume">
+              <span>
+                前回の結果　<strong>{saved.address || "住所なし"}</strong>
+                <span className="hint">
+                  （{new Date(saved.savedAt).toLocaleString("ja-JP", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })}）
+                </span>
+              </span>
+              <button type="button" className="linkbtn" onClick={openSaved}>
+                開く →
+              </button>
+            </div>
+          )}
 
-            {!collapsed && (
-              <>
-                <details className="more" open={showDetails} onToggle={(e) => setShowDetails((e.target as HTMLDetailsElement).open)}>
-                  <summary>
-                    分かれば入れる（任意）
-                    <span className="hint">　規模・道路・地目・盛土・自動取得の手直し・資料のメモ</span>
-                  </summary>
-                  <div style={{ marginTop: 12 }}>
-                    <div className="field-row">
-                      <SelectField id="workType" label="工事種別" value={plan.workType} options={WORK_TYPES} onChange={(v) => set("workType", v)} />
-                      <SelectField id="buildingUse" label="建物用途" value={plan.buildingUse} options={BUILDING_USES} onChange={(v) => set("buildingUse", v)} />
-                      <SelectField id="structure" label="構造" value={plan.structure} options={STRUCTURES} onChange={(v) => set("structure", v)} />
-                    </div>
-                    <div className="field-row">
-                      <NumberField id="floors" label="階数" unit="階" value={plan.floors} onChange={(v) => set("floors", v === null ? null : Math.round(v))} />
-                      <NumberField id="totalFloorArea" label="延べ面積" unit="㎡" value={plan.totalFloorArea} onChange={(v) => set("totalFloorArea", v)} hint="概算で可" />
-                      <NumberField id="siteArea" label="敷地面積" unit="㎡" value={plan.siteArea} onChange={(v) => set("siteArea", v)} hint="上限面積の目安が出ます" />
-                      <SelectField id="landCategory" label="登記の地目" value={plan.landCategory} options={LAND_CATEGORIES} onChange={(v) => set("landCategory", v)} />
-                    </div>
-                    <div className="field-row">
-                      <NumberField id="roadWidth" label="前面道路の幅員" unit="m" value={plan.roadWidth} onChange={(v) => set("roadWidth", v)} />
-                      <NumberField id="frontage" label="接道長さ" unit="m" value={plan.frontage} onChange={(v) => set("frontage", v)} hint="旗竿地は路地の幅" />
-                      <SelectField id="roadType" label="前面道路の種別" value={plan.roadType} options={ROAD_TYPES} onChange={(v) => set("roadType", v)} />
-                    </div>
-                    <div className="field-row">
-                      <NumberField id="fillHeight" label="盛土の高さ" unit="m" value={plan.fillHeight} onChange={(v) => set("fillHeight", v)} />
-                      <NumberField id="cutHeight" label="切土の高さ" unit="m" value={plan.cutHeight} onChange={(v) => set("cutHeight", v)} />
-                      <NumberField id="earthworkArea" label="盛土・切土の面積" unit="㎡" value={plan.earthworkArea} onChange={(v) => set("earthworkArea", v)} />
-                      <NumberField id="demolitionArea" label="解体する建物の床面積" unit="㎡" value={plan.demolitionArea} onChange={(v) => set("demolitionArea", v)} hint="建て替え時" />
-                    </div>
-                    <p className="hint">自動取得の結果が都市計画図と違うときは、ここで選び直してください。手で選んだ値が優先されます。</p>
-                    <div className="field-row">
-                      <SelectField id="areaDivision" label="区域区分" value={plan.areaDivision} options={AREA_DIVISIONS} onChange={(v) => set("areaDivision", v)} />
-                      <SelectField id="zoning" label="用途地域" value={plan.zoning} options={ZONINGS} onChange={(v) => set("zoning", v)} />
-                      <SelectField id="fireZone" label="防火指定" value={plan.fireZone} options={FIRE_ZONES} onChange={(v) => set("fireZone", v)} />
-                      <SelectField id="farmlandBlue" label="農用地区域（青地）か" value={plan.farmlandBlue} options={YES_NO_UNKNOWN} onChange={(v) => set("farmlandBlue", v)} />
-                    </div>
-                    <div className="field-row">
-                      <NumberField id="buildingArea" label="建築面積" unit="㎡" value={plan.buildingArea} onChange={(v) => set("buildingArea", v)} />
-                      <NumberField id="height" label="最高高さ" unit="m" value={plan.height} onChange={(v) => set("height", v)} />
-                      <NumberField id="contractAmountMan" label="請負金額" unit="万円" value={plan.contractAmountMan} onChange={(v) => set("contractAmountMan", v)} />
-                    </div>
-                    <div className="field">
-                      <label>該当する区域・指定（自動取得に追加）</label>
-                      <div className="check-grid">
-                        {HAZARDS.map((h) => (
-                          <label key={h}>
-                            <input
-                              type="checkbox"
-                              checked={effective.hazards.includes(h)}
-                              disabled={site?.derived.hazards.includes(h) && !plan.hazards.includes(h)}
-                              onChange={() => toggle("hazards", h)}
-                            />{" "}
-                            {h}
-                            {site?.derived.hazards.includes(h) && <span className="hint">（自動）</span>}
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="field">
-                      <label>その他該当する事項</label>
-                      <div className="check-grid">
-                        {EXTRAS.map((x) => (
-                          <label key={x}>
-                            <input type="checkbox" checked={plan.extras.includes(x)} onChange={() => toggle("extras", x)} /> {x}
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="field">
-                      <label htmlFor="landInfo">
-                        資料のメモ <span className="hint">登記事項、公図・測量図の要点、重要事項説明書の抜き書きなど</span>
-                      </label>
-                      <textarea id="landInfo" maxLength={6000} value={plan.landInfo} onChange={(e) => set("landInfo", e.target.value)} />
-                    </div>
-                  </div>
-                </details>
-
-                {!siteLookupAvailable && (
-                  <p className="notice" style={{ marginTop: 16 }}>
-                    住所からの自動取得（用途地域・区域区分・防火指定・災害区域）には、国土交通省 不動産情報ライブラリの API キー（無料・申請制）が必要です。サーバーの環境変数 REINFOLIB_API_KEY
-                    に設定してください。
-                  </p>
-                )}
-
-                {error && <p className="notice">{error}</p>}
-
-                <div className="runbar">
-                  <button type="button" className="btn btn-run" onClick={consult} disabled={!canRun}>
-                    {busy ? "チェック中…" : report ? "もう一度AIでチェック" : "AIで詳しくチェック"}
+          <Section id="s-input" no="01" title="計画を入れる" lead="住所は地番まで。分からない項目は空欄のままで大丈夫です。">
+            <form onSubmit={(e) => e.preventDefault()}>
+              {arrival === "claude" && <p className="ok">Claude から開きました。住所・計画・資料から読み取った内容を入れてあります（資料のメモは「分かれば入れる」の一番下）。</p>}
+              {collapsed ? (
+                <div className="formsum">
+                  <dl>
+                    <dt>住所</dt>
+                    <dd>{plan.address || "—"}</dd>
+                    <dt>計画</dt>
+                    <dd>{plan.description || "—"}</dd>
+                  </dl>
+                  <button type="button" className="linkbtn" onClick={() => setEditing(true)}>
+                    入力を変える →
                   </button>
-                  {busy ? (
-                    <button type="button" className="btn secondary" onClick={() => abortRef.current?.abort()}>
-                      中止
-                    </button>
-                  ) : (
-                    <span className="hint">約3〜4分。条文と自治体の公式資料を確認し、出典付きでまとめます。</span>
+                </div>
+              ) : (
+                <>
+                  {accessRequired && (
+                    <div className="field field-key">
+                      <label htmlFor="accessKey">アクセスキー</label>
+                      <input id="accessKey" type="password" value={accessKey} onChange={(e) => setAccessKey(e.target.value)} autoComplete="off" placeholder="社内で共有しているキー（この端末に保存）" />
+                    </div>
                   )}
-                  {!busy && (
+                  <div className="field">
+                    <label htmlFor="address" className="big-label">
+                      敷地の住所
+                    </label>
+                    <div className="address-row">
+                      <input
+                        id="address"
+                        className="input-xl"
+                        type="text"
+                        maxLength={200}
+                        value={plan.address}
+                        placeholder="例：岐阜県岐阜市水海道一丁目12番7"
+                        onChange={(e) => set("address", e.target.value)}
+                        onBlur={() => lookup()}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            lookup(true);
+                          }
+                        }}
+                      />
+                      <button type="button" className="btn" onClick={() => lookup(true)} disabled={siteBusy || plan.address.trim().length < 3}>
+                        {siteBusy ? "調べています…" : "土地を調べる"}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="field">
+                    <label htmlFor="description" className="big-label">
+                      何を建てたいか
+                    </label>
+                    <textarea id="description" maxLength={4000} value={plan.description} onChange={(e) => set("description", e.target.value)} placeholder="一文で十分です。例：木造2階建ての自宅（延べ面積110㎡）" rows={2} />
+                    <div className="examples" aria-label="入力例">
+                      <span>例</span>
+                      {PLAN_EXAMPLES.map((ex) => (
+                        <button key={ex} type="button" onClick={() => set("description", ex)}>
+                          {ex}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <Attachments files={attachments} onChange={setAttachments} />
+                  <details className="more" open={showDetails} onToggle={(e) => setShowDetails((e.target as HTMLDetailsElement).open)}>
+                    <summary>
+                      分かれば入れる<span className="hint">規模・道路・地目・盛土・自動取得の手直し・資料のメモ</span>
+                    </summary>
+                    <div className="more-body">
+                      <div className="field-row">
+                        <SelectField id="workType" label="工事種別" value={plan.workType} options={WORK_TYPES} onChange={(v) => set("workType", v)} />
+                        <SelectField id="buildingUse" label="建物用途" value={plan.buildingUse} options={BUILDING_USES} onChange={(v) => set("buildingUse", v)} />
+                        <SelectField id="structure" label="構造" value={plan.structure} options={STRUCTURES} onChange={(v) => set("structure", v)} />
+                      </div>
+                      <div className="field-row">
+                        <NumberField id="floors" label="階数" unit="階" value={plan.floors} onChange={(v) => set("floors", v === null ? null : Math.round(v))} />
+                        <NumberField id="totalFloorArea" label="延べ面積" unit="㎡" value={plan.totalFloorArea} onChange={(v) => set("totalFloorArea", v)} hint="概算で可" />
+                        <NumberField id="siteArea" label="敷地面積" unit="㎡" value={plan.siteArea} onChange={(v) => set("siteArea", v)} hint="上限面積の目安が出ます" />
+                        <SelectField id="landCategory" label="登記の地目" value={plan.landCategory} options={LAND_CATEGORIES} onChange={(v) => set("landCategory", v)} />
+                      </div>
+                      <div className="field-row">
+                        <NumberField id="roadWidth" label="前面道路の幅員" unit="m" value={plan.roadWidth} onChange={(v) => set("roadWidth", v)} />
+                        <NumberField id="frontage" label="接道長さ" unit="m" value={plan.frontage} onChange={(v) => set("frontage", v)} hint="旗竿地は路地の幅" />
+                        <SelectField id="roadType" label="前面道路の種別" value={plan.roadType} options={ROAD_TYPES} onChange={(v) => set("roadType", v)} />
+                      </div>
+                      <div className="field-row">
+                        <NumberField id="fillHeight" label="盛土の高さ" unit="m" value={plan.fillHeight} onChange={(v) => set("fillHeight", v)} />
+                        <NumberField id="cutHeight" label="切土の高さ" unit="m" value={plan.cutHeight} onChange={(v) => set("cutHeight", v)} />
+                        <NumberField id="earthworkArea" label="盛土・切土の面積" unit="㎡" value={plan.earthworkArea} onChange={(v) => set("earthworkArea", v)} />
+                        <NumberField id="demolitionArea" label="解体する建物の床面積" unit="㎡" value={plan.demolitionArea} onChange={(v) => set("demolitionArea", v)} hint="建て替え時" />
+                      </div>
+                      <p className="hint">自動取得の結果が都市計画図と違うときは、ここで選び直してください。手で選んだ値が優先されます。</p>
+                      <div className="field-row">
+                        <SelectField id="areaDivision" label="区域区分" value={plan.areaDivision} options={AREA_DIVISIONS} onChange={(v) => set("areaDivision", v)} />
+                        <SelectField id="zoning" label="用途地域" value={plan.zoning} options={ZONINGS} onChange={(v) => set("zoning", v)} />
+                        <SelectField id="fireZone" label="防火指定" value={plan.fireZone} options={FIRE_ZONES} onChange={(v) => set("fireZone", v)} />
+                        <SelectField id="farmlandBlue" label="農用地区域（青地）か" value={plan.farmlandBlue} options={YES_NO_UNKNOWN} onChange={(v) => set("farmlandBlue", v)} />
+                      </div>
+                      <div className="field-row">
+                        <NumberField id="buildingArea" label="建築面積" unit="㎡" value={plan.buildingArea} onChange={(v) => set("buildingArea", v)} />
+                        <NumberField id="height" label="最高高さ" unit="m" value={plan.height} onChange={(v) => set("height", v)} />
+                        <NumberField id="contractAmountMan" label="請負金額" unit="万円" value={plan.contractAmountMan} onChange={(v) => set("contractAmountMan", v)} />
+                      </div>
+                      <div className="field">
+                        <label>該当する区域・指定（自動取得に追加）</label>
+                        <div className="check-grid">
+                          {HAZARDS.map((h) => (
+                            <label key={h}>
+                              <input type="checkbox" checked={effective.hazards.includes(h)} disabled={site?.derived.hazards.includes(h) && !plan.hazards.includes(h)} onChange={() => toggle("hazards", h)} /> {h}
+                              {site?.derived.hazards.includes(h) && <span className="hint">（自動）</span>}
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="field">
+                        <label>その他該当する事項</label>
+                        <div className="check-grid">
+                          {EXTRAS.map((x) => (
+                            <label key={x}>
+                              <input type="checkbox" checked={plan.extras.includes(x)} onChange={() => toggle("extras", x)} /> {x}
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="field">
+                        <label htmlFor="landInfo">
+                          資料のメモ <span className="hint">登記事項、公図・測量図の要点、重要事項説明書の抜き書きなど</span>
+                        </label>
+                        <textarea id="landInfo" maxLength={6000} value={plan.landInfo} onChange={(e) => set("landInfo", e.target.value)} />
+                      </div>
+                    </div>
+                  </details>
+                  {!siteLookupAvailable && <p className="notice">住所からの自動取得には、国土交通省 不動産情報ライブラリの API キー（REINFOLIB_API_KEY）が必要です。</p>}
+                  <div className="input-foot">
                     <button
                       type="button"
-                      className="linkish"
+                      className="linkbtn muted"
                       onClick={() => {
                         setPlan(EMPTY_PLAN);
                         setSite(null);
@@ -749,212 +701,216 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
                     >
                       入力をクリア
                     </button>
-                  )}
-                </div>
-              </>
-            )}
-          </form>
-
-          {!report && toolsBlock}
-
-          <div ref={resultRef} style={{ scrollMarginTop: 80 }}>
-            {(text || report || busy) && (
-              <div style={{ marginTop: 28 }}>
-                <div className="result-head">
-                  <div>
-                    <p className="card-kicker">RESULT</p>
-                    <h2 style={{ margin: 0 }}>チェック結果</h2>
                   </div>
-                  {(done || (report && !busy)) && (
-                    <div className="toolbar">
-                      <button type="button" className="btn small" onClick={() => window.print()}>
-                        PDFで保存
-                      </button>
-                      <button type="button" className="btn small btn-signal" onClick={() => document.getElementById("survey")?.scrollIntoView({ behavior: "smooth", block: "start" })}>
-                        法令制限確認書（Excel）
-                      </button>
-                      {report?.tasks && report.tasks.length > 0 && (
-                        <button
-                          type="button"
-                          className="btn small secondary"
-                          onClick={() => download(`タスク_${plan.address || "案件"}.csv`, tasksToCsv(report.tasks, taskDone), "text/csv;charset=utf-8")}
-                        >
-                          タスクをCSV
-                        </button>
-                      )}
-                      <button type="button" className="btn small secondary" onClick={copyResult}>
-                        {copied ? "コピーしました" : "出典付きでコピー"}
-                      </button>
-                    </div>
-                  )}
-                </div>
-                {busy && !reportFinal && (
-                  <div className="runprogress" role="status">
-                    <div className="radar big" aria-hidden>
-                      <span className="sweep" />
-                      <span className="blip b1" />
-                      <span className="blip b2" />
-                      <span className="blip b3" />
-                      <strong className="radar-time">
-                        {Math.floor(elapsed / 60)}:{String(elapsed % 60).padStart(2, "0")}
-                      </strong>
-                    </div>
-                    <div className="runprogress-body">
-                      <div className="runprogress-top">
-                        <span className="dot-live" aria-hidden />
-                        <strong>{PHASES[phase]}…</strong>
-                        <span className="hint">
-                          {Math.floor(elapsed / 60)}分{String(elapsed % 60).padStart(2, "0")}秒 経過（目安3〜4分）
-                        </span>
-                      </div>
-                      <div className="bar">
-                        <span
-                          style={{
-                            width: `${Math.min(97, Math.max((phase / PHASES.length) * 100, (elapsed / EXPECTED_SECONDS) * 100))}%`,
-                          }}
-                        />
-                      </div>
-                      <ol className="phases">
-                        {PHASES.map((p, i) => (
-                          <li key={p} className={i < phase ? "is-done" : i === phase ? "is-current" : ""}>
-                            {p}
-                          </li>
-                        ))}
-                      </ol>
-                      {log.length > 0 && <p className="hint runlog">{log[log.length - 1]}</p>}
-                      <p className="hint">画面はこのままでお待ちください。結論から順に表示されます。</p>
-                    </div>
-                  </div>
-                )}
-                {report ? (
-                  <ReportView report={report} streaming={busy && !reportFinal} sourceCounts={reportFinal ? sourceCounts : undefined} taskDone={taskDone} onToggleTask={toggleTask} />
-                ) : (
-                  text && <MarkdownView markdown={text} />
-                )}
-                {!busy && log.length > 0 && (
-                  <details className="progress">
-                    <summary>AIが調べた手順（{log.length}件）</summary>
-                    <ul className="log">
-                      {log.map((l, i) => (
-                        <li key={i}>{l}</li>
-                      ))}
-                    </ul>
-                  </details>
-                )}
-                {sources.length > 0 && (
-                  <details className="card sources-card" style={{ marginTop: 16 }}>
-                    <summary>参照した出典の一覧（{sources.length}件）</summary>
-                    <ul className="sources">
-                      {sources.map((s) => (
-                        <li key={s.url}>
-                          <span className={`badge tier-${s.tier}`}>{s.tier}</span>
-                          <a href={s.url} target="_blank" rel="noopener noreferrer">
-                            {s.title}
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
-                  </details>
-                )}
-              </div>
-            )}
-            {report && (
-              <div style={{ marginTop: 20 }}>
-                {landBlock}
-                {toolsBlock}
-              </div>
-            )}
-          </div>
-        </div>
-
-        <aside className="sticky side">
-          <div className="card">
-            <div className="side-head">
-              <h3>すぐ分かる論点</h3>
-              {findings.length > 0 && !report && (
-                <button type="button" className="btn small secondary" onClick={() => window.print()}>
-                  PDFで保存
-                </button>
+                </>
               )}
-            </div>
-            <p className="hint" style={{ margin: "0 0 10px" }}>
-              住所のデータと入力を、条文照合済みのルールに当てはめた自動判定です（AIを使わず即時）。
-            </p>
-            {findings.length === 0 ? (
-              <div className="empty">
-                <p>住所と「何を建てたいか」を入れると、ここに論点と窓口が出ます。</p>
-              </div>
-            ) : (
-              <>
-                <div className="counts">
-                  <span>
-                    <strong>{split.specific.length}</strong>この敷地・計画に固有
-                  </span>
-                  <span>
-                    <strong>{split.checks.length}</strong>窓口で確認
-                  </span>
-                  <span>
-                    <strong>{split.routine.length}</strong>毎回の手続き
-                  </span>
+            </form>
+          </Section>
+
+          {(site || siteBusy || siteError) && (
+            <Section id="s-land" no="02" title="土地のまとめ" lead={location ?? "住所の位置を特定しています"}>
+              {siteBusy && (
+                <div className="scanning" role="status">
+                  <span className="radar" aria-hidden />
+                  <p>都市計画・災害・農地・川のデータを照合しています…</p>
                 </div>
+              )}
+              {siteError && <p className="notice">{siteError}</p>}
+              {site && !siteBusy && (
+                <>
+                  {!site.apiAvailable && <p className="notice">不動産情報ライブラリの API キーが未設定のため、用途地域などは取得できていません。「分かれば入れる」で手入力してください。</p>}
+                  <LandSheet facts={facts} location={location ?? ""} notes={site.derived.notes} />
+                </>
+              )}
+            </Section>
+          )}
 
-                {agencies.length > 0 && (
-                  <div className="side-sec">
-                    <h4>先に聞きに行く窓口</h4>
-                    {agencies.slice(0, 8).map(({ agency, items }) => (
-                      <details key={agency} className="agency-fold">
-                        <summary>
-                          <strong>{agency}</strong>
-                          <span className="pill tone-info">{items.length}件</span>
-                        </summary>
-                        <ul>
-                          {items.map((f) => (
-                            <li key={f.rule.id}>{f.rule.title}</li>
-                          ))}
-                        </ul>
-                      </details>
-                    ))}
+          {hasMap && site && site.lat !== null && site.lon !== null && (
+            <Section id="s-maps" no="03" title="案内図・公図" lead="国土地理院の地図と、法務省の登記所備付地図データ。">
+              <div className="plates">
+                <SiteMap lat={site.lat} lon={site.lon} label={plan.address} />
+                <LotCard address={plan.address} lat={site.lat} lon={site.lon} accessKey={accessKey} onInfo={setLotInfo} />
+              </div>
+            </Section>
+          )}
+
+          {findings.length > 0 && (
+            <Section id="s-issues" no="04" title="自動判定の論点" lead="住所のデータと入力を、条文照合済みのルールに当てはめた即時の判定です（AIは使っていません）。">
+              <div className="issues">
+                <div className="issues-counts">
+                  <div>
+                    <strong>{split.specific.length}</strong>
+                    <span>この敷地・計画に固有</span>
                   </div>
-                )}
-
-                {split.specific.length > 0 && (
-                  <div className="side-sec">
-                    <h4>この敷地・計画ならではの論点</h4>
-                    {groupByStage(split.specific).map(({ stage, items }) => (
-                      <div key={stage} className="stage">
+                  <div>
+                    <strong>{split.checks.length}</strong>
+                    <span>窓口で確認</span>
+                  </div>
+                  <div>
+                    <strong>{split.routine.length}</strong>
+                    <span>毎回の手続き</span>
+                  </div>
+                </div>
+                <div className="issues-grid">
+                  <div className="issues-col">
+                    {split.specific.length > 0 &&
+                      groupByStage(split.specific).map(({ stage, items }) => (
+                        <div key={stage} className="stage">
+                          <p className="stage-name">
+                            {stage}
+                            <span className="hint">{STAGE_HINT[stage]}</span>
+                          </p>
+                          {items.map((f) => (
+                            <FindingItem key={f.rule.id} f={f} />
+                          ))}
+                        </div>
+                      ))}
+                    {split.checks.length > 0 && (
+                      <div className="stage">
                         <p className="stage-name">
-                          {stage}
-                          <span className="hint">　{STAGE_HINT[stage]}</span>
+                          窓口で確認すること<span className="hint">入力不足・条例次第</span>
                         </p>
-                        {items.map((f) => (
+                        {split.checks.map((f) => (
                           <FindingItem key={f.rule.id} f={f} />
                         ))}
                       </div>
-                    ))}
+                    )}
+                    {split.routine.length > 0 && (
+                      <details className="routine">
+                        <summary>通常の新築で毎回必要な手続き（{split.routine.length}件）</summary>
+                        {split.routine.map((f) => (
+                          <FindingItem key={f.rule.id} f={f} />
+                        ))}
+                      </details>
+                    )}
                   </div>
-                )}
+                  {agencies.length > 0 && (
+                    <aside className="agencies">
+                      <p className="stage-name">先に聞きに行く窓口</p>
+                      <ol>
+                        {agencies.slice(0, 8).map(({ agency, items }) => (
+                          <li key={agency}>
+                            <strong>{agency}</strong>
+                            <span>{items.map((f) => f.rule.title.replace(/（.*?）/g, "")).join("／")}</span>
+                          </li>
+                        ))}
+                      </ol>
+                    </aside>
+                  )}
+                </div>
+              </div>
+            </Section>
+          )}
 
-                {split.checks.length > 0 && (
-                  <div className="side-sec">
-                    <h4>窓口で確認すること（入力不足・条例次第）</h4>
-                    {split.checks.map((f) => (
-                      <FindingItem key={f.rule.id} f={f} />
-                    ))}
+          <div ref={resultRef} style={{ scrollMarginTop: 80 }}>
+            <Section
+              id="s-result"
+              no="05"
+              title="AIの詳しいチェック"
+              lead="条文（e-Gov）と自治体の公式資料を確かめ、結論・見落とし・設計・事前協議・タスクを出典付きでまとめます。"
+              aside={
+                (done || (report && !busy)) && (
+                  <button type="button" className="linkbtn" onClick={copyResult}>
+                    {copied ? "コピーしました" : "出典付きでコピー"}
+                  </button>
+                )
+              }
+            >
+              {error && <p className="notice">{error}</p>}
+              {runControls}
+              {busy && !reportFinal && (
+                <div className="runprogress" role="status">
+                  <div className="radar big" aria-hidden>
+                    <span className="sweep" />
+                    <span className="blip b1" />
+                    <span className="blip b2" />
+                    <span className="blip b3" />
+                    <strong className="radar-time">
+                      {Math.floor(elapsed / 60)}:{String(elapsed % 60).padStart(2, "0")}
+                    </strong>
                   </div>
-                )}
-
-                {split.routine.length > 0 && (
-                  <details className="routine">
-                    <summary>通常の新築で毎回必要な手続き（{split.routine.length}件）</summary>
-                    {split.routine.map((f) => (
-                      <FindingItem key={f.rule.id} f={f} />
-                    ))}
-                  </details>
-                )}
-              </>
-            )}
+                  <div className="runprogress-body">
+                    <div className="runprogress-top">
+                      <span className="dot-live" aria-hidden />
+                      <strong>{PHASES[phase]}…</strong>
+                    </div>
+                    <div className="bar">
+                      <span style={{ width: `${Math.min(97, Math.max((phase / PHASES.length) * 100, (elapsed / EXPECTED_SECONDS) * 100))}%` }} />
+                    </div>
+                    <ol className="phases">
+                      {PHASES.map((p, i) => (
+                        <li key={p} className={i < phase ? "is-done" : i === phase ? "is-current" : ""}>
+                          {p}
+                        </li>
+                      ))}
+                    </ol>
+                    {log.length > 0 && <p className="hint runlog">{log[log.length - 1]}</p>}
+                  </div>
+                </div>
+              )}
+              {resultVisible && (report ? <ReportView report={report} streaming={busy && !reportFinal} sourceCounts={reportFinal ? sourceCounts : undefined} taskDone={taskDone} onToggleTask={toggleTask} /> : text && <MarkdownView markdown={text} />)}
+              {!busy && (log.length > 0 || sources.length > 0) && (
+                <div className="trail">
+                  {sources.length > 0 && (
+                    <details>
+                      <summary>参照した出典（{sources.length}件）</summary>
+                      <ul className="sources">
+                        {sources.map((s) => (
+                          <li key={s.url}>
+                            <span className={`badge tier-${s.tier}`}>{s.tier}</span>
+                            <a href={s.url} target="_blank" rel="noopener noreferrer">
+                              {s.title}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    </details>
+                  )}
+                  {log.length > 0 && (
+                    <details>
+                      <summary>AIが調べた手順（{log.length}件）</summary>
+                      <ul className="log">
+                        {log.map((l, i) => (
+                          <li key={i}>{l}</li>
+                        ))}
+                      </ul>
+                    </details>
+                  )}
+                </div>
+              )}
+            </Section>
           </div>
-        </aside>
+
+          {hasSite && (
+            <Section id="s-docs" no="06" title="書類を作る" lead="社内で使う形式で、そのまま保存できます。">
+              <ul className="docs">
+                <li>
+                  <div>
+                    <strong>法令チェック表（PDF）</strong>
+                    <span>案内図・公図・土地のまとめ・論点{report ? "・AIの結論とタスク" : ""}を出典番号つきの一覧表に。</span>
+                  </div>
+                  <button type="button" className="btn small" onClick={() => window.print()}>
+                    PDFで保存
+                  </button>
+                </li>
+                {report?.tasks && report.tasks.length > 0 && (
+                  <li>
+                    <div>
+                      <strong>タスク一覧（CSV）</strong>
+                      <span>担当・時期・やること・相手先。Excel やスプレッドシートで開けます。</span>
+                    </div>
+                    <button type="button" className="btn small secondary" onClick={() => download(`タスク_${plan.address || "案件"}.csv`, tasksToCsv(report.tasks, taskDone), "text/csv;charset=utf-8")}>
+                      CSVで保存
+                    </button>
+                  </li>
+                )}
+              </ul>
+              <div id="survey">
+                <SurveyPanel plan={plan} report={report} accessKey={accessKey} suggestedLot={suggestedLot} />
+              </div>
+            </Section>
+          )}
+        </div>
       </div>
 
       <PrintSheet

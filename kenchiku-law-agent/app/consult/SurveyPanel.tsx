@@ -113,20 +113,19 @@ export default function SurveyPanel({ plan, report, accessKey, suggestedLot }: {
 
   return (
     <section className="surveycard">
-      <header>
+      <div className="docs-row">
         <div>
-          <p className="card-kicker">EXCEL</p>
-          <h3>法令制限確認書</h3>
-          <p className="hint">社内書式「敷地調査　建築法令制限確認書 Ver1-2」で出します。用途地域・建蔽率／容積率・防火・都市計画区域・接道・備考は自動。顧客情報は分かる分だけ（空欄のままでも作れます）。</p>
+          <strong>法令制限確認書（Excel）</strong>
+          <span>社内書式「敷地調査　建築法令制限確認書 Ver1-2」。用途地域・建蔽率／容積率・防火・都市計画区域・接道・該当地（公図）・備考は自動で記入。顧客情報は分かる分だけ。</span>
         </div>
-        <button type="button" className="btn btn-signal" onClick={make} disabled={busy || plan.address.trim().length < 3}>
-          {busy ? "作成中…" : "Excelを作る"}
+        <button type="button" className="btn small btn-signal" onClick={make} disabled={busy || plan.address.trim().length < 3}>
+          {busy ? "作成中…" : "Excelで保存"}
         </button>
-      </header>
+      </div>
       {error && <p className="notice">{error}</p>}
       {done && <p className="ok">「{done}」を保存しました。設備・仕様の欄は空のままです。</p>}
       <details className="survey-more">
-        <summary>顧客情報・接道などを入れる（任意）</summary>
+        <summary>顧客情報・接道などを入れる<span className="hint">任意。空欄のままでも作れます</span></summary>
         {suggestedLot && !survey.lot && (
           <button type="button" className="chip-btn lot-suggest" onClick={() => set("lot", suggestedLot)}>
             公図データの「{suggestedLot.split("（")[0]}」を該当地に入れる
