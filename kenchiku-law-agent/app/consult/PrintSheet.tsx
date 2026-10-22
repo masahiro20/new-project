@@ -10,6 +10,7 @@ import { CERTAINTY, CERTAINTY_HELP, type PartialReport } from "@/lib/report";
 import { SEVERITY_SHORT, citeLabel, citeUrl, type Finding } from "@/lib/rules";
 import { short, sortedTasks } from "./ReportView";
 import { annaiUrl } from "./SiteMap";
+import { LotDrawing, chibanShapes, type LotInfo } from "./LotCard";
 
 type Cite = { label?: string; url?: string };
 type Source = { tier: string; title: string; url: string };
@@ -23,6 +24,7 @@ export default function PrintSheet({
   sources,
   taskDone,
   map,
+  lot,
 }: {
   plan: PlanInput;
   location: string | null;
@@ -32,6 +34,7 @@ export default function PrintSheet({
   sources: Source[];
   taskDone: Record<number, boolean>;
   map?: { lat: number; lon: number } | null;
+  lot?: LotInfo | null;
 }) {
   // Numbered source registry, filled in render order.
   const registry: { label: string; url: string }[] = [];
@@ -91,6 +94,37 @@ export default function PrintSheet({
             <img src={annaiUrl(map.lat, map.lon, 18, "photo", 1000, 700)} alt="航空写真" />
           </div>
           <p className="ps-sub">左：広域（標準地図）　右：航空写真。出典：国土地理院（地理院タイル）。ピンは住所の代表点。</p>
+        </section>
+      )}
+
+      {(lot?.kozu?.status === "ok" || lot?.chiban?.status === "ok") && (
+        <section className="ps-sec ps-lot">
+          <h2>公図（登記所備付地図データ）</h2>
+          <div className="ps-lot-body">
+            <LotDrawing
+              className="ps-lotsvg"
+              shapes={lot.kozu?.status === "ok" ? lot.kozu.lots : map && lot.chiban ? chibanShapes(lot.chiban, map.lat, map.lon) : []}
+              pin={lot.kozu?.status !== "ok"}
+            />
+            <div className="ps-sub">
+              {lot.kozu?.status === "ok" && lot.kozu.map ? (
+                <>
+                  <b>
+                    {lot.kozu.district} {lot.kozu.query?.chiban}
+                  </b>
+                  <br />
+                  {lot.kozu.map.category}（{lot.kozu.map.kind}）{lot.kozu.map.scale ? ` 1/${lot.kozu.map.scale}` : ""}・{lot.kozu.map.coord}
+                  {lot.kozu.map.precision ? `・精度区分 ${lot.kozu.map.precision}` : ""}
+                  <br />
+                  図上の面積 約{lot.kozu.area}㎡（参考。登記の地積ではない）
+                </>
+              ) : (
+                <>代表点が入る筆：{lot.chiban?.lots[0]?.oaza}{lot.chiban?.lots[0]?.chiban}（推測）</>
+              )}
+              <br />
+              地目・地積・所有者は登記事項証明書で確認。出典：法務省 登記所備付地図データ（G空間情報センター）。境界・地積の証明には使えません。
+            </div>
+          </div>
         </section>
       )}
 

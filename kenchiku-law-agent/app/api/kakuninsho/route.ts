@@ -6,6 +6,8 @@ import { allow, clientIp } from "@/lib/ratelimit";
 import type { PartialReport } from "@/lib/report";
 import { unseal } from "@/lib/sealed";
 import { lookupSite, mergeSiteIntoPlan } from "@/lib/site";
+import { municipality } from "@/lib/chiban";
+import { lookupKozu, splitChiban } from "@/lib/kozu";
 
 // 法令制限確認書（社内の Excel 書式）を作って返す。
 //   POST /api/kakuninsho  { plan, survey, report? }   … 画面から（アクセスキー必須）
@@ -41,6 +43,16 @@ async function respond(input: KakuninshoRequest): Promise<Response> {
     }
   }
   const merged = mergeSiteIntoPlan(plan.data, site);
+  // 該当地が空なら、住所の地番で公図データを引いて「地番（公図の種類・図上面積）」を入れる。
+  if (!survey.lot && site?.lat != null && site.lon != null && splitChiban(plan.data.address)) {
+    try {
+      const muni = await municipality(site.lat, site.lon);
+      const k = muni ? await lookupKozu(plan.data.address, muni.muniCd) : null;
+      if (k?.status === "ok") survey.lot = `${k.district ?? ""}${k.query?.chiban ?? ""}（公図：${k.map?.kind ?? ""}・図上 約${k.area}㎡／地積・地目は登記簿で確認）`;
+    } catch (e) {
+      console.error("kozu for kakuninsho failed", e);
+    }
+  }
   const xlsx = buildKakuninsho({ survey, plan: merged, site, report: (parsed.data.report as PartialReport | null) ?? null });
   const name = kakuninshoFileName(merged, survey);
   return new Response(Buffer.from(xlsx), {

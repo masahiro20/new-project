@@ -1,109 +1,129 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { ChibanResult, Lot } from "@/lib/chiban";
+import type { ChibanResult } from "@/lib/chiban";
+import type { KozuResult } from "@/lib/kozu";
+
+export type LotInfo = { kozu: KozuResult | null; chiban: ChibanResult | null };
 
 const LINKS = [
   { label: "登記情報提供サービス", sub: "地目・地積・所有者（全部事項）と公図をPDFで。1件300円台", url: "https://www1.touki.or.jp/" },
   { label: "かんたん証明書請求", sub: "登記事項証明書を郵送で（ローン・申請の提出用）", url: "https://www.touki-kyoutaku-online.moj.go.jp/" },
   { label: "eMAFF農地ナビ", sub: "農地なら地番・地目・面積・農振区分を無料で", url: "https://map.maff.go.jp/" },
-  { label: "MAPPLE法務局地図ビューア", sub: "公図区域もおおよその位置で地図を閲覧", url: "https://biz.mapple.com/registrymap/" },
 ];
 
-/** Draws the lots around the point like a 公図: outlines, 地番 labels, the lot under the pin filled. */
-function LotSvg({ lots, lat, lon }: { lots: Lot[]; lat: number; lon: number }) {
-  const mx = 111_320 * Math.cos((lat * Math.PI) / 180);
-  const my = 111_320;
-  const pts = lots.flatMap((l) => l.ring.map(([x, y]) => [(x - lon) * mx, -(y - lat) * my]));
-  const xs = pts.map((p) => p[0]);
-  const ys = pts.map((p) => p[1]);
-  const pad = 6;
-  const minX = Math.max(Math.min(...xs), -80) - pad;
-  const maxX = Math.min(Math.max(...xs), 80) + pad;
-  const minY = Math.max(Math.min(...ys), -60) - pad;
-  const maxY = Math.min(Math.max(...ys), 60) + pad;
+type Shape = { chiban: string; ring: [number, number][]; main: boolean };
+
+/** Lots in metres around the origin (x east, y south), drawn like a 公図. */
+export function LotDrawing({ shapes, pin = false, className = "lotsvg" }: { shapes: Shape[]; pin?: boolean; className?: string }) {
+  if (shapes.length === 0) return null;
+  const main = shapes.find((s) => s.main) ?? shapes[0];
+  const span = Math.max(...main.ring.map(([x, y]) => Math.max(Math.abs(x), Math.abs(y))), 12);
+  // Frame: everything drawn, but no further than ~2.5x the main lot from it.
+  const limit = Math.min(Math.max(span * 2.6, 30), 60);
+  const pts = shapes.flatMap((s) => s.ring).filter(([x, y]) => Math.abs(x) <= limit && Math.abs(y) <= limit);
+  const minX = Math.min(...pts.map((p) => p[0]), -span) - 2;
+  const maxX = Math.max(...pts.map((p) => p[0]), span) + 2;
+  const minY = Math.min(...pts.map((p) => p[1]), -span) - 2;
+  const maxY = Math.max(...pts.map((p) => p[1]), span) + 2;
   const w = maxX - minX;
   const h = maxY - minY;
-  const label = (l: Lot) => {
-    const c = l.ring.reduce((a, [x, y]) => [a[0] + (x - lon) * mx, a[1] - (y - lat) * my], [0, 0]).map((v) => v / l.ring.length);
-    return { x: c[0], y: c[1] };
-  };
-  const font = Math.max(w, h) / 46;
+  const font = Math.max(w, h) / 44;
   return (
-    <svg viewBox={`${minX} ${minY} ${w} ${h}`} className="lotsvg" role="img" aria-label="周辺の地番図">
+    <svg viewBox={`${minX} ${minY} ${w} ${h}`} className={className} role="img" aria-label="地番図">
       <defs>
         <clipPath id="lotclip">
           <rect x={minX} y={minY} width={w} height={h} />
         </clipPath>
       </defs>
       <g clipPath="url(#lotclip)">
-        {lots.map((l, i) => (
-          <polygon key={i} className={l.contains ? "lot is-main" : "lot"} points={l.ring.map(([x, y]) => `${(x - lon) * mx},${-(y - lat) * my}`).join(" ")} style={{ animationDelay: `${Math.min(i, 40) * 18}ms` }} />
+        {shapes.map((s, i) => (
+          <polygon key={i} className={s.main ? "lot is-main" : /^(道|水|里|堤|溝)/.test(s.chiban) ? "lot is-public" : "lot"} points={s.ring.map(([x, y]) => `${x},${y}`).join(" ")} style={{ animationDelay: `${Math.min(i, 40) * 18}ms` }} />
         ))}
-        {lots.map((l, i) => {
-          const c = label(l);
-          // Skip labels that would not fit inside small lots (except the one under the pin).
-          const lx = l.ring.map(([x]) => (x - lon) * mx);
-          const ly = l.ring.map(([, y]) => (y - lat) * my);
-          const fits = Math.max(...lx) - Math.min(...lx) > font * (l.chiban.length * 0.62 + 0.4) && Math.max(...ly) - Math.min(...ly) > font * 1.1;
-          if (!l.contains && !fits) return null;
+        {shapes.map((s, i) => {
+          const xs = s.ring.map((p) => p[0]);
+          const ys = s.ring.map((p) => p[1]);
+          const w = Math.max(...xs) - Math.min(...xs);
+          const h = Math.max(...ys) - Math.min(...ys);
+          const size = s.main ? font * 1.35 : font;
+          if (!s.main && (w < size * (s.chiban.length * 0.6 + 0.4) || h < size * 1.1)) return null;
+          const cx = xs.reduce((a, b) => a + b, 0) / xs.length;
+          const cy = ys.reduce((a, b) => a + b, 0) / ys.length;
           return (
-            <text key={`t${i}`} x={c.x} y={c.y} className={l.contains ? "lot-label is-main" : "lot-label"} fontSize={l.contains ? font * 1.3 : font} textAnchor="middle" dominantBaseline="middle">
-              {l.chiban}
+            <text key={`t${i}`} x={cx} y={cy} className={s.main ? "lot-label is-main" : "lot-label"} fontSize={size} textAnchor="middle" dominantBaseline="middle">
+              {s.chiban}
             </text>
           );
         })}
       </g>
-      <circle cx="0" cy="0" r={font * 0.55} className="lot-pin" />
-      <circle cx="0" cy="0" r={font * 1.4} className="lot-pin-ring" />
+      {pin && (
+        <>
+          <circle cx="0" cy="0" r={font * 0.5} className="lot-pin" />
+          <circle cx="0" cy="0" r={font * 1.3} className="lot-pin-ring" />
+        </>
+      )}
     </svg>
   );
 }
 
-export default function LotCard({ lat, lon, accessKey, onLot }: { lat: number; lon: number; accessKey: string; onLot?: (label: string | null) => void }) {
-  const [data, setData] = useState<ChibanResult | null>(null);
+/** Point-based lots (公共座標) to the same metre frame. */
+export function chibanShapes(r: ChibanResult, lat: number, lon: number): Shape[] {
+  const mx = 111_320 * Math.cos((lat * Math.PI) / 180);
+  return r.lots.map((l) => ({ chiban: l.chiban, main: l.contains, ring: l.ring.map(([x, y]) => [(x - lon) * mx, -(y - lat) * 111_320] as [number, number]) }));
+}
+
+export default function LotCard({ address, lat, lon, accessKey, onInfo }: { address: string; lat: number; lon: number; accessKey: string; onInfo?: (info: LotInfo | null) => void }) {
+  const [info, setInfo] = useState<LotInfo | null>(null);
   const [busy, setBusy] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let alive = true;
     setBusy(true);
-    setData(null);
-    fetch(`/api/chiban?lat=${lat}&lon=${lon}`, { headers: accessKey ? { "x-access-key": accessKey } : {} })
+    setInfo(null);
+    setError(null);
+    fetch(`/api/lot?address=${encodeURIComponent(address)}&lat=${lat}&lon=${lon}`, { headers: accessKey ? { "x-access-key": accessKey } : {} })
       .then((r) => r.json())
-      .then((d: ChibanResult & { error?: string }) => {
+      .then((d: LotInfo & { error?: string }) => {
         if (!alive) return;
-        const result: ChibanResult = d.error ? { status: "error", muniCd: null, townName: null, dataset: null, lots: [], message: d.error } : d;
-        setData(result);
-        const main = result.status === "ok" ? result.lots.find((l) => l.contains) : undefined;
-        onLot?.(main ? `${main.oaza}${main.chiban}` : null);
+        if (d.error) {
+          setError(d.error);
+          onInfo?.(null);
+          return;
+        }
+        setInfo(d);
+        onInfo?.(d);
       })
-      .catch(() => alive && setData({ status: "error", muniCd: null, townName: null, dataset: null, lots: [], message: "通信エラーで地番図を取得できませんでした。" }))
+      .catch(() => alive && setError("通信エラーで公図データを取得できませんでした。"))
       .finally(() => alive && setBusy(false));
     return () => {
       alive = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lat, lon, accessKey]);
+  }, [address, lat, lon, accessKey]);
 
-  const main = data?.status === "ok" ? data.lots[0] : null;
+  const kozu = info?.kozu?.status === "ok" ? info.kozu : null;
+  const chiban = !kozu && info?.chiban?.status === "ok" ? info.chiban : null;
+  const shapes: Shape[] = kozu ? kozu.lots : chiban ? chibanShapes(chiban, lat, lon) : [];
+  const mainLot = kozu ? `${kozu.district ?? ""} ${kozu.query?.chiban ?? ""}` : chiban ? `${chiban.lots[0].oaza}${chiban.lots[0].chiban}` : null;
+  const publicLots = shapes.filter((s) => !s.main && /^(道|水|里|堤|溝)/.test(s.chiban)).map((s) => s.chiban);
+  const messages = [info?.kozu && info.kozu.status !== "ok" ? info.kozu.message : "", info?.chiban && info.chiban.status !== "ok" ? info.chiban.message : ""].filter(Boolean);
 
   return (
     <section className="lotcard">
       <header className="lotcard-head">
         <div>
-          <p className="card-kicker">登記・公図の手がかり</p>
-          <h3>地番図</h3>
+          <p className="card-kicker">登記・公図</p>
+          <h3>公図（登記所備付地図）</h3>
         </div>
-        {main && (
+        {mainLot && (
           <div className="lot-main">
-            <span className="cert cert-推測">
-              <span aria-hidden>?</span>推測
+            <span className={`cert ${kozu ? "cert-確定" : "cert-推測"}`}>
+              <span aria-hidden>{kozu ? "✓" : "?"}</span>
+              {kozu ? "地番で照合" : "推測"}
             </span>
-            <strong>
-              {main.oaza}
-              {main.chiban}
-            </strong>
-            <small>{main.contains ? "住所の代表点が入る筆" : `代表点から約${main.distance}m の筆`}</small>
+            <strong>{mainLot}</strong>
+            <small>{kozu ? "住所の地番で法務省の地図データを照合" : chiban?.lots[0].contains ? "住所の代表点が入る筆" : "代表点の近くの筆"}</small>
           </div>
         )}
       </header>
@@ -113,17 +133,45 @@ export default function LotCard({ lat, lon, accessKey, onLot }: { lat: number; l
           {busy && (
             <div className="scanning">
               <span className="radar" aria-hidden />
-              <p>法務省の地図データ（登記所備付地図）を照合しています…</p>
+              <p>法務省の登記所備付地図データを照合しています…</p>
             </div>
           )}
-          {!busy && data?.status === "ok" && <LotSvg lots={data.lots} lat={lat} lon={lon} />}
-          {!busy && data && data.status !== "ok" && <p className="lot-empty">{data.message}</p>}
+          {!busy && shapes.length > 0 && <LotDrawing shapes={shapes} pin={!kozu} />}
+          {!busy && shapes.length === 0 && <p className="lot-empty">{error ?? (messages.join(" ") || "データがありません。")}</p>}
         </div>
 
         <div className="lot-side">
           <dl className="lot-facts">
-            <dt>地番・筆の形</dt>
-            <dd>{data?.status === "ok" ? "法務省の地図データから表示" : busy ? "照合中" : "この場所はデータなし"}</dd>
+            {kozu?.map && (
+              <>
+                <dt>図面</dt>
+                <dd>
+                  {kozu.map.category}（{kozu.map.kind}）
+                </dd>
+                <dt>縮尺・座標</dt>
+                <dd>
+                  {kozu.map.scale ? `1/${kozu.map.scale}・` : ""}
+                  {kozu.map.coord}
+                  {kozu.map.precision ? `・精度区分 ${kozu.map.precision}` : ""}
+                </dd>
+                <dt>図上の面積</dt>
+                <dd>
+                  約{kozu.area}㎡<small>（参考。登記の地積ではありません）</small>
+                </dd>
+                {publicLots.length > 0 && (
+                  <>
+                    <dt>隣の道・水路</dt>
+                    <dd>{publicLots.join("、")}（公図上の地番）</dd>
+                  </>
+                )}
+              </>
+            )}
+            {chiban && (
+              <>
+                <dt>地番・筆の形</dt>
+                <dd>公共座標の地図から代表点で表示</dd>
+              </>
+            )}
             <dt>地目・地積</dt>
             <dd>登記簿で確認（農地は農地ナビでも可）</dd>
             <dt>所有者</dt>
@@ -143,7 +191,9 @@ export default function LotCard({ lat, lon, accessKey, onLot }: { lat: number; l
       </div>
 
       <p className="hint lot-note">
-        出典：法務省 登記所備付地図データ（G空間情報センター、(一社)社会基盤情報流通推進協議会による変換{data?.dataset?.year ? `・${data.dataset.year}年版` : ""}）。公共座標の地図だけを収録しており、公図そのものではありません。境界・地番の証明には使えないため、登記事項証明書と公図で確かめてください。
+        出典：法務省 登記所備付地図データ（G空間情報センター{kozu?.dataset?.year ? `・${kozu.dataset.year}年版` : info?.chiban?.dataset?.year ? `・${info.chiban.dataset.year}年版、(一社)社会基盤情報流通推進協議会の変換` : ""}）。
+        {kozu ? (kozu.map?.coord === "任意座標系" ? "任意座標の図面のため、位置・方位・寸法は目安です。" : "") : "地図上の代表点での判定です。"}
+        公図の写しではなく、境界・地積の証明には使えません。登記事項証明書と公図（登記情報提供サービス）で確かめてください。
       </p>
     </section>
   );

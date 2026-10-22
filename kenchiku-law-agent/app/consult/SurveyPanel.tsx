@@ -128,8 +128,8 @@ export default function SurveyPanel({ plan, report, accessKey, suggestedLot }: {
       <details className="survey-more">
         <summary>顧客情報・接道などを入れる（任意）</summary>
         {suggestedLot && !survey.lot && (
-          <button type="button" className="chip-btn lot-suggest" onClick={() => set("lot", `${suggestedLot}（地番図より推定・登記簿で要確認）`)}>
-            地番図の推定「{suggestedLot}」を該当地に入れる
+          <button type="button" className="chip-btn lot-suggest" onClick={() => set("lot", suggestedLot)}>
+            公図データの「{suggestedLot.split("（")[0]}」を該当地に入れる
           </button>
         )}
         <div className="sgrid">

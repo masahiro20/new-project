@@ -51,7 +51,7 @@ async function getJson<T>(url: string, ms = 15000): Promise<T> {
   return (await res.json()) as T;
 }
 
-async function municipality(lat: number, lon: number): Promise<{ muniCd: string; town: string } | null> {
+export async function municipality(lat: number, lon: number): Promise<{ muniCd: string; town: string } | null> {
   const r = await getJson<{ results?: { muniCd?: string; lv01Nm?: string } }>(`https://mreversegeocoder.gsi.go.jp/reverse-geocoder/LonLatToAddress?lat=${lat}&lon=${lon}`);
   const cd = r.results?.muniCd;
   return cd ? { muniCd: cd.padStart(5, "0"), town: r.results?.lv01Nm ?? "" } : null;

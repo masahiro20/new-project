@@ -5,7 +5,7 @@ import MarkdownView from "@/app/MarkdownView";
 import ReportView from "./ReportView";
 import PrintSheet from "./PrintSheet";
 import SiteMap from "./SiteMap";
-import LotCard from "./LotCard";
+import LotCard, { type LotInfo } from "./LotCard";
 import SurveyPanel from "./SurveyPanel";
 import Attachments, { type Attachment } from "./Attachments";
 import LandSheet from "./LandSheet";
@@ -177,7 +177,14 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
   const [taskDone, setTaskDone] = useState<Record<number, boolean>>({});
   const [saved, setSaved] = useState<Saved | null>(null);
   const [copied, setCopied] = useState(false);
-  const [suggestedLot, setSuggestedLot] = useState<string | null>(null);
+  const [lotInfo, setLotInfo] = useState<LotInfo | null>(null);
+  const suggestedLot = (() => {
+    const k = lotInfo?.kozu;
+    if (k?.status === "ok") return `${k.district ?? ""}${k.query?.chiban ?? ""}（公図：${k.map?.kind ?? ""}・図上 約${k.area}㎡／地積・地目は登記簿で確認）`;
+    const c = lotInfo?.chiban;
+    if (c?.status === "ok" && c.lots[0]?.contains) return `${c.lots[0].oaza}${c.lots[0].chiban}（地番図より推定・登記簿で要確認）`;
+    return null;
+  })();
   // Once an answer is on screen, the inputs fold into one line so the answer comes first.
   const [editing, setEditing] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
@@ -502,7 +509,7 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
   const toolsBlock = site && !siteBusy && (
     <div className="tools">
       {site.lat !== null && site.lon !== null && <SiteMap lat={site.lat} lon={site.lon} label={plan.address} />}
-      {site.lat !== null && site.lon !== null && <LotCard lat={site.lat} lon={site.lon} accessKey={accessKey} onLot={setSuggestedLot} />}
+      {site.lat !== null && site.lon !== null && <LotCard address={plan.address} lat={site.lat} lon={site.lon} accessKey={accessKey} onInfo={setLotInfo} />}
       <div id="survey">
         <SurveyPanel plan={plan} report={report} accessKey={accessKey} suggestedLot={suggestedLot} />
       </div>
@@ -959,6 +966,7 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
         sources={sources}
         taskDone={taskDone}
         map={site && site.lat !== null && site.lon !== null ? { lat: site.lat, lon: site.lon } : null}
+        lot={lotInfo}
       />
     </>
   );

@@ -808,3 +808,14 @@ pre.law { white-space: pre-wrap; overflow-wrap: anywhere; font-family: var(--fon
 .lot-note { margin: 12px 0 0; }
 .lot-suggest { margin: 10px 0 0; }
 @keyframes lot-in { from { opacity: 0; } to { opacity: 1; } }
+.lot.is-public { fill: #e8f1f8; stroke: #6b8aa3; }
+.lot-facts small { color: var(--muted); font-size: 0.74rem; }
+@media print {
+  .ps-lot-body { display: grid; grid-template-columns: 1.3fr 1fr; gap: 10px; align-items: start; }
+  .ps-lotsvg { width: 100%; height: auto; border: 0.6pt solid #9aa3a8; }
+  .ps-lotsvg .lot { fill: #fff; stroke: #333; stroke-width: 0.3; animation: none; }
+  .ps-lotsvg .lot.is-main { fill: #ffe766; stroke: #000; stroke-width: 0.6; }
+  .ps-lotsvg .lot.is-public { fill: #e8f1f8; }
+  .ps-lotsvg .lot-pin-ring { display: none; }
+  .ps-lot { break-inside: avoid; }
+}

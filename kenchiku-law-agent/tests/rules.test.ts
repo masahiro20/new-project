@@ -529,3 +529,26 @@ test("地番図: finds the lot under the point and its neighbours from a line-pe
   assert.equal(lots[0].contains, true);
   assert.deepEqual(lots.map((l) => l.chiban), ["27", "28"]); // far lot skipped
 });
+
+test("公図: address → 地番区域 + 地番, and a 地図XML lot with its neighbours and 図上面積", async () => {
+  const { splitChiban, normalizeDistrict, parseKozu } = await import("../lib/kozu");
+  assert.deepEqual(splitChiban("岐阜県岐阜市水海道一丁目12番7"), { before: "岐阜県岐阜市水海道1丁目", chiban: "12-7" });
+  assert.deepEqual(splitChiban("可児市坂戸132番地1"), { before: "可児市坂戸", chiban: "132-1" });
+  assert.deepEqual(splitChiban("岐阜市竜田町3丁目27"), { before: "岐阜市竜田町3丁目", chiban: "27" });
+  assert.equal(splitChiban("岐阜市"), null);
+  assert.equal(normalizeDistrict("岐阜市水海道１丁目"), "岐阜市水海道1丁目");
+  const pt = (id: string, x: number, y: number) => `<zmn:GM_Point id="${id}"><zmn:GM_Point.position><zmn:DirectPosition><zmn:X>${x}</zmn:X><zmn:Y>${y}</zmn:Y></zmn:DirectPosition></zmn:GM_Point.position></zmn:GM_Point>`;
+  const cv = (id: string, a: string, b: string) => `<zmn:GM_Curve id="${id}"><zmn:GM_Curve.segment><zmn:GM_LineString><zmn:GM_LineString.controlPoint><zmn:GM_PointArray.column><zmn:GM_Position.indirect><zmn:GM_PointRef.point idref="${a}"/></zmn:GM_Position.indirect></zmn:GM_PointArray.column><zmn:GM_PointArray.column><zmn:GM_Position.indirect><zmn:GM_PointRef.point idref="${b}"/></zmn:GM_Position.indirect></zmn:GM_PointArray.column></zmn:GM_LineString.controlPoint></zmn:GM_LineString></zmn:GM_Curve.segment></zmn:GM_Curve>`;
+  const sf = (id: string, cs: string[]) => `<zmn:GM_Surface id="${id}"><zmn:GM_SurfaceBoundary.exterior><zmn:GM_Ring>${cs.map((c) => `<zmn:GM_CompositeCurve.generator idref="${c}"/>`).join("")}</zmn:GM_Ring></zmn:GM_SurfaceBoundary.exterior></zmn:GM_Surface>`;
+  const fude = (id: string, chiban: string, surf: string) => `<筆 id="${id}"><大字名>水海道</大字名><丁目名>１丁目</丁目名><地番>${chiban}</地番><形状 idref="${surf}"/><座標値種別>図上測量</座標値種別></筆>`;
+  // 10m x 20m lot 12-7 and a 4m road 道-1 east of it (X = north, Y = east)
+  const xml = `<地図><地図名>長森地区Ｂ</地図名><座標系>任意座標系</座標系><空間属性>${pt("P1", 0, 0)}${pt("P2", 0, 10)}${pt("P3", 20, 10)}${pt("P4", 20, 0)}${pt("P5", 0, 14)}${pt("P6", 20, 14)}${cv("C1", "P1", "P2")}${cv("C2", "P2", "P3")}${cv("C3", "P3", "P4")}${cv("C4", "P4", "P1")}${cv("C5", "P2", "P5")}${cv("C6", "P5", "P6")}${cv("C7", "P6", "P3")}${sf("F1", ["C1", "C2", "C3", "C4"])}${sf("F2", ["C5", "C6", "C7", "C2"])}</空間属性><主題属性>${fude("H1", "12-7", "F1")}${fude("H2", "道-1", "F2")}</主題属性><図郭><地図種類>土地改良所在図</地図種類><地図分類>地図に準ずる図面</地図分類><縮尺分母>1000</縮尺分母><方位不明フラグ>false</方位不明フラグ><筆参照 idref="H1"/></図郭></地図>`;
+  const r = parseKozu(xml, { districtName: "岐阜市水海道1丁目", chiban: "12-7" })!;
+  assert.ok(r);
+  assert.equal(r.area, 200);
+  assert.equal(r.map!.kind, "土地改良所在図");
+  assert.equal(r.map!.scale, "1000");
+  assert.deepEqual(r.lots.map((l) => [l.chiban, l.main]), [["12-7", true], ["道-1", false]]);
+  assert.equal(r.lots[1].area, 80);
+  assert.equal(parseKozu(xml, { districtName: "岐阜市水海道1丁目", chiban: "99" }), null);
+});

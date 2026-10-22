@@ -18,7 +18,8 @@ import { BUILDING_USES, EXTRAS, LAND_CATEGORIES, ROAD_TYPES, STRUCTURES, WORK_TY
 import { CERTAINTY, CERTAINTY_HELP, CHECKLIST_ITEMS } from "./report";
 import { surveySchema } from "./kakuninsho";
 import { seal } from "./sealed";
-import { CHIBAN_SOURCE, chibanText, lookupChiban } from "./chiban";
+import { CHIBAN_SOURCE, chibanText, lookupChiban, municipality } from "./chiban";
+import { KOZU_SOURCE, kozuText, lookupKozu, splitChiban } from "./kozu";
 import { SEVERITY_SHORT, citeLabel, citeUrl, groupByAgency, groupByStage, runRules, splitFindings } from "./rules";
 import { FUDE_SOURCE, GSI_VT_SOURCE, lookupSite, mergeSiteIntoPlan, type SiteContext } from "./site";
 
@@ -241,17 +242,33 @@ function siteSection(site: SiteContext | null, plan: PlanInput): string[] {
 }
 
 
-/** 地番図（法務省 登記所備付地図）の1行。地目・所有者は含まれない。 */
-async function chibanSection(site: SiteContext | null): Promise<string[]> {
+/** 公図（登記所備付地図）: 住所の地番で引き、無ければ代表点の筆。地目・所有者は含まれない。 */
+async function chibanSection(site: SiteContext | null, address = ""): Promise<string[]> {
   if (!site || site.lat === null || site.lon === null) return [];
-  const r = await lookupChiban(site.lat, site.lon);
-  return [
-    "",
-    "## 地番図（公図の代わりの手がかり）",
-    `- ${chibanText(r)}`,
-    `- 出典：${CHIBAN_SOURCE.label} ${r.dataset?.page ?? CHIBAN_SOURCE.url}`,
-    "- 地目・地積・所有者は登記簿にしかありません：登記情報提供サービス https://www1.touki.or.jp/ （全部事項・公図とも1件300円台）。農地なら eMAFF農地ナビ https://map.maff.go.jp/ で地番・地目・面積を確認できます。",
-  ];
+  const lines = ["", "## 公図（登記所備付地図データ）"];
+  let done = false;
+  try {
+    const muni = await municipality(site.lat, site.lon);
+    if (muni && splitChiban(address)) {
+      const k = await lookupKozu(address, muni.muniCd);
+      lines.push(`- ${kozuText(k)}`);
+      if (k.status === "ok") {
+        const roads = k.lots.filter((l) => !l.main && /^(道|水|里|堤|溝)/.test(l.chiban)).map((l) => l.chiban);
+        const neighbours = k.lots.filter((l) => !l.main).map((l) => l.chiban);
+        lines.push(`- 隣接・周辺の地番：${neighbours.slice(0, 30).join("、")}${roads.length ? `（道・水路の地番：${roads.join("、")}）` : ""}`);
+        lines.push(`- 出典：${KOZU_SOURCE.label} ${k.dataset?.page ?? KOZU_SOURCE.url}`);
+        done = true;
+      }
+    }
+  } catch (e) {
+    console.error("kozu in mcp failed", e);
+  }
+  if (!done) {
+    const r = await lookupChiban(site.lat, site.lon);
+    lines.push(`- ${chibanText(r)}`, `- 出典：${CHIBAN_SOURCE.label} ${r.dataset?.page ?? CHIBAN_SOURCE.url}`);
+  }
+  lines.push("- 地目・地積・所有者は登記簿にしかありません：登記情報提供サービス https://www1.touki.or.jp/ （全部事項・公図とも1件300円台）。農地なら eMAFF農地ナビ https://map.maff.go.jp/ で地番・地目・面積を確認できます。");
+  return lines;
 }
 
 export async function landSummaryTool(args: Json, ctx: Ctx = {}): Promise<string> {
@@ -259,7 +276,7 @@ export async function landSummaryTool(args: Json, ctx: Ctx = {}): Promise<string
   if (address.length < 3) throw new ToolInputError("address（住所）を入れてください。");
   const site = await lookupSite(address);
   const plan = mergeSiteIntoPlan(planFromArgs({ plan: "（計画は未定）", address }), site);
-  return [...siteSection(site, plan), ...(await chibanSection(site)), "", `画面で見る：${appLink(plan, ctx.baseUrl)}`].join("\n");
+  return [...siteSection(site, plan), ...(await chibanSection(site, address)), "", `画面で見る：${appLink(plan, ctx.baseUrl)}`].join("\n");
 }
 
 export async function landLawCheckTool(args: Json, ctx: Ctx = {}): Promise<string> {
@@ -268,7 +285,7 @@ export async function landLawCheckTool(args: Json, ctx: Ctx = {}): Promise<strin
   const plan = mergeSiteIntoPlan(input, site);
   const findings = runRules(plan);
   const { specific, checks, routine } = splitFindings(findings);
-  const out: string[] = [...siteSection(site, plan), ...(await chibanSection(site)), ""];
+  const out: string[] = [...siteSection(site, plan), ...(await chibanSection(site, input.address)), ""];
 
   if (plan.landInfo.trim()) {
     out.push("## 資料から読み取った事実（入力どおり）", plan.landInfo.trim(), "");
@@ -362,7 +379,7 @@ export async function makeKakuninshoTool(args: Json, ctx: Ctx = {}): Promise<str
     const q = (z: number, style: string) => `${base}/api/annai?lat=${site.lat!.toFixed(6)}&lon=${site.lon!.toFixed(6)}&z=${z}&style=${style}&w=1200&h=850`;
     lines.push("", "## 案内図（出典：国土地理院 地理院タイル）", `- 広域（標準地図）：${q(15, "std")}`, `- 周辺（標準地図）：${q(17, "std")}`, `- 航空写真：${q(18, "photo")}`);
   }
-  lines.push(...(await chibanSection(site)));
+  lines.push(...(await chibanSection(site, address)));
   lines.push("", `画面で開く（土地のまとめ・AIの詳しいチェック・PDF）：${appLink(merged, ctx.baseUrl)}`);
   return lines.join("\n");
 }
