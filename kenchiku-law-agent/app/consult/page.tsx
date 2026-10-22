@@ -10,13 +10,12 @@ export const metadata: Metadata = {
 
 export default function ConsultPage() {
   return (
-    <section>
+    <section className="consult-page">
       <div className="wrap">
-        <p className="eyebrow">法令チェック</p>
-        <h1>住所と「何を建てたいか」を入れてください</h1>
-        <p className="lead">
-          住所から、用途地域・区域区分・防火指定・災害区域（国土交通省）、田畑かどうか（農林水産省）、川・水路までの距離（国土地理院）を自動で調べます。調べられないこと（計画の規模、前面道路の実測など）だけ分かる範囲で入れてください。「法令チェックを実行」で、設計で注意すること・役所への事前協議リスト・見落としチェックを条文の根拠付きでまとめます。
-        </p>
+        <div className="no-print">
+          <p className="eyebrow">法令チェック</p>
+          <h1 className="page-title">住所と「何を建てたいか」だけで始められます</h1>
+        </div>
         <ConsultClient accessRequired={accessRequired()} siteLookupAvailable={reinfolibAvailable()} />
       </div>
     </section>

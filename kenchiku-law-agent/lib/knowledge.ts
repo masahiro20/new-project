@@ -82,6 +82,8 @@ const has = (p: PlanInput, h: PlanInput["hazards"][number]) => p.hazards.include
 const extra = (p: PlanInput, e: PlanInput["extras"][number]) => p.extras.includes(e);
 const farmOnSite = (p: PlanInput) => p.signals.farmland === "敷地が農地の可能性" || p.landCategory === "田・畑（農地）";
 const waterWithin = (p: PlanInput, m: number) => p.signals.waterMeters !== null && p.signals.waterMeters <= m;
+/** 資料のメモに「道路との間に水路」「水路を挟んで」などとあるとき。 */
+const WATER_BETWEEN = /(間|あいだ)に(は)?(水路|青線|用水|河川|川)|(水路|青線|用水|川)を(挟|はさ)/;
 const ruralArea = (p: PlanInput) => ["市街化調整区域", "非線引き都市計画区域", "準都市計画区域", "都市計画区域外"].includes(p.areaDivision);
 
 const MLIT_KAISEI: Ref = {
@@ -1031,13 +1033,14 @@ const RULE_DEFS: Omit<Rule, keyof RuleMeta>[] = [
     category: "農地・山林",
     title: "土地改良区の地区内の農地（意見書・地区除外・決済金）",
     summary:
-      "転用する農地が土地改良区の地区内にあると、農地転用許可の申請書に土地改良区の意見書を添付する必要があります（農地法施行規則30条1項6号、5条許可は57条の4第2項3号）。土地改良区は地区内の土地に経費（賦課金）を課しており（土地改良法36条）、地区から外す手続き（66条など）と、定款・規程に基づく地区除外決済金の支払いを求められるのが一般的です。金額・手続き期間は土地改良区ごとに異なり、施主の想定外の費用になりやすい項目です。",
+      "転用する農地が土地改良区の地区内にあると、市街化区域外の許可申請では申請書に土地改良区の意見書を添付します（農地法施行規則30条1項6号、5条許可は57条の4第2項3号）。市街化区域の届出（施行規則26条・50条）には意見書の添付はありません。ただし届出でも、土地改良区は地区内の土地に経費（賦課金）を課しており（土地改良法36条）、地区から外す手続き（66条など）と、定款・規程に基づく地区除外決済金の支払いを求められるのが一般的です。金額・手続き期間は土地改良区ごとに異なり、施主の想定外の費用になりやすい項目です。",
     action:
       "農業委員会または市町村の農政課で、敷地が土地改良区の地区内か・どの土地改良区かを確認し、土地改良区に意見書の手続き、地区除外決済金の額、賦課金の清算、用排水路への放流の可否を問い合わせ、資金計画に入れてください。",
     roles: ["営業", "コーディネーター"],
     cites: [
       { law: "nochikisoku", article: "30", expectCaption: "（農地を転用するための許可申請）" },
       { law: "nochikisoku", article: "57_4", expectCaption: "（農地又は採草放牧地の転用のための権利移動についての許可申請）" },
+      { law: "nochikisoku", article: "50", expectCaption: "（市街化区域内の農地又は採草放牧地の転用のための権利移動の届出）" },
       { law: "tochikairyoho", article: "36", expectCaption: "（経費の賦課）" },
       { law: "tochikairyoho", article: "66", expectCaption: "（地区変更）" },
     ],
@@ -1195,12 +1198,16 @@ const RULE_DEFS: Omit<Rule, keyof RuleMeta>[] = [
       { law: "kenkiho", article: "43", expectCaption: "（敷地等と道路との関係）" },
       { law: "kasenho", article: "24", expectCaption: "（土地の占用の許可）" },
     ],
+    // "likely" only when the documents say the waterway lies between the road and the site;
+    // a waterway merely nearby (or along another side) is a check, and none once the road type is known.
     when: (p) =>
-      isBuild(p) && (waterWithin(p, 20) || /水路|青線|用水|暗渠/.test(p.landInfo))
-        ? "likely"
-        : isBuild(p) && waterWithin(p, 60) && p.roadType === "不明"
-          ? "check"
-          : null,
+      !isBuild(p)
+        ? null
+        : WATER_BETWEEN.test(p.landInfo)
+          ? "likely"
+          : (waterWithin(p, 20) || /水路|青線|用水|暗渠/.test(p.landInfo)) && p.roadType === "不明"
+            ? "check"
+            : null,
   },
   {
     id: "horyusaki",

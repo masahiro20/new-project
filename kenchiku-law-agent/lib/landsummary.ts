@@ -6,11 +6,15 @@
 //   別表第三（道路斜線 1.25／1.5）, 別表第四（日影規制の対象建築物）.
 
 import { lawUrl } from "./egov";
+import { FUDE_SOURCE, GSI_VT_SOURCE } from "./nearby";
 import type { PlanInput } from "./plan";
+import type { Certainty } from "./report";
 import type { SiteContext } from "./site";
 
 export type Tone = "ok" | "info" | "warn" | "danger" | "muted";
 export type FactSource = "国の公開データ" | "条文から算出" | "入力値" | "要確認";
+
+export type Cite = { label: string; url: string };
 
 export type LandFact = {
   key: string;
@@ -19,8 +23,14 @@ export type LandFact = {
   sub?: string;
   tone: Tone;
   source: FactSource;
-  link?: { label: string; url: string };
+  /** How sure the value is (入力 = as typed by the user, not checked). */
+  certainty: Certainty | "入力";
+  /** Where the value comes from. Always at least one unless the value is unknown. */
+  cites: Cite[];
+  link?: Cite;
 };
+
+type Draft = Omit<LandFact, "certainty" | "cites">;
 
 const KENKIHO = "325AC0000000201";
 const LOW = ["第一種低層住居専用地域", "第二種低層住居専用地域", "田園住居地域"];
@@ -57,7 +67,75 @@ export function heightRules(zoning: PlanInput["zoning"]): { value: string; sub: 
 const layer = (site: SiteContext | null, id: string) => site?.layers.find((l) => l.id === id);
 
 export function landFacts(plan: PlanInput, site: SiteContext | null): LandFact[] {
-  const facts: LandFact[] = [];
+  return draftFacts(plan, site).map((f) => annotate(f, site));
+}
+
+const srcCite = (src?: { label: string; url: string; year: string }): Cite[] => (src ? [{ label: `${src.label}${src.year ? `（${src.year}）` : ""}`, url: src.url }] : []);
+const law = (article: string, label: string): Cite => ({ label: `建築基準法${label}`, url: lawUrl(KENKIHO, article) });
+
+/**
+ * Certainty and sources for each tile. Map data is judged at the geocoded point,
+ * so anything measured as a distance (農地・川) or read from a 250m mesh (液状化)
+ * is an estimate, and so is everything when only the town could be located.
+ */
+function annotate(f: Draft, site: SiteContext | null): LandFact {
+  const precise = site?.precise !== false;
+  const boundary = (id: string) => (layer(site, id)?.features.length ?? 0) > 1;
+  const data = (id: string): Pick<LandFact, "certainty" | "cites"> => ({
+    certainty: !precise ? "推測" : boundary(id) ? "要確認" : "確定",
+    cites: srcCite(layer(site, id)?.source),
+  });
+  let extra: Pick<LandFact, "certainty" | "cites">;
+  if (f.source === "要確認") extra = { certainty: "要確認", cites: [] };
+  else if (f.source === "入力値") extra = { certainty: "入力", cites: [] };
+  else
+    switch (f.key) {
+      case "area":
+        extra = data("XKT001");
+        break;
+      case "zoning":
+        extra = data("XKT002");
+        break;
+      case "ratio":
+        extra = { ...data("XKT002"), cites: [...data("XKT002").cites, ...(f.link ? [f.link] : [])] };
+        break;
+      case "height":
+        extra = { certainty: data("XKT002").certainty, cites: [law("56", "56条（斜線制限）"), law("55", "55条（絶対高さ）"), { label: "建築基準法 別表第三・第四（道路斜線・日影規制）", url: lawUrl(KENKIHO) }] };
+        break;
+      case "fire":
+        extra = data("XKT014");
+        break;
+      case "farm":
+        extra = { certainty: "推測", cites: [{ label: FUDE_SOURCE.label, url: FUDE_SOURCE.url }] };
+        break;
+      case "water":
+        extra = { certainty: "推測", cites: [{ label: GSI_VT_SOURCE.label, url: GSI_VT_SOURCE.url }] };
+        break;
+      case "flood":
+        extra = data("XKT026");
+        break;
+      case "dosha":
+        extra = data("XKT029");
+        break;
+      case "ekijo":
+        extra = { certainty: "推測", cites: srcCite(layer(site, "XKT025")?.source) };
+        break;
+      case "plan": {
+        // 地区計画 is read directly; 居住誘導区域の外 is inferred from the 立地適正化計画 layer, so it stays 要確認.
+        const kc = layer(site, "XKT023")?.status === "hit";
+        extra = { certainty: kc ? data("XKT023").certainty : "要確認", cites: [...srcCite(layer(site, kc ? "XKT023" : "XKT003")?.source)] };
+        break;
+      }
+      default:
+        extra = { certainty: "要確認", cites: f.link ? [f.link] : [] };
+    }
+  // Nothing is shown as 確定 without a source to check it against.
+  if (extra.certainty === "確定" && extra.cites.length === 0) extra = { ...extra, certainty: "要確認" };
+  return { ...f, ...extra };
+}
+
+function draftFacts(plan: PlanInput, site: SiteContext | null): Draft[] {
+  const facts: Draft[] = [];
   const auto = Boolean(site?.apiAvailable);
   const fromData = (v: string | undefined) => (auto && v ? "国の公開データ" : "入力値") as FactSource;
 

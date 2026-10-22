@@ -235,7 +235,7 @@ test("farmland + waterway signals raise the rules people miss", () => {
   assert.equal(f.get("tochikairyo"), "likely");
   assert.equal(f.get("noshin"), "likely");
   assert.equal(f.get("kasen"), "likely");
-  assert.equal(f.get("suiro-setsudo"), "likely");
+  assert.equal(f.get("suiro-setsudo"), "check");
   assert.equal(f.get("horyusaki"), "likely");
   const far = ids(plan({ signals: { ...EMPTY_SIGNALS, farmland: "周辺に農地", farmlandMeters: 30, waterMeters: 45, waterKind: "川" } }));
   assert.equal(far.get("rinsetsu-nochi"), "check");
@@ -258,16 +258,18 @@ test("report schema: tool schema requires every key and markdown export renders 
   assert.deepEqual(schema.required.sort(), Object.keys(schema.properties).sort());
   const r = reportSchema.parse({
     summary: { verdict: "許可・協議が前提", headline: "農地転用が前提です。", topRisks: ["農地"], schedule: "+3か月" },
-    design: [{ title: "床高さ", detail: "浸水深0.5m", priority: "高", evidence: [{ label: "建築基準法第19条", url: "https://laws.e-gov.go.jp/law/325AC0000000201#Mp-At_19" }] }],
+    design: [{ title: "床高さ", detail: "浸水深0.5m", priority: "高", certainty: "確定", evidence: [{ label: "建築基準法第19条", url: "https://laws.e-gov.go.jp/law/325AC0000000201#Mp-At_19" }] }],
     consultations: [{ agency: "農業委員会", purpose: "転用可否", items: ["農地区分"], bring: "公図", timing: "契約前", evidence: [] }],
     procedures: [{ step: "農地法5条許可", timing: "毎月締切", duration: "窓口で確認", agency: "農業委員会", evidence: [] }],
     checklist: CHECKLIST_ITEMS.map((item) => ({ item, status: "要確認", note: "" })),
     documents: [{ name: "登記簿.pdf", kind: "登記事項証明書", facts: ["地目 畑"], concerns: ["現況も畑の可能性"] }],
     questions: [{ to: "施主", question: "登記の地目は確認済みですか？" }],
-    actions: [{ role: "営業", items: ["公図取得"] }],
+    tasks: [{ task: "公図を取得する", role: "営業", when: "土地契約前", agency: "法務局" }],
     assumptions: [],
   });
   const md = reportToMarkdown(r);
+  assert.match(md, /- \[ \] 【土地契約前・営業】公図を取得する（法務局）/);
+  assert.match(md, /【高・確定】/);
   assert.match(md, /## 結論：許可・協議が前提/);
   assert.match(md, /## 役所への事前協議リスト/);
   assert.match(md, /## 資料から読み取ったこと/);
@@ -363,6 +365,9 @@ test("consult page link round-trips the plan", async () => {
   assert.equal(back.landInfo, "登記簿：地目 宅地");
   assert.deepEqual(back.extras, ["浄化槽（下水道なし）"]);
   assert.equal(planFromQuery(new URLSearchParams("")), null);
+  const onlyAddress = planFromQuery(new URLSearchParams("address=岐阜県岐阜市水海道一丁目12番7&from=home"))!;
+  assert.equal(onlyAddress.address, "岐阜県岐阜市水海道一丁目12番7");
+  assert.equal(onlyAddress.description, "");
 });
 
 test("use restriction only flags non-dwelling uses (or 工業専用地域); 水路 in document notes raises the waterway access rule", () => {
@@ -370,6 +375,45 @@ test("use restriction only flags non-dwelling uses (or 工業専用地域); 水�
   assert.equal(ids(plan({ zoning: "工業専用地域", buildingUse: "専用住宅" })).get("yoto-seigen"), "required");
   assert.equal(ids(plan({ zoning: "第一種低層住居専用地域", buildingUse: "店舗・飲食店" })).get("yoto-seigen"), "required");
   assert.equal(ids(plan({ landInfo: "公図：道路との間に水路（青線）" })).get("suiro-setsudo"), "likely");
+  // 伊藤様のケース：東側が水路、南側の道路（42条1項）に直接接する → 水路を挟む接道ではない
+  const ito = plan({ roadType: "建築基準法上の道路（42条1項）", landInfo: "現況測量図：東側は擁壁付き水路に接する。南側道路 幅員5.55m", signals: { ...EMPTY_SIGNALS, waterMeters: 5, waterKind: "川" } });
+  assert.equal(ids(ito).get("suiro-setsudo"), undefined);
+});
+
+test("certainty is never 確定 without a source; old role actions become tasks; tasks export to CSV", async () => {
+  const { coerceReport, tasksToCsv } = await import("../lib/report");
+  const r = coerceReport({
+    summary: { verdict: "条件付きで建築可能", headline: "x", topRisks: [], schedule: "" },
+    design: [
+      { title: "a", detail: "", priority: "高", certainty: "確定", evidence: [] },
+      { title: "b", detail: "", priority: "中", certainty: "確定", evidence: [{ label: "農地法第5条", url: "https://laws.e-gov.go.jp/law/327AC0000000229#Mp-At_5" }] },
+      { title: "c", detail: "", priority: "低", evidence: [] },
+    ],
+    checklist: [{ item: "農地", status: "該当", certainty: "確定", note: "", evidence: [{ label: "登記事項証明書", url: "" }] }],
+    actions: [{ role: "設計", items: ["配置図を描く"] }],
+  })!;
+  assert.deepEqual(r.design.map((d) => d.certainty), ["要確認", "確定", "要確認"]);
+  assert.equal(r.checklist[0].certainty, "確定");
+  assert.deepEqual(r.tasks, [{ task: "配置図を描く", role: "設計", when: "設計着手前", agency: "" }]);
+  const csv = tasksToCsv(r.tasks, { 0: true });
+  assert.ok(csv.startsWith("\uFEFF"));
+  assert.match(csv, /"済","設計着手前","設計","配置図を描く",""/);
+});
+
+test("land facts carry a certainty and a source; map distances are estimates", async () => {
+  const { landFacts } = await import("../lib/landsummary");
+  const p = plan({ zoning: "第一種住居地域", areaDivision: "市街化区域", roadWidth: 5.55, signals: { ...EMPTY_SIGNALS, farmland: "敷地が農地の可能性", farmlandType: "畑", farmlandMeters: 0, waterMeters: 5, waterKind: "川" } });
+  const src = { label: "国土交通省 都市計画決定GISデータ", url: "https://www.mlit.go.jp/x", year: "令和7年度" };
+  const site = { apiAvailable: true, precise: true, layers: [{ id: "XKT001", status: "hit", features: [{}], summary: [], source: src, label: "" }, { id: "XKT002", status: "hit", features: [{}], summary: [], source: src, label: "" }], derived: { areaDivision: "市街化区域", zoning: "第一種住居地域", kenpei: "60%", yoseki: "200%", hazards: [], notes: [], signals: p.signals } } as unknown as SiteContext;
+  const f = new Map(landFacts(p, site).map((x) => [x.key, x]));
+  assert.equal(f.get("zoning")!.certainty, "確定");
+  assert.equal(f.get("zoning")!.cites[0].url, "https://www.mlit.go.jp/x");
+  assert.equal(f.get("farm")!.certainty, "推測");
+  assert.equal(f.get("water")!.certainty, "推測");
+  assert.equal(f.get("road")!.certainty, "入力");
+  for (const x of f.values()) if (x.certainty === "確定") assert.ok(x.cites.length > 0, x.key);
+  const rough = new Map(landFacts(p, { ...site, precise: false } as SiteContext).map((x) => [x.key, x]));
+  assert.equal(rough.get("zoning")!.certainty, "推測");
 });
 
 test("coerceReport fills missing sections and rejects junk", async () => {

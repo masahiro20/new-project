@@ -1,7 +1,8 @@
 // The agent's final answer as structured data. The model hands it over through
-// the `submit_report` tool (strict JSON schema), so the UI can lay it out as
-// "結論 → 設計で注意すること → 役所への事前協議 → 見落としチェック → 質問 → 担当別"
-// instead of one long Markdown page.
+// the `submit_report` tool, so the UI can lay it out as
+// "結論 → 見落としチェック → 設計で注意すること → 役所への事前協議 → 手続き → タスク"
+// instead of one long Markdown page. Every claim carries a certainty
+// (確定／要確認／推測) and its sources, so readers can tell fact from estimate.
 
 import { z } from "zod";
 
@@ -10,6 +11,17 @@ export const PRIORITIES = ["高", "中", "低"] as const;
 export const CHECK_STATUS = ["該当", "可能性あり", "要確認", "該当なし"] as const;
 export const ASK_TO = ["施主", "土地の売主・仲介", "社内", "役所"] as const;
 export const ROLES = ["設計", "コーディネーター", "施工", "営業"] as const;
+/** How sure a statement is. 確定 needs a source that states it directly. */
+export const CERTAINTY = ["確定", "要確認", "推測"] as const;
+export type Certainty = (typeof CERTAINTY)[number];
+export const CERTAINTY_HELP: Record<Certainty, string> = {
+  確定: "条文・公的資料・添付資料に書いてあり、この敷地に当てはまることを確認したもの",
+  要確認: "根拠はあるが、窓口の判断・現地・原本・条例を確かめるまで決まらないもの",
+  推測: "地図の代表点・写真・一般的な傾向からの見立て。出典では裏付けていないもの",
+};
+export const CERTAINTY_SHORT: Record<Certainty, string> = { 確定: "出典で確認済み", 要確認: "窓口・現地で決まる", 推測: "地図・写真からの見立て" };
+/** When a task has to be done, in project order. */
+export const TASK_WHEN = ["今すぐ", "土地契約前", "設計着手前", "確認申請前", "着工前", "工事中", "完了後"] as const;
 
 /** The fixed list the model must walk through, so nothing silently drops out. */
 export const CHECKLIST_ITEMS = [
@@ -29,6 +41,8 @@ export const CHECKLIST_ITEMS = [
 
 const evidence = z.object({ label: z.string(), url: z.string() });
 export type Evidence = z.infer<typeof evidence>;
+// A missing or unknown certainty is never shown as 確定.
+const certainty = z.enum(CERTAINTY).catch("要確認");
 
 export const reportSchema = z.object({
   summary: z.object({
@@ -37,7 +51,7 @@ export const reportSchema = z.object({
     topRisks: z.array(z.string()),
     schedule: z.string(),
   }),
-  design: z.array(z.object({ title: z.string(), detail: z.string(), priority: z.enum(PRIORITIES), evidence: z.array(evidence) })),
+  design: z.array(z.object({ title: z.string(), detail: z.string(), priority: z.enum(PRIORITIES), certainty, evidence: z.array(evidence) })),
   consultations: z.array(
     z.object({
       agency: z.string(),
@@ -48,11 +62,11 @@ export const reportSchema = z.object({
       evidence: z.array(evidence),
     }),
   ),
-  procedures: z.array(z.object({ step: z.string(), timing: z.string(), duration: z.string(), agency: z.string(), evidence: z.array(evidence) })),
-  checklist: z.array(z.object({ item: z.string(), status: z.enum(CHECK_STATUS), note: z.string() })),
+  procedures: z.array(z.object({ step: z.string(), timing: z.string(), duration: z.string(), agency: z.string(), certainty, evidence: z.array(evidence) })),
+  checklist: z.array(z.object({ item: z.string(), status: z.enum(CHECK_STATUS), certainty, note: z.string(), evidence: z.array(evidence).catch([]) })),
   documents: z.array(z.object({ name: z.string(), kind: z.string(), facts: z.array(z.string()), concerns: z.array(z.string()) })),
   questions: z.array(z.object({ to: z.enum(ASK_TO), question: z.string() })),
-  actions: z.array(z.object({ role: z.enum(ROLES), items: z.array(z.string()) })),
+  tasks: z.array(z.object({ task: z.string(), role: z.enum(ROLES), when: z.enum(TASK_WHEN).catch("設計着手前"), agency: z.string().catch("") })),
   assumptions: z.array(z.string()),
 });
 
@@ -67,7 +81,7 @@ export type PartialReport = {
   checklist?: Partial<Report["checklist"][number]>[];
   documents?: Partial<Report["documents"][number]>[];
   questions?: Partial<Report["questions"][number]>[];
-  actions?: Partial<Report["actions"][number]>[];
+  tasks?: Partial<Report["tasks"][number]>[];
   assumptions?: string[];
 };
 
@@ -80,6 +94,11 @@ const obj = (properties: Record<string, unknown>, description?: string) => ({
   additionalProperties: false,
   ...(description ? { description } : {}),
 });
+const certaintyProp = {
+  type: "string",
+  enum: [...CERTAINTY],
+  description: `確定＝${CERTAINTY_HELP.確定}（evidence に直接の出典が必須）／要確認＝${CERTAINTY_HELP.要確認}／推測＝${CERTAINTY_HELP.推測}`,
+};
 const evidenceArr = {
   type: "array",
   description: "根拠。条文は e-Gov の URL（https://laws.e-gov.go.jp/law/法令ID#Mp-At_条番号）、公的資料はその URL。label は「建築基準法第43条」「浜松市 がけ条例の解説」など短く。",
@@ -102,7 +121,9 @@ export const REPORT_INPUT_SCHEMA = obj({
     items: obj({
       item: str("チェック項目（指定の文言のまま）"),
       status: { type: "string", enum: [...CHECK_STATUS] },
+      certainty: certaintyProp,
       note: str("判定の理由と、要確認ならどこで何を見るか。80字以内"),
+      evidence: evidenceArr,
     }),
   },
   documents: {
@@ -122,6 +143,7 @@ export const REPORT_INPUT_SCHEMA = obj({
       title: str("設計上の注意点の見出し。40字以内（例：北側斜線で2階北側の屋根勾配が制限される）"),
       detail: str("何をどう設計に反映するか。200字以内。数値は条文・公的資料で確認したものだけ"),
       priority: { type: "string", enum: [...PRIORITIES] },
+      certainty: certaintyProp,
       evidence: evidenceArr,
     }),
   },
@@ -145,6 +167,7 @@ export const REPORT_INPUT_SCHEMA = obj({
       timing: str("時期（例：毎月締切→翌月許可、着工21日前まで）"),
       duration: str("標準的な期間。条文・公的資料で確認できない場合は「窓口で確認」"),
       agency: str("提出先"),
+      certainty: { ...certaintyProp, description: "この手続きが必要なことの確かさ。確定＝条文・公的資料で必要と確認／要確認＝条件次第／推測＝可能性" },
       evidence: evidenceArr,
     }),
   },
@@ -153,17 +176,36 @@ export const REPORT_INPUT_SCHEMA = obj({
     description: "計画を確定するために確認したい質問。非設計職でも答えられる言葉で最大8件",
     items: obj({ to: { type: "string", enum: [...ASK_TO] }, question: str("「○○は確認済みですか？」の形") }),
   },
-  actions: {
+  tasks: {
     type: "array",
-    description: "担当別の次のアクション（今週やること）",
-    items: obj({ role: { type: "string", enum: [...ROLES] }, items: strArr("1〜3項目") }),
+    description: "やることの一覧（タスク）。設計・事前協議・手続き・質問を、誰がいつやるかの行動に落としたもの。重複させず実施順に最大12件",
+    items: obj({
+      task: str("やること。動詞で終える。50字以内（例：農業委員会に5条届出の受付日と添付書類を確認する）"),
+      role: { type: "string", enum: [...ROLES], description: "主に担当する職種" },
+      when: { type: "string", enum: [...TASK_WHEN], description: "いつまでに" },
+      agency: str("相手先の窓口・人。なければ空文字"),
+    }),
   },
-  assumptions: strArr("前提にしたこと・未確認のまま置いた仮定。最大5件"),
+  assumptions: strArr("前提にしたこと・未確認のまま置いた仮定・推測で埋めたこと。最大5件"),
 });
 
-export function evidenceMd(list: Evidence[] | undefined): string {
-  if (!list?.length) return "";
-  return list.map((e) => (e.url ? `[${e.label}](${e.url})` : e.label)).join("、");
+export function evidenceMd(list: Partial<Evidence>[] | undefined): string {
+  if (!list?.length) return "出典なし";
+  return list.map((e) => (e.url ? `[${e.label ?? ""}](${e.url})` : (e.label ?? ""))).join("、");
+}
+
+/** Sort key for tasks: project order, then role. */
+export const whenIndex = (w?: string) => {
+  const i = (TASK_WHEN as readonly string[]).indexOf(w ?? "");
+  return i < 0 ? TASK_WHEN.length : i;
+};
+
+export function tasksToCsv(tasks: PartialReport["tasks"], done: Record<number, boolean> = {}): string {
+  const cell = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const rows = [["済", "時期", "担当", "やること", "相手先"].map(cell).join(",")];
+  (tasks ?? []).forEach((t, i) => rows.push([done[i] ? "済" : "", t.when, t.role, t.task, t.agency].map(cell).join(",")));
+  // BOM so Excel opens the Japanese text correctly.
+  return `\uFEFF${rows.join("\r\n")}\r\n`;
 }
 
 /** Markdown version for copy / print / sharing in chat tools. */
@@ -184,40 +226,53 @@ export function reportToMarkdown(r: PartialReport): string {
   }
   if (r.design?.length) {
     out.push("", "## 設計で注意すること");
-    for (const d of r.design) out.push(`- 【${d.priority ?? ""}】**${d.title ?? ""}** — ${d.detail ?? ""}${d.evidence?.length ? `（根拠：${evidenceMd(d.evidence)}）` : ""}`);
+    for (const d of r.design) out.push(`- 【${d.priority ?? ""}・${d.certainty ?? "要確認"}】**${d.title ?? ""}** — ${d.detail ?? ""}（出典：${evidenceMd(d.evidence)}）`);
   }
   if (r.consultations?.length) {
     out.push("", "## 役所への事前協議リスト", "| 窓口 | 協議すること | 持参資料 | 時期 | 根拠 |", "|---|---|---|---|---|");
     for (const c of r.consultations) out.push(`| ${c.agency ?? ""} | ${c.purpose ?? ""}<br>${(c.items ?? []).map((i) => `・${i}`).join("<br>")} | ${c.bring ?? ""} | ${c.timing ?? ""} | ${evidenceMd(c.evidence)} |`);
   }
   if (r.procedures?.length) {
-    out.push("", "## 手続きの流れ", "| # | 手続き | 時期 | 期間 | 提出先 | 根拠 |", "|---|---|---|---|---|---|");
-    r.procedures.forEach((p, i) => out.push(`| ${i + 1} | ${p.step ?? ""} | ${p.timing ?? ""} | ${p.duration ?? ""} | ${p.agency ?? ""} | ${evidenceMd(p.evidence)} |`));
+    out.push("", "## 手続きの流れ", "| # | 手続き | 確実性 | 時期 | 期間 | 提出先 | 出典 |", "|---|---|---|---|---|---|---|");
+    r.procedures.forEach((p, i) => out.push(`| ${i + 1} | ${p.step ?? ""} | ${p.certainty ?? "要確認"} | ${p.timing ?? ""} | ${p.duration ?? ""} | ${p.agency ?? ""} | ${evidenceMd(p.evidence)} |`));
   }
   if (r.checklist?.length) {
-    out.push("", "## 見落としチェック", "| 項目 | 判定 | メモ |", "|---|---|---|");
-    for (const c of r.checklist) out.push(`| ${c.item ?? ""} | ${c.status ?? ""} | ${c.note ?? ""} |`);
+    out.push("", "## 見落としチェック", "| 項目 | 判定 | 確実性 | メモ | 出典 |", "|---|---|---|---|---|");
+    for (const c of r.checklist) out.push(`| ${c.item ?? ""} | ${c.status ?? ""} | ${c.certainty ?? "要確認"} | ${c.note ?? ""} | ${evidenceMd(c.evidence)} |`);
   }
   if (r.questions?.length) {
     out.push("", "## 確認したい質問");
     for (const q of r.questions) out.push(`- （${q.to ?? ""}へ）${q.question ?? ""}`);
   }
-  if (r.actions?.length) {
-    out.push("", "## 担当別の次のアクション");
-    for (const a of r.actions) out.push(`- **${a.role ?? ""}**：${(a.items ?? []).join("／")}`);
+  if (r.tasks?.length) {
+    out.push("", "## タスク一覧");
+    for (const t of [...r.tasks].sort((a, b) => whenIndex(a.when) - whenIndex(b.when))) out.push(`- [ ] 【${t.when ?? ""}・${t.role ?? ""}】${t.task ?? ""}${t.agency ? `（${t.agency}）` : ""}`);
   }
   if (r.assumptions?.length) {
     out.push("", "## 前提・未確認");
     for (const a of r.assumptions) out.push(`- ${a}`);
   }
+  out.push("", `確実性：確定＝${CERTAINTY_HELP.確定}／要確認＝${CERTAINTY_HELP.要確認}／推測＝${CERTAINTY_HELP.推測}`);
   return out.join("\n");
+}
+
+const hasSource = (ev: unknown) => Array.isArray(ev) && ev.some((e) => e && typeof e === "object" && String((e as Evidence).label ?? "").trim());
+
+/** 確定 without any source is not 確定. */
+function honest<T extends { certainty: Certainty; evidence: Evidence[] }>(x: T): T {
+  return x.certainty === "確定" && !hasSource(x.evidence) ? { ...x, certainty: "要確認" } : x;
 }
 
 /** Fills absent sections with empty arrays (the tool is not strict) and validates. */
 export function coerceReport(input: unknown): Report | null {
   if (!input || typeof input !== "object") return null;
   const x = { ...(input as Record<string, unknown>) };
-  for (const k of ["checklist", "documents", "design", "consultations", "procedures", "questions", "actions", "assumptions"]) if (!Array.isArray(x[k])) x[k] = [];
+  // Older answers had role-grouped "actions" instead of tasks.
+  if (!Array.isArray(x.tasks) && Array.isArray(x.actions))
+    x.tasks = (x.actions as { role?: string; items?: string[] }[]).flatMap((a) => (a.items ?? []).map((task) => ({ task, role: a.role, when: "設計着手前", agency: "" })));
+  for (const k of ["checklist", "documents", "design", "consultations", "procedures", "questions", "tasks", "assumptions"]) if (!Array.isArray(x[k])) x[k] = [];
   const parsed = reportSchema.safeParse(x);
-  return parsed.success ? parsed.data : null;
+  if (!parsed.success) return null;
+  const r = parsed.data;
+  return { ...r, design: r.design.map(honest), procedures: r.procedures.map(honest), checklist: r.checklist.map(honest) };
 }

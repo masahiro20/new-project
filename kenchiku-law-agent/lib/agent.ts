@@ -101,7 +101,7 @@ export { sourceTier };
 export function resolveLaw(input: string): string | null {
   const key = lawByTitle(input);
   if (key) return LAWS[key as LawKey].id;
-  if (/^\d{3}[A-Z]{2}\d{10}$/.test(input.trim())) return input.trim();
+  if (/^\d{3}[A-Z][A-Z0-9]{11}$/.test(input.trim())) return input.trim();
   return null;
 }
 

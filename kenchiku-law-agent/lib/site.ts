@@ -35,6 +35,8 @@ export type SiteContext = {
   lon: number | null;
   tile: { z: number; x: number; y: number } | null;
   apiAvailable: boolean;
+  /** False when the geocoder only matched the town (no lot number): area judgements are then estimates. */
+  precise?: boolean;
   fetchedAt: string;
   layers: LayerResult[];
   /** 農水省 筆ポリゴン: is the point on / next to farmland. */
@@ -221,6 +223,7 @@ export async function lookupSite(address: string): Promise<SiteContext> {
     lon: null,
     tile: null,
     apiAvailable: reinfolibAvailable(),
+    precise: false,
     fetchedAt: new Date().toISOString(),
     layers: [],
     farmland: null,
@@ -240,6 +243,7 @@ export async function lookupSite(address: string): Promise<SiteContext> {
   ctx.tile = tileFor(best.lat, best.lon);
   if (hits.length > 1) ctx.derived.notes.push(`候補が${hits.length}件あり、先頭の「${best.title}」を使いました。`);
   const hasNumber = (t: string) => /[0-9０-９]/.test(t);
+  ctx.precise = hasNumber(trimmed) && hasNumber(best.title);
   if (hasNumber(trimmed) && !hasNumber(best.title))
     ctx.derived.notes.push(`番地まで特定できず「${best.title}」の代表点で判定しています。農地・川までの距離や区域の判定は敷地とずれている可能性が高いので、番地の書き方（「番地」「-」）を変えて再取得してください。`);
   if (!/\d/.test(trimmed)) ctx.derived.notes.push("番地まで入っていないため、町丁目の代表点で判定しています。敷地の境界付近では用途地域や区域が異なることがあります。");

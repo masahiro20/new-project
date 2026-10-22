@@ -1,8 +1,7 @@
 "use client";
 
 import type { LandFact } from "@/lib/landsummary";
-
-const SOURCE_TONE: Record<LandFact["source"], string> = { 国の公開データ: "data", 条文から算出: "law", 入力値: "input", 要確認: "todo" };
+import { CertaintyBadge, CertaintyLegend } from "./Certainty";
 
 export default function LandSheet({ facts, location, notes }: { facts: LandFact[]; location: string; notes: string[] }) {
   const alerts = facts.filter((f) => f.tone === "danger");
@@ -12,11 +11,6 @@ export default function LandSheet({ facts, location, notes }: { facts: LandFact[
         <div>
           <h3>土地のまとめ</h3>
           <p className="hint">{location}</p>
-        </div>
-        <div className="legend" aria-label="出どころ">
-          <span className="src src-data">国の公開データ</span>
-          <span className="src src-law">条文から算出</span>
-          <span className="src src-todo">要確認</span>
         </div>
       </div>
 
@@ -36,17 +30,33 @@ export default function LandSheet({ facts, location, notes }: { facts: LandFact[
           <div key={f.key} className={`fact tone-${f.tone}`}>
             <div className="fact-top">
               <span className="fact-label">{f.label}</span>
-              <span className={`src src-${SOURCE_TONE[f.source]}`} title={f.source}>{f.source === "国の公開データ" ? "データ" : f.source === "条文から算出" ? "条文" : f.source === "入力値" ? "入力" : "要確認"}</span>
+              <CertaintyBadge value={f.certainty} />
             </div>
             <div className="fact-value">{f.value}</div>
             {f.sub && <div className="fact-sub">{f.sub}</div>}
-            {f.link && (
-              <a className="fact-link" href={f.link.url} target="_blank" rel="noopener noreferrer">
-                {f.link.label}
-              </a>
-            )}
+            <div className="fact-src">
+              {f.certainty === "入力" ? (
+                <span>出典：入力値</span>
+              ) : f.cites.length === 0 ? (
+                <span>出典なし（窓口・図面で確認）</span>
+              ) : (
+                <>
+                  出典：
+                  {f.cites.map((c, i) => (
+                    <a key={i} href={c.url} target="_blank" rel="noopener noreferrer" title={c.label}>
+                      {c.label}
+                    </a>
+                  ))}
+                </>
+              )}
+            </div>
           </div>
         ))}
+      </div>
+
+      <div className="landsheet-foot">
+        <CertaintyLegend compact />
+        <span className="hint">地図データは住所の代表点で判定。農地・川の距離は数m〜十数mずれることがあります。</span>
       </div>
 
       {notes.length > 0 && (

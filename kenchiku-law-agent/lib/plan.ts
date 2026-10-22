@@ -243,8 +243,10 @@ export function planFromQuery(q: URLSearchParams): PlanInput | null {
   }
   const extras = q.get("extras");
   if (extras) raw.extras = extras.split(",").filter((e) => (EXTRAS as readonly string[]).includes(e));
-  if (!raw.description || String(raw.description).length < 5) raw.description = `${String(raw.description ?? "")}（計画内容を入力してください）`;
+  // The form asks for the plan itself; a link with only an address leaves it empty.
+  const description = String(raw.description ?? "");
+  raw.description = description.length >= 5 ? description : "（計画は未定）";
   const parsed = planSchema.safeParse(raw);
-  if (parsed.success) return parsed.data;
-  return { ...EMPTY_PLAN, address: String(raw.address ?? ""), description: String(raw.description ?? ""), landInfo: String(raw.landInfo ?? "") };
+  if (parsed.success) return { ...parsed.data, description };
+  return { ...EMPTY_PLAN, address: String(raw.address ?? ""), description, landInfo: String(raw.landInfo ?? "") };
 }

@@ -1,7 +1,7 @@
 // MCP server (Streamable HTTP, stateless JSON responses) so Claude — claude.ai,
 // Claude Desktop, Claude Code — can use this tool from a conversation:
 //
-//   「ドライブの伊藤さんの土地資料（登記簿・公図・測量図・写真）をもとに法令制限を確認して」
+//   「ドライブの山田様の土地資料（登記簿・公図・測量図・写真）をもとに法令制限を確認して」
 //
 // Claude reads the user's files itself (Drive connector, uploads, vision/PDF);
 // this server supplies what Claude cannot do reliably on its own: the official
@@ -15,7 +15,7 @@ import { fetchArticle, keywordSearch } from "./egov";
 import { landFacts } from "./landsummary";
 import { articleLabel, normalizeArticle } from "./laws";
 import { BUILDING_USES, EXTRAS, LAND_CATEGORIES, ROAD_TYPES, STRUCTURES, WORK_TYPES, YES_NO_UNKNOWN, planSchema, type PlanInput } from "./plan";
-import { CHECKLIST_ITEMS } from "./report";
+import { CERTAINTY, CERTAINTY_HELP, CHECKLIST_ITEMS } from "./report";
 import { SEVERITY_SHORT, citeLabel, citeUrl, groupByAgency, groupByStage, runRules, splitFindings } from "./rules";
 import { FUDE_SOURCE, GSI_VT_SOURCE, lookupSite, mergeSiteIntoPlan, type SiteContext } from "./site";
 
@@ -28,8 +28,9 @@ export const SERVER_INSTRUCTIONS = `建築・土地の法令チェック用の�
 1. 敷地の資料（登記事項証明書・公図・地積測量図・現況測量図・現地写真・重要事項説明書など）がドライブやアップロードにあれば、先に開いて読む。何を読むべきかは document_reading_guide で確認する。資料に書いてあることと、推測（写真からの見立てなど）は分けて扱う。
 2. 住所（地番しか分からない場合は所在の町名まで）と計画内容、資料から読み取った事実を land_law_check に渡す。住所だけで土地の環境を見たいときは land_summary。
 3. 返ってきた「土地のまとめ」「この敷地ならではの論点」「先に聞きに行く窓口」をもとに回答する。条文の数値を書くときは get_law_article で本文を確認する。条例・自治体の運用は自治体の公式ページで確認し、確認できなければ窓口名を示す。
-4. 回答は短く：結論（建てられる見込みと最大の論点）→ 見落としチェック（指定12項目を 該当／可能性あり／要確認／該当なし）→ 設計で注意すること → 役所への事前協議（窓口ごと）→ 資料から読み取ったことと食い違い。最後に結果の app_link を案内し、画面でAIの詳しいチェックを実行できることを伝える。
-5. 最終判断は所管窓口と建築士が行う前提で書く。`;
+4. 回答は短く：結論（建てられる見込みと最大の論点）→ 見落としチェック（指定12項目を 該当／可能性あり／要確認／該当なし）→ 設計で注意すること → 役所への事前協議（窓口ごと）→ タスク一覧（誰が・いつまでに・何を）→ 資料から読み取ったことと食い違い。最後に結果の app_link を案内し、画面でAIの詳しいチェック・タスク管理・PDF保存ができることを伝える。
+5. 各項目に確実性と出典を必ず付ける。確定＝${CERTAINTY_HELP.確定}（出典が必須）／要確認＝${CERTAINTY_HELP.要確認}／推測＝${CERTAINTY_HELP.推測}。地図データの農地・川までの距離は推測。推測を事実のように書かない。
+6. 最終判断は所管窓口と建築士が行う前提で書く。`;
 
 type Json = Record<string, unknown>;
 type ToolDef = { name: string; title: string; description: string; inputSchema: Json; annotations?: Json };
@@ -105,7 +106,7 @@ export const PROMPTS = [
     title: "土地資料から法令チェック",
     description: "ドライブ等にある土地資料（登記簿・公図・測量図・写真）と住所から、法令制限・事前協議先・見落としをまとめます。",
     arguments: [
-      { name: "customer", description: "お客様名・案件名（例：伊藤様）", required: false },
+      { name: "customer", description: "お客様名・案件名（例：山田様）", required: false },
       { name: "address", description: "敷地の住所（分かれば）", required: false },
       { name: "plan", description: "何を建てたいか（例：木造2階建ての自宅）", required: false },
     ],
@@ -123,7 +124,7 @@ function promptText(args: Record<string, string | undefined>): string {
     `1. ドライブ（またはこの会話の添付）から${args.customer ? `「${args.customer}」に関係する` : "この案件の"}土地資料を探して開く（登記事項証明書、公図、地積測量図、現況測量図、現地写真、重要事項説明書など）。`,
     "2. document_reading_guide（kind: all）で読み取る項目を確認し、資料ごとに事実を拾う。資料に書いてあることと推測は分ける。",
     "3. land_law_check に住所・計画・読み取った数値（地積、地目、道路幅員、接道長さなど）と document_facts を渡す。",
-    "4. 結論 → 見落としチェック12項目 → 設計で注意すること → 役所への事前協議（窓口ごと） → 資料同士や自動取得データとの食い違い、の順で短くまとめる。最後に app_link を案内する。",
+    "4. 結論 → 見落としチェック12項目 → 設計で注意すること → 役所への事前協議（窓口ごと） → タスク一覧 → 資料同士や自動取得データとの食い違い、の順で短くまとめる。各項目に［確定／要確認／推測］と出典を付ける。最後に app_link を案内する。",
   ].join("\n");
 }
 
@@ -183,7 +184,9 @@ export function appLink(plan: PlanInput, baseUrl = siteUrl()): string {
 function siteSection(site: SiteContext | null, plan: PlanInput): string[] {
   if (!site) return ["（住所の指定がないため、土地の自動取得はしていません）"];
   const lines = [`## 土地のまとめ`, `位置：${site.matched ?? "特定できず"}（地図上の代表点。境界は反映していません）`];
-  for (const f of landFacts(plan, site)) lines.push(`- **${f.label}**：${f.value}${f.sub ? `（${f.sub}）` : ""}［${f.source}］`);
+  for (const f of landFacts(plan, site))
+    lines.push(`- **${f.label}**：${f.value}${f.sub ? `（${f.sub}）` : ""}［${f.certainty}${f.certainty === "入力" ? "" : `・出典：${f.cites.length ? f.cites.map((c) => c.label).join("、") : "なし"}`}］`);
+  lines.push(`確実性：${CERTAINTY.map((c) => `${c}＝${CERTAINTY_HELP[c]}`).join("／")}／入力＝入力どおりの値`);
   if (site.derived.notes.length) lines.push("", "注記：", ...site.derived.notes.map((n) => `- ${n}`));
   const srcs = new Map<string, string>();
   for (const l of site.layers) if (l.status === "hit") srcs.set(l.source.url, `${l.source.label}${l.source.year ? `（${l.source.year}）` : ""}`);
@@ -233,6 +236,12 @@ export async function landLawCheckTool(args: Json, ctx: Ctx = {}): Promise<strin
     for (const f of checks) out.push(`- ${f.rule.title}（${f.rule.agency}）`);
   }
   if (routine.length) out.push("", "## 通常の新築で毎回必要な手続き", routine.map((f) => f.rule.title).join("／"));
+  const todo = [...specific, ...checks];
+  if (todo.length) {
+    out.push("", "## タスク一覧（自動判定から。段階順）");
+    for (const { stage, items } of groupByStage(todo))
+      for (const f of items) out.push(`- [ ] 【${stage}・${f.rule.roles.join("／")}】${f.rule.action}（窓口：${f.rule.agency}）`);
+  }
   out.push(
     "",
     "## 見落としチェック（この12項目を 該当／可能性あり／要確認／該当なし で評価して回答に入れてください）",
