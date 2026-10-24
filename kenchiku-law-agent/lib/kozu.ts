@@ -276,7 +276,7 @@ export async function lookupKozu(address: string, muniCd: string): Promise<KozuR
         let found: { index: Index; district: string; file: string } | null = null;
         for (const zip of ds.zips) {
           const index = await loadIndex(zip);
-          // Longest 地番区域 that ends the text before the 地番 (e.g. "岐阜市水海道1丁目").
+          // Longest 地番区域 that ends the text before the 地番 (e.g. "浜松市中央区元城町1丁目").
           const before = split.before;
           let best = "";
           for (const district of index.rows.keys()) if (district.length > best.length && before.endsWith(district.replace(/^.*?[市町村区](?=.)/, "")) && index.rows.get(district)!.has(split.chiban)) best = district;

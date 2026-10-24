@@ -581,7 +581,7 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
                         type="text"
                         maxLength={200}
                         value={plan.address}
-                        placeholder="例：岐阜県岐阜市水海道一丁目12番7"
+                        placeholder="例：浜松市中央区元城町103-2"
                         onChange={(e) => set("address", e.target.value)}
                         onBlur={() => lookup()}
                         onKeyDown={(e) => {

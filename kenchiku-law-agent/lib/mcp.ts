@@ -101,7 +101,7 @@ export const TOOLS: ToolDef[] = [
         current_zip: str("現住所の郵便番号"),
         current_address: str("現住所"),
         site_zip: str("建築地の郵便番号"),
-        lot: str("該当地（地番・地積・地目）。登記簿から。例：水海道一丁目12番7（地積260㎡・地目 畑）"),
+        lot: str("該当地（地番・地積・地目）。登記簿から。例：○○町一丁目12番7（地積260㎡・地目 畑）"),
         site_area: num("敷地面積（㎡）"),
         registered_land_category: enumOf(LAND_CATEGORIES, "登記簿の地目"),
         road_type: enumOf(ROAD_TYPES, "前面道路の法上の種別"),
