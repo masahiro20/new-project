@@ -35,7 +35,7 @@ export default function SiteProgress({ done, seconds }: { done: SiteStepId[]; se
             </li>
           ))}
         </ol>
-        <p className="hint runlog">国の公開データを住所の地点で照合しています。ふつうは10〜20秒ほどです。</p>
+        <p className="hint runlog">国の公開データを住所の地点で照合しています。ふつうは数秒、混んでいるときで20秒ほどです。</p>
       </div>
     </div>
   );
