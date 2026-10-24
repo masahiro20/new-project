@@ -313,6 +313,7 @@ function draftFacts(plan: PlanInput, site: SiteContext | null, survey: SurveyFac
 
   const kenpei = parsePercent(site?.derived.kenpei);
   const yoseki = parsePercent(site?.derived.yoseki);
+  const ratioSrc = site?.derived.ratioSource;
   const f = plan.fireZone;
   const bonus: string[] = [];
   if (f === "防火地域") bonus.push("防火地域の耐火建築物等は+10%");
@@ -323,10 +324,16 @@ function draftFacts(plan: PlanInput, site: SiteContext | null, survey: SurveyFac
     group: "must",
     label: "建蔽率",
     value: kenpei !== null ? `${kenpei}%` : "不明",
-    sub: kenpei !== null ? `緩和の可能性：${bonus.join("、")}（建築基準法53条3項）` : z === "用途地域の指定なし" ? "用途地域のない区域は特定行政庁が定める値（市の告示で確認）" : "都市計画図で確認",
+    sub:
+      kenpei !== null
+        ? `${ratioSrc ? "用途地域のない区域の値（県の告示）。" : ""}緩和の可能性：${bonus.join("、")}（建築基準法53条3項）`
+        : z === "用途地域の指定なし"
+          ? "用途地域のない区域は特定行政庁が定める値（市の告示で確認）"
+          : "都市計画図で確認",
     tone: kenpei !== null ? "info" : "muted",
     source: kenpei !== null ? "国の公開データ" : "要確認",
-    ask: "都市計画課",
+    ...(kenpei !== null && ratioSrc ? { certainty: "確定" as const, cites: [ratioSrc] } : {}),
+    ask: ratioSrc ? "建築指導課（特定行政庁）" : "都市計画課",
   });
 
   const roadLimit = roadFarLimit(z, plan.roadWidth);
@@ -345,7 +352,10 @@ function draftFacts(plan: PlanInput, site: SiteContext | null, survey: SurveyFac
     tone: yoseki !== null ? (roadLimit !== null && roadLimit < yoseki ? "warn" : "info") : "muted",
     source: yoseki !== null ? (roadLimit !== null ? "条文から算出" : "国の公開データ") : "要確認",
     link: roadLimit !== null && yoseki !== null ? { label: "建築基準法52条", url: lawUrl(KENKIHO, "52") } : undefined,
-    ask: "都市計画課",
+    ...(yoseki !== null && ratioSrc
+      ? { certainty: "確定" as const, cites: [ratioSrc, ...(roadLimit !== null ? [{ label: "建築基準法52条", url: lawUrl(KENKIHO, "52") }] : [])] }
+      : {}),
+    ask: ratioSrc ? "建築指導課（特定行政庁）" : "都市計画課",
   });
 
   const h = heightRules(z);

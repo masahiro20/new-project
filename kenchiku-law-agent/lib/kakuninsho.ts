@@ -71,10 +71,11 @@ const ZONE_SHORT = (z: PlanInput["zoning"]) => (z === "不明" ? "" : z === "用
 
 
 /** 備考: 結論と、見落とすと困る論点。AIの回答があればそれを、なければ自動判定を使う。 */
-export function remarks(plan: PlanInput, report: PartialReport | null | undefined, date: string, sheet: ResolvedSheet = {}): string {
+export function remarks(plan: PlanInput, report: PartialReport | null | undefined, date: string, sheet: ResolvedSheet = {}, ratioSource?: { label: string }): string {
   const head = `【建築法令エージェント ${date}】`;
   const src = sheetSourceLine(sheet);
-  const tail = `${src ? `${src}。` : ""}用途地域等は国のデータ（住所の代表点）による。都市計画図・窓口で確認のこと。詳細は法令チェック表（PDF）。`;
+  const ratio = ratioSource ? `建蔽率・容積率は${ratioSource.label}による。` : "";
+  const tail = `${src ? `${src}。` : ""}${ratio}用途地域等は国のデータ（住所の代表点）による。都市計画図・窓口で確認のこと。詳細は法令チェック表（PDF）。`;
   if (report?.summary?.verdict) {
     const risks = (report.summary.topRisks ?? []).slice(0, 3).map((r, i) => `${"①②③"[i]}${r}`);
     return [`${head}${report.summary.verdict}。`, ...risks, tail].join("\n");
@@ -135,7 +136,7 @@ export function buildKakuninsho({ survey, plan, site, report, sheet: aiSheet, to
     G23: v("road2Gou"),
     D24: v("road2Direction"),
     H24: num("road2Width"),
-    B50: remarks(plan, report, date, r),
+    B50: remarks(plan, report, date, r, site?.derived.ratioSource),
   };
   for (const [ref, v] of Object.entries(values)) sheet = setCell(sheet, ref, v);
   // 備考 holds several lines: wrap it top-left and give its two rows room.

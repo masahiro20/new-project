@@ -7,6 +7,7 @@
 import { EMPTY_SIGNALS, HAZARDS, type PlanInput, type Signals } from "./plan";
 import { FUDE_SOURCE, GSI_VT_SOURCE, lookupFarmland, lookupWater, type FarmlandResult, type WaterResult } from "./nearby";
 import { ELEVATION_SOURCE, LANDPRICE_SOURCE, lookupElevation, lookupLandPrices, type Elevation, type LandPriceResult } from "./siteextras";
+import { unzonedRatio } from "./unzoned";
 
 export { FUDE_SOURCE, GSI_VT_SOURCE };
 
@@ -56,6 +57,8 @@ export type SiteContext = {
     hazards: PlanInput["hazards"];
     kenpei?: string;
     yoseki?: string;
+    /** Set when the ratios come from a 特定行政庁 notice (用途地域の指定のない区域) instead of the zoning data. */
+    ratioSource?: { label: string; url: string };
     notes: string[];
   };
 };
@@ -418,6 +421,13 @@ function derive(ctx: SiteContext) {
     if (zoning.features.length > 1) d.notes.push("地点が複数の用途地域の境界付近にあります。敷地のどの部分がどちらに属するか都市計画図で確認してください。");
   } else if (zoning?.status === "none" && area?.status === "hit") {
     d.zoning = "用途地域の指定なし";
+    const cities = area.features.map((f) => s(f.city_name)).join(" ");
+    const ratio = unzonedRatio(`${ctx.address} ${ctx.matched ?? ""} ${cities}`);
+    if (ratio) {
+      d.kenpei = ratio.kenpei;
+      d.yoseki = ratio.yoseki;
+      d.ratioSource = ratio.source;
+    }
   }
 
   const fire = layer("XKT014");
@@ -513,7 +523,8 @@ export function siteToText(site: SiteContext | null): string {
   }
   if (site.derived.signals.floodRivers.length) lines.push(`- 浸水想定の対象河川（近くの川の名前の手がかり）：${site.derived.signals.floodRivers.join("、")}`);
   lines.push("- 注：地点はジオコーディングの代表点で、敷地の形・境界は反映していません。距離は数m〜十数mの誤差を含みます。");
-  if (site.derived.kenpei || site.derived.yoseki) lines.push(`- 指定建蔽率／容積率：${site.derived.kenpei ?? "不明"}／${site.derived.yoseki ?? "不明"}`);
+  if (site.derived.kenpei || site.derived.yoseki)
+    lines.push(`- 指定建蔽率／容積率：${site.derived.kenpei ?? "不明"}／${site.derived.yoseki ?? "不明"}${site.derived.ratioSource ? `（${site.derived.ratioSource.label} ${site.derived.ratioSource.url}）` : ""}`);
   for (const n of site.derived.notes) lines.push(`- 注記：${n}`);
   lines.push(`取得日時：${site.fetchedAt}`);
   return lines.join("\n");

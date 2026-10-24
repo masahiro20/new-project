@@ -667,3 +667,21 @@ test("AIに見てほしいこと reaches the brief, one numbered line each", asy
   const text = planToText(plan({ asks: "・将来二世帯にしたい\n2. 駐車場を3台\n\n3階建てにしたら？" }));
   assert.match(text, /1\. 将来二世帯にしたい\n2\. 駐車場を3台\n3\. 3階建てにしたら？/);
 });
+
+test("用途地域のない区域：愛知県告示297号の市町村は60%／200%、(2)の区域と県外は入れない", async () => {
+  const { unzonedRatio } = await import("../lib/unzoned");
+  assert.equal(unzonedRatio("愛知県あま市七宝町 あま市")?.kenpei, "60%");
+  assert.equal(unzonedRatio("愛知県海部郡蟹江町")?.yoseki, "200%");
+  assert.equal(unzonedRatio("愛知県西尾市吉良町宮崎"), null);
+  assert.equal(unzonedRatio("愛知県蒲郡市三谷町"), null);
+  assert.equal(unzonedRatio("愛知県豊田市"), null);
+  assert.equal(unzonedRatio("静岡県浜松市中央区"), null);
+  const { landFacts } = await import("../lib/landsummary");
+  const p = plan({ areaDivision: "市街化調整区域", zoning: "用途地域の指定なし" });
+  const src = { label: "愛知県告示第297号（用途地域の指定のない区域の容積率・建蔽率）", url: "https://www.pref.aichi.jp/" };
+  const site = { apiAvailable: true, precise: true, layers: [], derived: { zoning: "用途地域の指定なし", kenpei: "60%", yoseki: "200%", ratioSource: src, hazards: [], notes: [], signals: p.signals } } as unknown as SiteContext;
+  const f = new Map(landFacts(p, site).map((x) => [x.key, x]));
+  assert.equal(f.get("kenpei")?.value, "60%");
+  assert.equal(f.get("kenpei")?.certainty, "確定");
+  assert.equal(f.get("yoseki")?.cites[0]?.label, src.label);
+});
