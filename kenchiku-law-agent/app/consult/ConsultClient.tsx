@@ -11,6 +11,7 @@ import Rail, { type RailItem } from "./Rail";
 import Section from "../components/Section";
 import Attachments, { type Attachment } from "./Attachments";
 import LandSheet from "./LandSheet";
+import SiteProgress from "./SiteProgress";
 import { landFacts, type SurveyFacts } from "@/lib/landsummary";
 import type { Survey } from "@/lib/survey";
 import { reportToMarkdown, tasksToCsv, type PartialReport } from "@/lib/report";
@@ -33,7 +34,7 @@ import {
   type PlanInput,
 } from "@/lib/plan";
 import { SEVERITY_SHORT, citeLabel, citeUrl, groupByAgency, groupByStage, runRules, splitFindings, type Finding } from "@/lib/rules";
-import type { SiteContext } from "@/lib/site";
+import type { SiteContext, SiteStepId } from "@/lib/site";
 import { mergeSiteIntoPlan } from "@/lib/site";
 
 const STORAGE_KEY = "kenchiku-law-agent:plan:v2";
@@ -163,6 +164,10 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
   const [plan, setPlan] = useState<PlanInput>(EMPTY_PLAN);
   const [site, setSite] = useState<SiteContext | null>(null);
   const [siteBusy, setSiteBusy] = useState(false);
+  // 住所の読み込みの進み具合（サーバーから届いたデータのまとまり）と所要時間
+  const [siteSteps, setSiteSteps] = useState<SiteStepId[]>([]);
+  const [siteStartedAt, setSiteStartedAt] = useState<number | null>(null);
+  const [siteSeconds, setSiteSeconds] = useState<number | null>(null);
   const [siteError, setSiteError] = useState<string | null>(null);
   const [accessKey, setAccessKey] = useState("");
   const [busy, setBusy] = useState(false);
@@ -234,12 +239,12 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
     }
   }, [plan]);
 
-  // Progress clock while the AI works.
+  // Progress clock while the AI works or the address is being read.
   useEffect(() => {
-    if (!busy) return;
+    if (!busy && !siteBusy) return;
     const t = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(t);
-  }, [busy]);
+  }, [busy, siteBusy]);
 
   // Task checkmarks are kept per answer on this device.
   const taskKey = report?.summary?.headline ? `${TASKS_KEY}${hash(`${plan.address}|${report.summary.headline}`)}` : null;
@@ -289,19 +294,48 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
     } catch {
       // ignore
     }
+    const t0 = Date.now();
+    setSiteSteps([]);
+    setSiteSeconds(null);
+    setSiteStartedAt(t0);
+    setNow(t0);
     try {
-      const res = await fetch(`/api/site?address=${encodeURIComponent(address)}`, { headers: headers() });
-      const data = await res.json();
-      if (!res.ok) {
+      const res = await fetch(`/api/site?address=${encodeURIComponent(address)}&stream=1`, { headers: headers() });
+      if (!res.ok || !res.body) {
+        const data = await res.json().catch(() => ({}));
         setSiteError(data.error ?? "取得に失敗しました。");
         setSite(null);
         return;
       }
-      setSite(data as SiteContext);
+      // NDJSON: a line per data group as it arrives, then the whole site.
+      const reader = res.body.getReader();
+      const dec = new TextDecoder();
+      let buf = "";
+      let got: SiteContext | null = null;
+      for (;;) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += dec.decode(value, { stream: true });
+        let nl: number;
+        while ((nl = buf.indexOf("\n")) >= 0) {
+          const line = buf.slice(0, nl).trim();
+          buf = buf.slice(nl + 1);
+          if (!line) continue;
+          const ev = JSON.parse(line) as { type: "step"; id: SiteStepId } | { type: "site"; site: SiteContext } | { type: "error"; error: string };
+          if (ev.type === "step") setSiteSteps((prev) => (prev.includes(ev.id) ? prev : [...prev, ev.id]));
+          else if (ev.type === "site") got = ev.site;
+          else setSiteError(ev.error);
+        }
+      }
+      if (got) {
+        setSite(got);
+        setSiteSeconds(Math.max(1, Math.round((Date.now() - t0) / 1000)));
+      } else setSite(null);
     } catch {
       setSiteError("通信エラーで土地情報を取得できませんでした。");
     } finally {
       setSiteBusy(false);
+      setSiteStartedAt(null);
     }
   }
 
@@ -498,7 +532,7 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
   const resultVisible = Boolean(text || report || busy);
   const rail: RailItem[] = [
     { id: "s-input", no: "01", label: "計画を入れる", ready: true },
-    { id: "s-land", no: "02", label: "土地情報まとめ", ready: Boolean(site || siteBusy || siteError) },
+    { id: "s-land", no: "02", label: "土地情報まとめ", ready: Boolean(site || siteBusy || siteError), note: siteBusy ? "読込中" : undefined },
     { id: "s-maps", no: "03", label: "案内図・公図", ready: hasMap },
     { id: "s-issues", no: "04", label: "法令の論点", ready: findings.length > 0, note: findings.length ? String(split.specific.length + split.checks.length) : undefined },
     { id: "s-result", no: "05", label: "AIの詳しいチェック", ready: true, note: busy ? "実行中" : report ? "済" : undefined },
@@ -723,15 +757,15 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
           )}
           {(site || siteBusy || siteError) && (
             <Section id="s-land" no="02" title="土地情報まとめ" lead={location ?? "住所の位置を特定しています"}>
-              {siteBusy && (
-                <div className="scanning" role="status">
-                  <span className="radar" aria-hidden />
-                  <p>都市計画・災害・農地・川のデータを照合しています…</p>
-                </div>
-              )}
+              {siteBusy && <SiteProgress done={siteSteps} seconds={siteStartedAt ? Math.max(0, Math.round((now - siteStartedAt) / 1000)) : 0} />}
               {siteError && <p className="notice">{siteError}</p>}
               {site && !siteBusy && (
                 <>
+                  {siteSeconds !== null && (
+                    <p className="site-done" role="status">
+                      <span aria-hidden>✓</span>読み込み完了　国の公開データ{siteSteps.length}種類を照合（{siteSeconds}秒）
+                    </p>
+                  )}
                   {!site.apiAvailable && <p className="notice">不動産情報ライブラリの API キーが未設定のため、用途地域などは取得できていません。「分かれば入れる」で手入力してください。</p>}
                   <LandSheet facts={facts} location={location ?? ""} notes={site.derived.notes} />
                 </>

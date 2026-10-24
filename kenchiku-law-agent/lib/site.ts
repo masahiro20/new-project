@@ -133,6 +133,23 @@ export const LAYERS: LayerDef[] = [
   { id: "XKT027", label: "高潮浸水想定区域", source: { label: "国土数値情報 高潮浸水想定区域", url: "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-A49-v1_0.html", year: "" }, kind: "polygon", describe: (p) => Object.entries(p).filter(([, v]) => v !== null && v !== "").slice(0, 4).map(([k, v]) => `${k}=${s(v)}`).join("、") },
 ];
 
+/** What the address lookup reports as it goes (each group is one line in the progress list). */
+export const SITE_STEPS = [
+  { id: "geo", label: "住所の位置を特定", source: "国土地理院" },
+  { id: "plan", label: "都市計画（区域区分・用途地域・防火・地区計画）", source: "国土交通省" },
+  { id: "hazard", label: "災害（洪水・高潮・津波・土砂・液状化）", source: "国土数値情報" },
+  { id: "farm", label: "農地の区画", source: "農林水産省" },
+  { id: "water", label: "川・水路", source: "国土地理院" },
+  { id: "area", label: "学区・近隣の地価・標高", source: "国土交通省・国土地理院" },
+] as const;
+export type SiteStepId = (typeof SITE_STEPS)[number]["id"];
+
+const STEP_OF_LAYER: Record<string, SiteStepId> = {
+  XKT001: "plan", XKT002: "plan", XKT014: "plan", XKT023: "plan", XKT003: "plan", XKT030: "plan", XKT024: "plan",
+  XKT004: "area", XKT005: "area",
+};
+const stepOfLayer = (id: string): SiteStepId => STEP_OF_LAYER[id] ?? "hazard";
+
 // ------------------------------------------------------------------ geometry
 
 export function tileFor(lat: number, lon: number, z = ZOOM): { z: number; x: number; y: number } {
@@ -219,10 +236,21 @@ export function reinfolibAvailable(): boolean {
 
 const siteCache = new Map<string, { at: number; value: SiteContext }>();
 
-export async function lookupSite(address: string): Promise<SiteContext> {
+export async function lookupSite(address: string, onStep?: (id: SiteStepId) => void): Promise<SiteContext> {
   const trimmed = address.trim();
   const cached = siteCache.get(trimmed);
-  if (cached && Date.now() - cached.at < CACHE_TTL_MS) return cached.value;
+  if (cached && Date.now() - cached.at < CACHE_TTL_MS) {
+    for (const st of SITE_STEPS) onStep?.(st.id);
+    return cached.value;
+  }
+  // Each group is reported once, when its last source has answered.
+  const left: Record<SiteStepId, number> = { geo: 1, plan: 0, hazard: 0, farm: 1, water: 1, area: 2 };
+  for (const l of LAYERS) left[stepOfLayer(l.id)]++;
+  const tick = (id: SiteStepId) => {
+    left[id]--;
+    if (left[id] === 0) onStep?.(id);
+  };
+  const finish = (ids: SiteStepId[]) => ids.forEach((id) => left[id] > 0 && ((left[id] = 1), tick(id)));
 
   const ctx: SiteContext = {
     address: trimmed,
@@ -242,8 +270,10 @@ export async function lookupSite(address: string): Promise<SiteContext> {
   const hits = trimmed ? await geocode(trimmed) : [];
   if (hits.length === 0) {
     ctx.derived.notes.push("住所から位置を特定できませんでした。都道府県から番地まで入れ直してください。");
+    finish(SITE_STEPS.map((x) => x.id));
     return ctx;
   }
+  tick("geo");
   const best = hits[0];
   ctx.matched = best.title;
   ctx.lat = best.lat;
@@ -257,11 +287,15 @@ export async function lookupSite(address: string): Promise<SiteContext> {
   if (!/\d/.test(trimmed)) ctx.derived.notes.push("番地まで入っていないため、町丁目の代表点で判定しています。敷地の境界付近では用途地域や区域が異なることがあります。");
 
   const key = process.env.REINFOLIB_API_KEY;
-  const nearbyPromise = Promise.all([lookupFarmland(best.lat, best.lon), lookupWater(best.lat, best.lon)]);
-  const extrasPromise = Promise.all([lookupLandPrices(best.lat, best.lon, process.env.REINFOLIB_API_KEY), lookupElevation(best.lat, best.lon)]);
+  const nearbyPromise = Promise.all([lookupFarmland(best.lat, best.lon).finally(() => tick("farm")), lookupWater(best.lat, best.lon).finally(() => tick("water"))]);
+  const extrasPromise = Promise.all([
+    lookupLandPrices(best.lat, best.lon, process.env.REINFOLIB_API_KEY).finally(() => tick("area")),
+    lookupElevation(best.lat, best.lon).finally(() => tick("area")),
+  ]);
   if (!key) {
     ctx.layers = LAYERS.map((l) => ({ id: l.id, label: l.label, status: "skipped" as const, summary: [], features: [], source: l.source }));
     ctx.derived.notes.push("不動産情報ライブラリの API キー（REINFOLIB_API_KEY）が未設定のため、用途地域・区域区分・防火指定・災害区域の自動取得をスキップしました。");
+    for (const l of LAYERS) tick(stepOfLayer(l.id));
     [ctx.farmland, ctx.water] = await nearbyPromise;
     [ctx.landPrices, ctx.elevation] = await extrasPromise;
     derive(ctx);
@@ -270,29 +304,38 @@ export async function lookupSite(address: string): Promise<SiteContext> {
   }
 
   const tile = ctx.tile;
+  const apiKey: string = key;
   ctx.layers = await Promise.all(
     LAYERS.map(async (l): Promise<LayerResult> => {
       try {
-        const fc = await fetchLayerTile(l.id, tile, key);
-        const matched = fc.features.filter((f) =>
-          l.kind === "polygon" ? pointInGeometry(best.lon, best.lat, f.geometry) : distanceToLine(best.lon, best.lat, f.geometry) <= LINE_HIT_METERS,
-        );
-        const seen = new Set<string>();
-        const summary: string[] = [];
-        const features: Record<string, unknown>[] = [];
-        for (const f of matched) {
-          const line = l.describe(f.properties ?? {});
-          if (seen.has(line)) continue;
-          seen.add(line);
-          summary.push(line);
-          features.push(f.properties ?? {});
-        }
-        return { id: l.id, label: l.label, status: matched.length ? "hit" : "none", summary, features, source: l.source };
-      } catch (e) {
-        return { id: l.id, label: l.label, status: "error", summary: [], features: [], source: l.source, error: e instanceof Error ? e.message : String(e) };
+        return await readLayer(l);
+      } finally {
+        tick(stepOfLayer(l.id));
       }
     }),
   );
+
+  async function readLayer(l: LayerDef): Promise<LayerResult> {
+    try {
+      const fc = await fetchLayerTile(l.id, tile, apiKey);
+      const matched = fc.features.filter((f) =>
+        l.kind === "polygon" ? pointInGeometry(best.lon, best.lat, f.geometry) : distanceToLine(best.lon, best.lat, f.geometry) <= LINE_HIT_METERS,
+      );
+      const seen = new Set<string>();
+      const summary: string[] = [];
+      const features: Record<string, unknown>[] = [];
+      for (const f of matched) {
+        const line = l.describe(f.properties ?? {});
+        if (seen.has(line)) continue;
+        seen.add(line);
+        summary.push(line);
+        features.push(f.properties ?? {});
+      }
+      return { id: l.id, label: l.label, status: matched.length ? "hit" : "none", summary, features, source: l.source };
+    } catch (e) {
+      return { id: l.id, label: l.label, status: "error", summary: [], features: [], source: l.source, error: e instanceof Error ? e.message : String(e) };
+    }
+  }
 
   [ctx.farmland, ctx.water] = await nearbyPromise;
   [ctx.landPrices, ctx.elevation] = await extrasPromise;

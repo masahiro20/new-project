@@ -1150,3 +1150,15 @@ pre.law.code { background: #2b2b2b; color: #eef1f3; border: 0; font-family: var(
 .hero-col-title { margin: 0 0 6px; font-size: 0.78rem; letter-spacing: 0.12em; color: #d9bf7d; }
 .hero-cols ul { margin: 0; padding-left: 1.2em; font-size: 0.88rem; line-height: 1.85; color: rgba(255, 255, 255, 0.88); }
 @media (max-width: 700px) { .hero-cols { grid-template-columns: 1fr; } }
+
+/* 住所の読み込み（AIチェックと同じレーダー表示） */
+.site-progress { margin: 4px 0 24px; }
+.site-steps { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 22px; }
+.site-steps li { transition: color 0.4s var(--ease); }
+.site-steps li small { display: block; margin: -2px 0 0 1.35em; font-size: 0.68rem; color: #9aa3ab; letter-spacing: 0.04em; line-height: 1.5; }
+.site-steps li.is-done::before { display: inline-block; animation: tick-in 0.5s var(--ease); }
+.site-steps li.is-current { font-weight: 500; }
+@keyframes tick-in { from { transform: scale(0.2); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (max-width: 600px) { .site-steps { grid-template-columns: 1fr; } }
+.site-done { display: inline-flex; align-items: center; gap: 10px; margin: 0 0 22px; font-size: 0.86rem; color: var(--ok); animation: rise 0.6s var(--ease) both; }
+.site-done span { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50% !important; background: var(--ok-soft); font-size: 0.78rem; }
