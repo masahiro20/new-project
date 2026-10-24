@@ -31,13 +31,11 @@ const FOLDER = `案件/
 export default function ClaudePage() {
   const endpoint = `${siteUrl()}/api/mcp`;
   return (
-    <>
+    <div className="sheet sheet-page">
       <header className="page-hero">
         <div className="wrap narrow">
-          <p className="kicker">
-            <span className="kicker-dot" aria-hidden />
-            Claude から使う（MCP）
-          </p>
+          <p className="page-en">Claude</p>
+          <p className="page-kicker">Claude から使う（MCP）</p>
           <h1>ドライブの資料と住所から、Claude にそのまま頼めます</h1>
           <p className="lead">
             Claude にこのツールをつなぐと、会話の中で「○○様のフォルダの資料をもとに法令チェックして」と頼めます。資料を読むのは
@@ -73,14 +71,14 @@ export default function ClaudePage() {
             <li>Claude の設定から「コネクタ」を開き、「カスタムコネクタを追加」を選びます。</li>
             <li>
               名前に「建築法令エージェント」、URL に次を入れて追加します（キーは入れません）。
-              <pre className="law">{endpoint}</pre>
+              <pre className="law code">{endpoint}</pre>
             </li>
             <li>「接続」を押すと、このツールのサインイン画面が開きます。社内で共有しているアクセスキーを入れて「接続する」を押します。接続は約30日ごとに自動で更新されます。</li>
             <li>ドライブの資料を読ませるときは、同じ画面で Google ドライブのコネクタもオンにします。</li>
           </ol>
           <p className="hint">「サインインサービスに登録できませんでした」と出た場合は、そのコネクタを一度削除し、上のURL（キーなし）で追加し直してください。</p>
           <h3>Claude Code</h3>
-          <pre className="law">{`claude mcp add --transport http kenchiku-law ${endpoint} --header "Authorization: Bearer アクセスキー"`}</pre>
+          <pre className="law code">{`claude mcp add --transport http kenchiku-law ${endpoint} --header "Authorization: Bearer アクセスキー"`}</pre>
 
           <h2>2. 資料の置き方（読み取り精度が上がります）</h2>
           <ul>
@@ -137,6 +135,6 @@ export default function ClaudePage() {
           </p>
         </div>
       </section>
-    </>
+    </div>
   );
 }

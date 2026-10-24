@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Inter, JetBrains_Mono, Noto_Sans_JP, Shippori_Mincho_B1 } from "next/font/google";
+import { JetBrains_Mono, Noto_Serif_JP, Shippori_Mincho_B1 } from "next/font/google";
 import { SITE_NAME, SITE_SUBTITLE, siteUrl } from "@/lib/config";
 import MotionRoot from "./components/MotionRoot";
-import { LogoMark } from "./components/Logo";
+import BackdropVideo from "./components/BackdropVideo";
+import { LogoMark, LogoType } from "./components/Logo";
 import "./globals.css";
 
-// 本文は Noto Sans JP、大きな見出しは明朝（Shippori Mincho B1）、数字と英字は Inter。
-// 等幅は地図の座標表示だけに使う。
-const jp = Noto_Sans_JP({ subsets: ["latin"], variable: "--font-jp", display: "swap", preload: false });
-const serif = Shippori_Mincho_B1({ weight: ["600", "700", "800"], subsets: ["latin"], variable: "--font-serif", display: "swap", preload: false });
-const display = Inter({ subsets: ["latin"], variable: "--font-display", display: "swap" });
+// 会社サイト（homelandick.com）に合わせて、本文も見出しも明朝。
+// 本文・英字は Noto Serif JP、キャッチは Shippori Mincho B1。等幅は地図の座標表示だけ。
+const jp = Noto_Serif_JP({ weight: ["400", "500", "700"], subsets: ["latin"], variable: "--font-jp", display: "swap", preload: false });
+const serif = Shippori_Mincho_B1({ weight: ["500", "600"], subsets: ["latin"], variable: "--font-serif", display: "swap", preload: false });
 const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono", display: "swap" });
 
 export const metadata: Metadata = {
@@ -25,15 +25,17 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ja" className={`${jp.variable} ${serif.variable} ${display.variable} ${mono.variable}`}>
+    <html lang="ja" className={`${jp.variable} ${serif.variable} ${mono.variable}`}>
       <body>
+        <BackdropVideo />
         <header className="site-header">
-          <div className="wrap header-inner">
+          <div className="header-inner">
             <Link href="/" className="logo" aria-label={`${SITE_NAME} ホーム`}>
-              <LogoMark />
-              <span className="logo-text">
-                <strong>{SITE_NAME}</strong>
-                <small>{SITE_SUBTITLE}</small>
+              <LogoMark size={34} />
+              <LogoType height={30} />
+              <span className="logo-app">
+                <small>LAND SCAN</small>
+                土地・法令調査
               </span>
             </Link>
             <nav>
@@ -41,21 +43,21 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/rules">知識ベース</Link>
               <Link href="/sources">根拠と更新</Link>
               <Link href="/consult" className="nav-cta">
-                <span className="dot" aria-hidden />
-                土地を調べる
+                土地を調べる<span aria-hidden>➤</span>
               </Link>
             </nav>
           </div>
         </header>
         <main>{children}</main>
         <footer className="site-footer">
-          <div className="wrap footer-inner">
+          <div className="footer-inner">
             <div className="footer-brand">
-              <LogoMark size={24} />
-              <span>
-                {SITE_NAME} — {SITE_SUBTITLE}
-              </span>
+              <LogoMark size={40} />
+              <LogoType height={34} />
             </div>
+            <p className="footer-app">
+              LAND SCAN — 土地・法令調査（社内ツール）
+            </p>
             <p>
               法令の現行条文（e-Gov法令検索）と国・自治体の公的資料をもとにした検討の出発点です。地図・航空写真は国土地理院の地理院タイル、都市計画・災害は国土交通省、農地は農林水産省の公開データを使っています。最終判断は所管の窓口への確認と建築士の判断で行ってください。
             </p>

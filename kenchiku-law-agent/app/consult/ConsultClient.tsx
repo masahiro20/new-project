@@ -515,10 +515,8 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
     <>
       <header className="ws-hero no-print">
         <div className="wrap ws-hero-inner">
-          <p className="kicker">
-            <span className="kicker-dot" aria-hidden />
-            LAND SCAN／土地・法令調査
-          </p>
+          <p className="page-en">Survey</p>
+          <p className="page-kicker">土地・法令調査</p>
           <h1 className="ws-title">{plan.address.trim() || "土地を調べる"}</h1>
           <p className="ws-sub">{plan.description.trim() || "住所と「何を建てたいか」を入れると、土地のまとめ・図面・論点がその場で、AIの詳しいチェックは約3〜4分で出ます。"}</p>
           <ol className="ws-progress" aria-label="進み具合">

@@ -11,13 +11,11 @@ export const metadata: Metadata = {
 
 export default function RulesPage() {
   return (
-    <>
+    <div className="sheet sheet-page">
       <header className="page-hero">
         <div className="wrap narrow">
-          <p className="kicker">
-            <span className="kicker-dot" aria-hidden />
-            知識ベース
-          </p>
+          <p className="page-en">Knowledge</p>
+          <p className="page-kicker">知識ベース</p>
           <h1>ルール一覧（{RULES.length}項目）</h1>
           <p className="lead">
             即時チェックとエージェントの土台になるルールです。条文リンクは e-Gov 法令検索の該当条に飛びます。「条文を表示」はこのサイト内で現行条文を取得して表示します。数値・条番号は{" "}
@@ -106,6 +104,6 @@ export default function RulesPage() {
           })}
         </div>
       </section>
-    </>
+    </div>
   );
 }

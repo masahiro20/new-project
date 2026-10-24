@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function ConsultPage() {
   return (
-    <div className="consult-page">
+    <div className="sheet consult-page">
       <ConsultClient accessRequired={accessRequired()} siteLookupAvailable={reinfolibAvailable()} />
     </div>
   );

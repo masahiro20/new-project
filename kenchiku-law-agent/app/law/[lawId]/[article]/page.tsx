@@ -20,13 +20,11 @@ export default async function LawArticlePage({ params }: { params: Promise<Param
   if (!article) notFound();
 
   return (
-    <>
+    <div className="sheet sheet-page">
       <header className="page-hero">
         <div className="wrap narrow">
-          <p className="kicker">
-            <span className="kicker-dot" aria-hidden />
-            現行条文（e-Gov 法令検索より取得）
-          </p>
+          <p className="page-en">Law</p>
+          <p className="page-kicker">現行条文（e-Gov 法令検索より取得）</p>
           <h1>
             {article.lawTitle} {article.label}
             {article.caption && (
@@ -54,6 +52,6 @@ export default async function LawArticlePage({ params }: { params: Promise<Param
           <p className="hint">条文は e-Gov 法令API v2 からリクエスト時に取得しています（最大1時間キャッシュ）。別表・附則はこの画面では表示しないため、必要なときは e-Gov で確認してください。</p>
         </div>
       </section>
-    </>
+    </div>
   );
 }

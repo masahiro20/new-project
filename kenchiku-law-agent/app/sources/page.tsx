@@ -15,13 +15,11 @@ export default function SourcesPage() {
   const articleCount = Object.keys(snap.articles).length;
 
   return (
-    <>
+    <div className="sheet sheet-page">
       <header className="page-hero">
         <div className="wrap narrow">
-          <p className="kicker">
-            <span className="kicker-dot" aria-hidden />
-            根拠と更新
-          </p>
+          <p className="page-en">Evidence</p>
+          <p className="page-kicker">根拠と更新</p>
           <h1>エビデンスの扱い</h1>
           <p className="lead">法令の話は「誰が言ったか」ではなく「どの条文に書いてあるか」で決まります。このツールは根拠を3つの等級に分け、下位の情報を単独の根拠にしません。</p>
         </div>
@@ -111,6 +109,6 @@ export default function SourcesPage() {
           </ul>
         </div>
       </section>
-    </>
+    </div>
   );
 }

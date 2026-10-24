@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
  * Scroll motion for the whole site: any element with `data-reveal` fades/slides in
  * the first time it enters the viewport (stagger with `--d`). Elements added later
  * (results streaming in) are picked up by the mutation observer.
+ * The header turns solid once the page scrolls off the film.
  */
 export default function MotionRoot() {
   const path = usePathname();
@@ -32,11 +33,16 @@ export default function MotionRoot() {
       });
     };
     scan();
+    const header = document.querySelector(".site-header");
+    const onScroll = () => header?.classList.toggle("is-scrolled", window.scrollY > 40);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
     const mo = new MutationObserver(scan);
     mo.observe(document.body, { childList: true, subtree: true });
     return () => {
       io.disconnect();
       mo.disconnect();
+      window.removeEventListener("scroll", onScroll);
     };
   }, [path]);
   return null;
