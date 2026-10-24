@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { EMPTY_SURVEY, type Survey } from "@/lib/survey";
+import { AI_SHEET_LABELS, resolveSheet, type AiSheetKey } from "@/lib/sheetfields";
+import type { SiteContext } from "@/lib/site";
 import type { PlanInput } from "@/lib/plan";
 import type { PartialReport } from "@/lib/report";
 
@@ -29,27 +31,10 @@ const SITE: Field[] = [
   { k: "road2Width", label: "2本目の道路幅員（m）", half: true },
 ];
 
-/** 法令制限確認書（Excel）: customer details are optional — blanks stay blank in the sheet. */
-export default function SurveyPanel({
-  plan,
-  report,
-  accessKey,
-  suggestedLot,
-  onSurvey,
-}: {
-  plan: PlanInput;
-  report: PartialReport | null;
-  accessKey: string;
-  suggestedLot?: string | null;
-  /** 入力が変わるたびに呼ぶ（土地情報まとめの上下水・ガス・壁面後退に反映）。 */
-  onSurvey?: (s: Survey) => void;
-}) {
-  const storageKey = `${KEY}${plan.address.trim()}`;
+/** The 敷地調査 / customer inputs, kept per address on this device only (never on the server). */
+export function useSurvey(address: string): [Survey, (k: keyof Survey, v: string) => void] {
+  const storageKey = `${KEY}${address.trim()}`;
   const [survey, setSurvey] = useState<Survey>(EMPTY_SURVEY);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [done, setDone] = useState<string | null>(null);
-
   useEffect(() => {
     try {
       const saved = localStorage.getItem(storageKey) ?? localStorage.getItem(`${KEY}__last`);
@@ -60,12 +45,6 @@ export default function SurveyPanel({
       setSurvey(EMPTY_SURVEY);
     }
   }, [storageKey]);
-
-  useEffect(() => {
-    onSurvey?.(survey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [survey]);
-
   const set = (k: keyof Survey, v: string) =>
     setSurvey((s) => {
       const next = { ...s, [k]: v } as Survey;
@@ -77,6 +56,61 @@ export default function SurveyPanel({
       }
       return next;
     });
+  return [survey, set];
+}
+
+function TextInput({ f, survey, set }: { f: Field; survey: Survey; set: (k: keyof Survey, v: string) => void }) {
+  return (
+    <label className={`sf ${f.half ? "half" : ""}`}>
+      <span>{f.label}</span>
+      <input type="text" value={String(survey[f.k] ?? "")} placeholder={f.ph ?? ""} onChange={(e) => set(f.k, e.target.value)} />
+    </label>
+  );
+}
+
+/** お客様情報（任意）: shown with the plan; whatever is typed goes into the 確認書. */
+export function CustomerFields({ survey, set }: { survey: Survey; set: (k: keyof Survey, v: string) => void }) {
+  const filled = CUSTOMER.filter((f) => String(survey[f.k] ?? "").trim()).length;
+  return (
+    <details className="more customer">
+      <summary>
+        お客様情報（任意）
+        <span className="hint">{filled ? `${filled}項目入力済み・法令制限確認書に反映` : "入れると法令制限確認書に反映。空欄のままでも使えます"}</span>
+      </summary>
+      <div className="more-body">
+        <div className="sgrid">
+          {CUSTOMER.map((f) => (
+            <TextInput key={f.k} f={f} survey={survey} set={set} />
+          ))}
+        </div>
+        <p className="hint">この端末にだけ保存されます（住所ごと）。サーバーやAIには送りません。Excelを作るときだけ使います。</p>
+      </div>
+    </details>
+  );
+}
+
+/** 法令制限確認書（Excel）: customer details are optional — blanks stay blank in the sheet. */
+export default function SurveyPanel({
+  plan,
+  site,
+  report,
+  accessKey,
+  suggestedLot,
+  survey,
+  set,
+}: {
+  plan: PlanInput;
+  site: SiteContext | null;
+  report: PartialReport | null;
+  accessKey: string;
+  suggestedLot?: string | null;
+  survey: Survey;
+  set: (k: keyof Survey, v: string) => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [done, setDone] = useState<string | null>(null);
+  const resolved = resolveSheet(plan, site, survey, report?.sheet);
 
   async function make() {
     setBusy(true);
@@ -86,7 +120,12 @@ export default function SurveyPanel({
       const res = await fetch("/api/kakuninsho", {
         method: "POST",
         headers: { "Content-Type": "application/json", ...(accessKey ? { "x-access-key": accessKey } : {}) },
-        body: JSON.stringify({ plan, survey, report: report?.summary ? { summary: { verdict: report.summary.verdict, topRisks: report.summary.topRisks?.slice(0, 3) } } : null }),
+        body: JSON.stringify({
+          plan,
+          survey,
+          report: report?.summary ? { summary: { verdict: report.summary.verdict, topRisks: report.summary.topRisks?.slice(0, 3) } } : null,
+          sheet: report?.sheet ?? null,
+        }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -111,12 +150,7 @@ export default function SurveyPanel({
     }
   }
 
-  const input = (f: Field) => (
-    <label key={f.k} className={`sf ${f.half ? "half" : ""}`}>
-      <span>{f.label}</span>
-      <input type="text" value={String(survey[f.k] ?? "")} placeholder={f.ph ?? ""} onChange={(e) => set(f.k, e.target.value)} />
-    </label>
-  );
+  const input = (f: Field) => <TextInput key={f.k} f={f} survey={survey} set={set} />;
   const select = (k: "road1Owner" | "water" | "sewage" | "gas", label: string, options: string[]) => (
     <label className="sf half">
       <span>{label}</span>
@@ -134,7 +168,7 @@ export default function SurveyPanel({
       <div className="docs-row">
         <div>
           <strong>法令制限確認書（Excel）</strong>
-          <span>社内書式「敷地調査　建築法令制限確認書 Ver1-2」。用途地域・建蔽率／容積率・防火・都市計画区域・接道・該当地（公図）・備考は自動で記入。顧客情報は分かる分だけ。</span>
+          <span>社内書式「敷地調査　建築法令制限確認書 Ver1-2」。用途地域・建蔽率／容積率・防火・都市計画区域・該当地（公図）・備考に加え、高度地区・壁面後退・建築協定・その他地区・接道・給排水も「入力 → AIの調査 → 国のデータ」の順で記入。お客様情報は入れた分だけ。</span>
         </div>
         <button type="button" className="btn small btn-signal" onClick={make} disabled={busy || plan.address.trim().length < 3}>
           {busy ? "作成中…" : "Excelで保存"}
@@ -142,8 +176,27 @@ export default function SurveyPanel({
       </div>
       {error && <p className="notice">{error}</p>}
       {done && <p className="ok">「{done}」を保存しました。設備・仕様の欄は空のままです。</p>}
+      <dl className="sheet-preview">
+        {(Object.keys(AI_SHEET_LABELS) as AiSheetKey[])
+          .filter((k) => resolved[k])
+          .map((k) => (
+            <div key={k} className={`from-${resolved[k]!.from}`}>
+              <dt>{AI_SHEET_LABELS[k]}</dt>
+              <dd>
+                {resolved[k]!.value}
+                <small title={resolved[k]!.note}>
+                  {resolved[k]!.from}
+                  {resolved[k]!.note ? `（${resolved[k]!.note}）` : ""}
+                </small>
+              </dd>
+            </div>
+          ))}
+      </dl>
+      <p className="hint sheet-hint">
+        {report?.sheet ? "上の値が確認書の各欄に入ります。AI調査の値は窓口で確認してください。" : "高度地区・建築協定・接道などは、AIの詳しいチェックを実行すると、調べられた分が上に加わります。入力した値がいちばん優先です。"}
+      </p>
       <details className="survey-more">
-        <summary>顧客情報・接道などを入れる<span className="hint">任意。空欄のままでも作れます</span></summary>
+        <summary>敷地調査の結果・お客様情報を入れる<span className="hint">任意。入れた値は自動の値より優先</span></summary>
         {suggestedLot && !survey.lot && (
           <button type="button" className="chip-btn lot-suggest" onClick={() => set("lot", suggestedLot)}>
             公図データの「{suggestedLot.split("（")[0]}」を該当地に入れる

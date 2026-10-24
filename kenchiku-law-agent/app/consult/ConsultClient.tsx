@@ -1,19 +1,18 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import MarkdownView from "@/app/MarkdownView";
 import ReportView from "./ReportView";
 import PrintSheet from "./PrintSheet";
 import SiteMap from "./SiteMap";
 import LotCard, { type LotInfo } from "./LotCard";
-import SurveyPanel from "./SurveyPanel";
+import SurveyPanel, { CustomerFields, useSurvey } from "./SurveyPanel";
 import Rail, { type RailItem } from "./Rail";
 import Section from "../components/Section";
 import Attachments, { type Attachment } from "./Attachments";
 import LandSheet from "./LandSheet";
 import SiteProgress from "./SiteProgress";
 import { landFacts, type SurveyFacts } from "@/lib/landsummary";
-import type { Survey } from "@/lib/survey";
 import { reportToMarkdown, tasksToCsv, type PartialReport } from "@/lib/report";
 import { STAGE_HINT } from "@/lib/knowledge";
 import type { AgentEvent } from "@/lib/agent";
@@ -151,6 +150,8 @@ function FindingItem({ f, showAgency = true }: { f: Finding; showAgency?: boolea
   );
 }
 
+const ASK_EXAMPLES = ["将来二世帯にできるか", "駐車場を3台確保したい", "3階建てにしたら何が変わるか", "平屋にした場合の建蔽率", "店舗・事務所を併設したい", "庭に倉庫・カーポートを置きたい"];
+
 const PHASES = ["住所のデータを照合", "条文を確認", "自治体の資料を確認", "回答をまとめる"];
 
 function phaseOf(log: string[], writing: boolean): number {
@@ -186,14 +187,12 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
   const [saved, setSaved] = useState<Saved | null>(null);
   const [copied, setCopied] = useState(false);
   const [lotInfo, setLotInfo] = useState<LotInfo | null>(null);
-  // 敷地調査の入力（上下水・ガス・壁面後退・高度地区）を土地情報まとめに反映する。
-  const [surveyFacts, setSurveyFacts] = useState<SurveyFacts>({});
-  const onSurvey = useCallback((s: Survey) => {
-    setSurveyFacts((prev) => {
-      const next: SurveyFacts = { wallSetback: s.wallSetback, heightDistrict: s.heightDistrict, water: s.water, sewage: s.sewage, gas: s.gas };
-      return JSON.stringify(prev) === JSON.stringify(next) ? prev : next;
-    });
-  }, []);
+  // 敷地調査・お客様情報（この端末にだけ保存）。上下水・ガス・壁面後退・高度地区は土地情報まとめにも反映する。
+  const [survey, setSurveyField] = useSurvey(plan.address);
+  const surveyFacts = useMemo<SurveyFacts>(
+    () => ({ wallSetback: survey.wallSetback, heightDistrict: survey.heightDistrict, water: survey.water, sewage: survey.sewage, gas: survey.gas }),
+    [survey.wallSetback, survey.heightDistrict, survey.water, survey.sewage, survey.gas],
+  );
   const suggestedLot = (() => {
     const k = lotInfo?.kozu;
     if (k?.status === "ok") return `${k.district ?? ""}${k.query?.chiban ?? ""}（公図：${k.map?.kind ?? ""}・図上 約${k.area}㎡／地積・地目は登記簿で確認）`;
@@ -600,6 +599,12 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
                     <dd>{plan.address || "—"}</dd>
                     <dt>計画</dt>
                     <dd>{plan.description || "—"}</dd>
+                    {plan.asks.trim() && (
+                      <>
+                        <dt>AIへ</dt>
+                        <dd>{plan.asks.trim().split(/\n+/).join("／")}</dd>
+                      </>
+                    )}
                   </dl>
                   <button type="button" className="linkbtn" onClick={() => setEditing(true)}>
                     入力を変える →
@@ -653,7 +658,22 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
                       ))}
                     </div>
                   </div>
+                  <div className="field">
+                    <label htmlFor="asks" className="big-label">
+                      AIに見てほしいこと <span className="hint">任意。想定している使い方・気になっていること・知りたいことを1行に1つ。AIの詳しいチェックで1つずつ答えます</span>
+                    </label>
+                    <textarea id="asks" maxLength={2000} value={plan.asks} onChange={(e) => set("asks", e.target.value)} placeholder={"例：将来、親と同居できる二世帯にしたい\n例：車を3台とめたい。建蔽率は足りるか\n例：3階建てにした場合、何が変わるか"} rows={3} />
+                    <div className="examples" aria-label="追加の例">
+                      <span>追加</span>
+                      {ASK_EXAMPLES.map((ex) => (
+                        <button key={ex} type="button" onClick={() => set("asks", plan.asks.trim() ? `${plan.asks.trim()}\n${ex}` : ex)}>
+                          {ex}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                   <Attachments files={attachments} onChange={setAttachments} />
+                  <CustomerFields survey={survey} set={setSurveyField} />
                   <details className="more" open={showDetails} onToggle={(e) => setShowDetails((e.target as HTMLDetailsElement).open)}>
                     <summary>
                       分かれば入れる<span className="hint">規模・道路・地目・盛土・自動取得の手直し・資料のメモ</span>
@@ -961,7 +981,7 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
                 )}
               </ul>
               <div id="survey">
-                <SurveyPanel plan={plan} report={report} accessKey={accessKey} suggestedLot={suggestedLot} onSurvey={onSurvey} />
+                <SurveyPanel plan={effective} site={site} report={report} accessKey={accessKey} suggestedLot={suggestedLot} survey={survey} set={setSurveyField} />
               </div>
             </Section>
           )}

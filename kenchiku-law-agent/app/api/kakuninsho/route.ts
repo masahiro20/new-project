@@ -3,7 +3,7 @@ import { checkAccess } from "@/lib/access";
 import { buildKakuninsho, kakuninshoFileName, surveySchema } from "@/lib/kakuninsho";
 import { planSchema } from "@/lib/plan";
 import { allow, clientIp } from "@/lib/ratelimit";
-import type { PartialReport } from "@/lib/report";
+import { reportSchema, type PartialReport } from "@/lib/report";
 import { unseal } from "@/lib/sealed";
 import { lookupSite, mergeSiteIntoPlan } from "@/lib/site";
 import { municipality } from "@/lib/chiban";
@@ -16,6 +16,7 @@ import { lookupKozu, splitChiban } from "@/lib/kozu";
 const bodySchema = z.object({
   plan: z.unknown(),
   survey: z.unknown().optional(),
+  sheet: z.unknown().optional(),
   report: z
     .object({ summary: z.object({ verdict: z.string().max(40), topRisks: z.array(z.string().max(200)).max(3) }).partial() })
     .partial()
@@ -24,7 +25,7 @@ const bodySchema = z.object({
     .catch(null),
 });
 
-export type KakuninshoRequest = { plan: unknown; survey?: unknown; report?: PartialReport | null };
+export type KakuninshoRequest = { plan: unknown; survey?: unknown; report?: PartialReport | null; sheet?: unknown };
 
 async function respond(input: KakuninshoRequest): Promise<Response> {
   const parsed = bodySchema.safeParse(input);
@@ -53,7 +54,8 @@ async function respond(input: KakuninshoRequest): Promise<Response> {
       console.error("kozu for kakuninsho failed", e);
     }
   }
-  const xlsx = buildKakuninsho({ survey, plan: merged, site, report: (parsed.data.report as PartialReport | null) ?? null });
+  const sheet = reportSchema.shape.sheet.parse(parsed.data.sheet ?? undefined) ?? null;
+  const xlsx = buildKakuninsho({ survey, plan: merged, site, report: (parsed.data.report as PartialReport | null) ?? null, sheet });
   const name = kakuninshoFileName(merged, survey);
   return new Response(Buffer.from(xlsx), {
     headers: {

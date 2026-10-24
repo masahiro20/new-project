@@ -148,6 +148,25 @@ export default function ReportView({
         </section>
       )}
 
+      {(report.answers?.length ?? 0) > 0 && (
+        <section className="answers" aria-label="AIに見てほしいことへの回答">
+          <h3>ご要望・ご質問への回答</h3>
+          <ol>
+            {report.answers!.map((a, i) => (
+              <li key={i}>
+                <p className="answer-q">
+                  <span aria-hidden>Q</span>
+                  {a.question}
+                  {a.certainty && <CertaintyBadge value={a.certainty} />}
+                </p>
+                <p className="answer-a">{a.answer}</p>
+                {!streaming && <Sources list={a.evidence} />}
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
+
       {(checklist.length > 0 || counts.consult > 0) && (
         <div className="kpis">
           <button type="button" className="kpi tone-danger" onClick={() => setTab("check")}>

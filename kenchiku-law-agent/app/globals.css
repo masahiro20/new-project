@@ -1162,3 +1162,24 @@ pre.law.code { background: #2b2b2b; color: #eef1f3; border: 0; font-family: var(
 @media (max-width: 600px) { .site-steps { grid-template-columns: 1fr; } }
 .site-done { display: inline-flex; align-items: center; gap: 10px; margin: 0 0 22px; font-size: 0.86rem; color: var(--ok); animation: rise 0.6s var(--ease) both; }
 .site-done span { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50% !important; background: var(--ok-soft); font-size: 0.78rem; }
+
+/* ご要望・ご質問への回答 */
+.answers { margin: 28px 0 8px; padding: 22px clamp(16px, 3vw, 28px); background: #fff; border: 1px solid var(--line); border-left: 3px solid #333; }
+.answers h3 { margin: 0 0 12px; font-size: 1.02rem; font-weight: 500; letter-spacing: 0.1em; }
+.answers ol { list-style: none; margin: 0; padding: 0; }
+.answers li { padding: 14px 0; border-top: 1px solid #eef1f3; }
+.answers li:first-child { border-top: 0; padding-top: 4px; }
+.answer-q { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; margin: 0 0 6px; font-weight: 500; }
+.answer-q > span[aria-hidden] { font-family: var(--font-head); color: #8c9baa; }
+.answer-q .cert { margin-left: auto; }
+.answer-a { margin: 0; font-size: 0.92rem; line-height: 2; color: #444; }
+
+/* 確認書に入る値のプレビュー */
+.sheet-preview { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0 24px; margin: 14px 0 6px; border-top: 1px solid var(--line); }
+.sheet-preview > div { display: grid; grid-template-columns: 7.5em minmax(0, 1fr); gap: 8px; padding: 8px 0; border-bottom: 1px solid #eef1f3; font-size: 0.86rem; }
+.sheet-preview dt { color: #6e7a86; }
+.sheet-preview dd { margin: 0; }
+.sheet-preview small { display: block; font-size: 0.7rem; color: #9aa3ab; line-height: 1.5; }
+.sheet-preview .from-AI調査 small { color: var(--check); }
+.sheet-hint { margin-top: 4px; }
+details.customer { margin-top: 8px; }

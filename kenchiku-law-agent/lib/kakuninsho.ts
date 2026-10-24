@@ -6,13 +6,15 @@
 //
 // 書き込むのは確かめられる項目だけ：顧客情報（入力どおり。不明なら空欄）、建築地、
 // 都市計画区域・用途地域・建蔽率／容積率・防火（国のデータ、または入力で上書き）、
-// 接道（入力）、その他地区と備考（データと確認結果の要約）。設備・仕様の欄は触らない。
+// 高度地区・壁面後退・建築協定・その他地区・接道・給排水（入力＞AI調査＞データの順。
+// sheetfields.ts）、備考（結論と、どの欄をAI調査・データで埋めたか）。設備・仕様の欄は触らない。
 
 import { strFromU8, strToU8, unzipSync, zipSync } from "fflate";
-import { landFacts, parsePercent } from "./landsummary";
+import { parsePercent } from "./landsummary";
 import type { PlanInput } from "./plan";
 import type { PartialReport } from "./report";
 import { runRules, splitFindings } from "./rules";
+import { resolveSheet, sheetSourceLine, type AiSheet, type ResolvedSheet } from "./sheetfields";
 import type { SiteContext } from "./site";
 import { KAKUNINSHO_TEMPLATE_B64 } from "./templates/kakuninsho-v1-2";
 
@@ -67,32 +69,12 @@ function setCell(xml: string, ref: string, value: string | number | null): strin
 
 const ZONE_SHORT = (z: PlanInput["zoning"]) => (z === "不明" ? "" : z === "用途地域の指定なし" ? "無指定" : z.replace(/地域$/, ""));
 
-function roadArticle(plan: PlanInput): { kou: string; gou: string } {
-  if (plan.roadType === "建築基準法上の道路（42条1項）") return { kou: "1", gou: "" };
-  if (plan.roadType === "位置指定道路（42条1項5号）") return { kou: "1", gou: "5" };
-  if (plan.roadType === "2項道路（幅員4m未満の既存道）") return { kou: "2", gou: "" };
-  return { kou: "", gou: "" };
-}
-
-/** その他地区: 地区計画・誘導区域・災害区域を短く。データ由来は「データ上」と書く。 */
-export function otherDistricts(plan: PlanInput, site: SiteContext | null): string {
-  if (!site) return "";
-  const facts = landFacts(plan, site);
-  const get = (k: string) => facts.find((f) => f.key === k);
-  const parts: string[] = [];
-  const pl = get("plan");
-  if (pl) parts.push(pl.value === "データ上なし" ? "地区計画なし（データ上）" : `${pl.value}${pl.certainty === "確定" ? "" : "（要確認）"}`);
-  const flood = get("flood");
-  if (flood && flood.value !== "区域外") parts.push(`洪水浸水想定 ${flood.value}`);
-  const dosha = get("dosha");
-  if (dosha && dosha.value !== "区域外") parts.push(`土砂災害 ${dosha.value}`);
-  return parts.join("／");
-}
 
 /** 備考: 結論と、見落とすと困る論点。AIの回答があればそれを、なければ自動判定を使う。 */
-export function remarks(plan: PlanInput, report: PartialReport | null | undefined, date: string): string {
+export function remarks(plan: PlanInput, report: PartialReport | null | undefined, date: string, sheet: ResolvedSheet = {}): string {
   const head = `【建築法令エージェント ${date}】`;
-  const tail = "用途地域等は国のデータ（住所の代表点）による。都市計画図・窓口で確認のこと。詳細は法令チェック表（PDF）。";
+  const src = sheetSourceLine(sheet);
+  const tail = `${src ? `${src}。` : ""}用途地域等は国のデータ（住所の代表点）による。都市計画図・窓口で確認のこと。詳細は法令チェック表（PDF）。`;
   if (report?.summary?.verdict) {
     const risks = (report.summary.topRisks ?? []).slice(0, 3).map((r, i) => `${"①②③"[i]}${r}`);
     return [`${head}${report.summary.verdict}。`, ...risks, tail].join("\n");
@@ -102,9 +84,9 @@ export function remarks(plan: PlanInput, report: PartialReport | null | undefine
   return [`${head}自動判定（AIの詳しいチェック前）`, titles.length ? `要注意：${titles.join("／")}` : "敷地固有の論点はデータ上なし", tail].join("\n");
 }
 
-export type KakuninshoInput = { survey: Survey; plan: PlanInput; site: SiteContext | null; report?: PartialReport | null; today?: Date };
+export type KakuninshoInput = { survey: Survey; plan: PlanInput; site: SiteContext | null; report?: PartialReport | null; sheet?: AiSheet | null; today?: Date };
 
-export function buildKakuninsho({ survey, plan, site, report, today = new Date() }: KakuninshoInput): Uint8Array {
+export function buildKakuninsho({ survey, plan, site, report, sheet: aiSheet, today = new Date() }: KakuninshoInput): Uint8Array {
   const files = unzipSync(Buffer.from(KAKUNINSHO_TEMPLATE_B64, "base64"));
   let sheet = strFromU8(files["xl/worksheets/sheet1.xml"]);
   const date = today.toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo", year: "numeric", month: "2-digit", day: "2-digit" });
@@ -114,7 +96,13 @@ export function buildKakuninsho({ survey, plan, site, report, today = new Date()
   const lot = survey.lot || (plan.address ? `${plan.address}${lotFacts.length ? `（${lotFacts.join("・")}）` : ""}` : "");
   const kenpei = parsePercent(site?.derived.kenpei);
   const yoseki = parsePercent(site?.derived.yoseki);
-  const road1 = roadArticle(plan);
+  const r = resolveSheet(plan, site, survey, aiSheet ?? report?.sheet);
+  const v = (k: keyof ResolvedSheet) => r[k]?.value ?? "";
+  const num = (k: keyof ResolvedSheet) => {
+    const raw = v(k).replace(/m$/, "");
+    return raw === "" ? null : Number.isFinite(Number(raw)) ? Number(raw) : raw;
+  };
+  const named = (k: keyof ResolvedSheet, suffix: RegExp) => (v(k) && v(k) !== "無" ? v(k).replace(suffix, "") : "");
 
   const values: Record<string, string | number | null> = {
     B2: survey.salesRep,
@@ -135,19 +123,19 @@ export function buildKakuninsho({ survey, plan, site, report, today = new Date()
     B13: kenpei,
     E13: "容積率",
     G13: yoseki,
-    D15: survey.heightDistrict && survey.heightDistrict !== "無" ? survey.heightDistrict.replace(/高度地区$/, "") : "",
-    D16: survey.wallSetback && survey.wallSetback !== "無" ? survey.wallSetback.replace(/m$/, "") : "",
-    D17: survey.buildingAgreement && survey.buildingAgreement !== "無" ? survey.buildingAgreement : "",
-    B18: otherDistricts(plan, site),
-    D20: road1.kou,
-    G20: road1.gou,
-    D21: survey.road1Direction,
-    H21: plan.roadWidth,
-    D23: survey.road2Kou,
-    G23: survey.road2Gou,
-    D24: survey.road2Direction,
-    H24: survey.road2Width ? Number(survey.road2Width) || survey.road2Width : null,
-    B50: remarks(plan, report, date),
+    D15: named("heightDistrict", /高度地区$/),
+    D16: named("wallSetback", /m$/),
+    D17: v("buildingAgreement") !== "無" ? v("buildingAgreement") : "",
+    B18: v("otherDistricts"),
+    D20: v("road1Kou"),
+    G20: v("road1Gou"),
+    D21: v("road1Direction"),
+    H21: num("road1Width"),
+    D23: v("road2Kou"),
+    G23: v("road2Gou"),
+    D24: v("road2Direction"),
+    H24: num("road2Width"),
+    B50: remarks(plan, report, date, r),
   };
   for (const [ref, v] of Object.entries(values)) sheet = setCell(sheet, ref, v);
   // 備考 holds several lines: wrap it top-left and give its two rows room.
@@ -170,14 +158,18 @@ export function buildKakuninsho({ survey, plan, site, report, today = new Date()
     if (v === "無") on.push(no);
     else if (v) on.push(yes);
   };
-  yesNo(survey.heightDistrict, BOX.heightYes, BOX.heightNo);
-  yesNo(survey.wallSetback, BOX.setbackYes, BOX.setbackNo);
-  yesNo(survey.buildingAgreement, BOX.agreementYes, BOX.agreementNo);
+  yesNo(v("heightDistrict"), BOX.heightYes, BOX.heightNo);
+  yesNo(v("wallSetback"), BOX.setbackYes, BOX.setbackNo);
+  yesNo(v("buildingAgreement"), BOX.agreementYes, BOX.agreementNo);
   const owner = { 国道: [BOX.road1National, BOX.road2National], 県道: [BOX.road1Pref, BOX.road2Pref], 市道: [BOX.road1City, BOX.road2City] } as const;
-  if (survey.road1Owner) on.push(owner[survey.road1Owner][0]);
-  if (survey.road2Owner) on.push(owner[survey.road2Owner][1]);
-  if (survey.water) on.push({ 引込有: BOX.waterYes, 引込無: BOX.waterNo, 要確認: BOX.waterCheck }[survey.water]);
-  if (survey.sewage) on.push({ 下水道: BOX.sewer, 集中浄化槽: BOX.shared, 個別浄化槽: BOX.septic }[survey.sewage]);
+  const own1 = v("road1Owner") as keyof typeof owner | "";
+  const own2 = v("road2Owner") as keyof typeof owner | "";
+  if (own1 in owner) on.push(owner[own1 as keyof typeof owner][0]);
+  if (own2 in owner) on.push(owner[own2 as keyof typeof owner][1]);
+  const water = v("water") as "引込有" | "引込無" | "要確認" | "";
+  const sewage = v("sewage") as "下水道" | "集中浄化槽" | "個別浄化槽" | "";
+  if (water) on.push({ 引込有: BOX.waterYes, 引込無: BOX.waterNo, 要確認: BOX.waterCheck }[water]);
+  if (sewage) on.push({ 下水道: BOX.sewer, 集中浄化槽: BOX.shared, 個別浄化槽: BOX.septic }[sewage]);
   checkBoxes(files, on);
 
   // Recalculate on open so the second sheet picks up the new values.

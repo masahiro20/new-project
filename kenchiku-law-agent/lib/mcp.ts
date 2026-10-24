@@ -58,6 +58,7 @@ export const TOOLS: ToolDef[] = [
       properties: {
         address: str("敷地の住所（番地まで）。地番しかない場合は町名までと地番を document_facts に"),
         plan: str("何を建てたいか・何をしたいか。例：木造2階建ての自宅（延べ110㎡）。親の畑の一部に建てたい"),
+        asks: str("施主・担当がAIに見てほしいこと（想定している使い方・懸念・知りたいこと）。1行1件。例：将来2世帯にしたい／駐車3台入るか／平屋にした場合の建蔽率"),
         document_facts: str("資料から読み取った事実のメモ。資料名ごとに。例：登記簿：地目 畑、地積 412㎡、乙区に地役権（通行）。公図：道路との間に水路（青線）。写真：前面道路は舗装4m程度、敷地側に側溝"),
         work_type: enumOf(WORK_TYPES, "工事種別"),
         building_use: enumOf(BUILDING_USES, "建物用途"),
@@ -187,6 +188,7 @@ function planFromArgs(a: Json): PlanInput {
   const raw = {
     description: String(a.plan ?? "").trim() || "（計画内容の指定なし）",
     landInfo: String(a.document_facts ?? ""),
+    asks: String(a.asks ?? ""),
     address: String(a.address ?? ""),
     workType: a.work_type,
     buildingUse: a.building_use,
@@ -219,6 +221,7 @@ export function appLink(plan: PlanInput, baseUrl = siteUrl()): string {
   put("address", plan.address);
   put("description", plan.description);
   put("landInfo", plan.landInfo.slice(0, 1500));
+  put("asks", plan.asks.slice(0, 800));
   put("workType", plan.workType);
   put("buildingUse", plan.buildingUse);
   put("structure", plan.structure);

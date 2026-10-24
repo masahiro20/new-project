@@ -120,6 +120,8 @@ const text = (max: number) => z.string().trim().max(max);
 
 export const planSchema = z.object({
   description: text(4000).min(5, "計画の概要を入力してください"),
+  /** AIに見てほしいこと：想定している使い方・気になっていること・知りたいこと（1行1件）。 */
+  asks: text(2000).default(""),
   landInfo: text(6000).default(""),
   address: text(200).default(""),
   workType: z.enum(WORK_TYPES).default("新築"),
@@ -153,6 +155,7 @@ export type PlanFormInput = z.input<typeof planSchema>;
 
 export const EMPTY_PLAN: PlanInput = {
   description: "",
+  asks: "",
   landInfo: "",
   address: "",
   workType: "新築",
@@ -187,6 +190,9 @@ export function planToText(p: PlanInput): string {
   return [
     `# 計画の概要（担当者の記述）`,
     p.description,
+    ``,
+    `# AIに見てほしいこと（想定している使い方・懸念・知りたいこと。report の answers で1項目ずつ答える）`,
+    p.asks.trim() ? p.asks.trim().split(/\n+/).map((l, i) => `${i + 1}. ${l.trim().replace(/^(?:[-・*]|\d+[.、)）])\s*/, "")}`).join("\n") : "（なし）",
     ``,
     `# 土地の情報（登記・公図・都市計画情報などの貼り付け）`,
     p.landInfo || "（未入力）",
@@ -233,7 +239,7 @@ export function signalText(sg: Signals): { farmland: string; water: string } {
 export function planFromQuery(q: URLSearchParams): PlanInput | null {
   if (!q.get("address") && !q.get("description")) return null;
   const raw: Record<string, unknown> = {};
-  for (const k of ["description", "landInfo", "address", "workType", "buildingUse", "structure", "roadType", "landCategory", "farmlandBlue", "areaDivision", "zoning", "fireZone"]) {
+  for (const k of ["description", "asks", "landInfo", "address", "workType", "buildingUse", "structure", "roadType", "landCategory", "farmlandBlue", "areaDivision", "zoning", "fireZone"]) {
     const v = q.get(k);
     if (v) raw[k] = v;
   }

@@ -598,3 +598,72 @@ test("公図: address → 地番区域 + 地番, and a 地図XML lot with its ne
   assert.equal(r.lots[1].area, 80);
   assert.equal(parseKozu(xml, { districtName: "浜松市中央区元城町1丁目", chiban: "99" }), null);
 });
+
+test("確認書の調べる欄: input beats AI beats data, guesses never land, sources are noted", async () => {
+  const { resolveSheet, sheetSourceLine } = await import("../lib/sheetfields");
+  const p = plan({ areaDivision: "市街化調整区域", zoning: "用途地域の指定なし", roadType: "2項道路（幅員4m未満の既存道）" });
+  const src = { label: "x", url: "https://example.jp", year: "" };
+  const site = {
+    apiAvailable: true,
+    precise: true,
+    layers: [
+      { id: "XKT023", status: "none", features: [], summary: [], source: src, label: "" },
+      { id: "XKT026", status: "hit", features: [{}], summary: ["○○川 浸水深 3.0〜5.0m未満"], source: src, label: "" },
+    ],
+    derived: { hazards: [], notes: [], signals: p.signals },
+  } as unknown as SiteContext;
+  const r = resolveSheet(p, site, { road1Direction: "南西" }, {
+    buildingAgreement: { value: "無", certainty: "確定", source: "○○市 建築協定一覧" },
+    road1Width: { value: "2.7", certainty: "要確認", source: "道路台帳" },
+    road1Owner: { value: "市道", certainty: "推測", source: "地図" },
+    sewage: { value: "個別浄化槽", certainty: "確定", source: "下水道計画区域図" },
+    road1Direction: { value: "西", certainty: "確定", source: "x" },
+  });
+  assert.deepEqual(r.heightDistrict, { value: "無", from: "データ", note: "用途地域の指定がない区域には高度地区は定められない" });
+  assert.equal(r.wallSetback?.value, "無");
+  assert.equal(r.buildingAgreement?.from, "AI調査");
+  assert.equal(r.road1Kou?.value, "2");
+  assert.equal(r.road1Direction?.value, "南西"); // input wins over AI
+  assert.equal(r.road1Width?.value, "2.7");
+  assert.equal(r.road1Owner, undefined); // 推測 is not written
+  assert.match(r.otherDistricts?.value ?? "", /洪水浸水想定 3.0〜5.0m未満/);
+  assert.match(sheetSourceLine(r), /AI調査で記入（窓口で確認）：建築協定・接道幅員・排水/);
+});
+
+test("法令制限確認書: AI-researched fields fill the sheet and tick their boxes", async () => {
+  const { unzipSync, strFromU8 } = await import("fflate");
+  const { buildKakuninsho, surveySchema } = await import("../lib/kakuninsho");
+  const p = plan({ address: "○○市○○町1-1", areaDivision: "市街化区域", zoning: "第一種低層住居専用地域" });
+  const site = { apiAvailable: true, precise: true, layers: [], derived: { kenpei: "50%", yoseki: "100%", hazards: [], notes: [], signals: p.signals } } as unknown as SiteContext;
+  const files = unzipSync(
+    buildKakuninsho({
+      survey: surveySchema.parse({}),
+      plan: p,
+      site,
+      sheet: {
+        heightDistrict: { value: "第一種高度地区", certainty: "確定", source: "都市計画図" },
+        wallSetback: { value: "1m", certainty: "確定", source: "都市計画図" },
+        road1Kou: { value: "1", certainty: "確定", source: "道路台帳" },
+        road1Gou: { value: "1", certainty: "確定", source: "道路台帳" },
+        road1Width: { value: "6", certainty: "確定", source: "道路台帳" },
+        road1Owner: { value: "市道", certainty: "確定", source: "道路台帳" },
+        water: { value: "引込有", certainty: "要確認", source: "水道課" },
+      },
+    }),
+  );
+  const sheet = strFromU8(files["xl/worksheets/sheet1.xml"]);
+  const cell = (ref: string) => sheet.match(new RegExp(`<c r="${ref}"[^>]*?(?:/>|>(.*?)</c>)`, "s"))?.[1] ?? "";
+  assert.match(cell("D15"), />第一種</);
+  assert.match(cell("D16"), />1</);
+  assert.match(cell("D20"), />1</);
+  assert.match(cell("H21"), /<v>6<\/v>/);
+  assert.match(cell("B50"), /AI調査で記入/);
+  const checked = Object.keys(files).filter((f) => f.startsWith("xl/ctrlProps/") && strFromU8(files[f]).includes('checked="Checked"')).map((f) => Number(f.match(/(\d+)\.xml$/)![1])).sort((a, b) => a - b);
+  assert.deepEqual(checked, [1, 3, 9, 11, 17, 32]); // 区域内・市街化・高度地区有・壁面後退有・市道・給水引込有
+});
+
+test("AIに見てほしいこと reaches the brief, one numbered line each", async () => {
+  const { planToText } = await import("../lib/plan");
+  const text = planToText(plan({ asks: "・将来二世帯にしたい\n2. 駐車場を3台\n\n3階建てにしたら？" }));
+  assert.match(text, /1\. 将来二世帯にしたい\n2\. 駐車場を3台\n3\. 3階建てにしたら？/);
+});

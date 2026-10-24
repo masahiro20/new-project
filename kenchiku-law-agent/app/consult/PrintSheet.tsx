@@ -185,6 +185,34 @@ export default function PrintSheet({
         </section>
       )}
 
+      {(report?.answers?.length ?? 0) > 0 && (
+        <section className="ps-sec">
+          <h2>ご要望・ご質問への回答</h2>
+          <table>
+            <thead>
+              <tr>
+                <th style={{ width: "28%" }}>ご要望・ご質問</th>
+                <th>回答</th>
+                <th style={{ width: "9%" }}>確実性</th>
+                <th style={{ width: "20%" }}>出典</th>
+              </tr>
+            </thead>
+            <tbody>
+              {report!.answers!.map((a, i) => (
+                <tr key={i}>
+                  <th>{a.question}</th>
+                  <td>{a.answer}</td>
+                  <td>
+                    <b className={`ps-cert ps-cert-${a.certainty ?? "要確認"}`}>{a.certainty ?? "要確認"}</b>
+                  </td>
+                  <td>{ref(a.evidence ?? [])}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+      )}
+
       {report?.summary && (
         <section className="ps-sec ps-verdict">
           <h2>2段目 法令チェック ― 結論：{report.summary.verdict}</h2>

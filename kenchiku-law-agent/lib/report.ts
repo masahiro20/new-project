@@ -52,6 +52,14 @@ export const GRADE_HELP: Record<(typeof GRADES)[number], string> = {
   C: "建築が難しいか、大きな追加費用・期間がかかる",
 };
 
+const sheetField = z.object({ value: z.string().catch(""), certainty: z.enum(CERTAINTY).catch("要確認"), source: z.string().catch("") }).partial();
+const SHEET_KEYS = [
+  "heightDistrict", "wallSetback", "buildingAgreement", "otherDistricts",
+  "road1Kou", "road1Gou", "road1Direction", "road1Width", "road1Owner",
+  "road2Kou", "road2Gou", "road2Direction", "road2Width", "road2Owner",
+  "water", "sewage",
+] as const;
+
 export const reportSchema = z.object({
   summary: z.object({
     verdict: z.enum(VERDICTS),
@@ -80,6 +88,17 @@ export const reportSchema = z.object({
   questions: z.array(z.object({ to: z.enum(ASK_TO), question: z.string() })),
   tasks: z.array(z.object({ task: z.string(), role: z.enum(ROLES), when: z.enum(TASK_WHEN).catch("設計着手前"), agency: z.string().catch("") })),
   assumptions: z.array(z.string()),
+  /** 「AIに見てほしいこと」への一問一答（質問がなければ空）。 */
+  answers: z.array(z.object({ question: z.string(), answer: z.string(), certainty, evidence: z.array(evidence).catch([]) })).catch([]),
+  /** 法令制限確認書の、調べて埋める欄（分かったものだけ）。 */
+  sheet: z
+    .preprocess(
+      // Unknown keys from the model are dropped rather than failing the whole sheet.
+      (v) => (v && typeof v === "object" ? Object.fromEntries(Object.entries(v).filter(([k]) => (SHEET_KEYS as readonly string[]).includes(k))) : v),
+      z.partialRecord(z.enum(SHEET_KEYS), sheetField),
+    )
+    .optional()
+    .catch(undefined),
 });
 
 export type Report = z.infer<typeof reportSchema>;
@@ -95,6 +114,8 @@ export type PartialReport = {
   questions?: Partial<Report["questions"][number]>[];
   tasks?: Partial<Report["tasks"][number]>[];
   assumptions?: string[];
+  answers?: Partial<Report["answers"][number]>[];
+  sheet?: Report["sheet"];
 };
 
 const str = (description: string) => ({ type: "string", description });
@@ -202,6 +223,25 @@ export const REPORT_INPUT_SCHEMA = obj({
     }),
   },
   assumptions: strArr("前提にしたこと・未確認のまま置いた仮定・推測で埋めたこと。最大5件"),
+  answers: {
+    type: "array",
+    description: "入力の「AIに見てほしいこと」の各項目への回答。書かれた順に1項目1件。なければ空配列",
+    items: obj({
+      question: str("入力された要望・質問（要約してよい）"),
+      answer: str("結論を先に。この敷地と計画で何が言えるか、できること・できないこと・条件、次に何を確かめるか。200字以内"),
+      certainty: certaintyProp,
+      evidence: evidenceArr,
+    }),
+  },
+  sheet: {
+    type: "object",
+    additionalProperties: false,
+    description:
+      "社内の法令制限確認書に転記する欄。調べて分かった欄だけ入れ、分からない欄は省略する（推測では埋めない）。value は書式どおり短く：高度地区・壁面後退・建築協定は該当なしなら「無」、壁面後退は「1m」、road*Kou は42条の項（1／2）、road*Gou は号（1〜5）、road*Width は数値の文字列（m）、road*Owner は 国道／県道／市道、water は 引込有／引込無／要確認、sewage は 下水道／集中浄化槽／個別浄化槽。",
+    properties: Object.fromEntries(
+      SHEET_KEYS.map((k) => [k, { type: "object", additionalProperties: false, properties: { value: str("欄に書く値"), certainty: certaintyProp, source: str("根拠の短い名前（例：あま市 都市計画図、道路台帳、添付の重要事項説明書）") }, required: ["value", "certainty", "source"] }]),
+    ),
+  },
 });
 
 export function evidenceMd(list: Partial<Evidence>[] | undefined): string {
@@ -233,6 +273,10 @@ export function reportToMarkdown(r: PartialReport): string {
     if (r.summary.grade) out.push("", `**総合所見**：${r.summary.grade}（${GRADE_HELP[r.summary.grade]}）`);
     if (r.summary.costImpacts?.length) out.push("", "**費用・工期に影響しうる項目**", ...r.summary.costImpacts.map((t) => `- ${t}`));
     if (r.summary.customerPoints?.length) out.push("", "**お客様への説明ポイント**", ...r.summary.customerPoints.map((t) => `- ${t}`));
+  }
+  if (r.answers?.length) {
+    out.push("", "## ご要望・ご質問への回答");
+    for (const a of r.answers) out.push("", `**Q. ${a.question ?? ""}**［${a.certainty ?? "要確認"}］`, a.answer ?? "", `出典：${evidenceMd(a.evidence)}`);
   }
   if (r.documents?.length) {
     out.push("", "## 資料から読み取ったこと");
