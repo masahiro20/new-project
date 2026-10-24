@@ -12,7 +12,7 @@ import { articleToText, resolveLaw } from "./agent";
 import { siteUrl } from "./config";
 import { DOCUMENT_KINDS, guideToText, type DocumentKind } from "./documents";
 import { fetchArticle, keywordSearch } from "./egov";
-import { landFacts } from "./landsummary";
+import { askList, groupFacts, landFacts, landPoints, type SurveyFacts } from "./landsummary";
 import { articleLabel, normalizeArticle } from "./laws";
 import { BUILDING_USES, EXTRAS, LAND_CATEGORIES, ROAD_TYPES, STRUCTURES, WORK_TYPES, YES_NO_UNKNOWN, planSchema, type PlanInput } from "./plan";
 import { CERTAINTY, CERTAINTY_HELP, CHECKLIST_ITEMS } from "./report";
@@ -31,8 +31,11 @@ export const SERVER_INSTRUCTIONS = `建築・土地の法令チェック用の�
 使い方の流れ：
 1. 敷地の資料（登記事項証明書・公図・地積測量図・現況測量図・現地写真・重要事項説明書など）がドライブやアップロードにあれば、先に開いて読む。何を読むべきかは document_reading_guide で確認する。資料に書いてあることと、推測（写真からの見立てなど）は分けて扱う。
 2. 住所（地番しか分からない場合は所在の町名まで）と計画内容、資料から読み取った事実を land_law_check に渡す。住所だけで土地の環境を見たいときは land_summary。
-3. 返ってきた「土地のまとめ」「この敷地ならではの論点」「先に聞きに行く窓口」をもとに回答する。条文の数値を書くときは get_law_article で本文を確認する。条例・自治体の運用は自治体の公式ページで確認し、確認できなければ窓口名を示す。
-4. 回答は短く：結論（建てられる見込みと最大の論点）→ 見落としチェック（指定12項目を 該当／可能性あり／要確認／該当なし）→ 設計で注意すること → 役所への事前協議（窓口ごと）→ タスク一覧（誰が・いつまでに・何を）→ 資料から読み取ったことと食い違い。最後に結果の app_link を案内し、画面でAIの詳しいチェック・タスク管理・PDF保存ができることを伝える。
+3. 返ってきた「1段目 土地情報まとめ」と「2段目 法令チェック」（この敷地ならではの論点・先に聞きに行く窓口）をもとに回答する。条文の数値を書くときは get_law_article で本文を確認する。条例・自治体の運用は自治体の公式ページで確認し、確認できなければ窓口名を示す。
+4. 回答は2段階で、短く：
+   【1段目 土地情報まとめ】この土地のポイント（重大・注意・要確認の数と主な項目）→ 基本情報（所在・標高・地目・敷地面積・学区・近隣の地価）→ 必須チェック12項目（用途地域・建蔽率・容積率・高さ制限・壁面後退・前面道路の種別・幅員・防火地域・上水道・下水道・ガス・ハザード。この順で全部）→ 災害リスク → その他の法令・周辺 → 確認先（窓口ごと）。
+   【2段目 法令チェック】結論（建てられる見込みと最大の論点）→ 見落としチェック（指定12項目を 該当／可能性あり／要確認／該当なし）→ 設計で注意すること → 役所への事前協議（窓口ごと）→ タスク一覧（誰が・いつまでに・何を）→ 資料から読み取ったことと食い違い。
+   最後に結果の app_link を案内し、画面でAIの詳しいチェック・タスク管理・PDF保存ができることを伝える。
 5. 法令制限確認書（社内の Excel 書式）や案内図が要るときは make_kakuninsho を呼ぶ。顧客情報はこの会話・ドライブの資料で確かめられたものだけ渡し、分からない項目は省略する（空欄で出る）。
 6. 各項目に確実性と出典を必ず付ける。確定＝${CERTAINTY_HELP.確定}（出典が必須）／要確認＝${CERTAINTY_HELP.要確認}／推測＝${CERTAINTY_HELP.推測}。地図データの農地・川までの距離は推測。推測を事実のように書かない。
 7. 最終判断は所管窓口と建築士が行う前提で書く。`;
@@ -49,7 +52,7 @@ export const TOOLS: ToolDef[] = [
     name: "land_law_check",
     title: "土地と計画の法令チェック",
     description:
-      "住所・計画内容・資料から読み取った事実をもとに、土地のまとめ（区域区分・用途地域・建蔽率／容積率・高さ制限・防火・農地・川・災害）、この敷地ならではの法令上の論点（条文リンク付き）、先に事前協議すべき窓口、見落としチェック項目を返します。登記簿・公図・測量図・写真などがある場合は、読み取った数値や状況を各項目と document_facts に入れてください（入れた値は自動取得より優先されます）。",
+      "住所・計画内容・資料から読み取った事実をもとに、2段階で返します。1段目 土地情報まとめ（この土地のポイント・基本情報・必須チェック12項目〔用途地域・建蔽率・容積率・高さ制限・壁面後退・前面道路の種別・幅員・防火地域・上水道・下水道・ガス・ハザード〕・災害リスク・その他の法令・確認先）、2段目 法令チェック（この敷地ならではの法令上の論点〔条文リンク付き〕・先に事前協議すべき窓口・見落としチェック項目）。登記簿・公図・測量図・写真などがある場合は、読み取った数値や状況を各項目と document_facts に入れてください（入れた値は自動取得より優先されます）。",
     inputSchema: {
       type: "object",
       properties: {
@@ -67,6 +70,11 @@ export const TOOLS: ToolDef[] = [
         road_type: enumOf(ROAD_TYPES, "前面道路の法上の種別（重要事項説明書・道路台帳で分かれば）"),
         registered_land_category: enumOf(LAND_CATEGORIES, "登記簿の地目（田・畑は『田・畑（農地）』）"),
         farmland_blue: enumOf(YES_NO_UNKNOWN, "農振の農用地区域（青地）か"),
+        water_supply: enumOf(["引込有", "引込無", "要確認"], "上水道（重要事項説明書・水道課の照会結果で分かれば）"),
+        sewage: enumOf(["下水道", "集中浄化槽", "個別浄化槽"], "排水（重要事項説明書・下水道台帳で分かれば）"),
+        gas: enumOf(["都市ガス", "プロパン", "オール電化予定"], "ガス（重要事項説明書・ガス事業者の照会で分かれば）"),
+        wall_setback: str("壁面後退（地区計画・建築協定・都市計画で分かれば。例：1m）"),
+        height_district: str("高度地区（都市計画図で分かれば。例：第二種高度地区）"),
         extras: { type: "array", items: enumOf(EXTRAS, "該当事項"), description: "資料・写真から分かる該当事項" },
       },
       required: ["plan"],
@@ -77,7 +85,7 @@ export const TOOLS: ToolDef[] = [
     name: "land_summary",
     title: "住所から土地のまとめ",
     description:
-      "住所だけで、国の公開データ（国土交通省 都市計画・災害、農林水産省 農地区画、国土地理院 地図）から、区域区分・用途地域・建蔽率／容積率・高さ制限・防火指定・農地・川・水路・浸水・土砂・液状化・地区計画を一覧で返します。計画内容がまだ決まっていないときや、候補地を比べるときに使います。",
+      "住所だけで、国の公開データ（国土交通省 都市計画・災害・地価公示・学区、農林水産省 農地区画、国土地理院 地図・標高）から、1段目の土地情報まとめ（基本情報・必須チェック12項目・災害リスク・その他の法令・確認先）と公図を返します。計画内容がまだ決まっていないときや、候補地を比べるときに使います。",
     inputSchema: { type: "object", properties: { address: str("敷地の住所（番地まで）") }, required: ["address"] },
     annotations: { readOnlyHint: true, openWorldHint: true },
   },
@@ -169,7 +177,7 @@ function promptText(args: Record<string, string | undefined>): string {
     "2. document_reading_guide（kind: all）で読み取る項目を確認し、資料ごとに事実を拾う。資料に書いてあることと推測は分ける。",
     "3. land_law_check に住所・計画・読み取った数値（地積、地目、道路幅員、接道長さなど）と document_facts を渡す。",
     "4. make_kakuninsho で法令制限確認書（Excel）と案内図を作る。顧客情報（施主名・フリガナ・電話・現住所・担当営業）は、この会話やドライブの資料で確かめられたものだけ渡し、分からないものは省略する。",
-    "5. 結論 → 見落としチェック12項目 → 設計で注意すること → 役所への事前協議（窓口ごと） → タスク一覧 → 資料同士や自動取得データとの食い違い、の順で短くまとめる。各項目に［確定／要確認／推測］と出典を付ける。最後に確認書のダウンロードリンク・案内図・app_link を案内する。",
+    "5. 2段階で短くまとめる。1段目 土地情報まとめ：この土地のポイント → 基本情報 → 必須チェック12項目（用途地域・建蔽率・容積率・高さ制限・壁面後退・前面道路の種別・幅員・防火地域・上水道・下水道・ガス・ハザード）→ 災害リスク → その他の法令・周辺 → 確認先。2段目 法令チェック：結論 → 見落としチェック12項目 → 設計で注意すること → 役所への事前協議（窓口ごと） → タスク一覧 → 資料同士や自動取得データとの食い違い。各項目に［確定／要確認／推測］と出典を付ける。最後に確認書のダウンロードリンク・案内図・app_link を案内する。",
   ].join("\n");
 }
 
@@ -226,17 +234,28 @@ export function appLink(plan: PlanInput, baseUrl = siteUrl()): string {
   return `${baseUrl.replace(/\/$/, "")}/consult?${q.toString()}`;
 }
 
-function siteSection(site: SiteContext | null, plan: PlanInput): string[] {
+function siteSection(site: SiteContext | null, plan: PlanInput, survey: SurveyFacts = {}): string[] {
   if (!site) return ["（住所の指定がないため、土地の自動取得はしていません）"];
-  const lines = [`## 土地のまとめ`, `位置：${site.matched ?? "特定できず"}（地図上の代表点。境界は反映していません）`];
-  for (const f of landFacts(plan, site))
-    lines.push(`- **${f.label}**：${f.value}${f.sub ? `（${f.sub}）` : ""}［${f.certainty}${f.certainty === "入力" ? "" : `・出典：${f.cites.length ? f.cites.map((c) => c.label).join("、") : "なし"}`}］`);
+  const facts = landFacts(plan, site, survey);
+  const pts = landPoints(facts);
+  const lines = [`# 1段目 土地情報まとめ`, `位置：${site.matched ?? "特定できず"}（地図上の代表点。境界は反映していません）`, ""];
+  lines.push("## この土地のポイント", `重大 ${pts.danger.length}・注意 ${pts.warn.length}・要確認 ${pts.check.length}`);
+  for (const f of [...pts.danger, ...pts.warn].slice(0, 5)) lines.push(`- ${f.tone === "danger" ? "【重大】" : "【注意】"}${f.label}：${f.value}`);
+  for (const g of groupFacts(facts)) {
+    lines.push("", `## ${g.title}`);
+    for (const f of g.facts)
+      lines.push(`- **${f.label}**：${f.value}${f.sub ? `（${f.sub}）` : ""}［${f.certainty}${f.certainty === "入力" ? "" : `・出典：${f.cites.length ? f.cites.map((c) => c.label).join("、") : "なし"}`}］`);
+  }
+  const asks = askList(facts);
+  if (asks.length) lines.push("", "## 確認先", ...asks.map((a) => `- ${a.office}：${a.items.join("・")}`));
+  lines.push("");
   lines.push(`確実性：${CERTAINTY.map((c) => `${c}＝${CERTAINTY_HELP[c]}`).join("／")}／入力＝入力どおりの値`);
   if (site.derived.notes.length) lines.push("", "注記：", ...site.derived.notes.map((n) => `- ${n}`));
   const srcs = new Map<string, string>();
   for (const l of site.layers) if (l.status === "hit") srcs.set(l.source.url, `${l.source.label}${l.source.year ? `（${l.source.year}）` : ""}`);
   if (site.farmland?.status === "ok") srcs.set(FUDE_SOURCE.url, FUDE_SOURCE.label);
   if (site.water?.status === "ok") srcs.set(GSI_VT_SOURCE.url, GSI_VT_SOURCE.label);
+  for (const f of facts) for (const c of f.cites) if (!srcs.has(c.url)) srcs.set(c.url, c.label);
   if (srcs.size) lines.push("", "出典：", ...[...srcs].map(([u, l]) => `- ${l} ${u}`));
   return lines;
 }
@@ -279,13 +298,25 @@ export async function landSummaryTool(args: Json, ctx: Ctx = {}): Promise<string
   return [...siteSection(site, plan), ...(await chibanSection(site, address)), "", `画面で見る：${appLink(plan, ctx.baseUrl)}`].join("\n");
 }
 
+/** 上下水・ガス・壁面後退・高度地区（資料から分かったもの）。 */
+function surveyFromArgs(a: Json): SurveyFacts {
+  const pick = <T extends string>(v: unknown, allowed: readonly T[]): T | "" => (allowed.includes(v as T) ? (v as T) : "");
+  return {
+    water: pick(a.water_supply, ["引込有", "引込無", "要確認"] as const),
+    sewage: pick(a.sewage, ["下水道", "集中浄化槽", "個別浄化槽"] as const),
+    gas: pick(a.gas, ["都市ガス", "プロパン", "オール電化予定"] as const),
+    wallSetback: typeof a.wall_setback === "string" ? a.wall_setback.slice(0, 20) : "",
+    heightDistrict: typeof a.height_district === "string" ? a.height_district.slice(0, 40) : "",
+  };
+}
+
 export async function landLawCheckTool(args: Json, ctx: Ctx = {}): Promise<string> {
   const input = planFromArgs(args);
   const site = input.address.trim().length >= 3 ? await lookupSite(input.address) : null;
   const plan = mergeSiteIntoPlan(input, site);
   const findings = runRules(plan);
   const { specific, checks, routine } = splitFindings(findings);
-  const out: string[] = [...siteSection(site, plan), ...(await chibanSection(site, input.address)), ""];
+  const out: string[] = [...siteSection(site, plan, surveyFromArgs(args)), ...(await chibanSection(site, input.address)), "", "# 2段目 法令チェック", ""];
 
   if (plan.landInfo.trim()) {
     out.push("## 資料から読み取った事実（入力どおり）", plan.landInfo.trim(), "");

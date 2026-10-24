@@ -30,7 +30,20 @@ const SITE: Field[] = [
 ];
 
 /** 法令制限確認書（Excel）: customer details are optional — blanks stay blank in the sheet. */
-export default function SurveyPanel({ plan, report, accessKey, suggestedLot }: { plan: PlanInput; report: PartialReport | null; accessKey: string; suggestedLot?: string | null }) {
+export default function SurveyPanel({
+  plan,
+  report,
+  accessKey,
+  suggestedLot,
+  onSurvey,
+}: {
+  plan: PlanInput;
+  report: PartialReport | null;
+  accessKey: string;
+  suggestedLot?: string | null;
+  /** 入力が変わるたびに呼ぶ（土地情報まとめの上下水・ガス・壁面後退に反映）。 */
+  onSurvey?: (s: Survey) => void;
+}) {
   const storageKey = `${KEY}${plan.address.trim()}`;
   const [survey, setSurvey] = useState<Survey>(EMPTY_SURVEY);
   const [busy, setBusy] = useState(false);
@@ -47,6 +60,11 @@ export default function SurveyPanel({ plan, report, accessKey, suggestedLot }: {
       setSurvey(EMPTY_SURVEY);
     }
   }, [storageKey]);
+
+  useEffect(() => {
+    onSurvey?.(survey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [survey]);
 
   const set = (k: keyof Survey, v: string) =>
     setSurvey((s) => {
@@ -99,7 +117,7 @@ export default function SurveyPanel({ plan, report, accessKey, suggestedLot }: {
       <input type="text" value={String(survey[f.k] ?? "")} placeholder={f.ph ?? ""} onChange={(e) => set(f.k, e.target.value)} />
     </label>
   );
-  const select = (k: "road1Owner" | "water" | "sewage", label: string, options: string[]) => (
+  const select = (k: "road1Owner" | "water" | "sewage" | "gas", label: string, options: string[]) => (
     <label className="sf half">
       <span>{label}</span>
       <select value={survey[k]} onChange={(e) => set(k, e.target.value)}>
@@ -139,6 +157,7 @@ export default function SurveyPanel({ plan, report, accessKey, suggestedLot }: {
           {select("road1Owner", "道路の種類", ["国道", "県道", "市道"])}
           {select("water", "給水", ["引込有", "引込無", "要確認"])}
           {select("sewage", "排水", ["下水道", "集中浄化槽", "個別浄化槽"])}
+          {select("gas", "ガス", ["都市ガス", "プロパン", "オール電化予定"])}
         </div>
         <p className="hint">入力はこの端末にだけ保存されます（住所ごと）。サーバーには残りません。</p>
       </details>

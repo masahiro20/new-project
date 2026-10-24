@@ -6,6 +6,7 @@
 
 import { EMPTY_SIGNALS, HAZARDS, type PlanInput, type Signals } from "./plan";
 import { FUDE_SOURCE, GSI_VT_SOURCE, lookupFarmland, lookupWater, type FarmlandResult, type WaterResult } from "./nearby";
+import { ELEVATION_SOURCE, LANDPRICE_SOURCE, lookupElevation, lookupLandPrices, type Elevation, type LandPriceResult } from "./siteextras";
 
 export { FUDE_SOURCE, GSI_VT_SOURCE };
 
@@ -43,6 +44,10 @@ export type SiteContext = {
   farmland: FarmlandResult | null;
   /** 国土地理院 ベクトルタイル: distance to the nearest river / waterway. */
   water: WaterResult | null;
+  /** 近くの地価公示・地価調査地点（周辺の参考。上下水・ガスの手がかり）。 */
+  landPrices?: LandPriceResult | null;
+  /** 地点の標高（国土地理院）。 */
+  elevation?: Elevation;
   derived: {
     signals: Signals;
     areaDivision?: PlanInput["areaDivision"];
@@ -120,6 +125,9 @@ export const LAYERS: LayerDef[] = [
     kind: "polygon",
     describe: (p) => `${s(p.topographic_classification_name_ja)}：${s(p.note)}`,
   },
+  { id: "XKT024", label: "高度利用地区", source: TOSHIKEIKAKU_SRC, kind: "polygon", describe: (p) => `${s(p.advanced_name) || "高度利用地区"}${p.advanced_type_ja ? `（${s(p.advanced_type_ja)}）` : ""}` },
+  { id: "XKT004", label: "小学校区", source: ksj("A27", "2023"), kind: "polygon", describe: (p) => `${s(p.A27_004_ja)}${p.A27_005 ? `（${s(p.A27_005)}）` : ""}` },
+  { id: "XKT005", label: "中学校区", source: ksj("A32", "2023"), kind: "polygon", describe: (p) => `${s(p.A32_004_ja)}${p.A32_005 ? `（${s(p.A32_005)}）` : ""}` },
   { id: "XKT019", label: "自然公園地域", source: { label: "国土数値情報 自然公園地域", url: "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-A10-v3_1.html", year: "" }, kind: "polygon", describe: (p) => Object.entries(p).filter(([, v]) => v !== null && v !== "").slice(0, 4).map(([k, v]) => `${k}=${s(v)}`).join("、") },
   { id: "XKT028", label: "津波浸水想定", source: { label: "国土数値情報 津波浸水想定", url: "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-A40-v1_2.html", year: "" }, kind: "polygon", describe: (p) => Object.entries(p).filter(([, v]) => v !== null && v !== "").slice(0, 4).map(([k, v]) => `${k}=${s(v)}`).join("、") },
   { id: "XKT027", label: "高潮浸水想定区域", source: { label: "国土数値情報 高潮浸水想定区域", url: "https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-A49-v1_0.html", year: "" }, kind: "polygon", describe: (p) => Object.entries(p).filter(([, v]) => v !== null && v !== "").slice(0, 4).map(([k, v]) => `${k}=${s(v)}`).join("、") },
@@ -250,10 +258,12 @@ export async function lookupSite(address: string): Promise<SiteContext> {
 
   const key = process.env.REINFOLIB_API_KEY;
   const nearbyPromise = Promise.all([lookupFarmland(best.lat, best.lon), lookupWater(best.lat, best.lon)]);
+  const extrasPromise = Promise.all([lookupLandPrices(best.lat, best.lon, process.env.REINFOLIB_API_KEY), lookupElevation(best.lat, best.lon)]);
   if (!key) {
     ctx.layers = LAYERS.map((l) => ({ id: l.id, label: l.label, status: "skipped" as const, summary: [], features: [], source: l.source }));
     ctx.derived.notes.push("不動産情報ライブラリの API キー（REINFOLIB_API_KEY）が未設定のため、用途地域・区域区分・防火指定・災害区域の自動取得をスキップしました。");
     [ctx.farmland, ctx.water] = await nearbyPromise;
+    [ctx.landPrices, ctx.elevation] = await extrasPromise;
     derive(ctx);
     siteCache.set(trimmed, { at: Date.now(), value: ctx });
     return ctx;
@@ -285,6 +295,7 @@ export async function lookupSite(address: string): Promise<SiteContext> {
   );
 
   [ctx.farmland, ctx.water] = await nearbyPromise;
+  [ctx.landPrices, ctx.elevation] = await extrasPromise;
   derive(ctx);
   siteCache.set(trimmed, { at: Date.now(), value: ctx });
   return ctx;

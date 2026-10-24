@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { ROLES, TASK_WHEN, whenIndex, type PartialReport } from "@/lib/report";
+import { GRADE_HELP, ROLES, TASK_WHEN, whenIndex, type PartialReport } from "@/lib/report";
 import { CertaintyBadge, CertaintyLegend, Sources } from "./Certainty";
 import CountUp from "../components/CountUp";
 
@@ -97,6 +97,12 @@ export default function ReportView({
             <h2 className="stamp" key={s.verdict ?? ""}>
               {s.verdict ?? "…"}
             </h2>
+            {s.grade && (
+              <span className={`hero-grade grade-${s.grade}`} title={GRADE_HELP[s.grade]}>
+                <small>総合所見</small>
+                {s.grade}
+              </span>
+            )}
           </div>
           {s.headline && <p className="hero-headline">{s.headline}</p>}
           {s.topRisks && s.topRisks.length > 0 && (
@@ -114,6 +120,30 @@ export default function ReportView({
               <span className="pill tone-info">工程</span>
               {s.schedule}
             </p>
+          )}
+          {((s.costImpacts?.length ?? 0) > 0 || (s.customerPoints?.length ?? 0) > 0) && (
+            <div className="hero-cols">
+              {(s.costImpacts?.length ?? 0) > 0 && (
+                <div>
+                  <p className="hero-col-title">費用・工期に影響しうること</p>
+                  <ul>
+                    {s.costImpacts!.map((t, i) => (
+                      <li key={i}>{t}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {(s.customerPoints?.length ?? 0) > 0 && (
+                <div>
+                  <p className="hero-col-title">お客様への説明ポイント</p>
+                  <ul>
+                    {s.customerPoints!.map((t, i) => (
+                      <li key={i}>{t}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
           )}
         </section>
       )}

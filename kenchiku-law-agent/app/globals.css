@@ -1106,3 +1106,47 @@ pre.law.code { background: #2b2b2b; color: #eef1f3; border: 0; font-family: var(
   .sheet { box-shadow: none !important; margin: 0 !important; max-width: none !important; background: #fff !important; }
   .print-sheet { max-height: none !important; overflow: visible !important; }
 }
+
+/* ---------------------------------------------------------------- 2 stages + 土地情報まとめ (v8.1) */
+.stage-band { display: grid; grid-template-columns: auto auto minmax(0, 1fr); align-items: baseline; gap: 6px 18px; margin: 8px 0 56px; padding: 22px 0; border-top: 1px solid #333; border-bottom: 1px solid var(--line); }
+.stage-en { font-family: var(--font-head); font-size: 0.78rem; letter-spacing: 0.3em; text-transform: uppercase; color: #8c9baa; }
+.stage-band strong { font-family: var(--font-head); font-weight: 500; font-size: 1.35rem; letter-spacing: 0.14em; }
+.stage-band p { margin: 0; font-size: 0.86rem; color: #555; line-height: 1.9; }
+@media (max-width: 760px) { .stage-band { grid-template-columns: auto minmax(0, 1fr); } .stage-band p { grid-column: 1 / -1; } }
+
+.land-points { border: 1px solid var(--line); background: #fff; padding: 20px clamp(16px, 3vw, 28px); margin-bottom: 40px; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px 32px; align-items: start; }
+.land-points-title { margin: 0; font-family: var(--font-head); font-weight: 500; letter-spacing: 0.12em; grid-column: 1 / -1; }
+.land-counts { list-style: none; margin: 0; padding: 0; display: flex; gap: 22px; }
+.land-counts li { display: grid; justify-items: start; font-size: 0.74rem; color: #666; letter-spacing: 0.1em; }
+.land-counts strong { font-family: var(--font-head); font-weight: 400; font-size: 2rem; line-height: 1.1; color: #333; }
+.land-counts .is-danger strong { color: var(--danger); }
+.land-counts .is-warn strong { color: var(--warn); }
+.land-point-list { margin: 0; padding: 0 0 0 1.4em; font-size: 0.88rem; line-height: 1.9; }
+.land-point-list li b { font-weight: 700; margin-right: 10px; }
+.land-point-list li.tone-danger b { color: var(--danger); }
+.land-point-list li.tone-warn b { color: var(--warn); }
+@media (max-width: 640px) { .land-points { grid-template-columns: 1fr; } }
+
+.spec-group { margin-bottom: 44px; }
+.spec-group-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 0; padding-bottom: 10px; }
+.spec-group-head h3 { margin: 0; font-size: 1.02rem; font-weight: 500; letter-spacing: 0.1em; }
+.spec-group-en { font-family: var(--font-head); font-size: 0.72rem; letter-spacing: 0.24em; text-transform: uppercase; color: #a7b1ba; min-width: 6.5em; }
+.spec-group-must .spec-group-head h3::after { content: "土地情報確認AIツールの必須項目"; margin-left: 14px; font-size: 0.72rem; color: #8c9baa; letter-spacing: 0.06em; }
+.ask-table { margin: 0; border-top: 1px solid #333; }
+.ask-table > div { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--line); font-size: 0.9rem; }
+.ask-table dt { font-weight: 500; }
+.ask-table dd { margin: 0; color: #555; }
+@media (max-width: 640px) { .ask-table > div { grid-template-columns: 1fr; gap: 2px; } .spec-group-must .spec-group-head h3::after { display: block; margin: 2px 0 0; } }
+@media print {
+  .print-sheet tr.ps-group th { background: #eef1f3 !important; font-size: 8.4pt; letter-spacing: 0.08em; text-align: left; }
+  .print-sheet table.ps-ask { margin-top: 6px; }
+}
+.hero-top { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.hero-grade { margin-left: auto; display: grid; place-items: center; width: 76px; height: 76px; border: 1px solid rgba(255, 255, 255, 0.55); border-radius: 50% !important; font-family: var(--font-head); font-size: 1.9rem; line-height: 1; color: #fff; }
+.hero-grade small { font-size: 0.6rem; letter-spacing: 0.14em; opacity: 0.8; margin-bottom: -10px; }
+.hero-grade.grade-A { border-color: #8fc3a5; }
+.hero-grade.grade-C { border-color: #e29b92; }
+.hero-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; margin-top: 22px; padding-top: 18px; border-top: 1px solid rgba(255, 255, 255, 0.16); }
+.hero-col-title { margin: 0 0 6px; font-size: 0.78rem; letter-spacing: 0.12em; color: #d9bf7d; }
+.hero-cols ul { margin: 0; padding-left: 1.2em; font-size: 0.88rem; line-height: 1.85; color: rgba(255, 255, 255, 0.88); }
+@media (max-width: 700px) { .hero-cols { grid-template-columns: 1fr; } }

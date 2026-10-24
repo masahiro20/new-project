@@ -33,6 +33,8 @@ export const surveySchema = z.object({
   road2Owner: z.enum(["", "国道", "県道", "市道"]).catch(""),
   water: z.enum(["", "引込有", "引込無", "要確認"]).catch(""),
   sewage: z.enum(["", "下水道", "集中浄化槽", "個別浄化槽"]).catch(""),
+  /** 確認書には欄がないが、土地情報まとめの必須項目。 */
+  gas: z.enum(["", "都市ガス", "プロパン", "オール電化予定"]).catch(""),
 });
 export type Survey = z.infer<typeof surveySchema>;
 export const EMPTY_SURVEY: Survey = surveySchema.parse({});

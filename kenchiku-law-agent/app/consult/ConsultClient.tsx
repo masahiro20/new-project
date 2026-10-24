@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import MarkdownView from "@/app/MarkdownView";
 import ReportView from "./ReportView";
 import PrintSheet from "./PrintSheet";
@@ -11,7 +11,8 @@ import Rail, { type RailItem } from "./Rail";
 import Section from "../components/Section";
 import Attachments, { type Attachment } from "./Attachments";
 import LandSheet from "./LandSheet";
-import { landFacts } from "@/lib/landsummary";
+import { landFacts, type SurveyFacts } from "@/lib/landsummary";
+import type { Survey } from "@/lib/survey";
 import { reportToMarkdown, tasksToCsv, type PartialReport } from "@/lib/report";
 import { STAGE_HINT } from "@/lib/knowledge";
 import type { AgentEvent } from "@/lib/agent";
@@ -180,6 +181,14 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
   const [saved, setSaved] = useState<Saved | null>(null);
   const [copied, setCopied] = useState(false);
   const [lotInfo, setLotInfo] = useState<LotInfo | null>(null);
+  // 敷地調査の入力（上下水・ガス・壁面後退・高度地区）を土地情報まとめに反映する。
+  const [surveyFacts, setSurveyFacts] = useState<SurveyFacts>({});
+  const onSurvey = useCallback((s: Survey) => {
+    setSurveyFacts((prev) => {
+      const next: SurveyFacts = { wallSetback: s.wallSetback, heightDistrict: s.heightDistrict, water: s.water, sewage: s.sewage, gas: s.gas };
+      return JSON.stringify(prev) === JSON.stringify(next) ? prev : next;
+    });
+  }, []);
   const suggestedLot = (() => {
     const k = lotInfo?.kozu;
     if (k?.status === "ok") return `${k.district ?? ""}${k.query?.chiban ?? ""}（公図：${k.map?.kind ?? ""}・図上 約${k.area}㎡／地積・地目は登記簿で確認）`;
@@ -470,12 +479,12 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
     const src = sources.map((s) => `- 【${s.tier}】${s.title} ${s.url}`).join("\n");
     const land = facts.map((f) => `- ${f.label}：${f.value}［${f.certainty}${f.cites.length ? `・出典：${f.cites.map((c) => c.label).join("、")}` : ""}］`).join("\n");
     const body = report ? reportToMarkdown(report) : text;
-    await navigator.clipboard.writeText(`# ${plan.address}\n${plan.description}\n\n## 土地のまとめ\n${land}\n\n${body}\n\n---\n参照した出典\n${src}`);
+    await navigator.clipboard.writeText(`# ${plan.address}\n${plan.description}\n\n## 土地情報まとめ\n${land}\n\n${body}\n\n---\n参照した出典\n${src}`);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }
 
-  const facts = useMemo(() => (site ? landFacts(effective, site) : []), [effective, site]);
+  const facts = useMemo(() => (site ? landFacts(effective, site, surveyFacts) : []), [effective, site, surveyFacts]);
   const sourceCounts = useMemo(() => sources.reduce<Record<string, number>>((acc, x) => ({ ...acc, [x.tier]: (acc[x.tier] ?? 0) + 1 }), {}), [sources]);
   const elapsed = startedAt && busy ? Math.max(0, Math.round((now - startedAt) / 1000)) : 0;
   const phase = phaseOf(log, Boolean(report));
@@ -489,9 +498,9 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
   const resultVisible = Boolean(text || report || busy);
   const rail: RailItem[] = [
     { id: "s-input", no: "01", label: "計画を入れる", ready: true },
-    { id: "s-land", no: "02", label: "土地のまとめ", ready: Boolean(site || siteBusy || siteError) },
+    { id: "s-land", no: "02", label: "土地情報まとめ", ready: Boolean(site || siteBusy || siteError) },
     { id: "s-maps", no: "03", label: "案内図・公図", ready: hasMap },
-    { id: "s-issues", no: "04", label: "自動判定の論点", ready: findings.length > 0, note: findings.length ? String(split.specific.length + split.checks.length) : undefined },
+    { id: "s-issues", no: "04", label: "法令の論点", ready: findings.length > 0, note: findings.length ? String(split.specific.length + split.checks.length) : undefined },
     { id: "s-result", no: "05", label: "AIの詳しいチェック", ready: true, note: busy ? "実行中" : report ? "済" : undefined },
     { id: "s-docs", no: "06", label: "書類を作る", ready: hasSite },
   ];
@@ -706,7 +715,14 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
           </Section>
 
           {(site || siteBusy || siteError) && (
-            <Section id="s-land" no="02" title="土地のまとめ" lead={location ?? "住所の位置を特定しています"}>
+            <div className="stage-band" data-reveal>
+              <span className="stage-en">Stage 1</span>
+              <strong>土地情報</strong>
+              <p>土地の条件をそろえる段階。基本情報・必須チェック12項目・災害リスク・周辺の法令・確認先を、国の公開データと入力から。</p>
+            </div>
+          )}
+          {(site || siteBusy || siteError) && (
+            <Section id="s-land" no="02" title="土地情報まとめ" lead={location ?? "住所の位置を特定しています"}>
               {siteBusy && (
                 <div className="scanning" role="status">
                   <span className="radar" aria-hidden />
@@ -733,7 +749,14 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
           )}
 
           {findings.length > 0 && (
-            <Section id="s-issues" no="04" title="自動判定の論点" lead="住所のデータと入力を、条文照合済みのルールに当てはめた即時の判定です（AIは使っていません）。">
+            <div className="stage-band" data-reveal>
+              <span className="stage-en">Stage 2</span>
+              <strong>法令チェック</strong>
+              <p>土地情報に計画を当てはめる段階。条文照合済みのルールで論点を出し、AIが条文と自治体の資料を確かめて、結論・事前協議・タスクまでまとめます。</p>
+            </div>
+          )}
+          {findings.length > 0 && (
+            <Section id="s-issues" no="04" title="法令の論点（自動判定）" lead="土地情報と入力を、条文照合済みのルールに当てはめた即時の判定です（AIは使っていません）。">
               <div className="issues">
                 <div className="issues-counts">
                   <div>
@@ -904,7 +927,7 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
                 )}
               </ul>
               <div id="survey">
-                <SurveyPanel plan={plan} report={report} accessKey={accessKey} suggestedLot={suggestedLot} />
+                <SurveyPanel plan={plan} report={report} accessKey={accessKey} suggestedLot={suggestedLot} onSurvey={onSurvey} />
               </div>
             </Section>
           )}

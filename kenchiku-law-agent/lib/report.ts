@@ -44,12 +44,24 @@ export type Evidence = z.infer<typeof evidence>;
 // A missing or unknown certainty is never shown as 確定.
 const certainty = z.enum(CERTAINTY).catch("要確認");
 
+/** 総合所見（土地情報確認AIツールと同じ3段階）。 */
+export const GRADES = ["A", "B", "C"] as const;
+export const GRADE_HELP: Record<(typeof GRADES)[number], string> = {
+  A: "大きな障害なし。通常の手続きで進められる",
+  B: "条件付き。許可・届出・追加工事など確認と対応が要る",
+  C: "建築が難しいか、大きな追加費用・期間がかかる",
+};
+
 export const reportSchema = z.object({
   summary: z.object({
     verdict: z.enum(VERDICTS),
     headline: z.string(),
     topRisks: z.array(z.string()),
     schedule: z.string(),
+    // Added later; older saved reports have none of these, so they stay optional.
+    grade: z.enum(GRADES).optional().catch(undefined),
+    costImpacts: z.array(z.string()).optional().catch(undefined),
+    customerPoints: z.array(z.string()).optional().catch(undefined),
   }),
   design: z.array(z.object({ title: z.string(), detail: z.string(), priority: z.enum(PRIORITIES), certainty, evidence: z.array(evidence) })),
   consultations: z.array(
@@ -112,6 +124,9 @@ export const REPORT_INPUT_SCHEMA = obj({
       headline: str("結論を1〜2文・120字以内で。何がこの計画の成否・工程を決めるかだけを書く（詳細は topRisks 以降に回す）"),
       topRisks: strArr("いちばん効く論点を最大3つ。各1文・80字以内"),
       schedule: str("工程への影響の見込みを100字以内で（例：農地転用と開発許可で着工まで通常より3〜6か月長い）。不明なら何が決まれば分かるか"),
+      grade: { type: "string", enum: [...GRADES], description: `総合所見。A＝${GRADE_HELP.A}／B＝${GRADE_HELP.B}／C＝${GRADE_HELP.C}` },
+      costImpacts: strArr("費用・工期に影響しうる項目を最大5つ。各60字以内。金額の見積もりは書かない（例：引込φ13なら給水管の増径と負担金）"),
+      customerPoints: strArr("お客様への説明ポイントを2〜4つ。専門用語を避け、各60字以内"),
     },
     "冒頭に出す結論",
   ),
@@ -215,6 +230,9 @@ export function reportToMarkdown(r: PartialReport): string {
     out.push(`## 結論：${r.summary.verdict ?? ""}`, r.summary.headline ?? "");
     if (r.summary.topRisks?.length) out.push("", ...r.summary.topRisks.map((t) => `- ${t}`));
     if (r.summary.schedule) out.push("", `**工程への影響**：${r.summary.schedule}`);
+    if (r.summary.grade) out.push("", `**総合所見**：${r.summary.grade}（${GRADE_HELP[r.summary.grade]}）`);
+    if (r.summary.costImpacts?.length) out.push("", "**費用・工期に影響しうる項目**", ...r.summary.costImpacts.map((t) => `- ${t}`));
+    if (r.summary.customerPoints?.length) out.push("", "**お客様への説明ポイント**", ...r.summary.customerPoints.map((t) => `- ${t}`));
   }
   if (r.documents?.length) {
     out.push("", "## 資料から読み取ったこと");

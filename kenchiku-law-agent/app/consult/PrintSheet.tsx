@@ -4,9 +4,10 @@
 // printing, it is the only thing on the page. Links do not work on paper, so
 // every source gets a number [n] that points to the list at the end.
 
-import type { LandFact } from "@/lib/landsummary";
+import { Fragment } from "react";
+import { askList, groupFacts, type LandFact } from "@/lib/landsummary";
 import type { PlanInput } from "@/lib/plan";
-import { CERTAINTY, CERTAINTY_HELP, type PartialReport } from "@/lib/report";
+import { CERTAINTY, CERTAINTY_HELP, GRADE_HELP, type PartialReport } from "@/lib/report";
 import { SEVERITY_SHORT, citeLabel, citeUrl, type Finding } from "@/lib/rules";
 import { short, sortedTasks } from "./ReportView";
 import { annaiUrl } from "./SiteMap";
@@ -128,22 +129,9 @@ export default function PrintSheet({
         </section>
       )}
 
-      {report?.summary && (
-        <section className="ps-sec ps-verdict">
-          <h2>結論：{report.summary.verdict}</h2>
-          <p>{report.summary.headline}</p>
-          {report.summary.topRisks && report.summary.topRisks.length > 0 && (
-            <ol>
-              {report.summary.topRisks.map((r, i) => <li key={i}>{r}</li>)}
-            </ol>
-          )}
-          {report.summary.schedule && <p>工程：{report.summary.schedule}</p>}
-        </section>
-      )}
-
       {facts.length > 0 && (
         <section className="ps-sec">
-          <h2>土地のまとめ</h2>
+          <h2>土地情報まとめ（1段目）</h2>
           <table>
             <thead>
               <tr>
@@ -154,23 +142,87 @@ export default function PrintSheet({
               </tr>
             </thead>
             <tbody>
-              {facts.map((f) => (
-                <tr key={f.key}>
-                  <th>{f.label}</th>
-                  <td>
-                    <b>{f.value}</b>
-                    {f.sub && <div className="ps-sub">{f.sub}</div>}
-                  </td>
-                  <td>
-                    <b className={`ps-cert ps-cert-${f.certainty}`}>{f.certainty}</b>
-                  </td>
-                  <td>{f.certainty === "入力" ? "入力値" : ref(f.cites)}</td>
-                </tr>
+              {groupFacts(facts).map((g) => (
+                <Fragment key={g.id}>
+                  <tr className="ps-group">
+                    <th colSpan={4}>{g.title}</th>
+                  </tr>
+                  {g.facts.map((f) => (
+                    <tr key={f.key}>
+                      <th>{f.label}</th>
+                      <td>
+                        <b>{f.value}</b>
+                        {f.sub && <div className="ps-sub">{f.sub}</div>}
+                      </td>
+                      <td>
+                        <b className={`ps-cert ps-cert-${f.certainty}`}>{f.certainty}</b>
+                      </td>
+                      <td>{f.certainty === "入力" ? "入力値" : ref(f.cites)}</td>
+                    </tr>
+                  ))}
+                </Fragment>
               ))}
             </tbody>
           </table>
+          {askList(facts).length > 0 && (
+            <table className="ps-ask">
+              <thead>
+                <tr>
+                  <th style={{ width: "24%" }}>確認先</th>
+                  <th>確認すること</th>
+                </tr>
+              </thead>
+              <tbody>
+                {askList(facts).map((a) => (
+                  <tr key={a.office}>
+                    <th>{a.office}</th>
+                    <td>{a.items.join("・")}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </section>
       )}
+
+      {report?.summary && (
+        <section className="ps-sec ps-verdict">
+          <h2>2段目 法令チェック ― 結論：{report.summary.verdict}</h2>
+          <p>{report.summary.headline}</p>
+          {report.summary.topRisks && report.summary.topRisks.length > 0 && (
+            <ol>
+              {report.summary.topRisks.map((r, i) => <li key={i}>{r}</li>)}
+            </ol>
+          )}
+          {report.summary.schedule && <p>工程：{report.summary.schedule}</p>}
+          {report.summary.grade && (
+            <p>
+              総合所見：<b>{report.summary.grade}</b>（{GRADE_HELP[report.summary.grade]}）
+            </p>
+          )}
+          {(report.summary.costImpacts?.length ?? 0) > 0 && (
+            <>
+              <p className="ps-sub">費用・工期に影響しうること</p>
+              <ul>
+                {report.summary.costImpacts!.map((t, i) => (
+                  <li key={i}>{t}</li>
+                ))}
+              </ul>
+            </>
+          )}
+          {(report.summary.customerPoints?.length ?? 0) > 0 && (
+            <>
+              <p className="ps-sub">お客様への説明ポイント</p>
+              <ul>
+                {report.summary.customerPoints!.map((t, i) => (
+                  <li key={i}>{t}</li>
+                ))}
+              </ul>
+            </>
+          )}
+        </section>
+      )}
+
 
       {checklist.length > 0 && (
         <section className="ps-sec">

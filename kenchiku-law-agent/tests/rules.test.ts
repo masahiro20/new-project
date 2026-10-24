@@ -308,9 +308,55 @@ test("land sheet: farmland on site is flagged red and area limits are computed f
   const site = { apiAvailable: true, layers: [], derived: { kenpei: "50%", yoseki: "100%", hazards: [], notes: [], signals: p.signals } } as unknown as SiteContext;
   const f = new Map(landFacts(p, site).map((x) => [x.key, x]));
   assert.equal(f.get("farm")?.tone, "danger");
-  assert.equal(f.get("ratio")?.value, "50%／100%");
-  assert.match(f.get("ratio")?.sub ?? "", /建築面積100㎡・延べ200㎡/);
+  assert.equal(f.get("kenpei")?.value, "50%");
+  assert.equal(f.get("yoseki")?.value, "100%");
+  assert.match(f.get("yoseki")?.sub ?? "", /建築面積100㎡・延べ200㎡/);
   assert.equal(f.get("fire")?.tone, "warn");
+  assert.equal(f.get("wallSetback")?.value, "外壁後退の指定の可能性");
+});
+
+test("land sheet follows the 土地情報確認AIツール: 12 must-check items in order, groups, offices to ask", async () => {
+  const { landFacts, groupFacts, MUST_KEYS, askList, landPoints } = await import("../lib/landsummary");
+  const p = plan({ areaDivision: "市街化区域", zoning: "第一種住居地域", fireZone: "準防火地域", roadType: "2項道路（幅員4m未満の既存道）", roadWidth: 3.6, frontage: 8, siteArea: 165.3 });
+  const src = { label: "国土数値情報 A31a", url: "https://example.jp/a31a", year: "2024" };
+  const site = {
+    apiAvailable: true,
+    precise: true,
+    lat: 35.1,
+    lon: 136.9,
+    matched: "○○市○○町一丁目",
+    address: "○○市○○町一丁目1-1",
+    elevation: { meters: 12.3, source: "5m（レーザー）" },
+    landPrices: { status: "ok", points: [{ meters: 240, location: "○○町", use: "住宅地", price: "120,000円/㎡", water: true, gas: false, sewer: true, year: "令和7年", heightDistrict: "第二種高度地区" }] },
+    layers: [
+      { id: "XKT026", status: "hit", features: [{}], summary: ["○○川 浸水深 0.5m以上3.0m未満"], source: src, label: "" },
+      { id: "XKT004", status: "hit", features: [{ A27_004_ja: "○○小学校" }], summary: [], source: src, label: "" },
+    ],
+    derived: { kenpei: "60%", yoseki: "200%", hazards: [], notes: [], signals: p.signals },
+  } as unknown as SiteContext;
+  const facts = landFacts(p, site, { sewage: "下水道" });
+  const must = facts.filter((x) => x.group === "must").map((x) => x.key);
+  assert.deepEqual(must, [...MUST_KEYS]);
+  const f = new Map(facts.map((x) => [x.key, x]));
+  assert.equal(f.get("yoseki")?.value, "指定200%→実効144%");
+  assert.match(f.get("roadType")?.sub ?? "", /約0.2m/);
+  assert.equal(f.get("sewer")?.value, "下水道");
+  assert.equal(f.get("sewer")?.certainty, "入力");
+  assert.equal(f.get("waterSupply")?.value, "未確認");
+  assert.match(f.get("waterSupply")?.sub ?? "", /水道あり/);
+  assert.match(f.get("gas")?.sub ?? "", /都市ガスなし/);
+  assert.match(f.get("height")?.sub ?? "", /第二種高度地区/);
+  assert.equal(f.get("hazard")?.value, "洪水浸水");
+  assert.equal(f.get("siteArea")?.value, "165.3㎡（約50坪）");
+  assert.equal(f.get("school1")?.value, "○○小学校");
+  assert.equal(f.get("elevation")?.certainty, "推測");
+  assert.equal(f.get("landPrice")?.certainty, "推測");
+  assert.deepEqual(groupFacts(facts).map((g) => g.id), ["basic", "must", "hazard", "other"]);
+  const offices = askList(facts).map((a) => a.office);
+  for (const o of ["水道課", "ガス事業者", "建築指導課（道路）"]) assert.ok(offices.includes(o), o);
+  assert.ok(!offices.includes("下水道課"));
+  assert.ok(landPoints(facts).warn.some((x) => x.key === "roadType"));
+  for (const x of facts) if (x.certainty === "確定") assert.ok(x.cites.length > 0, x.key);
 });
 
 // ---------------------------------------------------------------- MCP
