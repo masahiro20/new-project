@@ -7,6 +7,7 @@
 import { Fragment } from "react";
 import { askList, groupFacts, type LandFact } from "@/lib/landsummary";
 import type { PlanInput } from "@/lib/plan";
+import { designCheck } from "@/lib/designcheck";
 import { CERTAINTY, CERTAINTY_HELP, GRADE_HELP, type PartialReport } from "@/lib/report";
 import { SEVERITY_SHORT, citeLabel, citeUrl, type Finding } from "@/lib/rules";
 import { short, sortedTasks } from "./ReportView";
@@ -58,6 +59,7 @@ export default function PrintSheet({
   const tasks = report ? sortedTasks(report) : [];
   const checklist = report?.checklist ?? [];
   const ruleItems = findings.filter((f) => !f.rule.routine);
+  const design = designCheck(plan);
 
   return (
     <div className="print-sheet" aria-hidden>
@@ -306,6 +308,44 @@ export default function PrintSheet({
                   </td>
                   <td>{f.rule.agency}</td>
                   <td>{ref([...f.rule.cites.map((c) => ({ label: citeLabel(c), url: citeUrl(c) })), ...(f.rule.refs ?? []).map((r) => ({ label: `${r.publisher}：${r.label}`, url: r.url }))])}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+      )}
+
+      {design.items.length > 0 && (
+        <section className="ps-sec">
+          <h2>設計条件チェック（設計者向け）― {design.fire.label}</h2>
+          <p className="ps-sub">
+            判定の前提：{design.basis}。{design.fire.plain}。非該当 {design.items.filter((i) => i.verdict === "非該当").length}件は項目名のみ。
+          </p>
+          <table>
+            <thead>
+              <tr>
+                <th style={{ width: "8%" }}>判定</th>
+                <th style={{ width: "10%" }}>分野</th>
+                <th>項目・理由・設計で決めること</th>
+                <th style={{ width: "22%" }}>根拠</th>
+              </tr>
+            </thead>
+            <tbody>
+              {design.items.map((i) => (
+                <tr key={i.id}>
+                  <td>{i.verdict}</td>
+                  <td>{i.area}</td>
+                  <td>
+                    <b>{i.title}</b>
+                    <div className="ps-sub">{i.reason}</div>
+                    {i.verdict !== "非該当" &&
+                      i.specs.map((s, k) => (
+                        <div key={k} className="ps-sub">
+                          ・{s}
+                        </div>
+                      ))}
+                  </td>
+                  <td>{ref(i.cites)}</td>
                 </tr>
               ))}
             </tbody>

@@ -7,6 +7,7 @@
 //   56条1項2号・3号（隣地斜線 20m+1.25／31m+2.5、北側斜線 5m／10m+1.25）,
 //   別表第三（道路斜線 1.25／1.5）, 別表第四（日影規制の対象建築物）.
 
+import { fireClass } from "./designcheck";
 import { lawUrl } from "./egov";
 import { FUDE_SOURCE, GSI_VT_SOURCE } from "./nearby";
 import type { PlanInput } from "./plan";
@@ -438,18 +439,19 @@ function draftFacts(plan: PlanInput, site: SiteContext | null, survey: SurveyFac
     ask: "現地調査・道路管理課",
   });
 
+  const fc = fireClass(plan);
   facts.push({
     key: "fire",
     group: "must",
     label: "防火地域",
     value: f === "不明" ? "不明" : f,
     sub:
-      f === "防火地域"
-        ? "3階以上か延べ100㎡超は耐火建築物等。コストへの影響大"
-        : f === "準防火地域"
-          ? "外壁・軒裏は防火構造、開口部は防火設備。3階建は準耐火建築物等"
-          : f === "法22条区域"
-            ? "屋根の不燃化、延焼のおそれのある外壁"
+      fc.required !== "要確認" && fc.required !== "なし"
+        ? fc.plain
+        : f === "防火地域"
+          ? "3階以上か延べ100㎡超は耐火建築物等、それ以外は準耐火建築物等。階数・延べ面積を入れると判定"
+          : f === "準防火地域"
+            ? "2階以下・500㎡以下の木造は延焼のおそれのある部分の外壁・軒裏を防火構造＋開口部に防火設備、3階建て・500㎡超は準耐火建築物等"
             : f === "指定なし"
               ? "法22条区域かは市で確認"
               : "建築指導課で確認",

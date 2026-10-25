@@ -12,6 +12,8 @@ import Section from "../components/Section";
 import Attachments, { type Attachment } from "./Attachments";
 import LandSheet from "./LandSheet";
 import SiteProgress from "./SiteProgress";
+import DesignCheckView from "./DesignCheckView";
+import { designCheck } from "@/lib/designcheck";
 import { landFacts, type SurveyFacts } from "@/lib/landsummary";
 import { reportToMarkdown, tasksToCsv, type PartialReport } from "@/lib/report";
 import { STAGE_HINT } from "@/lib/knowledge";
@@ -517,6 +519,7 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
     setTimeout(() => setCopied(false), 2000);
   }
 
+  const design = useMemo(() => designCheck(effective), [effective]);
   const facts = useMemo(() => (site ? landFacts(effective, site, surveyFacts) : []), [effective, site, surveyFacts]);
   const sourceCounts = useMemo(() => sources.reduce<Record<string, number>>((acc, x) => ({ ...acc, [x.tier]: (acc[x.tier] ?? 0) + 1 }), {}), [sources]);
   const elapsed = startedAt && busy ? Math.max(0, Math.round((now - startedAt) / 1000)) : 0;
@@ -534,8 +537,9 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
     { id: "s-land", no: "02", label: "土地情報まとめ", ready: Boolean(site || siteBusy || siteError), note: siteBusy ? "読込中" : undefined },
     { id: "s-maps", no: "03", label: "案内図・公図", ready: hasMap },
     { id: "s-issues", no: "04", label: "法令の論点", ready: findings.length > 0, note: findings.length ? String(split.specific.length + split.checks.length) : undefined },
-    { id: "s-result", no: "05", label: "AIの詳しいチェック", ready: true, note: busy ? "実行中" : report ? "済" : undefined },
-    { id: "s-docs", no: "06", label: "書類を作る", ready: hasSite },
+    { id: "s-design", no: "05", label: "設計条件（設計者向け）", ready: findings.length > 0, note: findings.length ? String(design.items.filter((i) => i.verdict === "該当").length) : undefined },
+    { id: "s-result", no: "06", label: "AIの詳しいチェック", ready: true, note: busy ? "実行中" : report ? "済" : undefined },
+    { id: "s-docs", no: "07", label: "書類を作る", ready: hasSite },
   ];
 
   const runControls = (
@@ -787,7 +791,7 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
                     </p>
                   )}
                   {!site.apiAvailable && <p className="notice">不動産情報ライブラリの API キーが未設定のため、用途地域などは取得できていません。「分かれば入れる」で手入力してください。</p>}
-                  <LandSheet facts={facts} location={location ?? ""} notes={site.derived.notes} />
+                  <LandSheet facts={facts} location={location ?? ""} notes={site.derived.notes} plan={effective} />
                 </>
               )}
             </Section>
@@ -876,11 +880,16 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
               </div>
             </Section>
           )}
+          {findings.length > 0 && (
+            <Section id="s-design" no="05" title="設計条件チェック（設計者向け）" lead="防火・構造・省エネ・内装・敷地条件を、階数・延べ面積・構造・防火指定と条文で照合した結果です（AIは使っていません）。">
+              <DesignCheckView check={design} />
+            </Section>
+          )}
 
           <div ref={resultRef} style={{ scrollMarginTop: 80 }}>
             <Section
               id="s-result"
-              no="05"
+              no="06"
               title="AIの詳しいチェック"
               lead="条文（e-Gov）と自治体の公式資料を確かめ、結論・見落とし・設計・事前協議・タスクを出典付きでまとめます。"
               aside={
@@ -957,7 +966,7 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
           </div>
 
           {hasSite && (
-            <Section id="s-docs" no="06" title="書類を作る" lead="社内で使う形式で、そのまま保存できます。">
+            <Section id="s-docs" no="07" title="書類を作る" lead="社内で使う形式で、そのまま保存できます。">
               <ul className="docs">
                 <li>
                   <div>

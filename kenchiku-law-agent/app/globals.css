@@ -1183,3 +1183,79 @@ pre.law.code { background: #2b2b2b; color: #eef1f3; border: 0; font-family: var(
 .sheet-preview .from-AI調査 small { color: var(--check); }
 .sheet-hint { margin-top: 4px; }
 details.customer { margin-top: 8px; }
+
+/* ---------- ひと目でわかる（営業・スタッフ向け） ---------- */
+.glance { border: 1px solid var(--line); background: var(--surface); padding: 28px 28px 20px; margin-bottom: 56px; border-top: 3px solid var(--ink); }
+.glance.verdict-warn { border-top-color: var(--warn); }
+.glance.verdict-danger { border-top-color: var(--danger); }
+.glance.verdict-ok { border-top-color: var(--ok); }
+.glance-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin-bottom: 10px; }
+.glance-head h3 { font-size: 1.05rem; letter-spacing: 0.12em; margin: 0; }
+.glance-en { font-family: var(--font-catch); font-size: 0.72rem; letter-spacing: 0.2em; color: var(--sky); text-transform: uppercase; }
+.glance-verdict { font-size: 1.18rem; line-height: 1.7; margin: 4px 0 18px; }
+.verdict-warn .glance-verdict { color: var(--warn); }
+.verdict-danger .glance-verdict { color: var(--danger); }
+.glance-basics { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin: 0 0 22px; }
+.glance-basics > div { padding: 12px 12px 12px 0; border-right: 1px solid var(--line); padding-left: 12px; }
+.glance-basics > div:first-child { padding-left: 0; }
+.glance-basics > div:last-child { border-right: 0; }
+.glance-basics dt { font-size: 0.74rem; color: var(--muted); letter-spacing: 0.08em; }
+.glance-basics dd { margin: 4px 0 0; font-size: 0.98rem; line-height: 1.5; }
+.glance-basics .is-unknown dd { color: var(--muted); }
+.glance-cols { display: grid; grid-template-columns: 1.4fr 1fr; gap: 32px; }
+.glance-sub { font-size: 0.86rem; font-weight: 600; letter-spacing: 0.08em; margin: 0 0 8px; display: flex; gap: 10px; align-items: baseline; }
+.glance-sub span { font-weight: 400; color: var(--muted); font-size: 0.76rem; }
+.glance-cautions { list-style: none; counter-reset: c; margin: 0; padding: 0; }
+.glance-cautions li { counter-increment: c; position: relative; padding: 10px 0 10px 30px; border-bottom: 1px dashed var(--line); display: grid; gap: 3px; font-size: 0.9rem; line-height: 1.65; }
+.glance-cautions li::before { content: counter(c); position: absolute; left: 0; top: 11px; width: 20px; height: 20px; display: grid; place-items: center; font-size: 0.72rem; background: var(--warn-soft); color: var(--warn); }
+.glance-cautions li.tone-danger::before { background: var(--danger-soft); color: var(--danger); }
+.glance-cautions b { font-weight: 600; }
+.glance-cautions li.tone-danger b { color: var(--danger); }
+.impacts { display: flex; gap: 6px; flex-wrap: wrap; }
+.impact { font-style: normal; font-size: 0.7rem; padding: 1px 8px; border: 1px solid var(--line); color: var(--ink-3); letter-spacing: 0.06em; }
+.impact-費用 { border-color: var(--warn); color: var(--warn); }
+.impact-工期 { border-color: var(--guess); color: var(--guess); }
+.impact-面積 { border-color: var(--danger); color: var(--danger); }
+.glance-unknowns { list-style: none; margin: 0; padding: 0; }
+.glance-unknowns li { padding: 10px 0; border-bottom: 1px dashed var(--line); font-size: 0.88rem; line-height: 1.6; display: grid; }
+.glance-unknowns b { font-weight: 500; }
+.glance-unknowns span { color: var(--muted); font-size: 0.82rem; }
+.glance-count { margin: 14px 0 0; font-size: 0.76rem; }
+@media (max-width: 760px) {
+  .glance { padding: 20px 16px 16px; }
+  .glance-basics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .glance-basics > div { border-right: 0; border-bottom: 1px solid var(--line); padding-left: 0; }
+  .glance-cols { grid-template-columns: 1fr; gap: 20px; }
+}
+
+/* ---------- 設計条件チェック（設計者向け） ---------- */
+.fire-class { border: 1px solid var(--line); border-left: 4px solid var(--ink); background: var(--surface); padding: 18px 22px; margin-bottom: 18px; }
+.fire-class.fire-耐火建築物等 { border-left-color: var(--danger); }
+.fire-class.fire-準耐火建築物等, .fire-class.fire-防火構造＋防火設備, .fire-class.fire-防火設備 { border-left-color: var(--warn); }
+.fire-class.fire-要確認 { border-left-color: var(--check); }
+.fire-class-k { font-size: 0.74rem; letter-spacing: 0.14em; color: var(--muted); margin: 0; }
+.fire-class-v { font-size: 1.08rem; line-height: 1.6; margin: 4px 0 6px; font-weight: 600; }
+.fire-class-plain { margin: 0; font-size: 0.9rem; line-height: 1.7; }
+.fire-class-plain .hint { display: block; font-size: 0.76rem; }
+.design-counts { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; font-size: 0.84rem; margin: 0 0 6px; }
+.design-counts .v-該当 { color: var(--danger); }
+.design-counts .v-要確認 { color: var(--check); }
+.design-counts .v-非該当 { color: var(--muted); }
+.design-toggle { margin-left: auto; display: flex; gap: 6px; align-items: center; color: var(--muted); font-size: 0.8rem; cursor: pointer; }
+.design-area { margin-top: 26px; }
+.design-area h3 { font-size: 0.95rem; letter-spacing: 0.12em; border-bottom: 1px solid var(--ink); padding-bottom: 8px; margin: 0; display: flex; gap: 12px; align-items: baseline; }
+.design-area h3 .hint { font-size: 0.74rem; letter-spacing: 0; font-weight: 400; }
+.design-item { padding: 14px 0 12px; border-bottom: 1px solid var(--line); }
+.design-item header { display: flex; gap: 10px; align-items: baseline; }
+.design-item header strong { font-weight: 600; font-size: 0.96rem; }
+.verdict { flex: none; font-size: 0.7rem; padding: 1px 8px; letter-spacing: 0.06em; border: 1px solid currentColor; }
+.verdict.v-該当 { color: var(--danger); background: var(--danger-soft); }
+.verdict.v-要確認 { color: var(--check); background: var(--check-soft); }
+.verdict.v-非該当 { color: var(--muted); }
+.design-item.v-非該当 strong { color: var(--muted); font-weight: 500; }
+.design-reason { margin: 6px 0 4px; font-size: 0.86rem; color: var(--ink-3); line-height: 1.7; }
+.design-specs { margin: 6px 0 6px; padding-left: 1.2em; font-size: 0.88rem; line-height: 1.75; }
+.design-specs li { margin: 2px 0; }
+.design-cites { margin: 4px 0 0; font-size: 0.74rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 10px; }
+.design-cites a { color: var(--muted); text-decoration: underline; text-underline-offset: 3px; }
+.design-foot { margin-top: 18px; font-size: 0.78rem; line-height: 1.7; }

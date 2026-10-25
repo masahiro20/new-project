@@ -8,6 +8,7 @@ import { z } from "zod";
 import { fetchArticle, keywordSearch, searchLaws, type Article } from "./egov";
 import { LAWS, articleLabel, lawByTitle, normalizeArticle, type LawKey } from "./laws";
 import { planToText, type PlanInput } from "./plan";
+import { designCheck, designCheckToText } from "./designcheck";
 import { SYSTEM_PROMPT, USER_INSTRUCTION } from "./prompts";
 import { findingsToMarkdown, runRules } from "./rules";
 import { sourceTier } from "./tier";
@@ -195,6 +196,9 @@ export function buildUserMessage(plan: PlanInput, site: SiteContext | null): str
     "",
     "# 事前チェック（ルールベース・条文照合済み。上記の自動取得結果を反映）",
     findingsToMarkdown(findings),
+    "",
+    "# 設計条件チェック（自動。階数・延べ面積・構造・防火指定と条文の数値で照合。画面に表示済み）",
+    designCheckToText(designCheck(merged)),
     "",
     USER_INSTRUCTION,
   ].join("\n");

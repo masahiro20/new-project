@@ -685,3 +685,45 @@ test("用途地域のない区域：愛知県告示297号の市町村は60%／20
   assert.equal(f.get("kenpei")?.certainty, "確定");
   assert.equal(f.get("yoseki")?.cites[0]?.label, src.label);
 });
+
+test("防火の区分：令136条の2 の各号と法22条を規模で振り分ける", async () => {
+  const { fireClass } = await import("../lib/designcheck");
+  const f = (fireZone: PlanInput["fireZone"], floors: number, totalFloorArea: number, structure: PlanInput["structure"] = "木造") =>
+    fireClass(plan({ fireZone, floors, totalFloorArea, structure })).required;
+  assert.equal(f("準防火地域", 2, 120), "防火構造＋防火設備");
+  assert.equal(f("準防火地域", 2, 120, "鉄骨造"), "防火設備");
+  assert.equal(f("準防火地域", 3, 120), "準耐火建築物等");
+  assert.equal(f("準防火地域", 2, 600), "準耐火建築物等");
+  assert.equal(f("準防火地域", 4, 300), "耐火建築物等");
+  assert.equal(f("防火地域", 2, 100), "準耐火建築物等");
+  assert.equal(f("防火地域", 2, 101), "耐火建築物等");
+  assert.equal(f("法22条区域", 2, 120), "法22条（屋根・外壁）");
+  assert.equal(fireClass(plan({ fireZone: "準防火地域" })).required, "要確認");
+});
+
+test("設計条件チェック：竪穴区画・内装制限・法21条の該当／非該当", async () => {
+  const { designCheck } = await import("../lib/designcheck");
+  const get = (p: PlanInput, id: string) => designCheck(p).items.find((i) => i.id === id)?.verdict;
+  const house3 = plan({ fireZone: "準防火地域", floors: 3, totalFloorArea: 180 });
+  assert.equal(get(house3, "tateana"), "非該当"); // 一戸建て・3階以下・200㎡以内は除外
+  assert.equal(get(plan({ fireZone: "準防火地域", floors: 3, totalFloorArea: 220 }), "tateana"), "該当");
+  assert.equal(get(plan({ fireZone: "準防火地域", floors: 2, totalFloorArea: 120 }), "tateana"), "非該当");
+  assert.equal(get(plan({ floors: 2, totalFloorArea: 120 }), "naiso-kaki"), "該当");
+  assert.equal(get(plan({ floors: 1, totalFloorArea: 90 }), "naiso-kaki"), "非該当");
+  assert.equal(get(plan({ floors: 2, totalFloorArea: 120 }), "ho21"), "非該当");
+  assert.equal(get(plan({ floors: 4, totalFloorArea: 400 }), "ho21"), "該当");
+  assert.equal(get(plan({ floors: 2, totalFloorArea: 1200 }), "ho25"), "該当");
+  assert.ok(designCheck(plan({ fireZone: "準防火地域", floors: 2, totalFloorArea: 120 })).items.some((i) => i.id === "fire-opening"));
+});
+
+test("ひと目でわかる：準防火の注意点は防火の区分の言葉で出る", async () => {
+  const { glance } = await import("../lib/glance");
+  const { landFacts } = await import("../lib/landsummary");
+  const p = plan({ fireZone: "準防火地域", zoning: "第一種住居地域", areaDivision: "市街化区域", floors: 2, totalFloorArea: 120 });
+  const site = { apiAvailable: true, precise: true, layers: [], derived: { zoning: "第一種住居地域", fireZone: "準防火地域", kenpei: "60%", yoseki: "200%", hazards: [], notes: [], signals: p.signals } } as unknown as SiteContext;
+  const g = glance(p, landFacts(p, site));
+  const fire = g.cautions.find((c) => c.key === "fire");
+  assert.match(fire?.plain ?? "", /窓・玄関ドア・換気口を防火設備/);
+  assert.deepEqual(fire?.impacts, ["費用"]);
+  assert.equal(g.basics.find((b) => b.label === "建蔽率／容積率")?.value, "60%／200%");
+});

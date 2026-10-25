@@ -2,6 +2,8 @@
 
 import { askList, groupFacts, landPoints, type LandFact } from "@/lib/landsummary";
 import { CertaintyBadge, CertaintyLegend } from "./Certainty";
+import { glance } from "@/lib/glance";
+import type { PlanInput } from "@/lib/plan";
 
 function Item({ f, i }: { f: LandFact; i: number }) {
   return (
@@ -36,37 +38,78 @@ function Item({ f, i }: { f: LandFact; i: number }) {
  * 土地情報まとめ（1段目）: the 土地情報確認AIツール layout — この土地のポイント,
  * 基本情報, 必須チェック12項目, 災害リスク, その他の法令・周辺, 確認先.
  */
-export default function LandSheet({ facts, notes }: { facts: LandFact[]; location?: string; notes: string[] }) {
+export default function LandSheet({ facts, notes, plan }: { facts: LandFact[]; location?: string; notes: string[]; plan: PlanInput }) {
   const points = landPoints(facts);
+  const g = glance(plan, facts);
   const groups = groupFacts(facts);
   const asks = askList(facts);
   let n = 0;
   return (
     <div className="spec">
-      <div className="land-points">
-        <p className="land-points-title">この土地のポイント</p>
-        <ul className="land-counts">
-          <li className="is-danger">
-            <strong>{points.danger.length}</strong>重大
-          </li>
-          <li className="is-warn">
-            <strong>{points.warn.length}</strong>注意
-          </li>
-          <li>
-            <strong>{points.check.length}</strong>要確認
-          </li>
-        </ul>
-        {points.danger.length + points.warn.length > 0 && (
-          <ol className="land-point-list">
-            {[...points.danger, ...points.warn].slice(0, 5).map((f) => (
-              <li key={f.key} className={`tone-${f.tone}`}>
-                <b>{f.label}</b>
-                {f.value}
-              </li>
-            ))}
-          </ol>
-        )}
-      </div>
+      <section className={`glance verdict-${g.verdict.tone}`} aria-label="ひと目でわかる">
+        <header className="glance-head">
+          <span className="glance-en">At a glance</span>
+          <h3>ひと目でわかる</h3>
+          <span className="hint">営業・スタッフ向け。数字は国のデータ（住所の代表点）による</span>
+        </header>
+        <p className="glance-verdict">{g.verdict.text}</p>
+        <dl className="glance-basics">
+          {g.basics.map((b) => (
+            <div key={b.label} className={b.value === "未確認" ? "is-unknown" : ""}>
+              <dt>{b.label}</dt>
+              <dd>{b.value}</dd>
+            </div>
+          ))}
+        </dl>
+        <div className="glance-cols">
+          <div>
+            <p className="glance-sub">
+              お客様に伝える注意点<span>{g.cautions.length ? `${g.cautions.length}件` : "なし"}</span>
+            </p>
+            {g.cautions.length ? (
+              <ol className="glance-cautions">
+                {g.cautions.map((c) => (
+                  <li key={c.key} className={`tone-${c.tone}`}>
+                    <b>{c.title}</b>
+                    <span>{c.plain}</span>
+                    {c.impacts.length > 0 && (
+                      <span className="impacts">
+                        {c.impacts.map((m) => (
+                          <i key={m} className={`impact impact-${m}`}>
+                            {m}
+                          </i>
+                        ))}
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <p className="hint">データ上、重大・注意の項目はありません。</p>
+            )}
+          </div>
+          <div>
+            <p className="glance-sub">
+              まだ分からないこと<span>誰に聞くか</span>
+            </p>
+            {g.unknowns.length ? (
+              <ul className="glance-unknowns">
+                {g.unknowns.map((u) => (
+                  <li key={u.office}>
+                    <b>{u.items.join("・")}</b>
+                    <span>→ {u.office}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="hint">窓口で確かめる項目はありません。</p>
+            )}
+          </div>
+        </div>
+        <p className="glance-count hint">
+          重大 {points.danger.length}・注意 {points.warn.length}・要確認 {points.check.length}（下の一覧の内訳）
+        </p>
+      </section>
 
       {groups.map((g) => (
         <section key={g.id} className={`spec-group spec-group-${g.id}`}>
