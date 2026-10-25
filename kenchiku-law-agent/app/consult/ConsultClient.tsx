@@ -169,6 +169,7 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
   const [site, setSite] = useState<SiteContext | null>(null);
   const [siteBusy, setSiteBusy] = useState(false);
   const [ranWith, setRanWith] = useState("");
+  const scrollOnDone = useRef(false);
   // 住所の読み込みの進み具合（サーバーから届いたデータのまとまり）と所要時間
   const [siteSteps, setSiteSteps] = useState<SiteStepId[]>([]);
   const [siteStartedAt, setSiteStartedAt] = useState<number | null>(null);
@@ -296,7 +297,11 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
 
   /** The button next to the address: runs the lookup, or jumps to the result when it is already there. */
   function onLookupClick() {
-    if (siteBusy) return;
+    // Already running (e.g. started when the address field lost focus): show the result when it lands.
+    if (siteBusy) {
+      scrollOnDone.current = true;
+      return;
+    }
     if (site && !siteError && site.address === plan.address.trim()) {
       showLand();
       return;
@@ -308,6 +313,7 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
     const address = plan.address.trim();
     if (address.length < 3) return;
     if (!force && lookedUp.current === address) return;
+    scrollOnDone.current = fromClick;
     lookedUp.current = address;
     setSiteBusy(true);
     setSiteError(null);
@@ -353,7 +359,8 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
         setSite(got);
         setSiteSeconds(Math.max(1, Math.round((Date.now() - t0) / 1000)));
         // A click means "show me": bring the result into view once it has rendered.
-        if (fromClick) setTimeout(showLand, 80);
+        if (scrollOnDone.current) setTimeout(showLand, 80);
+        scrollOnDone.current = false;
       } else setSite(null);
     } catch {
       setSiteError("通信エラーで土地情報を取得できませんでした。");
