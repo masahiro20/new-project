@@ -3,6 +3,8 @@ import path from "node:path";
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // The bundled 法令集 is read with fs at runtime by the agent and MCP routes.
+  outputFileTracingIncludes: { "/api/**": ["./data/lawbook/**/*.json"] },
   // This app lives in a subdirectory of a repository that has its own lockfile,
   // so pin the Turbopack root to this directory.
   turbopack: { root: path.resolve(typeof __dirname !== "undefined" ? __dirname : process.cwd()) },

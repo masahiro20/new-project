@@ -1314,3 +1314,31 @@ details.customer { margin-top: 8px; }
   .flow-legend > div, .handoff dl > div { grid-template-columns: 1fr; gap: 2px; }
   .flow-tag { margin-left: 0; margin-top: 4px; }
 }
+
+/* ---------- 見る人の切り替え・お客様対応メモ ---------- */
+.viewswitch { position: sticky; top: 76px; z-index: 5; display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin: 48px 0 8px; padding: 12px 16px; background: rgba(251, 251, 251, 0.94); backdrop-filter: blur(6px); border: 1px solid var(--line); }
+.viewswitch-k { font-size: 0.76rem; letter-spacing: 0.14em; color: var(--muted); }
+.viewswitch-opts { display: flex; border: 1px solid var(--ink); }
+.viewswitch-opts button { font: inherit; font-size: 0.86rem; letter-spacing: 0.06em; padding: 7px 16px; background: transparent; color: var(--ink); border: 0; border-right: 1px solid var(--ink); cursor: pointer; transition: background 0.2s; }
+.viewswitch-opts button:last-child { border-right: 0; }
+.viewswitch-opts button:hover { background: var(--accent-soft); }
+.viewswitch-opts button.is-on { background: var(--ink); color: #fff; }
+.viewswitch .hint { font-size: 0.78rem; flex: 1 1 260px; }
+.view-note { margin: 40px 0; padding: 14px 18px; border: 1px dashed var(--line); font-size: 0.86rem; color: var(--ink-3); }
+.view-note .linkbtn { margin-left: 10px; }
+.salesbrief { border: 1px solid var(--line); background: var(--surface); padding: 26px 28px 18px; margin: -32px 0 56px; border-top: 3px solid var(--guess); }
+.salesbrief > ol { list-style: none; margin: 8px 0 0; padding: 0; }
+.salesbrief > ol > li { padding: 14px 0; border-bottom: 1px dashed var(--line); }
+.salesbrief > ol > li:last-child { border-bottom: 0; }
+.sb-q { margin: 0 0 6px; font-weight: 600; font-size: 0.96rem; display: flex; gap: 10px; align-items: baseline; }
+.sb-q span { flex: none; width: 22px; height: 22px; display: grid; place-items: center; background: var(--guess-soft); color: var(--guess); font-size: 0.74rem; }
+.sb-warn .sb-q span { background: var(--warn-soft); color: var(--warn); }
+.sb-danger .sb-q span { background: var(--danger-soft); color: var(--danger); }
+.sb-ok .sb-q span { background: var(--ok-soft); color: var(--ok); }
+.sb-a { margin: 0; padding-left: 32px; font-size: 0.9rem; line-height: 1.8; }
+.sb-a li { margin: 2px 0; }
+@media (max-width: 760px) {
+  .viewswitch { top: 60px; }
+  .salesbrief { padding: 20px 16px 12px; }
+  .sb-a { padding-left: 18px; }
+}

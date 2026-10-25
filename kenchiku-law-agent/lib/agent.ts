@@ -5,7 +5,10 @@
 
 import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
-import { fetchArticle, keywordSearch, searchLaws, type Article } from "./egov";
+import { fetchArticle, keywordSearch, lawUrl, searchLaws, type Article } from "./egov";
+import { lawbookAppendix, lawbookArticle, lawbookLaw, searchLawbook } from "./lawbook";
+import { LAWBOOK_LAWS } from "./lawbook-list";
+import { digestToText } from "./lawdigest";
 import { LAWS, articleLabel, lawByTitle, normalizeArticle, type LawKey } from "./laws";
 import { planToText, type PlanInput } from "./plan";
 import { designCheck, designCheckToText } from "./designcheck";
@@ -43,6 +46,8 @@ const GetArticleInput = z.object({
 });
 const SearchLawsInput = z.object({ title: z.string().min(1) });
 const KeywordInput = z.object({ keyword: z.string().min(1) });
+const LawbookInput = z.object({ query: z.string().min(1), scope: z.string() });
+const LAWBOOK_SCOPE = LAWBOOK_LAWS.map((l) => l.short).join("・");
 
 const LAW_LIST = Object.values(LAWS)
   .map((l) => `${l.title}（${l.id}）`)
@@ -51,7 +56,7 @@ const LAW_LIST = Object.values(LAWS)
 const TOOLS: Anthropic.Beta.BetaToolUnion[] = [
   {
     name: "get_law_article",
-    description: `e-Gov 法令検索の現行条文を1条分取得します。法令名（正式名称または略称）または法令IDと、条番号を指定します。条番号は "43"、"6_4"（第6条の4）、"136_2_2"（第136条の2の2）の形式。登録済みの法令：${LAW_LIST}。未登録の法令は search_laws で法令IDを調べてから、law に法令IDを渡してください。`,
+    description: `e-Gov 法令検索の現行条文を1条分取得します。法令名（正式名称または略称）または法令IDと、条番号を指定します。条番号は "43"、"6_4"（第6条の4）、"136_2_2"（第136条の2の2）の形式。建築基準法の別表は article に「別表第一」〜「別表第四」と書くと同梱の法令集から返します。登録済みの法令：${LAW_LIST}。未登録の法令は search_laws で法令IDを調べてから、law に法令IDを渡してください。`,
     input_schema: {
       type: "object",
       properties: {
@@ -86,6 +91,20 @@ const TOOLS: Anthropic.Beta.BetaToolUnion[] = [
     strict: true,
   },
   {
+    name: "lawbook_search",
+    description: `同梱の法令集（e-Gov の現行全文：${LAWBOOK_SCOPE}）を全文検索し、該当する条・別表と該当行を返します。空白で区切った語をすべて含む条だけを返すので、「延焼のおそれ 防火構造」「北側 斜線」「火気使用室 準不燃」のように数語で絞ります。どの条に規定があるかを探すときに最初に使い、数値を書く前に get_law_article で本文を確認してください。scope は法令の短い名前をカンマ区切り（例：「法,令」）。空文字なら全部。`,
+    input_schema: {
+      type: "object",
+      properties: {
+        query: { type: "string", description: "検索語（空白区切りで AND）。例：竪穴 一戸建て" },
+        scope: { type: "string", description: `対象の法令（短い名前をカンマ区切り。空文字で全部）。使える名前：${LAWBOOK_LAWS.map((l) => l.short).join("・")}` },
+      },
+      required: ["query", "scope"],
+      additionalProperties: false,
+    },
+    strict: true,
+  },
+  {
     name: "submit_report",
     description:
       "調査が終わったら最後に1回だけ呼び、回答の全文をこの形式で提出します。本文を通常のテキストで書かず、必ずこのツールで提出してください。各項目の根拠には、取得した条文の e-Gov URL・公的資料の URL を入れます。",
@@ -98,6 +117,13 @@ const TOOLS: Anthropic.Beta.BetaToolUnion[] = [
 ];
 
 export { sourceTier };
+
+/** 法令集の要点（常に頭に入れておく早見表）。数値は同梱の現行条文と機械照合済み。 */
+const LAWBOOK_BRIEF = [
+  `# 建築基準法令集の要点（同梱の現行条文と照合済み。法 ${lawbookLaw("325AC0000000201")?.enforcementDate ?? "?"}・令 ${lawbookLaw("325CO0000000338")?.enforcementDate ?? "?"}・規則 ${lawbookLaw("325M50004000040")?.enforcementDate ?? "?"} 施行版）`,
+  "下の数値・条番号はこの版の条文で確かめてある。回答の土台にし、ここにない規定や細かい条件（ただし書・緩和・告示）は lawbook_search で条を探し、get_law_article で本文を確認してから書く。記憶の古い数値（旧4号特例・旧壁量・旧21条の13m／9m など）を使わない。",
+  digestToText(),
+].join("\n");
 
 export function resolveLaw(input: string): string | null {
   const key = lawByTitle(input);
@@ -116,6 +142,14 @@ async function runTool(name: string, input: unknown, emit: (e: AgentEvent) => vo
     if (!parsed.success) return { content: "INVALID_INPUT: law と article を指定してください", isError: true };
     const lawId = resolveLaw(parsed.data.law);
     if (!lawId) return { content: `法令「${parsed.data.law}」は未登録です。search_laws で法令IDを調べ、law に法令IDを渡してください。`, isError: true };
+    if (/^別表/.test(parsed.data.article.trim())) {
+      const ap = lawbookAppendix(lawId, parsed.data.article.trim());
+      const law = lawbookLaw(lawId);
+      if (!ap || !law) return { content: `${parsed.data.law} の「${parsed.data.article}」は同梱の法令集にありません。`, isError: true };
+      emit({ type: "tool", name, summary: `法令集：${law.title} ${ap.title}` });
+      emit({ type: "source", tier: "条文", title: `${law.title} ${ap.title}`, url: lawUrl(lawId) });
+      return { content: `${law.title}（${law.lawNum}）${ap.title}\n現行版：${law.revisionId}（施行日 ${law.enforcementDate ?? "不明"}・同梱 ${law.fetchedAt.slice(0, 10)} 取得）\nURL：${lawUrl(lawId)}\n\n${ap.text}` };
+    }
     const article = normalizeArticle(parsed.data.article);
     if (!article) return { content: `条番号「${parsed.data.article}」の形式が不正です。例：43、6_4`, isError: true };
     emit({ type: "tool", name, summary: `e-Gov 条文取得：${parsed.data.law} ${articleLabel(article)}` });
@@ -125,8 +159,24 @@ async function runTool(name: string, input: unknown, emit: (e: AgentEvent) => vo
       emit({ type: "source", tier: "条文", title: `${a.lawTitle} ${a.label}${a.caption}`, url: a.url });
       return { content: articleToText(a) };
     } catch (e) {
+      // e-Gov unreachable: answer from the bundled 法令集 and say which revision it is.
+      const local = lawbookArticle(lawId, article);
+      if (local) {
+        const url = lawUrl(lawId, article);
+        emit({ type: "source", tier: "条文", title: `${local.law.title} ${local.title}${local.caption}`, url });
+        return { content: [`${local.law.title}（${local.law.lawNum}）${local.title}${local.caption}`, `現行版：${local.law.revisionId}（施行日 ${local.law.enforcementDate ?? "不明"}・同梱の法令集 ${local.law.fetchedAt.slice(0, 10)} 取得。e-Gov に接続できなかったため）`, `URL：${url}`, "", local.text].join("\n") };
+      }
       return { content: `e-Gov API エラー：${e instanceof Error ? e.message : String(e)}`, isError: true };
     }
+  }
+  if (name === "lawbook_search") {
+    const parsed = LawbookInput.safeParse(input);
+    if (!parsed.success) return { content: "INVALID_INPUT", isError: true };
+    const scope = parsed.data.scope.split(/[,、，\s]+/).map((s) => s.trim()).filter(Boolean);
+    emit({ type: "tool", name, summary: `法令集を検索：${parsed.data.query}${scope.length ? `（${scope.join("・")}）` : ""}` });
+    const hits = searchLawbook(parsed.data.query, { scope, limit: 8 });
+    if (hits.length === 0) return { content: "該当する条はありませんでした。語を減らすか言い換えてください（例：「延焼のおそれ」「準不燃」）。" };
+    return { content: hits.map((h) => `■ ${h.law} ${h.ref}${h.caption}（${h.url}）\n${h.snippets.map((s) => `　- ${s}`).join("\n")}`).join("\n\n") };
   }
   if (name === "search_laws") {
     const parsed = SearchLawsInput.safeParse(input);
@@ -278,7 +328,7 @@ export function consultStream(plan: PlanInput, documents: Upload[] = []): Readab
             betas: ["server-side-fallback-2026-07-01"],
             fallbacks: "default",
             output_config: { effort: "high" },
-            system: [{ type: "text", text: SYSTEM_PROMPT, cache_control: { type: "ephemeral" } }],
+            system: [{ type: "text", text: `${SYSTEM_PROMPT}\n\n${LAWBOOK_BRIEF}`, cache_control: { type: "ephemeral" } }],
             tools: TOOLS,
             messages,
           });

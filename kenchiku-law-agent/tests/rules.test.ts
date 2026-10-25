@@ -736,3 +736,17 @@ test("「何を建てたいか」から階数・延べ面積を読む（入力�
   assert.deepEqual(scaleFromDescription("１階が店舗の木造３階建て"), { floors: 3, totalFloorArea: null });
   assert.equal(withDescriptionScale(plan({ description: "木造2階建て（延べ110㎡）", floors: 3 })).floors, 3);
 });
+
+test("お客様対応メモ：大きさの目安と、時間のかかる手続きだけを出す", async () => {
+  const { salesBrief } = await import("../lib/salesbrief");
+  const { landFacts } = await import("../lib/landsummary");
+  const p = plan({ zoning: "第一種住居地域", fireZone: "準防火地域", areaDivision: "市街化区域", siteArea: 165, roadWidth: 4, floors: 2, totalFloorArea: 110 });
+  const site = { apiAvailable: true, precise: true, layers: [], derived: { zoning: "第一種住居地域", fireZone: "準防火地域", kenpei: "60%", yoseki: "200%", hazards: [], notes: [], signals: p.signals } } as unknown as SiteContext;
+  const qa = salesBrief(p, landFacts(p, site), runRules(p));
+  const size = qa.find((x) => x.q.includes("大きさ"))!.a.join("");
+  assert.match(size, /延べ床面積は160%まで（前面道路4mのため200%から下がります）/);
+  assert.match(size, /1階の大きさの目安は99㎡、延べ床は264㎡/);
+  const slow = qa.find((x) => x.q.includes("時間"))!.a.join("");
+  assert.doesNotMatch(slow, /接道義務/);
+  assert.match(qa.find((x) => x.q.includes("費用"))!.a.join(""), /防火設備/);
+});

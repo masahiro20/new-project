@@ -8,6 +8,9 @@
 // map data for the address, rule checks whose citations were verified against
 // e-Gov, the live statute text, and a guide to what each document must yield.
 
+import { searchLawbook } from "./lawbook";
+import { salesBrief } from "./salesbrief";
+import { LAWBOOK_LAWS } from "./lawbook-list";
 import { designCheck, designCheckToText } from "./designcheck";
 import { articleToText, resolveLaw } from "./agent";
 import { siteUrl } from "./config";
@@ -32,7 +35,7 @@ export const SERVER_INSTRUCTIONS = `建築・土地の法令チェック用の�
 使い方の流れ：
 1. 敷地の資料（登記事項証明書・公図・地積測量図・現況測量図・現地写真・重要事項説明書など）がドライブやアップロードにあれば、先に開いて読む。何を読むべきかは document_reading_guide で確認する。資料に書いてあることと、推測（写真からの見立てなど）は分けて扱う。
 2. 住所（地番しか分からない場合は所在の町名まで）と計画内容、資料から読み取った事実を land_law_check に渡す。住所だけで土地の環境を見たいときは land_summary。
-3. 返ってきた「1段目 土地情報まとめ」と「2段目 法令チェック」（この敷地ならではの論点・先に聞きに行く窓口）をもとに回答する。条文の数値を書くときは get_law_article で本文を確認する。条例・自治体の運用は自治体の公式ページで確認し、確認できなければ窓口名を示す。
+3. 読み手に合わせる：営業・スタッフなら「お客様対応メモ」を中心に専門用語なしで、設計士なら「設計条件チェック」と条文を中心に。どちらにも土地の基本情報は出す。返ってきた「1段目 土地情報まとめ」と「2段目 法令チェック」（この敷地ならではの論点・先に聞きに行く窓口）をもとに回答する。条文の数値を書くときは get_law_article で本文を確認する。条例・自治体の運用は自治体の公式ページで確認し、確認できなければ窓口名を示す。
 4. 回答は2段階で、短く：
    【1段目 土地情報まとめ】この土地のポイント（重大・注意・要確認の数と主な項目）→ 基本情報（所在・標高・地目・敷地面積・学区・近隣の地価）→ 必須チェック12項目（用途地域・建蔽率・容積率・高さ制限・壁面後退・前面道路の種別・幅員・防火地域・上水道・下水道・ガス・ハザード。この順で全部）→ 災害リスク → その他の法令・周辺 → 確認先（窓口ごと）。
    【2段目 法令チェック】結論（建てられる見込みと最大の論点）→ 見落としチェック（指定12項目を 該当／可能性あり／要確認／該当なし）→ 設計で注意すること（設計条件チェックの防火の区分・延焼のおそれのある部分・外壁／軒裏／開口部／屋根の性能・内装制限・規模による規定を建築技術の言葉で）→ 役所への事前協議（窓口ごと）→ タスク一覧（誰が・いつまでに・何を）→ 資料から読み取ったことと食い違い。
@@ -147,8 +150,8 @@ export const TOOLS: ToolDef[] = [
   },
   {
     name: "search_law_text",
-    title: "法令の全文検索（e-Gov）",
-    description: "キーワードで現行法令の本文を検索し、該当する法令と文を返します。どの法令に規定があるか分からないときに使います。",
+    title: "法令の全文検索（法令集＋e-Gov）",
+    description: "キーワード（空白区切りで AND）で現行条文を検索します。まず同梱の建築基準法令集（法・令・規則・都計法・消防法・省エネ法・バリアフリー法・盛土規制法・建築士法の現行全文）を探し、なければ e-Gov の全法令を検索します。例：「延焼のおそれ 防火構造」「火気使用室 準不燃」。",
     inputSchema: { type: "object", properties: { keyword: str("検索語。例：河川保全区域、住宅用防災機器") }, required: ["keyword"] },
     annotations: { readOnlyHint: true, openWorldHint: true },
   },
@@ -339,6 +342,10 @@ export async function landLawCheckTool(args: Json, ctx: Ctx = {}): Promise<strin
       out.push(`  根拠：${f.rule.cites.map((c) => `[${citeLabel(c)}](${citeUrl(c)})`).join("、")}`);
     }
   }
+  if (site) {
+    out.push("", "## お客様対応メモ（営業・スタッフ向け。よく聞かれる順・専門用語なし）");
+    for (const qa of salesBrief(plan, landFacts(plan, site, surveyFromArgs(args)), findings)) out.push(`- **${qa.q}**`, ...qa.a.map((x) => `  - ${x}`));
+  }
   out.push("", "## 設計条件チェック（設計者向け。階数・延べ面積・構造・防火指定を条文の数値で照合）", designCheckToText(designCheck(plan)));
   out.push("", "## 先に聞きに行く窓口");
   for (const { agency, items } of groupByAgency([...specific, ...checks])) out.push(`- **${agency}**：${items.map((f) => f.rule.title).join("／")}`);
@@ -433,6 +440,14 @@ async function getLawArticleTool(args: Json): Promise<string> {
 async function searchLawTextTool(args: Json): Promise<string> {
   const keyword = String(args.keyword ?? "").trim();
   if (!keyword) throw new ToolInputError("keyword を入れてください。");
+  // The bundled 法令集 first (AND search over 法・令・規則 and the core related laws), then all of e-Gov.
+  const local = searchLawbook(keyword, { limit: 8 });
+  if (local.length)
+    return [
+      `同梱の法令集（e-Gov 現行全文：${LAWBOOK_LAWS.map((l) => l.short).join("・")}）から：`,
+      ...local.map((h) => `■ ${h.law} ${h.ref}${h.caption}（${h.url}）\n${h.snippets.map((s) => `- ${s}`).join("\n")}`),
+      "数値を書くときは get_law_article で条文全体を確認してください。",
+    ].join("\n\n");
   const hits = await keywordSearch(keyword);
   if (hits.length === 0) return "該当はありませんでした。";
   return hits.map((h) => `■ ${h.title}（法令ID ${h.lawId}）${h.url}\n${h.sentences.map((s) => `- ${s}`).join("\n")}`).join("\n\n");

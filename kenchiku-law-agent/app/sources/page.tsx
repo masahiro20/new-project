@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { RULES } from "@/lib/knowledge";
 import { LAWS } from "@/lib/laws";
 import snapshot from "@/data/law-snapshot.json";
+import lawbookIndexJson from "@/data/lawbook/index.json";
+import { DIGEST } from "@/lib/lawdigest";
 
 export const metadata: Metadata = {
   title: "根拠の扱いと更新手順",
@@ -13,6 +15,7 @@ export default function SourcesPage() {
   for (const r of RULES) for (const ref of r.refs ?? []) refs.set(ref.url, { label: ref.label, publisher: ref.publisher });
   const snap = snapshot as { verifiedAt: string; articles: Record<string, { law: string; label: string; caption: string; revisionId: string }> };
   const articleCount = Object.keys(snap.articles).length;
+  const lawbook = lawbookIndexJson as { lawId: string; title: string; enforcementDate: string | null; articles: number; appendix: number; fetchedAt: string }[];
 
   return (
     <div className="sheet sheet-page">
@@ -63,6 +66,42 @@ export default function SourcesPage() {
             </li>
             <li>最終照合：{new Date(snap.verifiedAt).toLocaleString("ja-JP")}。改正で条番号が繰り下がった場合は照合が失敗し、ルールの修正が必要になります。</li>
             <li>エージェントは回答時にも条文をツールで取得するため、知識ベースの要約と現行条文がずれた場合は条文側が優先されます。</li>
+          </ul>
+
+          <h2>同梱の建築基準法令集</h2>
+          <p>
+            建築基準法・施行令・施行規則と、建築・土地で毎回引く関係法令の現行全文を e-Gov から取得してツールに同梱しています（条・別表ごと）。AIはこの法令集を全文検索し（lawbook_search）、要点{DIGEST.length}項目の早見表を常に参照します。早見表の語句は、すべて同梱の条文にそのまま含まれることをテストで照合しています。
+          </p>
+          <table>
+            <thead>
+              <tr>
+                <th>法令</th>
+                <th>施行日（現行版）</th>
+                <th>条・別表</th>
+              </tr>
+            </thead>
+            <tbody>
+              {lawbook.map((l) => (
+                <tr key={l.lawId}>
+                  <td>
+                    <a href={`https://laws.e-gov.go.jp/law/${l.lawId}`} target="_blank" rel="noopener noreferrer">
+                      {l.title}
+                    </a>
+                  </td>
+                  <td>{l.enforcementDate ?? "—"}</td>
+                  <td>
+                    {l.articles}条{l.appendix ? `・別表等${l.appendix}` : ""}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <ul>
+            <li>取得日：{lawbook[0] ? new Date(lawbook[0].fetchedAt).toLocaleDateString("ja-JP") : "—"}。<code>npm run build-lawbook</code> で最新版に更新します（改正の施行に合わせて実行）。</li>
+            <li>回答で数値を書くときは、e-Gov からその時点の現行条文を取り直して確認します（接続できないときだけ同梱版を使い、その旨を書きます）。</li>
+            <li>
+              含まないもの：国土交通省告示（防火構造・準耐火構造・防火設備の構造方法など）、条例、行政の運用。これらは告示名・条例名と所管窓口で示し、内容は窓口・確認検査機関で確認する前提です。
+            </li>
           </ul>
 
           <h2>法改正への対応</h2>

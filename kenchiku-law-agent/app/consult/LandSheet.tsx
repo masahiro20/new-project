@@ -4,6 +4,7 @@ import { askList, groupFacts, landPoints, type LandFact } from "@/lib/landsummar
 import { CertaintyBadge, CertaintyLegend } from "./Certainty";
 import { glance } from "@/lib/glance";
 import type { PlanInput } from "@/lib/plan";
+import type { ReactNode } from "react";
 
 function Item({ f, i }: { f: LandFact; i: number }) {
   return (
@@ -38,7 +39,7 @@ function Item({ f, i }: { f: LandFact; i: number }) {
  * 土地情報まとめ（1段目）: the 土地情報確認AIツール layout — この土地のポイント,
  * 基本情報, 必須チェック12項目, 災害リスク, その他の法令・周辺, 確認先.
  */
-export default function LandSheet({ facts, notes, plan }: { facts: LandFact[]; location?: string; notes: string[]; plan: PlanInput }) {
+export default function LandSheet({ facts, notes, plan, afterGlance }: { facts: LandFact[]; location?: string; notes: string[]; plan: PlanInput; afterGlance?: ReactNode }) {
   const points = landPoints(facts);
   const g = glance(plan, facts);
   const groups = groupFacts(facts);
@@ -110,6 +111,8 @@ export default function LandSheet({ facts, notes, plan }: { facts: LandFact[]; l
           重大 {points.danger.length}・注意 {points.warn.length}・要確認 {points.check.length}（下の一覧の内訳）
         </p>
       </section>
+
+      {afterGlance}
 
       {groups.map((g) => (
         <section key={g.id} className={`spec-group spec-group-${g.id}`}>

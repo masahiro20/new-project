@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 
-export type RailItem = { id: string; no: string; label: string; ready: boolean; note?: string };
+export type RailItem = { id: string; no: string; label: string; ready: boolean; note?: string; hidden?: boolean };
 
 /** Index of the page's sections; follows the scroll and jumps on click. */
-export default function Rail({ items, title }: { items: RailItem[]; title: string }) {
+export default function Rail({ items: all, title }: { items: RailItem[]; title: string }) {
+  const items = all.filter((i) => !i.hidden);
   const [active, setActive] = useState(items[0]?.id ?? "");
   useEffect(() => {
     const els = items.filter((i) => i.ready).map((i) => document.getElementById(i.id)).filter((e): e is HTMLElement => Boolean(e));

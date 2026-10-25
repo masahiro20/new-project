@@ -8,7 +8,8 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "test": "node --import tsx --test tests/*.test.ts",
-    "verify-sources": "tsx scripts/verify-sources.ts"
+    "verify-sources": "tsx scripts/verify-sources.ts",
+    "build-lawbook": "tsx scripts/build-lawbook.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.131.0",

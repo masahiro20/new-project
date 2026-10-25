@@ -13,6 +13,9 @@ import Attachments, { type Attachment } from "./Attachments";
 import LandSheet from "./LandSheet";
 import SiteProgress from "./SiteProgress";
 import DesignCheckView from "./DesignCheckView";
+import ViewSwitch, { VIEW_KEY, type ViewMode } from "./ViewSwitch";
+import SalesBriefView from "./SalesBriefView";
+import { salesBrief } from "@/lib/salesbrief";
 import { designCheck } from "@/lib/designcheck";
 import { landFacts, type SurveyFacts } from "@/lib/landsummary";
 import { reportToMarkdown, tasksToCsv, type PartialReport } from "@/lib/report";
@@ -169,6 +172,25 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
   const [site, setSite] = useState<SiteContext | null>(null);
   const [siteBusy, setSiteBusy] = useState(false);
   const [ranWith, setRanWith] = useState("");
+  const [view, setViewState] = useState<ViewMode>("すべて");
+  useEffect(() => {
+    try {
+      const v = localStorage.getItem(VIEW_KEY);
+      if (v === "営業" || v === "設計" || v === "すべて") setViewState(v);
+    } catch {
+      // storage blocked
+    }
+  }, []);
+  const setView = (v: ViewMode) => {
+    setViewState(v);
+    try {
+      localStorage.setItem(VIEW_KEY, v);
+    } catch {
+      // storage blocked
+    }
+  };
+  const forDesign = view !== "営業";
+  const forSales = view !== "設計";
   const scrollOnDone = useRef(false);
   // 住所の読み込みの進み具合（サーバーから届いたデータのまとまり）と所要時間
   const [siteSteps, setSiteSteps] = useState<SiteStepId[]>([]);
@@ -579,8 +601,8 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
     { id: "s-input", no: "01", label: "計画を入れる", ready: true },
     { id: "s-land", no: "02", label: "土地情報まとめ", ready: Boolean(site || siteBusy || siteError), note: siteBusy ? "読込中" : undefined },
     { id: "s-maps", no: "03", label: "案内図・公図", ready: hasMap },
-    { id: "s-issues", no: "04", label: "法令の論点", ready: findings.length > 0, note: findings.length ? String(split.specific.length + split.checks.length) : undefined },
-    { id: "s-design", no: "05", label: "設計条件（設計者向け）", ready: findings.length > 0, note: findings.length ? String(design.items.filter((i) => i.verdict === "該当").length) : undefined },
+    { id: "s-issues", no: "04", label: "法令の論点", hidden: !forDesign, ready: findings.length > 0, note: findings.length ? String(split.specific.length + split.checks.length) : undefined },
+    { id: "s-design", no: "05", label: "設計条件（設計者向け）", hidden: !forDesign, ready: findings.length > 0, note: findings.length ? String(design.items.filter((i) => i.verdict === "該当").length) : undefined },
     { id: "s-result", no: "06", label: "AIの詳しいチェック", ready: true, note: busy ? "実行中" : report ? "済" : undefined },
     { id: "s-docs", no: "07", label: "書類を作る", ready: hasSite },
   ];
@@ -895,6 +917,7 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
             </form>
           </Section>
 
+          {(site || siteBusy || siteError) && <ViewSwitch view={view} onChange={setView} />}
           {(site || siteBusy || siteError) && (
             <div className="stage-band" data-reveal>
               <span className="stage-en">Stage 1</span>
@@ -914,7 +937,13 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
                     </p>
                   )}
                   {!site.apiAvailable && <p className="notice">不動産情報ライブラリの API キーが未設定のため、用途地域などは取得できていません。「分かれば入れる」で手入力してください。</p>}
-                  <LandSheet facts={facts} location={location ?? ""} notes={site.derived.notes} plan={effective} />
+                  <LandSheet
+                    facts={facts}
+                    location={location ?? ""}
+                    notes={site.derived.notes}
+                    plan={effective}
+                    afterGlance={forSales && plan.description.trim().length >= 5 ? <SalesBriefView items={salesBrief(effective, facts, findings)} /> : null}
+                  />
                 </>
               )}
             </Section>
@@ -936,7 +965,15 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
               <p>土地情報に計画を当てはめる段階。条文照合済みのルールで論点を出し、AIが条文と自治体の資料を確かめて、結論・事前協議・タスクまでまとめます。</p>
             </div>
           )}
-          {findings.length > 0 && (
+          {findings.length > 0 && !forDesign && (
+            <div className="view-note">
+              法令の論点（{split.specific.length + split.checks.length}件）と設計条件チェックは、設計士向けの内容です。
+              <button type="button" className="linkbtn" onClick={() => setView("設計")}>
+                設計士の表示に切り替える
+              </button>
+            </div>
+          )}
+          {findings.length > 0 && forDesign && (
             <Section id="s-issues" no="04" title="法令の論点（自動判定）" lead="土地情報と入力を、条文照合済みのルールに当てはめた即時の判定です（AIは使っていません）。">
               <div className="issues">
                 <div className="issues-counts">
@@ -1003,7 +1040,7 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
               </div>
             </Section>
           )}
-          {findings.length > 0 && (
+          {findings.length > 0 && forDesign && (
             <Section id="s-design" no="05" title="設計条件チェック（設計者向け）" lead="防火・構造・省エネ・内装・敷地条件を、階数・延べ面積・構造・防火指定と条文で照合した結果です（AIは使っていません）。">
               <DesignCheckView check={design} />
             </Section>
@@ -1094,7 +1131,7 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
                   </div>
                 </div>
               )}
-              {resultVisible && (report ? <ReportView report={report} streaming={busy && !reportFinal} sourceCounts={reportFinal ? sourceCounts : undefined} taskDone={taskDone} onToggleTask={toggleTask} /> : text && <MarkdownView markdown={text} />)}
+              {resultVisible && (report ? <ReportView view={view} report={report} streaming={busy && !reportFinal} sourceCounts={reportFinal ? sourceCounts : undefined} taskDone={taskDone} onToggleTask={toggleTask} /> : text && <MarkdownView markdown={text} />)}
               {!busy && (log.length > 0 || sources.length > 0) && (
                 <div className="trail">
                   {sources.length > 0 && (

@@ -1,0 +1,132 @@
+[
+ {
+  "lawId": "325AC0000000201",
+  "title": "建築基準法",
+  "short": "法",
+  "revisionId": "325AC0000000201_20260527_508AC0000000023",
+  "enforcementDate": "2026-05-27",
+  "articles": 291,
+  "appendix": 4,
+  "fetchedAt": "2026-10-25T08:21:39.223Z"
+ },
+ {
+  "lawId": "325CO0000000338",
+  "title": "建築基準法施行令",
+  "short": "令",
+  "revisionId": "325CO0000000338_20251201_507CO0000000377",
+  "enforcementDate": "2025-12-01",
+  "articles": 371,
+  "appendix": 0,
+  "fetchedAt": "2026-10-25T08:21:39.732Z"
+ },
+ {
+  "lawId": "325M50004000040",
+  "title": "建築基準法施行規則",
+  "short": "規則",
+  "revisionId": "325M50004000040_20261001_508M60000800082",
+  "enforcementDate": "2026-10-01",
+  "articles": 189,
+  "appendix": 3,
+  "fetchedAt": "2026-10-25T08:21:40.481Z"
+ },
+ {
+  "lawId": "343AC0000000100",
+  "title": "都市計画法",
+  "short": "都計法",
+  "revisionId": "343AC0000000100_20260527_508AC0000000023",
+  "enforcementDate": "2026-05-27",
+  "articles": 164,
+  "appendix": 0,
+  "fetchedAt": "2026-10-25T08:21:40.770Z"
+ },
+ {
+  "lawId": "344CO0000000158",
+  "title": "都市計画法施行令",
+  "short": "都計令",
+  "revisionId": "344CO0000000158_20260401_508CO0000000066",
+  "enforcementDate": "2026-04-01",
+  "articles": 102,
+  "appendix": 0,
+  "fetchedAt": "2026-10-25T08:21:41.055Z"
+ },
+ {
+  "lawId": "344M50004000049",
+  "title": "都市計画法施行規則",
+  "short": "都計規則",
+  "revisionId": "344M50004000049_20260527_508M60000800058",
+  "enforcementDate": "2026-05-27",
+  "articles": 127,
+  "appendix": 0,
+  "fetchedAt": "2026-10-25T08:21:41.412Z"
+ },
+ {
+  "lawId": "323AC1000000186",
+  "title": "消防法",
+  "short": "消防法",
+  "revisionId": "323AC1000000186_20250601_504AC0000000068",
+  "enforcementDate": "2025-06-01",
+  "articles": 263,
+  "appendix": 3,
+  "fetchedAt": "2026-10-25T08:21:41.713Z"
+ },
+ {
+  "lawId": "336CO0000000037",
+  "title": "消防法施行令",
+  "short": "消防令",
+  "revisionId": "336CO0000000037_20251001_507CO0000000085",
+  "enforcementDate": "2025-10-01",
+  "articles": 92,
+  "appendix": 3,
+  "fetchedAt": "2026-10-25T08:21:42.036Z"
+ },
+ {
+  "lawId": "427AC0000000053",
+  "title": "建築物のエネルギー消費性能の向上等に関する法律",
+  "short": "省エネ法",
+  "revisionId": "427AC0000000053_20260731_508AC0000000075",
+  "enforcementDate": "2026-07-31",
+  "articles": 76,
+  "appendix": 0,
+  "fetchedAt": "2026-10-25T08:21:42.338Z"
+ },
+ {
+  "lawId": "428CO0000000008",
+  "title": "建築物のエネルギー消費性能の向上等に関する法律施行令",
+  "short": "省エネ令",
+  "revisionId": "428CO0000000008_20250401_506CO0000000172",
+  "enforcementDate": "2025-04-01",
+  "articles": 8,
+  "appendix": 0,
+  "fetchedAt": "2026-10-25T08:21:42.600Z"
+ },
+ {
+  "lawId": "418AC0000000091",
+  "title": "高齢者、障害者等の移動等の円滑化の促進に関する法律",
+  "short": "バリアフリー法",
+  "revisionId": "418AC0000000091_20250401_505AC0000000024",
+  "enforcementDate": "2025-04-01",
+  "articles": 88,
+  "appendix": 0,
+  "fetchedAt": "2026-10-25T08:21:42.919Z"
+ },
+ {
+  "lawId": "336AC0000000191",
+  "title": "宅地造成及び特定盛土等規制法",
+  "short": "盛土規制法",
+  "revisionId": "336AC0000000191_20250601_504AC0000000068",
+  "enforcementDate": "2025-06-01",
+  "articles": 61,
+  "appendix": 0,
+  "fetchedAt": "2026-10-25T08:21:43.173Z"
+ },
+ {
+  "lawId": "325AC1000000202",
+  "title": "建築士法",
+  "short": "建築士法",
+  "revisionId": "325AC1000000202_20260731_508AC1000000074",
+  "enforcementDate": "2026-07-31",
+  "articles": 128,
+  "appendix": 3,
+  "fetchedAt": "2026-10-25T08:21:43.528Z"
+ }
+]

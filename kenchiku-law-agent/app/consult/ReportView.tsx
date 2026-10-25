@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import type { ViewMode } from "./ViewSwitch";
 import { GRADE_HELP, ROLES, TASK_WHEN, whenIndex, type PartialReport } from "@/lib/report";
 import { CertaintyBadge, CertaintyLegend, Sources } from "./Certainty";
 import CountUp from "../components/CountUp";
@@ -42,12 +43,14 @@ export function sortedTasks(report: PartialReport) {
 }
 
 export default function ReportView({
+  view = "すべて",
   report,
   streaming,
   sourceCounts,
   taskDone,
   onToggleTask,
 }: {
+  view?: ViewMode;
   report: PartialReport;
   streaming: boolean;
   sourceCounts?: Record<string, number>;
@@ -56,6 +59,11 @@ export default function ReportView({
 }) {
   const [tab, setTab] = useState<TabKey | null>(null);
   const [role, setRole] = useState<(typeof ROLES)[number] | "すべて">("すべて");
+  // The viewer picks which tabs matter and whose tasks come first.
+  useEffect(() => {
+    setRole(view === "営業" ? "営業" : view === "設計" ? "設計" : "すべて");
+    setTab(null);
+  }, [view]);
   const s = report.summary;
   const tone = s?.verdict ? (VERDICT_TONE[s.verdict] ?? "info") : "info";
 
@@ -73,7 +81,7 @@ export default function ReportView({
     tasks: tasks.length,
     questions: report.questions?.length ?? 0,
   };
-  const tabs: { key: TabKey; label: string; n: number }[] = [
+  const allTabs: { key: TabKey; label: string; n: number }[] = [
     { key: "check", label: "見落としチェック", n: counts.check },
     ...(counts.docs > 0 ? [{ key: "docs" as TabKey, label: "資料の読み取り", n: counts.docs }] : []),
     { key: "design", label: "設計の注意", n: counts.design },
@@ -82,6 +90,12 @@ export default function ReportView({
     { key: "tasks", label: "タスク", n: counts.tasks },
     { key: "questions", label: "確認したい質問", n: counts.questions },
   ];
+  const VIEW_TABS: Record<ViewMode, TabKey[]> = {
+    営業: ["questions", "steps", "tasks", "consult", "docs"],
+    設計: ["design", "check", "consult", "steps", "tasks", "docs", "questions"],
+    すべて: ["check", "docs", "design", "consult", "steps", "tasks", "questions"],
+  };
+  const tabs = VIEW_TABS[view].map((k) => allTabs.find((t) => t.key === k)).filter((t): t is (typeof allTabs)[number] => Boolean(t));
   const active: TabKey = tab ?? tabs.find((t) => t.n > 0)?.key ?? "check";
   const panel = (k: TabKey) => `tabpanel ${active === k ? "" : "is-hidden"}`;
   const hits = checklist.filter((c) => c.status === "該当").length;
@@ -167,7 +181,7 @@ export default function ReportView({
         </section>
       )}
 
-      {(checklist.length > 0 || counts.consult > 0) && (
+      {view !== "営業" && (checklist.length > 0 || counts.consult > 0) && (
         <div className="kpis">
           <button type="button" className="kpi tone-danger" onClick={() => setTab("check")}>
             <strong>{streaming ? hits : <CountUp to={hits} />}</strong>
