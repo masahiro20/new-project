@@ -727,3 +727,12 @@ test("ひと目でわかる：準防火の注意点は防火の区分の言葉�
   assert.deepEqual(fire?.impacts, ["費用"]);
   assert.equal(g.basics.find((b) => b.label === "建蔽率／容積率")?.value, "60%／200%");
 });
+
+test("「何を建てたいか」から階数・延べ面積を読む（入力があればそちら）", async () => {
+  const { scaleFromDescription, withDescriptionScale } = await import("../lib/plan");
+  assert.deepEqual(scaleFromDescription("木造2階建ての自宅（延べ面積110㎡）"), { floors: 2, totalFloorArea: 110 });
+  assert.deepEqual(scaleFromDescription("木造平屋の自宅（延べ約90㎡）"), { floors: 1, totalFloorArea: 90 });
+  assert.deepEqual(scaleFromDescription("三階建て、延べ40坪"), { floors: 3, totalFloorArea: 132.2 });
+  assert.deepEqual(scaleFromDescription("１階が店舗の木造３階建て"), { floors: 3, totalFloorArea: null });
+  assert.equal(withDescriptionScale(plan({ description: "木造2階建て（延べ110㎡）", floors: 3 })).floors, 3);
+});

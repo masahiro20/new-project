@@ -4,7 +4,7 @@
 // Every value returned carries its dataset name and year so the UI and the
 // agent can cite it as 【公的】 evidence.
 
-import { EMPTY_SIGNALS, HAZARDS, type PlanInput, type Signals } from "./plan";
+import { EMPTY_SIGNALS, HAZARDS, withDescriptionScale, type PlanInput, type Signals } from "./plan";
 import { FUDE_SOURCE, GSI_VT_SOURCE, lookupFarmland, lookupWater, type FarmlandResult, type WaterResult } from "./nearby";
 import { ELEVATION_SOURCE, LANDPRICE_SOURCE, lookupElevation, lookupLandPrices, type Elevation, type LandPriceResult } from "./siteextras";
 import { unzonedRatio } from "./unzoned";
@@ -478,7 +478,8 @@ function derive(ctx: SiteContext) {
 }
 
 /** Fills "不明" fields of a plan with what the lookup found; explicit user choices win. */
-export function mergeSiteIntoPlan(plan: PlanInput, site: SiteContext | null): PlanInput {
+export function mergeSiteIntoPlan(input: PlanInput, site: SiteContext | null): PlanInput {
+  const plan = withDescriptionScale(input);
   if (!site) return plan;
   const d = site.derived;
   return {

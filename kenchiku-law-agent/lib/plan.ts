@@ -256,3 +256,25 @@ export function planFromQuery(q: URLSearchParams): PlanInput | null {
   if (parsed.success) return { ...parsed.data, description };
   return { ...EMPTY_PLAN, address: String(raw.address ?? ""), description, landInfo: String(raw.landInfo ?? "") };
 }
+
+const KANJI_NUM: Record<string, number> = { 一: 1, 二: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9, "１": 1, "２": 2, "３": 3, "４": 4, "５": 5 };
+
+/** 「何を建てたいか」の文章から読める規模（入力欄が空のときだけ使う）。 */
+export function scaleFromDescription(text: string): { floors: number | null; totalFloorArea: number | null } {
+  const t = text.replace(/[０-９．]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xfee0));
+  let floors: number | null = null;
+  const f = t.match(/(\d+|[一二三四五六七八九])\s*階建/);
+  if (f) floors = /\d/.test(f[1]) ? Number(f[1]) : KANJI_NUM[f[1]] ?? null;
+  else if (/平屋/.test(t)) floors = 1;
+  let totalFloorArea: number | null = null;
+  const a = t.match(/延べ?(?:床)?(?:面積)?\s*[:：]?\s*(?:約|およそ)?\s*(\d+(?:\.\d+)?)\s*(㎡|m2|m²|平米|平方メートル|坪)/);
+  if (a) totalFloorArea = a[2] === "坪" ? Math.round(Number(a[1]) * 3.30579 * 10) / 10 : Number(a[1]);
+  return { floors: floors && floors > 0 && floors < 100 ? floors : null, totalFloorArea: totalFloorArea && totalFloorArea > 0 ? totalFloorArea : null };
+}
+
+/** The plan with blanks filled from the description (typed values always win). */
+export function withDescriptionScale(p: PlanInput): PlanInput {
+  if (p.floors !== null && p.totalFloorArea !== null) return p;
+  const s = scaleFromDescription(p.description);
+  return { ...p, floors: p.floors ?? s.floors, totalFloorArea: p.totalFloorArea ?? s.totalFloorArea };
+}

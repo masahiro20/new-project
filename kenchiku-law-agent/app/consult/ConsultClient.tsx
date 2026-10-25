@@ -32,6 +32,7 @@ import {
   YES_NO_UNKNOWN,
   ZONINGS,
   planFromQuery,
+  scaleFromDescription,
   type PlanInput,
 } from "@/lib/plan";
 import { SEVERITY_SHORT, citeLabel, citeUrl, groupByAgency, groupByStage, runRules, splitFindings, type Finding } from "@/lib/rules";
@@ -167,6 +168,7 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
   const [plan, setPlan] = useState<PlanInput>(EMPTY_PLAN);
   const [site, setSite] = useState<SiteContext | null>(null);
   const [siteBusy, setSiteBusy] = useState(false);
+  const [ranWith, setRanWith] = useState("");
   // 住所の読み込みの進み具合（サーバーから届いたデータのまとまり）と所要時間
   const [siteSteps, setSiteSteps] = useState<SiteStepId[]>([]);
   const [siteStartedAt, setSiteStartedAt] = useState<number | null>(null);
@@ -376,6 +378,7 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
   const agencies = useMemo(() => groupByAgency([...split.specific, ...split.checks]), [split]);
 
   async function consult() {
+    setRanWith(runKey);
     if (plan.description.trim().length < 5) {
       setError("「何を建てたいか」を入れてください（下の例を押すと入ります）。");
       document.getElementById("description")?.focus();
@@ -548,6 +551,17 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
   const location = site ? (site.matched ? `${site.matched}（地図上の代表点で判定）` : "位置を特定できませんでした") : null;
   const step = report ? 4 : busy ? 3 : plan.description.trim().length >= 5 ? 3 : site ? 2 : 1;
   const canRun = plan.description.trim().length >= 5 && !busy;
+  const askLines = plan.asks
+    .split(/\n+/)
+    .map((l) => l.trim().replace(/^(?:[-・*]|\d+[.、)）])\s*/, ""))
+    .filter(Boolean);
+  const runKey = JSON.stringify([plan.description.trim(), askLines, attachments.map((a) => a.name), plan.address.trim()]);
+  const stale = Boolean(report && !busy && ranWith && ranWith !== runKey);
+  const descScale = scaleFromDescription(plan.description);
+  const readScale =
+    (plan.floors === null && descScale.floors !== null) || (plan.totalFloorArea === null && descScale.totalFloorArea !== null)
+      ? [plan.floors === null && descScale.floors !== null ? `${descScale.floors}階建て` : "", plan.totalFloorArea === null && descScale.totalFloorArea !== null ? `延べ${descScale.totalFloorArea}㎡` : ""].filter(Boolean).join("・")
+      : "";
   const collapsed = Boolean(report) && !busy && !editing;
 
   const hasSite = Boolean(site && !siteBusy);
@@ -567,7 +581,7 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
   const runControls = (
     <div className="runbar">
       <button type="button" className="btn btn-run" onClick={consult} disabled={!canRun}>
-        {busy ? "チェック中…" : report ? "もう一度AIでチェック" : "AIで詳しくチェック"}
+        {busy ? "チェック中…" : stale ? "今の入力でもう一度チェック" : report ? "もう一度AIでチェック" : "AIで詳しくチェック"}
       </button>
       {busy ? (
         <button type="button" className="btn secondary" onClick={() => abortRef.current?.abort()}>
@@ -719,8 +733,15 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
                   <div className="field">
                     <label htmlFor="description" className="big-label">
                       何を建てたいか
+                      <span className="flow-tag flow-now">すぐ反映 → 法令の論点・設計条件</span>
                     </label>
                     <textarea id="description" maxLength={4000} value={plan.description} onChange={(e) => set("description", e.target.value)} placeholder="一文で十分です。例：木造2階建ての自宅（延べ面積110㎡）" rows={2} />
+                    {readScale && (
+                      <p className="read-scale">
+                        文章から読み取り：{readScale}
+                        <span className="hint">（防火・構造の判定に使います。違うときは「分かれば入れる」の階数・延べ面積で直せます）</span>
+                      </p>
+                    )}
                     <div className="examples" aria-label="入力例">
                       <span>例</span>
                       {PLAN_EXAMPLES.map((ex) => (
@@ -732,7 +753,9 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
                   </div>
                   <div className="field">
                     <label htmlFor="asks" className="big-label">
-                      AIに見てほしいこと <span className="hint">任意。想定している使い方・気になっていること・知りたいことを1行に1つ。AIの詳しいチェックで1つずつ答えます</span>
+                      AIに見てほしいこと
+                      <span className="flow-tag flow-ai">「AIで詳しくチェック」を押すと反映</span>
+                      <span className="hint">任意。想定している使い方・気になっていること・知りたいことを1行に1つ。AIが1つずつ答えます</span>
                     </label>
                     <textarea id="asks" maxLength={2000} value={plan.asks} onChange={(e) => set("asks", e.target.value)} placeholder={"例：将来、親と同居できる二世帯にしたい\n例：車を3台とめたい。建蔽率は足りるか\n例：3階建てにした場合、何が変わるか"} rows={3} />
                     <div className="examples" aria-label="追加の例">
@@ -815,6 +838,31 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
                     </div>
                   </details>
                   {!siteLookupAvailable && <p className="notice">住所からの自動取得には、国土交通省 不動産情報ライブラリの API キー（REINFOLIB_API_KEY）が必要です。</p>}
+                  <dl className="flow-legend" aria-label="入力がどこに反映されるか">
+                    <div>
+                      <dt>
+                        <span className="flow-tag flow-now">すぐ反映</span>
+                      </dt>
+                      <dd>何を建てたいか・分かれば入れる → 04 法令の論点・05 設計条件</dd>
+                    </div>
+                    <div>
+                      <dt>
+                        <span className="flow-tag flow-ai">ボタンで反映</span>
+                      </dt>
+                      <dd>
+                        AIに見てほしいこと・土地の資料 → 06「AIで詳しくチェック」を押したとき
+                        <button type="button" className="linkbtn" onClick={() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}>
+                          AIのチェックへ ↓
+                        </button>
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>
+                        <span className="flow-tag flow-doc">書類に反映</span>
+                      </dt>
+                      <dd>お客様情報 → 07 法令制限確認書（Excel）</dd>
+                    </div>
+                  </dl>
                   <div className="input-foot">
                     <button
                       type="button"
@@ -969,6 +1017,45 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
               }
             >
               {error && <p className="notice">{error}</p>}
+              {!busy && (
+                <div className={`handoff${stale ? " is-stale" : ""}`}>
+                  <p className="handoff-title">
+                    {stale ? "入力が変わりました。もう一度押すと、今の内容で調べ直します" : report ? "前回のチェックで使った内容" : "押すと、AIはこの内容で調べます"}
+                  </p>
+                  <dl>
+                    <div>
+                      <dt>何を建てたいか</dt>
+                      <dd>{plan.description.trim() || <span className="hint">未入力（必須）</span>}</dd>
+                    </div>
+                    <div>
+                      <dt>AIに見てほしいこと</dt>
+                      <dd>
+                        {askLines.length ? (
+                          <ol>
+                            {askLines.map((a, i) => (
+                              <li key={i}>{a}</li>
+                            ))}
+                          </ol>
+                        ) : (
+                          <span className="hint">なし（任意）</span>
+                        )}
+                        <button type="button" className="linkbtn" onClick={() => document.getElementById("asks")?.focus()}>
+                          {askLines.length ? "直す" : "書く"}
+                        </button>
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>土地の資料</dt>
+                      <dd>{attachments.length ? `${attachments.length}件（AIが読み取ります）` : <span className="hint">なし（任意）</span>}</dd>
+                    </div>
+                    <div>
+                      <dt>土地情報・法令の論点</dt>
+                      <dd>{site ? "読み込み済み（上の02〜05をそのまま渡します）" : <span className="hint">住所を調べると一緒に渡します</span>}</dd>
+                    </div>
+                  </dl>
+                  <p className="hint">ボタンを押した時点の入力で調べます。お客様情報はAIに送りません（Excelだけに使います）。</p>
+                </div>
+              )}
               {runControls}
               {busy && !reportFinal && (
                 <div className="runprogress" role="status">
