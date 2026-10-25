@@ -36,7 +36,7 @@ import {
 } from "@/lib/plan";
 import { SEVERITY_SHORT, citeLabel, citeUrl, groupByAgency, groupByStage, runRules, splitFindings, type Finding } from "@/lib/rules";
 import type { SiteContext, SiteStepId } from "@/lib/site";
-import { mergeSiteIntoPlan } from "@/lib/site";
+import { SITE_STEPS, mergeSiteIntoPlan } from "@/lib/site";
 
 const STORAGE_KEY = "kenchiku-law-agent:plan:v2";
 const ACCESS_KEY = "kenchiku-law-agent:access";
@@ -283,7 +283,26 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
     ...(accessKey ? { "x-access-key": accessKey } : {}),
   });
 
-  async function lookup(force = false) {
+  function showLand() {
+    const el = document.getElementById("s-land");
+    if (!el) return;
+    el.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+    el.classList.remove("flash");
+    void el.offsetWidth;
+    el.classList.add("flash");
+  }
+
+  /** The button next to the address: runs the lookup, or jumps to the result when it is already there. */
+  function onLookupClick() {
+    if (siteBusy) return;
+    if (site && !siteError && site.address === plan.address.trim()) {
+      showLand();
+      return;
+    }
+    lookup(true, true);
+  }
+
+  async function lookup(force = false, fromClick = false) {
     const address = plan.address.trim();
     if (address.length < 3) return;
     if (!force && lookedUp.current === address) return;
@@ -331,6 +350,8 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
       if (got) {
         setSite(got);
         setSiteSeconds(Math.max(1, Math.round((Date.now() - t0) / 1000)));
+        // A click means "show me": bring the result into view once it has rendered.
+        if (fromClick) setTimeout(showLand, 80);
       } else setSite(null);
     } catch {
       setSiteError("通信エラーで土地情報を取得できませんでした。");
@@ -530,6 +551,7 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
   const collapsed = Boolean(report) && !busy && !editing;
 
   const hasSite = Boolean(site && !siteBusy);
+  const siteReady = Boolean(site && !siteBusy && !siteError && site.address === plan.address.trim());
   const hasMap = Boolean(hasSite && site && site.lat !== null && site.lon !== null);
   const resultVisible = Boolean(text || report || busy);
   const rail: RailItem[] = [
@@ -639,14 +661,60 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
                         onKeyDown={(e) => {
                           if (e.key === "Enter") {
                             e.preventDefault();
-                            lookup(true);
+                            onLookupClick();
                           }
                         }}
                       />
-                      <button type="button" className="btn" onClick={() => lookup(true)} disabled={siteBusy || plan.address.trim().length < 3}>
-                        {siteBusy ? "調べています…" : "土地を調べる"}
+                      <button
+                        type="button"
+                        className={`btn lookup-btn${siteBusy ? " is-busy" : ""}${siteReady ? " is-ready" : ""}`}
+                        onClick={onLookupClick}
+                        disabled={plan.address.trim().length < 3}
+                        aria-busy={siteBusy}
+                      >
+                        {siteBusy ? (
+                          <>
+                            <span className="spinner" aria-hidden />
+                            調べています
+                          </>
+                        ) : siteReady ? (
+                          <>
+                            土地情報を見る<span aria-hidden>↓</span>
+                          </>
+                        ) : (
+                          "土地を調べる"
+                        )}
                       </button>
                     </div>
+                    {(siteBusy || siteReady || siteError) && (
+                      <div className={`lookup-status${siteBusy ? " is-busy" : siteError ? " is-error" : " is-done"}`} role="status" aria-live="polite">
+                        {siteBusy ? (
+                          <>
+                            <span className="lookup-bar" aria-hidden>
+                              <i style={{ width: `${Math.max(6, (siteSteps.length / SITE_STEPS.length) * 100)}%` }} />
+                            </span>
+                            <span>
+                              国の公開データを照合しています（{siteSteps.length}/{SITE_STEPS.length}・{siteStartedAt ? Math.max(0, Math.round((now - siteStartedAt) / 1000)) : 0}秒）
+                              {SITE_STEPS.find((s) => !siteSteps.includes(s.id)) && <em>　{SITE_STEPS.find((s) => !siteSteps.includes(s.id))!.label}</em>}
+                            </span>
+                          </>
+                        ) : siteError ? (
+                          <span>{siteError}</span>
+                        ) : (
+                          <>
+                            <span className="lookup-check" aria-hidden>
+                              ✓
+                            </span>
+                            <span>
+                              土地情報を読み込みました{siteSeconds !== null ? `（${siteSeconds}秒）` : ""}。
+                              <button type="button" className="linkbtn" onClick={showLand}>
+                                結果を見る ↓
+                              </button>
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    )}
                   </div>
                   <div className="field">
                     <label htmlFor="description" className="big-label">

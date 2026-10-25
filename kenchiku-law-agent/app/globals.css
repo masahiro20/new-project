@@ -1259,3 +1259,30 @@ details.customer { margin-top: 8px; }
 .design-cites { margin: 4px 0 0; font-size: 0.74rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 10px; }
 .design-cites a { color: var(--muted); text-decoration: underline; text-underline-offset: 3px; }
 .design-foot { margin-top: 18px; font-size: 0.78rem; line-height: 1.7; }
+
+/* ---------- 「土地を調べる」の手応え ---------- */
+.lookup-btn { position: relative; min-width: 9.5em; justify-content: center; transition: transform 0.12s var(--ease), background-color 0.2s; }
+.lookup-btn:not(:disabled):active { transform: scale(0.96); }
+.lookup-btn.is-busy { cursor: progress; opacity: 1; --b: #111; }
+.lookup-btn.is-ready { --b: var(--ok); }
+.lookup-btn > span[aria-hidden] { margin-left: 6px; }
+.spinner { display: inline-block; width: 14px; height: 14px; margin-right: 10px; border: 2px solid rgba(255, 255, 255, 0.35); border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; vertical-align: -2px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.lookup-status { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 10px; padding: 10px 14px; font-size: 0.86rem; line-height: 1.6; border-left: 3px solid var(--ink); background: var(--accent-soft); animation: lookup-in 0.25s var(--ease); }
+.lookup-status em { font-style: normal; color: var(--muted); }
+.lookup-status.is-done { border-left-color: var(--ok); background: var(--ok-soft); color: var(--ok); }
+.lookup-status.is-done .linkbtn { color: var(--ok); font-weight: 600; margin-left: 6px; }
+.lookup-status.is-error { border-left-color: var(--danger); background: var(--danger-soft); color: var(--danger); }
+.lookup-check { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--ok); color: #fff; font-size: 0.72rem; animation: pop 0.35s var(--ease); }
+.lookup-bar { flex: 0 0 120px; height: 4px; background: rgba(0, 0, 0, 0.08); overflow: hidden; position: relative; }
+.lookup-bar i { position: absolute; inset: 0 auto 0 0; background: var(--ink); transition: width 0.4s var(--ease); }
+.lookup-bar::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.7), transparent); animation: shimmer 1.1s linear infinite; }
+@keyframes shimmer { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+@keyframes lookup-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+@keyframes pop { 0% { transform: scale(0.4); } 70% { transform: scale(1.15); } 100% { transform: scale(1); } }
+#s-land { scroll-margin-top: 90px; }
+#s-land.flash { animation: flash 1.6s var(--ease); }
+@keyframes flash { 0%, 30% { box-shadow: 0 0 0 3px var(--ok-soft), 0 0 0 4px var(--ok); } 100% { box-shadow: 0 0 0 0 transparent; } }
+@media (prefers-reduced-motion: reduce) {
+  .spinner, .lookup-bar::after, #s-land.flash, .lookup-status, .lookup-check { animation: none; }
+}
