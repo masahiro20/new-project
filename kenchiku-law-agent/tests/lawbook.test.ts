@@ -24,6 +24,6 @@ test("法令集の要点：各項目の語句が現行条文にそのまま含�
 });
 
 test("法令集の全文検索：語をすべて含む条を返す", () => {
-  const hits = searchLawbook("延焼のおそれのある部分 防火構造", { scope: ["令"] });
-  assert.ok(hits.some((h) => h.ref.includes("第百三十六条の二")), JSON.stringify(hits.map((h) => h.ref)));
+  const hits = searchLawbook("竪穴 一戸建て", { scope: ["令"] });
+  assert.ok(hits.some((h) => h.ref.includes("第百十二条")), JSON.stringify(hits.map((h) => h.ref)));
 });

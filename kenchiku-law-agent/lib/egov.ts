@@ -42,6 +42,7 @@ export function lawUrl(lawId: string, article?: string): string {
 function textOf(n: Node | undefined): string {
   if (!n) return "";
   if (typeof n === "string") return n;
+  if (n.tag === "Rt") return ""; // ruby reading: 「竪たて穴」→「竪穴」
   return (n.children ?? []).map(textOf).join("");
 }
 

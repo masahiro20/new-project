@@ -7,7 +7,7 @@
   "enforcementDate": "2026-05-27",
   "articles": 291,
   "appendix": 4,
-  "fetchedAt": "2026-10-25T08:21:39.223Z"
+  "fetchedAt": "2026-10-25T08:32:19.895Z"
  },
  {
   "lawId": "325CO0000000338",
@@ -17,7 +17,7 @@
   "enforcementDate": "2025-12-01",
   "articles": 371,
   "appendix": 0,
-  "fetchedAt": "2026-10-25T08:21:39.732Z"
+  "fetchedAt": "2026-10-25T08:32:20.239Z"
  },
  {
   "lawId": "325M50004000040",
@@ -27,7 +27,7 @@
   "enforcementDate": "2026-10-01",
   "articles": 189,
   "appendix": 3,
-  "fetchedAt": "2026-10-25T08:21:40.481Z"
+  "fetchedAt": "2026-10-25T08:32:20.904Z"
  },
  {
   "lawId": "343AC0000000100",
@@ -37,7 +37,7 @@
   "enforcementDate": "2026-05-27",
   "articles": 164,
   "appendix": 0,
-  "fetchedAt": "2026-10-25T08:21:40.770Z"
+  "fetchedAt": "2026-10-25T08:32:21.185Z"
  },
  {
   "lawId": "344CO0000000158",
@@ -47,7 +47,7 @@
   "enforcementDate": "2026-04-01",
   "articles": 102,
   "appendix": 0,
-  "fetchedAt": "2026-10-25T08:21:41.055Z"
+  "fetchedAt": "2026-10-25T08:32:21.457Z"
  },
  {
   "lawId": "344M50004000049",
@@ -57,7 +57,7 @@
   "enforcementDate": "2026-05-27",
   "articles": 127,
   "appendix": 0,
-  "fetchedAt": "2026-10-25T08:21:41.412Z"
+  "fetchedAt": "2026-10-25T08:32:21.718Z"
  },
  {
   "lawId": "323AC1000000186",
@@ -67,7 +67,7 @@
   "enforcementDate": "2025-06-01",
   "articles": 263,
   "appendix": 3,
-  "fetchedAt": "2026-10-25T08:21:41.713Z"
+  "fetchedAt": "2026-10-25T08:32:22.014Z"
  },
  {
   "lawId": "336CO0000000037",
@@ -77,7 +77,7 @@
   "enforcementDate": "2025-10-01",
   "articles": 92,
   "appendix": 3,
-  "fetchedAt": "2026-10-25T08:21:42.036Z"
+  "fetchedAt": "2026-10-25T08:32:22.301Z"
  },
  {
   "lawId": "427AC0000000053",
@@ -87,7 +87,7 @@
   "enforcementDate": "2026-07-31",
   "articles": 76,
   "appendix": 0,
-  "fetchedAt": "2026-10-25T08:21:42.338Z"
+  "fetchedAt": "2026-10-25T08:32:22.595Z"
  },
  {
   "lawId": "428CO0000000008",
@@ -97,7 +97,7 @@
   "enforcementDate": "2025-04-01",
   "articles": 8,
   "appendix": 0,
-  "fetchedAt": "2026-10-25T08:21:42.600Z"
+  "fetchedAt": "2026-10-25T08:32:22.825Z"
  },
  {
   "lawId": "418AC0000000091",
@@ -107,7 +107,7 @@
   "enforcementDate": "2025-04-01",
   "articles": 88,
   "appendix": 0,
-  "fetchedAt": "2026-10-25T08:21:42.919Z"
+  "fetchedAt": "2026-10-25T08:32:23.153Z"
  },
  {
   "lawId": "336AC0000000191",
@@ -117,7 +117,7 @@
   "enforcementDate": "2025-06-01",
   "articles": 61,
   "appendix": 0,
-  "fetchedAt": "2026-10-25T08:21:43.173Z"
+  "fetchedAt": "2026-10-25T08:32:23.375Z"
  },
  {
   "lawId": "325AC1000000202",
@@ -127,6 +127,6 @@
   "enforcementDate": "2026-07-31",
   "articles": 128,
   "appendix": 3,
-  "fetchedAt": "2026-10-25T08:21:43.528Z"
+  "fetchedAt": "2026-10-25T08:32:23.661Z"
  }
 ]

@@ -9,7 +9,8 @@ const API = "https://laws.e-gov.go.jp/api/2";
 type Node = string | { tag: string; attr?: Record<string, string>; children?: Node[] };
 type El = Exclude<Node, string>;
 
-const textOf = (n: Node | undefined): string => (!n ? "" : typeof n === "string" ? n : (n.children ?? []).map(textOf).join(""));
+// Ruby readings (<Rt>) are dropped so 「竪たて穴」 reads 「竪穴」.
+const textOf = (n: Node | undefined): string => (!n ? "" : typeof n === "string" ? n : n.tag === "Rt" ? "" : (n.children ?? []).map(textOf).join(""));
 const kids = (n: Node, tag: string): El[] => (typeof n === "string" ? [] : (n.children ?? []).filter((c): c is El => typeof c !== "string" && c.tag === tag));
 
 function tableRows(n: Node, indent: string, out: string[]) {

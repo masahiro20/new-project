@@ -1297,8 +1297,8 @@ const RULE_DEFS: Omit<Rule, keyof RuleMeta>[] = [
     action: "保険法人への申込み（基礎配筋検査前）を工程に入れ、契約書に瑕疵担保責任・保険の記載。",
     roles: ["営業", "施工", "コーディネーター"],
     cites: [
-      { law: "hinkakuho", article: "94", expectCaption: "（住宅の新築工事の請負人の瑕疵かし担保責任）" },
-      { law: "hinkakuho", article: "95", expectCaption: "（新築住宅の売主の瑕疵かし担保責任）" },
+      { law: "hinkakuho", article: "94", expectCaption: "（住宅の新築工事の請負人の瑕疵担保責任）" },
+      { law: "hinkakuho", article: "95", expectCaption: "（新築住宅の売主の瑕疵担保責任）" },
       { law: "kashitanpoho", article: "3", expectCaption: "（住宅建設瑕疵担保保証金の供託等）" },
     ],
     when: (p) => (isNew(p) && isHousing(p) ? "required" : null),

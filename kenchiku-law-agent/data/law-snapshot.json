@@ -1,5 +1,5 @@
 {
- "verifiedAt": "2026-10-19T07:08:55.310Z",
+ "verifiedAt": "2026-10-25T08:34:56.179Z",
  "articles": {
   "343AC0000000100:7": {
    "law": "都市計画法",
@@ -197,7 +197,7 @@
    "revisionId": "325AC0000000201_20260527_508AC0000000023",
    "enforcementDate": "2026-05-27",
    "url": "https://laws.e-gov.go.jp/law/325AC0000000201#Mp-At_93",
-   "textHash": "08ad8fa23595b940e7f214290105a4f06270b3b58c77f45ad562108dc64460b7"
+   "textHash": "9a03e4480a2382fcbf02a046f84da698bfdbdbcbc4d4b6ccf872addd6894c571"
   },
   "323AC1000000186:7": {
    "law": "消防法",
@@ -241,7 +241,7 @@
    "revisionId": "325CO0000000338_20251201_507CO0000000377",
    "enforcementDate": "2025-12-01",
    "url": "https://laws.e-gov.go.jp/law/325CO0000000338#Mp-At_144_4",
-   "textHash": "bd208a41d30f55f1dedccf34c20ab53dabe19be34e5d51f9370278c76c6651ae"
+   "textHash": "130607f8070a16e9d61625403b8b86ffda61f3dbb02300f69cd820f83724e934"
   },
   "325AC0000000201:45": {
    "law": "建築基準法",
@@ -351,7 +351,7 @@
    "revisionId": "333AC0000000079_20260817_508AC0000000065",
    "enforcementDate": "2026-08-17",
    "url": "https://laws.e-gov.go.jp/law/333AC0000000079#Mp-At_10",
-   "textHash": "972b1b026f78c0c9c85ee2de27e56543a715c8eebdf68e5d9fb46e0f942164cb"
+   "textHash": "3069fc64f025fa78d6e00eec185d40fdb311477478fbd11947ead0619acbe5df"
   },
   "358AC1000000043:5": {
    "law": "浄化槽法",
@@ -417,7 +417,7 @@
    "revisionId": "325AC0000000201_20260527_508AC0000000023",
    "enforcementDate": "2026-05-27",
    "url": "https://laws.e-gov.go.jp/law/325AC0000000201#Mp-At_35",
-   "textHash": "69c1248025b56cca8dfb92af3325ec9c538f3c101423c17da94cad707c55dc4e"
+   "textHash": "e01698cbb30b32996a3c547fd380884c0f4eed50832f233c7f90dada5df107d6"
   },
   "325AC0000000201:35_2": {
    "law": "建築基準法",
@@ -439,7 +439,7 @@
    "revisionId": "325CO0000000338_20251201_507CO0000000377",
    "enforcementDate": "2025-12-01",
    "url": "https://laws.e-gov.go.jp/law/325CO0000000338#Mp-At_112",
-   "textHash": "de29f54ecb4373231cb7da9f475942e2400df03aa3c32c8ca87d1817793ba46a"
+   "textHash": "307789fbfb22531040cd39154db3655b6e6e1738fa61bd92c7a79ed80a3e2ec3"
   },
   "325CO0000000338:121": {
    "law": "建築基準法施行令",
@@ -637,7 +637,7 @@
    "revisionId": "336CO0000000037_20251001_507CO0000000085",
    "enforcementDate": "2025-10-01",
    "url": "https://laws.e-gov.go.jp/law/336CO0000000037#Mp-At_21",
-   "textHash": "00186ee4953168143681028b2e0be33b50b529f27817b981d2cfa4c2cdb385d1"
+   "textHash": "32781589745f4749b56633b4f8343ff1b7b02bbb1ac13f45bf4dca75c0774a1c"
   },
   "336CO0000000037:12": {
    "law": "消防法施行令",
@@ -890,7 +890,7 @@
    "revisionId": "325CO0000000338_20251201_507CO0000000377",
    "enforcementDate": "2025-12-01",
    "url": "https://laws.e-gov.go.jp/law/325CO0000000338#Mp-At_146",
-   "textHash": "cfe20b3a273aa80595e9fd96a970df73a4578db254d07b9f0dcfe46dcd52a800"
+   "textHash": "41839c04e2c5df03a88b7bd305d4b7fa012dfe60d2a19c9b7095eeb6c2279771"
   },
   "325AC0000000201:12": {
    "law": "建築基準法",
@@ -1000,7 +1000,7 @@
    "revisionId": "344CO0000000158_20260401_508CO0000000066",
    "enforcementDate": "2026-04-01",
    "url": "https://laws.e-gov.go.jp/law/344CO0000000158#Mp-At_36",
-   "textHash": "22ac3ede03aef0b86a95440d45c1ddbcf8d8e263c2fb253d45bd4d49eada4e3c"
+   "textHash": "7aca6406d180973b6c0c0b45f69b1bb1495c6aeb31c2ece329c4320871d3b5a3"
   },
   "344CO0000000158:19": {
    "law": "都市計画法施行令",
@@ -1022,7 +1022,7 @@
    "revisionId": "343AC0000000100_20260527_508AC0000000023",
    "enforcementDate": "2026-05-27",
    "url": "https://laws.e-gov.go.jp/law/343AC0000000100#Mp-At_33",
-   "textHash": "d80775b78fba28493af9c1bc5f2706047f8ee6713e57215c1b549affa5fe8628"
+   "textHash": "b321764670e11524ece3044577966d2b472c9d64890a0a7237aae0ebcbe9a6bd"
   },
   "343AC0000000100:32": {
    "law": "都市計画法",
@@ -1343,6 +1343,17 @@
    "url": "https://laws.e-gov.go.jp/law/327M50010000079#Mp-At_57_4",
    "textHash": "306ecd397e2eb37996bb241e1f975b7126710a3521366bd3a0954a3c368e083b"
   },
+  "327M50010000079:50": {
+   "law": "農地法施行規則",
+   "lawId": "327M50010000079",
+   "article": "50",
+   "label": "第50条",
+   "caption": "（市街化区域内の農地又は採草放牧地の転用のための権利移動の届出）",
+   "revisionId": "327M50010000079_20260527_508M60000200041",
+   "enforcementDate": "2026-05-27",
+   "url": "https://laws.e-gov.go.jp/law/327M50010000079#Mp-At_50",
+   "textHash": "d93aa2bf949aaea4e764e37936eaac2b6c6cd1a8c0d387ca94974459c4535476"
+  },
   "324AC0000000195:36": {
    "law": "土地改良法",
    "lawId": "324AC0000000195",
@@ -1484,7 +1495,7 @@
    "revisionId": "325CO0000000338_20251201_507CO0000000377",
    "enforcementDate": "2025-12-01",
    "url": "https://laws.e-gov.go.jp/law/325CO0000000338#Mp-At_80_3",
-   "textHash": "a816ea8eb6a1716f3499c12b56d9ed6edbf041c12491cb25de42e256e7bd6048"
+   "textHash": "8cc358622278fce54318e6a96e30e5b90ad4ea92e1dad5723eff32eb45917de9"
   },
   "327AC1000000176:35": {
    "law": "宅地建物取引業法",
@@ -1733,22 +1744,22 @@
    "lawId": "411AC0000000081",
    "article": "94",
    "label": "第94条",
-   "caption": "（住宅の新築工事の請負人の瑕疵かし担保責任）",
+   "caption": "（住宅の新築工事の請負人の瑕疵担保責任）",
    "revisionId": "411AC0000000081_20250601_504AC0000000068",
    "enforcementDate": "2025-06-01",
    "url": "https://laws.e-gov.go.jp/law/411AC0000000081#Mp-At_94",
-   "textHash": "db9d0c016aadd706f8f80d4bf3185f209878d78a3a4717b2ed070bba1336671d"
+   "textHash": "191a98c465983e6f85f1aa849ee0648c1b57f7caf17ef5709e5839c9eae9d04d"
   },
   "411AC0000000081:95": {
    "law": "住宅の品質確保の促進等に関する法律",
    "lawId": "411AC0000000081",
    "article": "95",
    "label": "第95条",
-   "caption": "（新築住宅の売主の瑕疵かし担保責任）",
+   "caption": "（新築住宅の売主の瑕疵担保責任）",
    "revisionId": "411AC0000000081_20250601_504AC0000000068",
    "enforcementDate": "2025-06-01",
    "url": "https://laws.e-gov.go.jp/law/411AC0000000081#Mp-At_95",
-   "textHash": "6617aee2aa3a64938048767a3d4d5103de0854b27fd604bd2809b49d3eeeaf0b"
+   "textHash": "b9d0f71a23db50d823e0f581dd68c4950bd3275002bdf5cd3848e12d07ffde00"
   },
   "419AC0000000066:3": {
    "law": "特定住宅瑕疵担保責任の履行の確保等に関する法律",
@@ -2034,7 +2045,7 @@
    "revisionId": "129AC0000000089_20260624_508AC0000000045",
    "enforcementDate": "2026-06-24",
    "url": "https://laws.e-gov.go.jp/law/129AC0000000089#Mp-At_210",
-   "textHash": "6dc5e3d82d62aa0a15144a26abae6e0400ac2a6c7200f09c8737b903f7d05ede"
+   "textHash": "1e2c1c4a171d4d0156d3885b8ef096898f5c96b8e88cf24021d0be98a1257652"
   }
  }
 }

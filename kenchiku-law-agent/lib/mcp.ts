@@ -448,8 +448,10 @@ async function searchLawTextTool(args: Json): Promise<string> {
       ...local.map((h) => `■ ${h.law} ${h.ref}${h.caption}（${h.url}）\n${h.snippets.map((s) => `- ${s}`).join("\n")}`),
       "数値を書くときは get_law_article で条文全体を確認してください。",
     ].join("\n\n");
-  const hits = await keywordSearch(keyword);
-  if (hits.length === 0) return "該当はありませんでした。";
+  // e-Gov's keyword API takes one phrase; a multi-word query falls back to its longest word.
+  const phrase = keyword.split(/[\s　]+/).sort((a, b) => b.length - a.length)[0];
+  const hits = await keywordSearch(phrase).catch(() => []);
+  if (hits.length === 0) return `同梱の法令集にも e-Gov 全文検索にも「${keyword}」の該当はありませんでした。語を減らすか言い換えてください。`;
   return hits.map((h) => `■ ${h.title}（法令ID ${h.lawId}）${h.url}\n${h.sentences.map((s) => `- ${s}`).join("\n")}`).join("\n\n");
 }
 
