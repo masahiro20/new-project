@@ -1342,3 +1342,20 @@ details.customer { margin-top: 8px; }
   .salesbrief { padding: 20px 16px 12px; }
   .sb-a { padding-left: 18px; }
 }
+
+/* ---------- 役所調査 ---------- */
+.office-lead { font-size: 0.9rem; line-height: 1.8; margin: 0 0 18px; }
+.office-count { display: inline-block; margin-left: 10px; font-size: 0.78rem; padding: 1px 10px; border: 1px solid var(--line); color: var(--muted); }
+.office-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.office-card { border: 1px solid var(--line); border-top: 3px solid var(--check); background: var(--surface); padding: 16px 18px; display: flex; flex-direction: column; }
+.office-card.is-done { border-top-color: var(--ok); }
+.office-card h3 { margin: 0 0 8px; font-size: 0.98rem; letter-spacing: 0.06em; display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.office-done { font-size: 0.72rem; color: var(--ok); font-weight: 500; }
+.office-k { margin: 10px 0 4px; font-size: 0.74rem; color: var(--muted); letter-spacing: 0.1em; display: flex; gap: 8px; align-items: center; }
+.office-q { margin: 0; padding-left: 1.3em; font-size: 0.86rem; line-height: 1.7; }
+.office-hints { margin: 0; padding-left: 1.1em; font-size: 0.82rem; line-height: 1.7; color: var(--guess); }
+.office-links { margin: 10px 0 6px; display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 0.8rem; }
+.office-links a { color: var(--link); }
+.office-memo { margin-top: auto; display: grid; gap: 4px; font-size: 0.78rem; color: var(--muted); padding-top: 8px; }
+.office-memo textarea { min-height: 64px; font-size: 0.86rem; }
+@media (max-width: 760px) { .office-grid { grid-template-columns: 1fr; } }

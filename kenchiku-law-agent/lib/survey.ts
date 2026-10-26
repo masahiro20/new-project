@@ -35,6 +35,26 @@ export const surveySchema = z.object({
   sewage: z.enum(["", "下水道", "集中浄化槽", "個別浄化槽"]).catch(""),
   /** 確認書には欄がないが、土地情報まとめの必須項目。 */
   gas: z.enum(["", "都市ガス", "プロパン", "オール電化予定"]).catch(""),
+  /** 役所調査の結果（窓口・公開地図で確かめたこと）。確認書の備考とAIに渡す。 */
+  roadNote: s(300),
+  roadLedgerNote: s(300),
+  waterNote: s(300),
+  sewerNote: s(300),
+  gasNote: s(300),
 });
 export type Survey = z.infer<typeof surveySchema>;
 export const EMPTY_SURVEY: Survey = surveySchema.parse({});
+
+const NOTE_LABELS: [keyof Survey, string][] = [
+  ["roadNote", "道路の種別（建築指導課）"],
+  ["roadLedgerNote", "道路台帳・境界（道路管理課）"],
+  ["waterNote", "上水道"],
+  ["sewerNote", "下水道"],
+  ["gasNote", "ガス"],
+];
+
+/** 役所調査の結果を、AIへの入力・確認書の備考に入れる文にする。空なら空文字。 */
+export function officeNotesText(s: Partial<Survey>): string {
+  const lines = NOTE_LABELS.filter(([k]) => String(s[k] ?? "").trim()).map(([k, label]) => `- ${label}：${String(s[k]).trim()}`);
+  return lines.length ? `# 役所調査の結果（担当者が窓口・公開地図で確認した内容）\n${lines.join("\n")}` : "";
+}

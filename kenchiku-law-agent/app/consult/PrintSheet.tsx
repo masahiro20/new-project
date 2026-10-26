@@ -8,6 +8,7 @@ import { Fragment } from "react";
 import { askList, groupFacts, type LandFact } from "@/lib/landsummary";
 import type { PlanInput } from "@/lib/plan";
 import { designCheck } from "@/lib/designcheck";
+import type { OfficeItem } from "@/lib/officecheck";
 import { CERTAINTY, CERTAINTY_HELP, GRADE_HELP, type PartialReport } from "@/lib/report";
 import { SEVERITY_SHORT, citeLabel, citeUrl, type Finding } from "@/lib/rules";
 import { short, sortedTasks } from "./ReportView";
@@ -27,6 +28,8 @@ export default function PrintSheet({
   taskDone,
   map,
   lot,
+  office = [],
+  officeMemo,
 }: {
   plan: PlanInput;
   location: string | null;
@@ -37,6 +40,8 @@ export default function PrintSheet({
   taskDone: Record<number, boolean>;
   map?: { lat: number; lon: number } | null;
   lot?: LotInfo | null;
+  office?: OfficeItem[];
+  officeMemo?: Partial<Record<OfficeItem["memo"], string>>;
 }) {
   // Numbered source registry, filled in render order.
   const registry: { label: string; url: string }[] = [];
@@ -184,6 +189,40 @@ export default function PrintSheet({
               </tbody>
             </table>
           )}
+        </section>
+      )}
+
+      {office.length > 0 && (
+        <section className="ps-sec">
+          <h2>役所調査シート（道路・上下水・ガス）</h2>
+          <p className="ps-sub">窓口・市の公開地図で確かめ、結果欄に記入。地図の見込みは推測（国土地理院の道路中心線・道路縁、近くの地価公示地点）。</p>
+          <table>
+            <thead>
+              <tr>
+                <th style={{ width: "18%" }}>窓口</th>
+                <th>聞くこと・見込み</th>
+                <th style={{ width: "34%" }}>結果</th>
+              </tr>
+            </thead>
+            <tbody>
+              {office.map((o) => (
+                <tr key={o.office}>
+                  <th>{o.office}</th>
+                  <td>
+                    {o.questions.map((q) => (
+                      <div key={q}>□ {q}</div>
+                    ))}
+                    {o.hints.map((h) => (
+                      <div key={h} className="ps-sub">
+                        見込み：{h}
+                      </div>
+                    ))}
+                  </td>
+                  <td>{officeMemo?.[o.memo] || ""}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </section>
       )}
 

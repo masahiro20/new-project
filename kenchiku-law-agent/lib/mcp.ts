@@ -10,6 +10,7 @@
 
 import { searchLawbook } from "./lawbook";
 import { salesBrief } from "./salesbrief";
+import { officeCheck } from "./officecheck";
 import { LAWBOOK_LAWS } from "./lawbook-list";
 import { designCheck, designCheckToText } from "./designcheck";
 import { articleToText, resolveLaw } from "./agent";
@@ -343,6 +344,12 @@ export async function landLawCheckTool(args: Json, ctx: Ctx = {}): Promise<strin
     }
   }
   if (site) {
+    out.push("", "## 役所調査（道路・上下水・ガス。公開データでは確定しないので窓口・市の公開地図で確認）");
+    for (const o of officeCheck(plan, site)) {
+      out.push(`- **${o.office}**：${o.questions.join("／")}`);
+      if (o.hints.length) out.push(`  - 見込み（推測）：${o.hints.join("／")}`);
+      out.push(`  - 公開地図を探す：${o.links.map((l) => `[${l.label}](${l.url})`).join("・")}`);
+    }
     out.push("", "## お客様対応メモ（営業・スタッフ向け。よく聞かれる順・専門用語なし）");
     for (const qa of salesBrief(plan, landFacts(plan, site, surveyFromArgs(args)), findings)) out.push(`- **${qa.q}**`, ...qa.a.map((x) => `  - ${x}`));
   }

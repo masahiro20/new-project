@@ -95,7 +95,7 @@ export function distanceToPolygon(lon: number, lat: number, rings: Ring[]): numb
 }
 
 const cache = new Map<string, { at: number; value: unknown }>();
-async function cached<T>(key: string, fn: () => Promise<T>): Promise<T> {
+export async function cached<T>(key: string, fn: () => Promise<T>): Promise<T> {
   const hit = cache.get(key);
   if (hit && Date.now() - hit.at < CACHE_TTL_MS) return hit.value as T;
   const value = await fn();
@@ -103,7 +103,7 @@ async function cached<T>(key: string, fn: () => Promise<T>): Promise<T> {
   return value;
 }
 
-async function fetchWithTimeout(url: string, ms = 12000): Promise<Response> {
+export async function fetchWithTimeout(url: string, ms = 12000): Promise<Response> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), ms);
   try {

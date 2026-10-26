@@ -14,6 +14,7 @@ import type { PlanInput } from "./plan";
 import type { Certainty } from "./report";
 import type { SiteContext } from "./site";
 import { ELEVATION_SOURCE, LANDPRICE_SOURCE } from "./siteextras";
+import { ROAD_SOURCE, roadLine } from "./roads";
 import type { Survey } from "./survey";
 
 export type Tone = "ok" | "info" | "warn" | "danger" | "muted";
@@ -52,7 +53,16 @@ export type LandFact = {
 type Draft = Omit<LandFact, "certainty" | "cites"> & Partial<Pick<LandFact, "certainty" | "cites">>;
 
 /** Optional inputs from the 敷地調査 form (customer side), used when present. */
-export type SurveyFacts = Partial<Pick<Survey, "wallSetback" | "heightDistrict" | "water" | "sewage" | "gas">>;
+export type SurveyFacts = Partial<Pick<Survey, "wallSetback" | "heightDistrict" | "water" | "sewage" | "gas" | "roadNote" | "roadLedgerNote" | "waterNote" | "sewerNote" | "gasNote">>;
+
+/** 役所調査の結果を、該当する項目の補足に足す（入力どおり。窓口で聞いた内容として扱う）。 */
+const NOTE_OF: Record<string, (s: SurveyFacts) => string> = {
+  roadType: (s) => s.roadNote ?? "",
+  road: (s) => [s.roadLedgerNote, s.roadNote].filter(Boolean).join("／"),
+  waterSupply: (s) => s.waterNote ?? "",
+  sewer: (s) => s.sewerNote ?? "",
+  gas: (s) => s.gasNote ?? "",
+};
 
 const KENKIHO = "325AC0000000201";
 const LOW = ["第一種低層住居専用地域", "第二種低層住居専用地域", "田園住居地域"];
@@ -89,7 +99,12 @@ export function heightRules(zoning: PlanInput["zoning"]): { value: string; sub: 
 const layer = (site: SiteContext | null, id: string) => site?.layers.find((l) => l.id === id);
 
 export function landFacts(plan: PlanInput, site: SiteContext | null, survey: SurveyFacts = {}): LandFact[] {
-  return draftFacts(plan, site, survey).map((f) => annotate(f, site));
+  return draftFacts(plan, site, survey)
+    .map((f) => annotate(f, site))
+    .map((f) => {
+      const note = NOTE_OF[f.key]?.(survey).trim();
+      return note ? { ...f, sub: `役所調査：${note}${f.sub ? `。${f.sub}` : ""}` } : f;
+    });
 }
 
 /** Facts in display order, grouped. */
@@ -398,6 +413,7 @@ function draftFacts(plan: PlanInput, site: SiteContext | null, survey: SurveyFac
 
   const rt = plan.roadType;
   const rw = plan.roadWidth;
+  const near = site?.roads?.status === "ok" ? (site.roads.roads[0] ?? null) : null;
   const setback = rt.startsWith("2項") && rw !== null && rw < 4 ? Math.round(((4 - rw) / 2) * 100) / 100 : null;
   facts.push({
     key: "roadType",
@@ -406,7 +422,7 @@ function draftFacts(plan: PlanInput, site: SiteContext | null, survey: SurveyFac
     value: rt === "不明" ? "未確認" : rt,
     sub:
       rt === "不明"
-        ? "指定道路図・道路台帳（建築指導課・道路管理課）で確認"
+        ? `${near ? `地図上は${near.direction === "敷地上" ? "" : `${near.direction}側に`}${near.kind}（推測）。` : ""}建築基準法上の道路か（42条の項・号）は指定道路図・道路台帳（建築指導課・道路管理課）で確認`
         : rt.startsWith("道路に該当しない")
           ? "接道義務（幅員4m以上の道路に2m以上）を満たさず原則建築不可。43条2項の許可・認定を確認"
           : rt.startsWith("2項")
@@ -422,22 +438,41 @@ function draftFacts(plan: PlanInput, site: SiteContext | null, survey: SurveyFac
 
   const road = rw !== null || plan.frontage !== null ? `幅員${rw ?? "?"}m・接道${plan.frontage ?? "?"}m` : "未確認";
   const roadBad = (plan.frontage !== null && plan.frontage < 2) || (rw !== null && rw < 4);
-  facts.push({
-    key: "road",
-    group: "must",
-    label: "幅員・接道長さ",
-    value: road,
-    sub: roadBad
-      ? "接道2m未満か幅員4m未満。セットバックや43条の許可を確認"
-      : road === "未確認"
-        ? "現地で計測するか道路台帳で確認"
-        : rw !== null && rw < 12
-          ? "幅員12m未満なので容積率に道路幅員の制限がかかる"
-          : undefined,
-    tone: roadBad ? "danger" : road === "未確認" ? "muted" : "info",
-    source: road === "未確認" ? "要確認" : "入力値",
-    ask: "現地調査・道路管理課",
-  });
+  const roads = site?.roads?.status === "ok" ? site.roads : null;
+  if (road === "未確認" && roads && site?.precise !== false) {
+    // No measured width yet: show the map's estimate, clearly as 推測.
+    const narrow = roads.roads.some((r) => r.rankWidth === "3m未満");
+    facts.push({
+      key: "road",
+      group: "must",
+      label: "幅員・接道長さ",
+      value: near ? `地図上：${near.rankWidth ? `幅 ${near.rankWidth}` : near.kind}${near.edgeWidthM !== null ? `（道路縁の間 約${near.edgeWidthM}m）` : ""}` : "近くに道路の表示なし",
+      sub: near
+        ? `${roads.roads.map(roadLine).join("／")}。地図の道路縁から読んだ見込みで、認定幅員・境界・側溝の扱いは道路台帳と現地計測で確認${narrow ? "。幅3m未満の道があり、2項道路（セットバック）の可能性" : ""}`
+        : `半径${roads.radius}m以内に地図上の道路がありません。旗竿地・通路・私道の可能性があるので、接道を必ず確認`,
+      tone: !near || narrow ? "warn" : "info",
+      source: "国の公開データ",
+      certainty: "推測",
+      cites: [{ label: ROAD_SOURCE.label, url: ROAD_SOURCE.url }],
+      ask: "現地調査・道路管理課",
+    });
+  } else
+    facts.push({
+      key: "road",
+      group: "must",
+      label: "幅員・接道長さ",
+      value: road,
+      sub: roadBad
+        ? "接道2m未満か幅員4m未満。セットバックや43条の許可を確認"
+        : road === "未確認"
+          ? "現地で計測するか道路台帳で確認"
+          : rw !== null && rw < 12
+            ? "幅員12m未満なので容積率に道路幅員の制限がかかる"
+            : undefined,
+      tone: roadBad ? "danger" : road === "未確認" ? "muted" : "info",
+      source: road === "未確認" ? "要確認" : "入力値",
+      ask: "現地調査・道路管理課",
+    });
 
   const fc = fireClass(plan);
   facts.push({

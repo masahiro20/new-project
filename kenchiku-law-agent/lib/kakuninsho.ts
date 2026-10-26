@@ -18,7 +18,7 @@ import { resolveSheet, sheetSourceLine, type AiSheet, type ResolvedSheet } from 
 import type { SiteContext } from "./site";
 import { KAKUNINSHO_TEMPLATE_B64 } from "./templates/kakuninsho-v1-2";
 
-import { surveySchema, type Survey } from "./survey";
+import { officeNotesText, surveySchema, type Survey } from "./survey";
 
 export { EMPTY_SURVEY, surveySchema, type Survey } from "./survey";
 
@@ -71,11 +71,11 @@ const ZONE_SHORT = (z: PlanInput["zoning"]) => (z === "不明" ? "" : z === "用
 
 
 /** 備考: 結論と、見落とすと困る論点。AIの回答があればそれを、なければ自動判定を使う。 */
-export function remarks(plan: PlanInput, report: PartialReport | null | undefined, date: string, sheet: ResolvedSheet = {}, ratioSource?: { label: string }): string {
+export function remarks(plan: PlanInput, report: PartialReport | null | undefined, date: string, sheet: ResolvedSheet = {}, ratioSource?: { label: string }, office = ""): string {
   const head = `【建築法令エージェント ${date}】`;
   const src = sheetSourceLine(sheet);
   const ratio = ratioSource ? `建蔽率・容積率は${ratioSource.label}による。` : "";
-  const tail = `${src ? `${src}。` : ""}${ratio}用途地域等は国のデータ（住所の代表点）による。都市計画図・窓口で確認のこと。詳細は法令チェック表（PDF）。`;
+  const tail = `${office ? `役所調査：${office}。` : ""}${src ? `${src}。` : ""}${ratio}用途地域等は国のデータ（住所の代表点）による。都市計画図・窓口で確認のこと。詳細は法令チェック表（PDF）。`;
   if (report?.summary?.verdict) {
     const risks = (report.summary.topRisks ?? []).slice(0, 3).map((r, i) => `${"①②③"[i]}${r}`);
     return [`${head}${report.summary.verdict}。`, ...risks, tail].join("\n");
@@ -136,7 +136,18 @@ export function buildKakuninsho({ survey, plan, site, report, sheet: aiSheet, to
     G23: v("road2Gou"),
     D24: v("road2Direction"),
     H24: num("road2Width"),
-    B50: remarks(plan, report, date, r, site?.derived.ratioSource),
+    B50: remarks(
+      plan,
+      report,
+      date,
+      r,
+      site?.derived.ratioSource,
+      officeNotesText(survey)
+        .split("\n")
+        .slice(1)
+        .map((l) => l.replace(/^- /, ""))
+        .join("／"),
+    ),
   };
   for (const [ref, v] of Object.entries(values)) sheet = setCell(sheet, ref, v);
   // 備考 holds several lines: wrap it top-left and give its two rows room.

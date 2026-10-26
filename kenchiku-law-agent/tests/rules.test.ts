@@ -750,3 +750,26 @@ test("お客様対応メモ：大きさの目安と、時間のかかる手続�
   assert.doesNotMatch(slow, /接道義務/);
   assert.match(qa.find((x) => x.q.includes("費用"))!.a.join(""), /防火設備/);
 });
+
+test("道路の見込み：中心線と道路縁から、方位・種類・幅を読む", async () => {
+  const { analyzeRoads, roadLine } = await import("../lib/roads");
+  // 東西に走る道路（中心線 y=-6、道路縁 y=-8 と y=-4）が敷地の南に
+  const cl = [{ coords: [[-50, -6], [50, -6]] as [number, number][], props: { vt_rdctg: "市区町村道等", vt_rnkwidth: "3m-5.5m未満" } }];
+  const edges = [[[-50, -8], [50, -8]], [[-50, -4], [50, -4]]] as [number, number][][];
+  const r = analyzeRoads(cl, edges);
+  assert.equal(r.length, 1);
+  assert.equal(r[0].direction, "南");
+  assert.equal(r[0].edgeWidthM, 4);
+  assert.match(roadLine(r[0]), /南側 約6m先・市区町村道等・幅の区分 3m-5.5m未満・道路縁の間 約4m/);
+});
+
+test("役所調査シート：市区町村名と窓口ごとの質問", async () => {
+  const { cityOf, officeCheck } = await import("../lib/officecheck");
+  assert.deepEqual(cityOf("愛知県小牧市小牧4-213"), { pref: "愛知県", city: "小牧市", ward: "" });
+  assert.deepEqual(cityOf("愛知県名古屋市中村区名駅1-1"), { pref: "愛知県", city: "名古屋市", ward: "中村区" });
+  assert.deepEqual(cityOf("愛知県丹羽郡大口町下小口1"), { pref: "愛知県", city: "丹羽郡大口町", ward: "" });
+  const items = officeCheck(plan({ address: "愛知県小牧市小牧4-213" }), null);
+  assert.equal(items.length, 5);
+  assert.match(items[0].links[0].url, /%E5%B0%8F%E7%89%A7%E5%B8%82/);
+  assert.ok(items.find((i) => i.office.includes("（下水）"))!.questions.some((q) => q.includes("公共桝")));
+});

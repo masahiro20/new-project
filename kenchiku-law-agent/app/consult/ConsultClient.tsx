@@ -13,9 +13,12 @@ import Attachments, { type Attachment } from "./Attachments";
 import LandSheet from "./LandSheet";
 import SiteProgress from "./SiteProgress";
 import DesignCheckView from "./DesignCheckView";
+import OfficeCheckView from "./OfficeCheckView";
+import { officeCheck } from "@/lib/officecheck";
 import ViewSwitch, { VIEW_KEY, type ViewMode } from "./ViewSwitch";
 import SalesBriefView from "./SalesBriefView";
 import { salesBrief } from "@/lib/salesbrief";
+import { officeNotesText } from "@/lib/survey";
 import { designCheck } from "@/lib/designcheck";
 import { landFacts, type SurveyFacts } from "@/lib/landsummary";
 import { reportToMarkdown, tasksToCsv, type PartialReport } from "@/lib/report";
@@ -217,8 +220,19 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
   // 敷地調査・お客様情報（この端末にだけ保存）。上下水・ガス・壁面後退・高度地区は土地情報まとめにも反映する。
   const [survey, setSurveyField] = useSurvey(plan.address);
   const surveyFacts = useMemo<SurveyFacts>(
-    () => ({ wallSetback: survey.wallSetback, heightDistrict: survey.heightDistrict, water: survey.water, sewage: survey.sewage, gas: survey.gas }),
-    [survey.wallSetback, survey.heightDistrict, survey.water, survey.sewage, survey.gas],
+    () => ({
+      wallSetback: survey.wallSetback,
+      heightDistrict: survey.heightDistrict,
+      water: survey.water,
+      sewage: survey.sewage,
+      gas: survey.gas,
+      roadNote: survey.roadNote,
+      roadLedgerNote: survey.roadLedgerNote,
+      waterNote: survey.waterNote,
+      sewerNote: survey.sewerNote,
+      gasNote: survey.gasNote,
+    }),
+    [survey],
   );
   const suggestedLot = (() => {
     const k = lotInfo?.kozu;
@@ -448,6 +462,8 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
         headers: headers(),
         body: JSON.stringify({
           ...plan,
+          // 役所調査の結果（道路・上下水・ガス）は顧客情報ではないので AI に渡す。
+          landInfo: [plan.landInfo, officeNotesText(survey)].filter(Boolean).join("\n\n").slice(0, 6000),
           documents: attachments.map(({ name, mediaType, data }) => ({
             name,
             mediaType,
@@ -573,6 +589,7 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
   }
 
   const design = useMemo(() => designCheck(effective), [effective]);
+  const officeItems = useMemo(() => officeCheck(effective, site), [effective, site]);
   const facts = useMemo(() => (site ? landFacts(effective, site, surveyFacts) : []), [effective, site, surveyFacts]);
   const sourceCounts = useMemo(() => sources.reduce<Record<string, number>>((acc, x) => ({ ...acc, [x.tier]: (acc[x.tier] ?? 0) + 1 }), {}), [sources]);
   const elapsed = startedAt && busy ? Math.max(0, Math.round((now - startedAt) / 1000)) : 0;
@@ -584,7 +601,7 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
     .split(/\n+/)
     .map((l) => l.trim().replace(/^(?:[-・*]|\d+[.、)）])\s*/, ""))
     .filter(Boolean);
-  const runKey = JSON.stringify([plan.description.trim(), askLines, attachments.map((a) => a.name), plan.address.trim()]);
+  const runKey = JSON.stringify([plan.description.trim(), askLines, attachments.map((a) => a.name), plan.address.trim(), officeNotesText(survey)]);
   const stale = Boolean(report && !busy && ranWith && ranWith !== runKey);
   const descScale = scaleFromDescription(plan.description);
   const readScale =
@@ -600,11 +617,12 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
   const rail: RailItem[] = [
     { id: "s-input", no: "01", label: "計画を入れる", ready: true },
     { id: "s-land", no: "02", label: "土地情報まとめ", ready: Boolean(site || siteBusy || siteError), note: siteBusy ? "読込中" : undefined },
-    { id: "s-maps", no: "03", label: "案内図・公図", ready: hasMap },
-    { id: "s-issues", no: "04", label: "法令の論点", hidden: !forDesign, ready: findings.length > 0, note: findings.length ? String(split.specific.length + split.checks.length) : undefined },
-    { id: "s-design", no: "05", label: "設計条件（設計者向け）", hidden: !forDesign, ready: findings.length > 0, note: findings.length ? String(design.items.filter((i) => i.verdict === "該当").length) : undefined },
-    { id: "s-result", no: "06", label: "AIの詳しいチェック", ready: true, note: busy ? "実行中" : report ? "済" : undefined },
-    { id: "s-docs", no: "07", label: "書類を作る", ready: hasSite },
+    { id: "s-office", no: "03", label: "役所調査（道路・上下水）", ready: Boolean(site && !siteBusy), note: site ? `${officeItems.filter((i) => String(survey[i.memo] ?? "").trim()).length}/${officeItems.length}` : undefined },
+    { id: "s-maps", no: "04", label: "案内図・公図", ready: hasMap },
+    { id: "s-issues", no: "05", label: "法令の論点", hidden: !forDesign, ready: findings.length > 0, note: findings.length ? String(split.specific.length + split.checks.length) : undefined },
+    { id: "s-design", no: "06", label: "設計条件（設計者向け）", hidden: !forDesign, ready: findings.length > 0, note: findings.length ? String(design.items.filter((i) => i.verdict === "該当").length) : undefined },
+    { id: "s-result", no: "07", label: "AIの詳しいチェック", ready: true, note: busy ? "実行中" : report ? "済" : undefined },
+    { id: "s-docs", no: "08", label: "書類を作る", ready: hasSite },
   ];
 
   const runControls = (
@@ -872,14 +890,14 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
                       <dt>
                         <span className="flow-tag flow-now">すぐ反映</span>
                       </dt>
-                      <dd>何を建てたいか・分かれば入れる → 04 法令の論点・05 設計条件</dd>
+                      <dd>何を建てたいか・分かれば入れる → 05 法令の論点・06 設計条件</dd>
                     </div>
                     <div>
                       <dt>
                         <span className="flow-tag flow-ai">ボタンで反映</span>
                       </dt>
                       <dd>
-                        AIに見てほしいこと・土地の資料 → 06「AIで詳しくチェック」を押したとき
+                        AIに見てほしいこと・土地の資料・03 役所調査の結果 → 07「AIで詳しくチェック」を押したとき
                         <button type="button" className="linkbtn" onClick={() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}>
                           AIのチェックへ ↓
                         </button>
@@ -889,7 +907,7 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
                       <dt>
                         <span className="flow-tag flow-doc">書類に反映</span>
                       </dt>
-                      <dd>お客様情報 → 07 法令制限確認書（Excel）</dd>
+                      <dd>お客様情報 → 08 法令制限確認書（Excel）</dd>
                     </div>
                   </dl>
                   <div className="input-foot">
@@ -949,8 +967,14 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
             </Section>
           )}
 
+          {site && !siteBusy && (
+            <Section id="s-office" no="03" title="役所調査（道路・上下水・ガス）" lead="接道・幅員・引込みは窓口と市の公開地図で確定します。聞くことと、地図からの見込みをまとめました。">
+              <OfficeCheckView items={officeItems} survey={survey} set={setSurveyField} />
+            </Section>
+          )}
+
           {hasMap && site && site.lat !== null && site.lon !== null && (
-            <Section id="s-maps" no="03" title="案内図・公図" lead="国土地理院の地図と、法務省の登記所備付地図データ。">
+            <Section id="s-maps" no="04" title="案内図・公図" lead="国土地理院の地図と、法務省の登記所備付地図データ。">
               <div className="plates">
                 <SiteMap lat={site.lat} lon={site.lon} label={plan.address} />
                 <LotCard address={plan.address} lat={site.lat} lon={site.lon} accessKey={accessKey} onInfo={setLotInfo} />
@@ -974,7 +998,7 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
             </div>
           )}
           {findings.length > 0 && forDesign && (
-            <Section id="s-issues" no="04" title="法令の論点（自動判定）" lead="土地情報と入力を、条文照合済みのルールに当てはめた即時の判定です（AIは使っていません）。">
+            <Section id="s-issues" no="05" title="法令の論点（自動判定）" lead="土地情報と入力を、条文照合済みのルールに当てはめた即時の判定です（AIは使っていません）。">
               <div className="issues">
                 <div className="issues-counts">
                   <div>
@@ -1041,7 +1065,7 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
             </Section>
           )}
           {findings.length > 0 && forDesign && (
-            <Section id="s-design" no="05" title="設計条件チェック（設計者向け）" lead="防火・構造・省エネ・内装・敷地条件を、階数・延べ面積・構造・防火指定と条文で照合した結果です（AIは使っていません）。">
+            <Section id="s-design" no="06" title="設計条件チェック（設計者向け）" lead="防火・構造・省エネ・内装・敷地条件を、階数・延べ面積・構造・防火指定と条文で照合した結果です（AIは使っていません）。">
               <DesignCheckView check={design} />
             </Section>
           )}
@@ -1049,7 +1073,7 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
           <div ref={resultRef} style={{ scrollMarginTop: 80 }}>
             <Section
               id="s-result"
-              no="06"
+              no="07"
               title="AIの詳しいチェック"
               lead="条文（e-Gov）と自治体の公式資料を確かめ、結論・見落とし・設計・事前協議・タスクを出典付きでまとめます。"
               aside={
@@ -1093,8 +1117,12 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
                       <dd>{attachments.length ? `${attachments.length}件（AIが読み取ります）` : <span className="hint">なし（任意）</span>}</dd>
                     </div>
                     <div>
+                      <dt>役所調査の結果</dt>
+                      <dd>{officeItems.filter((i) => String(survey[i.memo] ?? "").trim()).length ? `${officeItems.filter((i) => String(survey[i.memo] ?? "").trim()).length}件（道路・上下水など）` : <span className="hint">未記入（03で書くと反映）</span>}</dd>
+                    </div>
+                    <div>
                       <dt>土地情報・法令の論点</dt>
-                      <dd>{site ? "読み込み済み（上の02〜05をそのまま渡します）" : <span className="hint">住所を調べると一緒に渡します</span>}</dd>
+                      <dd>{site ? "読み込み済み（上の02〜06をそのまま渡します）" : <span className="hint">住所を調べると一緒に渡します</span>}</dd>
                     </div>
                   </dl>
                   <p className="hint">ボタンを押した時点の入力で調べます。お客様情報はAIに送りません（Excelだけに使います）。</p>
@@ -1165,7 +1193,7 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
           </div>
 
           {hasSite && (
-            <Section id="s-docs" no="07" title="書類を作る" lead="社内で使う形式で、そのまま保存できます。">
+            <Section id="s-docs" no="08" title="書類を作る" lead="社内で使う形式で、そのまま保存できます。">
               <ul className="docs">
                 <li>
                   <div>
@@ -1206,6 +1234,8 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
         taskDone={taskDone}
         map={site && site.lat !== null && site.lon !== null ? { lat: site.lat, lon: site.lon } : null}
         lot={lotInfo}
+        office={site ? officeItems : []}
+        officeMemo={survey}
       />
     </>
   );

@@ -8,6 +8,7 @@ import { EMPTY_SIGNALS, HAZARDS, withDescriptionScale, type PlanInput, type Sign
 import { FUDE_SOURCE, GSI_VT_SOURCE, lookupFarmland, lookupWater, type FarmlandResult, type WaterResult } from "./nearby";
 import { ELEVATION_SOURCE, LANDPRICE_SOURCE, lookupElevation, lookupLandPrices, type Elevation, type LandPriceResult } from "./siteextras";
 import { unzonedRatio } from "./unzoned";
+import { ROAD_SOURCE, lookupRoads, roadLine, type RoadResult } from "./roads";
 
 export { FUDE_SOURCE, GSI_VT_SOURCE };
 
@@ -49,6 +50,8 @@ export type SiteContext = {
   landPrices?: LandPriceResult | null;
   /** 地点の標高（国土地理院）。 */
   elevation?: Elevation;
+  /** まわりの道路（国土地理院の道路中心線・道路縁からの見込み）。 */
+  roads?: RoadResult | null;
   derived: {
     signals: Signals;
     areaDivision?: PlanInput["areaDivision"];
@@ -143,6 +146,7 @@ export const SITE_STEPS = [
   { id: "hazard", label: "災害（洪水・高潮・津波・土砂・液状化）", source: "国土数値情報" },
   { id: "farm", label: "農地の区画", source: "農林水産省" },
   { id: "water", label: "川・水路", source: "国土地理院" },
+  { id: "road", label: "まわりの道路（種別・幅の区分）", source: "国土地理院" },
   { id: "area", label: "学区・近隣の地価・標高", source: "国土交通省・国土地理院" },
 ] as const;
 export type SiteStepId = (typeof SITE_STEPS)[number]["id"];
@@ -247,7 +251,7 @@ export async function lookupSite(address: string, onStep?: (id: SiteStepId) => v
     return cached.value;
   }
   // Each group is reported once, when its last source has answered.
-  const left: Record<SiteStepId, number> = { geo: 1, plan: 0, hazard: 0, farm: 1, water: 1, area: 2 };
+  const left: Record<SiteStepId, number> = { geo: 1, plan: 0, hazard: 0, farm: 1, water: 1, road: 1, area: 2 };
   for (const l of LAYERS) left[stepOfLayer(l.id)]++;
   const tick = (id: SiteStepId) => {
     left[id]--;
@@ -291,6 +295,7 @@ export async function lookupSite(address: string, onStep?: (id: SiteStepId) => v
 
   const key = process.env.REINFOLIB_API_KEY;
   const nearbyPromise = Promise.all([lookupFarmland(best.lat, best.lon).finally(() => tick("farm")), lookupWater(best.lat, best.lon).finally(() => tick("water"))]);
+  const roadsPromise = lookupRoads(best.lat, best.lon).finally(() => tick("road"));
   const extrasPromise = Promise.all([
     lookupLandPrices(best.lat, best.lon, process.env.REINFOLIB_API_KEY).finally(() => tick("area")),
     lookupElevation(best.lat, best.lon).finally(() => tick("area")),
@@ -301,6 +306,7 @@ export async function lookupSite(address: string, onStep?: (id: SiteStepId) => v
     for (const l of LAYERS) tick(stepOfLayer(l.id));
     [ctx.farmland, ctx.water] = await nearbyPromise;
     [ctx.landPrices, ctx.elevation] = await extrasPromise;
+    ctx.roads = await roadsPromise;
     derive(ctx);
     siteCache.set(trimmed, { at: Date.now(), value: ctx });
     return ctx;
@@ -342,6 +348,7 @@ export async function lookupSite(address: string, onStep?: (id: SiteStepId) => v
 
   [ctx.farmland, ctx.water] = await nearbyPromise;
   [ctx.landPrices, ctx.elevation] = await extrasPromise;
+  ctx.roads = await roadsPromise;
   derive(ctx);
   siteCache.set(trimmed, { at: Date.now(), value: ctx });
   return ctx;
@@ -521,6 +528,15 @@ export function siteToText(site: SiteContext | null): string {
     const src = `出典：${GSI_VT_SOURCE.label} ${GSI_VT_SOURCE.url}`;
     if (w.status === "error") lines.push(`- 川・水路（地理院地図）：取得エラー（${w.error ?? ""}）`);
     else lines.push(`- 川・水路（地理院地図）：${w.insideWater ? "地点が水面の中" : w.nearestMeters !== null ? `最寄りの${w.nearestKind}まで約${w.nearestMeters}m` : `半径${w.radius}m以内に表示なし`}　${src}`);
+  }
+  const rd = site.roads;
+  if (rd) {
+    const src = `出典：${ROAD_SOURCE.label} ${ROAD_SOURCE.url}`;
+    if (rd.status === "error") lines.push(`- まわりの道路（地理院地図）：取得エラー（${rd.error ?? ""}）`);
+    else
+      lines.push(
+        `- まわりの道路（地理院地図の道路中心線・道路縁。建築基準法上の道路か・認定幅員・境界は分からない＝推測）：${rd.roads.length ? rd.roads.map(roadLine).join("／") : `半径${rd.radius}m以内に道路の表示なし（接道を要確認）`}　${src}`,
+      );
   }
   if (site.derived.signals.floodRivers.length) lines.push(`- 浸水想定の対象河川（近くの川の名前の手がかり）：${site.derived.signals.floodRivers.join("、")}`);
   lines.push("- 注：地点はジオコーディングの代表点で、敷地の形・境界は反映していません。距離は数m〜十数mの誤差を含みます。");
