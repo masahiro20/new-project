@@ -15,6 +15,7 @@ import type { Certainty } from "./report";
 import type { SiteContext } from "./site";
 import { ELEVATION_SOURCE, LANDPRICE_SOURCE } from "./siteextras";
 import { ROAD_SOURCE, roadLine } from "./roads";
+import { frontageLine, type Frontage } from "./frontage";
 import type { Survey } from "./survey";
 
 export type Tone = "ok" | "info" | "warn" | "danger" | "muted";
@@ -53,7 +54,10 @@ export type LandFact = {
 type Draft = Omit<LandFact, "certainty" | "cites"> & Partial<Pick<LandFact, "certainty" | "cites">>;
 
 /** Optional inputs from the 敷地調査 form (customer side), used when present. */
-export type SurveyFacts = Partial<Pick<Survey, "wallSetback" | "heightDistrict" | "water" | "sewage" | "gas" | "roadNote" | "roadLedgerNote" | "waterNote" | "sewerNote" | "gasNote">>;
+export type SurveyFacts = Partial<Pick<Survey, "wallSetback" | "heightDistrict" | "water" | "sewage" | "gas" | "roadNote" | "roadLedgerNote" | "waterNote" | "sewerNote" | "gasNote">> & {
+  /** 筆の形と道路縁から測った接道の見込み（公図・地番図が引けたとき）。 */
+  frontage?: Frontage | null;
+};
 
 /** 役所調査の結果を、該当する項目の補足に足す（入力どおり。窓口で聞いた内容として扱う）。 */
 const NOTE_OF: Record<string, (s: SurveyFacts) => string> = {
@@ -439,21 +443,33 @@ function draftFacts(plan: PlanInput, site: SiteContext | null, survey: SurveyFac
   const road = rw !== null || plan.frontage !== null ? `幅員${rw ?? "?"}m・接道${plan.frontage ?? "?"}m` : "未確認";
   const roadBad = (plan.frontage !== null && plan.frontage < 2) || (rw !== null && rw < 4);
   const roads = site?.roads?.status === "ok" ? site.roads : null;
-  if (road === "未確認" && roads && site?.precise !== false) {
+  const fr = survey.frontage?.status === "ok" ? survey.frontage : null;
+  if (road === "未確認" && (roads || fr) && site?.precise !== false) {
     // No measured width yet: show the map's estimate, clearly as 推測.
-    const narrow = roads.roads.some((r) => r.rankWidth === "3m未満");
+    const narrow = (roads?.roads ?? []).some((r) => r.rankWidth === "3m未満") || (fr?.sides ?? []).some((s) => s.rankWidth === "3m未満");
+    const short = fr !== null && fr.totalM < 2;
     facts.push({
       key: "road",
       group: "must",
       label: "幅員・接道長さ",
-      value: near ? `地図上：${near.rankWidth ? `幅 ${near.rankWidth}` : near.kind}${near.edgeWidthM !== null ? `（道路縁の間 約${near.edgeWidthM}m）` : ""}` : "近くに道路の表示なし",
-      sub: near
-        ? `${roads.roads.map(roadLine).join("／")}。地図の道路縁から読んだ見込みで、認定幅員・境界・側溝の扱いは道路台帳と現地計測で確認${narrow ? "。幅3m未満の道があり、2項道路（セットバック）の可能性" : ""}`
-        : `半径${roads.radius}m以内に地図上の道路がありません。旗竿地・通路・私道の可能性があるので、接道を必ず確認`,
-      tone: !near || narrow ? "warn" : "info",
+      value: fr?.sides.length
+        ? `地図上：接道 約${fr.totalM}m（${fr.sides.map((s) => `${s.direction}側${s.rankWidth ? ` 幅${s.rankWidth}` : ""}`).join("・")}）`
+        : near
+          ? `地図上：${near.rankWidth ? `幅 ${near.rankWidth}` : near.kind}${near.edgeWidthM !== null ? `（道路縁の間 約${near.edgeWidthM}m）` : ""}`
+          : "近くに道路の表示なし",
+      sub: [
+        fr ? `公図と道路縁から：${frontageLine(fr)}` : "",
+        near ? `まわりの道路：${(roads?.roads ?? []).map(roadLine).join("／")}` : roads ? `半径${roads.radius}m以内に地図上の道路がありません。旗竿地・通路・私道の可能性があるので、接道を必ず確認` : "",
+        "地図から読んだ見込みで、認定幅員・境界・側溝・2項道路の後退は道路台帳と現地計測で確認",
+        short ? "地図上の接道が2m未満。旗竿地の路地幅・接道義務（法43条）を必ず確認" : "",
+        narrow ? "幅3m未満の道があり、2項道路（セットバック）の可能性" : "",
+      ]
+        .filter(Boolean)
+        .join("。"),
+      tone: short ? "danger" : !near && !fr?.sides.length ? "warn" : narrow ? "warn" : "info",
       source: "国の公開データ",
       certainty: "推測",
-      cites: [{ label: ROAD_SOURCE.label, url: ROAD_SOURCE.url }],
+      cites: [{ label: ROAD_SOURCE.label, url: ROAD_SOURCE.url }, ...(fr ? [{ label: "法務省 登記所備付地図データ（G空間情報センター）", url: "https://front.geospatial.jp/moj-chizu-xml-download/" }] : [])],
       ask: "現地調査・道路管理課",
     });
   } else

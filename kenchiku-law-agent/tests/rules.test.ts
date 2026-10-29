@@ -773,3 +773,18 @@ test("役所調査シート：市区町村名と窓口ごとの質問", async ()
   assert.match(items[0].links[0].url, /%E5%B0%8F%E7%89%A7%E5%B8%82/);
   assert.ok(items.find((i) => i.office.includes("（下水）"))!.questions.some((q) => q.includes("公共桝")));
 });
+
+test("接道の見込み：筆の境界のうち道路縁に沿う部分の長さと方位", async () => {
+  const { measureFrontage } = await import("../lib/frontage");
+  // 間口10m・奥行15mの敷地。南側に幅4mの道路（道路縁 y=0 と y=-4、中心線 y=-2）
+  const ring: [number, number][] = [[0, 0], [10, 0], [10, 15], [0, 15], [0, 0]];
+  const cl = [{ coords: [[-30, -2], [40, -2]] as [number, number][], props: { vt_rdctg: "市区町村道等", vt_rnkwidth: "3m-5.5m未満" } }];
+  const edges = [[[-30, 0], [40, 0]], [[-30, -4], [40, -4]]] as [number, number][][];
+  const f = measureFrontage(ring, cl, edges);
+  assert.equal(f.sides.length, 1);
+  assert.equal(f.sides[0].direction, "南");
+  assert.equal(f.totalM, 10);
+  // 道路から離れた旗竿でない敷地の奥（北側）は数えない
+  const far = measureFrontage([[0, 20], [10, 20], [10, 35], [0, 35], [0, 20]], cl, edges);
+  assert.equal(far.totalM, 0);
+});

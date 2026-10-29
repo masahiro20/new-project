@@ -2,6 +2,7 @@ import { checkAccess } from "@/lib/access";
 import { lookupChiban, municipality, type ChibanResult } from "@/lib/chiban";
 import { lookupKozu, splitChiban, type KozuResult } from "@/lib/kozu";
 import { allow, clientIp } from "@/lib/ratelimit";
+import { frontageForLot, type LotFrontage } from "@/lib/lotfrontage";
 
 // GET /api/lot?address=…&lat=…&lon=…
 // 公図（住所の地番で登記所備付地図を引く）を優先し、地番が無い・見つからないときは
@@ -24,5 +25,13 @@ export async function GET(request: Request) {
     console.error("lot: municipality failed", e);
   }
   if (kozu?.status !== "ok") chiban = await lookupChiban(lat, lon);
-  return Response.json({ kozu, chiban }, { headers: { "Cache-Control": "private, max-age=3600" } });
+
+  // 接道の見込み：筆の形（緯度経度）が分かるときだけ。
+  let frontage: LotFrontage | null = null;
+  try {
+    frontage = await frontageForLot(lat, lon, kozu, chiban);
+  } catch (e) {
+    console.error("lot: frontage failed", e);
+  }
+  return Response.json({ kozu, chiban, frontage }, { headers: { "Cache-Control": "private, max-age=3600" } });
 }

@@ -231,8 +231,9 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
       waterNote: survey.waterNote,
       sewerNote: survey.sewerNote,
       gasNote: survey.gasNote,
+      frontage: lotInfo?.frontage ?? null,
     }),
-    [survey],
+    [survey, lotInfo],
   );
   const suggestedLot = (() => {
     const k = lotInfo?.kozu;

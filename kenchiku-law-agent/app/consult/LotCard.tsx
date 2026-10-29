@@ -1,10 +1,11 @@
 "use client";
 
+import { frontageLine, type Frontage } from "@/lib/frontage";
 import { useEffect, useState } from "react";
 import type { ChibanResult } from "@/lib/chiban";
 import type { KozuResult } from "@/lib/kozu";
 
-export type LotInfo = { kozu: KozuResult | null; chiban: ChibanResult | null };
+export type LotInfo = { kozu: KozuResult | null; chiban: ChibanResult | null; frontage?: (Frontage & { lot: string }) | null };
 
 const LINKS = [
   { label: "登記情報提供サービス", sub: "地目・地積・所有者（全部事項）と公図をPDFで。1件300円台", url: "https://www1.touki.or.jp/" },
@@ -160,6 +161,15 @@ export default function LotCard({ address, lat, lon, accessKey, onInfo }: { addr
           <>
             <dt>地番</dt>
             <dd>公共座標の地図から代表点で推定</dd>
+          </>
+        )}
+        {info?.frontage && (
+          <>
+            <dt>接道（地図上）</dt>
+            <dd>
+              {frontageLine(info.frontage)} <span className="cert cert-推測">推測</span>
+              <small>筆の形（登記所備付地図）と道路縁（国土地理院）を重ねた見込み。2項道路の後退・隅切り・水路は反映していません。</small>
+            </dd>
           </>
         )}
         <dt>地目・地積・所有者</dt>

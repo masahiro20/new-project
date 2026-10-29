@@ -8,6 +8,8 @@
 // map data for the address, rule checks whose citations were verified against
 // e-Gov, the live statute text, and a guide to what each document must yield.
 
+import { frontageForLot } from "./lotfrontage";
+import { frontageLine } from "./frontage";
 import { searchLawbook } from "./lawbook";
 import { salesBrief } from "./salesbrief";
 import { officeCheck } from "./officecheck";
@@ -23,8 +25,8 @@ import { BUILDING_USES, EXTRAS, LAND_CATEGORIES, ROAD_TYPES, STRUCTURES, WORK_TY
 import { CERTAINTY, CERTAINTY_HELP, CHECKLIST_ITEMS } from "./report";
 import { surveySchema } from "./kakuninsho";
 import { seal } from "./sealed";
-import { CHIBAN_SOURCE, chibanText, lookupChiban, municipality } from "./chiban";
-import { KOZU_SOURCE, kozuText, lookupKozu, splitChiban } from "./kozu";
+import { CHIBAN_SOURCE, chibanText, lookupChiban, municipality, type ChibanResult } from "./chiban";
+import { KOZU_SOURCE, kozuText, lookupKozu, splitChiban, type KozuResult } from "./kozu";
 import { SEVERITY_SHORT, citeLabel, citeUrl, groupByAgency, groupByStage, runRules, splitFindings } from "./rules";
 import { FUDE_SOURCE, GSI_VT_SOURCE, lookupSite, mergeSiteIntoPlan, type SiteContext } from "./site";
 
@@ -274,10 +276,13 @@ async function chibanSection(site: SiteContext | null, address = ""): Promise<st
   if (!site || site.lat === null || site.lon === null) return [];
   const lines = ["", "## 公図（登記所備付地図データ）"];
   let done = false;
+  let kozu: KozuResult | null = null;
+  let chiban: ChibanResult | null = null;
   try {
     const muni = await municipality(site.lat, site.lon);
     if (muni && splitChiban(address)) {
       const k = await lookupKozu(address, muni.muniCd);
+      kozu = k;
       lines.push(`- ${kozuText(k)}`);
       if (k.status === "ok") {
         const roads = k.lots.filter((l) => !l.main && /^(道|水|里|堤|溝)/.test(l.chiban)).map((l) => l.chiban);
@@ -292,7 +297,14 @@ async function chibanSection(site: SiteContext | null, address = ""): Promise<st
   }
   if (!done) {
     const r = await lookupChiban(site.lat, site.lon);
+    chiban = r;
     lines.push(`- ${chibanText(r)}`, `- 出典：${CHIBAN_SOURCE.label} ${r.dataset?.page ?? CHIBAN_SOURCE.url}`);
+  }
+  try {
+    const f = await frontageForLot(site.lat, site.lon, kozu, chiban);
+    if (f) lines.push(`- 接道の見込み（${f.lot}の形と国土地理院の道路縁を重ねた推測。2項道路の後退・隅切り・水路は未反映）：${frontageLine(f)}`);
+  } catch (e) {
+    console.error("frontage in mcp failed", e);
   }
   lines.push("- 地目・地積・所有者は登記簿にしかありません：登記情報提供サービス https://www1.touki.or.jp/ （全部事項・公図とも1件300円台）。農地なら eMAFF農地ナビ https://map.maff.go.jp/ で地番・地目・面積を確認できます。");
   return lines;
