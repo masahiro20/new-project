@@ -78,6 +78,17 @@ const lowRise = (p: PlanInput) => ["第一種低層住居専用地域", "第二�
 const residentialOnly = (p: PlanInput) =>
   lowRise(p) || ["第一種中高層住居専用地域", "第二種中高層住居専用地域"].includes(p.zoning);
 const mentions = (p: PlanInput, re: RegExp) => re.test(`${p.description}\n${p.landInfo}`);
+
+/** 愛知県建築基準条例は名古屋市を含む県内全域に適用される（同条例42条）。 */
+const AICHI_MUNI =
+  /^(愛知県|名古屋市|豊橋市|岡崎市|一宮市|瀬戸市|半田市|春日井市|豊川市|津島市|碧南市|刈谷市|豊田市|安城市|西尾市|蒲郡市|犬山市|常滑市|江南市|小牧市|稲沢市|新城市|東海市|大府市|知多市|知立市|尾張旭市|高浜市|岩倉市|豊明市|日進市|田原市|愛西市|清須市|北名古屋市|弥富市|みよし市|あま市|長久手市|愛知郡|西春日井郡|丹羽郡|海部郡|知多郡|額田郡|北設楽郡)/;
+export const isAichiAddress = (address: string) => AICHI_MUNI.test(address.replace(/\s/g, ""));
+const isAichi = (p: PlanInput) => isAichiAddress(p.address);
+const AICHI_JOREI: Ref = {
+  label: "愛知県建築基準条例・同解説（令和7年4月1日改訂版）",
+  url: "https://www.pref.aichi.jp/uploaded/attachment/556221.pdf",
+  publisher: "愛知県",
+};
 const has = (p: PlanInput, h: PlanInput["hazards"][number]) => p.hazards.includes(h);
 const extra = (p: PlanInput, e: PlanInput["extras"][number]) => p.extras.includes(e);
 const farmOnSite = (p: PlanInput) => p.signals.farmland === "敷地が農地の可能性" || p.landCategory === "田・畑（農地）";
@@ -1464,6 +1475,88 @@ const RULE_DEFS: Omit<Rule, keyof RuleMeta>[] = [
     ],
     when: (p) => (isBuild(p) && (extra(p, "境界未確定・越境あり") || p.roadType === "道路に該当しない・不明（通路・農道・水路等）" || (p.frontage !== null && p.frontage < 2)) ? "likely" : null),
   },
+
+  // ---------------------------------------------------------------- 愛知県建築基準条例（名古屋市を含む県内全域）
+  {
+    id: "aichi-roji",
+    category: "敷地・道路",
+    title: "路地状敷地（旗竿地）の路地幅（愛知県建築基準条例6条・7条）",
+    summary:
+      "愛知県内（名古屋市を含む）で敷地が路地状部分だけで道路に接するときは、路地状部分の長さに応じて幅が必要です：15m未満は2m以上、15m以上25m未満は2.5m以上、25m以上は3m以上（6条）。共同住宅・店舗・倉庫・車庫など別表第一(1)〜(6)項の用途で200㎡超は、4m・4.5m・5m以上（7条）。幅は「確保すべき幅」で有効幅員ではなく、路地状部分を他の敷地と共用することはできません（同解説）。都市計画区域・準都市計画区域内に適用。",
+    action: "公図・測量図で路地状部分の長さと最小幅を測り、条例の幅を満たすか確認。満たさない場合は知事（特定行政庁）の認定の見込みを建築指導課に事前相談。",
+    roles: ["設計", "営業"],
+    cites: [{ law: "kenkiho", article: "43", expectCaption: "（敷地等と道路との関係）" }],
+    refs: [AICHI_JOREI],
+    when: (p) => (isBuild(p) && isAichi(p) && (mentions(p, /旗竿|路地状|敷地延長|奥まった/) || (p.frontage !== null && p.frontage < 4)) ? "likely" : null),
+  },
+  {
+    id: "aichi-gake",
+    category: "造成・災害リスク",
+    title: "がけ条例（愛知県建築基準条例8条）",
+    summary:
+      "愛知県内（名古屋市を含む）で、高さ2mを超えるがけ（勾配30度超）に接し、または近接する敷地では、がけの上ならがけの下端から、がけの下ならがけの上端から、建築物までがけの高さの2倍以上の水平距離が必要です（8条1項）。令142条に適合する擁壁、一級建築士等が安全を確かめた高さ5m以下の擁壁、がけ下端から30度の線より深い基礎（がけ上）、RC造で開口部のない外壁や流土止（がけ下）などは例外です（平成12年県告示第899号）。がけの上の敷地には排水施設も必要です（同2項）。敷地外のがけも対象です。",
+    action: "現地でがけの高さ・勾配と、建物までの距離を測る。擁壁があれば構造・高さ・状態（はらみ・ひび割れ）と検査済証の有無を確認し、確認申請に「がけに関する調書」を添付（名古屋市など）。",
+    roles: ["設計", "施工"],
+    cites: [
+      { law: "kenkiho", article: "19", expectCaption: "（敷地の衛生及び安全）" },
+      { law: "kenkiho", article: "40", expectCaption: "（地方公共団体の条例による制限の附加）" },
+    ],
+    refs: [AICHI_JOREI],
+    when: (p) =>
+      isBuild(p) && isAichi(p)
+        ? extra(p, "高さ2m超の擁壁・崖に近接") || p.hazards.includes("急傾斜地崩壊危険区域")
+          ? "required"
+          : p.hazards.some((h) => h.startsWith("土砂災害")) || mentions(p, /がけ|崖|擁壁|高低差/)
+            ? "likely"
+            : null
+        : null,
+  },
+  {
+    id: "aichi-1000",
+    category: "敷地・道路",
+    title: "延べ1,000㎡超の建築物は道路に4m以上接する（愛知県建築基準条例5条）",
+    summary: "愛知県内で延べ面積1,000㎡を超える建築物の敷地は、道路に4m以上接しなければなりません。接道長さが4m以上でも、途中に幅4m未満の路地状部分があれば不可です（同解説）。",
+    action: "接道長さと路地状部分の幅を配置図で確認。",
+    roles: ["設計"],
+    cites: [{ law: "kenkiho", article: "43", expectCaption: "（敷地等と道路との関係）" }],
+    refs: [AICHI_JOREI],
+    when: (p) => (isBuild(p) && isAichi(p) && p.totalFloorArea !== null && p.totalFloorArea > 1000 ? "required" : null),
+  },
+  {
+    id: "aichi-nagaya",
+    category: "用途・形態制限",
+    title: "長屋の戸数・出入口（愛知県建築基準条例10条）",
+    summary:
+      "愛知県内で外壁が1時間準耐火基準の準耐火構造でない長屋は、5戸建て以下とし、各戸の主要な出入口を道路に面させます。道路に面さない場合は、出入口前から道路まで幅1.5m以上（階数3以下・延べ200㎡未満は90cm以上）の敷地内通路を設け、隣り合う住戸の接する壁の幅などの条件を満たす必要があります。",
+    action: "住戸数・出入口の位置・敷地内通路の幅を配置図に明記。",
+    roles: ["設計"],
+    cites: [{ law: "kenkiho", article: "40", expectCaption: "（地方公共団体の条例による制限の附加）" }],
+    refs: [AICHI_JOREI],
+    when: (p) => (isBuild(p) && isAichi(p) && p.buildingUse === "長屋" ? "required" : null),
+  },
+  {
+    id: "aichi-shako",
+    category: "敷地・道路",
+    title: "自動車車庫・修理工場の出入口（愛知県建築基準条例25条）",
+    summary:
+      "愛知県内で自動車修理工場、床面積50㎡以上の自動車車庫（住宅に附属するものを除く）は、幅6m未満の道路、交差点・曲がり角・横断歩道から5m以内、停留場・踏切から10m以内、公園・小学校・幼稚園・老人ホーム・保育所などの出入口から10m以内に、自動車の出入口を設けられません。",
+    action: "前面道路の幅員と、交差点・横断歩道・学校等の出入口までの距離を現地で測る。",
+    roles: ["設計"],
+    cites: [{ law: "kenkiho", article: "43", expectCaption: "（敷地等と道路との関係）" }],
+    refs: [AICHI_JOREI],
+    when: (p) => (isBuild(p) && isAichi(p) && p.buildingUse === "自動車車庫・修理工場" ? "required" : null),
+  },
+  {
+    id: "aichi-kyodo",
+    category: "構造・居室",
+    title: "共同住宅等の床下の防湿（愛知県建築基準条例24条）",
+    summary: "愛知県内の共同住宅・寄宿舎・ホテル・旅館・下宿は、最下階の居室の床が木造なら、床の高さにかかわらず床下をコンクリート・たたき等で覆います。",
+    action: "基礎・床下の仕様（防湿コンクリート等）を仕様書に明記。",
+    roles: ["設計"],
+    cites: [{ law: "kenkiho", article: "40", expectCaption: "（地方公共団体の条例による制限の附加）" }],
+    refs: [AICHI_JOREI],
+    when: (p) => (isBuild(p) && isAichi(p) && (p.buildingUse === "共同住宅・寄宿舎" || p.buildingUse === "宿泊施設（旅館・ホテル・民泊）") ? "required" : null),
+  },
 ];
 
 // Where each rule bites and whom to ask. Agency names are generic (the actual
@@ -1569,6 +1662,12 @@ const META: Record<string, RuleMeta> = {
   koukoku: { stage: "申請・届出", agency: KEIKAN },
   "minpo-kyokai": { stage: "設計", agency: "近隣（民事）", routine: true },
   "rinchi-shiyo": { stage: "工事・引渡し", agency: "近隣（民事）" },
+  "aichi-roji": { stage: "計画段階", agency: KENCHIKU },
+  "aichi-gake": { stage: "計画段階", agency: KENCHIKU },
+  "aichi-1000": { stage: "計画段階", agency: KENCHIKU },
+  "aichi-nagaya": { stage: "設計", agency: KENCHIKU },
+  "aichi-shako": { stage: "計画段階", agency: KENCHIKU },
+  "aichi-kyodo": { stage: "設計", agency: KENCHIKU },
 };
 
 export const MISSING_META = RULE_DEFS.filter((r) => !META[r.id]).map((r) => r.id);

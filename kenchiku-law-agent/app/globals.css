@@ -1359,3 +1359,13 @@ details.customer { margin-top: 8px; }
 .office-memo { margin-top: auto; display: grid; gap: 4px; font-size: 0.78rem; color: var(--muted); padding-top: 8px; }
 .office-memo textarea { min-height: 64px; font-size: 0.86rem; }
 @media (max-width: 760px) { .office-grid { grid-template-columns: 1fr; } }
+.office-muni { margin: 0 0 18px; padding: 14px 18px; border: 1px solid var(--line); background: var(--surface); display: grid; gap: 8px; }
+.office-muni > div { display: grid; grid-template-columns: 14em minmax(0, 1fr); gap: 12px; font-size: 0.86rem; line-height: 1.7; }
+.office-muni dt { color: var(--muted); }
+.office-muni dd { margin: 0; }
+.office-muni .hint { margin: 0; font-size: 0.76rem; }
+.office-meta { margin: -2px 0 6px; display: flex; flex-wrap: wrap; gap: 6px 12px; font-size: 0.8rem; }
+.office-meta .on { color: var(--ok); }
+.office-meta .off { color: var(--check); }
+.office-note { margin: 0 0 4px; font-size: 0.82rem; line-height: 1.7; color: var(--ink-3); background: var(--paper-2); padding: 8px 10px; }
+@media (max-width: 560px) { .office-muni > div { grid-template-columns: 1fr; gap: 2px; } }

@@ -16,6 +16,7 @@ import type { SiteContext } from "./site";
 import { ELEVATION_SOURCE, LANDPRICE_SOURCE } from "./siteextras";
 import { ROAD_SOURCE, roadLine } from "./roads";
 import { frontageLine, type Frontage } from "./frontage";
+import { isAichiAddress } from "./knowledge";
 import type { Survey } from "./survey";
 
 export type Tone = "ok" | "info" | "warn" | "danger" | "muted";
@@ -462,6 +463,9 @@ function draftFacts(plan: PlanInput, site: SiteContext | null, survey: SurveyFac
         near ? `まわりの道路：${(roads?.roads ?? []).map(roadLine).join("／")}` : roads ? `半径${roads.radius}m以内に地図上の道路がありません。旗竿地・通路・私道の可能性があるので、接道を必ず確認` : "",
         "地図から読んだ見込みで、認定幅員・境界・側溝・2項道路の後退は道路台帳と現地計測で確認",
         short ? "地図上の接道が2m未満。旗竿地の路地幅・接道義務（法43条）を必ず確認" : "",
+        fr && fr.sides.length > 0 && fr.totalM < 4 && isAichiAddress(plan.address)
+          ? "旗竿地なら愛知県建築基準条例6条：路地の長さ15m未満は幅2m以上・25m未満は2.5m以上・25m以上は3m以上（共同住宅等200㎡超は4m・4.5m・5m）"
+          : "",
         narrow ? "幅3m未満の道があり、2項道路（セットバック）の可能性" : "",
       ]
         .filter(Boolean)

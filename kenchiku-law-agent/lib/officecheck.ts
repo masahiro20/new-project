@@ -2,6 +2,7 @@
 // 窓口ごとに「何を聞くか」と、地図からの見込み・市の公開地図を探すリンクをまとめる。
 
 import { roadLine } from "./roads";
+import { VERIFIED_AT, municipalityOf, type Municipality } from "./municipal";
 import type { PlanInput } from "./plan";
 import type { SiteContext } from "./site";
 
@@ -17,6 +18,10 @@ export type OfficeItem = {
   memo: "roadNote" | "roadLedgerNote" | "waterNote" | "sewerNote" | "gasNote";
   /** 記入例。 */
   example: string;
+  /** 登録済みの市：担当課の電話・公開状況・注意点。 */
+  phone?: string;
+  online?: boolean | null;
+  note?: string;
 };
 
 /** 住所から市区町村名（政令市は区まで）を取り出す。 */
@@ -42,7 +47,7 @@ export function officeCheck(plan: PlanInput, site: SiteContext | null): OfficeIt
   const lpHint = (label: string, v: boolean | null | undefined) =>
     lp && v !== null && v !== undefined ? [`参考：近くの地価公示・調査地点（約${lp.meters}m）は${label}${v ? "あり" : "なし"}`] : [];
 
-  return [
+  const items: OfficeItem[] = [
     {
       office: "建築指導課（建築基準法上の道路）",
       questions: [
@@ -102,4 +107,24 @@ export function officeCheck(plan: PlanInput, site: SiteContext | null): OfficeIt
       example: "例：都市ガス本管あり（前面道路）",
     },
   ];
+  const muni = municipalityOf(`${site?.matched ?? ""} ${plan.address}`);
+  if (!muni) return items;
+  // 登録済みの市：担当課・電話・直接のリンクに置き換え、検索リンクは1本だけ残す。
+  const KEY: Record<OfficeItem["memo"], keyof Pick<Municipality, "road" | "ledger" | "water" | "sewer" | "gas">> = {
+    roadNote: "road",
+    roadLedgerNote: "ledger",
+    waterNote: "water",
+    sewerNote: "sewer",
+    gasNote: "gas",
+  };
+  return items.map((it) => {
+    const m = muni[KEY[it.memo]];
+    return { ...it, office: m.office, phone: m.phone, online: m.online, note: m.note, links: [...m.links, it.links[0]] };
+  });
+}
+
+/** 登録済みの市なら、特定行政庁と都市計画の公開地図。 */
+export function municipalContext(plan: PlanInput, site: SiteContext | null): { city: string; tokutei: string; planMap?: { label: string; url: string }; verifiedAt: string } | null {
+  const m = municipalityOf(`${site?.matched ?? ""} ${plan.address}`);
+  return m ? { city: m.city, tokutei: m.tokutei, planMap: m.planMap, verifiedAt: VERIFIED_AT } : null;
 }

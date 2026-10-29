@@ -12,7 +12,7 @@ import { frontageForLot } from "./lotfrontage";
 import { frontageLine } from "./frontage";
 import { searchLawbook } from "./lawbook";
 import { salesBrief } from "./salesbrief";
-import { officeCheck } from "./officecheck";
+import { municipalContext, officeCheck } from "./officecheck";
 import { LAWBOOK_LAWS } from "./lawbook-list";
 import { designCheck, designCheckToText } from "./designcheck";
 import { articleToText, resolveLaw } from "./agent";
@@ -357,8 +357,11 @@ export async function landLawCheckTool(args: Json, ctx: Ctx = {}): Promise<strin
   }
   if (site) {
     out.push("", "## 役所調査（道路・上下水・ガス。公開データでは確定しないので窓口・市の公開地図で確認）");
+    const muni = municipalContext(plan, site);
+    if (muni) out.push(`- 建築確認（特定行政庁）：${muni.tokutei}${muni.planMap ? `／都市計画の公開地図：[${muni.planMap.label}](${muni.planMap.url})` : ""}（${muni.verifiedAt} 確認）`);
     for (const o of officeCheck(plan, site)) {
-      out.push(`- **${o.office}**：${o.questions.join("／")}`);
+      out.push(`- **${o.office}**${o.phone ? `（${o.phone}）` : ""}${o.online === true ? "［ネットで見られる］" : o.online === false ? "［窓口で確認］" : ""}：${o.questions.join("／")}`);
+      if (o.note) out.push(`  - 注意：${o.note}`);
       if (o.hints.length) out.push(`  - 見込み（推測）：${o.hints.join("／")}`);
       out.push(`  - 公開地図を探す：${o.links.map((l) => `[${l.label}](${l.url})`).join("・")}`);
     }

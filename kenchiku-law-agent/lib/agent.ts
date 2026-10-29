@@ -12,6 +12,7 @@ import { digestToText } from "./lawdigest";
 import { LAWS, articleLabel, lawByTitle, normalizeArticle, type LawKey } from "./laws";
 import { planToText, type PlanInput } from "./plan";
 import { designCheck, designCheckToText } from "./designcheck";
+import { municipalContext, officeCheck } from "./officecheck";
 import { SYSTEM_PROMPT, USER_INSTRUCTION } from "./prompts";
 import { findingsToMarkdown, runRules } from "./rules";
 import { sourceTier } from "./tier";
@@ -232,6 +233,14 @@ function emitWebSources(content: Anthropic.Beta.BetaContentBlock[], emit: (e: Ag
   }
 }
 
+function officeBrief(plan: PlanInput, site: SiteContext | null): string {
+  const muni = municipalContext(plan, site);
+  const lines = muni ? [`- 建築確認（特定行政庁）：${muni.tokutei}${muni.planMap ? `／都市計画の公開地図：${muni.planMap.label} ${muni.planMap.url}` : ""}`] : ["- 登録外の市町村：web_search で公開地図と窓口を探す"];
+  for (const o of officeCheck(plan, site))
+    lines.push(`- ${o.office}${o.phone ? `（${o.phone}）` : ""}${o.online === true ? "［ネット公開あり］" : o.online === false ? "［窓口のみ］" : ""}${o.note ? `：${o.note}` : ""}${o.links.length ? `　リンク：${o.links.filter((l) => !l.url.includes("google.com")).map((l) => l.url).join(" ")}` : ""}`);
+  return lines.join("\n");
+}
+
 export function buildUserMessage(plan: PlanInput, site: SiteContext | null): string {
   const merged = mergeSiteIntoPlan(plan, site);
   const findings = runRules(merged);
@@ -246,6 +255,9 @@ export function buildUserMessage(plan: PlanInput, site: SiteContext | null): str
     "",
     "# 事前チェック（ルールベース・条文照合済み。上記の自動取得結果を反映）",
     findingsToMarkdown(findings),
+    "",
+    "# 役所調査（市の窓口と公開地図。登録済みの市は2026年10月に公式ページで確認した内容）",
+    officeBrief(merged, site),
     "",
     "# 設計条件チェック（自動。階数・延べ面積・構造・防火指定と条文の数値で照合。画面に表示済み）",
     designCheckToText(designCheck(merged)),

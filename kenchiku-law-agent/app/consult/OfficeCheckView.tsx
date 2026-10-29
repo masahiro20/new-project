@@ -1,10 +1,20 @@
 "use client";
 
-import type { OfficeItem } from "@/lib/officecheck";
+import type { OfficeItem, municipalContext } from "@/lib/officecheck";
 import type { Survey } from "@/lib/survey";
 
 /** 役所調査：窓口ごとに聞くこと・地図の見込み・市の公開地図を探すリンク・結果のメモ。 */
-export default function OfficeCheckView({ items, survey, set }: { items: OfficeItem[]; survey: Survey; set: (k: keyof Survey, v: string) => void }) {
+export default function OfficeCheckView({
+  items,
+  survey,
+  set,
+  muni,
+}: {
+  items: OfficeItem[];
+  survey: Survey;
+  set: (k: keyof Survey, v: string) => void;
+  muni?: ReturnType<typeof municipalContext>;
+}) {
   const done = items.filter((i) => String(survey[i.memo] ?? "").trim()).length;
   return (
     <div className="office">
@@ -13,6 +23,25 @@ export default function OfficeCheckView({ items, survey, set }: { items: OfficeI
         <b>土地情報まとめ・法令制限確認書の備考・AIの詳しいチェック</b>に反映されます。
         <span className="office-count">{done}/{items.length} 件 記入済み</span>
       </p>
+      {muni && (
+        <dl className="office-muni">
+          <div>
+            <dt>{muni.city}の建築確認（特定行政庁）</dt>
+            <dd>{muni.tokutei}</dd>
+          </div>
+          {muni.planMap && (
+            <div>
+              <dt>都市計画の公開地図</dt>
+              <dd>
+                <a href={muni.planMap.url} target="_blank" rel="noopener noreferrer">
+                  {muni.planMap.label} ↗
+                </a>
+              </dd>
+            </div>
+          )}
+          <p className="hint">窓口・公開地図は{muni.verifiedAt.replace(/-/g, "/")}に各市の公式ページで確認。担当課や電話番号は変わることがあります。</p>
+        </dl>
+      )}
       <div className="office-grid">
         {items.map((it) => {
           const memo = String(survey[it.memo] ?? "");
@@ -22,6 +51,13 @@ export default function OfficeCheckView({ items, survey, set }: { items: OfficeI
                 {it.office}
                 {memo.trim() && <span className="office-done">✓ 記入済み</span>}
               </h3>
+              {(it.phone || it.online !== undefined) && (
+                <p className="office-meta">
+                  {it.phone && <span>☎ {it.phone}</span>}
+                  {it.online !== undefined && it.online !== null && <span className={it.online ? "on" : "off"}>{it.online ? "ネットで見られる" : "窓口で確認"}</span>}
+                </p>
+              )}
+              {it.note && <p className="office-note">{it.note}</p>}
               <p className="office-k">聞くこと</p>
               <ol className="office-q">
                 {it.questions.map((q) => (

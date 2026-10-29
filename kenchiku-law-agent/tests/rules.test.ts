@@ -770,8 +770,8 @@ test("役所調査シート：市区町村名と窓口ごとの質問", async ()
   assert.deepEqual(cityOf("愛知県丹羽郡大口町下小口1"), { pref: "愛知県", city: "丹羽郡大口町", ward: "" });
   const items = officeCheck(plan({ address: "愛知県小牧市小牧4-213" }), null);
   assert.equal(items.length, 5);
-  assert.match(items[0].links[0].url, /%E5%B0%8F%E7%89%A7%E5%B8%82/);
-  assert.ok(items.find((i) => i.office.includes("（下水）"))!.questions.some((q) => q.includes("公共桝")));
+  assert.match(items[0].links[items[0].links.length - 1].url, /%E5%B0%8F%E7%89%A7%E5%B8%82/);
+  assert.ok(items.find((i) => i.memo === "sewerNote")!.questions.some((q) => q.includes("公共桝")));
 });
 
 test("接道の見込み：筆の境界のうち道路縁に沿う部分の長さと方位", async () => {
@@ -787,4 +787,25 @@ test("接道の見込み：筆の境界のうち道路縁に沿う部分の長�
   // 道路から離れた旗竿でない敷地の奥（北側）は数えない
   const far = measureFrontage([[0, 20], [10, 20], [10, 35], [0, 35], [0, 20]], cl, edges);
   assert.equal(far.totalM, 0);
+});
+
+test("市の登録：6市は担当課・電話・直接リンクに置き換わる（北名古屋市は名古屋市にしない）", async () => {
+  const { municipalityOf } = await import("../lib/municipal");
+  const { officeCheck, municipalContext } = await import("../lib/officecheck");
+  assert.equal(municipalityOf("愛知県名古屋市中区三の丸3-1-1")?.city, "名古屋市");
+  assert.equal(municipalityOf("愛知県北名古屋市西之保"), null);
+  for (const c of ["小牧市", "春日井市", "犬山市", "江南市", "一宮市", "名古屋市"]) assert.ok(municipalityOf(`愛知県${c}`), c);
+  const items = officeCheck(plan({ address: "愛知県名古屋市中区三の丸3-1-1" }), null);
+  assert.match(items[0].office, /道路審査担当/);
+  assert.equal(items[0].online, true);
+  assert.ok(items[0].links.some((l) => l.url.includes("shiteidourozu.city.nagoya.jp")));
+  assert.match(municipalContext(plan({ address: "愛知県江南市赤童子町" }), null)?.tokutei ?? "", /限定特定行政庁/);
+});
+
+test("愛知県建築基準条例：旗竿地・がけ・1,000㎡超は愛知県内だけで出る", () => {
+  const ids = (p: PlanInput) => runRules(p).map((f) => f.rule.id);
+  assert.ok(ids(plan({ address: "愛知県小牧市小牧1", description: "旗竿地に木造2階建て" })).includes("aichi-roji"));
+  assert.ok(!ids(plan({ address: "静岡県浜松市中央区元城町103-2", description: "旗竿地に木造2階建て" })).includes("aichi-roji"));
+  assert.ok(ids(plan({ address: "名古屋市中区三の丸", extras: ["高さ2m超の擁壁・崖に近接"] })).includes("aichi-gake"));
+  assert.ok(ids(plan({ address: "愛知県一宮市本町", totalFloorArea: 1200 })).includes("aichi-1000"));
 });

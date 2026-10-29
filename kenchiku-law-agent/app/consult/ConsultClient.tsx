@@ -14,7 +14,7 @@ import LandSheet from "./LandSheet";
 import SiteProgress from "./SiteProgress";
 import DesignCheckView from "./DesignCheckView";
 import OfficeCheckView from "./OfficeCheckView";
-import { officeCheck } from "@/lib/officecheck";
+import { municipalContext, officeCheck } from "@/lib/officecheck";
 import ViewSwitch, { VIEW_KEY, type ViewMode } from "./ViewSwitch";
 import SalesBriefView from "./SalesBriefView";
 import { salesBrief } from "@/lib/salesbrief";
@@ -970,7 +970,7 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
 
           {site && !siteBusy && (
             <Section id="s-office" no="03" title="役所調査（道路・上下水・ガス）" lead="接道・幅員・引込みは窓口と市の公開地図で確定します。聞くことと、地図からの見込みをまとめました。">
-              <OfficeCheckView items={officeItems} survey={survey} set={setSurveyField} />
+              <OfficeCheckView items={officeItems} survey={survey} set={setSurveyField} muni={municipalContext(effective, site)} />
             </Section>
           )}
 

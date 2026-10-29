@@ -5,6 +5,7 @@
 
 import { lawUrl } from "./egov";
 import type { PlanInput } from "./plan";
+import { isAichiAddress } from "./knowledge";
 
 const HO = "325AC0000000201";
 const REI = "325CO0000000338";
@@ -352,7 +353,23 @@ export function designCheck(p: PlanInput): DesignCheck {
   if (hz.includes("土砂災害特別警戒区域（レッド）"))
     add({ id: "red", area: "敷地条件", title: "土砂災害特別警戒区域の構造規制", verdict: "該当", reason: "レッドゾーン内の居室のある建築物は、想定される衝撃に耐える構造（令80条の3）", specs: ["崖側の外壁をRC造の待受け壁等にする構造計算", "開発・建築の許可要否を県に確認"], cites: [rei("80_3", "建築基準法施行令80条の3")] });
   if (p.extras.includes("高さ2m超の擁壁・崖に近接"))
-    add({ id: "gake", area: "敷地条件", title: "崖・擁壁の近接", verdict: "要確認", reason: "崖条例（県・市の条例）で崖からの離隔か擁壁・基礎の措置が必要な場合がある", specs: ["崖高さの2倍などの離隔、または深基礎・擁壁の安全確認（条例の数値を確認）"], cites: [ho("19", "建築基準法19条（敷地の衛生及び安全）")] });
+    add(
+      isAichiAddress(p.address)
+        ? {
+            id: "gake",
+            area: "敷地条件",
+            title: "がけ条例（愛知県建築基準条例8条）",
+            verdict: "該当",
+            reason: "高さ2m超（勾配30度超）のがけに接し・近接する敷地は、がけの高さの2倍以上の水平距離が必要（名古屋市を含む県内全域）",
+            specs: [
+              "がけの高さ・勾配と、建物までの水平距離（がけ上は下端から、がけ下は上端から）を測って配置図に記入",
+              "例外：令142条に適合する擁壁、一級建築士等が安全を確認した高さ5m以下の擁壁、がけ下端から30度の線より深い基礎（がけ上）、RC造で開口部のない外壁や流土止（がけ下）",
+              "がけの上の敷地は排水施設を設ける（同条2項）。敷地外のがけも対象",
+            ],
+            cites: [ho("19", "建築基準法19条（敷地の衛生及び安全）"), { label: "愛知県建築基準条例・同解説（8条・平成12年県告示第899号）", url: "https://www.pref.aichi.jp/uploaded/attachment/556221.pdf" }],
+          }
+        : { id: "gake", area: "敷地条件", title: "崖・擁壁の近接", verdict: "要確認", reason: "崖条例（県・市の条例）で崖からの離隔か擁壁・基礎の措置が必要な場合がある", specs: ["崖高さの2倍などの離隔、または深基礎・擁壁の安全確認（条例の数値を確認）"], cites: [ho("19", "建築基準法19条（敷地の衛生及び安全）")] },
+    );
 
   return { fire, basis: scale, items };
 }
