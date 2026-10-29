@@ -79,7 +79,7 @@ export default function Attachments({ files, onChange }: { files: Attachment[]; 
   return (
     <div className="field">
       <label>
-        土地の資料（任意） <span className="hint">登記簿・公図・測量図・重要事項説明書のPDF、現地写真。AIが読み取って判断に使います</span>
+        土地の資料（任意） <span className="hint">登記簿・公図・測量図・重要事項説明書のPDF、現地写真。AIが読み取って判断に使います。現地写真は「前面道路の全景（両方向）・側溝・水道メーター・汚水桝の蓋・ガスメーターかボンベ・境界杭・擁壁や高低差」を写すと、上下水・接道の手がかりを拾います</span>
       </label>
       <div
         className={`dropzone ${over ? "is-over" : ""}`}

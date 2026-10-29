@@ -16,7 +16,14 @@ const STEP = 0.5;
 
 type Pt = [number, number];
 export type FrontageSide = { direction: string; lengthM: number; kind: string; rankWidth: string };
-export type Frontage = { status: "ok" | "error"; totalM: number; sides: FrontageSide[]; error?: string };
+export type Frontage = {
+  status: "ok" | "error";
+  totalM: number;
+  sides: FrontageSide[];
+  /** 一番長く道路に面する辺から見た敷地の奥行（m）。 */
+  depthM?: number;
+  error?: string;
+};
 
 const DIRS = ["北", "北東", "東", "南東", "南", "南西", "西", "北西"];
 const dirOf = (dx: number, dy: number) => DIRS[Math.round((((Math.atan2(dx, dy) * 180) / Math.PI + 360) % 360) / 45) % 8];
@@ -100,7 +107,14 @@ export function measureFrontage(ring: Pt[], centerlines: { coords: Pt[]; props: 
   }
   const sides = [...merged.values()].filter((s) => s.lengthM >= 1).map((s) => ({ ...s, lengthM: Math.round(s.lengthM * 10) / 10 }));
   sides.sort((x, y) => y.lengthM - x.lengthM);
-  return { totalM: Math.round(sides.reduce((t, s) => t + s.lengthM, 0) * 10) / 10, sides };
+  // Depth: the lot's extent along the direction of the main frontage (toward the road).
+  let depthM: number | undefined;
+  if (sides.length) {
+    const a = (DIRS.indexOf(sides[0].direction) * 45 * Math.PI) / 180;
+    const proj = closed.map((p) => p[0] * Math.sin(a) + p[1] * Math.cos(a));
+    depthM = Math.round((Math.max(...proj) - Math.min(...proj)) * 10) / 10;
+  }
+  return { totalM: Math.round(sides.reduce((t, s) => t + s.lengthM, 0) * 10) / 10, sides, depthM };
 }
 
 type GeoLine = { geometry: { type: string; coordinates: unknown }; properties: Record<string, unknown> };

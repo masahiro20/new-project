@@ -809,3 +809,25 @@ test("愛知県建築基準条例：旗竿地・がけ・1,000㎡超は愛知県
   assert.ok(ids(plan({ address: "名古屋市中区三の丸", extras: ["高さ2m超の擁壁・崖に近接"] })).includes("aichi-gake"));
   assert.ok(ids(plan({ address: "愛知県一宮市本町", totalFloorArea: 1200 })).includes("aichi-1000"));
 });
+
+test("高さの目安：道路斜線（後退緩和）・北側斜線・絶対高さの小さい方", async () => {
+  const { envelope, fitsDepth } = await import("../lib/envelope");
+  const e = envelope({ zoning: "第一種低層住居専用地域", far: 100, roadWidth: 4, setback: 1, depth: 15, roadSide: "南" })!;
+  const at = (x: number) => e.points.find((p) => p.x === x)!;
+  assert.deepEqual([at(1).h, at(1).by], [7.5, "道路斜線"]); // 1.25 ×（4 + 1 + 1）
+  assert.deepEqual([at(5).h, at(5).by], [10, "絶対高さ10m"]);
+  // 道路が北なら、北側斜線は道路の反対側から：5 + 1.25 × (4 + x)
+  const n = envelope({ zoning: "第一種低層住居専用地域", far: 100, roadWidth: 4, setback: 1, depth: 15, roadSide: "北" })!;
+  assert.equal(n.points[0].h, 7.5);
+  assert.ok(fitsDepth(e, 7) > 10);
+  assert.equal(envelope({ zoning: "不明", far: 200, roadWidth: 4, setback: 1, depth: 15, roadSide: "南" }), null);
+});
+
+test("答え合わせ：CSVを見出しの列名で読む（Excelのタブ区切りも可）", async () => {
+  const { parseCases } = await import("../lib/accuracy");
+  const rows = parseCases("住所,用途地域,幅員\n愛知県小牧市小牧1,第一種住居地域,4.0\n");
+  assert.equal(rows[0].住所, "愛知県小牧市小牧1");
+  assert.equal(rows[0].幅員, "4.0");
+  assert.equal(rows[0].防火, "");
+  assert.equal(parseCases("住所\t用途地域\n名古屋市中区1\t商業地域")[0].用途地域, "商業地域");
+});

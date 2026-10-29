@@ -42,6 +42,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/claude">Claude連携</Link>
               <Link href="/rules">知識ベース</Link>
               <Link href="/sources">根拠と更新</Link>
+              <Link href="/accuracy">答え合わせ</Link>
               <Link href="/consult" className="nav-cta">
                 土地を調べる<span aria-hidden>➤</span>
               </Link>

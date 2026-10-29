@@ -13,14 +13,15 @@ import Attachments, { type Attachment } from "./Attachments";
 import LandSheet from "./LandSheet";
 import SiteProgress from "./SiteProgress";
 import DesignCheckView from "./DesignCheckView";
+import EnvelopeView from "./EnvelopeView";
 import OfficeCheckView from "./OfficeCheckView";
-import { municipalContext, officeCheck } from "@/lib/officecheck";
+import { cityOf, municipalContext, officeCheck } from "@/lib/officecheck";
 import ViewSwitch, { VIEW_KEY, type ViewMode } from "./ViewSwitch";
 import SalesBriefView from "./SalesBriefView";
 import { salesBrief } from "@/lib/salesbrief";
 import { officeNotesText } from "@/lib/survey";
 import { designCheck } from "@/lib/designcheck";
-import { landFacts, type SurveyFacts } from "@/lib/landsummary";
+import { landFacts, parsePercent, type SurveyFacts } from "@/lib/landsummary";
 import { reportToMarkdown, tasksToCsv, type PartialReport } from "@/lib/report";
 import { STAGE_HINT } from "@/lib/knowledge";
 import type { AgentEvent } from "@/lib/agent";
@@ -970,7 +971,9 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
 
           {site && !siteBusy && (
             <Section id="s-office" no="03" title="役所調査（道路・上下水・ガス）" lead="接道・幅員・引込みは窓口と市の公開地図で確定します。聞くことと、地図からの見込みをまとめました。">
-              <OfficeCheckView items={officeItems} survey={survey} set={setSurveyField} muni={municipalContext(effective, site)} />
+              <OfficeCheckView items={officeItems} survey={survey} set={setSurveyField} muni={municipalContext(effective, site)}
+                share={{ address: plan.address.trim(), city: municipalContext(effective, site)?.city ?? cityOf(site.matched || plan.address).city, lat: site.lat, lon: site.lon, accessKey }}
+              />
             </Section>
           )}
 
@@ -1068,6 +1071,14 @@ export default function ConsultClient({ accessRequired, siteLookupAvailable }: {
           {findings.length > 0 && forDesign && (
             <Section id="s-design" no="06" title="設計条件チェック（設計者向け）" lead="防火・構造・省エネ・内装・敷地条件を、階数・延べ面積・構造・防火指定と条文で照合した結果です（AIは使っていません）。">
               <DesignCheckView check={design} />
+              <h3 className="envelope-title">建てられる高さの目安（道路と直角な断面）</h3>
+              <EnvelopeView
+                zoning={effective.zoning}
+                far={parsePercent(site?.derived.yoseki)}
+                roadWidth={effective.roadWidth}
+                roadDirection={lotInfo?.frontage?.sides[0]?.direction}
+                depth={lotInfo?.frontage?.depthM}
+              />
             </Section>
           )}
 

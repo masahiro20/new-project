@@ -1369,3 +1369,42 @@ details.customer { margin-top: 8px; }
 .office-meta .off { color: var(--check); }
 .office-note { margin: 0 0 4px; font-size: 0.82rem; line-height: 1.7; color: var(--ink-3); background: var(--paper-2); padding: 8px 10px; }
 @media (max-width: 560px) { .office-muni > div { grid-template-columns: 1fr; gap: 2px; } }
+.office-share { margin: 0 0 18px; padding: 14px 18px; border: 1px solid var(--line); border-left: 3px solid var(--ok); background: var(--surface); display: grid; gap: 8px; }
+.office-share-row { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+.office-share-row .hint { flex: 1 1 220px; }
+.office-by { width: 11em; padding: 6px 10px; font-size: 0.86rem; }
+.office-nearby summary { cursor: pointer; font-size: 0.86rem; }
+.office-nearby ul { list-style: none; margin: 8px 0 0; padding: 0; }
+.office-nearby li { display: grid; gap: 2px; padding: 8px 0; border-bottom: 1px dashed var(--line); font-size: 0.84rem; line-height: 1.6; }
+.office-nearby small { color: var(--muted); }
+
+/* ---------- 建てられる高さの目安 ---------- */
+.envelope-title { margin: 40px 0 10px; font-size: 0.98rem; letter-spacing: 0.1em; border-bottom: 1px solid var(--ink); padding-bottom: 8px; }
+.envelope-inputs { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 0.84rem; margin-bottom: 10px; }
+.envelope-inputs label { display: flex; gap: 6px; align-items: center; white-space: nowrap; }
+.envelope-inputs input { width: 5.5em; padding: 4px 8px; font-size: 0.86rem; }
+.envelope-inputs select { padding: 4px 8px; font-size: 0.86rem; }
+.envelope-inputs small { color: var(--muted); }
+.envelope-svg { width: 100%; height: auto; background: var(--surface); border: 1px solid var(--line); }
+.env-road { fill: #d9dde2; }
+.env-ground { stroke: var(--ink); stroke-width: 1; }
+.env-area { fill: rgba(61, 122, 92, 0.12); }
+.env-line { fill: none; stroke: var(--ok); stroke-width: 2; }
+.env-ref { stroke: var(--warn); stroke-dasharray: 4 3; stroke-width: 1; }
+.env-label { font-size: 11px; fill: var(--ink-3); }
+.env-axis { font-size: 10px; fill: var(--muted); }
+.envelope-sum { margin: 10px 0 6px; padding-left: 1.2em; font-size: 0.88rem; line-height: 1.8; }
+.envelope .hint { font-size: 0.78rem; }
+
+/* ---------- 答え合わせ ---------- */
+.accuracy textarea { width: 100%; font-family: var(--font-coord); font-size: 0.82rem; }
+.accuracy-run { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; margin: 12px 0 24px; }
+.accuracy h2 { font-size: 1.05rem; margin: 32px 0 10px; }
+.accuracy-table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+.accuracy-table th, .accuracy-table td { border-bottom: 1px solid var(--line); padding: 8px 10px; text-align: left; }
+.accuracy-table td.good { color: var(--ok); font-weight: 600; }
+.accuracy-table td.mid { color: var(--warn); font-weight: 600; }
+.accuracy-table td.bad { color: var(--danger); font-weight: 600; }
+.accuracy-table tr.v-不一致 td { color: var(--danger); }
+.accuracy-case { margin: 8px 0; border: 1px solid var(--line); padding: 8px 12px; background: var(--surface); }
+.accuracy-case summary { cursor: pointer; font-size: 0.9rem; }

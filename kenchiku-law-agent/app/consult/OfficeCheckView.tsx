@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import type { OfficeItem, municipalContext } from "@/lib/officecheck";
 import type { Survey } from "@/lib/survey";
 
@@ -9,12 +10,16 @@ export default function OfficeCheckView({
   survey,
   set,
   muni,
+  share,
 }: {
   items: OfficeItem[];
   survey: Survey;
   set: (k: keyof Survey, v: string) => void;
   muni?: ReturnType<typeof municipalContext>;
+  /** 社内共有（サーバーの非公開ストア）に使う位置とアクセスキー。 */
+  share?: { address: string; city: string; lat: number | null; lon: number | null; accessKey: string };
 }) {
+  const shared = useSharedNotes(share, items, survey, set);
   const done = items.filter((i) => String(survey[i.memo] ?? "").trim()).length;
   return (
     <div className="office">
@@ -41,6 +46,39 @@ export default function OfficeCheckView({
           )}
           <p className="hint">窓口・公開地図は{muni.verifiedAt.replace(/-/g, "/")}に各市の公式ページで確認。担当課や電話番号は変わることがあります。</p>
         </dl>
+      )}
+      {shared.available && (
+        <div className="office-share">
+          <div className="office-share-row">
+            <strong>社内共有</strong>
+            <span className="hint">
+              {shared.own ? `共有済み（${new Date(shared.own.updatedAt).toLocaleDateString("ja-JP")}${shared.own.by ? `・${shared.own.by}` : ""}）` : "まだ共有されていません"}
+              {shared.filled > 0 && `。共有の結果を${shared.filled}件読み込みました`}
+            </span>
+            <input type="text" className="office-by" value={shared.by} maxLength={40} placeholder="記入者（任意）" onChange={(e) => shared.setBy(e.target.value)} />
+            <button type="button" className="btn small" onClick={shared.save} disabled={shared.busy || done === 0}>
+              {shared.busy ? "保存中…" : "調査結果を社内に共有"}
+            </button>
+          </div>
+          {shared.message && <p className="hint">{shared.message}</p>}
+          {shared.nearby.length > 0 && (
+            <details className="office-nearby" open>
+              <summary>近くの調査結果（{shared.nearby.length}件・半径200m）— 同じ道路・同じ本管の可能性</summary>
+              <ul>
+                {shared.nearby.map((n) => (
+                  <li key={n.key}>
+                    <b>
+                      約{n.meters}m先（{n.address.replace(/^.*?[市町村区]/, "").replace(/[-－]\d+$/, "")}付近）
+                    </b>
+                    <span>{n.summary}</span>
+                    <small>{new Date(n.updatedAt).toLocaleDateString("ja-JP")}</small>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
+          <p className="hint">共有するのは道路・上下水・ガスの調査メモと位置だけです。お客様の情報は送りません。</p>
+        </div>
       )}
       <div className="office-grid">
         {items.map((it) => {
@@ -100,4 +138,94 @@ export default function OfficeCheckView({
       <p className="hint">メモはこの端末に住所ごとに保存されます。公開地図は「参考図」の扱いが多いので、確定は窓口の回答・台帳の写しで。</p>
     </div>
   );
+}
+
+type Shared = { address: string; by: string; updatedAt: string; notes: Partial<Record<OfficeItem["memo"], string>> };
+type Nearby = { key: string; address: string; meters: number; summary: string; updatedAt: string };
+
+/** 共有メモの読み込み（空欄だけ埋める）と保存。 */
+function useSharedNotes(
+  share: { address: string; city: string; lat: number | null; lon: number | null; accessKey: string } | undefined,
+  items: OfficeItem[],
+  survey: Survey,
+  set: (k: keyof Survey, v: string) => void,
+) {
+  const [available, setAvailable] = useState(false);
+  const [own, setOwn] = useState<Shared | null>(null);
+  const [nearby, setNearby] = useState<Nearby[]>([]);
+  const [filled, setFilled] = useState(0);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  const [by, setByState] = useState("");
+  const headers = share?.accessKey ? { "x-access-key": share.accessKey } : undefined;
+
+  useEffect(() => {
+    try {
+      setByState(localStorage.getItem("kenchiku-law-agent:notes-by") ?? "");
+    } catch {
+      // storage blocked
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!share || share.address.trim().length < 3) return;
+    let alive = true;
+    const q = new URLSearchParams({ address: share.address, city: share.city, ...(share.lat !== null && share.lon !== null ? { lat: String(share.lat), lon: String(share.lon) } : {}) });
+    fetch(`/api/notes?${q}`, { headers })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { available: boolean; own: Shared | null; nearby: Nearby[] } | null) => {
+        if (!alive || !d) return;
+        setAvailable(d.available);
+        setOwn(d.own);
+        setNearby(d.nearby ?? []);
+        let n = 0;
+        for (const it of items) {
+          const v = d.own?.notes[it.memo]?.trim();
+          if (v && !String(survey[it.memo] ?? "").trim()) {
+            set(it.memo, v);
+            n++;
+          }
+        }
+        setFilled(n);
+      })
+      .catch(() => undefined);
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [share?.address, share?.lat, share?.lon]);
+
+  async function save() {
+    if (!share) return;
+    setBusy(true);
+    setMessage(null);
+    try {
+      const notes = Object.fromEntries(items.map((it) => [it.memo, String(survey[it.memo] ?? "")]));
+      const res = await fetch("/api/notes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...(headers ?? {}) },
+        body: JSON.stringify({ address: share.address, city: share.city, lat: share.lat, lon: share.lon, notes, by }),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok) setMessage(d.error ?? "保存に失敗しました。");
+      else {
+        setOwn(d.saved);
+        setMessage("社内に共有しました。この住所や近くの住所を調べた人に表示されます。");
+      }
+    } catch {
+      setMessage("通信エラーで保存できませんでした。");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const setBy = (v: string) => {
+    setByState(v);
+    try {
+      localStorage.setItem("kenchiku-law-agent:notes-by", v);
+    } catch {
+      // storage blocked
+    }
+  };
+  return { available, own, nearby, filled, busy, message, by, setBy, save };
 }

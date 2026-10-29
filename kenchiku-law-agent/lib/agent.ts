@@ -12,7 +12,8 @@ import { digestToText } from "./lawdigest";
 import { LAWS, articleLabel, lawByTitle, normalizeArticle, type LawKey } from "./laws";
 import { planToText, type PlanInput } from "./plan";
 import { designCheck, designCheckToText } from "./designcheck";
-import { municipalContext, officeCheck } from "./officecheck";
+import { cityOf, municipalContext, officeCheck } from "./officecheck";
+import { loadNotes, nearbyNotes, sharingAvailable } from "./sharednotes";
 import { SYSTEM_PROMPT, USER_INSTRUCTION } from "./prompts";
 import { findingsToMarkdown, runRules } from "./rules";
 import { sourceTier } from "./tier";
@@ -267,7 +268,7 @@ export function buildUserMessage(plan: PlanInput, site: SiteContext | null): str
 }
 
 /** First user turn: the attached documents (PDF / images) followed by the text brief; cached as one prefix. */
-function userContent(plan: PlanInput, site: SiteContext | null, documents: Upload[]): Anthropic.Beta.BetaContentBlockParam[] {
+function userContent(plan: PlanInput, site: SiteContext | null, documents: Upload[], extra = ""): Anthropic.Beta.BetaContentBlockParam[] {
   const blocks: Anthropic.Beta.BetaContentBlockParam[] = [];
   for (const d of documents) {
     if (d.mediaType === "application/pdf") {
@@ -278,7 +279,7 @@ function userContent(plan: PlanInput, site: SiteContext | null, documents: Uploa
     }
   }
   const list = documents.length ? `\n\n# 添付資料\n${documents.map((d, i) => `${i + 1}. ${d.name}`).join("\n")}\n上の資料を読み、システムプロンプトの「添付資料の読み方」に従って事実を拾い、report の documents に資料ごとにまとめてください。` : "\n\n# 添付資料\nなし（report の documents は空配列）";
-  blocks.push({ type: "text", text: buildUserMessage(plan, site) + list, cache_control: { type: "ephemeral" } });
+  blocks.push({ type: "text", text: buildUserMessage(plan, site) + extra + list, cache_control: { type: "ephemeral" } });
   return blocks;
 }
 
@@ -312,7 +313,22 @@ export function consultStream(plan: PlanInput, documents: Upload[] = []): Readab
           emit({ type: "status", text: `土地情報の自動取得に失敗しました（${e instanceof Error ? e.message : "不明なエラー"}）。手入力の値で続行します。` });
         }
       }
-      const messages: Anthropic.Beta.BetaMessageParam[] = [{ role: "user", content: userContent(plan, site, documents) }];
+      // 社内で共有された近くの調査結果（同じ道路・同じ本管の手がかり）。
+      let sharedText = "";
+      if (site?.lat != null && site.lon != null && sharingAvailable()) {
+        try {
+          const city = municipalContext(plan, site)?.city ?? cityOf(site.matched || plan.address).city;
+          const [own, near] = await Promise.all([loadNotes(plan.address), nearbyNotes(city, site.lat, site.lon, plan.address)]);
+          const lines = [
+            ...(own ? [`- この住所（${own.updatedAt.slice(0, 10)}${own.by ? `・${own.by}` : ""}）：${Object.values(own.notes).filter(Boolean).join("／")}`] : []),
+            ...near.map((n) => `- 約${n.meters}m先の別の敷地（${n.updatedAt.slice(0, 10)}）：${n.summary}`),
+          ];
+          if (lines.length) sharedText = `\n\n# 社内で共有された役所調査の結果（担当者が窓口で確認した内容。近くの敷地は同じ道路・本管の手がかりで、この敷地に当てはまるかは要確認）\n${lines.join("\n")}`;
+        } catch (e) {
+          console.error("shared notes failed", e);
+        }
+      }
+      const messages: Anthropic.Beta.BetaMessageParam[] = [{ role: "user", content: userContent(plan, site, documents, sharedText) }];
       if (documents.length) emit({ type: "status", text: `添付資料 ${documents.length} 件（${documents.map((d) => d.name).join("、")}）を読み込みます…` });
       emit({ type: "status", text: "事前チェックを作成しました。条文と公的資料を確認しています…" });
 
