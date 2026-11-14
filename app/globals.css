@@ -97,6 +97,12 @@ textarea { min-height: 110px; resize: vertical; }
 .prose th, .prose td { border: 1px solid var(--line); padding: 8px; text-align: left; }
 .prose th { background: var(--accent-soft); }
 
+.pr-notice { font-size: .85rem; color: var(--muted); margin: 0 0 16px; }
+.pr-tag { font-size: .7rem; font-weight: 700; color: var(--muted); border: 1px solid var(--line); border-radius: 4px; padding: 1px 6px; margin-left: 8px; vertical-align: middle; }
+.offers { margin-top: 40px; }
+.offer { margin-bottom: 12px; }
+.offer .btn { margin-top: 12px; }
+
 @media (max-width: 600px) {
   .site-header nav { gap: 10px; font-size: .85rem; }
   section { padding: 40px 0; }

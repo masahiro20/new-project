@@ -1,1 +1,2 @@
 @AGENTS.md
+@docs/AFFILIATE_PLAN.md

@@ -2,6 +2,7 @@
 
 障害福祉サービス事業所向けに、虐待防止・身体拘束等適正化の年間書類をAIで作成するWebサービスです。
 事業計画は [docs/PROJECT_PLAN.md](docs/PROJECT_PLAN.md) を参照してください。
+アフィリエイト（広告）の運用は [docs/AFFILIATE_PLAN.md](docs/AFFILIATE_PLAN.md) を参照してください。
 
 ## できること
 

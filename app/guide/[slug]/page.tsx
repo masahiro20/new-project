@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import MarkdownView from "@/app/MarkdownView";
+import OfferBox, { PrNotice } from "@/app/OfferBox";
 import { GUIDES, getGuide } from "@/lib/guides";
+import { offersFor } from "@/lib/offers";
 import { siteUrl, SITE_NAME } from "@/lib/site";
 
 export function generateStaticParams() {
@@ -17,6 +19,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function GuidePage({ params }: { params: Promise<{ slug: string }> }) {
   const guide = getGuide((await params).slug);
   if (!guide) notFound();
+  const offers = offersFor(guide.offers);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -34,8 +37,10 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
       <article className="wrap narrow prose">
         <p className="eyebrow">解説　最終更新：{guide.updated}</p>
         <h1>{guide.title}</h1>
+        {offers.length > 0 && <PrNotice />}
         <p className="ok">{guide.summary}</p>
         <MarkdownView markdown={guide.body} />
+        <OfferBox offers={offers} />
         <h2>出典・参考</h2>
         <ul>
           {guide.sources.map((s) => (
