@@ -22,7 +22,7 @@
 
 ## 人が行う作業（最初に1回）
 
-1. サイトを公開する（`README.md` の公開手順。ASPの審査には公開済みのサイトが必要）
+1. 済：サイトを公開（https://gensan-zero.vercel.app 、Vercelプロジェクト `gensan-zero`）。本番ブランチの設定は `claude/ai-monetization-strategies-jfd4mo` のままなので、作業ブランチの変更を本番に出すときはセッションでそのブランチを本番デプロイする。書類作成の有料機能は `ANTHROPIC_API_KEY` と `STRIPE_SECRET_KEY` を設定するまで動かない
 2. `app/legal/page.tsx` と `app/privacy/page.tsx` の【要記入】を埋める
 3. ASPに登録する（A8.net、アクセストレード、バリューコマース、レントラックスなど。無料）
 4. 下の4カテゴリで案件を探して提携申請し、承認された案件の「案件名・報酬単価・成果条件・広告リンク」をセッションに貼る
