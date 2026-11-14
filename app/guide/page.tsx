@@ -13,12 +13,19 @@ export default function GuideIndex() {
       <div className="wrap narrow">
         <p className="eyebrow">解説</p>
         <h1>減算・書類・事業所運営の解説</h1>
-        {GUIDES.map((g) => (
-          <div key={g.slug} className="card" style={{ marginBottom: 12 }}>
-            <h3><Link href={`/guide/${g.slug}`}>{g.title}</Link></h3>
-            <p>{g.description}</p>
-          </div>
-        ))}
+        <ul className="index-list">
+          {GUIDES.map((g, i) => (
+            <li key={g.slug} data-fx style={{ "--i": i % 4 } as React.CSSProperties}>
+              <Link href={`/guide/${g.slug}`}>
+                <span className="no">{String(i + 1).padStart(2, "0")}</span>
+                <span>
+                  {g.title}
+                  <small>{g.description}</small>
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
   );

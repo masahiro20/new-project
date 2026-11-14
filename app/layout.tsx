@@ -1,7 +1,12 @@
 import type { Metadata } from "next";
+import { Shippori_Mincho_B1 } from "next/font/google";
 import Link from "next/link";
+import ScrollFx from "./ScrollFx";
 import { siteUrl } from "@/lib/site";
 import "./globals.css";
+
+// Japanese glyphs load on demand through unicode-range slices, so nothing is preloaded.
+const mincho = Shippori_Mincho_B1({ weight: ["700", "800"], subsets: ["latin"], preload: false, display: "swap", variable: "--font-mincho" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl()),
@@ -16,11 +21,13 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ja">
+    <html lang="ja" className={mincho.variable}>
       <body>
+        <div className="progress" aria-hidden="true" />
+        <ScrollFx />
         <header className="site-header">
           <div className="wrap header-inner">
-            <Link href="/" className="logo">減算ゼロ</Link>
+            <Link href="/" className="logo"><span className="seal" aria-hidden="true">零</span>減算ゼロ</Link>
             <nav>
               <Link href="/check">無料診断</Link>
               <Link href="/guide">解説</Link>
@@ -31,6 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <main>{children}</main>
         <footer className="site-footer">
           <div className="wrap">
+            <p className="footer-mark" aria-hidden="true">減算<em>ゼロ</em></p>
             <nav>
               <Link href="/legal">特定商取引法に基づく表記</Link>
               <Link href="/privacy">プライバシーポリシー</Link>
