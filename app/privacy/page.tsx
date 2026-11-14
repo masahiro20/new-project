@@ -14,7 +14,7 @@ export default function PrivacyPage() {
         <h2>決済情報</h2>
         <p>クレジットカード情報は決済代行事業者（Stripe）が管理し、当サービスでは保持しません。</p>
         <h2>お問い合わせ</h2>
-        <p>【要記入：連絡先メールアドレス】</p>
+        <p>ヒルフェクリエイト（運営責任者：中谷 真弘）<br />hilfe.create@gmail.com</p>
       </div>
     </section>
   );
